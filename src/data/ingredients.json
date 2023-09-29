@@ -1,0 +1,590 @@
+[
+  {
+    "name": "chicken",
+    "category": "Proteins"
+  },
+  {
+    "name": "beef",
+    "category": "Proteins"
+  },
+  {
+    "name": "pork",
+    "category": "Proteins"
+  },
+  {
+    "name": "lamb",
+    "category": "Proteins"
+  },
+  {
+    "name": "duck",
+    "category": "Proteins"
+  },
+  {
+    "name": "shrimp",
+    "category": "Proteins"
+  },
+  {
+    "name": "scallops",
+    "category": "Proteins"
+  },
+  {
+    "name": "squid",
+    "category": "Proteins"
+  },
+  {
+    "name": "clams",
+    "category": "Proteins"
+  },
+  {
+    "name": "mussels",
+    "category": "Proteins"
+  },
+  {
+    "name": "fish slices",
+    "category": "Proteins"
+  },
+  {
+    "name": "tofu",
+    "category": "Proteins"
+  },
+  {
+    "name": "eggs",
+    "category": "Proteins"
+  },
+  {
+    "name": "tempeh",
+    "category": "Proteins"
+  },
+  {
+    "name": "seitan",
+    "category": "Proteins"
+  },
+  {
+    "name": "turkey",
+    "category": "Proteins"
+  },
+  {
+    "name": "sausage",
+    "category": "Proteins"
+  },
+  {
+    "name": "bacon",
+    "category": "Proteins"
+  },
+  {
+    "name": "ham",
+    "category": "Proteins"
+  },
+  {
+    "name": "bok choy",
+    "category": "Vegetables"
+  },
+  {
+    "name": "spinach",
+    "category": "Vegetables"
+  },
+  {
+    "name": "Swiss chard",
+    "category": "Vegetables"
+  },
+  {
+    "name": "kale",
+    "category": "Vegetables"
+  },
+  {
+    "name": "mustard greens",
+    "category": "Vegetables"
+  },
+  {
+    "name": "broccoli",
+    "category": "Vegetables"
+  },
+  {
+    "name": "cauliflower",
+    "category": "Vegetables"
+  },
+  {
+    "name": "Brussels sprouts",
+    "category": "Vegetables"
+  },
+  {
+    "name": "carrots",
+    "category": "Vegetables"
+  },
+  {
+    "name": "radish",
+    "category": "Vegetables"
+  },
+  {
+    "name": "turnips",
+    "category": "Vegetables"
+  },
+  {
+    "name": "red bell pepper",
+    "category": "Vegetables"
+  },
+  {
+    "name": "yellow bell pepper",
+    "category": "Vegetables"
+  },
+  {
+    "name": "green bell pepper",
+    "category": "Vegetables"
+  },
+  {
+    "name": "orange bell pepper",
+    "category": "Vegetables"
+  },
+  {
+    "name": "shiitake mushroom",
+    "category": "Vegetables"
+  },
+  {
+    "name": "oyster mushroom",
+    "category": "Vegetables"
+  },
+  {
+    "name": "button mushroom",
+    "category": "Vegetables"
+  },
+  {
+    "name": "cremini mushroom",
+    "category": "Vegetables"
+  },
+  {
+    "name": "enoki mushroom",
+    "category": "Vegetables"
+  },
+  {
+    "name": "snow peas",
+    "category": "Vegetables"
+  },
+  {
+    "name": "snap peas",
+    "category": "Vegetables"
+  },
+  {
+    "name": "green beans",
+    "category": "Vegetables"
+  },
+  {
+    "name": "edamame",
+    "category": "Vegetables"
+  },
+  {
+    "name": "green onions",
+    "category": "Vegetables"
+  },
+  {
+    "name": "yellow onions",
+    "category": "Vegetables"
+  },
+  {
+    "name": "red onions",
+    "category": "Vegetables"
+  },
+  {
+    "name": "shallots",
+    "category": "Vegetables"
+  },
+  {
+    "name": "zucchini",
+    "category": "Vegetables"
+  },
+  {
+    "name": "eggplant",
+    "category": "Vegetables"
+  },
+  {
+    "name": "bamboo shoots",
+    "category": "Vegetables"
+  },
+  {
+    "name": "water chestnuts",
+    "category": "Vegetables"
+  },
+  {
+    "name": "romaine lettuce",
+    "category": "Vegetables"
+  },
+  {
+    "name": "iceberg lettuce",
+    "category": "Vegetables"
+  },
+  {
+    "name": "cherry tomatoes",
+    "category": "Vegetables"
+  },
+  {
+    "name": "cucumbers",
+    "category": "Vegetables"
+  },
+  {
+    "name": "red cabbage",
+    "category": "Vegetables"
+  },
+  {
+    "name": "white cabbage",
+    "category": "Vegetables"
+  },
+  {
+    "name": "celery",
+    "category": "Vegetables"
+  },
+  {
+    "name": "avocado",
+    "category": "Vegetables"
+  },
+  {
+    "name": "sweet corn",
+    "category": "Vegetables"
+  },
+  {
+    "name": "jalape\u00f1os",
+    "category": "Vegetables"
+  },
+  {
+    "name": "rice noodles",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "egg noodles",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "udon",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "soba",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "glass noodles",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "jasmine rice",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "basmati rice",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "brown rice",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "wild rice",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "quinoa",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "barley",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "farro",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "whole wheat pasta",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "spaghetti",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "penne",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "couscous",
+    "category": "Noodles and Grains"
+  },
+  {
+    "name": "garlic",
+    "category": "Aromatics"
+  },
+  {
+    "name": "ginger",
+    "category": "Aromatics"
+  },
+  {
+    "name": "lemongrass",
+    "category": "Aromatics"
+  },
+  {
+    "name": "chilies",
+    "category": "Aromatics"
+  },
+  {
+    "name": "red chili flakes",
+    "category": "Aromatics"
+  },
+  {
+    "name": "fresh basil",
+    "category": "Aromatics"
+  },
+  {
+    "name": "fresh rosemary",
+    "category": "Aromatics"
+  },
+  {
+    "name": "fresh thyme",
+    "category": "Aromatics"
+  },
+  {
+    "name": "light soy sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "dark soy sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "sweet soy sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "oyster sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "hoisin sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "sesame oil",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "fish sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "teriyaki sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "rice vinegar",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "mirin",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "chili oil",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "chili paste",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "black bean paste",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "fermented bean paste",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "peanut sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "ketchup",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "mayonnaise",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "mustard",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "BBQ sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "hot sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "Worcestershire sauce",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "ranch dressing",
+    "category": "Sauces and Condiments"
+  },
+  {
+    "name": "peanuts",
+    "category": "Nuts and Seeds"
+  },
+  {
+    "name": "cashews",
+    "category": "Nuts and Seeds"
+  },
+  {
+    "name": "almonds",
+    "category": "Nuts and Seeds"
+  },
+  {
+    "name": "sesame seeds",
+    "category": "Nuts and Seeds"
+  },
+  {
+    "name": "sunflower seeds",
+    "category": "Nuts and Seeds"
+  },
+  {
+    "name": "pumpkin seeds",
+    "category": "Nuts and Seeds"
+  },
+  {
+    "name": "walnuts",
+    "category": "Nuts and Seeds"
+  },
+  {
+    "name": "pecans",
+    "category": "Nuts and Seeds"
+  },
+  {
+    "name": "cilantro",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "Thai basil",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "mint",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "parsley",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "lime wedges",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "lemon wedges",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "green olives",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "black olives",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "dill",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "chives",
+    "category": "Herbs and Garnishes"
+  },
+  {
+    "name": "five-spice powder",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "Szechuan peppercorns",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "white pepper",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "black pepper",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "star anise",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "fennel seeds",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "paprika",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "cayenne pepper",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "oregano",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "bay leaves",
+    "category": "Spices and Seasonings"
+  },
+  {
+    "name": "vegetable oil",
+    "category": "Oils for Cooking"
+  },
+  {
+    "name": "peanut oil",
+    "category": "Oils for Cooking"
+  },
+  {
+    "name": "sesame oil",
+    "category": "Oils for Cooking"
+  },
+  {
+    "name": "canola oil",
+    "category": "Oils for Cooking"
+  },
+  {
+    "name": "coconut oil",
+    "category": "Oils for Cooking"
+  },
+  {
+    "name": "olive oil",
+    "category": "Oils for Cooking"
+  },
+  {
+    "name": "avocado oil",
+    "category": "Oils for Cooking"
+  },
+  {
+    "name": "grapeseed oil",
+    "category": "Oils for Cooking"
+  },
+  {
+    "name": "cornstarch",
+    "category": "Binders and Thickeners"
+  },
+  {
+    "name": "arrowroot powder",
+    "category": "Binders and Thickeners"
+  },
+  {
+    "name": "gelatin",
+    "category": "Binders and Thickeners"
+  },
+  {
+    "name": "pectin",
+    "category": "Binders and Thickeners"
+  }
+]
