@@ -1,12 +1,11 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { RecipePrompt } from "@/components/recipe-prompt";
 import { redirect } from "next/navigation";
 
 export default function Home() {
   redirect("/new");
-
-  return (
-    <ScrollArea>
-      <main></main>
-    </ScrollArea>
-  );
+  // return (
+  //   <div className="flex flex-col flex-end flex-1 justify-end pt-16 overflow-hidden">
+  //     <RecipePrompt />
+  //   </div>
+  // );
 }

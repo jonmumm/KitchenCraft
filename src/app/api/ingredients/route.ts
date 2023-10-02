@@ -16,9 +16,16 @@ export async function POST(req: Request) {
 
   // Ask OpenAI for a streaming chat completion given the prompt
   const response = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
+    model: "gpt-4",
     stream: true,
-    messages,
+    messages: [
+      {
+        content:
+          "You will be given a prompt describing a food recipe. Your task is to return a list of the ingredients that are specifically listed in the prompt. The ingredient should simplified of adjectives but still keep specific information (i.e. 'leftover pizza' would become just 'pizza' but 'skirt steak' would not beek 'beef'). Each ingredient should be on it's own line with no other characters. There should be no other surrounding text in your response.",
+        role: "system",
+      },
+      ...messages,
+    ],
   });
   // Convert the response into a friendly text-stream
   const stream = OpenAIStream(response, {
