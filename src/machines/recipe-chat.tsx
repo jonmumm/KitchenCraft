@@ -14,8 +14,8 @@ type Event =
       attrKey?: string;
     }
   | {
-      type: "UPDATE_PROMPT";
-      prompt?: string;
+      type: "SET_INPUT";
+      input: string;
     }
   | {
       type: "SUBMIT";
@@ -57,6 +57,11 @@ export const createRecipeChatMachine = ({
       },
       states: {
         New: {
+          initial: "Untouched",
+          states: {
+            Untouched: {},
+            Touched: {},
+          },
           on: {
             SELECT_RECIPE: {
               target: "Created",
@@ -79,22 +84,6 @@ export const createRecipeChatMachine = ({
         Created: {},
         Archived: {},
       },
-      // states: {
-      //   Inputting: {},
-      //   Selecting: {
-      //     on: {
-      //       SELECT_RECIPE: {
-      //         target: "Chatting",
-      //         actions: [
-      //           assign({
-      //             slug: ({ event }) => getUniqueSlug(event.name),
-      //           }),
-      //         ],
-      //       },
-      //     },
-      //   },
-      //   Chatting: {},
-      // },
     },
     {
       guards: {
