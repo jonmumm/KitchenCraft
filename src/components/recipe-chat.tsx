@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PromptContext } from "@/context/prompt";
 import { useSelector } from "@/hooks/useSelector";
+import { useSend } from "@/hooks/useSend";
 import { RecipeChatActor } from "@/machines/recipe-chat";
-import { useChat } from "ai/react";
 import {
   KeyboardEventHandler,
   createContext,
@@ -23,8 +23,6 @@ import {
 export const RecipeChatContext = createContext({} as RecipeChatActor);
 
 export function RecipeChat() {
-  const actor = useContext(RecipeChatContext);
-
   return (
     <Card className={`flex flex-col bg-slate-50 max-h-full m-4`}>
       <div className="p-3 flex flex-col gap-4">
@@ -69,39 +67,44 @@ const RecipeCommand = () => {
 const RecipeInput = forwardRef((props, ref) => {
   const promptRef = useRef<HTMLInputElement>(null);
   const prompt$ = useContext(PromptContext);
-  const { input, setInput, append } = useChat({
-    id: "suggestions",
-    api: "/api/recipes",
-  });
+  const actor = useContext(RecipeChatContext);
+  const input = useSelector(actor, (state) => state.context.promptInput);
+  const send = useSend();
+  const value = useSelector(actor, (state) => state.value);
+  console.log({ value });
+
+  const handleValueChange = useCallback(
+    (value: string) => {
+      send({ type: "SET_INPUT", value });
+    },
+    [send]
+  );
 
   const handleFocus = useCallback(() => {
-    prompt$.setKey("focused", true);
-  }, [prompt$]);
+    send({ type: "FOCUS_PROMPT" });
+  }, [send]);
 
   const handleBlur = useCallback(() => {
-    prompt$.setKey("focused", false);
-  }, [prompt$]);
+    send({ type: "BLUR_PROMPT" });
+  }, [send]);
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = useCallback(
     (e) => {
       const value = promptRef.current?.value;
       if (e.key === "Enter" && value && value !== "") {
         e.preventDefault();
-        console.log("setting", value);
-        prompt$.setKey("text", value);
-        console.log({ value });
-        append({ content: value, role: "user" });
+        send({ type: "SUBMIT" });
         promptRef.current.value = "";
       }
     },
-    [prompt$, append]
+    [prompt$, send]
   );
   return (
     <CommandInput
       ref={promptRef}
       name="prompt"
       value={input}
-      onValueChange={setInput}
+      onValueChange={handleValueChange}
       onKeyDown={handleKeyDown}
       onFocus={handleFocus}
       onBlur={handleBlur}

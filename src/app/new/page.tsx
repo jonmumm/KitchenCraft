@@ -1,6 +1,6 @@
 import { RecipeChat } from "@/components/recipe-chat";
-import Provider from "./provider";
 import Navigator from "./navigator";
+import Provider from "./provider";
 
 const getSessionId = (cookies: string) => {
   return "";

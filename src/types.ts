@@ -1,11 +1,12 @@
 import type { z } from "zod";
+import { trpc } from "./app/_trpc/client";
 import ingredients from "./data/ingredients.json";
 import {
+  AppEventSchema,
   CookingTimeSchema,
   CookwareSchema,
   CuisineSchema,
   DishTypeSchema,
-  AppEventSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
   RecipeSchema,
@@ -25,3 +26,5 @@ export type Cuisine = z.infer<typeof CuisineSchema>;
 
 export type RecipeAttributes = z.infer<typeof RecipeAttributesSchema>;
 export type RecipeAttribute = z.infer<typeof RecipeAttributeSchema>;
+
+export type AppClient = ReturnType<typeof trpc.useContext>["client"];

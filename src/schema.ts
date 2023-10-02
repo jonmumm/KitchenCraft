@@ -7,16 +7,40 @@ import {
   TECHNIQUES,
 } from "./constants";
 
-export const AppEventSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("SELECT_RECIPE"),
-    name: z.string(),
-    description: z.string(),
-  }),
+const SelectRecipeEventSchema = z.object({
+  type: z.literal("SELECT_RECIPE"),
+  name: z.string(),
+  description: z.string(),
+});
 
-  z.object({
-    type: z.literal("INIT"),
-  }),
+const SetInputEventSchema = z.object({
+  type: z.literal("SET_INPUT"),
+  value: z.string(),
+});
+
+const BlurPromptEventSchema = z.object({
+  type: z.literal("BLUR_PROMPT"),
+});
+
+const FocusPromptEventSchema = z.object({
+  type: z.literal("FOCUS_PROMPT"),
+});
+
+const InitEventSchema = z.object({
+  type: z.literal("INIT"),
+});
+
+const SubmitEventSchema = z.object({
+  type: z.literal("SUBMIT"),
+});
+
+export const AppEventSchema = z.discriminatedUnion("type", [
+  SelectRecipeEventSchema,
+  SetInputEventSchema,
+  SubmitEventSchema,
+  FocusPromptEventSchema,
+  BlurPromptEventSchema,
+  InitEventSchema,
 ]);
 
 // TypeScript Type Literals

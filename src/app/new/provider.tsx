@@ -1,6 +1,7 @@
 "use client";
 
 import { RecipeChatContext } from "@/components/recipe-chat";
+import { trpc } from "@/app/_trpc/client";
 import { ApplicationContext } from "@/context/application";
 import { useActor } from "@/hooks/useActor";
 import { useEventBus } from "@/hooks/useEventBus";
@@ -21,22 +22,15 @@ export default function Provider({
   userId: string | undefined;
   sessionId: string;
 }) {
+  const { client: trpcClient } = trpc.useContext();
   const actor = useActor(
     "recipeChat",
     createRecipeChatMachine({
       userId,
       sessionId,
+      trpcClient,
     })
   );
-
-  useLayoutEffect(() => {
-    actor.start();
-    return () => {
-      actor.stop();
-    };
-  }, [actor]);
-
-  useEventBus(actor);
 
   return (
     <RecipeChatContext.Provider value={actor}>

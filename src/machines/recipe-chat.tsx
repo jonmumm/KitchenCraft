@@ -1,40 +1,24 @@
 import { getUniqueSlug } from "@/lib/utils";
-import { RecipeAttribute, RecipeAttributes } from "@/types";
+import { AppClient, AppEvent, RecipeAttributes } from "@/types";
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
 
 type Context = {
+  name: string | undefined;
   slug: string | undefined;
+  promptInput: string | undefined;
   attributes: RecipeAttributes;
 };
-
-type Event =
-  | {
-      type: "TOGGLE_ATTRIBUTE";
-      attrType: RecipeAttribute;
-      attrKey?: string;
-    }
-  | {
-      type: "SET_INPUT";
-      input: string;
-    }
-  | {
-      type: "SUBMIT";
-    }
-  | {
-      type: "SELECT_RECIPE";
-      name: string;
-      description: string;
-    }
-  | { type: "BACK" };
 
 export const createRecipeChatMachine = ({
   slug,
   userId,
   sessionId,
+  trpcClient,
 }: {
   sessionId: string;
   userId?: string;
   slug?: string;
+  trpcClient: AppClient;
 }) => {
   const initial = "New"; //  | "Created" | "Archived";
 
@@ -43,10 +27,19 @@ export const createRecipeChatMachine = ({
       id: "RecipeChat",
       initial,
       types: {
-        events: {} as Event,
+        events: {} as AppEvent,
         context: {} as Context,
       },
+      on: {
+        SET_INPUT: {
+          actions: assign({
+            promptInput: ({ event }) => event.value,
+          }),
+        },
+      },
       context: {
+        name: undefined,
+        promptInput: undefined,
         slug,
         attributes: {
           ingredients: {},
@@ -59,8 +52,34 @@ export const createRecipeChatMachine = ({
         New: {
           initial: "Untouched",
           states: {
-            Untouched: {},
-            Touched: {},
+            Untouched: {
+              always: [{ target: "Touched", guard: "hasTouchedAttributes" }],
+            },
+            Touched: {
+              always: [
+                { target: "Untouched", guard: "hasNoTouchedAttributes" },
+              ],
+              on: {
+                SUBMIT: "Creating",
+              },
+            },
+            Creating: {
+              invoke: {
+                src: fromPromise(async () => {
+                  const data = await trpcClient.getData.query(undefined);
+                  console.log({ data });
+                  // todo create with api call..
+                  // trpcClient
+                  return {};
+                }),
+                onDone: "Created",
+                onError: "Error",
+              },
+            },
+            Error: {},
+            Created: {
+              type: "final",
+            },
           },
           on: {
             SELECT_RECIPE: {
@@ -68,6 +87,7 @@ export const createRecipeChatMachine = ({
               actions: [
                 assign({
                   slug: ({ event }) => getUniqueSlug(event.name),
+                  name: ({ event }) => event.name,
                 }),
               ],
             },
@@ -98,6 +118,10 @@ type RecipeChatMachine = ReturnType<typeof createRecipeChatMachine>;
 export type RecipeChatActor = ActorRefFrom<RecipeChatMachine>;
 
 const hasTouchedAttributes = (props: { context: Context }) => {
+  if (props.context.promptInput && props.context.promptInput !== "") {
+    return true;
+  }
+
   // Check for any record with a value of true
   const hasTrueRecord = Object.values(props.context.attributes).some(
     (attribute) => {

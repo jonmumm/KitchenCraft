@@ -30,13 +30,14 @@ export default function RecipeIngredients({}: {}) {
 
   const suggestions = messages[1]?.content;
   const items = suggestions?.split("\n").map((item) => item.trim());
+  console.log({ items });
 
   return (
     <>
       {items?.length > 0 && (
         <>
           <div className="flex flex-col gap-2 p-3">
-            <h3 className="text-xs font-bold uppercase text-muted-foreground">
+            <h3 className="text-xs font-bold uppercase text-slate-500">
               Ingredients
             </h3>
             <div className="flex flex-row flex-wrap gap-1">

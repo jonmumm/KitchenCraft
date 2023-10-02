@@ -5,6 +5,7 @@ import { Header } from "./header";
 import { ApplicationProvider } from "./provider";
 import { Separator } from "@/components/ui/separator";
 import { ReactNode } from "react";
+import { serverClient } from "./_trpc/serverClient";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -13,7 +14,15 @@ export const metadata: Metadata = {
   description: "Make something different",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const data = await serverClient.getData();
+  const dataSet = await serverClient.setData("test-data");
+  console.log({ data, dataSet });
+
   return (
     <html lang="en" className="max-h-full h-full">
       <body
