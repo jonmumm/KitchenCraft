@@ -24,6 +24,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
 } from "react";
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
 import { Button } from "./ui/button";
@@ -32,7 +33,8 @@ type Context = {
   name: string | undefined;
   chatId: string;
   messages: Record<string, Message>;
-  promptInput: string | undefined;
+  promptInput: string;
+  currentQuery: string | undefined;
   currentRecipe:
     | {
         name: string;
@@ -77,7 +79,8 @@ export const createRecipeChatMachine = ({
         name: undefined,
         chatId,
         currentRecipe: undefined,
-        promptInput: undefined,
+        promptInput: "",
+        currentQuery: undefined,
         messages: {},
         attributes: {
           ingredients: {},
@@ -99,10 +102,17 @@ export const createRecipeChatMachine = ({
                 { target: "Untouched", guard: "hasNoTouchedAttributes" },
               ],
               on: {
-                SUBMIT: "Submitted",
+                SUBMIT: {
+                  target: "Submitted",
+                  actions: assign({
+                    currentQuery: ({ context }) => context.promptInput,
+                    promptInput: ({ context }) => "",
+                  }),
+                },
               },
             },
             Submitted: {
+              entry: () => console.log("submitted"),
               on: {
                 SELECT_RECIPE: {
                   target: "Selecting",
@@ -282,10 +292,11 @@ ChatSubmit.displayName = Button.displayName;
 //   return null;
 // };
 
-const ChatInput = forwardRef<HTMLInputElement>((props, ref) => {
+const ChatInput = () => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const prompt$ = useContext(PromptContext);
   const actor = useContext(RecipeChatContext);
-  const input = useSelector(actor, (state) => state.context.promptInput);
+  const value = useSelector(actor, (state) => state.context.promptInput);
   const send = useSend();
 
   const handleValueChange = useCallback(
@@ -303,7 +314,7 @@ const ChatInput = forwardRef<HTMLInputElement>((props, ref) => {
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: "instant" });
     }, 50);
-  }, [send, ref]);
+  }, [send]);
 
   const handleBlur = useCallback(() => {
     send({ type: "BLUR_PROMPT" });
@@ -319,12 +330,14 @@ const ChatInput = forwardRef<HTMLInputElement>((props, ref) => {
     },
     [prompt$, send]
   );
+  console.log({ value });
+
+  inputRef.current?.value;
 
   return (
     <CommandInput
-      ref={ref}
       name="prompt"
-      value={input}
+      value={value}
       onValueChange={handleValueChange}
       onKeyDown={handleKeyDown}
       onFocus={handleFocus}
@@ -332,5 +345,5 @@ const ChatInput = forwardRef<HTMLInputElement>((props, ref) => {
       placeholder="(e.g. leftover pizza, eggs and feta)"
     />
   );
-});
+};
 ChatInput.displayName = CommandInput.displayName;
