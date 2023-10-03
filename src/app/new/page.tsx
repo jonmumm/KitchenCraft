@@ -1,5 +1,5 @@
-import { RecipeChat } from "@/components/recipe-chat";
 import { nanoid } from "nanoid";
+import { Content } from "./content";
 import Navigator from "./navigator";
 import Provider from "./provider";
 
@@ -15,13 +15,7 @@ export default async function Page() {
   return (
     <Provider userId={userId} sessionId={sessionId} chatId={chatId}>
       <Navigator>
-        <div className="flex flex-col flex-end flex-1 justify-end pt-16 overflow-hidden">
-          <div className="text-center text-muted-foreground my-auto">
-            <h2 className="text-2xl">Mise en place</h2>
-            <p>Create a plan. Adapt as you go.</p>
-          </div>
-          <RecipeChat />
-        </div>
+        <Content />
       </Navigator>
     </Provider>
   );

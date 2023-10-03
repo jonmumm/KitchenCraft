@@ -2,7 +2,7 @@ import { ApplicationContext } from "@/context/application";
 import { useStore } from "@nanostores/react";
 import { useContext, useLayoutEffect, useState } from "react";
 import { ActorRefFrom, AnyStateMachine, createActor } from "xstate";
-import { useEvents } from "./useEvent";
+import { useEvents } from "./useEvents";
 
 export const useActor = <TMachine extends AnyStateMachine>(
   key: string,

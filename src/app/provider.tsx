@@ -1,6 +1,7 @@
 "use client";
 
 import { ApplicationContext } from "@/context/application";
+import { useActor } from "@/hooks/useActor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { map } from "nanostores";
@@ -8,6 +9,7 @@ import { ReactNode, useState } from "react";
 import { z } from "zod";
 import { trpcUrl } from "./_trpc";
 import { trpc } from "./_trpc/client";
+import { HeaderContext, createHeaderMachine } from "./header";
 
 // export const ApplicationContext = createContext()
 
@@ -39,14 +41,24 @@ export function ApplicationProvider(props: {
       ],
     })
   );
+  // todo inject user-level data in to header
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <ApplicationContext.Provider value={store}>
-          {props.children}
+          <HeaderProvider>{props.children}</HeaderProvider>
         </ApplicationContext.Provider>
       </QueryClientProvider>
     </trpc.Provider>
   );
 }
+
+const HeaderProvider = (props: { children: ReactNode }) => {
+  const headerActor = useActor("header", createHeaderMachine());
+  return (
+    <HeaderContext.Provider value={headerActor}>
+      {props.children}
+    </HeaderContext.Provider>
+  );
+};

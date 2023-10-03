@@ -84,6 +84,10 @@ const SubmitEventSchema = z.object({
   type: z.literal("SUBMIT"),
 });
 
+const BackEventSchema = z.object({
+  type: z.literal("BACK"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   SelectRecipeEventSchema,
   SetInputEventSchema,
@@ -91,6 +95,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   FocusPromptEventSchema,
   BlurPromptEventSchema,
   InitEventSchema,
+  BackEventSchema,
 ]);
 
 // TypeScript Type Literals

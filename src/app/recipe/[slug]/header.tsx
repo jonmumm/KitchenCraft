@@ -7,7 +7,10 @@ import { useContext } from "react";
 export default function Header() {
   const actor = useContext(RecipeChatContext);
   const name = useSelector(actor, (state) => state.context.name);
-  const description = useSelector(actor, (state) => state.context.description);
+  const description = useSelector(
+    actor,
+    (state) => state.context.currentRecipe?.description
+  );
 
   return (
     <div className="px-4">

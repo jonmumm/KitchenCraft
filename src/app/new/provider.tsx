@@ -1,14 +1,12 @@
 "use client";
 
-import { RecipeChatContext } from "@/components/recipe-chat";
 import { trpc } from "@/app/_trpc/client";
-import { ApplicationContext } from "@/context/application";
+import {
+  RecipeChatContext,
+  createRecipeChatMachine,
+} from "@/components/recipe-chat";
 import { useActor } from "@/hooks/useActor";
-import { useEventBus } from "@/hooks/useEventBus";
-import { createRecipeChatMachine } from "@/machines/recipe-chat";
-import { useStore } from "@nanostores/react";
-import { ReactNode, useContext, useLayoutEffect, useState } from "react";
-import { createActor } from "xstate";
+import { ReactNode } from "react";
 
 /**
  * Connects the main page actor to the "event bus"
@@ -29,6 +27,7 @@ export default function Provider({
     "recipeChat",
     createRecipeChatMachine({
       userId,
+      chatId,
       sessionId,
       trpcClient,
     })

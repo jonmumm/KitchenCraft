@@ -1,9 +1,8 @@
 "use client";
 
 import { trpc } from "@/app/_trpc/client";
-import { RecipeChatContext } from "@/components/recipe-chat";
+import { RecipeChatContext, createRecipeChatMachine } from "@/components/recipe-chat";
 import { useActor } from "@/hooks/useActor";
-import { createRecipeChatMachine } from "@/machines/recipe-chat";
 import { ReactNode } from "react";
 
 /**
@@ -12,10 +11,12 @@ import { ReactNode } from "react";
 export default function Provider({
   children,
   userId,
+  chatId,
   sessionId,
   slug,
 }: {
   children: ReactNode;
+  chatId: string;
   userId: string | undefined;
   sessionId: string;
   slug: string;
@@ -26,6 +27,7 @@ export default function Provider({
     "recipeChat",
     createRecipeChatMachine({
       userId,
+      chatId,
       sessionId,
       slug,
       trpcClient,

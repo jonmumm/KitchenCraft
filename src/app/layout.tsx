@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ReactNode } from "react";
 import "../styles/globals.css";
 import { Header } from "./header";
 import { ApplicationProvider } from "./provider";
-import { Separator } from "@/components/ui/separator";
-import { ReactNode } from "react";
-import { serverClient } from "./_trpc/serverClient";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -58,7 +56,6 @@ export default async function RootLayout({
 }
 
 function Layout({ children }: { children: ReactNode }) {
-  // Todo swap between pt-16 and pt-0 here depending on header is taking up space3
   return (
     <>
       <Header />
