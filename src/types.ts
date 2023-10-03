@@ -5,6 +5,7 @@ import {
   AppEventSchema,
   CookingTimeSchema,
   CookwareSchema,
+  CreateRecipeInputSchema,
   CuisineSchema,
   DishTypeSchema,
   RecipeAttributeSchema,
@@ -28,3 +29,5 @@ export type RecipeAttributes = z.infer<typeof RecipeAttributesSchema>;
 export type RecipeAttribute = z.infer<typeof RecipeAttributeSchema>;
 
 export type AppClient = ReturnType<typeof trpc.useContext>["client"];
+
+export type CreateRecipeInput = z.infer<typeof CreateRecipeInputSchema>;

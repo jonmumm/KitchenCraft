@@ -16,10 +16,12 @@ import { createActor } from "xstate";
 export default function Provider({
   children,
   userId,
+  chatId,
   sessionId,
 }: {
   children: ReactNode;
   userId: string | undefined;
+  chatId: string;
   sessionId: string;
 }) {
   const { client: trpcClient } = trpc.useContext();

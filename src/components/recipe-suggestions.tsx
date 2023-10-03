@@ -1,25 +1,52 @@
 "use client";
 
+import { useOnMatches } from "@/hooks/useOnMatches";
 import { useSend } from "@/hooks/useSend";
 import { useChat } from "ai/react";
 import { CommandLoading } from "cmdk";
 import { ChevronRightIcon } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
+import { RecipeChatContext } from "./recipe-chat";
 import { Badge } from "./ui/badge";
 import { CommandGroup, CommandItem } from "./ui/command";
+import { assert } from "@/lib/utils";
 
 export default function RecipeSuggestions({}: {}) {
+  const actor = useContext(RecipeChatContext);
   const send = useSend();
-  const { messages, isLoading } = useChat({
+
+  const { messages, append, isLoading } = useChat({
     id: "suggestions",
     api: "/api/recipes",
   });
 
+  // append its updated everytime there's a message
+  // setting it in the callback is causing a loop
+  const handlePromptSubmit = useCallback(() => {
+    const content = actor.getSnapshot().context.promptInput;
+    assert(content, "expected promptInput in recipe suggests");
+    append({
+      content,
+      role: "user",
+    });
+  }, [actor]);
+
+  useOnMatches(
+    actor,
+    (state) => {
+      return state.matches("New.Submitted");
+    },
+    handlePromptSubmit
+  );
+
+  // useLayoutEffect(() => {
+  //   actor.subscribe()
+
+  // }, [setInput, actor])
+
   const handleSelectItem = useCallback(
     (name: string, description: string) => {
       return () => {
-        alert(name);
-        console.log("SELECT!", { name, description });
         send({ type: "SELECT_RECIPE", name, description });
       };
     },

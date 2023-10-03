@@ -6,6 +6,13 @@ import { useContext } from "react";
 
 export default function Header() {
   const actor = useContext(RecipeChatContext);
-  const slug = useSelector(actor, (state) => state.context.slug);
-  return <h1 className="px-4 text-lg font-semibold">{slug}</h1>;
+  const name = useSelector(actor, (state) => state.context.name);
+  const description = useSelector(actor, (state) => state.context.description);
+
+  return (
+    <div className="px-4">
+      <h1 className="text-lg font-semibold">{name}</h1>
+      <p className="text-md">{description}</p>
+    </div>
+  );
 }

@@ -5,6 +5,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function assert<T>(
+  expression: T,
+  errorMessage: string
+): asserts expression {
+  if (!expression) {
+    throw new Error(errorMessage);
+  }
+}
+
+export function assertType<
+  TE extends { type: string },
+  TType extends TE["type"]
+>(event: TE, eventType: TType): asserts event is TE & { type: TType } {
+  if (event.type !== eventType) {
+    throw new Error(
+      `Invalid event: expected "${eventType}", got "${event.type}"`
+    );
+  }
+}
+
 // Utility function to convert a sentence into slug format
 function sentenceToSlug(sentence: string): string {
   return sentence
@@ -28,8 +48,8 @@ export function generateRandomId(length: number = 6): string {
   return result;
 }
 
-export function getUniqueSlug(sentence: string): string {
-  const slug = sentenceToSlug(sentence);
-  const randomId = generateRandomId();
-  return `${slug}-${randomId}`;
+export function getChatRecipeSlug(chatId: string, name: string): string {
+  const slug = sentenceToSlug(name);
+  const chatSlug = chatId.slice(0, 5);
+  return `${chatSlug}-${slug}`;
 }

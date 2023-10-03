@@ -6,6 +6,56 @@ import {
   DISH_TYPES,
   TECHNIQUES,
 } from "./constants";
+import type { Message } from "ai";
+
+const slugSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[a-z0-9_-]+$/, {
+    message:
+      "Slug can only contain lowercase letters, numbers, hyphens, and underscores",
+  })
+  .min(1)
+  .max(100);
+
+// Schema for Recipe
+export const RecipeSchema = z.object({
+  name: z.string().min(1).max(100),
+  cuisine: z.string().min(1).max(100),
+  ingredients: z.string().min(1),
+  instructions: z.string().min(1),
+  cook_time: z.string().min(1).max(20),
+  image_url: z.string().url(),
+  chat_id: z.string(),
+});
+
+// Schema for Chat
+export const ChatSchema = z.object({
+  user_id: z.string(),
+  recipe_slug: slugSchema,
+  query: z.string().min(1).max(500),
+  ingredients: z.string().optional(),
+  cuisine: z.string().optional(),
+  techniques: z.string().optional(),
+  cookwares: z.string().optional(),
+  cook_time: z.string().optional(),
+});
+
+export const ChatMessageSchema = z.object({
+  sender: z.enum(["user", "bot"]),
+  message: z.string().min(1).max(1000),
+  timestamp: z.string(),
+  schema: z.enum(["user_query", "recipe_suggestion", "suggestion"]),
+});
+
+export const CreateRecipeInputSchema = z.object({
+  messages: z.array(z.custom<Message>()),
+  slug: z.string(),
+  chatId: z.string(),
+  name: z.string(),
+  description: z.string(),
+});
 
 const SelectRecipeEventSchema = z.object({
   type: z.literal("SELECT_RECIPE"),
@@ -90,7 +140,3 @@ export const RecipeAttributesSchema = z.object({
 });
 
 export const RecipeAttributeSchema = RecipeAttributesSchema.keyof();
-
-export const RecipeSchema = z.object({
-  name: z.string(),
-});

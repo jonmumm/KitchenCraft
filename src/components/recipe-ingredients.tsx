@@ -2,10 +2,8 @@
 
 import { PromptContext } from "@/context/prompt";
 import { useChat } from "ai/react";
-import { CommandLoading } from "cmdk";
 import { useContext, useEffect } from "react";
 import { Badge } from "./ui/badge";
-import { CommandGroup, CommandItem } from "./ui/command";
 import { Separator } from "./ui/separator";
 
 export default function RecipeIngredients({}: {}) {
@@ -30,7 +28,6 @@ export default function RecipeIngredients({}: {}) {
 
   const suggestions = messages[1]?.content;
   const items = suggestions?.split("\n").map((item) => item.trim());
-  console.log({ items });
 
   return (
     <>

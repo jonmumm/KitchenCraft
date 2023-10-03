@@ -19,9 +19,9 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  const data = await serverClient.getData();
-  const dataSet = await serverClient.setData("test-data");
-  console.log({ data, dataSet });
+  // const data = await serverClient.getData();
+  // const dataSet = await serverClient.setData("test-data");
+  // console.log({ data, dataSet });
 
   return (
     <html lang="en" className="max-h-full h-full">

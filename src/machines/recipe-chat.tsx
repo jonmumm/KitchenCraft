@@ -1,22 +1,46 @@
-import { getUniqueSlug } from "@/lib/utils";
-import { AppClient, AppEvent, RecipeAttributes } from "@/types";
+import {
+  assert,
+  assertType,
+  getChatRecipeSlug,
+  getRecipeSlug,
+} from "@/lib/utils";
+import { CreateRecipeInputSchema } from "@/schema";
+import {
+  AppClient,
+  AppEvent,
+  CreateChatInput,
+  CreateRecipeInput,
+  RecipeAttributes,
+} from "@/types";
+import { Message } from "ai";
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
+import { z } from "zod";
 
 type Context = {
   name: string | undefined;
-  slug: string | undefined;
+  chatId: string;
+  messages: Record<string, Message>;
   promptInput: string | undefined;
+  currentRecipe:
+    | {
+        name: string;
+        description: string;
+        slug: string;
+      }
+    | undefined;
   attributes: RecipeAttributes;
 };
 
 export const createRecipeChatMachine = ({
   slug,
   userId,
+  chatId,
   sessionId,
   trpcClient,
 }: {
   sessionId: string;
   userId?: string;
+  chatId: string;
   slug?: string;
   trpcClient: AppClient;
 }) => {
@@ -39,8 +63,10 @@ export const createRecipeChatMachine = ({
       },
       context: {
         name: undefined,
+        chatId,
+        currentRecipe: undefined,
         promptInput: undefined,
-        slug,
+        messages: {},
         attributes: {
           ingredients: {},
           techniques: {},
@@ -51,6 +77,7 @@ export const createRecipeChatMachine = ({
       states: {
         New: {
           initial: "Untouched",
+          onDone: "Created",
           states: {
             Untouched: {
               always: [{ target: "Touched", guard: "hasTouchedAttributes" }],
@@ -60,45 +87,60 @@ export const createRecipeChatMachine = ({
                 { target: "Untouched", guard: "hasNoTouchedAttributes" },
               ],
               on: {
-                SUBMIT: "Creating",
+                SUBMIT: "Submitted",
+              },
+            },
+            Submitted: {
+              on: {
+                SELECT_RECIPE: {
+                  target: "Selecting",
+                },
+              },
+            },
+            Selecting: {
+              on: {
+                SELECT_RECIPE: {
+                  target: "Creating",
+                  actions: assign({
+                    currentRecipe: ({ context, event }) => ({
+                      description: event.description,
+                      name: event.name,
+                      slug: getChatRecipeSlug(context.chatId, event.name),
+                    }),
+                  }),
+                },
               },
             },
             Creating: {
               invoke: {
-                src: fromPromise(async () => {
-                  const data = await trpcClient.getData.query(undefined);
-                  console.log({ data });
-                  // todo create with api call..
-                  // trpcClient
-                  return {};
-                }),
-                onDone: "Created",
+                input: ({ context }) => {
+                  assert(
+                    context.currentRecipe,
+                    "expected currentRecipe to be set when creating"
+                  );
+
+                  return {
+                    name: context.currentRecipe.name,
+                    description: context.currentRecipe?.description,
+                    chatId: context.chatId,
+                    slug: getChatRecipeSlug(
+                      context.chatId,
+                      context.currentRecipe.name
+                    ),
+                    messages: [],
+                  } satisfies CreateRecipeInput;
+                },
+                src: fromPromise(({ input }) =>
+                  trpcClient.createRecipe.mutate(input)
+                ),
+                onDone: "Viewing",
                 onError: "Error",
               },
             },
-            Error: {},
-            Created: {
-              type: "final",
+            Viewing: {},
+            Error: {
+              entry: console.error,
             },
-          },
-          on: {
-            SELECT_RECIPE: {
-              target: "Created",
-              actions: [
-                assign({
-                  slug: ({ event }) => getUniqueSlug(event.name),
-                  name: ({ event }) => event.name,
-                }),
-              ],
-            },
-          },
-        },
-        Creating: {
-          invoke: {
-            src: fromPromise(async () => {
-              // make API call
-              return {};
-            }),
           },
         },
         Created: {},

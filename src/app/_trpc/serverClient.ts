@@ -1,4 +1,4 @@
-import { appRouter } from "@/server";
+import { appRouter } from "@/server/router";
 import { httpBatchLink } from "@trpc/client";
 import { trpcUrl } from ".";
 
