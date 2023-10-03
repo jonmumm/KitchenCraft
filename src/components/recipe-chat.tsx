@@ -1,5 +1,4 @@
 "use client";
-
 import { RecipeConfigurator } from "@/components/recipe-configurator";
 import RecipeIngredients from "@/components/recipe-ingredients";
 import RecipeSuggestions from "@/components/recipe-suggestions";
@@ -24,6 +23,7 @@ import {
   forwardRef,
   useCallback,
   useContext,
+  useEffect,
 } from "react";
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
 import { Button } from "./ui/button";
@@ -238,17 +238,18 @@ const RecipeCommand = () => {
     <Command shouldFilter={false}>
       <RecipeIngredients />
       <div className="flex flex-col gap-3">
-        <RecipeInput />
-        <RecipeSubmit />
+        {/* <ChatScrollFollow /> */}
+        <ChatInput />
+        <ChatSubmit />
       </div>
-      <ScrollArea style={{ maxHeight: "50vh" }}>
+      {/* <ScrollArea style={{ maxHeight: "50vh" }}>
         <RecipeSuggestions />
-      </ScrollArea>
+      </ScrollArea> */}
     </Command>
   );
 };
 
-const RecipeSubmit = forwardRef((props, ref) => {
+const ChatSubmit = forwardRef((props, ref) => {
   const actor = useContext(RecipeChatContext);
   const send = useSend();
   const enabled = useSelector(actor, (s) => s.matches("New.Touched"));
@@ -263,13 +264,34 @@ const RecipeSubmit = forwardRef((props, ref) => {
     </Button>
   );
 });
-RecipeSubmit.displayName = Button.displayName;
+ChatSubmit.displayName = Button.displayName;
 
-const RecipeInput = forwardRef<HTMLInputElement>((props, ref) => {
+/**
+ * On iOS when user opens keyboard, it causes the scroll
+ * window to jump to a place so the text box is invisible
+ * This circumvents that by jumping to top scroll anytime
+ * viewprt changes
+ */
+// const ChatScrollFollow = () => {
+//   const { vh } = useViewport();
+
+//   useEffect(() => {
+//     // alert(vh);
+//     window.scrollTo(0, 0);
+//   }, [vh]);
+//   return null;
+// };
+
+const ChatInput = forwardRef<HTMLInputElement>((props, ref) => {
   const prompt$ = useContext(PromptContext);
   const actor = useContext(RecipeChatContext);
   const input = useSelector(actor, (state) => state.context.promptInput);
   const send = useSend();
+
+  // Use the vw and vh in your component logic
+  // todo pull this up in to a global component
+  // document.documentElement.style.setProperty("--vw", `${vw}px`);
+  // document.documentElement.style.setProperty("--vh", `${vh}px`);
 
   const handleValueChange = useCallback(
     (value: string) => {
@@ -280,17 +302,6 @@ const RecipeInput = forwardRef<HTMLInputElement>((props, ref) => {
 
   const handleFocus = useCallback(() => {
     send({ type: "FOCUS_PROMPT" });
-
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-      // if (isRefObject(ref) && ref.current) {
-      //   const { top } = ref.current.getBoundingClientRect();
-      //   window.scrollTo({
-      //     top,
-      //     behavior: "smooth",
-      //   });
-      // }
-    }, 1);
   }, [send, ref]);
 
   const handleBlur = useCallback(() => {
@@ -307,6 +318,7 @@ const RecipeInput = forwardRef<HTMLInputElement>((props, ref) => {
     },
     [prompt$, send]
   );
+
   return (
     <CommandInput
       ref={ref}
@@ -320,8 +332,4 @@ const RecipeInput = forwardRef<HTMLInputElement>((props, ref) => {
     />
   );
 });
-RecipeInput.displayName = CommandInput.displayName;
-
-function isRefObject<T>(ref: React.Ref<T>): ref is React.RefObject<T> {
-  return typeof ref === "object" && ref !== null;
-}
+ChatInput.displayName = CommandInput.displayName;

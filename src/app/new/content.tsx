@@ -13,11 +13,7 @@ export const Content = () => {
   useEventHandler("FOCUS_PROMPT", handleFocusPrompt);
 
   return (
-    <div
-      className={`flex flex-col flex-end flex-1 ${
-        showNullState ? "justify-end" : "justify-start"
-      } pt-16 overflow-hidden`}
-    >
+    <div className={`flex flex-col flex-end flex-1 pt-16 overflow-hidden`}>
       {showNullState && (
         <div className="text-center text-muted-foreground my-auto">
           <h2 className="text-2xl">Mise en place</h2>
