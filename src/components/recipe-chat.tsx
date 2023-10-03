@@ -288,11 +288,6 @@ const ChatInput = forwardRef<HTMLInputElement>((props, ref) => {
   const input = useSelector(actor, (state) => state.context.promptInput);
   const send = useSend();
 
-  // Use the vw and vh in your component logic
-  // todo pull this up in to a global component
-  // document.documentElement.style.setProperty("--vw", `${vw}px`);
-  // document.documentElement.style.setProperty("--vh", `${vh}px`);
-
   const handleValueChange = useCallback(
     (value: string) => {
       send({ type: "SET_INPUT", value });
@@ -302,6 +297,12 @@ const ChatInput = forwardRef<HTMLInputElement>((props, ref) => {
 
   const handleFocus = useCallback(() => {
     send({ type: "FOCUS_PROMPT" });
+
+    // hack to update scroll after layout change
+    // to fix safari keyboard issue
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }, 50);
   }, [send, ref]);
 
   const handleBlur = useCallback(() => {
