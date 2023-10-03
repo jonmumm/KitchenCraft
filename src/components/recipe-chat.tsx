@@ -383,7 +383,7 @@ const ChatInput = () => {
     // to fix safari keyboard issue
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: "instant" });
-    }, 50);
+    }, 100);
   }, [send]);
 
   const handleBlur = useCallback(() => {
