@@ -11,7 +11,6 @@ const getSessionId = (cookies: string) => {
 const ChatIdSchema = z.string().uuid();
 
 export default async function Page({ params }: { params: { slug: string } }) {
-  console.log(params.slug);
   const userId = undefined;
   const sessionId = await getSessionId("");
 

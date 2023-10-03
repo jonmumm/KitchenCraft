@@ -23,10 +23,14 @@ export const createHeaderMachine = () =>
       events: {} as
         | { type: "HIDE" }
         | { type: "SHOW_BACK" }
-        | { type: "FOCUS_PROMPT" },
+        | { type: "FOCUS_PROMPT" }
+        | { type: "TOGGLE_CONFIGURATOR" },
     },
     on: {
       FOCUS_PROMPT: {
+        target: ".Logo.OffScreen",
+      },
+      TOGGLE_CONFIGURATOR: {
         target: ".Logo.OffScreen",
       },
     },

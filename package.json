@@ -36,6 +36,7 @@
     "openai": "^4.10.0",
     "react": "latest",
     "react-dom": "latest",
+    "react-viewport-hooks": "^1.5.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "use-sync-external-store": "^1.2.0",

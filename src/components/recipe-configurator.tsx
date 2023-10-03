@@ -13,82 +13,58 @@ import {
   TECHNIQUES,
 } from "@/data/constants";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
-import { cva } from "class-variance-authority";
-import { ChevronDown, Settings2Icon } from "lucide-react";
-import {
-  createContext,
-  forwardRef,
-  useCallback,
-  useContext,
-  useState,
-} from "react";
-import { createActor, createMachine } from "xstate";
+import { map } from "nanostores";
+import { createContext, forwardRef } from "react";
 import ingredients from "../data/ingredients.json";
 import { AttributeBadge } from "./attribute-badge";
-import { Button } from "./ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "./ui/collapsible";
 import { Label } from "./ui/label";
-import { map } from "nanostores";
-import { useStore } from "@nanostores/react";
-import { Card } from "./ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 const RecipeConfiguratorCategory = forwardRef<
   React.ElementRef<typeof AccordionItem>,
   React.ComponentPropsWithoutRef<typeof AccordionItem>
 >(({ className, ...props }, ref) => (
-  <AccordionItem ref={ref} className={cn("px-4", className)} {...props} />
+  <AccordionItem
+    ref={ref}
+    className={cn("px-4 max-h-full", className)}
+    {...props}
+  />
 ));
 RecipeConfiguratorCategory.displayName = "RecipeConfiguratorCategory";
 
 const defaultStore = map({
-  open: false,
+  ingredients: [],
 });
 
 const RecipeConfiguratorContext = createContext(defaultStore);
 
-export const RecipeConfigurator = ({
-  store,
-}: {
-  store?: typeof defaultStore;
-}) => {
-  const $ = store || defaultStore;
+// export const RecipeConfigurator = ({
+//   store,
+// }: {
+//   store?: typeof defaultStore;
+// }) => {
+//   const $ = store || defaultStore;
 
-  const { open } = useStore($, { keys: ["open"] });
+//   const { open } = useStore($, { keys: ["open"] });
 
+//   return (
+//     <RecipeConfiguratorContext.Provider value={$}>
+//       <Popover>
+//         <PopoverTrigger asChild>
+//           <Button variant={open ? "default" : "outline"} className="w-16">
+//             <Settings2Icon className={!open ? "transform rotate-90" : ""} />
+//           </Button>
+//         </PopoverTrigger>
+//         <PopoverContent>
+//           <RecipeConfiguratorContent />
+//         </PopoverContent>
+//       </Popover>
+//     </RecipeConfiguratorContext.Provider>
+//   );
+// };
+
+export const RecipeConfigurator = () => {
   return (
-    <RecipeConfiguratorContext.Provider value={$}>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant={open ? "default" : "outline"} className="w-16">
-            <Settings2Icon className={!open ? "transform rotate-90" : ""} />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent>
-          <RecipeConfiguratorContent />
-        </PopoverContent>
-      </Popover>
-    </RecipeConfiguratorContext.Provider>
-  );
-};
-
-const RecipeConfiguratorContent = () => {
-  const store = useContext(RecipeConfiguratorContext);
-  const handleOpenChange = useCallback(
-    (open: boolean) => {
-      store.setKey("open", open);
-    },
-    [store]
-  );
-  const { open } = useStore(store, { keys: ["open"] });
-
-  return (
-    <Accordion type="single">
+    <Accordion type="single" defaultValue="ingredients" className="max-h-full">
       <AccordionItem value="ingredients">
         <RecipeConfiguratorMenuTrigger>
           Ingredients 🥔
@@ -129,7 +105,11 @@ const RecipeConfiguratorMenuContent = forwardRef<
 >(({ className, ...props }, ref) => (
   <AccordionContent
     ref={ref}
-    className={cn("text-left flex flex-col gap-4", className)}
+    style={{ maxHeight: "35vh" }}
+    className={cn(
+      "text-left flex flex-col gap-4 overflow-y-scroll px-3",
+      className
+    )}
     {...props}
   />
 ));
@@ -226,7 +206,7 @@ const Ingredients = () => {
   }, {} as Record<string, string[]>);
 
   return (
-    <ScrollArea>
+    <>
       {Object.entries(categoriesMap).map(([category, items]) => (
         <div key={category} className="flex flex-col gap-3">
           <Label className="mb-2 text-muted-foreground uppercase font-medium">
@@ -247,6 +227,6 @@ const Ingredients = () => {
           </div>
         </div>
       ))}
-    </ScrollArea>
+    </>
   );
 };

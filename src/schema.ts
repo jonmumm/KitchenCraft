@@ -88,6 +88,10 @@ const BackEventSchema = z.object({
   type: z.literal("BACK"),
 });
 
+const ToggleConfiguratorEventSchema = z.object({
+  type: z.literal("TOGGLE_CONFIGURATOR"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   SelectRecipeEventSchema,
   SetInputEventSchema,
@@ -96,6 +100,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   BlurPromptEventSchema,
   InitEventSchema,
   BackEventSchema,
+  ToggleConfiguratorEventSchema,
 ]);
 
 // TypeScript Type Literals

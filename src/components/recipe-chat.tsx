@@ -1,11 +1,8 @@
 "use client";
-import { RecipeConfigurator } from "@/components/recipe-configurator";
 import RecipeIngredients from "@/components/recipe-ingredients";
-import RecipeSuggestions from "@/components/recipe-suggestions";
 import { Card } from "@/components/ui/card";
 import { Command, CommandInput } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { PromptContext } from "@/context/prompt";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
@@ -17,17 +14,18 @@ import {
   RecipeAttributes,
 } from "@/types";
 import { Message } from "ai";
+import { Settings2Icon } from "lucide-react";
 import {
   KeyboardEventHandler,
   createContext,
   forwardRef,
   useCallback,
   useContext,
-  useEffect,
   useRef,
 } from "react";
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
 import { Button } from "./ui/button";
+import { RecipeConfigurator } from "./recipe-configurator";
 
 type Context = {
   name: string | undefined;
@@ -58,16 +56,14 @@ export const createRecipeChatMachine = ({
   slug?: string;
   trpcClient: AppClient;
 }) => {
-  const initial = "New"; //  | "Created" | "Archived";
-
   return createMachine(
     {
       id: "RecipeChat",
-      initial,
       types: {
         events: {} as AppEvent,
         context: {} as Context,
       },
+      type: "parallel",
       on: {
         SET_INPUT: {
           actions: assign({
@@ -90,83 +86,123 @@ export const createRecipeChatMachine = ({
         },
       },
       states: {
-        New: {
-          initial: "Untouched",
-          onDone: "Created",
+        Focus: {
+          initial: "None",
           states: {
-            Untouched: {
-              always: [{ target: "Touched", guard: "hasTouchedAttributes" }],
-            },
-            Touched: {
-              always: [
-                { target: "Untouched", guard: "hasNoTouchedAttributes" },
-              ],
+            None: {
               on: {
-                SUBMIT: {
-                  target: "Submitted",
-                  actions: assign({
-                    currentQuery: ({ context }) => context.promptInput,
-                    promptInput: ({ context }) => "",
-                  }),
+                FOCUS_PROMPT: {
+                  target: "Input",
                 },
               },
             },
-            Submitted: {
-              entry: () => console.log("submitted"),
+            Input: {
               on: {
-                SELECT_RECIPE: {
-                  target: "Selecting",
+                BLUR_PROMPT: {
+                  target: "None",
                 },
               },
-            },
-            Selecting: {
-              on: {
-                SELECT_RECIPE: {
-                  target: "Creating",
-                  actions: assign({
-                    currentRecipe: ({ context, event }) => ({
-                      description: event.description,
-                      name: event.name,
-                      slug: getChatRecipeSlug(context.chatId, event.name),
-                    }),
-                  }),
-                },
-              },
-            },
-            Creating: {
-              invoke: {
-                input: ({ context }) => {
-                  assert(
-                    context.currentRecipe,
-                    "expected currentRecipe to be set when creating"
-                  );
-
-                  return {
-                    name: context.currentRecipe.name,
-                    description: context.currentRecipe?.description,
-                    chatId: context.chatId,
-                    slug: getChatRecipeSlug(
-                      context.chatId,
-                      context.currentRecipe.name
-                    ),
-                    messages: [],
-                  } satisfies CreateRecipeInput;
-                },
-                src: fromPromise(({ input }) =>
-                  trpcClient.createRecipe.mutate(input)
-                ),
-                onDone: "Viewing",
-                onError: "Error",
-              },
-            },
-            Viewing: {},
-            Error: {
-              entry: console.error,
             },
           },
         },
-        Created: {},
-        Archived: {},
+        Configurator: {
+          initial: "Closed",
+          states: {
+            Open: {
+              on: {
+                TOGGLE_CONFIGURATOR: "Closed",
+              },
+            },
+            Closed: {
+              on: {
+                TOGGLE_CONFIGURATOR: "Open",
+              },
+            },
+          },
+        },
+        Status: {
+          initial: "New",
+          states: {
+            New: {
+              initial: "Untouched",
+              onDone: "Created",
+              states: {
+                Untouched: {
+                  always: [
+                    { target: "Touched", guard: "hasTouchedAttributes" },
+                  ],
+                },
+                Touched: {
+                  always: [
+                    { target: "Untouched", guard: "hasNoTouchedAttributes" },
+                  ],
+                  on: {
+                    SUBMIT: {
+                      target: "Submitted",
+                      actions: assign({
+                        currentQuery: ({ context }) => context.promptInput,
+                        promptInput: ({ context }) => "",
+                      }),
+                    },
+                  },
+                },
+                Submitted: {
+                  on: {
+                    SELECT_RECIPE: {
+                      target: "Selecting",
+                    },
+                  },
+                },
+                Selecting: {
+                  on: {
+                    SELECT_RECIPE: {
+                      target: "Creating",
+                      actions: assign({
+                        currentRecipe: ({ context, event }) => ({
+                          description: event.description,
+                          name: event.name,
+                          slug: getChatRecipeSlug(context.chatId, event.name),
+                        }),
+                      }),
+                    },
+                  },
+                },
+                Creating: {
+                  invoke: {
+                    input: ({ context }) => {
+                      assert(
+                        context.currentRecipe,
+                        "expected currentRecipe to be set when creating"
+                      );
+
+                      return {
+                        name: context.currentRecipe.name,
+                        description: context.currentRecipe?.description,
+                        chatId: context.chatId,
+                        slug: getChatRecipeSlug(
+                          context.chatId,
+                          context.currentRecipe.name
+                        ),
+                        messages: [],
+                      } satisfies CreateRecipeInput;
+                    },
+                    src: fromPromise(({ input }) =>
+                      trpcClient.createRecipe.mutate(input)
+                    ),
+                    onDone: "Viewing",
+                    onError: "Error",
+                  },
+                },
+                Viewing: {},
+                Error: {
+                  entry: console.error,
+                },
+              },
+            },
+            Created: {},
+            Archived: {},
+          },
+        },
       },
     },
     {
@@ -214,20 +250,54 @@ const hasNoTouchedAttributes = ({ context }: { context: Context }) => {
 export const RecipeChatContext = createContext({} as RecipeChatActor);
 
 export function RecipeChat() {
+  const actor = useContext(RecipeChatContext);
+  const isConfiguratorOpen = useSelector(actor, (state) =>
+    state.matches("Configurator.Open")
+  );
+
   return (
-    <Card className={`flex flex-col bg-slate-50 max-h-full m-4`}>
-      <div className="p-3 flex flex-col gap-4">
-        <div className="flex flex-row items-center gap-2">
-          <RecipePromptLabel />
+    <div className="flex flex-col gap-4 max-h-full">
+      {isConfiguratorOpen && (
+        <Card className={`flex flex-col bg-slate-50 max-h-full mx-4`}>
           <RecipeConfigurator />
+        </Card>
+      )}
+      <Card className={`flex flex-col bg-slate-50 max-h-full m-4`}>
+        <div className="p-3 flex flex-col gap-4">
+          <div className="flex flex-row items-center gap-2">
+            <RecipePromptLabel />
+            <ConfiguratorToggle />
+          </div>
+          <div>
+            <RecipeCommand />
+          </div>
         </div>
-        <div>
-          <RecipeCommand />
-        </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 }
+
+const ConfiguratorToggle = () => {
+  const actor = useContext(RecipeChatContext);
+  const open = useSelector(actor, (state) =>
+    state.matches("Configurator.Open")
+  );
+  const send = useSend();
+
+  const handlePressToggleConfigurator = useCallback(() => {
+    send({ type: "TOGGLE_CONFIGURATOR" });
+  }, [send]);
+
+  return (
+    <Button
+      variant={open ? "default" : "outline"}
+      className="w-16"
+      onClick={handlePressToggleConfigurator}
+    >
+      <Settings2Icon className={!open ? "transform rotate-90" : ""} />
+    </Button>
+  );
+};
 
 const RecipePromptLabel = () => {
   const actor = useContext(RecipeChatContext);
@@ -262,7 +332,7 @@ const RecipeCommand = () => {
 const ChatSubmit = forwardRef((props, ref) => {
   const actor = useContext(RecipeChatContext);
   const send = useSend();
-  const enabled = useSelector(actor, (s) => s.matches("New.Touched"));
+  const enabled = useSelector(actor, (s) => s.matches("Status.New.Touched"));
 
   const handlePress = useCallback(() => {
     send({ type: "SUBMIT" });
@@ -330,9 +400,6 @@ const ChatInput = () => {
     },
     [prompt$, send]
   );
-  console.log({ value });
-
-  inputRef.current?.value;
 
   return (
     <CommandInput
