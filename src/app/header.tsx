@@ -106,7 +106,6 @@ export function Header() {
 const AnimatedLogo = () => {
   const headerActor = useContext(HeaderContext);
   const isLogoOffScreen = useSelector(headerActor, (state) => {
-    console.log(state.value);
     return state.matches("Logo.OffScreen");
   });
   return (

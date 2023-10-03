@@ -280,7 +280,18 @@ const RecipeInput = forwardRef<HTMLInputElement>((props, ref) => {
 
   const handleFocus = useCallback(() => {
     send({ type: "FOCUS_PROMPT" });
-  }, [send]);
+
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      // if (isRefObject(ref) && ref.current) {
+      //   const { top } = ref.current.getBoundingClientRect();
+      //   window.scrollTo({
+      //     top,
+      //     behavior: "smooth",
+      //   });
+      // }
+    }, 1);
+  }, [send, ref]);
 
   const handleBlur = useCallback(() => {
     send({ type: "BLUR_PROMPT" });
@@ -310,3 +321,7 @@ const RecipeInput = forwardRef<HTMLInputElement>((props, ref) => {
   );
 });
 RecipeInput.displayName = CommandInput.displayName;
+
+function isRefObject<T>(ref: React.Ref<T>): ref is React.RefObject<T> {
+  return typeof ref === "object" && ref !== null;
+}

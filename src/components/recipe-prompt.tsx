@@ -55,9 +55,7 @@ const RecipeCommand = () => {
       const value = promptRef.current?.value;
       if (e.key === "Enter" && value && value !== "") {
         e.preventDefault();
-        console.log("setting", value);
         prompt$.setKey("text", value);
-        console.log({ value });
         append({ content: value, role: "user" });
         promptRef.current.value = "";
       }

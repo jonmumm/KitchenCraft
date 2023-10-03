@@ -45,7 +45,7 @@ export default async function RootLayout({
       </head>
 
       <body
-        className={`bg-gray-100 ${inter.className} max-h-full h-full flex flex-col`}
+        className={`bg-gray-100 ${inter.className} max-h-full h-full flex flex-col overflow-hidden`}
       >
         <ApplicationProvider input={{ userId: undefined, sessionId: "" }}>
           <Layout>{children}</Layout>
