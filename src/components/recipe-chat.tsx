@@ -24,8 +24,8 @@ import {
   useRef,
 } from "react";
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
-import { Button } from "./ui/button";
 import { RecipeConfigurator } from "./recipe-configurator";
+import { Button } from "./ui/button";
 
 type Context = {
   name: string | undefined;
@@ -56,6 +56,8 @@ export const createRecipeChatMachine = ({
   slug?: string;
   trpcClient: AppClient;
 }) => {
+  const initialStatus = !slug ? "New" : "Viewing";
+
   return createMachine(
     {
       id: "RecipeChat",
@@ -121,11 +123,11 @@ export const createRecipeChatMachine = ({
           },
         },
         Status: {
-          initial: "New",
+          initial: initialStatus,
           states: {
             New: {
               initial: "Untouched",
-              onDone: "Created",
+              onDone: "Viewing",
               states: {
                 Untouched: {
                   always: [
@@ -138,18 +140,11 @@ export const createRecipeChatMachine = ({
                   ],
                   on: {
                     SUBMIT: {
-                      target: "Submitted",
+                      target: "Selecting",
                       actions: assign({
                         currentQuery: ({ context }) => context.promptInput,
                         promptInput: ({ context }) => "",
                       }),
-                    },
-                  },
-                },
-                Submitted: {
-                  on: {
-                    SELECT_RECIPE: {
-                      target: "Selecting",
                     },
                   },
                 },
@@ -189,18 +184,17 @@ export const createRecipeChatMachine = ({
                     src: fromPromise(({ input }) =>
                       trpcClient.createRecipe.mutate(input)
                     ),
-                    onDone: "Viewing",
+                    onDone: "Complete",
                     onError: "Error",
                   },
                 },
-                Viewing: {},
-                Error: {
-                  entry: console.error,
+                Error: {},
+                Complete: {
+                  type: "final",
                 },
               },
             },
-            Created: {},
-            Archived: {},
+            Viewing: {},
           },
         },
       },
@@ -318,13 +312,9 @@ const RecipeCommand = () => {
     <Command shouldFilter={false}>
       <RecipeIngredients />
       <div className="flex flex-col gap-3">
-        {/* <ChatScrollFollow /> */}
         <ChatInput />
         <ChatSubmit />
       </div>
-      {/* <ScrollArea style={{ maxHeight: "50vh" }}>
-        <RecipeSuggestions />
-      </ScrollArea> */}
     </Command>
   );
 };

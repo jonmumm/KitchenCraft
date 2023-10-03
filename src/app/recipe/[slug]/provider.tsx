@@ -1,7 +1,10 @@
 "use client";
 
 import { trpc } from "@/app/_trpc/client";
-import { RecipeChatContext, createRecipeChatMachine } from "@/components/recipe-chat";
+import {
+  RecipeChatContext,
+  createRecipeChatMachine,
+} from "@/components/recipe-chat";
 import { useActor } from "@/hooks/useActor";
 import { ReactNode } from "react";
 
