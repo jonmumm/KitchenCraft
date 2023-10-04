@@ -1,6 +1,3 @@
-export const trpcUrl =
-  process.env.NODE_ENV === "production"
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/trpc`
-    : "http://localhost:3000/api/trpc";
+export const trpcUrl = `/api/trpc`;
 
-console.log({ trpcUrl, ENV_VL: process.env.NEXT_PUBLIC_VERCEL_URL });
+// console.log({ trpcUrl, ENV_VL: process.env.NEXT_PUBLIC_VERCEL_URL });
