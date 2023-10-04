@@ -42,7 +42,6 @@ export default function RecipeSuggestions({}: {}) {
     ?.split("\n")
     .filter((item) => item.split(":").length === 2)
     .map((item) => item.split(":").map((f) => f.trim()));
-  console.log({ items, suggestions });
 
   return (
     <>

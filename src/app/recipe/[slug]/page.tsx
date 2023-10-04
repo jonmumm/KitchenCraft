@@ -8,13 +8,13 @@ const getSessionId = (cookies: string) => {
   return "";
 };
 
-const ChatIdSchema = z.string().uuid();
+const ChatIdSchema = z.string().nonempty();
 
 export default async function Page({ params }: { params: { slug: string } }) {
   const userId = undefined;
   const sessionId = await getSessionId("");
 
-  const data = await kv.hget("recipes:${slug}", "chatId");
+  const data = await kv.hget(`recipe:${params.slug}`, "chatId");
   const chatId = ChatIdSchema.parse(data);
 
   return (

@@ -101,8 +101,7 @@ export const MessageSchema = z.discriminatedUnion("role", [
 ]);
 
 export const CreateRecipeInputSchema = z.object({
-  parentId: MessageIdSchema,
-  slug: z.string(),
+  chatId: ChatIdSchema,
   name: z.string(),
   description: z.string(),
 });

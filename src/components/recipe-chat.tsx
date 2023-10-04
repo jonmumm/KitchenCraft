@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { PromptContext } from "@/context/prompt";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { assert, getChatRecipeSlug } from "@/lib/utils";
+import { assert, assertType, getChatRecipeSlug } from "@/lib/utils";
 import {
   AppClient,
   AppEvent,
@@ -32,17 +32,19 @@ import { useChat } from "ai/react";
 
 type Context = {
   name: string | undefined;
+  description: string | undefined;
+  slug: string | undefined;
   chatId: string;
   messages: Record<string, Message>;
   promptInput: string;
   currentQuery: string | undefined;
-  currentRecipe:
-    | {
-        name: string;
-        description: string;
-        slug: string;
-      }
-    | undefined;
+  // currentRecipe:
+  //   | {
+  //       name: string;
+  //       description: string;
+  //       slug: string;
+  //     }
+  //   | undefined;
   attributes: RecipeAttributes;
 };
 
@@ -61,10 +63,15 @@ export const createRecipeChatMachine = ({
 }) => {
   const initialStatus = !slug ? "New" : "Viewing";
 
-  const createMessage = fromPromise(
-    async ({ input }: { input: CreateMessageInput }) =>
-      trpcClient.createMessage.mutate(input)
+  const createRecipe = fromPromise(
+    async ({ input }: { input: CreateRecipeInput }) =>
+      trpcClient.createRecipe.mutate(input)
   );
+
+  // const createMessage = fromPromise(
+  //   async ({ input }: { input: CreateMessageInput }) =>
+  //     trpcClient.createMessage.mutate(input)
+  // );
 
   return createMachine(
     {
@@ -73,9 +80,13 @@ export const createRecipeChatMachine = ({
         events: {} as AppEvent,
         context: {} as Context,
         actors: {} as {
-          src: "createMessage";
-          logic: typeof createMessage;
+          src: "createRecipe";
+          logic: typeof createRecipe;
         },
+        // actors: {} as {
+        //   src: "createMessage";
+        //   logic: typeof createMessage;
+        // },
       },
       type: "parallel",
       on: {
@@ -87,8 +98,9 @@ export const createRecipeChatMachine = ({
       },
       context: {
         name: undefined,
+        description: undefined,
+        slug: undefined,
         chatId,
-        currentRecipe: undefined,
         promptInput: "",
         currentQuery: undefined,
         messages: {},
@@ -160,65 +172,40 @@ export const createRecipeChatMachine = ({
                 Suggesting: {
                   on: {
                     SELECT_RECIPE: {
-                      // target: "Creating",
+                      target: "CreatingRecipe",
                       actions: assign({
-                        currentRecipe: ({ context, event }) => ({
-                          description: event.description,
-                          name: event.name,
-                          slug: getChatRecipeSlug(context.chatId, event.name),
-                        }),
+                        name: ({ event }) => event.name,
+                        description: ({ event }) => event.description,
                       }),
                     },
                   },
                 },
-                // SubittingQuery: {
-                //   invoke: {
-                //     src: "createMessage",
-                //     input: ({ context, event }) => {
-                //       return {
-                //         content: context.promptInput,
-                //         type: "query",
-                //         chatId: context.chatId,
-                //       };
-                //     },
-                //     onDone: "Selecting",
-                //   },
-                // },
-                // Creating: {
-                //   invoke: {
-                //     input: ({ context }) => {
-                //       assert(
-                //         context.currentRecipe,
-                //         "expected currentRecipe to be set when creating"
-                //       );
-                //       assert(
-                //         context.promptInput,
-                //         "expected promptInput to be set when creating"
-                //       );
-
-                //       return {
-                //         name: context.currentRecipe.name,
-                //         description: context.currentRecipe.description,
-                //         chatId: context.chatId,
-                //         slug: getChatRecipeSlug(
-                //           context.chatId,
-                //           context.currentRecipe.name
-                //         ),
-                //         initialQuery: {
-                //           role: "user",
-                //           content: context.promptInput,
-                //         },
-                //       } satisfies CreateRecipeInput;
-                //     },
-                //     src: fromPromise(({ input }) =>
-                //       trpcClient.createRecipe.mutate(input)
-                //     ),
-                //     onDone: "Complete",
-                //     onError: "Error",
-                //   },
-                // },
-                Error: {},
-                Complete: {
+                CreatingRecipe: {
+                  invoke: {
+                    input: ({ context, event }) => {
+                      assertType(event, "SELECT_RECIPE");
+                      const { description, name } = event;
+                      return {
+                        chatId: context.chatId,
+                        description,
+                        name,
+                      };
+                    },
+                    src: "createRecipe",
+                    onDone: {
+                      target: "Crafting",
+                      actions: assign({
+                        slug: ({ event }) => event.output.recipe.slug,
+                      }),
+                    },
+                    onError: "Error",
+                  },
+                },
+                Crafting: {},
+                Error: {
+                  entry: console.error,
+                },
+                Archived: {
                   type: "final",
                 },
               },
@@ -234,7 +221,7 @@ export const createRecipeChatMachine = ({
         hasNoTouchedAttributes,
       },
       actors: {
-        createMessage,
+        createRecipe,
       },
     }
   );
@@ -436,7 +423,6 @@ const ChatInput = () => {
     (e) => {
       const value = e.currentTarget.value;
       if (e.key === "Enter" && value && value !== "") {
-        console.log("SUBMIG!");
         e.preventDefault();
         send({ type: "SUBMIT" });
         append({

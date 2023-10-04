@@ -4,6 +4,7 @@ import { CreateMessageInputSchema, CreateRecipeInputSchema } from "@/schema";
 import { Message } from "@/types";
 import { nanoid } from "ai";
 import { publicProcedure, router } from "./trpc";
+import { getChatRecipeSlug } from "@/lib/utils";
 
 export const appRouter = router({
   createMessage: publicProcedure
@@ -43,30 +44,34 @@ export const appRouter = router({
   createRecipe: publicProcedure
     .input(CreateRecipeInputSchema)
     .mutation(async ({ input }) => {
-      const { slug, name, description, parentId } = input;
+      const { name, description, chatId } = input;
+      const slug = getChatRecipeSlug(chatId, name);
+      
       // assert it doesn't already exist
       const multi = await kv.multi();
 
-      const chatId = await multi.hget(`message:${parentId}`, "chatId");
-      if (chatId) {
-        // todo throw more specific trpc error to give 400
-        throw new Error(
-          "Couldn't find chatId from message specified in parentId"
-        );
-      }
-
-      const timestamp = Date.now();
+      const now = Date.now();
       await multi.zadd(`chat:${chatId}:recipes`, {
-        score: timestamp,
+        score: now,
         member: slug,
       });
-      multi.hset(`recipe:${slug}`, {
+      await multi.hset(`recipe:${slug}`, {
         slug,
         name,
         description,
         chatId,
-        parentId,
       });
+      await multi.exec();
+
+      return {
+        success: true,
+        recipe: {
+          slug,
+          name,
+          description,
+          chatId,
+        },
+      };
     }),
 });
 
