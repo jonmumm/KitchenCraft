@@ -10,11 +10,12 @@ import { assert, getChatRecipeSlug } from "@/lib/utils";
 import {
   AppClient,
   AppEvent,
+  CreateMessageInput,
   CreateRecipeInput,
   RecipeAttributes,
 } from "@/types";
 import { Message } from "ai";
-import { Settings2Icon } from "lucide-react";
+import { Settings2Icon, XIcon } from "lucide-react";
 import {
   KeyboardEventHandler,
   createContext,
@@ -26,6 +27,8 @@ import {
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
 import { RecipeConfigurator } from "./recipe-configurator";
 import { Button } from "./ui/button";
+import RecipeSuggestions from "./recipe-suggestions";
+import { useChat } from "ai/react";
 
 type Context = {
   name: string | undefined;
@@ -58,12 +61,21 @@ export const createRecipeChatMachine = ({
 }) => {
   const initialStatus = !slug ? "New" : "Viewing";
 
+  const createMessage = fromPromise(
+    async ({ input }: { input: CreateMessageInput }) =>
+      trpcClient.createMessage.mutate(input)
+  );
+
   return createMachine(
     {
       id: "RecipeChat",
       types: {
         events: {} as AppEvent,
         context: {} as Context,
+        actors: {} as {
+          src: "createMessage";
+          logic: typeof createMessage;
+        },
       },
       type: "parallel",
       on: {
@@ -113,6 +125,7 @@ export const createRecipeChatMachine = ({
             Open: {
               on: {
                 TOGGLE_CONFIGURATOR: "Closed",
+                CLOSE_CONFIGURATOR: "Closed",
               },
             },
             Closed: {
@@ -140,18 +153,14 @@ export const createRecipeChatMachine = ({
                   ],
                   on: {
                     SUBMIT: {
-                      target: "Selecting",
-                      actions: assign({
-                        currentQuery: ({ context }) => context.promptInput,
-                        promptInput: ({ context }) => "",
-                      }),
+                      target: "Suggesting",
                     },
                   },
                 },
-                Selecting: {
+                Suggesting: {
                   on: {
                     SELECT_RECIPE: {
-                      target: "Creating",
+                      // target: "Creating",
                       actions: assign({
                         currentRecipe: ({ context, event }) => ({
                           description: event.description,
@@ -162,32 +171,52 @@ export const createRecipeChatMachine = ({
                     },
                   },
                 },
-                Creating: {
-                  invoke: {
-                    input: ({ context }) => {
-                      assert(
-                        context.currentRecipe,
-                        "expected currentRecipe to be set when creating"
-                      );
+                // SubittingQuery: {
+                //   invoke: {
+                //     src: "createMessage",
+                //     input: ({ context, event }) => {
+                //       return {
+                //         content: context.promptInput,
+                //         type: "query",
+                //         chatId: context.chatId,
+                //       };
+                //     },
+                //     onDone: "Selecting",
+                //   },
+                // },
+                // Creating: {
+                //   invoke: {
+                //     input: ({ context }) => {
+                //       assert(
+                //         context.currentRecipe,
+                //         "expected currentRecipe to be set when creating"
+                //       );
+                //       assert(
+                //         context.promptInput,
+                //         "expected promptInput to be set when creating"
+                //       );
 
-                      return {
-                        name: context.currentRecipe.name,
-                        description: context.currentRecipe?.description,
-                        chatId: context.chatId,
-                        slug: getChatRecipeSlug(
-                          context.chatId,
-                          context.currentRecipe.name
-                        ),
-                        messages: [],
-                      } satisfies CreateRecipeInput;
-                    },
-                    src: fromPromise(({ input }) =>
-                      trpcClient.createRecipe.mutate(input)
-                    ),
-                    onDone: "Complete",
-                    onError: "Error",
-                  },
-                },
+                //       return {
+                //         name: context.currentRecipe.name,
+                //         description: context.currentRecipe.description,
+                //         chatId: context.chatId,
+                //         slug: getChatRecipeSlug(
+                //           context.chatId,
+                //           context.currentRecipe.name
+                //         ),
+                //         initialQuery: {
+                //           role: "user",
+                //           content: context.promptInput,
+                //         },
+                //       } satisfies CreateRecipeInput;
+                //     },
+                //     src: fromPromise(({ input }) =>
+                //       trpcClient.createRecipe.mutate(input)
+                //     ),
+                //     onDone: "Complete",
+                //     onError: "Error",
+                //   },
+                // },
                 Error: {},
                 Complete: {
                   type: "final",
@@ -203,6 +232,9 @@ export const createRecipeChatMachine = ({
       guards: {
         hasTouchedAttributes,
         hasNoTouchedAttributes,
+      },
+      actors: {
+        createMessage,
       },
     }
   );
@@ -248,15 +280,25 @@ export function RecipeChat() {
   const isConfiguratorOpen = useSelector(actor, (state) =>
     state.matches("Configurator.Open")
   );
+  const send = useSend();
+  const handlePressClose = useCallback(() => {
+    send({ type: "CLOSE_CONFIGURATOR" });
+  }, [send]);
 
   return (
-    <div className="flex flex-col gap-4 max-h-full">
+    <div className="flex flex-col gap-4 overflow-y-scroll">
       {isConfiguratorOpen && (
-        <Card className={`flex flex-col bg-slate-50 max-h-full mx-4`}>
-          <RecipeConfigurator />
-        </Card>
+        <div className="flex flex-col gap-2">
+          <Button onClick={handlePressClose} className="w-1/2 mx-auto">
+            <XIcon />
+            Close
+          </Button>
+          <Card className={`flex flex-col bg-slate-50 mx-4`}>
+            <RecipeConfigurator />
+          </Card>
+        </div>
       )}
-      <Card className={`flex flex-col bg-slate-50 max-h-full m-4`}>
+      <Card className={`flex flex-col bg-slate-50 m-4`}>
         <div className="p-3 flex flex-col gap-4">
           <div className="flex flex-row items-center gap-2">
             <RecipePromptLabel />
@@ -308,6 +350,10 @@ const RecipePromptLabel = () => {
 };
 
 const RecipeCommand = () => {
+  const actor = useContext(RecipeChatContext);
+  const isSuggesting = useSelector(actor, (state) =>
+    state.matches("Status.New.Suggesting")
+  );
   return (
     <Command shouldFilter={false}>
       <RecipeIngredients />
@@ -315,6 +361,7 @@ const RecipeCommand = () => {
         <ChatInput />
         <ChatSubmit />
       </div>
+      {isSuggesting && <RecipeSuggestions />}
     </Command>
   );
 };
@@ -353,9 +400,14 @@ ChatSubmit.displayName = Button.displayName;
 // };
 
 const ChatInput = () => {
+  const actor = useContext(RecipeChatContext);
+  const chatId = useSelector(actor, (state) => state.context.chatId);
+  const { messages, append, handleSubmit, isLoading } = useChat({
+    id: "suggestions",
+    api: `/api/chat/${chatId}/suggestions`,
+  });
   const inputRef = useRef<HTMLInputElement | null>(null);
   const prompt$ = useContext(PromptContext);
-  const actor = useContext(RecipeChatContext);
   const value = useSelector(actor, (state) => state.context.promptInput);
   const send = useSend();
 
@@ -384,11 +436,16 @@ const ChatInput = () => {
     (e) => {
       const value = e.currentTarget.value;
       if (e.key === "Enter" && value && value !== "") {
+        console.log("SUBMIG!");
         e.preventDefault();
         send({ type: "SUBMIT" });
+        append({
+          role: "user",
+          content: value,
+        });
       }
     },
-    [prompt$, send]
+    [send, append, inputRef]
   );
 
   return (

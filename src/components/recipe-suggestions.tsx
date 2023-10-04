@@ -1,6 +1,6 @@
 "use client";
 
-import { useOnMatches } from "@/hooks/useOnMatches";
+import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useChat } from "ai/react";
 import { CommandLoading } from "cmdk";
@@ -9,40 +9,24 @@ import { useCallback, useContext } from "react";
 import { RecipeChatContext } from "./recipe-chat";
 import { Badge } from "./ui/badge";
 import { CommandGroup, CommandItem } from "./ui/command";
-import { assert } from "@/lib/utils";
 
 export default function RecipeSuggestions({}: {}) {
   const actor = useContext(RecipeChatContext);
+  const chatId = useSelector(actor, (state) => state.context.chatId);
   const send = useSend();
 
-  const { messages, append, isLoading } = useChat({
+  const { messages, isLoading } = useChat({
     id: "suggestions",
-    api: "/api/recipes",
+    api: `/api/chat/${chatId}/suggestions`,
   });
 
-  // append its updated everytime there's a message
-  // setting it in the callback is causing a loop
-  const handlePromptSubmit = useCallback(() => {
-    const content = actor.getSnapshot().context.promptInput;
-    assert(content, "expected promptInput in recipe suggests");
-    append({
-      content,
-      role: "user",
-    });
-  }, [actor]);
-
-  useOnMatches(
-    actor,
-    (state) => {
-      return state.matches("New.Submitted");
-    },
-    handlePromptSubmit
-  );
-
   // useLayoutEffect(() => {
-  //   actor.subscribe()
-
-  // }, [setInput, actor])
+  //   append({
+  //     role: "user",
+  //     content: content,
+  //   });
+  //   // use initialAPpend here becomes append keeps re-rendering loop
+  // }, [initialAppend, content]);
 
   const handleSelectItem = useCallback(
     (name: string, description: string) => {
@@ -58,6 +42,7 @@ export default function RecipeSuggestions({}: {}) {
     ?.split("\n")
     .filter((item) => item.split(":").length === 2)
     .map((item) => item.split(":").map((f) => f.trim()));
+  console.log({ items, suggestions });
 
   return (
     <>
@@ -69,7 +54,7 @@ export default function RecipeSuggestions({}: {}) {
                 key={name}
                 onSelect={handleSelectItem(name, description)}
               >
-                <div className="flex flex-row gap-2 items-center justify-between">
+                <div className="flex flex-row flex-1 gap-2 items-center justify-between">
                   <div className="flex flex-col gap-2">
                     <h3 className="text-lg font-semibold text-slate-900">
                       {name}

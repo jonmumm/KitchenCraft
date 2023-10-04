@@ -1,3 +1,4 @@
+import type { CreateMessage } from "ai";
 import { z } from "zod";
 import {
   COOKING_TIMES,
@@ -6,7 +7,6 @@ import {
   DISH_TYPES,
   TECHNIQUES,
 } from "./constants";
-import type { Message } from "ai";
 
 const slugSchema = z
   .string()
@@ -42,17 +42,67 @@ export const ChatSchema = z.object({
   cook_time: z.string().optional(),
 });
 
-export const ChatMessageSchema = z.object({
-  sender: z.enum(["user", "bot"]),
-  message: z.string().min(1).max(1000),
-  timestamp: z.string(),
-  schema: z.enum(["user_query", "recipe_suggestion", "suggestion"]),
+// export const ChatMessageSchema = z.object({
+//   sender: z.enum(["user", "bot"]),
+//   message: z.string().min(1).max(1000),
+//   timestamp: z.string(),
+// });
+
+export const MessageContentSchema = z.string();
+
+export const RoleSchema = z.enum(["system", "user", "assistant", "function"]);
+
+// const MessageSchema = z.custom<Message>();
+const CreateMessageSchema = z.custom<CreateMessage>();
+
+export const MessageIdSchema = z.string();
+const ChatIdSchema = z.string();
+
+export const MessageTypeSchema = z.enum(["query", "selection"]);
+
+export const CreateMessageInputSchema = z.object({
+  id: MessageIdSchema.optional(),
+  content: MessageContentSchema,
+  type: MessageTypeSchema,
+  chatId: ChatIdSchema,
 });
 
+const AssistantStateSchema = z.enum(["running", "done", "error"]);
+
+const UserMessageSchema = z.object({
+  id: MessageIdSchema,
+  content: MessageContentSchema,
+  chatId: ChatIdSchema,
+  role: z.literal("user"),
+  type: MessageTypeSchema,
+});
+
+const SystemMessageSchema = z.object({
+  id: MessageIdSchema,
+  content: MessageContentSchema,
+  chatId: ChatIdSchema,
+  role: z.literal("system"),
+  type: MessageTypeSchema,
+});
+
+export const AssistantMessageSchema = z.object({
+  id: MessageIdSchema,
+  content: MessageContentSchema,
+  chatId: ChatIdSchema,
+  role: z.literal("assistant"),
+  type: MessageTypeSchema,
+  state: AssistantStateSchema,
+});
+
+export const MessageSchema = z.discriminatedUnion("role", [
+  UserMessageSchema,
+  SystemMessageSchema,
+  AssistantMessageSchema,
+]);
+
 export const CreateRecipeInputSchema = z.object({
-  messages: z.array(z.custom<Message>()),
+  parentId: MessageIdSchema,
   slug: z.string(),
-  chatId: z.string(),
   name: z.string(),
   description: z.string(),
 });
@@ -92,6 +142,10 @@ const ToggleConfiguratorEventSchema = z.object({
   type: z.literal("TOGGLE_CONFIGURATOR"),
 });
 
+const CloseConfiguratorEventSchema = z.object({
+  type: z.literal("CLOSE_CONFIGURATOR"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   SelectRecipeEventSchema,
   SetInputEventSchema,
@@ -101,6 +155,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   InitEventSchema,
   BackEventSchema,
   ToggleConfiguratorEventSchema,
+  CloseConfiguratorEventSchema,
 ]);
 
 // TypeScript Type Literals

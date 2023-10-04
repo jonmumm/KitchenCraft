@@ -28,13 +28,20 @@ export const createHeaderMachine = () =>
     },
     on: {
       FOCUS_PROMPT: {
-        target: ".Logo.OffScreen",
+        target: [".Logo.OffScreen", ".Position.Floating"],
       },
       TOGGLE_CONFIGURATOR: {
         target: ".Logo.OffScreen",
       },
     },
     states: {
+      Position: {
+        initial: "Block",
+        states: {
+          Block: {},
+          Floating: {},
+        },
+      },
       Back: {
         initial: "Invisible",
         states: {
@@ -114,8 +121,8 @@ const AnimatedLogo = () => {
   });
   return (
     <img
-      className={`h-16 ${
-        isLogoOffScreen ? "-translate-y-32" : ""
+      className={`${
+        isLogoOffScreen ? "-translate-y-32 h-2" : "h-16"
       } transition-transform`}
       src="/Logo_TypeOnly_Black.svg"
       alt="KitchenCraft Logo TextOnly"

@@ -23,11 +23,7 @@ const RecipeConfiguratorCategory = forwardRef<
   React.ElementRef<typeof AccordionItem>,
   React.ComponentPropsWithoutRef<typeof AccordionItem>
 >(({ className, ...props }, ref) => (
-  <AccordionItem
-    ref={ref}
-    className={cn("px-4 max-h-full", className)}
-    {...props}
-  />
+  <AccordionItem ref={ref} className={cn("px-4", className)} {...props} />
 ));
 RecipeConfiguratorCategory.displayName = "RecipeConfiguratorCategory";
 
@@ -64,23 +60,13 @@ const RecipeConfiguratorContext = createContext(defaultStore);
 
 export const RecipeConfigurator = () => {
   return (
-    <Accordion type="single" defaultValue="ingredients" className="max-h-full">
-      <AccordionItem value="ingredients">
-        <RecipeConfiguratorMenuTrigger>
-          Ingredients 🥔
-        </RecipeConfiguratorMenuTrigger>
-        <RecipeConfiguratorMenuContent>
-          <Ingredients />
-        </RecipeConfiguratorMenuContent>
-      </AccordionItem>
-      <AccordionItem value="cuisines">
-        <RecipeConfiguratorMenuTrigger>
-          Cuisines 🍛
-        </RecipeConfiguratorMenuTrigger>
-        <RecipeConfiguratorMenuContent>
-          <Cuisines />
-        </RecipeConfiguratorMenuContent>
-      </AccordionItem>
+    <Accordion type="single" defaultValue="ingredients">
+      <Ingredients />
+      <Cuisines />
+      <Cookware />
+      <Measures />
+      <Timing />
+      <Techniques />
     </Accordion>
   );
 };
@@ -105,11 +91,7 @@ const RecipeConfiguratorMenuContent = forwardRef<
 >(({ className, ...props }, ref) => (
   <AccordionContent
     ref={ref}
-    style={{ maxHeight: "35vh" }}
-    className={cn(
-      "text-left flex flex-col gap-4 overflow-y-scroll px-3",
-      className
-    )}
+    className={cn("text-left flex flex-col gap-4 px-3", className)}
     {...props}
   />
 ));
@@ -117,9 +99,9 @@ RecipeConfiguratorMenuContent.displayName = AccordionContent.displayName;
 
 const Measures = () => {
   return (
-    <RecipeConfiguratorCategory value="measures">
-      <AccordionTrigger>Measures 📏</AccordionTrigger>
-      <AccordionContent>
+    <AccordionItem value="measures">
+      <RecipeConfiguratorMenuTrigger>Measures 📏</RecipeConfiguratorMenuTrigger>
+      <RecipeConfiguratorMenuContent>
         <div className="flex flex-wrap flex-row gap-2 p-3">
           <AttributeBadge attrKey="metric" attrType="measure">
             metric (e.g. grams, ml)
@@ -128,28 +110,33 @@ const Measures = () => {
             imperial (e.g. cup, quart)
           </AttributeBadge>
         </div>
-      </AccordionContent>
-    </RecipeConfiguratorCategory>
+      </RecipeConfiguratorMenuContent>
+    </AccordionItem>
   );
 };
 
 const Cuisines = () => {
   return (
-    <div className="flex flex-wrap flex-row gap-2 p-3">
-      {CUISINES.map((val) => (
-        <AttributeBadge attrType="cuisines" attrKey={val} key={val}>
-          {val}
-        </AttributeBadge>
-      ))}
-    </div>
+    <AccordionItem value="cuisines">
+      <RecipeConfiguratorMenuTrigger>Cuisines 🍛</RecipeConfiguratorMenuTrigger>
+      <RecipeConfiguratorMenuContent>
+        <div className="flex flex-wrap flex-row gap-2 p-3">
+          {CUISINES.map((val) => (
+            <AttributeBadge attrType="cuisines" attrKey={val} key={val}>
+              {val}
+            </AttributeBadge>
+          ))}
+        </div>
+      </RecipeConfiguratorMenuContent>
+    </AccordionItem>
   );
 };
 
 const Timing = () => {
   return (
-    <RecipeConfiguratorCategory value="timing">
-      <AccordionTrigger>Timing ⏲️</AccordionTrigger>
-      <AccordionContent>
+    <AccordionItem value="timing">
+      <RecipeConfiguratorMenuTrigger>Timing ⏲️</RecipeConfiguratorMenuTrigger>
+      <RecipeConfiguratorMenuContent>
         <div className="flex flex-wrap flex-row gap-2 p-3">
           {COOKING_TIMES.map((val) => (
             <AttributeBadge attrType="timing" attrKey={val} key={val}>
@@ -157,16 +144,16 @@ const Timing = () => {
             </AttributeBadge>
           ))}
         </div>
-      </AccordionContent>
-    </RecipeConfiguratorCategory>
+      </RecipeConfiguratorMenuContent>
+    </AccordionItem>
   );
 };
 
 const Cookware = () => {
   return (
-    <RecipeConfiguratorCategory value="cookware">
-      <AccordionTrigger>Cookware 🫕</AccordionTrigger>
-      <AccordionContent>
+    <AccordionItem value="cookwares">
+      <RecipeConfiguratorMenuTrigger>Cookware 🫕</RecipeConfiguratorMenuTrigger>
+      <RecipeConfiguratorMenuContent>
         <div className="flex flex-wrap flex-row gap-2 p-3">
           {COOKWARES.map((val) => (
             <AttributeBadge attrType="cookware" attrKey={val} key={val}>
@@ -174,16 +161,18 @@ const Cookware = () => {
             </AttributeBadge>
           ))}
         </div>
-      </AccordionContent>
-    </RecipeConfiguratorCategory>
+      </RecipeConfiguratorMenuContent>
+    </AccordionItem>
   );
 };
 
 const Techniques = () => {
   return (
-    <RecipeConfiguratorCategory value="techniques">
-      <AccordionTrigger>Techniques 🍳</AccordionTrigger>
-      <AccordionContent>
+    <AccordionItem value="techniques">
+      <RecipeConfiguratorMenuTrigger>
+        Techniques 🍳
+      </RecipeConfiguratorMenuTrigger>
+      <RecipeConfiguratorMenuContent>
         <div className="flex flex-wrap flex-row gap-2 p-3">
           {TECHNIQUES.map((val) => (
             <AttributeBadge attrType="technique" attrKey={val} key={val}>
@@ -191,8 +180,8 @@ const Techniques = () => {
             </AttributeBadge>
           ))}
         </div>
-      </AccordionContent>
-    </RecipeConfiguratorCategory>
+      </RecipeConfiguratorMenuContent>
+    </AccordionItem>
   );
 };
 
@@ -206,27 +195,32 @@ const Ingredients = () => {
   }, {} as Record<string, string[]>);
 
   return (
-    <>
-      {Object.entries(categoriesMap).map(([category, items]) => (
-        <div key={category} className="flex flex-col gap-3">
-          <Label className="mb-2 text-muted-foreground uppercase font-medium">
-            {category}
-          </Label>
-          <div className="flex flex-wrap flex-row gap-2">
-            {items.map((item) => {
-              return (
-                <AttributeBadge
-                  key={item}
-                  attrType="ingredients"
-                  attrKey={item}
-                >
-                  {item}
-                </AttributeBadge>
-              );
-            })}
+    <AccordionItem value="ingredients">
+      <RecipeConfiguratorMenuTrigger>
+        Ingredients 🥔
+      </RecipeConfiguratorMenuTrigger>
+      <RecipeConfiguratorMenuContent>
+        {Object.entries(categoriesMap).map(([category, items]) => (
+          <div key={category} className="flex flex-col gap-3">
+            <Label className="mb-2 text-muted-foreground uppercase font-medium">
+              {category}
+            </Label>
+            <div className="flex flex-wrap flex-row gap-2">
+              {items.map((item) => {
+                return (
+                  <AttributeBadge
+                    key={item}
+                    attrType="ingredients"
+                    attrKey={item}
+                  >
+                    {item}
+                  </AttributeBadge>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
-    </>
+        ))}
+      </RecipeConfiguratorMenuContent>
+    </AccordionItem>
   );
 };

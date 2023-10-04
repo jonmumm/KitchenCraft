@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import "../styles/globals.css";
 import { Header } from "./header";
+import Body from "./body";
 import { ApplicationProvider } from "./provider";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -59,9 +60,7 @@ function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       <Header />
-      <main className={`flex w-full flex-1 max-h-full overflow-hidden`}>
-        {children}
-      </main>
+      <Body>{children}</Body>
     </>
   );
 }

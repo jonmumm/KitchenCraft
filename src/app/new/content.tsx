@@ -13,7 +13,7 @@ export const Content = () => {
   );
 
   return (
-    <div className={`flex flex-col flex-end flex-1 pt-16 overflow-hidden`}>
+    <div className={`flex flex-col flex-end flex-1 overflow-hidden`}>
       {isNullState && (
         <div className="text-center text-muted-foreground my-auto">
           <h2 className="text-2xl">Mise en place</h2>
