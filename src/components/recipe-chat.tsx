@@ -6,15 +6,16 @@ import { Label } from "@/components/ui/label";
 import { PromptContext } from "@/context/prompt";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { assert, assertType, getChatRecipeSlug } from "@/lib/utils";
+import { assertType } from "@/lib/utils";
 import {
   AppClient,
   AppEvent,
-  CreateMessageInput,
   CreateRecipeInput,
+  Message,
   RecipeAttributes,
+  RecipeChatInput,
 } from "@/types";
-import { Message } from "ai";
+import { useChat } from "ai/react";
 import { Settings2Icon, XIcon } from "lucide-react";
 import {
   KeyboardEventHandler,
@@ -26,43 +27,28 @@ import {
 } from "react";
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
 import { RecipeConfigurator } from "./recipe-configurator";
-import { Button } from "./ui/button";
 import RecipeSuggestions from "./recipe-suggestions";
-import { useChat } from "ai/react";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 
 type Context = {
   name: string | undefined;
   description: string | undefined;
   slug: string | undefined;
   chatId: string;
-  messages: Record<string, Message>;
   promptInput: string;
   currentQuery: string | undefined;
-  // currentRecipe:
-  //   | {
-  //       name: string;
-  //       description: string;
-  //       slug: string;
-  //     }
-  //   | undefined;
+  recipeMessages: Message[];
   attributes: RecipeAttributes;
 };
 
 export const createRecipeChatMachine = ({
-  slug,
-  userId,
-  chatId,
-  sessionId,
+  initialStatus,
   trpcClient,
 }: {
-  sessionId: string;
-  userId?: string;
-  chatId: string;
-  slug?: string;
+  initialStatus: "New" | "Viewing";
   trpcClient: AppClient;
 }) => {
-  const initialStatus = !slug ? "New" : "Viewing";
-
   const createRecipe = fromPromise(
     async ({ input }: { input: CreateRecipeInput }) =>
       trpcClient.createRecipe.mutate(input)
@@ -77,16 +63,13 @@ export const createRecipeChatMachine = ({
     {
       id: "RecipeChat",
       types: {
+        input: {} as RecipeChatInput,
         events: {} as AppEvent,
         context: {} as Context,
         actors: {} as {
           src: "createRecipe";
           logic: typeof createRecipe;
         },
-        // actors: {} as {
-        //   src: "createMessage";
-        //   logic: typeof createMessage;
-        // },
       },
       type: "parallel",
       on: {
@@ -96,21 +79,25 @@ export const createRecipeChatMachine = ({
           }),
         },
       },
-      context: {
-        name: undefined,
-        description: undefined,
-        slug: undefined,
+      context: ({
+        input: { name, chatId, slug, description, recipeMessages },
+      }) => ({
+        name,
+        description,
+        slug,
         chatId,
+        recipeMessages,
+
+        // todo pull these from search state and add to input
         promptInput: "",
         currentQuery: undefined,
-        messages: {},
         attributes: {
           ingredients: {},
           techniques: {},
           cuisines: {},
           cookware: {},
         },
-      },
+      }),
       states: {
         Focus: {
           initial: "None",
@@ -160,6 +147,9 @@ export const createRecipeChatMachine = ({
                   on: {
                     SUBMIT: {
                       target: "Suggesting",
+                      actions: assign({
+                        promptInput: () => "",
+                      }),
                     },
                   },
                 },
@@ -187,7 +177,7 @@ export const createRecipeChatMachine = ({
                     },
                     src: "createRecipe",
                     onDone: {
-                      target: "Crafting",
+                      target: "Created",
                       actions: assign({
                         slug: ({ event }) => event.output.recipe.slug,
                       }),
@@ -195,12 +185,11 @@ export const createRecipeChatMachine = ({
                     onError: "Error",
                   },
                 },
-                Crafting: {},
+                Created: {
+                  type: "final",
+                },
                 Error: {
                   entry: console.error,
-                },
-                Archived: {
-                  type: "final",
                 },
               },
             },
@@ -258,6 +247,12 @@ export const RecipeChatContext = createContext({} as RecipeChatActor);
 
 export function RecipeChat() {
   const actor = useContext(RecipeChatContext);
+  const isNew = useSelector(actor, (state) => {
+    return state.matches("Status.New");
+  });
+  const isCreating = useSelector(actor, (state) => {
+    return state.matches("Status.New.CreatingRecipe");
+  });
   const isConfiguratorOpen = useSelector(actor, (state) =>
     state.matches("Configurator.Open")
   );
@@ -279,20 +274,40 @@ export function RecipeChat() {
           </Card>
         </div>
       )}
-      <Card className={`flex flex-col bg-slate-50 m-4`}>
-        <div className="p-3 flex flex-col gap-4">
-          <div className="flex flex-row items-center gap-2">
-            <RecipePromptLabel />
-            <ConfiguratorToggle />
+      {isNew && (
+        <Card className={`flex flex-col bg-slate-50 m-4`}>
+          <div className="p-3 flex flex-col gap-4">
+            {!isCreating ? (
+              <>
+                <div className="flex flex-row items-center gap-2">
+                  <RecipePromptLabel />
+                  {/* <ConfiguratorToggle /> */}
+                </div>
+                <div>
+                  <RecipeCommand />
+                </div>
+              </>
+            ) : (
+              <RecipeCreating />
+            )}
           </div>
-          <div>
-            <RecipeCommand />
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }
+
+const RecipeCreating = () => {
+  const actor = useContext(RecipeChatContext);
+  const name = useSelector(actor, (state) => state.context.name);
+  return (
+    <div className="flex justify-center">
+      <Badge variant="outline" className="p-4">
+        🧪 Crafting {name}
+      </Badge>
+    </div>
+  );
+};
 
 const ConfiguratorToggle = () => {
   const actor = useContext(RecipeChatContext);
@@ -367,7 +382,7 @@ const ChatSubmit = forwardRef((props, ref) => {
 
   return (
     <Button disabled={!enabled} onClick={handlePress}>
-      Suggest Recipes
+      Craft Recipes
     </Button>
   );
 });

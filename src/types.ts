@@ -17,6 +17,11 @@ import {
   TechniqueSchema,
   RoleSchema,
   MessageContentSchema,
+  RecipeChatInputSchema,
+  UserMessageSchema,
+  LLMMessageSetSchema,
+  SystemMessageSchema,
+  LLMMessageSetIdSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -42,3 +47,11 @@ export type CreateRecipeInput = z.infer<typeof CreateRecipeInputSchema>;
 
 export type MessageRole = z.infer<typeof RoleSchema>;
 export type MessageContent = z.infer<typeof MessageContentSchema>;
+
+export type RecipeChatInput = z.infer<typeof RecipeChatInputSchema>;
+export type UserMessage = z.infer<typeof UserMessageSchema>;
+
+export type LLMMessageSet = z.infer<typeof LLMMessageSetSchema>;
+export type SystemMessage = z.infer<typeof SystemMessageSchema>;
+
+export type LLMMessageSetId = z.infer<typeof LLMMessageSetIdSchema>;

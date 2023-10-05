@@ -19,21 +19,6 @@ const SlugSchema = z
   .min(1)
   .max(100);
 
-// Schema for Recipe
-export const RecipeSchema = z.object({
-  slug: SlugSchema,
-  name: z.string().min(1).max(30),
-  description: z.string().min(1).max(100),
-  chatId: z.string(),
-  // messageIds: z.array(z.string()),
-  // cuisine: z.string().min(1).max(100),
-  // ingredients: z.string().min(1),
-  // instructions: z.string().min(1),
-  // cook_time: z.string().min(1).max(20),
-  // image_url: z.string().url(),
-  // chat_id: z.string(),
-});
-
 // Schema for Chat
 export const ChatSchema = z.object({
   user_id: z.string(),
@@ -62,7 +47,34 @@ const CreateMessageSchema = z.custom<CreateMessage>();
 export const MessageIdSchema = z.string();
 const ChatIdSchema = z.string();
 
-export const MessageTypeSchema = z.enum(["query", "selection"]);
+export const LLMMessageSetIdSchema = z.tuple([
+  MessageIdSchema,
+  MessageIdSchema,
+  MessageIdSchema,
+]);
+
+// Schema for Recipe
+export const RecipeSchema = z.object({
+  slug: SlugSchema,
+  name: z.string().min(1).max(140),
+  description: z.string().min(1).max(140),
+  chatId: z.string(),
+  messageSet: LLMMessageSetIdSchema.optional(),
+  queryMessageSet: LLMMessageSetIdSchema,
+  // querySytemMessageId: z.string(),
+  // queryUserMessageId: z.string(),
+  // queryAssistantMessageId: z.string(),
+
+  // messageIds: z.array(z.string()),
+  // cuisine: z.string().min(1).max(100),
+  // ingredients: z.string().min(1),
+  // instructions: z.string().min(1),
+  // cook_time: z.string().min(1).max(20),
+  // image_url: z.string().url(),
+  // chat_id: z.string(),
+});
+
+export const MessageTypeSchema = z.enum(["query", "recipe"]);
 
 export const CreateMessageInputSchema = z.object({
   id: MessageIdSchema.optional(),
@@ -73,7 +85,7 @@ export const CreateMessageInputSchema = z.object({
 
 const AssistantStateSchema = z.enum(["running", "done", "error"]);
 
-const UserMessageSchema = z.object({
+export const UserMessageSchema = z.object({
   id: MessageIdSchema,
   content: MessageContentSchema,
   chatId: ChatIdSchema,
@@ -81,7 +93,7 @@ const UserMessageSchema = z.object({
   type: MessageTypeSchema,
 });
 
-const SystemMessageSchema = z.object({
+export const SystemMessageSchema = z.object({
   id: MessageIdSchema,
   content: MessageContentSchema,
   chatId: ChatIdSchema,
@@ -91,7 +103,7 @@ const SystemMessageSchema = z.object({
 
 export const AssistantMessageSchema = z.object({
   id: MessageIdSchema,
-  content: MessageContentSchema,
+  content: MessageContentSchema.optional(),
   chatId: ChatIdSchema,
   role: z.literal("assistant"),
   type: MessageTypeSchema,
@@ -103,6 +115,20 @@ export const MessageSchema = z.discriminatedUnion("role", [
   SystemMessageSchema,
   AssistantMessageSchema,
 ]);
+
+export const LLMMessageSetSchema = z.tuple([
+  SystemMessageSchema,
+  UserMessageSchema,
+  AssistantMessageSchema,
+]);
+
+export const RecipeChatInputSchema = z.object({
+  chatId: z.string(),
+  name: z.string().optional(),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  recipeMessages: z.array(MessageSchema),
+});
 
 export const CreateRecipeInputSchema = z.object({
   chatId: ChatIdSchema,

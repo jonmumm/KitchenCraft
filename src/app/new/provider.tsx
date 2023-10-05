@@ -26,11 +26,18 @@ export default function Provider({
   const actor = useActor(
     "recipeChat",
     createRecipeChatMachine({
-      userId,
-      chatId,
-      sessionId,
       trpcClient,
-    })
+      initialStatus: "New",
+    }),
+    {
+      input: {
+        name: undefined,
+        description: undefined,
+        slug: undefined,
+        chatId,
+        recipeMessages: [],
+      },
+    }
   );
 
   return (

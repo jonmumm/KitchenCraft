@@ -1,12 +1,18 @@
 import { ApplicationContext } from "@/context/application";
 import { useStore } from "@nanostores/react";
 import { useContext, useLayoutEffect, useState } from "react";
-import { ActorRefFrom, AnyStateMachine, createActor } from "xstate";
+import {
+  ActorOptions,
+  ActorRefFrom,
+  AnyStateMachine,
+  createActor,
+} from "xstate";
 import { useEvents } from "./useEvents";
 
 export const useActor = <TMachine extends AnyStateMachine>(
   key: string,
-  machine: TMachine
+  machine: TMachine,
+  opts?: ActorOptions<TMachine>
 ) => {
   const appStore = useContext(ApplicationContext);
   const event$ = useEvents();
@@ -15,7 +21,7 @@ export const useActor = <TMachine extends AnyStateMachine>(
     | ActorRefFrom<typeof machine>
     | undefined;
 
-  const [actor] = useState(existingActor || createActor(machine));
+  const [actor] = useState(existingActor || createActor(machine, opts));
   useLayoutEffect(() => {
     if (actor !== existingActor) {
       appStore.setKey(key, actor);
