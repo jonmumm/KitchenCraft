@@ -8,7 +8,7 @@ import {
   TECHNIQUES,
 } from "./constants";
 
-const slugSchema = z
+const SlugSchema = z
   .string()
   .trim()
   .toLowerCase()
@@ -21,19 +21,23 @@ const slugSchema = z
 
 // Schema for Recipe
 export const RecipeSchema = z.object({
-  name: z.string().min(1).max(100),
-  cuisine: z.string().min(1).max(100),
-  ingredients: z.string().min(1),
-  instructions: z.string().min(1),
-  cook_time: z.string().min(1).max(20),
-  image_url: z.string().url(),
-  chat_id: z.string(),
+  slug: SlugSchema,
+  name: z.string().min(1).max(30),
+  description: z.string().min(1).max(100),
+  chatId: z.string(),
+  // messageIds: z.array(z.string()),
+  // cuisine: z.string().min(1).max(100),
+  // ingredients: z.string().min(1),
+  // instructions: z.string().min(1),
+  // cook_time: z.string().min(1).max(20),
+  // image_url: z.string().url(),
+  // chat_id: z.string(),
 });
 
 // Schema for Chat
 export const ChatSchema = z.object({
   user_id: z.string(),
-  recipe_slug: slugSchema,
+  recipe_slug: SlugSchema,
   query: z.string().min(1).max(500),
   ingredients: z.string().optional(),
   cuisine: z.string().optional(),

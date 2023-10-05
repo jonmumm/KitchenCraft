@@ -17,18 +17,14 @@ export const useActor = <TMachine extends AnyStateMachine>(
 
   const [actor] = useState(existingActor || createActor(machine));
   useLayoutEffect(() => {
-    let unsub: () => void | undefined;
-    if (!existingActor) {
+    if (actor !== existingActor) {
+      appStore.setKey(key, actor);
       actor.start();
-      unsub = event$.subscribe((event) => {
+      event$.subscribe((event) => {
         actor.send(event as any);
       });
     }
-
-    return () => {
-      unsub && unsub();
-    };
-  }, [actor, event$]);
+  }, [actor, event$, appStore, actor, existingActor]);
 
   return actor;
 };

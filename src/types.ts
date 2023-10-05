@@ -15,6 +15,8 @@ import {
   RecipeAttributesSchema,
   RecipeSchema,
   TechniqueSchema,
+  RoleSchema,
+  MessageContentSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -37,3 +39,6 @@ export type AppClient = ReturnType<typeof trpc.useContext>["client"];
 
 export type CreateMessageInput = z.infer<typeof CreateMessageInputSchema>;
 export type CreateRecipeInput = z.infer<typeof CreateRecipeInputSchema>;
+
+export type MessageRole = z.infer<typeof RoleSchema>;
+export type MessageContent = z.infer<typeof MessageContentSchema>;

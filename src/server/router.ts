@@ -1,52 +1,31 @@
 import { kv } from "@vercel/kv";
 
-import { CreateMessageInputSchema, CreateRecipeInputSchema } from "@/schema";
-import { Message } from "@/types";
-import { nanoid } from "ai";
+import { assert, getChatRecipeSlug } from "@/lib/utils";
+import {
+  CreateRecipeInputSchema,
+  MessageIdSchema,
+  MessageSchema,
+} from "@/schema";
 import { publicProcedure, router } from "./trpc";
-import { getChatRecipeSlug } from "@/lib/utils";
+import { Message, Recipe } from "@/types";
 
 export const appRouter = router({
-  createMessage: publicProcedure
-    .input(CreateMessageInputSchema)
-    .mutation(async ({ input }) => {
-      const { content, type, chatId } = input;
-      const id = input.id || nanoid();
-      const role = "user";
-
-      const multi = await kv.multi();
-
-      const message = {
-        id,
-        role,
-        content,
-        type,
-        chatId,
-      } satisfies Message;
-
-      // Set message data using a hash
-      await multi.hset(`message:${id}`, message);
-
-      // Add the message ID to a sorted set of messages for the chat, using the timestamp as the score
-      const timestamp = Date.now();
-      await multi.zadd(`chat:${chatId}:messages`, {
-        score: timestamp,
-        member: id,
-      });
-
-      await multi.exec();
-
-      return {
-        success: true,
-        message,
-      };
-    }),
   createRecipe: publicProcedure
     .input(CreateRecipeInputSchema)
     .mutation(async ({ input }) => {
       const { name, description, chatId } = input;
       const slug = getChatRecipeSlug(chatId, name);
-      
+
+      // const data = await kv.zrange(`chat:${chatId}:messages`, 0, 2, {
+      //   rev: true,
+      // });
+
+      // const messageIds = data.map((d) => MessageIdSchema.parse(d));
+      // assert(
+      //   messageIds.length === 3,
+      //   "expected 3 messages on chat when creating recipe"
+      // );
+
       // assert it doesn't already exist
       const multi = await kv.multi();
 
@@ -55,12 +34,15 @@ export const appRouter = router({
         score: now,
         member: slug,
       });
+
       await multi.hset(`recipe:${slug}`, {
         slug,
         name,
         description,
         chatId,
-      });
+        // messageIds,
+      } satisfies Recipe);
+
       await multi.exec();
 
       return {
@@ -70,6 +52,7 @@ export const appRouter = router({
           name,
           description,
           chatId,
+          // messageIds,
         },
       };
     }),

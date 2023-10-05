@@ -122,13 +122,7 @@ export const createRecipeChatMachine = ({
                 },
               },
             },
-            Input: {
-              on: {
-                BLUR_PROMPT: {
-                  target: "None",
-                },
-              },
-            },
+            Input: {},
           },
         },
         Configurator: {
@@ -273,7 +267,7 @@ export function RecipeChat() {
   }, [send]);
 
   return (
-    <div className="flex flex-col gap-4 overflow-y-scroll">
+    <div className="flex flex-col gap-4 overflow-y-auto">
       {isConfiguratorOpen && (
         <div className="flex flex-col gap-2">
           <Button onClick={handlePressClose} className="w-1/2 mx-auto">
@@ -329,7 +323,7 @@ const RecipePromptLabel = () => {
   return (
     <Label htmlFor="prompt" className="leading-5 w-full">
       <span>
-        Enter <strong>ingredients</strong>, recipe <strong>name</strong> or a{" "}
+        Enter <strong>ingredients</strong>, a dish <strong>name</strong> or{" "}
         <strong>description</strong>.
       </span>
     </Label>
@@ -357,10 +351,19 @@ const ChatSubmit = forwardRef((props, ref) => {
   const actor = useContext(RecipeChatContext);
   const send = useSend();
   const enabled = useSelector(actor, (s) => s.matches("Status.New.Touched"));
+  const chatId = useSelector(actor, (state) => state.context.chatId);
+  const { append } = useChat({
+    id: "suggestions",
+    api: `/api/chat/${chatId}/suggestions`,
+  });
 
   const handlePress = useCallback(() => {
     send({ type: "SUBMIT" });
-  }, [actor]);
+    append({
+      role: "user",
+      content: actor.getSnapshot().context.promptInput,
+    });
+  }, [actor, append]);
 
   return (
     <Button disabled={!enabled} onClick={handlePress}>
@@ -389,7 +392,7 @@ ChatSubmit.displayName = Button.displayName;
 const ChatInput = () => {
   const actor = useContext(RecipeChatContext);
   const chatId = useSelector(actor, (state) => state.context.chatId);
-  const { messages, append, handleSubmit, isLoading } = useChat({
+  const { append } = useChat({
     id: "suggestions",
     api: `/api/chat/${chatId}/suggestions`,
   });

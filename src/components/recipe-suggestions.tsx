@@ -5,7 +5,7 @@ import { useSend } from "@/hooks/useSend";
 import { useChat } from "ai/react";
 import { CommandLoading } from "cmdk";
 import { ChevronRightIcon } from "lucide-react";
-import { useCallback, useContext } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { RecipeChatContext } from "./recipe-chat";
 import { Badge } from "./ui/badge";
 import { CommandGroup, CommandItem } from "./ui/command";
@@ -70,11 +70,28 @@ export default function RecipeSuggestions({}: {}) {
       )}
       {isLoading && (
         <CommandLoading>
-          <Badge variant={"outline"} className="p-3 m-3 font-semibold">
-            🧪 Crafting more recipes ...
-          </Badge>
+          <div className="text-center">
+            <Badge variant={"outline"} className="p-3 m-3 font-semibold">
+              <AnimatedText />
+            </Badge>
+          </div>
         </CommandLoading>
       )}
     </>
   );
 }
+
+const AnimatedText = () => {
+  const [dots, setDots] = useState("");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length < 3 ? prev + "." : ""));
+    }, 500); // 500ms interval for changing dots
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, []);
+
+  return <>🧪 Crafting recipes{dots}</>;
+};

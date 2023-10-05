@@ -1,8 +1,10 @@
 import { RecipeChat } from "@/components/recipe-chat";
+import RecipeViewer from "@/components/recipe-viewer";
+import { MessageIdSchema, MessageSchema } from "@/schema";
 import { kv } from "@vercel/kv";
+import { z } from "zod";
 import Header from "./header";
 import Provider from "./provider";
-import { z } from "zod";
 
 const getSessionId = (cookies: string) => {
   return "";
@@ -14,8 +16,20 @@ export default async function Page({ params }: { params: { slug: string } }) {
   const userId = undefined;
   const sessionId = await getSessionId("");
 
-  const data = await kv.hget(`recipe:${params.slug}`, "chatId");
-  const chatId = ChatIdSchema.parse(data);
+  const chatId = ChatIdSchema.parse(
+    await kv.hget(`recipe:${params.slug}`, "chatId")
+  );
+
+  const messageIds = z
+    .array(MessageIdSchema)
+    .parse(await kv.zrange(`recipe:${chatId}:messages`, 0, -1));
+
+  const initialMessages = await Promise.all(
+    messageIds.map(async (messageId) => {
+      const data = await kv.hgetall(`recipe:${params.slug}:messages`);
+      return MessageSchema.parse(data);
+    })
+  );
 
   return (
     <Provider
@@ -26,6 +40,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
     >
       <div className="flex flex-col flex-end flex-1 justify-end pt-16 overflow-hidden">
         <Header />
+        <RecipeViewer initialMessages={initialMessages} />
         <RecipeChat />
       </div>
     </Provider>

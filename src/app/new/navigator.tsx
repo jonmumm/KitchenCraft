@@ -10,7 +10,6 @@ export default function Navigator(props: { children: ReactNode }) {
   const actor = useContext(RecipeChatContext);
 
   const slug = useSelector(actor, (state) => state.context.slug);
-  console.log({ slug });
 
   useLayoutEffect(() => {
     if (slug) {
