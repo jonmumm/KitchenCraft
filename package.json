@@ -30,6 +30,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
+    "js-yaml": "^4.1.0",
     "lucide-react": "^0.279.0",
     "nanostores": "^0.9.3",
     "next": "latest",
@@ -45,6 +46,7 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.6",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",

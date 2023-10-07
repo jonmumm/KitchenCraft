@@ -20,20 +20,17 @@ export default async function Page({ params }: { params: { slug: string } }) {
     await kv.hget(`recipe:${params.slug}`, "chatId")
   );
 
-  const { name, slug, description, messageSet } = await getRecipe(
-    kv,
-    params.slug
-  );
-  const messages = messageSet ? await getLLMMessageSet(kv, messageSet) : [];
+  const recipe = await getRecipe(kv, params.slug);
+  const messages = recipe.messageSet
+    ? await getLLMMessageSet(kv, recipe.messageSet)
+    : [];
 
   return (
     <Provider
       chatId={chatId}
       userId={userId}
+      recipe={recipe}
       sessionId={sessionId}
-      slug={slug}
-      name={name}
-      description={description}
       recipeMessages={messages}
     >
       <div className="flex flex-col flex-end flex-1 justify-end pt-16 overflow-hidden">

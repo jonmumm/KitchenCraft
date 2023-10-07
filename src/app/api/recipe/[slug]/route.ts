@@ -1,7 +1,9 @@
 // ./app/api/chat/route.ts
-import { getRecipe } from "@/lib/db";
+import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import { assert } from "@/lib/utils";
+import { RecipePromptResultSchema, RecipeViewerDataSchema } from "@/schema";
 import { AssistantMessage, Message, UserMessage } from "@/types";
+import * as yaml from "js-yaml";
 import { kv } from "@vercel/kv";
 import { OpenAIStream, StreamingTextResponse, nanoid } from "ai";
 import { NextResponse } from "next/server";
@@ -15,6 +17,14 @@ const openai = new OpenAI({
 
 // IMPORTANT! Set the runtime to edge
 export const runtime = "edge";
+
+export async function GET(
+  _: Request,
+  { params }: { params: { slug: string } }
+) {
+  const recipe = await kv.hgetall(`recipe:${params.slug}`);
+  return NextResponse.json(recipe);
+}
 
 export async function POST(
   req: Request,
@@ -37,8 +47,38 @@ export async function POST(
   assert(userMessages.length === 1, "only single messages currently supported");
   const { chatId } = await getRecipe(kv, params.slug);
 
-  const SYSTEM_CONTENT =
-    "You will be given the name and description of a recipe, and the prompt that was used to create a list of recipes that this particular name and description was selected from. Your task is to give me the full recipe, with ingredients, cooking and prep times broken out, ingredients measurements, tips for preparation, and anything else that might be helpful to a home cook for this particular recipe.";
+  const recipe = await getRecipe(kv, params.slug);
+  const [_, queryUserMessage, queryAssistantMessage] = await getLLMMessageSet(
+    kv,
+    recipe.queryMessageSet
+  );
+
+  const SYSTEM_CONTENT = `
+The original query to generate recipes was: ${queryUserMessage.content}
+Based on this query, a list of recipe options was generated: ${queryAssistantMessage.content}
+
+The user will provide the name and description they selected. Please generate a full recipe for this selection following the specified format.
+
+Format: Provide the recipe information in YAML format. Below is an example order of the keys you should return in the object.
+
+prepTime: "ISO 8601 duration format (e.g., PT15M for 15 minutes)"
+cookTime: "ISO 8601 duration format (e.g., PT1H for 1 hour)"
+totalTime: "ISO 8601 duration format (e.g., PT1H15M for 1 hour 15 minutes)"
+keywords: "Keywords related to the recipe, comma separated"
+recipeYield: "Yield of the recipe (e.g., '1 loaf', '4 servings')"
+recipeCategory: "The type of meal or course (e.g., dinner, dessert)"
+recipeCuisine: "The cuisine of the recipe (e.g., Italian, Mexican)"
+recipeIngredient: 
+  - "Quantity and ingredient (e.g., '3 or 4 ripe bananas, smashed')"
+  - "Another ingredient"
+  - "And another ingredient"
+recipeInstructions:
+  - "@type": "HowToStep"
+    text: "A step for making the item"
+  - "@type": "HowToStep"
+    text: "Another step for making the item"
+`;
+
   const systemMessage = {
     id: nanoid(),
     role: "system",
@@ -98,16 +138,25 @@ export async function POST(
       },
       async onCompletion(completion) {
         await kv.hset(`message:${assistantMessageId}`, {
-          content: completion,
+          content: JSON.stringify(completion),
           state: "done",
         });
+
+        try {
+          const json = yaml.load(completion);
+          const data = RecipeViewerDataSchema.parse(json);
+          await kv.hset(`recipe:${slug}`, data);
+        } catch (ex) {
+          console.error("Error parsing yaml completion", ex);
+        }
+        // await kv.hset(`recipe:${slug}`, data);
       },
       async onFinal(completion) {
-        console.log("FINAL!!!!!");
+        console.log("FINAL!");
+        // await kv.hset(`message:${assistantMessageId}`, {
+        //   state: "done",
+        // });
       },
-      // async onFinal(completion) {
-      //   await kv.hdel(`message:${messageId}`);
-      // },
     });
 
     return new StreamingTextResponse(stream);

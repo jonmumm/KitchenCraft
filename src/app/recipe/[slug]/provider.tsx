@@ -6,7 +6,7 @@ import {
   createRecipeChatMachine,
 } from "@/components/recipe-chat";
 import { useActor } from "@/hooks/useActor";
-import { Message, RecipeChatInput } from "@/types";
+import { Message, Recipe, RecipeChatInput } from "@/types";
 import { ReactNode } from "react";
 
 /**
@@ -14,33 +14,28 @@ import { ReactNode } from "react";
  */
 export default function Provider({
   children,
-  name,
-  description,
   chatId,
-  slug,
+  recipe,
   recipeMessages,
 }: {
   children: ReactNode;
-  name: string;
-  description: string;
+  recipe: Recipe;
   chatId: string;
   userId: string | undefined;
   sessionId: string;
-  slug: string;
   recipeMessages: Message[];
 }) {
   const { client: trpcClient } = trpc.useContext();
+  const { name, slug, description } = recipe;
 
   const input = {
     chatId,
-    name,
-    slug,
-    description,
+    recipe,
     recipeMessages,
   } satisfies RecipeChatInput;
 
   const actor = useActor(
-    "recipeChat",
+    `recipeChat:${chatId}`,
     createRecipeChatMachine({
       initialStatus: "Viewing",
       trpcClient,

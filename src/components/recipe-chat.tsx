@@ -12,6 +12,7 @@ import {
   AppEvent,
   CreateRecipeInput,
   Message,
+  Recipe,
   RecipeAttributes,
   RecipeChatInput,
 } from "@/types";
@@ -19,6 +20,7 @@ import { useChat } from "ai/react";
 import { Settings2Icon, XIcon } from "lucide-react";
 import {
   KeyboardEventHandler,
+  MouseEventHandler,
   createContext,
   forwardRef,
   useCallback,
@@ -32,12 +34,14 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 
 type Context = {
-  name: string | undefined;
-  description: string | undefined;
-  slug: string | undefined;
+  recipe: Partial<Recipe>;
   chatId: string;
   promptInput: string;
   currentQuery: string | undefined;
+  currentSelection?: {
+    name: string;
+    description: string;
+  };
   recipeMessages: Message[];
   attributes: RecipeAttributes;
 };
@@ -79,14 +83,13 @@ export const createRecipeChatMachine = ({
           }),
         },
       },
-      context: ({
-        input: { name, chatId, slug, description, recipeMessages },
-      }) => ({
-        name,
-        description,
-        slug,
+      context: ({ input: { recipe, chatId, recipeMessages } }) => ({
+        recipe: {
+          ...recipe,
+        },
         chatId,
         recipeMessages,
+        currentSelection: undefined,
 
         // todo pull these from search state and add to input
         promptInput: "",
@@ -158,8 +161,10 @@ export const createRecipeChatMachine = ({
                     SELECT_RECIPE: {
                       target: "CreatingRecipe",
                       actions: assign({
-                        name: ({ event }) => event.name,
-                        description: ({ event }) => event.description,
+                        currentSelection: ({ event }) => ({
+                          name: event.name,
+                          description: event.description,
+                        }),
                       }),
                     },
                   },
@@ -179,7 +184,7 @@ export const createRecipeChatMachine = ({
                     onDone: {
                       target: "Created",
                       actions: assign({
-                        slug: ({ event }) => event.output.recipe.slug,
+                        recipe: ({ event }) => event.output.recipe,
                       }),
                     },
                     onError: "Error",
@@ -299,7 +304,10 @@ export function RecipeChat() {
 
 const RecipeCreating = () => {
   const actor = useContext(RecipeChatContext);
-  const name = useSelector(actor, (state) => state.context.name);
+  const name = useSelector(
+    actor,
+    (state) => state.context.currentSelection?.name
+  );
   return (
     <div className="flex justify-center">
       <Badge variant="outline" className="p-4">
@@ -372,13 +380,17 @@ const ChatSubmit = forwardRef((props, ref) => {
     api: `/api/chat/${chatId}/suggestions`,
   });
 
-  const handlePress = useCallback(() => {
-    send({ type: "SUBMIT" });
-    append({
-      role: "user",
-      content: actor.getSnapshot().context.promptInput,
-    });
-  }, [actor, append]);
+  const handlePress: MouseEventHandler<HTMLButtonElement> = useCallback(
+    (e) => {
+      e.preventDefault();
+      send({ type: "SUBMIT" });
+      append({
+        role: "user",
+        content: actor.getSnapshot().context.promptInput,
+      });
+    },
+    [actor, send, append]
+  );
 
   return (
     <Button disabled={!enabled} onClick={handlePress}>
@@ -449,7 +461,7 @@ const ChatInput = () => {
         });
       }
     },
-    [send, append, inputRef]
+    [send, append]
   );
 
   return (

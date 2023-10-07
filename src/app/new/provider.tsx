@@ -24,7 +24,7 @@ export default function Provider({
 }) {
   const { client: trpcClient } = trpc.useContext();
   const actor = useActor(
-    "recipeChat",
+    `recipeChat:${chatId}`,
     createRecipeChatMachine({
       trpcClient,
       initialStatus: "New",

@@ -53,27 +53,6 @@ export const LLMMessageSetIdSchema = z.tuple([
   MessageIdSchema,
 ]);
 
-// Schema for Recipe
-export const RecipeSchema = z.object({
-  slug: SlugSchema,
-  name: z.string().min(1).max(140),
-  description: z.string().min(1).max(140),
-  chatId: z.string(),
-  messageSet: LLMMessageSetIdSchema.optional(),
-  queryMessageSet: LLMMessageSetIdSchema,
-  // querySytemMessageId: z.string(),
-  // queryUserMessageId: z.string(),
-  // queryAssistantMessageId: z.string(),
-
-  // messageIds: z.array(z.string()),
-  // cuisine: z.string().min(1).max(100),
-  // ingredients: z.string().min(1),
-  // instructions: z.string().min(1),
-  // cook_time: z.string().min(1).max(20),
-  // image_url: z.string().url(),
-  // chat_id: z.string(),
-});
-
 export const MessageTypeSchema = z.enum(["query", "recipe"]);
 
 export const CreateMessageInputSchema = z.object({
@@ -121,14 +100,6 @@ export const LLMMessageSetSchema = z.tuple([
   UserMessageSchema,
   AssistantMessageSchema,
 ]);
-
-export const RecipeChatInputSchema = z.object({
-  chatId: z.string(),
-  name: z.string().optional(),
-  slug: z.string().optional(),
-  description: z.string().optional(),
-  recipeMessages: z.array(MessageSchema),
-});
 
 export const CreateRecipeInputSchema = z.object({
   chatId: ChatIdSchema,
@@ -234,3 +205,40 @@ export const RecipeAttributesSchema = z.object({
 });
 
 export const RecipeAttributeSchema = RecipeAttributesSchema.keyof();
+
+const HowToStep = z.object({
+  "@type": z.literal("HowToStep"),
+  text: z.string(),
+});
+
+export const RecipePromptResultSchema = z.object({
+  prepTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
+  cookTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
+  totalTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
+  keywords: z.string(),
+  recipeYield: z.string(),
+  recipeCategory: z.string(),
+  recipeCuisine: z.string(),
+  recipeIngredient: z.array(z.string()),
+  recipeInstructions: z.array(HowToStep),
+});
+
+export const RecipeViewerDataSchema = RecipePromptResultSchema.deepPartial();
+
+// Schema for Recipe
+export const RecipeSchema = z
+  .object({
+    slug: SlugSchema,
+    name: z.string().min(1).max(140),
+    description: z.string().min(1).max(140),
+    chatId: z.string(),
+    queryMessageSet: LLMMessageSetIdSchema,
+    messageSet: LLMMessageSetIdSchema.optional(),
+  })
+  .merge(RecipeViewerDataSchema);
+
+export const RecipeChatInputSchema = z.object({
+  chatId: z.string(),
+  recipe: RecipeSchema.optional(),
+  recipeMessages: z.array(MessageSchema),
+});
