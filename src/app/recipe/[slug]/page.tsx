@@ -2,11 +2,9 @@ import { RecipeChat } from "@/components/recipe-chat";
 import RecipeViewer from "@/components/recipe-viewer";
 import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import { kv } from "@vercel/kv";
-import { z } from "zod";
-import Head from "next/head";
-import Provider from "./provider";
 import { Metadata, ResolvingMetadata } from "next";
-import { Props } from "next/script";
+import { z } from "zod";
+import Provider from "./provider";
 
 const getSessionId = (cookies: string) => {
   return "";
@@ -14,7 +12,11 @@ const getSessionId = (cookies: string) => {
 
 const ChatIdSchema = z.string().nonempty();
 
-export default async function Page({ params }: { params: { slug: string } }) {
+type Props = {
+  params: { slug: string };
+};
+
+export default async function Page({ params }: Props) {
   const userId = undefined;
   const sessionId = await getSessionId("");
 
@@ -26,7 +28,6 @@ export default async function Page({ params }: { params: { slug: string } }) {
   const messages = recipe.messageSet
     ? await getLLMMessageSet(kv, recipe.messageSet)
     : [];
-  const title = `${recipe.name} | KitchenCraft.ai`;
 
   return (
     <>
@@ -38,7 +39,6 @@ export default async function Page({ params }: { params: { slug: string } }) {
         recipeMessages={messages}
       >
         <div className="flex flex-col flex-end flex-1 justify-end overflow-hidden">
-          {/* <Header /> */}
           <RecipeViewer />
           <RecipeChat />
         </div>
@@ -46,10 +46,6 @@ export default async function Page({ params }: { params: { slug: string } }) {
     </>
   );
 }
-
-type Props = {
-  params: { slug: string };
-};
 
 export async function generateMetadata(
   { params }: Props,
