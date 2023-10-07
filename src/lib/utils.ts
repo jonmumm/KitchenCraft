@@ -50,6 +50,6 @@ export function generateRandomId(length: number = 6): string {
 
 export function getChatRecipeSlug(chatId: string, name: string): string {
   const slug = sentenceToSlug(name);
-  const chatSlug = chatId.slice(0, 5);
+  const chatSlug = chatId.toLowerCase().slice(0, 5);
   return `${chatSlug}-${slug}`;
 }

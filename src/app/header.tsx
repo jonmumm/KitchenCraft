@@ -106,7 +106,7 @@ export function Header() {
               <Button className="w-full">New Recipe</Button>
             </Link>
             <Separator />
-            <RecentRecipes />
+            {/* <RecentRecipes /> */}
           </PopoverContent>
         </Popover>
       </div>

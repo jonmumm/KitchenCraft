@@ -24,6 +24,7 @@ import {
   LLMMessageSetIdSchema,
   RecipePromptResultSchema,
   RecipeViewerDataSchema,
+  SlugSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -60,3 +61,5 @@ export type LLMMessageSetId = z.infer<typeof LLMMessageSetIdSchema>;
 
 export type RecipePromptResult = z.infer<typeof RecipePromptResultSchema>;
 export type RecipeViewerData = z.infer<typeof RecipeViewerDataSchema>;
+
+export type RecipeSlug = z.infer<typeof SlugSchema>;

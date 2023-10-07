@@ -1,10 +1,19 @@
-import { LLMMessageSetSchema, MessageSchema, RecipeSchema } from "@/schema";
-import { LLMMessageSet, LLMMessageSetId } from "@/types";
+import {
+  LLMMessageSetSchema,
+  MessageSchema,
+  RecipeSchema,
+  SlugSchema,
+} from "@/schema";
+import { LLMMessageSetId, RecipeSlug } from "@/types";
 import { kv as _kv } from "@vercel/kv";
+import { z } from "zod";
 
 type KV = typeof _kv;
 
-export const getRecipe = async (kv: KV, slug: string) =>
+export const getRecentRecipeSlugs = async (kv: KV) =>
+  z.array(SlugSchema).parse(await kv.zrange(`recipes:new`, 0, -1));
+
+export const getRecipe = async (kv: KV, slug: RecipeSlug) =>
   RecipeSchema.parse(await kv.hgetall(`recipe:${slug}`));
 
 export const getMessage = async (kv: KV, id: string) =>

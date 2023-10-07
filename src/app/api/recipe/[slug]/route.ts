@@ -31,7 +31,6 @@ export async function POST(
   { params }: { params: { slug: string } }
 ) {
   const { slug } = params;
-  // todo add rate limit check to make sure we dont already have a query in flight...
 
   const json = await req.json();
   const { messages: userMessages } = z
@@ -45,9 +44,11 @@ export async function POST(
     })
     .parse(json);
   assert(userMessages.length === 1, "only single messages currently supported");
-  const { chatId } = await getRecipe(kv, params.slug);
-
+  console.log({ userMessages });
+  console.log(params.slug);
   const recipe = await getRecipe(kv, params.slug);
+  console.log({ recipe });
+
   const [_, queryUserMessage, queryAssistantMessage] = await getLLMMessageSet(
     kv,
     recipe.queryMessageSet
@@ -83,12 +84,12 @@ recipeInstructions:
     id: nanoid(),
     role: "system",
     type: "recipe",
-    chatId,
+    chatId: recipe.chatId,
     content: SYSTEM_CONTENT,
   } satisfies Message;
   const assistantMessage = {
     id: nanoid(),
-    chatId,
+    chatId: recipe.chatId,
     role: "assistant" as const,
     type: "recipe",
     state: "running",
@@ -96,7 +97,7 @@ recipeInstructions:
 
   const userMessage = {
     id: nanoid(),
-    chatId,
+    chatId: recipe.chatId,
     type: "recipe",
     ...userMessages[0],
   } satisfies UserMessage;
@@ -146,6 +147,10 @@ recipeInstructions:
           const json = yaml.load(completion);
           const data = RecipeViewerDataSchema.parse(json);
           await kv.hset(`recipe:${slug}`, data);
+          await kv.zadd(`recipes:new`, {
+            score: Date.now(),
+            member: slug,
+          });
         } catch (ex) {
           console.error("Error parsing yaml completion", ex);
         }

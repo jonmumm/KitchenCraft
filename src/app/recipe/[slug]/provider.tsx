@@ -26,8 +26,6 @@ export default function Provider({
   recipeMessages: Message[];
 }) {
   const { client: trpcClient } = trpc.useContext();
-  const { name, slug, description } = recipe;
-
   const input = {
     chatId,
     recipe,

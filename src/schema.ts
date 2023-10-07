@@ -8,7 +8,7 @@ import {
   TECHNIQUES,
 } from "./constants";
 
-const SlugSchema = z
+export const SlugSchema = z
   .string()
   .trim()
   .toLowerCase()
@@ -19,24 +19,6 @@ const SlugSchema = z
   .min(1)
   .max(100);
 
-// Schema for Chat
-export const ChatSchema = z.object({
-  user_id: z.string(),
-  recipe_slug: SlugSchema,
-  query: z.string().min(1).max(500),
-  ingredients: z.string().optional(),
-  cuisine: z.string().optional(),
-  techniques: z.string().optional(),
-  cookwares: z.string().optional(),
-  cook_time: z.string().optional(),
-});
-
-// export const ChatMessageSchema = z.object({
-//   sender: z.enum(["user", "bot"]),
-//   message: z.string().min(1).max(1000),
-//   timestamp: z.string(),
-// });
-
 export const MessageContentSchema = z.string();
 
 export const RoleSchema = z.enum(["system", "user", "assistant", "function"]);
@@ -45,7 +27,7 @@ export const RoleSchema = z.enum(["system", "user", "assistant", "function"]);
 const CreateMessageSchema = z.custom<CreateMessage>();
 
 export const MessageIdSchema = z.string();
-const ChatIdSchema = z.string();
+export const ChatIdSchema = z.string();
 
 export const LLMMessageSetIdSchema = z.tuple([
   MessageIdSchema,

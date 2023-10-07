@@ -76,15 +76,14 @@ export async function POST(
   const assistantMessageId = assistantMessage.id;
 
   const multi = kv.multi();
-  const promises = newMessages.map(async (message, index) => {
+  newMessages.map(async (message, index) => {
     const time = Date.now() + index / 1000;
-    await multi.hset(`message:${message.id}`, message);
-    return await multi.zadd(`chat:${message.chatId}:messages`, {
+    multi.hset(`message:${message.id}`, message);
+    return multi.zadd(`chat:${message.chatId}:messages`, {
       score: time,
       member: message.id,
     });
   });
-  await Promise.all(promises);
   await multi.exec();
 
   const messages = [systemMessage, ...userMessages].map(
