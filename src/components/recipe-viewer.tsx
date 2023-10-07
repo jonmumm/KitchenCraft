@@ -96,7 +96,7 @@ function RecipeContent() {
   return (
     <div className="max-w-2xl mx-auto p-4 flex flex-col gap-2">
       <Card className="flex flex-col gap-2 pb-5 mb-5">
-        <div className="flex flex-row gap-2 p-5">
+        <div className="flex flex-row gap-3 p-5">
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-semibold">{name}</h1>
             <p className="text-lg text-muted-foreground">{description}</p>
