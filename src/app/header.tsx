@@ -139,9 +139,7 @@ const AnimatedLogo = () => {
   });
   return (
     <img
-      className={`${
-        isLogoOffScreen ? "-translate-y-32 h-2" : "h-16"
-      } transition-transform`}
+      className="h-16"
       src="/Logo_TypeOnly_Black.svg"
       alt="KitchenCraft Logo TextOnly"
     />
