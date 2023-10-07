@@ -10,9 +10,7 @@ export default function Body(props: { children: ReactNode }) {
   //   state.matches("Position.Floating")
   // );
   return (
-    <main
-      className={`flex mx-auto max-w-lg xl:max-w-xl max-h-full overflow-hidden`}
-    >
+    <main className={`mx-auto max-w-lg xl:max-w-xl max-h-full w-full`}>
       {props.children}
     </main>
   );

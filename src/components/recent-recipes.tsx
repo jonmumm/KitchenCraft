@@ -14,8 +14,8 @@ export async function RecentRecipes() {
 
   return (
     <div className="p-4">
-      <Label className="text-xs uppercase font-semibold">Recent Recipes</Label>
-      <ul className="flex flex-col gap-2">
+      <Label className="text-xs uppercase font-semibold">Top Recipes</Label>
+      <ul className="flex flex-col gap-2 mt-1">
         {recipeSlugs.map((slug, index) => (
           <RecipeLink key={slug} index={index} slug={slug} />
         ))}

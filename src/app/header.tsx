@@ -11,9 +11,16 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { ArrowBigLeftIcon, GripVerticalIcon } from "lucide-react";
 import Link from "next/link";
-import { createContext, useCallback, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { ActorRefFrom, createActor, createMachine } from "xstate";
 import { RecentRecipes } from "../components/recent-recipes";
+import { usePathname } from "next/navigation";
 
 export const createHeaderMachine = () =>
   createMachine({
@@ -70,6 +77,12 @@ export function Header() {
   const isBackVisible = useSelector(headerActor, (state) =>
     state.matches("Back.Visible")
   );
+
+  const pathname = usePathname();
+  useEffect(() => {
+    setIsPopoverOpen(false);
+  }, [pathname, setIsPopoverOpen]);
+
   const send = useSend();
 
   const handlePressBack = useCallback(() => {
@@ -77,8 +90,8 @@ export function Header() {
   }, [send]);
 
   return (
-    <div className="absolute left-0 top-0 w-full flex items-start justify-between p-4 gap-4 hidden-print">
-      <div className="sticky">
+    <div className="w-full flex items-start justify-between p-4 gap-4 hidden-print">
+      <div>
         <Button
           onClick={handlePressBack}
           className={!isBackVisible ? "invisible" : ""}
@@ -89,11 +102,16 @@ export function Header() {
       </div>
 
       <div className="flex-1 flex justify-center">
-        <AnimatedLogo />
+        <Link href="/">
+          <AnimatedLogo />
+        </Link>
       </div>
 
-      <div className="sticky">
-        <Popover onOpenChange={(open) => setIsPopoverOpen(open)}>
+      <div>
+        <Popover
+          open={isPopoverOpen}
+          onOpenChange={(open) => setIsPopoverOpen(open)}
+        >
           <PopoverTrigger asChild>
             <Button variant="outline">
               <GripVerticalIcon
@@ -103,7 +121,7 @@ export function Header() {
           </PopoverTrigger>
           <PopoverContent className="w-80 flex flex-col gap-4 p-3">
             <Link href="/new">
-              <Button className="w-full">New Recipe</Button>
+              <Button className="w-full">🧪 New</Button>
             </Link>
             <Separator />
             {/* <RecentRecipes /> */}

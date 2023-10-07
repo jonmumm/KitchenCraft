@@ -17,7 +17,7 @@ import {
   RecipeChatInput,
 } from "@/types";
 import { useChat } from "ai/react";
-import { Settings2Icon, XIcon } from "lucide-react";
+import { ArrowBigLeftIcon, Settings2Icon, XIcon } from "lucide-react";
 import {
   KeyboardEventHandler,
   MouseEventHandler,
@@ -32,6 +32,7 @@ import { RecipeConfigurator } from "./recipe-configurator";
 import RecipeSuggestions from "./recipe-suggestions";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import { Separator } from "./ui/separator";
 
 type Context = {
   recipe: Partial<Recipe>;
@@ -158,6 +159,9 @@ export const createRecipeChatMachine = ({
                 },
                 Suggesting: {
                   on: {
+                    BACK: {
+                      target: "Untouched",
+                    },
                     SELECT_RECIPE: {
                       target: "CreatingRecipe",
                       actions: assign({
@@ -267,7 +271,7 @@ export function RecipeChat() {
   }, [send]);
 
   return (
-    <div className="flex flex-col gap-4 overflow-y-auto">
+    <div className="flex flex-col gap-4">
       {isConfiguratorOpen && (
         <div className="flex flex-col gap-2">
           <Button onClick={handlePressClose} className="w-1/2 mx-auto">
@@ -280,8 +284,8 @@ export function RecipeChat() {
         </div>
       )}
       {isNew && (
-        <Card className={`flex flex-col bg-slate-50 m-4`}>
-          <div className="p-3 flex flex-col gap-4">
+        <Card className={`flex flex-col flex-1`}>
+          <div className="flex flex-col gap-4">
             {!isCreating ? (
               <>
                 <div className="flex flex-row items-center gap-2">
@@ -344,7 +348,7 @@ const RecipePromptLabel = () => {
   useSelector(actor, (state) => state.matches(""));
 
   return (
-    <Label htmlFor="prompt" className="leading-5 w-full">
+    <Label htmlFor="prompt" className="leading-5 w-full px-3 mt-4">
       <span>
         Enter <strong>ingredients</strong>, a dish <strong>name</strong> or{" "}
         <strong>description</strong>.
@@ -362,6 +366,7 @@ const RecipeCommand = () => {
     <Command shouldFilter={false}>
       <RecipeIngredients />
       <div className="flex flex-col gap-3">
+        <Separator />
         <ChatInput />
         <ChatSubmit />
       </div>
@@ -374,6 +379,10 @@ const ChatSubmit = forwardRef((props, ref) => {
   const actor = useContext(RecipeChatContext);
   const send = useSend();
   const enabled = useSelector(actor, (s) => s.matches("Status.New.Touched"));
+  const visible = useSelector(
+    actor,
+    (s) => !s.matches("Status.New.Suggesting")
+  );
   const chatId = useSelector(actor, (state) => state.context.chatId);
   const { append } = useChat({
     id: "suggestions",
@@ -392,8 +401,12 @@ const ChatSubmit = forwardRef((props, ref) => {
     [actor, send, append]
   );
 
+  if (!visible) {
+    return null;
+  }
+
   return (
-    <Button disabled={!enabled} onClick={handlePress}>
+    <Button disabled={!enabled} onClick={handlePress} size="lg" className="m-4 mt-1">
       Craft Recipes
     </Button>
   );
@@ -423,8 +436,10 @@ const ChatInput = () => {
     id: "suggestions",
     api: `/api/chat/${chatId}/suggestions`,
   });
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const prompt$ = useContext(PromptContext);
+  const isVisible = useSelector(
+    actor,
+    (state) => !state.matches("Status.New.Suggesting")
+  );
   const value = useSelector(actor, (state) => state.context.promptInput);
   const send = useSend();
 
@@ -463,6 +478,21 @@ const ChatInput = () => {
     },
     [send, append]
   );
+
+  const handlePressBack = useCallback(() => {
+    send({ type: "BACK" });
+  }, [send]);
+
+  if (!isVisible) {
+    return (
+      <Button variant="ghost" onClick={handlePressBack}>
+        <Badge variant="outline" className="w-full justify-center py-2 my-4">
+          <ArrowBigLeftIcon />
+          Back
+        </Badge>
+      </Button>
+    );
+  }
 
   return (
     <CommandInput
