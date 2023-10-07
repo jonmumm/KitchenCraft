@@ -25,6 +25,7 @@ import {
   forwardRef,
   useCallback,
   useContext,
+  useEffect,
   useRef,
 } from "react";
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
@@ -406,7 +407,12 @@ const ChatSubmit = forwardRef((props, ref) => {
   }
 
   return (
-    <Button disabled={!enabled} onClick={handlePress} size="lg" className="m-4 mt-1">
+    <Button
+      disabled={!enabled}
+      onClick={handlePress}
+      size="lg"
+      className="m-4 mt-1"
+    >
       Craft Recipes
     </Button>
   );
@@ -432,6 +438,7 @@ ChatSubmit.displayName = Button.displayName;
 const ChatInput = () => {
   const actor = useContext(RecipeChatContext);
   const chatId = useSelector(actor, (state) => state.context.chatId);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { append } = useChat({
     id: "suggestions",
     api: `/api/chat/${chatId}/suggestions`,
@@ -483,6 +490,12 @@ const ChatInput = () => {
     send({ type: "BACK" });
   }, [send]);
 
+  useEffect(() => {
+    if (isVisible) {
+      inputRef.current?.focus();
+    }
+  }, [isVisible, inputRef]);
+
   if (!isVisible) {
     return (
       <Button variant="ghost" onClick={handlePressBack}>
@@ -496,6 +509,7 @@ const ChatInput = () => {
 
   return (
     <CommandInput
+      ref={inputRef}
       name="prompt"
       value={value}
       onValueChange={handleValueChange}
