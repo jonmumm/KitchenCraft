@@ -9,8 +9,6 @@ import { Button } from "./ui/button";
 
 export async function RecentRecipes() {
   const recipeSlugs = await getRecentRecipeSlugs(kv);
-  console.log({ recipeSlugs });
-  // const recipeSlugs = await kv.zrange(`recipes:new`, 0, -1);
 
   return (
     <div className="p-4">
@@ -44,7 +42,7 @@ async function RecipeLink(props: { slug: RecipeSlug; index: number }) {
           <span>1</span>
         </Button>
       </div>
-      <Link className="w-full block h-full" href={`/recipe/${props.slug}`}>
+      <Link className="w-full block flex-1" href={`/recipe/${props.slug}`}>
         <Card className="flex flex-row h-full gap-2 px-3 py-2 items-center justify-between">
           <div className="h-full flex flex-col gap-1">
             <h2 className="font-medium">{recipe.name}</h2>
