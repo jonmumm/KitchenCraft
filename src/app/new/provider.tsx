@@ -31,9 +31,6 @@ export default function Provider({
     }),
     {
       input: {
-        name: undefined,
-        description: undefined,
-        slug: undefined,
         chatId,
         recipeMessages: [],
       },
