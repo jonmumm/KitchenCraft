@@ -15,7 +15,7 @@ export async function RecentRecipes() {
   return (
     <div className="p-4">
       <Label className="text-xs uppercase font-semibold">Recent Recipes</Label>
-      <ul>
+      <ul className="flex flex-col gap-2">
         {recipeSlugs.map((slug, index) => (
           <RecipeLink key={slug} index={index} slug={slug} />
         ))}
@@ -25,8 +25,6 @@ export async function RecentRecipes() {
 }
 
 async function RecipeLink(props: { slug: RecipeSlug; index: number }) {
-  console.log({ slug: props.slug });
-
   // const recipe = await kv.hgetall(`recipe:${props.slug}`);
   // console.log({ recipe });
   const recipe = await getRecipe(kv, props.slug);
@@ -34,7 +32,7 @@ async function RecipeLink(props: { slug: RecipeSlug; index: number }) {
   // return <>{props.slug}</>;
   // const recipe = await getRecipe(kv, props.slug);
   return (
-    <li className="flex flex-row gap-1">
+    <li className="flex flex-row flex-1 gap-1">
       <div className="flex flex-col gap-1 items-center justify-between">
         <Link href={`/recipe/${props.slug}`}>
           <Button variant="ghost" className="w-16 h-12 font-bold text-lg">
@@ -46,9 +44,9 @@ async function RecipeLink(props: { slug: RecipeSlug; index: number }) {
           <span>1</span>
         </Button>
       </div>
-      <Link href={`/recipe/${props.slug}`}>
-        <Card className="flex flex-row gap-2 px-3 py-2 items-center">
-          <div>
+      <Link className="w-full block h-full" href={`/recipe/${props.slug}`}>
+        <Card className="flex flex-row h-full gap-2 px-3 py-2 items-center justify-between">
+          <div className="h-full flex flex-col gap-1">
             <h2 className="font-medium">{recipe.name}</h2>
             <p className="text-sm text-secondary-foreground">
               {recipe.description}
