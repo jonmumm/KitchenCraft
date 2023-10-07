@@ -11,7 +11,9 @@ import { z } from "zod";
 type KV = typeof _kv;
 
 export const getRecentRecipeSlugs = async (kv: KV) =>
-  z.array(SlugSchema).parse(await kv.zrange(`recipes:new`, 0, -1));
+  z
+    .array(SlugSchema)
+    .parse(await kv.zrange(`recipes:new`, 0, -1, { rev: true }));
 
 export const getRecipe = async (kv: KV, slug: RecipeSlug) =>
   RecipeSchema.parse(await kv.hgetall(`recipe:${slug}`));
