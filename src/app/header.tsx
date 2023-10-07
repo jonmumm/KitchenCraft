@@ -77,7 +77,7 @@ export function Header() {
   }, [send]);
 
   return (
-    <div className="absolute left-0 top-0 w-full flex items-start justify-between p-4 gap-4">
+    <div className="absolute left-0 top-0 w-full flex items-start justify-between p-4 gap-4 hidden-print">
       <div className="sticky">
         <Button
           onClick={handlePressBack}

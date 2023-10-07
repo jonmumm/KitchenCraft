@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import "../styles/globals.css";
 import { Header } from "./header";
-import Body from "./body";
+import Main from "./main";
 import { ApplicationProvider } from "./provider";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -60,7 +60,7 @@ function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       <Header />
-      <Body>{children}</Body>
+      <Main>{children}</Main>
     </>
   );
 }
