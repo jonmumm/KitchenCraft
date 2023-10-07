@@ -77,6 +77,12 @@
   }
 
   /* Additional print-specific styles can go here using Tailwind CSS classes */
+  .print\:block {
+    display: block !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
 }
 
 @layer base {

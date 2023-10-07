@@ -33,8 +33,8 @@ export default async function Page({ params }: { params: { slug: string } }) {
       sessionId={sessionId}
       recipeMessages={messages}
     >
-      <div className="flex flex-col flex-end flex-1 justify-end pt-16 overflow-hidden">
-        <Header />
+      <div className="flex flex-col flex-end flex-1 justify-end overflow-hidden">
+        {/* <Header /> */}
         <RecipeViewer />
         <RecipeChat />
       </div>
