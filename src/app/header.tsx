@@ -21,6 +21,7 @@ import {
 import { ActorRefFrom, createActor, createMachine } from "xstate";
 import { RecentRecipes } from "../components/recent-recipes";
 import { usePathname } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 
 export const createHeaderMachine = () =>
   createMachine({
@@ -124,6 +125,18 @@ export function Header() {
               <Button className="w-full">🧪 New</Button>
             </Link>
             <Separator />
+            <div>
+              <p className="text-xs text-center">
+                Questions or bugs
+                <br />
+                <a
+                  className="underline font-semibold"
+                  href="mailto:feedback@kitchencraft.ai"
+                >
+                  feedback@kitchencraft.ai
+                </a>
+              </p>
+            </div>
             {/* <RecentRecipes /> */}
           </PopoverContent>
         </Popover>
