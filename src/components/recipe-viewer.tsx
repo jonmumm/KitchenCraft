@@ -414,7 +414,7 @@ function formatDuration(duration: string | undefined) {
 
 const CraftingDetails = () => {
   // todo only do this if the userId of the recipe matches the userId of the active user
-  const hasUsernameSet = false;
+  const hasUsernameSet = true;
 
   const [formattedDate] = useState(() => {
     const now = new Date(); // todo actually store this on the recipe
