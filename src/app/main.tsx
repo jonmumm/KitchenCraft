@@ -9,9 +9,5 @@ export default function Body(props: { children: ReactNode }) {
   // const headerIsFloating = useSelector(headerActor, (state) =>
   //   state.matches("Position.Floating")
   // );
-  return (
-    <main className={`mx-auto max-w-lg xl:max-w-xl max-h-full w-full`}>
-      {props.children}
-    </main>
-  );
+  return <main className={`max-h-full flex-1`}>{props.children}</main>;
 }
