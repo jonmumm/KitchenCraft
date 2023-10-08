@@ -11,13 +11,16 @@ import { useChat } from "ai/react";
 import * as yaml from "js-yaml";
 import {
   ArrowBigUpDashIcon,
+  AxeIcon,
   ClockIcon,
+  InfoIcon,
   PrinterIcon,
   SaveIcon,
   TagIcon,
 } from "lucide-react";
 import { map } from "nanostores";
 import {
+  ChangeEventHandler,
   createContext,
   useCallback,
   useContext,
@@ -32,6 +35,9 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
+import { useSend } from "@/hooks/useSend";
+import Link from "next/link";
+import { Input } from "./ui/input";
 
 const RecipeViewerContext = createContext(
   map<RecipeViewerData & { content: string | undefined }>()
@@ -69,6 +75,7 @@ export default function RecipeViewer() {
 
 function RecipeContent() {
   const actor = useContext(RecipeChatContext);
+  const send = useSend();
   const name = useSelector(actor, (state) => state.context.recipe.name);
   const description = useSelector(
     actor,
@@ -83,15 +90,11 @@ function RecipeContent() {
   const handlePressUpVote = useCallback(() => {
     window.alert("Upvote not yet implemented");
   }, []);
-
-  const [formattedDate] = useState(() => {
-    const now = new Date(); // todo actually store this on the recipe
-
-    return new Intl.DateTimeFormat("en-US", {
-      dateStyle: "full",
-      timeStyle: "short",
-    }).format(now);
-  });
+  const handlePressModify = useCallback(() => {
+    const recipeSlug = actor.getSnapshot().context.recipe.slug;
+    assert(recipeSlug, "expected recipeSlug");
+    send({ type: "MODIFY", recipeSlug });
+  }, [send, actor]);
 
   return (
     <div className="max-w-2xl mx-auto p-4 flex flex-col gap-2">
@@ -103,10 +106,11 @@ function RecipeContent() {
             <Yield />
           </div>
 
-          <div className="flex flex-col gap-2 hidden-print">
+          <div className="flex flex-col gap-1 hidden-print">
             <Button
               variant="outline"
               onClick={handlePressPrint}
+              aria-label="Print"
               className="flex flex-row gap-1"
             >
               <PrinterIcon />
@@ -114,6 +118,7 @@ function RecipeContent() {
             <Button
               variant="outline"
               onClick={handlePressSave}
+              aria-label="Save"
               className="flex flex-row gap-1"
             >
               <SaveIcon />
@@ -121,29 +126,28 @@ function RecipeContent() {
             <Button
               variant="outline"
               className="flex flex-row gap-1"
+              aria-label="Upvote"
               onClick={handlePressUpVote}
             >
               {/* <ArrowBigUpIcon color="green" /> */}
               <ArrowBigUpDashIcon />
               <span className="font-bold">1</span>
             </Button>
+            <Button
+              variant="outline"
+              className="flex flex-row gap-1"
+              aria-label="Modify"
+              onClick={handlePressModify}
+            >
+              {/* <ArrowBigUpIcon color="green" /> */}
+              <AxeIcon />
+            </Button>
           </div>
         </div>
         <Separator />
         <div className="flex flex-row gap-2 p-2 justify-center">
-          <div className="flex flex-row gap-4 items-center">
-            <Label className="flex flex-col gap-2 items-center">
-              <span className="text-xl">🧪</span>
-              <span className="text-xs"> Crafted @</span>
-            </Label>
-            <Badge
-              variant="outline"
-              className="flex flex-col justify-center px-5 py-2"
-            >
-              {formattedDate.split(" at ").map((token) => (
-                <span key={token}>{token}</span>
-              ))}
-            </Badge>
+          <div className="flex flex-col gap-2 items-center">
+            <CraftingDetails />
           </div>
         </div>
         <Separator />
@@ -380,3 +384,102 @@ function formatDuration(duration: string | undefined) {
 
   return formattedParts.join(" ");
 }
+
+const CraftingDetails = () => {
+  // todo only do this if the userId of the recipe matches the userId of the active user
+  const hasUsernameSet = false;
+
+  const [formattedDate] = useState(() => {
+    const now = new Date(); // todo actually store this on the recipe
+
+    return new Intl.DateTimeFormat("en-US", {
+      dateStyle: "full",
+      timeStyle: "short",
+    }).format(now);
+  });
+
+  if (!hasUsernameSet) {
+    return <EditUsername />;
+  }
+
+  return (
+    <>
+      <Label className="uppercase text-xs font-bold text-accent-foreground">
+        <Badge variant="secondary">Crafted by chef</Badge>
+      </Label>
+      <Link href="/chef/InspectorT">
+        <h3 className="font-bold text-xl">
+          🧪 <span className="underline">InspectorT</span>
+        </h3>
+      </Link>
+      <Badge
+        variant="outline"
+        className="flex flex-col justify-center px-5 py-2 text-muted-foreground"
+      >
+        {formattedDate.split(" at ").join(" @ ")}
+      </Badge>
+    </>
+  );
+};
+
+const editUsernameStore = createContext(
+  map({
+    input: "",
+  })
+);
+
+const EditUsername = () => {
+  const send = useSend();
+  const [showInput, setShowInput] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const handlePressSetUsername = useCallback(() => {
+    // send({ type: "SET_USERNAME", value})
+    setShowInput(true);
+  }, [setShowInput]);
+
+  const handleChangeValue: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e) => {
+      e.target.value;
+    },
+    []
+  );
+
+  const handleUsernameSubmit = useCallback(() => {
+    const value = inputRef.current?.value;
+    if (value && value != "") {
+      send({ type: "SET_USERNAME", value: inputRef.current?.value });
+    }
+  }, [send, inputRef]);
+
+  return showInput ? (
+    <Button variant="ghost" onClick={handlePressSetUsername}>
+      <h3 className="font-bold text-xl">
+        🧪 <span className="underline">[Enter your chef name]</span>
+      </h3>
+    </Button>
+  ) : (
+    <form onSubmit={handleUsernameSubmit} className="flex flex-col gap-2 px-3">
+      <Label
+        htmlFor="username"
+        className="uppercase text-xs font-semibold text-accent-foreground"
+      >
+        Username
+      </Label>
+      <IsAvailable />
+      <Input name="username" onChange={handleChangeValue} />
+      <p className="text-muted-foreground text-sm flex flex-row gap-1">
+        <InfoIcon />
+        <span>
+          Your recipes will become available at kitchencraft.ai/
+          <strong className="font-semibold">your-username</strong>.
+        </span>
+      </p>
+      <Button className="w-full">Submit</Button>
+    </form>
+  );
+};
+
+const IsAvailable = () => {
+  const username = useStore(actor, (state) => state.content);
+  return <div>{username} is available</div>;
+};

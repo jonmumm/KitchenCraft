@@ -89,10 +89,20 @@ export const CreateRecipeInputSchema = z.object({
   description: z.string(),
 });
 
+const ModifyRecipeEventSchema = z.object({
+  type: z.literal("MODIFY"),
+  recipeSlug: SlugSchema,
+});
+
 const SelectRecipeEventSchema = z.object({
   type: z.literal("SELECT_RECIPE"),
   name: z.string(),
   description: z.string(),
+});
+
+const SetUsernameEventSchema = z.object({
+  type: z.literal("SET_USERNAME"),
+  value: SlugSchema,
 });
 
 const SetInputEventSchema = z.object({
@@ -129,6 +139,7 @@ const CloseConfiguratorEventSchema = z.object({
 });
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ModifyRecipeEventSchema,
   SelectRecipeEventSchema,
   SetInputEventSchema,
   SubmitEventSchema,
@@ -138,6 +149,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   BackEventSchema,
   ToggleConfiguratorEventSchema,
   CloseConfiguratorEventSchema,
+  SetUsernameEventSchema,
 ]);
 
 // TypeScript Type Literals
