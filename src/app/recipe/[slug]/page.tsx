@@ -1,11 +1,11 @@
 import { RecipeChat } from "@/components/recipe-chat";
 import RecipeViewer from "@/components/recipe-viewer";
+import { Header } from "../../header";
 import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import { kv } from "@vercel/kv";
 import { Metadata, ResolvingMetadata } from "next";
 import { z } from "zod";
 import Provider from "./provider";
-
 const getSessionId = (cookies: string) => {
   return "";
 };
@@ -38,6 +38,7 @@ export default async function Page({ params }: Props) {
         sessionId={sessionId}
         recipeMessages={messages}
       >
+        <Header />
         <div className="flex flex-col flex-end flex-1 justify-end overflow-hidden">
           <RecipeViewer />
           <RecipeChat />

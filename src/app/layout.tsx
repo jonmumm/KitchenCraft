@@ -1,9 +1,10 @@
+import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+// import { cookies } from "next/headers";
 import { ReactNode } from "react";
 import "../styles/globals.css";
 import { ApplicationProvider } from "./provider";
-import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,9 +21,11 @@ export default async function RootLayout({
   // const data = await serverClient.getData();
   // const dataSet = await serverClient.setData("test-data");
   // console.log({ data, dataSet });
+  // const theme = cookies.get("theme");
+  // const cookieStore = cookies();
 
   return (
-    <ApplicationProvider input={{ userId: undefined, sessionId: "" }}>
+    <ApplicationProvider>
       {/* suppress per: https://github.com/vercel/next.js/issues/49350 */}
       <html lang="en" suppressHydrationWarning>
         <head>
@@ -54,9 +57,18 @@ export default async function RootLayout({
 }
 
 function Body({ children }: { children: ReactNode }) {
+  // const cookies = getCookies();
+  // let themeValue = cookies.get("theme");
+  // if (!themeValue) {
+  //   themeValue = "system";
+  //   cookies.set("theme", themeValue);
+  // }
+  // console.log({ cookies });
+
   return (
     <body
-    // className={`bg-gray-100 ${inter.className} flex flex-col mx-auto max-w-lg xl:max-w-xl justify-center`}
+      className={`${inter.className}`}
+      // className={`bg-gray-100 ${inter.className} flex flex-col mx-auto max-w-lg xl:max-w-xl justify-center`}
     >
       <ThemeProvider
         attribute="class"

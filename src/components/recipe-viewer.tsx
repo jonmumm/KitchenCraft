@@ -432,11 +432,15 @@ const CraftingDetails = () => {
   return (
     <>
       <Label className="uppercase text-xs font-bold text-accent-foreground">
-        <Badge variant="secondary">Crafted by chef</Badge>
+        <Badge variant="secondary">Crafted by</Badge>
       </Label>
       <Link href="/chef/InspectorT">
         <h3 className="font-bold text-xl">
-          🧪 <span className="underline">InspectorT</span>
+          <div className="flex flex-col gap-1 items-center">
+            <span>
+              🧪 <span className="underline">InspectorT</span> (+111)
+            </span>
+          </div>
         </h3>
       </Link>
       <Badge
