@@ -92,6 +92,7 @@ function RecipeContent() {
     window.alert("Upvote not yet implemented");
   }, []);
   const handlePressModify = useCallback(() => {
+    window.alert("Recrafting not yet implemented");
     const recipeSlug = actor.getSnapshot().context.recipe.slug;
     assert(recipeSlug, "expected recipeSlug");
     send({ type: "MODIFY", recipeSlug });
@@ -311,7 +312,6 @@ const Yield = () => {
   const { recipeYield } = useStore(store, {
     keys: ["recipeYield"],
   });
-  console.log({ recipeYield });
 
   return (
     <>

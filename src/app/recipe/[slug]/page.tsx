@@ -48,18 +48,22 @@ export default async function Page({ params }: Props) {
   );
 }
 
-export async function generateMetadata(
-  { params }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const recipe = await getRecipe(kv, params.slug);
-  const title = `${recipe.name} | KitchenCraft.ai`;
+  const title = `${recipe.name} by @InspectorT | KitchenCraft.ai`;
+
+  const now = new Date(); // todo actually store this on the recipe
+  const formattedDate = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
+  }).format(now);
+  const dateStr = formattedDate.split(" at ").join(" @ ");
 
   return {
     title,
     openGraph: {
       title,
-      description: recipe.description,
+      description: `${recipe.description} Crafted by @InspectorT on ${dateStr}`,
     },
   };
 }
