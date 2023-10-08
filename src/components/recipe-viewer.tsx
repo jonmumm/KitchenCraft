@@ -38,6 +38,7 @@ import { Separator } from "./ui/separator";
 import { useSend } from "@/hooks/useSend";
 import Link from "next/link";
 import { Input } from "./ui/input";
+import { Skeleton } from "./ui/skeleton";
 
 const RecipeViewerContext = createContext(
   map<RecipeViewerData & { content: string | undefined }>()
@@ -97,9 +98,9 @@ function RecipeContent() {
   }, [send, actor]);
 
   return (
-    <div className="max-w-2xl mx-auto p-4 flex flex-col gap-2">
+    <div className="max-w-2xl mx-auto w-full p-4 flex flex-col gap-2">
       <Card className="flex flex-col gap-2 pb-5 mb-5">
-        <div className="flex flex-row gap-3 p-5">
+        <div className="flex flex-row gap-3 p-5 justify-between">
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-semibold">{name}</h1>
             <p className="text-lg text-muted-foreground">{description}</p>
@@ -263,7 +264,7 @@ const RecipeInstructions = () => {
       <h3 className="uppercase text-xs font-bold text-accent-foreground my-2">
         Instructions
       </h3>
-      {recipeInstructions && recipeInstructions.length > 0 && (
+      {recipeInstructions && recipeInstructions.length > 0 ? (
         <div>
           <ol className="list-decimal pl-5">
             {recipeInstructions.map((step, index) => (
@@ -273,6 +274,8 @@ const RecipeInstructions = () => {
             ))}
           </ol>
         </div>
+      ) : (
+        <Skeleton className="w-full h-64" />
       )}
     </div>
   );
@@ -288,7 +291,7 @@ const RecipeIngredients = () => {
       <h3 className="uppercase text-xs font-bold text-accent-foreground my-2">
         Ingredients
       </h3>
-      {recipeIngredient && recipeIngredient.length > 0 && (
+      {recipeIngredient && recipeIngredient.length > 0 ? (
         <div className="mb-4 flex flex-col gap-2">
           <ul className="list-disc pl-5">
             {recipeIngredient.map((ingredient, index) => (
@@ -296,6 +299,8 @@ const RecipeIngredients = () => {
             ))}
           </ul>
         </div>
+      ) : (
+        <Skeleton className="w-full h-64" />
       )}
     </div>
   );
@@ -306,8 +311,23 @@ const Yield = () => {
   const { recipeYield } = useStore(store, {
     keys: ["recipeYield"],
   });
+  console.log({ recipeYield });
 
-  return <p className="text-sm text-muted-foreground">Yields {recipeYield}</p>;
+  return (
+    <>
+      <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
+        <span>Yields</span>
+        <span>
+          {/* {recipeYield !== "" ? recipeYield : <Skeleton className="w-24 h-4" />} */}
+          {!recipeYield || recipeYield === "" ? (
+            <Skeleton className="w-24 h-5" />
+          ) : (
+            <>{recipeYield}</>
+          )}
+        </span>
+      </div>
+    </>
+  );
 };
 
 const Times = () => {
@@ -322,6 +342,9 @@ const Times = () => {
   return (
     <div className="flex flex-row gap-2 px-5">
       <ClockIcon className="w-4 h-4 mr-2" />
+      {(formattedPrepTime === "" ||
+        formattedCookTime === "" ||
+        formattedTotalTime === "") && <Skeleton className="flex-1" />}
       {formattedPrepTime != "" && (
         <Badge variant="outline">Prep {formattedPrepTime}</Badge>
       )}
@@ -346,11 +369,15 @@ const Keywords = () => {
   return (
     <div className="flex flex-row gap-2 px-5">
       <TagIcon className="w-4 h-4 mr-2" />
-      <div className="flex flex-row gap-2 flex-wrap">
-        {keywords.map((keyword) => (
-          <Badge key={keyword}>{keyword}</Badge>
-        ))}
-      </div>
+      {keywords.length === 0 ? (
+        <Skeleton className="flex-1" />
+      ) : (
+        <div className="flex flex-row gap-2 flex-wrap">
+          {keywords.map((keyword) => {
+            return <Badge key={keyword}>{keyword}</Badge>;
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -422,11 +449,10 @@ const CraftingDetails = () => {
   );
 };
 
-const editUsernameStore = createContext(
-  map({
-    input: "",
-  })
-);
+const editUsernameStore = map({
+  input: "",
+  isAvailable: undefined as boolean | undefined,
+});
 
 const EditUsername = () => {
   const send = useSend();
@@ -439,7 +465,7 @@ const EditUsername = () => {
 
   const handleChangeValue: ChangeEventHandler<HTMLInputElement> = useCallback(
     (e) => {
-      e.target.value;
+      editUsernameStore.setKey("input", e.target.value);
     },
     []
   );
@@ -459,18 +485,15 @@ const EditUsername = () => {
     </Button>
   ) : (
     <form onSubmit={handleUsernameSubmit} className="flex flex-col gap-2 px-3">
-      <Label
-        htmlFor="username"
-        className="uppercase text-xs font-semibold text-accent-foreground"
-      >
+      <Label htmlFor="username" className="font-semibold" color="secondary">
         Username
       </Label>
-      <IsAvailable />
+      <UsernameIsAvailable />
       <Input name="username" onChange={handleChangeValue} />
-      <p className="text-muted-foreground text-sm flex flex-row gap-1">
+      <p className="text-muted-foreground text-sm flex flex-row gap-1 items-center">
         <InfoIcon />
         <span>
-          Your recipes will become available at kitchencraft.ai/
+          Your recipes will exist at kitchencraft.ai/
           <strong className="font-semibold">your-username</strong>.
         </span>
       </p>
@@ -479,7 +502,14 @@ const EditUsername = () => {
   );
 };
 
-const IsAvailable = () => {
-  const username = useStore(actor, (state) => state.content);
-  return <div>{username} is available</div>;
+const UsernameIsAvailable = () => {
+  const { input, isAvailable } = useStore(editUsernameStore, {
+    keys: ["input", "isAvailable"],
+  });
+
+  if (!isAvailable) {
+    return null;
+  }
+
+  return <div>{input} is available</div>;
 };
