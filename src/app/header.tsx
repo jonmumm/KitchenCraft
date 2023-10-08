@@ -22,6 +22,8 @@ import { ActorRefFrom, createActor, createMachine } from "xstate";
 import { RecentRecipes } from "../components/recent-recipes";
 import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { ModeToggle } from "@/components/ui/dark-mode-toggle";
+import { TypeLogo } from "@/components/ui/logo";
 
 export const createHeaderMachine = () =>
   createMachine({
@@ -125,8 +127,8 @@ export function Header() {
               <Button className="w-full">🧪 New</Button>
             </Link>
             <Separator />
-            <div>
-              <p className="text-xs text-center">
+            <div className="flex flex-row gap-1 justify-between">
+              <p className="text-xs text-center flex-1">
                 Questions or bugs
                 <br />
                 <a
@@ -136,6 +138,7 @@ export function Header() {
                   feedback@kitchencraft.ai
                 </a>
               </p>
+              <ModeToggle />
             </div>
             {/* <RecentRecipes /> */}
           </PopoverContent>
@@ -150,11 +153,5 @@ const AnimatedLogo = () => {
   const isLogoOffScreen = useSelector(headerActor, (state) => {
     return state.matches("Logo.OffScreen");
   });
-  return (
-    <img
-      className="h-16"
-      src="/Logo_TypeOnly_Black.svg"
-      alt="KitchenCraft Logo TextOnly"
-    />
-  );
+  return <TypeLogo className="h-16" />;
 };

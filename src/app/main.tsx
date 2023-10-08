@@ -1,6 +1,5 @@
 "use client";
 
-import { useSelector } from "@/hooks/useSelector";
 import { ReactNode, useContext } from "react";
 import { HeaderContext } from "./header";
 
