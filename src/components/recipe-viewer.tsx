@@ -16,6 +16,7 @@ import {
   InfoIcon,
   PrinterIcon,
   SaveIcon,
+  ShareIcon,
   TagIcon,
 } from "lucide-react";
 import { map } from "nanostores";
@@ -91,6 +92,9 @@ function RecipeContent() {
   const handlePressUpVote = useCallback(() => {
     window.alert("Upvote not yet implemented");
   }, []);
+  const handlePressShare = useCallback(() => {
+    window.navigator.share();
+  }, []);
   const handlePressModify = useCallback(() => {
     window.alert("Recrafting not yet implemented");
     const recipeSlug = actor.getSnapshot().context.recipe.slug;
@@ -135,6 +139,17 @@ function RecipeContent() {
               <ArrowBigUpDashIcon />
               <span className="font-bold">1</span>
             </Button>
+            {!!window.navigator.canShare && (
+              <Button
+                variant="outline"
+                className="flex flex-row gap-1"
+                aria-label="Share"
+                onClick={handlePressShare}
+              >
+                {/* <ArrowBigUpIcon color="green" /> */}
+                <ShareIcon />
+              </Button>
+            )}
             <Button
               variant="outline"
               className="flex flex-row gap-1"
