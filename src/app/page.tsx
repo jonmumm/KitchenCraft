@@ -5,7 +5,7 @@ import { Header } from "./header";
 
 export default async function Home() {
   return (
-    <>
+    <div className="max-w-2xl mx-auto">
       <Header />
       <div className="flex flex-col flex-end">
         <Link href="/new" className="mx-3">
@@ -19,6 +19,6 @@ export default async function Home() {
         </Link>
       </div>
       {/* <Footer /> */}
-    </>
+    </div>
   );
 }
