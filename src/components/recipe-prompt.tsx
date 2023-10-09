@@ -11,6 +11,9 @@ import { RecipeConfigurator } from "./recipe-configurator";
 import { ScrollArea } from "./ui/scroll-area";
 import { Label } from "./ui/label";
 import { sendTo } from "xstate";
+import { RecipeChatContext } from "./recipe-chat";
+import { useSelector } from "@/hooks/useSelector";
+import { useEventHandler } from "@/hooks/useEventHandler";
 
 export function RecipePrompt() {
   return (
@@ -37,7 +40,7 @@ export function RecipePrompt() {
 const RecipeCommand = () => {
   const promptRef = useRef<HTMLInputElement>(null);
   const prompt$ = useContext(PromptContext);
-  const { input, setInput, append } = useChat({
+  const { input, isLoading, setInput, append } = useChat({
     id: "suggestions",
     api: "/api/recipes",
   });
@@ -49,6 +52,8 @@ const RecipeCommand = () => {
   const handleBlur = useCallback(() => {
     prompt$.setKey("focused", false);
   }, [prompt$]);
+
+  const isSelecting = false;
 
   const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = useCallback(
     (e) => {
@@ -63,12 +68,20 @@ const RecipeCommand = () => {
     [prompt$, append]
   );
 
+  const focusPrompt = useCallback(() => {
+    console.log("FOCUS");
+    setTimeout(() => {
+      promptRef.current?.focus();
+    }, 10);
+  }, [promptRef]);
+
   return (
     <Command shouldFilter={false}>
       <RecipeIngredients />
       <CommandInput
         ref={promptRef}
         name="prompt"
+        disabled={isLoading}
         value={input}
         onValueChange={setInput}
         onKeyDown={handleKeyDown}
@@ -76,9 +89,11 @@ const RecipeCommand = () => {
         onBlur={handleBlur}
         placeholder="(e.g. leftover pizza, eggs and feta)"
       />
-      <ScrollArea style={{ maxHeight: "50vh" }}>
-        <RecipeSuggestions />
-      </ScrollArea>
+      {isSelecting && (
+        <ScrollArea style={{ maxHeight: "50vh" }}>
+          <RecipeSuggestions />
+        </ScrollArea>
+      )}
     </Command>
   );
 };

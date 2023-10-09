@@ -110,6 +110,10 @@ const SetInputEventSchema = z.object({
   value: z.string(),
 });
 
+const StartOverEventSchema = z.object({
+  type: z.literal("START_OVER"),
+});
+
 const BlurPromptEventSchema = z.object({
   type: z.literal("BLUR_PROMPT"),
 });
@@ -150,6 +154,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ToggleConfiguratorEventSchema,
   CloseConfiguratorEventSchema,
   SetUsernameEventSchema,
+  StartOverEventSchema,
 ]);
 
 // TypeScript Type Literals

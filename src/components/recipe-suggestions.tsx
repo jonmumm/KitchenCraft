@@ -1,14 +1,13 @@
-"use client";
-
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useChat } from "ai/react";
 import { CommandLoading } from "cmdk";
-import { ChevronRightIcon } from "lucide-react";
+import { ChevronRightIcon, RefreshCcwIcon } from "lucide-react";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { RecipeChatContext } from "./recipe-chat";
 import { Badge } from "./ui/badge";
 import { CommandGroup, CommandItem } from "./ui/command";
+import { Button } from "./ui/button";
 
 export default function RecipeSuggestions({}: {}) {
   const actor = useContext(RecipeChatContext);
@@ -20,13 +19,9 @@ export default function RecipeSuggestions({}: {}) {
     api: `/api/chat/${chatId}/suggestions`,
   });
 
-  // useLayoutEffect(() => {
-  //   append({
-  //     role: "user",
-  //     content: content,
-  //   });
-  //   // use initialAPpend here becomes append keeps re-rendering loop
-  // }, [initialAppend, content]);
+  const handlePressStartOver = useCallback(() => {
+    send({ type: "START_OVER" });
+  }, [send]);
 
   const handleSelectItem = useCallback(
     (name: string, description: string) => {
@@ -68,7 +63,7 @@ export default function RecipeSuggestions({}: {}) {
           })}
         </CommandGroup>
       )}
-      {isLoading && (
+      {isLoading ? (
         <CommandLoading>
           <div className="text-center">
             <Badge variant={"outline"} className="p-3 m-3 font-semibold">
@@ -76,6 +71,20 @@ export default function RecipeSuggestions({}: {}) {
             </Badge>
           </div>
         </CommandLoading>
+      ) : (
+        items?.length > 0 && (
+          <div className="p-3 flex justify-center w-full flex-row">
+            <Button
+              variant="secondary"
+              onClick={handlePressStartOver}
+              className="text-slate-500 font-semibold flex flex-row gap-1"
+            >
+              <RefreshCcwIcon size={18} style={{ stroke: "currentColor" }} />
+
+              <span>Start Over</span>
+            </Button>
+          </div>
+        )
       )}
     </>
   );
@@ -93,5 +102,5 @@ const AnimatedText = () => {
     return () => clearInterval(interval);
   }, []);
 
-  return <>🧪 Crafting recipes{dots}</>;
+  return <>🧪 Conjuring Recipes {dots}</>;
 };

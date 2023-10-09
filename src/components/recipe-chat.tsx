@@ -3,7 +3,7 @@ import RecipeIngredients from "@/components/recipe-ingredients";
 import { Card } from "@/components/ui/card";
 import { Command, CommandInput } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
-import { PromptContext } from "@/context/prompt";
+import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { assertType } from "@/lib/utils";
@@ -16,8 +16,9 @@ import {
   RecipeAttributes,
   RecipeChatInput,
 } from "@/types";
+import { nanoid } from "ai";
 import { useChat } from "ai/react";
-import { ArrowBigLeftIcon, Settings2Icon, XIcon } from "lucide-react";
+import { Settings2Icon, XIcon } from "lucide-react";
 import {
   KeyboardEventHandler,
   MouseEventHandler,
@@ -31,8 +32,8 @@ import {
 import { ActorRefFrom, assign, createMachine, fromPromise } from "xstate";
 import { RecipeConfigurator } from "./recipe-configurator";
 import RecipeSuggestions from "./recipe-suggestions";
-import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 
 type Context = {
@@ -138,68 +139,88 @@ export const createRecipeChatMachine = ({
           states: {
             New: {
               initial: "Untouched",
+              type: "parallel",
               onDone: "Viewing",
+              on: {
+                START_OVER: {
+                  actions: assign({
+                    promptInput: () => "",
+                    currentSelection: () => undefined,
+                    // any other context properties you want to reset
+                  }),
+                  target: [".TouchState.Untouched", ".Stage.WaitingForInput"],
+                },
+              },
               states: {
-                Untouched: {
-                  always: [
-                    { target: "Touched", guard: "hasTouchedAttributes" },
-                  ],
-                },
-                Touched: {
-                  always: [
-                    { target: "Untouched", guard: "hasNoTouchedAttributes" },
-                  ],
-                  on: {
-                    SUBMIT: {
-                      target: "Suggesting",
-                      actions: assign({
-                        promptInput: () => "",
-                      }),
+                TouchState: {
+                  initial: "Untouched",
+                  states: {
+                    Untouched: {
+                      always: [
+                        { target: "Touched", guard: "hasTouchedAttributes" },
+                      ],
+                    },
+                    Touched: {
+                      always: [
+                        {
+                          target: "Untouched",
+                          guard: "hasNoTouchedAttributes",
+                        },
+                      ],
                     },
                   },
                 },
-                Suggesting: {
-                  on: {
-                    BACK: {
-                      target: "Untouched",
+                Stage: {
+                  initial: "WaitingForInput",
+                  states: {
+                    WaitingForInput: {
+                      on: {
+                        SUBMIT: {
+                          target: "Selecting",
+                        },
+                      },
                     },
-                    SELECT_RECIPE: {
-                      target: "CreatingRecipe",
-                      actions: assign({
-                        currentSelection: ({ event }) => ({
-                          name: event.name,
-                          description: event.description,
-                        }),
-                      }),
+                    Selecting: {
+                      on: {
+                        SELECT_RECIPE: {
+                          target: "CreatingRecipe",
+                          actions: assign({
+                            currentSelection: ({ event }) => ({
+                              name: event.name,
+                              description: event.description,
+                            }),
+                          }),
+                        },
+                      },
+                    },
+                    CreatingRecipe: {
+                      invoke: {
+                        input: ({ context, event }) => {
+                          assertType(event, "SELECT_RECIPE");
+                          const { description, name } = event;
+                          return {
+                            chatId: context.chatId,
+                            description,
+                            name,
+                          };
+                        },
+                        src: "createRecipe",
+                        onDone: {
+                          target: "Created",
+                          actions: assign({
+                            recipe: ({ event }) => event.output.recipe,
+                          }),
+                        },
+                        onError: "Error",
+                      },
+                    },
+                    Created: {
+                      type: "final",
+                    },
+                    Error: {
+                      entry: console.error,
                     },
                   },
-                },
-                CreatingRecipe: {
-                  invoke: {
-                    input: ({ context, event }) => {
-                      assertType(event, "SELECT_RECIPE");
-                      const { description, name } = event;
-                      return {
-                        chatId: context.chatId,
-                        description,
-                        name,
-                      };
-                    },
-                    src: "createRecipe",
-                    onDone: {
-                      target: "Created",
-                      actions: assign({
-                        recipe: ({ event }) => event.output.recipe,
-                      }),
-                    },
-                    onError: "Error",
-                  },
-                },
-                Created: {
-                  type: "final",
-                },
-                Error: {
-                  entry: console.error,
                 },
               },
             },
@@ -253,15 +274,22 @@ const hasNoTouchedAttributes = ({ context }: { context: Context }) => {
   return !hasTouchedAttributes({ context });
 };
 
+const canSubmit = ({ context }: { context: Context }) => {
+  return hasTouchedAttributes({ context });
+};
+
 export const RecipeChatContext = createContext({} as RecipeChatActor);
 
 export function RecipeChat() {
   const actor = useContext(RecipeChatContext);
-  const isNew = useSelector(actor, (state) => {
-    return state.matches("Status.New");
+  const isInputting = useSelector(actor, (state) => {
+    return (
+      state.matches("Status.New.Stage.WaitingForInput") ||
+      state.matches("Status.New.Stage.Selecting")
+    );
   });
   const isCreating = useSelector(actor, (state) => {
-    return state.matches("Status.New.CreatingRecipe");
+    return state.matches("Status.New.Stage.CreatingRecipe");
   });
   const isConfiguratorOpen = useSelector(actor, (state) =>
     state.matches("Configurator.Open")
@@ -284,25 +312,20 @@ export function RecipeChat() {
           </Card>
         </div>
       )}
-      {isNew && (
+      {isInputting && (
         <Card className={`flex flex-col flex-1`}>
           <div className="flex flex-col gap-4">
-            {!isCreating ? (
-              <>
-                <div className="flex flex-row items-center gap-2">
-                  <RecipePromptLabel />
-                  {/* <ConfiguratorToggle /> */}
-                </div>
-                <div>
-                  <RecipeCommand />
-                </div>
-              </>
-            ) : (
-              <RecipeCreating />
-            )}
+            <div className="flex flex-row items-center gap-2">
+              <RecipePromptLabel />
+              {/* <ConfiguratorToggle /> */}
+            </div>
+            <div>
+              <RecipeCommand />
+            </div>
           </div>
         </Card>
       )}
+      {isCreating && <RecipeCreating />}
     </div>
   );
 }
@@ -359,6 +382,10 @@ const RecipePromptLabel = () => {
 };
 
 const RecipeCommand = () => {
+  const actor = useContext(RecipeChatContext);
+  const isSelecting = useSelector(actor, (state) =>
+    state.matches("Status.New.Stage.Selecting")
+  );
   return (
     <Command shouldFilter={false}>
       <RecipeIngredients />
@@ -367,7 +394,7 @@ const RecipeCommand = () => {
         <ChatInput />
         <ChatSubmit />
       </div>
-      <RecipeSuggestions />
+      {isSelecting && <RecipeSuggestions />}
     </Command>
   );
 };
@@ -375,27 +402,34 @@ const RecipeCommand = () => {
 const ChatSubmit = forwardRef((props, ref) => {
   const actor = useContext(RecipeChatContext);
   const send = useSend();
-  const enabled = useSelector(actor, (s) => s.matches("Status.New.Touched"));
+  const isTouched = useSelector(actor, (s) =>
+    s.matches("Status.New.TouchState.Touched")
+  );
   const visible = useSelector(
     actor,
     (s) => !s.matches("Status.New.Suggesting")
   );
   const chatId = useSelector(actor, (state) => state.context.chatId);
-  const { append } = useChat({
+  const { setMessages, isLoading, reload } = useChat({
     id: "suggestions",
     api: `/api/chat/${chatId}/suggestions`,
   });
 
   const handlePress: MouseEventHandler<HTMLButtonElement> = useCallback(
     (e) => {
+      const value = actor.getSnapshot().context.promptInput;
       e.preventDefault();
       send({ type: "SUBMIT" });
-      append({
-        role: "user",
-        content: actor.getSnapshot().context.promptInput,
-      });
+      setMessages([
+        {
+          id: nanoid(),
+          role: "user",
+          content: value,
+        },
+      ]);
+      reload();
     },
-    [actor, send, append]
+    [actor, send, setMessages, reload]
   );
 
   if (!visible) {
@@ -404,12 +438,12 @@ const ChatSubmit = forwardRef((props, ref) => {
 
   return (
     <Button
-      disabled={!enabled}
+      disabled={!isTouched || isLoading}
       onClick={handlePress}
       size="lg"
       className="m-4 mt-1"
     >
-      Craft Recipes
+      🧪 Conjure (6) New Ideas
     </Button>
   );
 });
@@ -435,7 +469,7 @@ const ChatInput = () => {
   const actor = useContext(RecipeChatContext);
   const chatId = useSelector(actor, (state) => state.context.chatId);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { append } = useChat({
+  const { isLoading, setMessages, reload } = useChat({
     id: "suggestions",
     api: `/api/chat/${chatId}/suggestions`,
   });
@@ -473,13 +507,17 @@ const ChatInput = () => {
       if (e.key === "Enter" && value && value !== "") {
         e.preventDefault();
         send({ type: "SUBMIT" });
-        append({
-          role: "user",
-          content: value,
-        });
+        setMessages([
+          {
+            id: nanoid(),
+            role: "user",
+            content: value,
+          },
+        ]);
+        reload();
       }
     },
-    [send, append]
+    [send, setMessages, reload]
   );
 
   useEffect(() => {
@@ -488,9 +526,15 @@ const ChatInput = () => {
     }
   }, [isVisible, inputRef]);
 
+  const focusPrompt = useCallback(() => {
+    inputRef.current?.focus();
+  }, [inputRef]);
+  useEventHandler("START_OVER", focusPrompt);
+
   return (
     <CommandInput
       ref={inputRef}
+      disabled={isLoading}
       name="prompt"
       value={value}
       onValueChange={handleValueChange}

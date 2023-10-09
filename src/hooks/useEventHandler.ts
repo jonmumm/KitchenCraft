@@ -17,5 +17,5 @@ export const useEventHandler = <TEventType extends AppEvent["type"]>(
     return () => {
       unsub();
     };
-  }, [event$, type]);
+  }, [event$, type, cb]);
 };

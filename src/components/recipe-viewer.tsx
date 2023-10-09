@@ -232,23 +232,22 @@ function Modify() {
               className="w-full"
               name="prompt"
             />
-            <div className="py-4 w-full">
-              <Label className="uppercase font-semibold text-sm">
-                Suggestions
-              </Label>
-
-              <div className="flex flex-row gap-2 flex-wrap">
-                <Badge>Adapt for instant pot</Badge>
-                <Badge>Can I use butter instead of oil?</Badge>
-              </div>
-            </div>
             <Button
               size="lg"
               className="w-full flex flex-row gap-1 font-semibold"
             >
-              <AxeIcon />
+              <span>🧪</span>
               <span>Craft Remix</span>
             </Button>
+            <div className="w-full flex flex-col gap-2">
+              <Label className="uppercase font-semibold text-sm">
+                Suggestions
+              </Label>
+              <div className="flex flex-row gap-2 flex-wrap">
+                <Badge variant="outline">Adapt for instant pot</Badge>
+                <Badge variant="outline">Use butter instead of oil</Badge>
+              </div>
+            </div>
           </div>
         </div>
       </div>
