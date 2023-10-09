@@ -23,6 +23,7 @@ import {
   SaveIcon,
   ScrollIcon,
   ShareIcon,
+  ShoppingBasketIcon,
   ShuffleIcon,
   TagIcon,
 } from "lucide-react";
@@ -377,7 +378,7 @@ const RecipeIngredients = () => {
         <h3 className="uppercase text-xs font-bold text-accent-foreground">
           Ingredients
         </h3>
-        <ScrollIcon />
+        <ShoppingBasketIcon />
       </div>
       {recipeIngredient && recipeIngredient.length > 0 ? (
         <div className="mb-4 flex flex-col gap-2">
