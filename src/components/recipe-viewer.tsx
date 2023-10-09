@@ -13,6 +13,7 @@ import * as yaml from "js-yaml";
 import {
   ArrowBigUpDashIcon,
   AxeIcon,
+  CameraIcon,
   ChefHatIcon,
   ClockIcon,
   InfoIcon,
@@ -89,6 +90,9 @@ function RecipeContent() {
     actor,
     (state) => state.context.recipe.description
   );
+  const handlePressPhoto = useCallback(() => {
+    window.alert("Photo upplaods not yet implemented");
+  }, []);
   const handlePressPrint = useCallback(() => {
     window.print();
   }, []);
@@ -120,19 +124,27 @@ function RecipeContent() {
           <div className="flex flex-col gap-1 hidden-print">
             <Button
               variant="outline"
-              onClick={handlePressPrint}
-              aria-label="Print"
-              className="flex flex-row gap-1"
-            >
-              <PrinterIcon />
-            </Button>
-            <Button
-              variant="outline"
               onClick={handlePressAddToLibrary}
               aria-label="Add To Library"
               className="flex flex-row gap-1"
             >
               <PlusSquareIcon />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handlePressPhoto}
+              aria-label="Take Photo"
+              className="flex flex-row gap-1"
+            >
+              <CameraIcon />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handlePressPrint}
+              aria-label="Print"
+              className="flex flex-row gap-1"
+            >
+              <PrinterIcon />
             </Button>
             {typeof window !== "undefined" && !!window.navigator?.canShare && (
               <Button
@@ -149,21 +161,21 @@ function RecipeContent() {
             <Button
               variant="outline"
               className="flex flex-row gap-1"
-              aria-label="Modify"
-              onClick={handlePressModify}
-            >
-              {/* <ArrowBigUpIcon color="green" /> */}
-              <ShuffleIcon />
-            </Button>
-            <Button
-              variant="outline"
-              className="flex flex-row gap-1"
               aria-label="Upvote"
               onClick={handlePressUpVote}
             >
               {/* <ArrowBigUpIcon color="green" /> */}
               <ArrowBigUpDashIcon />
               <span className="font-bold">1</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex flex-row gap-1"
+              aria-label="Modify"
+              onClick={handlePressModify}
+            >
+              {/* <ArrowBigUpIcon color="green" /> */}
+              <ShuffleIcon />
             </Button>
           </div>
         </div>
