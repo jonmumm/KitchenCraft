@@ -1,30 +1,19 @@
-// ./app/api/chat/route.ts
 import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import { assert } from "@/lib/utils";
-import { RecipePromptResultSchema, RecipeViewerDataSchema } from "@/schema";
+import { RecipeViewerDataSchema } from "@/schema";
 import { AssistantMessage, Message, UserMessage } from "@/types";
-import * as yaml from "js-yaml";
 import { kv } from "@vercel/kv";
 import { OpenAIStream, StreamingTextResponse, nanoid } from "ai";
+import * as yaml from "js-yaml";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { z } from "zod";
 
-// Create an OpenAI API client (that's edge friendly!)
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// IMPORTANT! Set the runtime to edge
 export const runtime = "edge";
-
-export async function GET(
-  _: Request,
-  { params }: { params: { slug: string } }
-) {
-  const recipe = await kv.hgetall(`recipe:${params.slug}`);
-  return NextResponse.json(recipe);
-}
 
 export async function POST(
   req: Request,
@@ -55,10 +44,12 @@ export async function POST(
 The original query to generate recipes was: ${queryUserMessage.content}
 Based on this query, a list of recipe options was generated: ${queryAssistantMessage.content}
 
-The user will provide the name and description they selected. Please generate a full recipe for this selection following the specified format.
+A full recipe for this selection following the specified format.
 
-Format: Provide the recipe information in YAML format. Below is an example order of the keys you should return in the object.
+Provide the recipe information in YAML format. Below is an example order of the keys you should return in the object.
 
+name: "A name for the recipe",
+description: "A des
 prepTime: "ISO 8601 duration format (e.g., PT15M for 15 minutes)"
 cookTime: "ISO 8601 duration format (e.g., PT1H for 1 hour)"
 totalTime: "ISO 8601 duration format (e.g., PT1H15M for 1 hour 15 minutes)"
@@ -163,14 +154,6 @@ recipeInstructions:
 
     return new StreamingTextResponse(stream);
   } catch (error) {
-    // todo likely a cancellation from chatgpt... try cleaning up...
-    console.error(error, content);
-    // todo how do i handle this stream
-    // if (error instanceof OpenAI.APIError) {
-    //   const { name, status, headers, message } = error;
-    //   return NextResponse.json({ name, status, headers, message }, { status });
-    // } else {
-    //   throw error;
-    // }
+    return NextResponse.json({ error }, { status: 503 });
   }
 }

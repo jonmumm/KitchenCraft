@@ -359,10 +359,6 @@ const RecipePromptLabel = () => {
 };
 
 const RecipeCommand = () => {
-  const actor = useContext(RecipeChatContext);
-  const isSuggesting = useSelector(actor, (state) =>
-    state.matches("Status.New.Suggesting")
-  );
   return (
     <Command shouldFilter={false}>
       <RecipeIngredients />
@@ -371,7 +367,7 @@ const RecipeCommand = () => {
         <ChatInput />
         <ChatSubmit />
       </div>
-      {isSuggesting && <RecipeSuggestions />}
+      <RecipeSuggestions />
     </Command>
   );
 };
@@ -486,26 +482,11 @@ const ChatInput = () => {
     [send, append]
   );
 
-  const handlePressBack = useCallback(() => {
-    send({ type: "BACK" });
-  }, [send]);
-
   useEffect(() => {
     if (isVisible) {
       inputRef.current?.focus();
     }
   }, [isVisible, inputRef]);
-
-  if (!isVisible) {
-    return (
-      <Button variant="ghost" onClick={handlePressBack}>
-        <Badge variant="outline" className="w-full justify-center py-2 my-4">
-          <ArrowBigLeftIcon />
-          Back
-        </Badge>
-      </Button>
-    );
-  }
 
   return (
     <CommandInput
