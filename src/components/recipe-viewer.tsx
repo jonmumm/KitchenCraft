@@ -517,7 +517,7 @@ const CraftingDetails = () => {
         <Badge variant="outline">
           <h3 className="font-bold text-xl">
             <div className="flex flex-col gap-1 items-center">
-              <div className="flex flex-row gap-1">
+              <div className="flex flex-row gap-1 items-center">
                 <ChefHatIcon />
                 <span>
                   <span className="underline">InspectorT</span>
