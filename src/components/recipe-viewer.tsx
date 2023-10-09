@@ -507,26 +507,30 @@ const CraftingDetails = () => {
   return (
     <>
       <Label className="uppercase text-xs font-bold text-accent-foreground">
-        <Badge variant="secondary">Crafted by</Badge>
+        Crafted By
       </Label>
-      <Link href="/chef/InspectorT">
-        <h3 className="font-bold text-xl">
-          <div className="flex flex-col gap-1 items-center">
-            <div className="flex flex-row gap-1">
-              <ChefHatIcon />
-              <span>
-                <span className="underline">InspectorT</span> (123 🧪)
-              </span>
-            </div>
-          </div>
-        </h3>
-      </Link>
-      <Badge
-        variant="outline"
-        className="flex flex-col justify-center px-5 py-2 text-muted-foreground"
+
+      <Link
+        href="/chef/InspectorT"
+        className="flex flex-row gap-1 items-center"
       >
+        <Badge variant="outline">
+          <h3 className="font-bold text-xl">
+            <div className="flex flex-col gap-1 items-center">
+              <div className="flex flex-row gap-1">
+                <ChefHatIcon />
+                <span>
+                  <span className="underline">InspectorT</span>
+                </span>
+              </div>
+            </div>
+          </h3>
+        </Badge>{" "}
+        <span className="font-bold">(+123 🧪)</span>
+      </Link>
+      <Label className="text-muted-foreground uppercase text-xs">
         {formattedDate.split(" at ").join(" @ ")}
-      </Badge>
+      </Label>
     </>
   );
 };
