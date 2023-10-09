@@ -181,12 +181,12 @@ function RecipeContent() {
           </div>
         </div>
         <Separator />
-        <div className="flex flex-row gap-2 p-2 justify-center">
+        <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
           <div className="flex flex-col gap-2 items-center">
             <CraftingDetails />
           </div>
         </div>
-        <Separator />
+        <Separator className="hidden-print" />
         <Times />
         <Separator />
         <Keywords />
@@ -196,7 +196,7 @@ function RecipeContent() {
         <RecipeInstructions />
         <Separator />
       </Card>
-      <Card>
+      <Card className="hidden-print">
         <Modify />
       </Card>
     </div>
@@ -455,7 +455,7 @@ const Keywords = () => {
   const keywords = keywordsStr?.split(",") || [];
 
   return (
-    <div className="flex flex-row gap-2 px-5">
+    <div className="flex flex-row gap-2 px-5 hidden-print">
       <TagIcon />
       {keywords.length === 0 ? (
         <Skeleton className="flex-1" />
