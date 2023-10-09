@@ -1,6 +1,7 @@
 "use client";
 
 import { useSelector } from "@/hooks/useSelector";
+import { useSend } from "@/hooks/useSend";
 import { assert } from "@/lib/utils";
 import { RecipeViewerDataSchema } from "@/schema";
 import { isAssistantMessage, isUserMessage } from "@/type-utils";
@@ -12,14 +13,20 @@ import * as yaml from "js-yaml";
 import {
   ArrowBigUpDashIcon,
   AxeIcon,
+  ChefHatIcon,
   ClockIcon,
   InfoIcon,
+  PaperclipIcon,
+  PlusSquareIcon,
   PrinterIcon,
   SaveIcon,
+  ScrollIcon,
   ShareIcon,
+  ShuffleIcon,
   TagIcon,
 } from "lucide-react";
 import { map } from "nanostores";
+import Link from "next/link";
 import {
   ChangeEventHandler,
   createContext,
@@ -32,14 +39,13 @@ import {
 } from "react";
 import { RecipeChatContext } from "./recipe-chat";
 import { Badge } from "./ui/badge";
-import { Card } from "./ui/card";
 import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
-import { useSend } from "@/hooks/useSend";
-import Link from "next/link";
-import { Input } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
+import { Textarea } from "./ui/textarea";
 
 const RecipeViewerContext = createContext(
   map<RecipeViewerData & { content: string | undefined }>()
@@ -86,8 +92,8 @@ function RecipeContent() {
   const handlePressPrint = useCallback(() => {
     window.print();
   }, []);
-  const handlePressSave = useCallback(() => {
-    window.alert("Save not yet implemented");
+  const handlePressAddToLibrary = useCallback(() => {
+    window.alert("Add to library not yet implemented");
   }, []);
   const handlePressUpVote = useCallback(() => {
     window.alert("Upvote not yet implemented");
@@ -96,15 +102,14 @@ function RecipeContent() {
     window.navigator.share();
   }, []);
   const handlePressModify = useCallback(() => {
-    window.alert("Recrafting not yet implemented");
     const recipeSlug = actor.getSnapshot().context.recipe.slug;
     assert(recipeSlug, "expected recipeSlug");
     send({ type: "MODIFY", recipeSlug });
   }, [send, actor]);
 
   return (
-    <div className="max-w-2xl mx-auto w-full p-4 flex flex-col gap-2">
-      <Card className="flex flex-col gap-2 pb-5 mb-5">
+    <div className="max-w-2xl mx-auto w-full p-4 flex flex-col gap-4 mb-5">
+      <Card className="flex flex-col gap-2 pb-5">
         <div className="flex flex-row gap-3 p-5 justify-between">
           <div className="flex flex-col gap-2">
             <h1 className="text-2xl font-semibold">{name}</h1>
@@ -123,24 +128,15 @@ function RecipeContent() {
             </Button>
             <Button
               variant="outline"
-              onClick={handlePressSave}
-              aria-label="Save"
+              onClick={handlePressAddToLibrary}
+              aria-label="Add To Library"
               className="flex flex-row gap-1"
             >
-              <SaveIcon />
+              <PlusSquareIcon />
             </Button>
-            <Button
-              variant="outline"
-              className="flex flex-row gap-1"
-              aria-label="Upvote"
-              onClick={handlePressUpVote}
-            >
-              {/* <ArrowBigUpIcon color="green" /> */}
-              <ArrowBigUpDashIcon />
-              <span className="font-bold">1</span>
-            </Button>
-            {!!window.navigator.canShare && (
+            {typeof window !== "undefined" && !!window.navigator?.canShare && (
               <Button
+                suppressHydrationWarning
                 variant="outline"
                 className="flex flex-row gap-1"
                 aria-label="Share"
@@ -157,7 +153,17 @@ function RecipeContent() {
               onClick={handlePressModify}
             >
               {/* <ArrowBigUpIcon color="green" /> */}
-              <AxeIcon />
+              <ShuffleIcon />
+            </Button>
+            <Button
+              variant="outline"
+              className="flex flex-row gap-1"
+              aria-label="Upvote"
+              onClick={handlePressUpVote}
+            >
+              {/* <ArrowBigUpIcon color="green" /> */}
+              <ArrowBigUpDashIcon />
+              <span className="font-bold">1</span>
             </Button>
           </div>
         </div>
@@ -175,8 +181,56 @@ function RecipeContent() {
         <RecipeIngredients />
         <Separator />
         <RecipeInstructions />
+        <Separator />
+      </Card>
+      <Card>
+        <Modify />
       </Card>
     </div>
+  );
+}
+
+function Modify() {
+  return (
+    <form className="flex flex-col items-center">
+      <div className="flex fex-row gap-2 items-center justify-between w-full p-4">
+        <h4 className="font-semibold uppercase text-xs">Recrafting</h4>
+        <ShuffleIcon />
+        {/* <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Settings2Icon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>Ingredients</DropdownMenuItem>
+            <DropdownMenuItem>Cookware</DropdownMenuItem>
+            <DropdownMenuItem>Techniques</DropdownMenuItem>
+            <DropdownMenuItem>Diets</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu> */}
+      </div>
+      <Separator />
+      <div className="p-3 w-full">
+        <div className="flex flex-col gap-2 items-start justify-centerj">
+          <Label htmlFor="prompt">Modify this recipe.</Label>
+          <div className="flex flex-col w-full gap-2 items-center">
+            <Textarea
+              placeholder="e.g. Can I use oil instead of butter?"
+              className="w-full"
+              name="prompt"
+            />
+            <Button
+              size="lg"
+              className="w-full flex flex-row gap-1 font-semibold"
+            >
+              <AxeIcon />
+              <span>Craft</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </form>
   );
 }
 
@@ -277,9 +331,12 @@ const RecipeInstructions = () => {
   });
   return (
     <div className="px-5">
-      <h3 className="uppercase text-xs font-bold text-accent-foreground my-2">
-        Instructions
-      </h3>
+      <div className="flex flex-row justify-between gap-1 items-center py-4">
+        <h3 className="uppercase text-xs font-bold text-accent-foreground">
+          Instructions
+        </h3>
+        <ScrollIcon />
+      </div>
       {recipeInstructions && recipeInstructions.length > 0 ? (
         <div>
           <ol className="list-decimal pl-5">
@@ -304,9 +361,12 @@ const RecipeIngredients = () => {
   });
   return (
     <div className="px-5">
-      <h3 className="uppercase text-xs font-bold text-accent-foreground my-2">
-        Ingredients
-      </h3>
+      <div className="flex flex-row justify-between gap-1 items-center py-4">
+        <h3 className="uppercase text-xs font-bold text-accent-foreground">
+          Ingredients
+        </h3>
+        <ScrollIcon />
+      </div>
       {recipeIngredient && recipeIngredient.length > 0 ? (
         <div className="mb-4 flex flex-col gap-2">
           <ul className="list-disc pl-5">
@@ -383,7 +443,7 @@ const Keywords = () => {
 
   return (
     <div className="flex flex-row gap-2 px-5">
-      <TagIcon className="w-4 h-4 mr-2" />
+      <TagIcon />
       {keywords.length === 0 ? (
         <Skeleton className="flex-1" />
       ) : (
@@ -452,9 +512,12 @@ const CraftingDetails = () => {
       <Link href="/chef/InspectorT">
         <h3 className="font-bold text-xl">
           <div className="flex flex-col gap-1 items-center">
-            <span>
-              🧪 <span className="underline">InspectorT</span> (+111)
-            </span>
+            <div className="flex flex-row gap-1">
+              <ChefHatIcon />
+              <span>
+                <span className="underline">InspectorT</span> (123 🧪)
+              </span>
+            </div>
           </div>
         </h3>
       </Link>
