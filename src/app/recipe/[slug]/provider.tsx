@@ -4,7 +4,7 @@ import { trpc } from "@/app/_trpc/client";
 import {
   RecipeChatContext,
   createRecipeChatMachine,
-} from "@/components/recipe-chat";
+} from "@/context/recipe-chat";
 import { useActor } from "@/hooks/useActor";
 import { Message, Recipe, RecipeChatInput } from "@/types";
 import { ReactNode } from "react";

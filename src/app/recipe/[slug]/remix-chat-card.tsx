@@ -1,4 +1,4 @@
-import { RecipeChatContext } from "@/components/recipe-chat";
+import { RecipeChatContext } from "@/context/recipe-chat";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";

@@ -37,7 +37,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { RecipeChatContext } from "./recipe-chat";
+import { RecipeChatContext } from "../context/recipe-chat";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";

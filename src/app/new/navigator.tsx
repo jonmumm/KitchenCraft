@@ -1,6 +1,6 @@
 "use client";
 
-import { RecipeChatContext } from "@/components/recipe-chat";
+import { RecipeChatContext } from "@/context/recipe-chat";
 import { useSelector } from "@/hooks/useSelector";
 import { useRouter } from "next/navigation";
 import { ReactNode, useContext, useLayoutEffect } from "react";
