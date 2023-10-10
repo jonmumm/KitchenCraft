@@ -3,17 +3,12 @@
 import { PromptContext } from "@/context/prompt";
 import { useChat } from "ai/react";
 import { KeyboardEventHandler, useCallback, useContext, useRef } from "react";
+import { RecipeConfigurator } from "./recipe-configurator";
 import RecipeIngredients from "./recipe-ingredients";
-import RecipeSuggestions from "./recipe-suggestions";
 import { Card } from "./ui/card";
 import { Command, CommandInput } from "./ui/command";
-import { RecipeConfigurator } from "./recipe-configurator";
-import { ScrollArea } from "./ui/scroll-area";
 import { Label } from "./ui/label";
-import { sendTo } from "xstate";
-import { RecipeChatContext } from "./recipe-chat";
-import { useSelector } from "@/hooks/useSelector";
-import { useEventHandler } from "@/hooks/useEventHandler";
+import { ScrollArea } from "./ui/scroll-area";
 
 export function RecipePrompt() {
   return (
@@ -91,7 +86,7 @@ const RecipeCommand = () => {
       />
       {isSelecting && (
         <ScrollArea style={{ maxHeight: "50vh" }}>
-          <RecipeSuggestions />
+          {/* <RecipeSuggestions /> */}
         </ScrollArea>
       )}
     </Command>
