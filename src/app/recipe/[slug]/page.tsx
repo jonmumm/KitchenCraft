@@ -8,16 +8,10 @@ import { z } from "zod";
 import { Header } from "../../header";
 import { RecipePageProvider } from "./context";
 import Provider from "./provider";
-import {
-  ModificationsList,
-  RemixContent,
-  RemixHeader,
-  RemixInput,
-  RemixSuggestions,
-} from "./remix-chat-card";
-import { IdeasContent, IdeasHeader } from "./components/ideas";
-import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { RemixContent, RemixHeader, RemixInput } from "./remix-chat-card";
+import { IdeasContent } from "./components/ideas-content";
+import { IdeasList } from "./components/ideas-list";
+import { IdeasHeader } from "./components/ideas-header";
 
 const getSessionId = (cookies: string) => {
   return "";
@@ -70,7 +64,7 @@ export default async function Page({ params }: Props) {
                 <IdeasHeader />
                 <Separator />
                 <IdeasContent>
-                  <ModificationsList slug={recipe.slug} />
+                  <IdeasList slug={recipe.slug} />
                 </IdeasContent>
               </form>
             </Card>

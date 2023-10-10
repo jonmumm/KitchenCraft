@@ -203,7 +203,7 @@ const ChatSubmit = forwardRef((props, ref) => {
     [actor, send, setMessages, reload]
   );
 
-  if (!visible) {
+  if (!visible || isLoading) {
     return null;
   }
 

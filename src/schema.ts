@@ -131,6 +131,12 @@ const InitEventSchema = z.object({
   type: z.literal("INIT"),
 });
 
+const SelectRelatedIdeaEventSchema = z.object({
+  type: z.literal("SELECT_RELATED_IDEA"),
+  name: z.string(),
+  description: z.string(),
+});
+
 const SubmitEventSchema = z.object({
   type: z.literal("SUBMIT"),
 });
@@ -150,6 +156,7 @@ const CloseConfiguratorEventSchema = z.object({
 export const AppEventSchema = z.discriminatedUnion("type", [
   ModifyRecipeEventSchema,
   SelectRecipeEventSchema,
+  SelectRelatedIdeaEventSchema,
   SetInputEventSchema,
   SubmitEventSchema,
   FocusPromptEventSchema,

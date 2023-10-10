@@ -4,12 +4,13 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useChat } from "ai/react";
 import { CommandLoading } from "cmdk";
-import { ChevronRightIcon, RefreshCcwIcon } from "lucide-react";
+import { AxeIcon, ChevronRightIcon, RefreshCcwIcon } from "lucide-react";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
 import { RecipeChatContext } from "@/context/recipe-chat";
+import { Label } from "@/components/ui/label";
 
 export default function RecipeSuggestions({}: {}) {
   const actor = useContext(RecipeChatContext);
@@ -57,7 +58,14 @@ export default function RecipeSuggestions({}: {}) {
                     </h3>
                     <p className="text-mg text-slate-700">{description}</p>
                   </div>
-                  <ChevronRightIcon />
+                  <div className="flex flex-col gap-1 items-center">
+                    <div className="w-12 h-12 flex items-center justify-center text-xl border rounded-md border-solid border-slate-200">
+                      <AxeIcon />
+                    </div>
+                    <Label className="uppercase text-xs text-center font-semibold w-full text-green-700">
+                      Craft
+                    </Label>
+                  </div>
                 </div>
               </CommandItem>
             );
@@ -104,5 +112,5 @@ const AnimatedText = () => {
     return () => clearInterval(interval);
   }, []);
 
-  return <>🧪 Crafting {dots}</>;
+  return <>🧪 Conjuring {dots}</>;
 };
