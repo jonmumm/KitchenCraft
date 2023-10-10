@@ -129,8 +129,8 @@ const RecipePromptLabel = () => {
   return (
     <Label htmlFor="prompt" className="leading-5 w-full px-3 mt-4">
       <span>
-        Enter <strong>ingredients</strong>, a dish <strong>name</strong> or{" "}
-        <strong>description</strong>.
+        Enter <strong>ingredients</strong>, <strong>keywords</strong>,{" "}
+        <strong>names</strong> or <strong>descriptions</strong>.
       </span>
     </Label>
   );
