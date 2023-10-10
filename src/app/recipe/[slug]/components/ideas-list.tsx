@@ -43,8 +43,10 @@ export async function IdeasList(props: { slug: string }) {
     </ul>
   );
 }
+
 async function getModifications(slug: string) {
-  return await fetch(
-    `http://0.0.0.0:${process.env.PORT}/api/recipe/${slug}/modifications`
-  );
+  const API_HOST = process.env.NEXT_PUBLIC_VERCE_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    : `http://0.0.0.0:3000`;
+  return await fetch(`${API_HOST}/api/recipe/${slug}/modifications`);
 }
