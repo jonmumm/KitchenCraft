@@ -1,4 +1,5 @@
 // ./app/api/chat/route.ts
+import { RECIPE_SUGGESTIONS_SYSTEM_PROMPT } from "@/app/prompts";
 import { assert } from "@/lib/utils";
 import { MessageContentSchema, MessageSchema, RoleSchema } from "@/schema";
 import {
@@ -42,14 +43,12 @@ export async function POST(
 
   const chatId = params.id; // Extracting chatId from the dynamic route parameter
 
-  const SYSTEM_CONTENT =
-    "You will be provided with a description for a dish or set of dishes to create a recipe for. Your task is to return a list of up to 6 recipe names that are related to the description. Only come up with six if the recipes are sufficiently different from one another in technique or ingredients. Each name should be on it's own line in the format [Name]: [Description], where [Name] is substituted with the name of the dish and [Description] is substituted with a 12 word or less blurb. There should be no other surrounding text in your response.";
   const systemMessage = {
     id: nanoid(),
     role: "system",
     type: "query",
     chatId,
-    content: SYSTEM_CONTENT,
+    content: RECIPE_SUGGESTIONS_SYSTEM_PROMPT,
   } satisfies SystemMessage;
 
   const assistantMessage = {

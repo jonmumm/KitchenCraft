@@ -1,3 +1,4 @@
+import { RECIPE_MODIFICATIONS_SYSTEM_PROMPT } from "@/app/prompts";
 import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import { assert } from "@/lib/utils";
 import { AssistantMessage, Message, UserMessage } from "@/types";
@@ -20,22 +21,29 @@ export async function GET(
 
   const recipe = await getRecipe(kv, params.slug);
 
+  if (recipe.modificationsMessageSet) {
+    const [_, _1, modificationsAssistantMessage] = await getLLMMessageSet(
+      kv,
+      recipe.queryMessageSet
+    );
+
+    if (modificationsAssistantMessage.content) {
+      return new Response(modificationsAssistantMessage.content);
+    }
+  }
+
   const [_, _1, queryAssistantMessage] = await getLLMMessageSet(
     kv,
     recipe.queryMessageSet
   );
   assert(queryAssistantMessage.content, "expected recipe to exist on message");
 
-  const SYSTEM_CONTENT = `
-    You will be given a recipe. Give back a list of ten ways the recipe can be modified. Consider possible variations in ingredients, cookware (e.g. instant pot vs grill vs wok), technique, or timing.
-`;
-
   const systemMessage = {
     id: nanoid(),
     role: "system",
     type: "modifications",
     chatId: recipe.chatId,
-    content: SYSTEM_CONTENT,
+    content: RECIPE_MODIFICATIONS_SYSTEM_PROMPT,
   } satisfies Message;
   const assistantMessage = {
     id: nanoid(),

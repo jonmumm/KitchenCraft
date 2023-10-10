@@ -1,14 +1,23 @@
 import RecipeCard from "@/components/recipe-card";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import { kv } from "@vercel/kv";
 import { Metadata } from "next";
 import { z } from "zod";
 import { Header } from "../../header";
+import { RecipePageProvider } from "./context";
 import Provider from "./provider";
+import {
+  ModificationsList,
+  RemixContent,
+  RemixHeader,
+  RemixInput,
+  RemixSuggestions,
+} from "./remix-chat-card";
+import { IdeasContent, IdeasHeader } from "./components/ideas";
 import { Suspense } from "react";
-import { RemixChatCard } from "./remix-chat-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
 
 const getSessionId = (cookies: string) => {
   return "";
@@ -34,20 +43,41 @@ export default async function Page({ params }: Props) {
     : [];
 
   return (
-    <Provider
-      chatId={chatId}
-      userId={userId}
-      recipe={recipe}
-      sessionId={sessionId}
-      recipeMessages={recipeMessages}
-    >
-      <div className="flex flex-col gap-3 pb-16 max-w-2xl m-auto">
-        <Header />
+    <RecipePageProvider slug={params.slug}>
+      <Provider
+        chatId={chatId}
+        userId={userId}
+        recipe={recipe}
+        sessionId={sessionId}
+        recipeMessages={recipeMessages}
+      >
+        <div className="flex flex-col pb-16 max-w-2xl m-auto">
+          <Header />
 
-        <RecipeCard />
-        <RemixChatCard />
-      </div>
-    </Provider>
+          <div className="flex flex-col gap-2">
+            <RecipeCard />
+            <Card className="mx-3">
+              <form className="flex flex-col items-center">
+                <RemixHeader />
+                <Separator />
+                <RemixContent>
+                  <RemixInput />
+                </RemixContent>
+              </form>
+            </Card>
+            <Card className="mx-3">
+              <form className="flex flex-col items-center">
+                <IdeasHeader />
+                <Separator />
+                <IdeasContent>
+                  <ModificationsList slug={recipe.slug} />
+                </IdeasContent>
+              </form>
+            </Card>
+          </div>
+        </div>
+      </Provider>
+    </RecipePageProvider>
   );
 }
 

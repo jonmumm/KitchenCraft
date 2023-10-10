@@ -9,6 +9,7 @@ import { OpenAIStream, StreamingTextResponse, nanoid } from "ai";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { z } from "zod";
+import { RECIPE_CREATE_SYSTEM_PROMPT } from "@/app/prompts";
 
 // Create an OpenAI API client (that's edge friendly!)
 const openai = new OpenAI({
@@ -51,38 +52,15 @@ export async function POST(
     recipe.queryMessageSet
   );
 
-  const SYSTEM_CONTENT = `
-The original query to generate recipes was: ${queryUserMessage.content}
-Based on this query, a list of recipe options was generated: ${queryAssistantMessage.content}
-
-The user will provide the name and description they selected. Please generate a full recipe for this selection following the specified format.
-
-Format: Provide the recipe information in YAML format. Below is an example order of the keys you should return in the object.
-
-prepTime: "ISO 8601 duration format (e.g., PT15M for 15 minutes)"
-cookTime: "ISO 8601 duration format (e.g., PT1H for 1 hour)"
-totalTime: "ISO 8601 duration format (e.g., PT1H15M for 1 hour 15 minutes)"
-keywords: "Keywords related to the recipe, comma separated"
-recipeYield: "Yield of the recipe (e.g., '1 loaf', '4 servings')"
-recipeCategory: "The type of meal or course (e.g., dinner, dessert)"
-recipeCuisine: "The cuisine of the recipe (e.g., Italian, Mexican)"
-recipeIngredient: 
-  - "Quantity and ingredient (e.g., '3 or 4 ripe bananas, smashed')"
-  - "Another ingredient"
-  - "And another ingredient"
-recipeInstructions:
-  - "@type": "HowToStep"
-    text: "A step for making the item"
-  - "@type": "HowToStep"
-    text: "Another step for making the item"
-`;
-
   const systemMessage = {
     id: nanoid(),
     role: "system",
     type: "recipe",
     chatId: recipe.chatId,
-    content: SYSTEM_CONTENT,
+    content: RECIPE_CREATE_SYSTEM_PROMPT({
+      queryAssistantMessageContent: queryAssistantMessage.content!,
+      queryUserMessageContent: queryUserMessage.content,
+    }),
   } satisfies Message;
   const assistantMessage = {
     id: nanoid(),
