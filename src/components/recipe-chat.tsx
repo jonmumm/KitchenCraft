@@ -392,10 +392,29 @@ const RecipeCommand = () => {
       <div className="flex flex-col gap-3">
         <Separator />
         <ChatInput />
+        <Separator />
+        {!isSelecting && <TrendingKeywords />}
         <ChatSubmit />
       </div>
       {isSelecting && <RecipeSuggestions />}
     </Command>
+  );
+};
+
+const TrendingKeywords = () => {
+  return (
+    <div className="flex flex-col gap-2 px-4">
+      <Label className="text-xs uppercase font-semibold text-muted-foreground">
+        Trending
+      </Label>
+      <div className="w-full flex flex-row flex-wrap gap-2">
+        <Badge>Kabocha Squash</Badge>
+        <Badge>Chocolate Chip Cookies</Badge>
+        <Badge>feta</Badge>
+        <Badge>Delicata Squash</Badge>
+        <Badge>Pumpkin</Badge>
+      </div>
+    </div>
   );
 };
 

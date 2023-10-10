@@ -1,4 +1,5 @@
 import {
+  LLMMessageSetIdSchema,
   LLMMessageSetSchema,
   MessageSchema,
   RecipeSchema,
@@ -17,6 +18,13 @@ export const getRecentRecipeSlugs = async (kv: KV) =>
 
 export const getRecipe = async (kv: KV, slug: RecipeSlug) =>
   RecipeSchema.parse(await kv.hgetall(`recipe:${slug}`));
+
+export const getModificationMessages = async (kv: KV, slug: RecipeSlug) => {
+  const messageSetId = await LLMMessageSetIdSchema.parse(
+    await kv.hget(`recipe:${slug}`, "modificationsMessageSet")
+  );
+  return await getLLMMessageSet(kv, messageSetId);
+};
 
 export const getMessage = async (kv: KV, id: string) =>
   MessageSchema.parse(await kv.hgetall(`message:${id}`));

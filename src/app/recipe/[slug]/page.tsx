@@ -1,11 +1,15 @@
-import { RecipeChat } from "@/components/recipe-chat";
-import RecipeViewer from "@/components/recipe-viewer";
-import { Header } from "../../header";
+import RecipeCard from "@/components/recipe-card";
 import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import { kv } from "@vercel/kv";
-import { Metadata, ResolvingMetadata } from "next";
+import { Metadata } from "next";
 import { z } from "zod";
+import { Header } from "../../header";
 import Provider from "./provider";
+import { Suspense } from "react";
+import { RemixChatCard } from "./remix-chat-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
+
 const getSessionId = (cookies: string) => {
   return "";
 };
@@ -25,26 +29,26 @@ export default async function Page({ params }: Props) {
   );
 
   const recipe = await getRecipe(kv, params.slug);
-  const messages = recipe.messageSet
+  const recipeMessages = recipe.messageSet
     ? await getLLMMessageSet(kv, recipe.messageSet)
     : [];
 
   return (
-    <>
-      <Provider
-        chatId={chatId}
-        userId={userId}
-        recipe={recipe}
-        sessionId={sessionId}
-        recipeMessages={messages}
-      >
+    <Provider
+      chatId={chatId}
+      userId={userId}
+      recipe={recipe}
+      sessionId={sessionId}
+      recipeMessages={recipeMessages}
+    >
+      <div className="flex flex-col gap-3 pb-16">
+
         <Header />
-        <div className="flex flex-col flex-end flex-1 justify-end overflow-hidden">
-          <RecipeViewer />
-          <RecipeChat />
-        </div>
-      </Provider>
-    </>
+
+        <RecipeCard />
+        <RemixChatCard />
+      </div>
+    </Provider>
   );
 }
 

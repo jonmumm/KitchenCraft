@@ -41,37 +41,16 @@ export async function POST(
   );
 
   const SYSTEM_CONTENT = `
-The original query to generate recipes was: ${queryUserMessage.content}
-Based on this query, a list of recipe options was generated: ${queryAssistantMessage.content}
-
-A full recipe for this selection following the specified format.
-
-Provide the recipe information in YAML format. Below is an example order of the keys you should return in the object.
-
-name: "A name for the dish",
-description: "A 12 word or less blurb",
-prepTime: "ISO 8601 duration format (e.g., PT15M for 15 minutes)"
-cookTime: "ISO 8601 duration format (e.g., PT1H for 1 hour)"
-totalTime: "ISO 8601 duration format (e.g., PT1H15M for 1 hour 15 minutes)"
-keywords: "Keywords related to the recipe, comma separated"
-recipeYield: "Yield of the recipe (e.g., '1 loaf', '4 servings')"
-recipeCategory: "The type of meal or course (e.g., dinner, dessert)"
-recipeCuisine: "The cuisine of the recipe (e.g., Italian, Mexican)"
-recipeIngredient: 
-  - "Quantity and ingredient (e.g., '3 or 4 ripe bananas, smashed')"
-  - "Another ingredient"
-  - "And another ingredient"
-recipeInstructions:
-  - "@type": "HowToStep"
-    text: "A step for making the item"
-  - "@type": "HowToStep"
-    text: "Another step for making the item"
+    You will be given a recipe and a description of how it should be modified.
+    Your task is to repeat the changes to the recipe in plain descriptive language.
+    This text will be used in a confirmation dialog presented to the user.
+    Include no text other than the description of the changes.
 `;
 
   const systemMessage = {
     id: nanoid(),
     role: "system",
-    type: "recipe",
+    type: "remix",
     chatId: recipe.chatId,
     content: SYSTEM_CONTENT,
   } satisfies Message;
@@ -79,14 +58,15 @@ recipeInstructions:
     id: nanoid(),
     chatId: recipe.chatId,
     role: "assistant" as const,
-    type: "recipe",
+    type: "remix",
     state: "running",
   } satisfies Omit<AssistantMessage, "content">;
 
+  // Grab the content off the first message in the form body
   const userMessage = {
     id: nanoid(),
     chatId: recipe.chatId,
-    type: "recipe",
+    type: "remix",
     ...userMessages[0],
   } satisfies UserMessage;
 
@@ -103,9 +83,9 @@ recipeInstructions:
       member: message.id,
     });
   });
-  await multi.hset(`recipe:${slug}`, {
-    messageSet,
-  });
+  // await multi.hset(`recipe:${slug}`, {
+  //   remixMessageSet,
+  // });
   await Promise.all(promises);
   await multi.exec();
 
@@ -142,13 +122,9 @@ recipeInstructions:
         } catch (ex) {
           console.error("Error parsing yaml completion", ex);
         }
-        // await kv.hset(`recipe:${slug}`, data);
       },
       async onFinal(completion) {
         console.log("FINAL!");
-        // await kv.hset(`message:${assistantMessageId}`, {
-        //   state: "done",
-        // });
       },
     });
 

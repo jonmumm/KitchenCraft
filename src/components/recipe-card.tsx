@@ -7,27 +7,25 @@ import { RecipeViewerDataSchema } from "@/schema";
 import { isAssistantMessage, isUserMessage } from "@/type-utils";
 import { Message, RecipeViewerData } from "@/types";
 import { useStore } from "@nanostores/react";
+import { useQuery } from "@tanstack/react-query";
 import { nanoid } from "ai";
 import { useChat } from "ai/react";
 import * as yaml from "js-yaml";
 import {
   ArrowBigUpDashIcon,
-  AxeIcon,
   CameraIcon,
   ChefHatIcon,
   ClockIcon,
   InfoIcon,
-  PaperclipIcon,
   PlusSquareIcon,
   PrinterIcon,
-  SaveIcon,
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
   ShuffleIcon,
   TagIcon,
 } from "lucide-react";
-import { map } from "nanostores";
+import { atom, map } from "nanostores";
 import Link from "next/link";
 import {
   ChangeEventHandler,
@@ -47,13 +45,12 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
-import { Textarea } from "./ui/textarea";
 
 const RecipeViewerContext = createContext(
   map<RecipeViewerData & { content: string | undefined }>()
 );
 
-export default function RecipeViewer() {
+export default function RecipeCard() {
   const actor = useContext(RecipeChatContext);
   const recipe = useSelector(actor, (state) => state.context.recipe);
   assert(!!recipe, "expected recipe to exist");
@@ -113,145 +110,184 @@ function RecipeContent() {
   }, [send, actor]);
 
   return (
-    <div className="max-w-2xl mx-auto w-full p-4 flex flex-col gap-4 mb-5">
-      <Card className="flex flex-col gap-2 pb-5">
-        <div className="flex flex-row gap-3 p-5 justify-between">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-semibold">{name}</h1>
-            <p className="text-lg text-muted-foreground">{description}</p>
-            <Yield />
-          </div>
+    <Card className="flex flex-col gap-2 pb-5 mx-3">
 
-          <div className="flex flex-col gap-1 hidden-print">
+      <div className="flex flex-row gap-3 p-5 justify-between">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold">{name}</h1>
+          <p className="text-lg text-muted-foreground">{description}</p>
+          <Yield />
+        </div>
+
+        <div className="flex flex-col gap-1 hidden-print">
+          <Button
+            variant="outline"
+            onClick={handlePressAddToLibrary}
+            aria-label="Add To Library"
+            className="flex flex-row gap-1"
+          >
+            <PlusSquareIcon />
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handlePressPhoto}
+            aria-label="Take Photo"
+            className="flex flex-row gap-1"
+          >
+            <CameraIcon />
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handlePressPrint}
+            aria-label="Print"
+            className="flex flex-row gap-1"
+          >
+            <PrinterIcon />
+          </Button>
+          {typeof window !== "undefined" && !!window.navigator?.canShare && (
             <Button
-              variant="outline"
-              onClick={handlePressAddToLibrary}
-              aria-label="Add To Library"
-              className="flex flex-row gap-1"
-            >
-              <PlusSquareIcon />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handlePressPhoto}
-              aria-label="Take Photo"
-              className="flex flex-row gap-1"
-            >
-              <CameraIcon />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handlePressPrint}
-              aria-label="Print"
-              className="flex flex-row gap-1"
-            >
-              <PrinterIcon />
-            </Button>
-            {typeof window !== "undefined" && !!window.navigator?.canShare && (
-              <Button
-                suppressHydrationWarning
-                variant="outline"
-                className="flex flex-row gap-1"
-                aria-label="Share"
-                onClick={handlePressShare}
-              >
-                {/* <ArrowBigUpIcon color="green" /> */}
-                <ShareIcon />
-              </Button>
-            )}
-            <Button
+              suppressHydrationWarning
               variant="outline"
               className="flex flex-row gap-1"
-              aria-label="Upvote"
-              onClick={handlePressUpVote}
+              aria-label="Share"
+              onClick={handlePressShare}
             >
               {/* <ArrowBigUpIcon color="green" /> */}
-              <ArrowBigUpDashIcon />
-              <span className="font-bold">1</span>
+              <ShareIcon />
             </Button>
-            <Button
-              variant="outline"
-              className="flex flex-row gap-1"
-              aria-label="Modify"
-              onClick={handlePressModify}
-            >
-              {/* <ArrowBigUpIcon color="green" /> */}
-              <ShuffleIcon />
-            </Button>
-          </div>
+          )}
+          <Button
+            variant="outline"
+            className="flex flex-row gap-1"
+            aria-label="Upvote"
+            onClick={handlePressUpVote}
+          >
+            {/* <ArrowBigUpIcon color="green" /> */}
+            <ArrowBigUpDashIcon />
+            <span className="font-bold">1</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="flex flex-row gap-1"
+            aria-label="Modify"
+            onClick={handlePressModify}
+          >
+            {/* <ArrowBigUpIcon color="green" /> */}
+            <ShuffleIcon />
+          </Button>
         </div>
-        <Separator />
-        <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
-          <div className="flex flex-col gap-2 items-center">
-            <CraftingDetails />
-          </div>
+      </div>
+      <Separator />
+      <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
+        <div className="flex flex-col gap-2 items-center">
+          <CraftingDetails />
         </div>
-        <Separator className="hidden-print" />
-        <Times />
-        <Separator />
-        <Keywords />
-        <Separator />
-        <RecipeIngredients />
-        <Separator />
-        <RecipeInstructions />
-        <Separator />
-      </Card>
-      <Card className="hidden-print">
-        <Modify />
-      </Card>
-    </div>
+      </div>
+      <Separator className="hidden-print" />
+      <Times />
+      <Separator />
+      <Keywords />
+      <Separator />
+      <RecipeIngredients />
+      <Separator />
+      <RecipeInstructions />
+      <Separator />
+    </Card>
   );
 }
 
-function Modify() {
+// function TipsChat() {
+//   const actor = useContext(RecipeChatContext);
+//   const slug = useSelector(actor, (state) => state.context.recipe.slug);
+//   assert(slug, "expected slug in context in TipsChat");
+
+//   // const recipeSlug = actor.getSnapshot().context.recipe.slug;
+//   // assert(recipeSlug, "expected recipeSlug");
+//   const { isLoading, setMessages, reload } = useChat({
+//     id: `remix-${slug}`,
+//     api: `/api/recipe/${slug}/remix`,
+//   });
+
+//   return (
+//     <form className="flex flex-col items-center">
+//       <div className="flex fex-row gap-2 items-center justify-between w-full p-4">
+//         <Label className="font-semibold uppercase text-xs">
+//           Tips & Instruction
+//         </Label>
+//         <ShuffleIcon />
+//       </div>
+//       <Separator />
+//       <div className="p-3 w-full">
+//         <div className="flex flex-col gap-2 items-start justify-centerj">
+//           <div className="flex flex-col w-full gap-2 items-center">
+//             <Textarea
+//               placeholder="e.g. Can I use oil instead of butter? Shallots instead of onions?"
+//               className="w-full"
+//               name="prompt"
+//             />
+//             <Button
+//               size="lg"
+//               className="w-full flex flex-row gap-1 font-semibold"
+//             >
+//               <span>🧪</span>
+//               <span>Craft Remix</span>
+//             </Button>
+//             <div className="w-full flex flex-col gap-2">
+//               <Label className="uppercase font-semibold text-sm">
+//                 Suggestions
+//               </Label>
+//               <div className="flex flex-row gap-2 flex-wrap">
+//                 <Badge variant="outline">Adapt for instant pot</Badge>
+//                 <Badge variant="outline">Use butter instead of oil</Badge>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </form>
+//   );
+// }
+
+function RemixChat() {
+  const actor = useContext(RecipeChatContext);
+  const slug = useSelector(actor, (state) => state.context.recipe.slug);
+  const $response = useState(atom(""));
+  const modificationsQuery = useQuery(["modifications", slug], async () => {
+    const data = await fetch(`/api/recipe/${slug}/modifications`);
+    // todo how do we stream this data with
+    console.log({ data });
+    return data;
+  });
+  console.log({ modificationsQuery });
   return (
-    <form className="flex flex-col items-center">
-      <div className="flex fex-row gap-2 items-center justify-between w-full p-4">
-        <Label className="font-semibold uppercase text-xs">Remix</Label>
-        <ShuffleIcon />
-        {/* <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Settings2Icon />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Ingredients</DropdownMenuItem>
-            <DropdownMenuItem>Cookware</DropdownMenuItem>
-            <DropdownMenuItem>Techniques</DropdownMenuItem>
-            <DropdownMenuItem>Diets</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu> */}
-      </div>
-      <Separator />
-      <div className="p-3 w-full">
-        <div className="flex flex-col gap-2 items-start justify-centerj">
-          <div className="flex flex-col w-full gap-2 items-center">
-            <Textarea
-              placeholder="e.g. Can I use oil instead of butter? Shallots instead of onions?"
-              className="w-full"
-              name="prompt"
-            />
-            <Button
-              size="lg"
-              className="w-full flex flex-row gap-1 font-semibold"
-            >
-              <span>🧪</span>
-              <span>Craft Remix</span>
-            </Button>
-            <div className="w-full flex flex-col gap-2">
-              <Label className="uppercase font-semibold text-sm">
-                Suggestions
-              </Label>
-              <div className="flex flex-row gap-2 flex-wrap">
-                <Badge variant="outline">Adapt for instant pot</Badge>
-                <Badge variant="outline">Use butter instead of oil</Badge>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </form>
+    <form className="flex flex-col items-center"></form>
+    // <form className="flex flex-col items-center">
+    //   <div className="flex fex-row gap-2 items-center justify-between w-full p-4">
+    //     <Label className="font-semibold uppercase text-xs">Remix</Label>
+    //     <ShuffleIcon />
+    //   </div>
+    //   <Separator />
+    //   <div className="p-3 w-full">
+    //     <div className="flex flex-col gap-2 items-start justify-centerj">
+    //       <div className="flex flex-col w-full gap-2 items-center">
+    //         <Textarea
+    //           placeholder="e.g. Can I use oil instead of butter? Shallots instead of onions?"
+    //           className="w-full"
+    //           name="prompt"
+    //         />
+    //         <div className="w-full flex flex-col gap-2">
+    //           <Label className="uppercase font-semibold text-sm">
+    //             Suggestions
+    //           </Label>
+    //           <div className="flex flex-row gap-2 flex-wrap">
+    //             <Badge variant="outline">Adapt for instant pot</Badge>
+    //             <Badge variant="outline">Use butter instead of oil</Badge>
+    //           </div>
+    //         </div>
+    //       </div>
+    //     </div>
+    //   </div>
+    // </form>
   );
 }
 

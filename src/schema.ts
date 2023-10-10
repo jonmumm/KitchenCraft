@@ -35,7 +35,12 @@ export const LLMMessageSetIdSchema = z.tuple([
   MessageIdSchema,
 ]);
 
-export const MessageTypeSchema = z.enum(["query", "recipe"]);
+export const MessageTypeSchema = z.enum([
+  "query",
+  "recipe",
+  "remix",
+  "modifications",
+]);
 
 export const CreateMessageInputSchema = z.object({
   id: MessageIdSchema.optional(),
@@ -232,6 +237,7 @@ export const RecipeSchema = z
     description: z.string().min(1).max(140),
     chatId: z.string(),
     queryMessageSet: LLMMessageSetIdSchema,
+    modificationsMessageSet: LLMMessageSetIdSchema.optional(),
     messageSet: LLMMessageSetIdSchema.optional(),
   })
   .merge(RecipeViewerDataSchema);
