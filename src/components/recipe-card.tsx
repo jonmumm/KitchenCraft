@@ -59,10 +59,37 @@ export default function RecipeCard() {
     (state) => state.context.recipeMessages
   );
   const assistantMessage = initialMessages.find(isAssistantMessage);
+  const content = assistantMessage?.content;
+
+  //   if (content && content !== "") {
+  //     try {
+  //       const json = yaml.load(content);
+  //       const data = RecipeViewerDataSchema.parse(json);
+  //       store.set({
+  //         content,
+  //         ...data,
+  //       });
+  //     } catch (ex) {
+  //       // we expect that some errors are going to happen because we are
+  //       // continuously parsing the yaml even if its not valid yaml
+  //       // so if it fails, we just don't do anything
+  //     }
+  //   }
+  let data = {};
+  if (content && content !== "") {
+    try {
+      const json = yaml.load(content);
+      data = RecipeViewerDataSchema.parse(json);
+    } catch (ex) {
+      console.warn(ex);
+      // todo log metrics here
+    }
+  }
 
   const [store] = useState(() =>
     map({
       content: assistantMessage?.content,
+      ...data,
     })
   );
 
@@ -111,7 +138,6 @@ function RecipeContent() {
 
   return (
     <Card className="flex flex-col gap-2 pb-5 mx-3">
-
       <div className="flex flex-row gap-3 p-5 justify-between">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold">{name}</h1>
