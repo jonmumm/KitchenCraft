@@ -41,7 +41,7 @@ export default async function Page({ params }: Props) {
       sessionId={sessionId}
       recipeMessages={recipeMessages}
     >
-      <div className="flex flex-col gap-3 pb-16">
+      <div className="flex flex-col gap-3 pb-16 max-w-2xl m-auto">
         <Header />
 
         <RecipeCard />
