@@ -23,12 +23,7 @@ export async function RecentRecipes() {
 }
 
 async function RecipeLink(props: { slug: RecipeSlug; index: number }) {
-  // const recipe = await kv.hgetall(`recipe:${props.slug}`);
-  // console.log({ recipe });
   const recipe = await getRecipe(kv, props.slug);
-  // console.log({ recipe });
-  // return <>{props.slug}</>;
-  // const recipe = await getRecipe(kv, props.slug);
   return (
     <li className="flex flex-row flex-1 gap-1">
       <div className="flex flex-col gap-1 items-center justify-between">

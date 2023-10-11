@@ -130,10 +130,8 @@ function RecipeContent() {
   const handlePressShare = useCallback(() => {
     window.navigator.share();
   }, []);
-  const handlePressModify = useCallback(() => {
-    const recipeSlug = actor.getSnapshot().context.recipe.slug;
-    assert(recipeSlug, "expected recipeSlug");
-    send({ type: "MODIFY", recipeSlug });
+  const handlePressRemix = useCallback(() => {
+    //
   }, [send, actor]);
 
   return (
@@ -192,14 +190,10 @@ function RecipeContent() {
             <ArrowBigUpDashIcon />
             <span className="font-bold">1</span>
           </Button>
-          <Button
-            variant="outline"
-            className="flex flex-row gap-1"
-            aria-label="Modify"
-            onClick={handlePressModify}
-          >
-            {/* <ArrowBigUpIcon color="green" /> */}
-            <ShuffleIcon />
+          <Button variant="outline" aria-label="Remix">
+            <Link href={"#remix"}>
+              <ShuffleIcon />
+            </Link>
           </Button>
         </div>
       </div>
@@ -217,7 +211,6 @@ function RecipeContent() {
       <RecipeIngredients />
       <Separator />
       <RecipeInstructions />
-      <Separator />
     </Card>
   );
 }

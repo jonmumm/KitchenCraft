@@ -1,17 +1,21 @@
 import RecipeCard from "@/components/recipe-card";
 import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import { kv } from "@vercel/kv";
+import { LightbulbIcon } from "lucide-react";
 import { Metadata } from "next";
 import { z } from "zod";
 import { Header } from "../../header";
+import { IdeasContent } from "./components/ideas-content";
+import { IdeasHeader } from "./components/ideas-header";
+import { IdeasList } from "./components/ideas-list";
+import { TipsContent } from "./components/tips-content";
+import { TipsList } from "./components/tips-list";
 import { RecipePageProvider } from "./context";
 import Provider from "./provider";
 import { RemixContent, RemixHeader, RemixInput } from "./remix-chat-card";
-import { IdeasContent } from "./components/ideas-content";
-import { IdeasList } from "./components/ideas-list";
-import { IdeasHeader } from "./components/ideas-header";
 
 const getSessionId = (cookies: string) => {
   return "";
@@ -36,6 +40,8 @@ export default async function Page({ params }: Props) {
     ? await getLLMMessageSet(kv, recipe.messageSet)
     : [];
 
+  console.log({ recipeMessages });
+
   return (
     <RecipePageProvider slug={params.slug}>
       <Provider
@@ -47,10 +53,9 @@ export default async function Page({ params }: Props) {
       >
         <div className="flex flex-col pb-16 max-w-2xl m-auto">
           <Header />
-
           <div className="flex flex-col gap-2">
             <RecipeCard />
-            <Card className="mx-3">
+            <Card id="remix" className="mx-3">
               <form className="flex flex-col items-center">
                 <RemixHeader />
                 <Separator />
@@ -58,6 +63,16 @@ export default async function Page({ params }: Props) {
                   <RemixInput />
                 </RemixContent>
               </form>
+            </Card>
+            <Card className="mx-3">
+              <div className="flex fex-row gap-2 items-center justify-between w-full p-4">
+                <Label className="font-semibold uppercase text-xs">Tips</Label>
+                <LightbulbIcon />
+              </div>
+              <Separator />
+              <TipsContent>
+                <TipsList slug={recipe.slug} />
+              </TipsContent>
             </Card>
             <Card className="mx-3">
               <form className="flex flex-col items-center">

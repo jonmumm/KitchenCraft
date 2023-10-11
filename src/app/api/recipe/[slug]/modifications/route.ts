@@ -32,7 +32,7 @@ export async function GET(
     }
   }
 
-  const [_, _1, queryAssistantMessage] = await getLLMMessageSet(
+  const [_, queryUserMessage, queryAssistantMessage] = await getLLMMessageSet(
     kv,
     recipe.queryMessageSet
   );
@@ -59,7 +59,9 @@ export async function GET(
     chatId: recipe.chatId,
     type: "modifications",
     role: "user",
-    content: queryAssistantMessage.content,
+    // queryUserMessage should be the name anddescription
+    // queryAssistantMessage should be the recipe yaml
+    content: queryUserMessage.content + ": " + queryAssistantMessage.content,
   } satisfies UserMessage;
 
   const newMessages = [systemMessage, userMessage, assistantMessage] as const;

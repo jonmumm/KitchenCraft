@@ -40,7 +40,39 @@ export const RECIPE_CREATE_SYSTEM_PROMPT = ({
     - "And another ingredient"
     recipeInstructions:
     - "@type": "HowToStep"
-        text: "A step for making the item"
+      text: "A step for making the item"
     - "@type": "HowToStep"
-        text: "Another step for making the item"
+      text: "Another step for making the item"
+
+    IMPORTANT: Adhere strictly to the YAML syntax, ensuring that:
+    - Indentations are consistent and use spaces, not tabs.
+    - Sequences in mappings (like each instruction step) are aligned with the dash ('-').
+
+Example:
+    - "@type": "HowToStep"
+      text: "An example instruction step"
+
+This example indicates that the key ('text') MUST be indented to the same level as its parent map key ('@type') to ensure valid YAML format.
+`;
+
+export const RECIPE_TIPS_SYSTEM_PROMPT = `
+    You will be provided with a recipe and optionally a user’s cooking experience level. Your task is to return a set of up to 10 practical cooking tips related to the provided recipe. Additionally, if a cooking experience level is provided (Novice, Beginner, Intermediate, Advanced, Expert/Chef), tailor the tips to that specific level. If no level is provided, the tips should be generally applicable.
+
+    Format:
+      - Present the tips in a clean, CSV-like format, with each tip on a new line and ending with a semi-colon.
+      - Ensure tips are specific to the provided recipe and relevant to the specified experience level (if provided).
+      - Avoid including additional text, ensuring the tips are clear and concise.
+      - No introduction, closing, list numbers, or bullet points should be used.
+      - Ensure the tips are practical and directly relevant to improving the preparation or outcome of the provided recipe.
+    
+    Note: Ensure each tip is concise and directly to the point, without preliminary phrases like "Tip 1:".
+
+Example User Input:
+    - Recipe: [Description of the recipe, including ingredients and basic preparation steps]
+    - Experience Level: [Optional. One of: Novice, Beginner, Intermediate, Advanced, Expert/Chef]
+
+Example Tips Output:
+    "Ensure your griddle is extremely hot before adding the burger patties;",
+    "Lightly oil the griddle to prevent sticking;",
+    "Flip burgers only once to maintain juiciness."
 `;

@@ -1,16 +1,9 @@
-import { AxeIcon, ChevronsRightIcon } from "lucide-react";
+import { getModifications } from "@/lib/api";
+import { AxeIcon } from "lucide-react";
 import { IdeaListItemCard } from "./idea-list-item-card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 
 export async function IdeasList(props: { slug: string }) {
-  const resp = await getModifications(props.slug);
-
-  const text = await resp.text();
-  if (!text) {
-    throw Error("body is empty");
-  }
-  const items = text.split("\n").filter((item) => item !== "");
+  const items = await getModifications(props.slug);
 
   return (
     <ul className="flex flex-row gap-2 flex-wrap">
@@ -33,20 +26,10 @@ export async function IdeasList(props: { slug: string }) {
               <div className="w-12 h-12 flex items-center justify-center text-xl border rounded-md border-solid border-slate-200">
                 <AxeIcon />
               </div>
-              <Label className="uppercase text-xs text-center font-semibold w-full text-green-700">
-                Craft
-              </Label>
             </div>
           </IdeaListItemCard>
         );
       })}
     </ul>
   );
-}
-
-async function getModifications(slug: string) {
-  const API_HOST = process.env.NEXT_PUBLIC_VERCEL_URL
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : `http://0.0.0.0:3000`;
-  return await fetch(`${API_HOST}/api/recipe/${slug}/modifications`);
 }
