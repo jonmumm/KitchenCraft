@@ -12,9 +12,9 @@ export async function getTips(slug: string) {
   }
 
   // Strip unwanted characters
-  text = text.replace(/[",.;]/g, "");
+  text = text.replace(/[",.;]/g, "").trim();
 
-  const items = text.split("\n").filter((item) => item.trim() !== "");
+  const items = text.split("\n").filter((item) => item !== "");
   return items;
 }
 

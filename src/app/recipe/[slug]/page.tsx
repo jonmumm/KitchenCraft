@@ -40,8 +40,6 @@ export default async function Page({ params }: Props) {
     ? await getLLMMessageSet(kv, recipe.messageSet)
     : [];
 
-  console.log({ recipeMessages });
-
   return (
     <RecipePageProvider slug={params.slug}>
       <Provider

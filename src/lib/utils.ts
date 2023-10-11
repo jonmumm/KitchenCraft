@@ -53,3 +53,18 @@ export function getChatRecipeSlug(chatId: string, name: string): string {
   const chatSlug = chatId.toLowerCase().slice(0, 5);
   return `${chatSlug}-${slug}`;
 }
+
+export async function pollWithExponentialBackoff(checkFunction: () => Promise<boolean>, maxWaitTime: number = 60000) {
+  let waitTime = 1000;  // starting with 1 second
+  const maxRetries = Math.log2(maxWaitTime/waitTime);  // Calculating max retries based on maxWaitTime and initial waitTime
+
+  for (let i = 0; i < maxRetries; i++) {
+    const isDone = await checkFunction();
+    if (isDone) return true;
+
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+    waitTime *= 2; // doubling the wait time for the next iteration
+  }
+
+  return false; // return false after max retries are exhausted without success
+}

@@ -1,6 +1,6 @@
 import { RECIPE_MODIFICATIONS_SYSTEM_PROMPT } from "@/app/prompts";
-import { getLLMMessageSet, getRecipe } from "@/lib/db";
-import { assert } from "@/lib/utils";
+import { getLLMMessageSet, getMessage, getRecipe } from "@/lib/db";
+import { assert, pollWithExponentialBackoff } from "@/lib/utils";
 import { AssistantMessage, Message, UserMessage } from "@/types";
 import { kv } from "@vercel/kv";
 import { OpenAIStream, StreamingTextResponse, nanoid } from "ai";
@@ -36,7 +36,27 @@ export async function GET(
     kv,
     recipe.queryMessageSet
   );
-  assert(queryAssistantMessage.content, "expected recipe to exist on message");
+  let recipeContent: string | undefined = undefined;
+  if (queryAssistantMessage.state === "done") {
+    recipeContent = queryUserMessage.content;
+  } else {
+    // content only exists if in "done" state
+    await pollWithExponentialBackoff(async () => {
+      // refetch the queryAssistantMessage from the source and check its state
+      const message = (await getMessage(
+        kv,
+        queryAssistantMessage.id
+      )) as AssistantMessage;
+      console.log({ message });
+
+      if (message.state === "done") {
+        recipeContent = message.content;
+        return true;
+      }
+      return false;
+    });
+  }
+  assert(recipeContent, "expected recipe to exist on message");
 
   const systemMessage = {
     id: nanoid(),
@@ -61,7 +81,7 @@ export async function GET(
     role: "user",
     // queryUserMessage should be the name anddescription
     // queryAssistantMessage should be the recipe yaml
-    content: queryUserMessage.content + ": " + queryAssistantMessage.content,
+    content: queryUserMessage.content + ": " + recipeContent,
   } satisfies UserMessage;
 
   const newMessages = [systemMessage, userMessage, assistantMessage] as const;
