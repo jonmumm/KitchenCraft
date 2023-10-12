@@ -1,5 +1,4 @@
-import { nanoid } from "nanoid";
-import { Content, RecipeChat } from "./content";
+import { RecipeChat } from "./content";
 import Navigator from "./navigator";
 import Provider from "./provider";
 import { Header } from "../header";
@@ -24,7 +23,9 @@ export default async function Page({
       <Navigator>
         <div className="max-w-2xl mx-auto">
           <Header />
-          <Content />
+          <div className={`flex flex-col flex-end w-full p-4 pt-0`}>
+            <RecipeChat />
+          </div>
         </div>
       </Navigator>
     </Provider>

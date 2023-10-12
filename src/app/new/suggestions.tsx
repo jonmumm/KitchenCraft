@@ -53,10 +53,10 @@ export default function RecipeSuggestions({}: {}) {
               >
                 <div className="flex flex-row flex-1 gap-2 items-center justify-between">
                   <div className="flex flex-col gap-2">
-                    <h3 className="text-lg font-semibold text-slate-900">
+                    <h3 className="text-lg font-semibold">
                       {name}
                     </h3>
-                    <p className="text-mg text-slate-700">{description}</p>
+                    <p className="text-md">{description}</p>
                   </div>
                   <div className="flex flex-col gap-1 items-center">
                     <div className="w-12 h-12 flex items-center justify-center text-xl border rounded-md border-solid border-slate-200">
