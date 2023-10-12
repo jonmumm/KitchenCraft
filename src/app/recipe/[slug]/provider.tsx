@@ -7,7 +7,7 @@ import {
 } from "@/context/recipe-chat";
 import { useActor } from "@/hooks/useActor";
 import { Message, Recipe, RecipeChatInput } from "@/types";
-import { ReactNode } from "react";
+import { ReactNode, useLayoutEffect } from "react";
 
 /**
  * Connects the main page actor to the "event bus"

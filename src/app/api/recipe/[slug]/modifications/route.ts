@@ -1,7 +1,7 @@
 import { RECIPE_MODIFICATIONS_SYSTEM_PROMPT } from "@/app/prompts";
 import { getLLMMessageSet, getMessage, getRecipe } from "@/lib/db";
 import { assert, pollWithExponentialBackoff } from "@/lib/utils";
-import { AssistantMessage, Message, UserMessage } from "@/types";
+import { AssistantMessage, LLMMessageSet, Message, UserMessage } from "@/types";
 import { kv } from "@vercel/kv";
 import { OpenAIStream, StreamingTextResponse, nanoid } from "ai";
 import { NextResponse } from "next/server";
@@ -32,22 +32,34 @@ export async function GET(
     }
   }
 
-  const [_, queryUserMessage, queryAssistantMessage] = await getLLMMessageSet(
-    kv,
-    recipe.queryMessageSet
-  );
+  let recipeMessagesSet: LLMMessageSet | undefined;
+  if (recipe.messageSet) {
+    recipeMessagesSet = await getLLMMessageSet(kv, recipe.messageSet);
+  } else {
+    await pollWithExponentialBackoff(async () => {
+      const recipe = await getRecipe(kv, slug);
+      if (recipe.messageSet) {
+        recipeMessagesSet = await getLLMMessageSet(kv, recipe.messageSet);
+        return true;
+      }
+      return false;
+    });
+  }
+  assert(recipeMessagesSet, "expected recipeMessageSet");
+
+  const [_, recipeUserMesage, recipeAssistantMessage] = recipeMessagesSet;
+
   let recipeContent: string | undefined = undefined;
-  if (queryAssistantMessage.state === "done") {
-    recipeContent = queryUserMessage.content;
+  if (recipeAssistantMessage.state === "done") {
+    recipeContent = recipeAssistantMessage.content;
   } else {
     // content only exists if in "done" state
     await pollWithExponentialBackoff(async () => {
       // refetch the queryAssistantMessage from the source and check its state
       const message = (await getMessage(
         kv,
-        queryAssistantMessage.id
+        recipeAssistantMessage.id
       )) as AssistantMessage;
-      console.log({ message });
 
       if (message.state === "done") {
         recipeContent = message.content;
@@ -79,9 +91,7 @@ export async function GET(
     chatId: recipe.chatId,
     type: "modifications",
     role: "user",
-    // queryUserMessage should be the name anddescription
-    // queryAssistantMessage should be the recipe yaml
-    content: queryUserMessage.content + ": " + recipeContent,
+    content: recipeUserMesage.content + ": " + recipeContent,
   } satisfies UserMessage;
 
   const newMessages = [systemMessage, userMessage, assistantMessage] as const;

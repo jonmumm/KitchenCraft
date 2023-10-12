@@ -46,6 +46,10 @@ export async function POST(
     .parse(json);
   assert(userMessages.length === 1, "only single messages currently supported");
   const recipe = await getRecipe(kv, params.slug);
+  if (recipe.messageSet) {
+    // alreay unning
+    return "";
+  }
 
   const [_, queryUserMessage, queryAssistantMessage] = await getLLMMessageSet(
     kv,
@@ -101,7 +105,7 @@ export async function POST(
   );
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4",
+    model: "gpt-3.5-turbo",
     stream: true,
     messages,
   });
@@ -131,12 +135,12 @@ export async function POST(
         }
         // await kv.hset(`recipe:${slug}`, data);
       },
-      async onFinal(completion) {
-        console.log("FINAL!");
-        // await kv.hset(`message:${assistantMessageId}`, {
-        //   state: "done",
-        // });
-      },
+      // async onFinal(completion) {
+      //   console.log("FINAL!");
+      //   // await kv.hset(`message:${assistantMessageId}`, {
+      //   //   state: "done",
+      //   // });
+      // },
     });
 
     return new StreamingTextResponse(stream);

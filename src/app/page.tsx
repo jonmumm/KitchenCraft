@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Header } from "./header";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   return (
     <div className="max-w-2xl mx-auto">

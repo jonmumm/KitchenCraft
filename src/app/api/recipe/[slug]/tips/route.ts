@@ -1,7 +1,7 @@
 import { RECIPE_TIPS_SYSTEM_PROMPT } from "@/app/prompts";
 import { getLLMMessageSet, getMessage, getRecipe } from "@/lib/db";
 import { assert, pollWithExponentialBackoff } from "@/lib/utils";
-import { AssistantMessage, Message, UserMessage } from "@/types";
+import { AssistantMessage, LLMMessageSet, Message, UserMessage } from "@/types";
 import { kv } from "@vercel/kv";
 import { OpenAIStream, StreamingTextResponse, nanoid } from "ai";
 import { NextResponse } from "next/server";
@@ -33,22 +33,35 @@ export async function GET(
     }
   }
 
-  const [_, queryUserMessage, queryAssistantMessage] = await getLLMMessageSet(
-    kv,
-    recipe.queryMessageSet
-  );
+  let recipeMessagesSet: LLMMessageSet | undefined;
+  if (recipe.messageSet) {
+    recipeMessagesSet = await getLLMMessageSet(kv, recipe.messageSet);
+  } else {
+    await pollWithExponentialBackoff(async () => {
+      const recipe = await getRecipe(kv, slug);
+      if (recipe.messageSet) {
+        recipeMessagesSet = await getLLMMessageSet(kv, recipe.messageSet);
+        return true;
+      }
+      return false;
+    });
+  }
+  assert(recipeMessagesSet, "expected recipeMessageSet");
+
+  const [_, recipeUserMesage, recipeAssistantMessage] = recipeMessagesSet;
 
   let recipeContent: string | undefined = undefined;
-  if (queryAssistantMessage.state === "done") {
-    recipeContent = queryUserMessage.content;
+  if (recipeAssistantMessage.state === "done") {
+    recipeContent = recipeAssistantMessage.content;
   } else {
     // content only exists if in "done" state
     await pollWithExponentialBackoff(async () => {
       // refetch the queryAssistantMessage from the source and check its state
       const message = (await getMessage(
         kv,
-        queryAssistantMessage.id
+        recipeAssistantMessage.id
       )) as AssistantMessage;
+      console.log(message.id, message.state, message.content);
 
       if (message.state === "done") {
         recipeContent = message.content;
@@ -59,7 +72,7 @@ export async function GET(
   }
   assert(recipeContent, "expected recipe to exist on message");
 
-  assert(queryAssistantMessage.content, "expected recipe to exist on message");
+  assert(recipeAssistantMessage.content, "expected recipe to exist on message");
 
   const systemMessage = {
     id: nanoid(),
@@ -84,7 +97,7 @@ export async function GET(
     role: "user",
     // queryUserMessage should be the name anddescription
     // queryAssistantMessage should be the recipe yaml
-    content: queryUserMessage.content + ": " + queryAssistantMessage.content,
+    content: recipeUserMesage.content + ": " + recipeUserMesage.content,
   } satisfies UserMessage;
 
   const newMessages = [systemMessage, userMessage, assistantMessage] as const;
@@ -127,20 +140,6 @@ export async function GET(
           content: JSON.stringify(completion),
           state: "done",
         });
-
-        // todo save these modification suggestions in to the recipe...
-
-        // try {
-        //   const json = yaml.load(completion);
-        //   const data = RecipeViewerDataSchema.parse(json);
-        //   await kv.hset(`recipe:${slug}`, data);
-        //   await kv.zadd(`recipes:new`, {
-        //     score: Date.now(),
-        //     member: slug,
-        //   });
-        // } catch (ex) {
-        //   console.error("Error parsing yaml completion", ex);
-        // }
       },
     });
 

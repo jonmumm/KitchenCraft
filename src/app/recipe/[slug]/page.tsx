@@ -72,7 +72,7 @@ export default async function Page({ params }: Props) {
                 <TipsList slug={recipe.slug} />
               </TipsContent>
             </Card>
-            <Card className="mx-3">
+            {/* <Card className="mx-3">
               <form className="flex flex-col items-center">
                 <IdeasHeader />
                 <Separator />
@@ -80,7 +80,7 @@ export default async function Page({ params }: Props) {
                   <IdeasList slug={recipe.slug} />
                 </IdeasContent>
               </form>
-            </Card>
+            </Card> */}
           </div>
         </div>
       </Provider>
