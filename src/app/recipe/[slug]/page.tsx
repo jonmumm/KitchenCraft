@@ -62,7 +62,7 @@ export default async function Page({ params }: Props) {
                 </RemixContent>
               </form>
             </Card>
-            <Card className="mx-3">
+            {/* <Card className="mx-3">
               <div className="flex fex-row gap-2 items-center justify-between w-full p-4">
                 <Label className="font-semibold uppercase text-xs">Tips</Label>
                 <LightbulbIcon />
@@ -71,7 +71,7 @@ export default async function Page({ params }: Props) {
               <TipsContent>
                 <TipsList slug={recipe.slug} />
               </TipsContent>
-            </Card>
+            </Card> */}
             {/* <Card className="mx-3">
               <form className="flex flex-col items-center">
                 <IdeasHeader />
