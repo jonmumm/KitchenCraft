@@ -27,14 +27,6 @@ import {
 import { RecipeChatActor, RecipeChatContext } from "@/context/recipe-chat";
 import RecipeSuggestions from "./suggestions";
 
-export const Content = () => {
-  return (
-    <div className={`flex flex-col flex-end w-full p-4 pt-0`}>
-      <RecipeChat />
-    </div>
-  );
-};
-
 export function RecipeChat() {
   const actor = useContext(RecipeChatContext);
   const isInputting = useSelector(actor, (state) => {

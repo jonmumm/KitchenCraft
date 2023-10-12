@@ -1,7 +1,7 @@
+import { Header } from "../header";
 import { RecipeChat } from "./content";
 import Navigator from "./navigator";
 import Provider from "./provider";
-import { Header } from "../header";
 
 const getSessionId = (cookies: string) => {
   return "";
@@ -16,7 +16,6 @@ export default async function Page({
   const sessionId = await getSessionId("");
 
   const prompt = searchParams["prompt"];
-  console.log({ prompt });
 
   return (
     <Provider userId={userId} sessionId={sessionId}>
