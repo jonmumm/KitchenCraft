@@ -48,7 +48,7 @@ export async function POST(
   const recipe = await getRecipe(kv, params.slug);
   if (recipe.messageSet) {
     // alreay unning
-    return "";
+    return new Response("");
   }
 
   const [_, queryUserMessage, queryAssistantMessage] = await getLLMMessageSet(
