@@ -8,6 +8,45 @@ import {
   TECHNIQUES,
 } from "./constants";
 
+export const RecipeRequiredPropsSchema = z.object({
+  name: z.string(),
+  slug: z.string(),
+  description: z.string(),
+  fromSuggestionsKey: z.string(),
+});
+
+const UserIdSchema = z.string();
+
+export const SuggestionPredictionInputSchema = z.object({
+  prompt: z.string().min(1).max(100),
+});
+
+export const SuggestionPredictionOutputItemSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+});
+
+export const SuggestionPredictionOutputSchema = z.object({
+  suggestions: z.array(SuggestionPredictionOutputItemSchema),
+});
+
+export const SuggestionPredictionPartialOutputSchema =
+  SuggestionPredictionOutputSchema.deepPartial();
+
+export const SuggestionSchema = SuggestionPredictionOutputItemSchema.merge(
+  z.object({
+    id: z.string(),
+  })
+);
+export const SuggestionsSchema = z.array(SuggestionSchema);
+
+export const RecipePredictionInputSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  suggestionsPrompt: z.string(),
+  // suggestionsOutputYaml: z.string(),
+});
+
 export const SlugSchema = z
   .string()
   .trim()
@@ -22,6 +61,12 @@ export const SlugSchema = z
 export const MessageContentSchema = z.string();
 
 export const RoleSchema = z.enum(["system", "user", "assistant", "function"]);
+
+export const RunStatusSchema = z
+  .enum(["initializing", "starting", "started", "receiving", "done", "error"])
+  .nullable();
+
+// export const ChainSchema =
 
 // const MessageSchema = z.custom<Message>();
 const CreateMessageSchema = z.custom<CreateMessage>();
@@ -55,7 +100,7 @@ const AssistantStateSchema = z.enum(["running", "done", "error"]);
 export const UserMessageSchema = z.object({
   id: MessageIdSchema,
   content: MessageContentSchema,
-  chatId: ChatIdSchema,
+  // senderId: UserIdSchema,
   role: z.literal("user"),
   type: MessageTypeSchema,
 });
@@ -63,7 +108,6 @@ export const UserMessageSchema = z.object({
 export const SystemMessageSchema = z.object({
   id: MessageIdSchema,
   content: MessageContentSchema,
-  chatId: ChatIdSchema,
   role: z.literal("system"),
   type: MessageTypeSchema,
 });
@@ -71,7 +115,6 @@ export const SystemMessageSchema = z.object({
 export const AssistantMessageSchema = z.object({
   id: MessageIdSchema,
   content: MessageContentSchema.optional(),
-  chatId: ChatIdSchema,
   role: z.literal("assistant"),
   type: MessageTypeSchema,
   state: AssistantStateSchema,
@@ -88,6 +131,12 @@ export const LLMMessageSetSchema = z.tuple([
   UserMessageSchema,
   AssistantMessageSchema,
 ]);
+
+export const CraftSchema = z.object({
+  id: z.string(),
+  prompt: z.string(),
+  conjureMessageSet: LLMMessageSetSchema,
+});
 
 export const CreateRecipeInputSchema = z.object({
   chatId: ChatIdSchema,
@@ -223,36 +272,53 @@ const HowToStep = z.object({
   text: z.string(),
 });
 
-export const RecipePromptResultSchema = z.object({
-  prepTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
+const RecipePredictionDataSchema = z.object({
+  activeTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
   cookTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
   totalTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
-  keywords: z.string(),
-  recipeYield: z.string(),
-  recipeCategory: z.string(),
-  recipeCuisine: z.string(),
-  recipeIngredient: z.array(z.string()),
-  recipeInstructions: z.array(HowToStep),
+  yield: z.string(),
+  tags: z.array(z.string()),
+  ingredients: z.array(z.string()),
+  instructions: z.array(z.string()),
 });
 
-export const RecipeViewerDataSchema = RecipePromptResultSchema.deepPartial();
+export const RecipePredictionOutputSchema = z.object({
+  recipe: RecipePredictionDataSchema,
+});
+
+export const RecipePredictionPartialOutputSchema =
+  RecipePredictionOutputSchema.deepPartial();
 
 // Schema for Recipe
-export const RecipeSchema = z
-  .object({
-    slug: SlugSchema,
-    name: z.string().min(1).max(140),
-    description: z.string().min(1).max(140),
-    chatId: z.string(),
-    queryMessageSet: LLMMessageSetIdSchema,
-    modificationsMessageSet: LLMMessageSetIdSchema.optional(),
-    tipsMessageSet: LLMMessageSetIdSchema.optional(),
-    messageSet: LLMMessageSetIdSchema.optional(),
+// export const RecipeSchema = z
+//   .object({
+//     slug: SlugSchema,
+//     name: z.string().min(1).max(140),
+//     description: z.string().min(1).max(140),
+//     createdAt: z.string(),
+//     chatId: z.string(),
+//     status: z.enum(["initialized", "crafting", "done"]).default("initialized"),
+//     queryMessageSet: LLMMessageSetIdSchema,
+//     modificationsMessageSet: LLMMessageSetIdSchema.optional(),
+//     tipsMessageSet: LLMMessageSetIdSchema.optional(),
+//     messageSet: LLMMessageSetIdSchema.optional(),
+//   })
+//   .merge(RecipePredictionDataSchema);
+export const RecipeSchema = RecipeRequiredPropsSchema.merge(
+  RecipePredictionOutputSchema.shape.recipe.partial()
+).merge(
+  z.object({
+    runStatus: RunStatusSchema.optional(),
+    createdAt: z.string().optional(),
   })
-  .merge(RecipeViewerDataSchema);
+);
 
 export const RecipeChatInputSchema = z.object({
   chatId: z.string(),
   recipe: RecipeSchema.optional(),
   recipeMessages: z.array(MessageSchema),
 });
+
+export const PromptSchema = z.string().nonempty().min(2).max(500);
+
+export type RecipeRequiredProps = z.infer<typeof RecipeRequiredPropsSchema>;

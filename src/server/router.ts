@@ -37,6 +37,7 @@ export const appRouter = router({
         description,
         chatId,
         queryMessageSet: messageIds,
+        createdAt: new Date().toISOString(),
       } satisfies Recipe);
 
       await multi.exec();

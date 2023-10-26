@@ -1,7 +1,7 @@
 // ./app/api/chat/route.ts
 import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import { assert } from "@/lib/utils";
-import { RecipePromptResultSchema, RecipeViewerDataSchema } from "@/schema";
+import { RecipePredictionOutputSchema, RecipePredictionPartialOutputSchema } from "@/schema";
 import { AssistantMessage, Message, UserMessage } from "@/types";
 import * as yaml from "js-yaml";
 import { kv } from "@vercel/kv";
@@ -124,12 +124,16 @@ export async function POST(
 
         try {
           const json = yaml.load(completion);
-          const data = RecipeViewerDataSchema.parse(json);
+          const data = RecipePredictionPartialOutputSchema.parse(json);
           await kv.hset(`recipe:${slug}`, data);
           await kv.zadd(`recipes:new`, {
             score: Date.now(),
             member: slug,
           });
+
+          if (data.keywords) {
+            await updateKeywordCounts(data.keywords);
+          }
         } catch (ex) {
           console.error("Error parsing yaml completion", ex);
         }
@@ -154,5 +158,18 @@ export async function POST(
     // } else {
     //   throw error;
     // }
+  }
+}
+
+// updateKeywordCounts Function: Receives a string of keywords
+// (e.g., "keyword1, keyword2, keyword3") and splits it into an
+// array, removes any leading/trailing whitespace from each keyword
+// then increments the Redis counter for each keyword in the current
+// day's bucket.
+async function updateKeywordCounts(keywordsString: string) {
+  const keywords = keywordsString.split(",").map((keyword) => keyword.trim());
+  const currentBucket = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+  for (const keyword of keywords) {
+    await kv.zincrby(`trending_keywords:${currentBucket}`, 1, keyword);
   }
 }

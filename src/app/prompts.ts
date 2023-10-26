@@ -13,20 +13,17 @@ export const RECIPE_MODIFICATIONS_SYSTEM_PROMPT = `
       Do not include list numbers or bullet points on each line.
 `;
 
-export const RECIPE_CREATE_SYSTEM_PROMPT = ({
-  queryUserMessageContent,
-  queryAssistantMessageContent,
-}: {
-  queryUserMessageContent: string;
-  queryAssistantMessageContent: string;
-}) => `
-    The original query to generate recipes was: ${queryUserMessageContent}
-    Based on this query, a list of recipe options was generated: ${queryAssistantMessageContent}
+export const RECIPE_REMIX_SYTEM_PROMPT = `
+You will be given a "base recipe" and then description of how that base recipe should be modified.
+Your task is to apply the changes to the base recipe to create a new recipe.
 
-    The user will provide the name and description they selected. Please generate a full recipe for this selection following the specified format.
+---
 
-    Format: Provide the recipe information in YAML format. Below is an example order of the keys you should return in the object.
+Format: Provide the recipe information in YAML format. Below is an example order of the keys you should return in the object.
 
+    modifications: "one sentence description of the modifications agains the base recipe"
+    name: "name of the dish"
+    description: "12 word or less blurb"
     prepTime: "ISO 8601 duration format (e.g., PT15M for 15 minutes)"
     cookTime: "ISO 8601 duration format (e.g., PT1H for 1 hour)"
     totalTime: "ISO 8601 duration format (e.g., PT1H15M for 1 hour 15 minutes)"
@@ -47,6 +44,48 @@ export const RECIPE_CREATE_SYSTEM_PROMPT = ({
     IMPORTANT: Adhere strictly to the YAML syntax, ensuring that:
     - Indentations are consistent and use spaces, not tabs.
     - Sequences in mappings (like each instruction step) are aligned with the dash ('-').
+
+Example:
+    - "@type": "HowToStep"
+      text: "An example instruction step"
+
+This example indicates that the key ('text') MUST be indented to the same level as its parent map key ('@type') to ensure valid YAML format.
+`;
+
+export const RECIPE_CREATE_SYSTEM_PROMPT = ({
+  queryUserMessageContent,
+  queryAssistantMessageContent,
+}: {
+  queryUserMessageContent: string;
+  queryAssistantMessageContent: string;
+}) => `
+The original query to generate recipes was: ${queryUserMessageContent}
+Based on this query, a list of recipe options was generated: ${queryAssistantMessageContent}
+
+The user will provide the name and description they selected. Please generate a full recipe for this selection following the specified format.
+
+Format: Provide the recipe information in YAML format. Below is an example order of the keys you should return in the object.
+
+prepTime: "ISO 8601 duration format (e.g., PT15M for 15 minutes)"
+cookTime: "ISO 8601 duration format (e.g., PT1H for 1 hour)"
+totalTime: "ISO 8601 duration format (e.g., PT1H15M for 1 hour 15 minutes)"
+keywords: "Keywords related to the recipe, comma separated"
+recipeYield: "Yield of the recipe (e.g., '1 loaf', '4 servings')"
+recipeCategory: "The type of meal or course (e.g., dinner, dessert)"
+recipeCuisine: "The cuisine of the recipe (e.g., Italian, Mexican)"
+recipeIngredient: 
+- "Quantity and ingredient (e.g., '3 or 4 ripe bananas, smashed')"
+- "Another ingredient"
+- "And another ingredient"
+recipeInstructions:
+- "@type": "HowToStep"
+  text: "A step for making the item"
+- "@type": "HowToStep"
+  text: "Another step for making the item"
+
+IMPORTANT: Adhere strictly to the YAML syntax, ensuring that:
+- Indentations are consistent and use spaces, not tabs.
+- Sequences in mappings (like each instruction step) are aligned with the dash ('-').
 
 Example:
     - "@type": "HowToStep"

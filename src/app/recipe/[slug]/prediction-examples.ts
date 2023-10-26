@@ -1,0 +1,114 @@
+const OUTPUT_1 = `\`\`\`yaml
+recipe:
+  yield: "12 pieces"
+  activeTime: "PT20M"
+  cookTime: "PT25M"
+  totalTime: "PT45M"
+  tags:
+    - "Dessert"
+    - "Chocolate"
+    - "Baking"
+  ingredients:
+    - "200g dark chocolate, roughly chopped"
+    - "175g unsalted butter"
+    - "3 large eggs"
+    - "200g granulated sugar"
+    - "1 tsp vanilla extract"
+    - "100g all-purpose flour"
+    - "25g cocoa powder"
+    - "1/2 tsp salt"
+  instructions:
+    - "Preheat oven to 180°C (350°F). Grease and line a square baking tin."
+    - "Melt the chocolate and butter together in a heatproof bowl over simmering water."
+    - "In another bowl, whisk together the eggs, sugar, and vanilla extract."
+    - "Fold the melted chocolate mixture into the egg mixture."
+    - "Sift in the flour, cocoa powder, and salt. Fold until just combined."
+    - "Pour the batter into the prepared tin and spread evenly."
+    - "Bake for 20-25 minutes or until a toothpick comes out with a few crumbs. Let it cool before slicing."
+\`\`\``;
+
+const OUTPUT_2 = `\`\`\`yaml
+recipe:
+  yield: "4 servings"
+  activeTime: "PT20M"
+  cookTime: "PT40M"
+  totalTime: "PT1H"
+  tags:
+    - "Main Course"
+    - "Indian"
+    - "Spicy"
+  ingredients:
+    - "500g boneless chicken, cubed"
+    - "150g plain yogurt"
+    - "2 tbsp lemon juice"
+    - "2 tbsp vegetable oil"
+    - "1 large onion, finely chopped"
+    - "3 garlic cloves, minced"
+    - "1 tbsp ginger paste"
+    - "2 tsp garam masala"
+    - "1 tsp turmeric powder"
+    - "1 tsp red chili powder"
+    - "200g canned tomatoes, pureed"
+    - "100ml heavy cream"
+    - "Salt to taste"
+    - "Fresh coriander leaves for garnish"
+  instructions:
+    - "In a bowl, marinate the chicken with yogurt, lemon juice, and half of the garam masala. Let it sit for at least 2 hours."
+    - "Heat oil in a pan and fry the chicken pieces until golden brown. Remove and set aside."
+    - "In the same pan, sauté onions until translucent. Add ginger and garlic, and fry for a couple of minutes."
+    - "Add the spices (turmeric, red chili powder, remaining garam masala) and sauté for a minute."
+    - "Pour in the tomato puree, salt, and let it simmer for 10 minutes."
+    - "Add the fried chicken pieces and cream. Cook for another 10-15 minutes until the chicken is tender."
+    - "Garnish with fresh coriander leaves before serving."
+\`\`\``;
+
+const OUTPUT_3 = `\`\`\`yaml
+recipe:
+  yield: "6 arepas"
+  activeTime: "PT10M"
+  cookTime: "PT20M"
+  totalTime: "PT30M"
+  tags:
+    - "Breakfast"
+    - "Colombian"
+    - "Vegetarian"
+  ingredients:
+    - "2 cups pre-cooked white cornmeal (masarepa)"
+    - "2 cups warm water"
+    - "1 tsp salt"
+    - "100g mozzarella cheese (optional)"
+    - "Butter or oil for frying"
+  instructions:
+    - "In a large bowl, combine cornmeal, salt, and warm water. Mix until a dough forms."
+    - "Divide the dough into 6 equal parts and shape each part into a ball. Flatten the balls to form discs about 1/2 inch thick."
+    - "If you're adding cheese, place a portion of the cheese in the center of each disc, fold the dough over, and reshape into a disc, ensuring the cheese is sealed inside."
+    - "Heat butter or oil in a skillet over medium heat. Cook the arepas for 7-10 minutes on each side or until they're golden brown."
+    - "Serve hot with additional toppings if desired."
+\`\`\``;
+
+export const EXAMPLE_1 = {
+  input: `\`\`\`yaml
+  recipe:
+    name: Chocolate Brownies
+    description: A creamy delight with milk, egg yolks, and vanilla, perfect for a chilled dessert treat.
+  \`\`\``,
+  output: OUTPUT_1,
+};
+
+export const EXAMPLE_2 = {
+  input: `\`\`\`yaml
+  recipe:
+    name: Chicken Tikka Masala
+    description: A flavorful Indian curry dish with marinated chicken pieces cooked in a creamy tomato sauce.
+  \`\`\``,
+  output: OUTPUT_2,
+};
+
+export const EXAMPLE_3 = {
+  input: `\`\`\`yaml
+  recipe:
+    name: Arepas
+    description: A traditional Colombian breakfast made from maize dough, often filled with cheese or other ingredients.
+  \`\`\``,
+  output: OUTPUT_3,
+};

@@ -1,18 +1,18 @@
 // ./app/api/chat/route.ts
-import { RECIPE_SUGGESTIONS_SYSTEM_PROMPT } from "@/app/prompts";
-import { assert } from "@/lib/utils";
-import { MessageContentSchema, MessageSchema, RoleSchema } from "@/schema";
-import {
-  AssistantMessage,
-  LLMMessageSet,
-  Message,
-  SystemMessage,
-  UserMessage,
-} from "@/types";
-import { kv } from "@vercel/kv";
-import { OpenAIStream, StreamingTextResponse, nanoid } from "ai";
+import { SlugSchema } from "@/schema";
+import { LangChainStream } from "ai";
+// import "event-source-polyfill";
+import EventSource from "@sanity/eventsource";
+import { CallbackManager } from "langchain/callbacks";
+import { Ollama } from "langchain/llms/ollama";
+import { PromptTemplate } from "langchain/prompts";
+import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import Replicate from "replicate";
 import { z } from "zod";
+import { YamlStructuredOutputParser } from "./parser";
+
+const replicate = new Replicate();
 
 // Create an OpenAI API client (that's edge friendly!)
 const openai = new OpenAI({
@@ -22,87 +22,109 @@ const openai = new OpenAI({
 // IMPORTANT! Set the runtime to edge
 export const runtime = "edge";
 
-export async function POST(
+const SearchParamsSchema = z.object({
+  prompt: z.string(),
+  remixedFrom: SlugSchema.optional(),
+});
+
+export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  // todo add rate limit check to make sure we dont already have a query in flight...
-
-  const json = await req.json();
-  const { messages: userMessages } = z
-    .object({
-      messages: z.array(
-        z.object({
-          role: z.literal("user"),
-          content: z.string().nonempty(),
-        })
-      ),
-    })
-    .parse(json);
-  assert(userMessages.length === 1, "only single messages currently supported");
-
-  const chatId = params.id; // Extracting chatId from the dynamic route parameter
-
-  const systemMessage = {
-    id: nanoid(),
-    role: "system",
-    type: "query",
-    chatId,
-    content: RECIPE_SUGGESTIONS_SYSTEM_PROMPT,
-  } satisfies SystemMessage;
-
-  const assistantMessage = {
-    id: nanoid(),
-    chatId,
-    role: "assistant" as const,
-    type: "query",
-    state: "running",
-  } satisfies AssistantMessage;
-
-  const userMessage = {
-    id: nanoid(),
-    chatId,
-    type: "query",
-    ...userMessages[0],
-  } satisfies UserMessage;
-
-  // Store the messages from the user
-  const newMessages: LLMMessageSet = [
-    systemMessage,
-    userMessage,
-    assistantMessage,
-  ];
-  const assistantMessageId = assistantMessage.id;
-
-  const multi = kv.multi();
-  newMessages.map(async (message, index) => {
-    const time = Date.now() + index / 1000;
-    multi.hset(`message:${message.id}`, message);
-    return multi.zadd(`chat:${message.chatId}:messages`, {
-      score: time,
-      member: message.id,
-    });
-  });
-  await multi.exec();
-
-  const messages = [systemMessage, ...userMessages].map(
-    ({ role, content }) => ({ role, content })
+  const { prompt } = SearchParamsSchema.parse(
+    Object.fromEntries(new URL(req.url).searchParams)
   );
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4",
-    stream: true,
-    messages,
+  const { handlers } = LangChainStream({
+    onStart() {
+      console.log("start");
+    },
+    onCompletion(token) {
+      console.log("complettion", { token });
+    },
+    onToken(token) {
+      console.log({ token });
+    },
   });
+  const parser = new YamlStructuredOutputParser(ResultSchema, examples);
 
-  const stream = OpenAIStream(response, {
-    async onCompletion(completion) {
-      await kv.hset(`message:${assistantMessageId}`, {
-        content: completion,
-        state: "done",
-      });
+  const chatPrompt = PromptTemplate.fromTemplate(`
+You will be provided with a prompt that may include ingredients, dish names, cooking techniques, or other things related to a recipe
+for Your task is to return a list of up to 6 recipe names that are related to the prompt.
+Come up with six recipes that are sufficiently different from one another in technique or ingredients but within the constraints of the input.
+
+Format: {format_instructions}
+
+Input: {prompt}`);
+
+  const prediction = await replicate.predictions.create({
+    stream: true,
+    version: "6527b83e01e41412db37de5110a8670e3701ee95872697481a355e05ce12af0e",
+    input: {
+      prompt: await chatPrompt.format({
+        prompt,
+        format_instructions: parser.getFormatInstructions(),
+      }),
     },
   });
 
-  return new StreamingTextResponse(stream);
+  if (prediction && prediction.urls && prediction.urls.stream) {
+    const Authorization = `Bearer ${process.env.REPLICATE_API_TOKEN}`;
+    const source = new EventSource(prediction.urls.stream, {
+      withCredentials: false,
+      headers: {
+        Authorization,
+      },
+    });
+
+    const charArray: string[] = [];
+
+    source.addEventListener("open", (e) => {
+      console.log("open");
+    });
+    source.addEventListener("output", (e) => {
+      for (const char of e.data) {
+        charArray.push(char);
+      }
+      // console.log(charArray.join(""));
+    });
+
+    source.addEventListener("error", (e) => {
+      console.error("error", e);
+    });
+
+    source.addEventListener("done", (e) => {
+      console.log("DONE!", charArray.join(""));
+      source.close();
+    });
+  }
+
+  return NextResponse.json({ success: true });
 }
+
+const examples = [
+  {
+    name: "Zesty Lemon Herb Chicken",
+    description:
+      "Juicy chicken marinated in lemon, garlic, and fresh herbs. Perfect grilled.",
+  },
+  {
+    name: "Sweet Potato Coconut Curry",
+    description:
+      "Creamy coconut milk, aromatic spices, and roasted sweet potatoes. Vegan delight.",
+  },
+  {
+    name: "Chia Berry Parfaif",
+    description:
+      "Layered fresh berries, yogurt, and chia seed pudding. Healthy breakfast treat.",
+  },
+];
+
+const ResultSchema = z.array(
+  z.object({
+    name: z.string().describe("name of the recipe"),
+    description: z
+      .string()
+      .describe("a 12 word or less blurb describing the recipe"),
+  })
+);

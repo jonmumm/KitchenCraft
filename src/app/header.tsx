@@ -9,7 +9,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { ArrowBigLeftIcon, GripVerticalIcon } from "lucide-react";
+import { ArrowBigLeftIcon, AxeIcon, GripVerticalIcon } from "lucide-react";
 import Link from "next/link";
 import {
   createContext,
@@ -74,7 +74,7 @@ export type HeaderActor = ActorRefFrom<HeaderMachine>;
 
 export const HeaderContext = createContext({} as HeaderActor);
 
-export function Header() {
+export function Header(props: { hidden?: boolean }) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const headerActor = useContext(HeaderContext);
   const isBackVisible = useSelector(headerActor, (state) =>
@@ -93,8 +93,12 @@ export function Header() {
   }, [send]);
 
   return (
-    <div className="w-full flex items-start justify-between p-4 gap-4 hidden-print">
-      <div>
+    <div
+      className={`w-full flex items-start justify-between p-4 gap-4 hidden-print ${
+        props.hidden ? "-translate-y-20" : ""
+      }`}
+    >
+      {/* <div>
         <Button
           onClick={handlePressBack}
           className={!isBackVisible ? "invisible" : ""}
@@ -102,14 +106,7 @@ export function Header() {
         >
           <ArrowBigLeftIcon />
         </Button>
-      </div>
-
-      <div className="flex-1 flex justify-center">
-        <Link href="/">
-          <AnimatedLogo />
-        </Link>
-      </div>
-
+      </div> */}
       <div>
         <Popover
           open={isPopoverOpen}
@@ -123,8 +120,10 @@ export function Header() {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 flex flex-col gap-4 p-3">
-            <Link href="/new">
-              <Button className="w-full">🧪 New</Button>
+            <Link href="/craft">
+              <Button size="lg" className="w-full">
+                New Craft
+              </Button>
             </Link>
             <Separator />
             <div className="flex flex-row gap-1 justify-between">
@@ -143,6 +142,20 @@ export function Header() {
             {/* <RecentRecipes /> */}
           </PopoverContent>
         </Popover>
+      </div>
+
+      <div className="flex-1 flex justify-center">
+        <Link href="/">
+          <AnimatedLogo />
+        </Link>
+      </div>
+
+      <div>
+        <Link href="/craft">
+          <Button variant="outline">
+            <AxeIcon />
+          </Button>
+        </Link>
       </div>
     </div>
   );

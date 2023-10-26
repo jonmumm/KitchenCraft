@@ -3,7 +3,7 @@
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { assert } from "@/lib/utils";
-import { RecipeViewerDataSchema } from "@/schema";
+import { RecipePredictionPartialOutputSchema } from "@/schema";
 import { isAssistantMessage, isUserMessage } from "@/type-utils";
 import { Message, RecipeViewerData } from "@/types";
 import { useStore } from "@nanostores/react";
@@ -79,7 +79,7 @@ export default function RecipeCard() {
   if (content && content !== "") {
     try {
       const json = yaml.load(content);
-      data = RecipeViewerDataSchema.parse(json);
+      data = RecipePredictionPartialOutputSchema.parse(json);
     } catch (ex) {
       console.warn(ex);
       // todo log metrics here
@@ -384,7 +384,7 @@ function RecipeContentParser() {
     if (content && content !== "") {
       try {
         const json = yaml.load(content);
-        const data = RecipeViewerDataSchema.parse(json);
+        const data = RecipePredictionPartialOutputSchema.parse(json);
         store.set({
           content,
           ...data,

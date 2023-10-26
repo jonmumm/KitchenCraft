@@ -21,7 +21,9 @@ import { HeaderContext, createHeaderMachine } from "./header";
 export function ApplicationProvider(props: { children: ReactNode }) {
   const store = map<any>({}); // todo define global types here
 
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    new QueryClient({ defaultOptions: { queries: { staleTime: 5000 } } })
+  );
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [

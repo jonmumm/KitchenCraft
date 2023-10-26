@@ -22,9 +22,14 @@ import {
   LLMMessageSetSchema,
   SystemMessageSchema,
   LLMMessageSetIdSchema,
-  RecipePromptResultSchema,
-  RecipeViewerDataSchema,
+  RecipePredictionOutputSchema,
+  RecipePredictionPartialOutputSchema,
   SlugSchema,
+  SuggestionPredictionInputSchema,
+  SuggestionPredictionOutputSchema,
+  RecipePredictionInputSchema,
+  SuggestionSchema,
+  SuggestionPredictionPartialOutputSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -59,7 +64,21 @@ export type SystemMessage = z.infer<typeof SystemMessageSchema>;
 
 export type LLMMessageSetId = z.infer<typeof LLMMessageSetIdSchema>;
 
-export type RecipePromptResult = z.infer<typeof RecipePromptResultSchema>;
-export type RecipeViewerData = z.infer<typeof RecipeViewerDataSchema>;
+export type RecipePromptResult = z.infer<typeof RecipePredictionOutputSchema>;
+export type RecipeViewerData = z.infer<typeof RecipePredictionPartialOutputSchema>;
 
 export type RecipeSlug = z.infer<typeof SlugSchema>;
+export type SuggestionPredictionInput = z.infer<
+  typeof SuggestionPredictionInputSchema
+>;
+export type SuggestionPredictionOutput = z.infer<
+  typeof SuggestionPredictionOutputSchema
+>;
+export type SuggestionPredictionPartialOutput = z.infer<
+  typeof SuggestionPredictionPartialOutputSchema
+>;
+export type RecipePredictionInput = z.infer<typeof RecipePredictionInputSchema>;
+export type RecipePredictionOutput = z.infer<typeof RecipePredictionOutputSchema>;
+export type RecipePredictionPartialOutput = z.infer<typeof RecipePredictionPartialOutputSchema>;
+
+export type Suggestion = z.infer<typeof SuggestionSchema>;
