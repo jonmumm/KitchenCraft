@@ -31,6 +31,8 @@ import SuggestionsGenerator from "./suggestions-generator";
 
 export const dynamic = "force-dynamic";
 
+export const maxDuration = 300;
+
 const PartialSuggestionSchema = SuggestionSchema.partial();
 
 type StoreProps = {
