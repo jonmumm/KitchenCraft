@@ -44,6 +44,9 @@ import { UpvoteButton } from "./upvote-button";
 import { AddTagButton } from "./add-tag-button";
 import { revalidatePath } from "next/cache";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
+
 type Props = {
   params: { slug: string };
 };
