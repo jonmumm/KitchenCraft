@@ -17,7 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getLLMMessageSet, getRecipe } from "@/lib/db";
 import getQueryClient from "@/lib/getQueryClient";
 import { SlugSchema } from "@/schema";
-import { dehydrate } from "@tanstack/react-query";
 import { kv } from "@vercel/kv";
 import { nanoid } from "ai";
 import { ChevronRightIcon, ShuffleIcon } from "lucide-react";
@@ -161,55 +160,35 @@ export default async function Page({
   );
 }
 
-async function ConjuringItems(props: { input: ConjureCraftInput }) {}
+// async function RemixResults(props: { srcSlug: string; prompt: string }) {
+//   const recipe = await getRecipe(kv, props.srcSlug);
+//   // await new Promise((resolve) => setTimeout(resolve, 3000));
 
-export async function RecipeName(props: { slug: string }) {
-  const recipe = await getRecipe(kv, props.slug);
+//   // If the recipe isnt there yet, just bail... but shouldnt ever happen
+//   if (!recipe.messageSet) {
+//     console.warn("unexpected recipe.messageSet not found in RemixResults");
+//     return null;
+//   }
 
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+//   const [_, recipeUserMessage, recipeAssistantMessage] = await getLLMMessageSet(
+//     kv,
+//     recipe.messageSet
+//   );
+//   if (!recipeAssistantMessage.content) {
+//     return null;
+//   }
 
-  return <>{recipe.name}</>;
-}
+//   // if we are already running this query, bail...
 
-function RecipeNameLoader() {
-  return (
-    <div className="flex flex-row gap-1">
-      <Skeleton className="w-8 h-4" />
-      <Skeleton className="w-20 h-4" />
-      <Skeleton className="w-16 h-4" />
-    </div>
-  );
-}
+//   // await new Promise((resolve) => setTimeout(resolve, 3000));
+//   return (
+//     <CommandGroup heading="Remix">
+//       <CommandItem>{recipeAssistantMessage.content}</CommandItem>
+//     </CommandGroup>
+//   );
+// }
 
-export async function RemixResults(props: { srcSlug: string; prompt: string }) {
-  const recipe = await getRecipe(kv, props.srcSlug);
-  // await new Promise((resolve) => setTimeout(resolve, 3000));
-
-  // If the recipe isnt there yet, just bail... but shouldnt ever happen
-  if (!recipe.messageSet) {
-    console.warn("unexpected recipe.messageSet not found in RemixResults");
-    return null;
-  }
-
-  const [_, recipeUserMessage, recipeAssistantMessage] = await getLLMMessageSet(
-    kv,
-    recipe.messageSet
-  );
-  if (!recipeAssistantMessage.content) {
-    return null;
-  }
-
-  // if we are already running this query, bail...
-
-  // await new Promise((resolve) => setTimeout(resolve, 3000));
-  return (
-    <CommandGroup heading="Remix">
-      <CommandItem>{recipeAssistantMessage.content}</CommandItem>
-    </CommandGroup>
-  );
-}
-
-export function RemixResultsLoader() {
+function RemixResultsLoader() {
   return (
     <CommandGroup heading="Remix">
       <CommandItem>
@@ -260,7 +239,7 @@ const ConjureResultsChat = async ({ chainId }: { chainId: string }) => {
       </Suspense>
       {items.map((item, index) => {
         return (
-          <Suspense fallback={<SuggestionLoading />}>
+          <Suspense fallback={<SuggestionLoading />} key={index}>
             <Suggestion chainId={chainId} index={index} key={item} />
           </Suspense>
         );

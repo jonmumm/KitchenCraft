@@ -290,7 +290,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export async function PrefillGroup(props: {
+async function PrefillGroup(props: {
   name: string;
   slug: string;
   children: ReactNode;
@@ -312,7 +312,7 @@ export async function PrefillGroup(props: {
     </DropdownMenu>
   );
 }
-export async function PrefillGroupItem(props: { children: ReactNode }) {
+async function PrefillGroupItem(props: { children: ReactNode }) {
   return <>{props.children}</>;
 
   // return <input type="hidden" name="prompt" value={item} />

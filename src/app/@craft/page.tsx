@@ -9,7 +9,6 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { nanoid } from "ai";
 import { useEffect, useState } from "react";
 
 export default function Page() {
@@ -32,7 +31,7 @@ export default function Page() {
     <CommandDialog
       open={open}
       onOpenChange={setOpen}
-      label="Global Command Menu"
+      // label="Global Command Menu"
     >
       <CommandInput />
       <CommandList>

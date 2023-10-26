@@ -1,5 +1,4 @@
 import type { z } from "zod";
-import { trpc } from "./app/_trpc/client";
 import ingredients from "./data/ingredients.json";
 import {
   AppEventSchema,
@@ -47,8 +46,6 @@ export type AssistantMessage = z.infer<typeof AssistantMessageSchema>;
 
 export type RecipeAttributes = z.infer<typeof RecipeAttributesSchema>;
 export type RecipeAttribute = z.infer<typeof RecipeAttributeSchema>;
-
-export type AppClient = ReturnType<typeof trpc.useContext>["client"];
 
 export type CreateMessageInput = z.infer<typeof CreateMessageInputSchema>;
 export type CreateRecipeInput = z.infer<typeof CreateRecipeInputSchema>;

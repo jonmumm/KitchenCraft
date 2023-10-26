@@ -34,7 +34,7 @@ export const ConjureAction = ({
             </div>
             <span className="flex-1">
               <span className="font-semibold">Conjure (6)</span> recipes for{" "}
-              <span className="italic">'{search}'</span>
+              <span className="italic">{search}</span>
             </span>
             <ChevronRightIcon />
           </Button>

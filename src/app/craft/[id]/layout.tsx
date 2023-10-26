@@ -1,14 +1,6 @@
-import { Header } from "@/app/header";
 import { ReactNode } from "react";
 
-export default async function Layout({
-  children,
-  searchParams,
-}: {
-  children: ReactNode;
-  searchParams: Record<string, string>;
-}) {
-  console.log("layout", { searchParams });
+export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       {/* <Header /> */}
