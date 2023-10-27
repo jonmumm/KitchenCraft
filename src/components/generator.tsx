@@ -1,8 +1,9 @@
-import { getErrorMessage } from "@/lib/error";
 import { sanitizeOutput } from "@/lib/llm";
 import { partialUtil } from "@/lib/partial";
 import jsYaml from "js-yaml";
 import { z } from "zod";
+import { YamlFixer } from "./yaml-fixer";
+import { getErrorMessage } from "@/lib/error";
 
 export default async function Generator<
   TOutput extends z.ZodRawShape,
@@ -38,8 +39,6 @@ export default async function Generator<
       const outputParse = partialSchema.safeParse(outputYaml);
       if (outputParse.success) {
         onProgress && onProgress(outputParse.data as TPartialOutput);
-        // } else {
-        //   console.warn("failed to parse partial schema from outputYaml");
       }
     } catch (ex) {
       // not valid yaml, do nothing
@@ -49,19 +48,37 @@ export default async function Generator<
   const outputRaw = charArray.join("");
   const outputYaml = sanitizeOutput(outputRaw);
 
-  let outputJSON;
-  try {
-    outputJSON = jsYaml.load(outputYaml);
-  } catch (error) {
-    onError && onError(new Error(getErrorMessage(error)), outputRaw);
-    return <></>;
-  }
+  const callbackWithOutput = (outputJSON: any) => {
+    const outputParse = schema.safeParse(outputJSON);
+    if (outputParse.success) {
+      onComplete && onComplete(outputParse.data);
+    } else {
+      onError && onError(outputParse.error, outputRaw);
+    }
+  };
 
-  const outputParse = schema.safeParse(outputJSON);
-  if (outputParse.success) {
-    onComplete && onComplete(outputParse.data);
-  } else {
-    onError && onError(outputParse.error, outputRaw);
+  try {
+    const outputJSON = jsYaml.load(outputYaml);
+    callbackWithOutput(outputJSON);
+  } catch (error) {
+    // If we fail to parse here...
+    // we should send it to the LLM fixing pm
+    // onError && onError(new Error(getErrorMessage(error)), outputRaw);
+    return (
+      <YamlFixer
+        onError={(error, outputRaw) => {
+          onError && onError(error, outputRaw);
+        }}
+        onComplete={(outputYaml) => {
+          const outputJSON = jsYaml.load(outputYaml);
+          callbackWithOutput(outputJSON);
+        }}
+        input={{
+          error: getErrorMessage(error),
+          badYaml: outputYaml,
+        }}
+      />
+    );
   }
 
   return <></>;
