@@ -47,7 +47,10 @@ export function CraftInput({ defaultValue }: { defaultValue?: string }) {
         params.delete("prompt");
       }
 
-      if (params.size > 0) {
+      // params.size is failing in safari for some reason
+      const numParams = Array.from(params.keys()).length;
+
+      if (numParams > 0) {
         router.replace(`/craft?${params.toString()}`);
       } else {
         router.replace(`/craft`);
