@@ -13,7 +13,7 @@ export const ConjureAction = ({}: {}) => {
 
   const handlePress = useCallback(() => {
     const url = `/craft/suggestions${window.location.search}`;
-    router.replace(url);
+    router.push(url);
   }, [router]);
 
   return (
