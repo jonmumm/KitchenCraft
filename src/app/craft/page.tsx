@@ -150,7 +150,7 @@ export default async function Page({
                 )} */}
                 {/* <RecentPrompts /> */}
                 {/* {resultType === "suggestions" && <RecipeSuggestions />} */}
-                <ConjureAction action={conjureAction} />
+                <ConjureAction />
               </CommandList>
             </CardContent>
           </Command>

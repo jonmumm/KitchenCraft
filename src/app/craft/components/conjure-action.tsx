@@ -4,18 +4,17 @@ import { Button } from "@/components/ui/button";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
 import { useCommandState } from "cmdk";
 import { ChevronRightIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
-export const ConjureAction = ({
-  action,
-}: {
-  action: (prompt: string) => Promise<void>;
-}) => {
+export const ConjureAction = ({}: {}) => {
   const search = useCommandState((state) => state.search);
+  const router = useRouter();
 
   const handlePress = useCallback(() => {
-    action(search);
-  }, [search, action]);
+    const url = `/craft/suggestions${window.location.search}`;
+    router.replace(url);
+  }, [router]);
 
   return (
     search !== "" && (
