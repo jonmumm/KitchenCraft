@@ -37,12 +37,11 @@ const suggestionPrompts: string[] = [
 
 test.each(suggestionPrompts)("SuggestionsGenerator: %s", async (prompt) => {
   const testPromise = new Promise<void>(async (resolve, reject) => {
-    const input = { prompt };
-
     const jsx = await SuggestionsGenerator({
-      input,
-      onStart() {
-        console.log("started", input);
+      input: {
+        prompt,
+        tags: "",
+        ingredients: "",
       },
       onError(error, outputRaw) {
         console.error("failed with error", error);

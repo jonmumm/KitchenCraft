@@ -24,7 +24,6 @@ import { nanoid } from "ai";
 import { ChevronRightIcon, LoaderIcon } from "lucide-react";
 import { MapStore, map } from "nanostores";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ReactNode, Suspense } from "react";
 import { z } from "zod";
 import SuggestionsGenerator from "./suggestions-generator";
@@ -170,7 +169,7 @@ export default async function Page({
                 }).then(noop);
               }}
               onError={(error, outputRaw) => {
-                // console.error(error, outputRaw);
+                console.error(error);
                 store.setKey("error", error);
                 store.setKey("loading", false);
                 kv.hset(`suggestions:${inputHash}`, {

@@ -72,7 +72,7 @@ async function getReplicateStream({
 
     return eventSourceToAsyncIterable(stream);
   } catch (ex) {
-    console.warn(ex);
+    console.error(ex);
     throw ex;
   }
 }
@@ -179,7 +179,6 @@ async function getOllamaStream({
 
   const promptTemplate = PromptTemplate.fromTemplate(CHAIN_TEMPLATE);
   const chain = promptTemplate.pipe(llm);
-  console.log({ input });
   const stream = await chain.stream({
     ...input,
   });

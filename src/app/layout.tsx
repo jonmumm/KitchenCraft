@@ -84,14 +84,18 @@ function Body({ children }: { children: ReactNode }) {
 let lastSpinUpRequestTimestamp: number | null;
 const SPIN_UP_MIN_INTERVAL_SECONDS = 240;
 
+// Keep replicate alive since were not paying for
+// a min number of servers to avoid long cold boot times.
 const maybeSpinUpReplicateModel = async () => {
-  const now = performance.now();
-  if (
-    !lastSpinUpRequestTimestamp ||
-    lastSpinUpRequestTimestamp < now - 1000 * SPIN_UP_MIN_INTERVAL_SECONDS
-  ) {
-    lastSpinUpRequestTimestamp = now;
-    spinUpReplicate().then(noop);
+  if (process.env.NODE_ENV === "production") {
+    const now = performance.now();
+    if (
+      !lastSpinUpRequestTimestamp ||
+      lastSpinUpRequestTimestamp < now - 1000 * SPIN_UP_MIN_INTERVAL_SECONDS
+    ) {
+      lastSpinUpRequestTimestamp = now;
+      spinUpReplicate().then(noop);
+    }
   }
 };
 
