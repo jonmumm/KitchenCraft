@@ -16,6 +16,8 @@ export default async function Home({
     <div className="max-w-2xl mx-auto">
       <Header />
       <FloatingHeader>
+        <div className="flex flex-row justify-end">
+
         {/* <div>
           <Popover>
             <PopoverTrigger asChild>
@@ -49,11 +51,7 @@ export default async function Home({
             <AxeIcon />
           </Button>
         </Link>
-        <Link href="/">
-          <Button variant="outline">
-            <AxeIcon />
-          </Button>
-        </Link>
+        </div>
       </FloatingHeader>
       <div className="flex flex-col flex-end">
         <RecentRecipes />
