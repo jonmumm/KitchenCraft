@@ -16,47 +16,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-  searchParams,
 }: {
   children: ReactNode;
-  searchParams: Record<string, string>;
 }) {
   maybeSpinUpReplicateModel().then(noop);
-
-  // console.log("layout", { queryClient });
-  // const headersList = headers();
-  // const actorId = headersList.get("x-actor-id");
-  // console.log({ actorId });
-  // const chatId = nanoid();
-  // console.log("@layout", { chatId });
-  // const appMachine = createMachine({
-  //   id: "AppMachine",
-  //   type: "parallel",
-  //   types: {
-  //     events: {} as AppEvent,
-  //     context: {} as {
-  //       searchParams: Record<string, string>;
-  //     },
-  //   },
-  //   context: {
-  //     searchParams,
-  //   },
-  //   states: {
-  //     Craft: {
-  //       // entry: console.log,
-  //       // invoke
-  //     },
-  //   },
-  // });
-
-  // const actor = createActor(appMachine);
-  // actor.start(); // todo when actor.stop? memeory leak
-
-  // async function send(data: FormData) {
-  //   "use server";
-  //   const event = AppEventSchema.parse(data);
-  //   actor.send(event);
-  // }
 
   return (
     <html lang="en" suppressHydrationWarning>

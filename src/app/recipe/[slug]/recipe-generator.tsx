@@ -66,7 +66,9 @@ async function getReplicateStream({ input }: { input: RecipePredictionInput }) {
         temperature: 0.2,
         max_new_tokens: 2048,
         // system_prompt: await systemPromptTemplate.format({}),
-        prompt_template: CHAIN_TEMPLATE(input.suggestionsPrompt),
+        prompt_template: CHAIN_TEMPLATE(
+          `${input.suggestionsInput.prompt} ${input.suggestionsInput.ingredients} ${input.suggestionsInput.tags}`
+        ),
         prompt: await userMessageTemplate.format({
           name: input.name,
           description: input.description,
@@ -90,7 +92,9 @@ async function getOllamaStream({ input }: { input: RecipePredictionInput }) {
   });
 
   const chainTemplate = PromptTemplate.fromTemplate(
-    CHAIN_TEMPLATE(input.suggestionsPrompt)
+    CHAIN_TEMPLATE(
+          `${input.suggestionsInput.prompt} ${input.suggestionsInput.ingredients} ${input.suggestionsInput.tags}`
+    )
   );
   const chain = chainTemplate.pipe(llm);
 

@@ -7,7 +7,11 @@ const testRecipes = [
     name: "Tiramisu",
     description:
       "A classic Italian dessert made with layers of coffee-soaked ladyfingers and rich mascarpone cheese.",
-    suggestionsPrompt: "Italian desserts",
+    suggestionsInput: {
+      prompt: "Italian Desserts",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Tiramisu
       description: A classic Italian dessert...
     - name: Cannoli
@@ -23,7 +27,11 @@ const testRecipes = [
     name: "Butter Chicken",
     description:
       "A creamy tomato-based curry with tender pieces of chicken, flavored with Indian spices.",
-    suggestionsPrompt: "Indian curries",
+    suggestionsInput: {
+      prompt: "Indian Curries",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Butter Chicken
       description: A creamy tomato-based curry...
     - name: Rogan Josh
@@ -39,7 +47,11 @@ const testRecipes = [
     name: "Goulash",
     description:
       "A Hungarian stew of meat and vegetables, seasoned with paprika and other spices.",
-    suggestionsPrompt: "Hungarian dishes",
+    suggestionsInput: {
+      prompt: "Hungarian Dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Goulash
       description: A Hungarian stew of meat...
     - name: Chimney Cake
@@ -55,7 +67,11 @@ const testRecipes = [
     name: "Fish Tacos",
     description:
       "Grilled or fried fish served in a tortilla, often with slaw, salsa, and a creamy sauce.",
-    suggestionsPrompt: "Mexican dishes",
+    suggestionsInput: {
+      prompt: "Mexian dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Fish Tacos
       description: Grilled or fried fish served in a tortilla...
     - name: Enchiladas
@@ -71,7 +87,11 @@ const testRecipes = [
     name: "Spring Rolls",
     description:
       "Crispy rolls filled with vegetables and sometimes shrimp or pork, served with dipping sauce.",
-    suggestionsPrompt: "Chinese appetizers",
+    suggestionsInput: {
+      prompt: "Chinese appetizers",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Spring Rolls
       description: Crispy rolls filled with vegetables...
     - name: Dumplings
@@ -87,7 +107,11 @@ const testRecipes = [
     name: "Creamy Avocado Pasta",
     description:
       "Rich avocado sauce with al dente noodles; vegan comfort food.",
-    suggestionsPrompt: "recipes with avocado",
+    suggestionsInput: {
+      prompt: "Recipes with Avocados",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Creamy Avocado Pasta
       description: Rich avocado sauce with al dente noodles; vegan comfort food.
     - name: Avocado Chocolate Mousse
@@ -105,7 +129,11 @@ const testRecipes = [
     name: "Sushi",
     description:
       "A Japanese dish of prepared vinegared rice, usually with some sugar and salt, accompanying a variety of ingredients, such as seafood, vegetables, and occasionally tropical fruits.",
-    suggestionsPrompt: "Japanese dishes",
+    suggestionsInput: {
+      prompt: "Japanese Dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Sushi
       description: A Japanese dish of prepared vinegared rice...
     - name: Tempura
@@ -115,7 +143,11 @@ const testRecipes = [
   {
     name: "Croissant",
     description: "A buttery, flaky pastry; perfect for breakfast with coffee.",
-    suggestionsPrompt: "French breakfast items",
+    suggestionsInput: {
+      prompt: "French Breakfast Items",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Croissant
       description: A buttery, flaky pastry...
     - name: Quiche
@@ -126,7 +158,11 @@ const testRecipes = [
     name: "Empanada",
     description:
       "A baked or fried turnover consisting of pastry and filling, common in Latin American and Filipino cultures.",
-    suggestionsPrompt: "Chilean dishes",
+    suggestionsInput: {
+      prompt: "Chilean dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Empanada
       description: A baked or fried turnover...
     - name: Cazuela
@@ -136,7 +172,11 @@ const testRecipes = [
   {
     name: "Pancakes",
     description: "Fluffy, round cakes prepared from a starch-based batter.",
-    suggestionsPrompt: "Breakfast dishes",
+    suggestionsInput: {
+      prompt: "Breakfast dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Pancakes
       description: Fluffy, round cakes...
     - name: Waffles
@@ -147,7 +187,11 @@ const testRecipes = [
     name: "Chili Con Carne",
     description:
       "A spicy stew containing chili peppers, meat, and often tomatoes and beans.",
-    suggestionsPrompt: "Tex-Mex dishes",
+    suggestionsInput: {
+      prompt: "Tex-mex dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Chili Con Carne
       description: A spicy stew containing chili peppers...
     - name: Tacos
@@ -163,7 +207,11 @@ const testRecipes = [
     name: "Pizza Margherita",
     description:
       "A type of pizza made with tomatoes, mozzarella cheese, fresh basil, salt, and extra-virgin olive oil.",
-    suggestionsPrompt: "Italian dishes",
+    suggestionsInput: {
+      prompt: "Italian dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Pizza Margherita
       description: A type of pizza made with tomatoes...
     - name: Spaghetti Carbonara
@@ -179,7 +227,11 @@ const testRecipes = [
     name: "Baklava",
     description:
       "A rich, sweet dessert pastry made of layers of filo filled with chopped nuts, sweetened and held together with syrup or honey.",
-    suggestionsPrompt: "Middle Eastern desserts",
+    suggestionsInput: {
+      prompt: "Middle Eastern desserts",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Baklava
       description: A rich, sweet dessert pastry...
     - name: Kunafa
@@ -195,7 +247,11 @@ const testRecipes = [
     name: "Lobster Bisque",
     description:
       "A smooth, creamy, highly seasoned soup based on lobster broth.",
-    suggestionsPrompt: "Seafood dishes",
+    suggestionsInput: {
+      prompt: "Seafood dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Lobster Bisque
       description: A smooth, creamy soup...
     - name: Paella
@@ -211,7 +267,11 @@ const testRecipes = [
     name: "Bobotie",
     description:
       "A South African dish consisting of spiced minced meat baked with an egg-based topping.",
-    suggestionsPrompt: "South African dishes",
+    suggestionsInput: {
+      prompt: "South African dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Bobotie
       description: A South African dish with spiced minced meat...
     - name: Biltong
@@ -227,7 +287,11 @@ const testRecipes = [
     name: "Borscht",
     description:
       "A sour soup commonly consumed in Eastern Europe, made with beetroot as the main ingredient.",
-    suggestionsPrompt: "Eastern European dishes",
+    suggestionsInput: {
+      prompt: "Eastern European dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Borscht
       description: A sour soup made with beetroot...
     - name: Pierogi
@@ -242,7 +306,11 @@ const testRecipes = [
   {
     name: "Tom Yum Soup",
     description: "A hot and sour Thai soup, usually cooked with shrimp.",
-    suggestionsPrompt: "Thai dishes",
+    suggestionsInput: {
+      prompt: "Thai dishes",
+      tags: "",
+      ingredients: "",
+    },
     suggestionsOutputRaw: `- name: Tom Yum Soup
       description: A hot and sour Thai soup...
     - name: Pad Thai
@@ -262,8 +330,8 @@ for (const recipe of testRecipes) {
       const input = {
         name: recipe.name,
         description: recipe.description,
+        suggestionsInput: recipe.suggestionsInput,
         suggestionsOutputRaw: recipe.suggestionsOutputRaw,
-        suggestionsPrompt: recipe.suggestionsPrompt,
       };
 
       const jsx = await RecipeGenerator({

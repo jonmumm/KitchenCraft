@@ -59,7 +59,6 @@ export default async function Generator<
 
   try {
     const outputJSON = jsYaml.load(outputYaml);
-    console.log(JSON.stringify(outputJSON, null, 2));
     callbackWithOutput(outputJSON);
   } catch (error) {
     // If we fail to parse here...

@@ -99,7 +99,6 @@ export default async function Page(props: Props) {
     );
   }
 
-  console.log({ recipe }, recipe.fromSuggestionsKey);
   const suggestionsInput = SuggestionPredictionInputSchema.parse(
     await kv.hget(recipe.fromSuggestionsKey, "input")
   );
