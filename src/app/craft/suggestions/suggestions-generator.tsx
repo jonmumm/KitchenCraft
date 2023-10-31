@@ -42,7 +42,7 @@ export default async function SuggestionsGenerator<
 async function getSuggestionsStream(props: {
   input: SuggestionPredictionInput;
 }) {
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV === "production") {
     return getReplicateStream(props);
   } else {
     return getOllamaStream(props);
