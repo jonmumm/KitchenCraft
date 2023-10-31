@@ -24,7 +24,6 @@ const AddedIngredientsList = () => {
         const nextIngredients = ingredients.filter(
           (ingredient) => ingredient !== item
         );
-        console.log({ nextIngredients });
         if (nextIngredients.length) {
           setIngredients(nextIngredients);
         } else {

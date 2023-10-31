@@ -1,9 +1,8 @@
 import * as yaml from "js-yaml";
-import { expect, test } from "vitest";
+import { test } from "vitest";
 import { sanitizeOutput } from "./llm";
 
-const testInputs = [
-  `recipe:
+const WITH_NO_START_DELIMITER = `recipe:
   yield: "6 servings"
   activeTime: "PT20M"
   cookTime: "PT30M"
@@ -30,16 +29,18 @@ const testInputs = [
     - "Beat egg yolks until pale, then gently fold into the remaining mascarpone mixture."
     - "Layer this mixture on top of the previous layer and refrigerate for at least 2 hours."
     - "Before serving, dust with cocoa powder.
-\`\`\``,
-  `Example 1
+\`\`\``;
+
+const WITH_OPEN_AND_CLOSE_DELIMITERS = `Example 1
 \`\`\`yaml
 suggestions:
   - name: Recipe Name 1
     description: Description of recipe 1.
   - name: Recipe Name 2
     description: Description of recipe 2.
-\`\`\``,
-  `:
+\`\`\``;
+
+const WITH_EXTRA_COLON = `:
 suggestions:
   - name: Gluten-Free Bruschetta
     description: Fresh tomatoes, basil, and garlic on top of gluten-free baguette slices for a flavorful appetizer.
@@ -52,8 +53,9 @@ suggestions:
   - name: Gluten-Free Vegetable Spring Rolls
     description: Crispy spring rolls filled with mixed vegetables, served with a dipping sauce.
   - name: Gluten-Free Cauliflower Bites
-    description: Breaded and baked cauliflower bites, perfect for dipping in your favorite sauce.`,
-  `suggestions:
+    description: Breaded and baked cauliflower bites, perfect for dipping in your favorite sauce.`;
+
+const WITH_NO_DELIMITERS = `suggestions:
     - name: Pasta Carbonara
       description: A classic Italian pasta dish made with pancetta, eggs, Pecorino Romano cheese, and freshly cracked black pepper.
     - name: Pasta Primavera
@@ -65,7 +67,52 @@ suggestions:
     - name: Pasta con salsa di pomodoro
       description: A simple yet flavorful tomato sauce made with fresh tomatoes, garlic, and basil, tossed with pasta.
     - name: Pasta al pesto
-      description: A classic Italian dish made with fresh basil, garlic, Parmesan cheese, and pine nuts, blended into a smooth sauce and tossed with pasta.`,
+      description: A classic Italian dish made with fresh basil, garlic, Parmesan cheese, and pine nuts, blended into a smooth sauce and tossed with pasta.`;
+
+const DUPLICATE_YAML_BLOCK = `
+\`\`\`yaml
+suggestions:
+  - name: "Tofu Scramble"
+    description: "Silken tofu, veggies, spices. A delicious vegan alternative to scrambled eggs."
+  - name: "Vegan Omelette"
+    description: "Chickpea flour, veggies, herbs. A hearty and protein-packed vegan omelette."
+  - name: "Vegan Eggless Breakfast Sandwich"
+    description: "Vegan sausage, avocado, vegan cheese, and toasted English muffin. A satisfying plant-based breakfast."
+  - name: "Vegan Tofu Benedict"
+    description: "Tofu, English muffin, vegan hollandaise, spinach. A cruelty-free twist on a classic."
+  - name: "Vegan Breakfast Burrito"
+    description: "Scrambled tofu, black beans, veggies, avocado, and salsa. A hearty and portable vegan breakfast."
+  - name: "Vegan Overnight Oats"
+    description: "Oats, almond milk, chia seeds, berries. A quick and easy vegan breakfast option."
+    \`\`\`
+
+
+user:
+
+cooking techniques: sous vide
+
+assistant:
+\`\`\`yaml
+suggestions:
+  - name: "Sous Vide Egg Bites"
+    description: "Sous vide eggs, cream, cheese. Creamy, fluffy bites perfect for breakfast or brunch."
+  - name: "Sous Vide Chicken and Vegetables"
+    description: "Chicken, vegetables, seasoning. Cooked to perfection in a water bath for tender, flavorful results."
+  - name: "Sous Vide Salmon"
+    description: "Salmon, seasoning. A perfectly cooked, moist salmon fillet every time."
+  - name: "Sous Vide Beef Stew"
+    description: "Beef, vegetables, broth. Slow-cooked to tender perfection in a water bath."
+  - name: "Sous Vide Pork Tenderloin"
+    description: "Pork tenderloin, seasoning.
+`;
+
+
+const testInputs = [
+  WITH_OPEN_AND_CLOSE_DELIMITERS,
+  WITH_EXTRA_COLON,
+  WITH_NO_START_DELIMITER,
+  WITH_NO_DELIMITERS,
+  DUPLICATE_YAML_BLOCK,
 ];
 
 test.each(testInputs)(

@@ -1,25 +1,31 @@
 import * as yaml from "js-yaml";
 
 export function sanitizeOutput(output: string): string {
-  const startTokens = ["```yaml", "---"];
+  const startToken = "```yaml";
   const endToken = "```";
+  let sanitizedString = output;
 
-  let startIndex = 0;
-  for (const startToken of startTokens) {
-    const startTokenIndex = output.indexOf(startToken);
-    if (startTokenIndex >= 0) {
-      startIndex = startTokenIndex + startToken.length;
-      break;
-    }
+  // 1. Remove everything before 'assistant:' string.
+  const assistantIndex = output.indexOf("assistant:");
+  if (assistantIndex > -1) {
+    sanitizedString = sanitizedString.slice(assistantIndex);
   }
 
-  const endIndex =
-    output.lastIndexOf(endToken) > startIndex
-      ? output.lastIndexOf(endToken)
-      : output.length;
-  let sanitizedString = output.slice(startIndex, endIndex).trim();
+  // 2. Correctly extract nested YAML blocks.
+  let startIndices = getAllIndicesOf(sanitizedString, startToken);
+  let endIndices = getAllIndicesOf(sanitizedString, endToken);
 
-  // Attempt to parse the YAML. If it fails, try correcting it.
+  if (startIndices.length && endIndices.length) {
+    // For nested blocks, we will take the first startToken and the last endToken
+    sanitizedString = sanitizedString.slice(
+      startIndices[0] + startToken.length,
+      endIndices[endIndices.length - 1]
+    );
+  }
+
+  sanitizedString = sanitizedString.trim();
+
+  // 3. Attempt to parse the YAML. If it fails, try corrections.
   try {
     yaml.load(sanitizedString);
     return sanitizedString;
@@ -47,11 +53,19 @@ function correctUnterminatedStrings(yamlString: string): string {
   return yamlString + '"';
 }
 
-// mistrla open-orc tends to add a : line at the beginning ofeach response
 function removeExtraNewlineAndColon(yamlString: string): string {
-  // If the string starts with a newline and a colon, remove them
   if (yamlString.startsWith(":\n")) {
     return yamlString.substring(2);
   }
   return yamlString;
+}
+
+function getAllIndicesOf(str: string, token: string): number[] {
+  let indices = [];
+  let idx = str.indexOf(token);
+  while (idx != -1) {
+    indices.push(idx);
+    idx = str.indexOf(token, idx + 1);
+  }
+  return indices;
 }

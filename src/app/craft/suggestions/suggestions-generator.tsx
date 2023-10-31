@@ -42,7 +42,7 @@ export default async function SuggestionsGenerator<
 async function getSuggestionsStream(props: {
   input: SuggestionPredictionInput;
 }) {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV !== "production") {
     return getReplicateStream(props);
   } else {
     return getOllamaStream(props);
@@ -64,7 +64,7 @@ async function getReplicateStream({
         max_new_tokens: 512,
         // system_prompt: await systemPromptTemplate.format({}),
         prompt_template: CHAIN_TEMPLATE,
-        prompt: input.prompt,
+        prompt: `${input.prompt} ${input.ingredients} ${input.tags}`,
       },
     });
     const { stream } = response.urls;
@@ -140,11 +140,6 @@ suggestions:
 
 Example: 
 
-user:
-
-eggs, feta
-
-assistant:
 \`\`\`yaml
 suggestions:
   - name: "Feta Omelette"
@@ -163,7 +158,7 @@ suggestions:
 
 <|im_end|>
 <|im_start|>user:
-{prompt} {ingredients} {tags}<|im_end|>
+{prompt}<|im_end|>
 <|im_start|>assistant:
 `;
 
@@ -180,7 +175,7 @@ async function getOllamaStream({
   const promptTemplate = PromptTemplate.fromTemplate(CHAIN_TEMPLATE);
   const chain = promptTemplate.pipe(llm);
   const stream = await chain.stream({
-    ...input,
+    prompt: `${input.prompt} ${input.ingredients} ${input.tags}`,
   });
 
   return stream as AsyncIterable<string>;

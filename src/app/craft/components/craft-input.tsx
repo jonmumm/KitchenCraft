@@ -25,7 +25,6 @@ export function CraftInput({ defaultValue }: { defaultValue?: string }) {
   // }, [router.replace]);
   const handleChange = useCallback(
     (value: string) => {
-      console.log({ value });
       if (value !== "") {
         setPrompt(value);
       } else {
