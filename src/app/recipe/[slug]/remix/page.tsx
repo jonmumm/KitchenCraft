@@ -130,7 +130,7 @@ const ScaleDescription = () => (
   </p>
 );
 
-export const IngredientsGroup = (props: { slug: string }) => {
+const IngredientsGroup = (props: { slug: string }) => {
   const IngredientItems = async () => {
     const ingredients = z
       .array(z.string())
