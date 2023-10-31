@@ -8,7 +8,6 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Command } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -305,86 +304,69 @@ export default async function Page(props: Props) {
           </div>
         </Card>
         <Card id="remix" className="mx-3 mb-3">
-          <Command>
-            <div className="px-5">
-              <div className="flex flex-row justify-between gap-1 items-center py-4">
-                <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                  Remix
-                </h3>
-                <ShuffleIcon />
-              </div>
+          <div className="px-5">
+            <div className="flex flex-row justify-between gap-1 items-center py-4">
+              <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                Remix
+              </h3>
+              <ShuffleIcon />
             </div>
-            {/* <div className="grid grid-cols-3 gap-4">
-              <Button>
-                <span>Scale Recipe</span> <ScaleIcon />
-              </Button>
-              <Button>
-                <span>Dietary</span> <NutIcon />
-              </Button>
-              <Button>
-                <span>Equipment</span> <MicrowaveIcon />
-              </Button>
-            </div> */}
-            {/* <Suspense fallback={<Skeleton className="w-full h-12" />}> */}
-            {/* <RemixCommand /> */}
-            {/* </Suspense> */}
-            <div className="mb-4 flex flex-col gap-2">
-              <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                <WaitForRecipe>
-                  <div className="grid grid-cols-2 px-3 gap-2">
-                    {/* <CommandGroup heading="Modify this recipe"></CommandGroup> */}
-                    <Link
-                      href={`/recipe/${slug}/remix?action=substitute`}
-                      className="flex-1"
+          </div>
+          <div className="mb-4 flex flex-col gap-2">
+            <Suspense fallback={<Skeleton className="w-full h-20" />}>
+              <WaitForRecipe>
+                <div className="grid grid-cols-2 px-3 gap-2">
+                  <Link
+                    href={`/recipe/${slug}/remix?modification=substitute`}
+                    className="flex-1"
+                  >
+                    <Button
+                      variant="outline"
+                      className="w-full h-full flex flex-col gap-1 items-center"
                     >
-                      <Button
-                        variant="outline"
-                        className="w-full h-full flex flex-col gap-1 items-center"
-                      >
-                        <h5>Substitute</h5>
-                        <p className="text-xs font-medium text-muted-foreground">
-                          Find alternatives for missing ingredients.
-                        </p>
-                      </Button>
-                    </Link>
-                    <Link href={`/recipe/${slug}/remix?action=dietary`}>
-                      <Button
-                        variant="outline"
-                        className="w-full h-full flex flex-col gap-1 items-center"
-                      >
-                        <h5>Diet Restrictions</h5>
-                        <p className="text-xs font-medium text-muted-foreground">
-                          Modify recipe for specific diets.
-                        </p>
-                      </Button>
-                    </Link>
-                    <Link href={`/recipe/${slug}/remix?action=servings`}>
-                      <Button
-                        variant="outline"
-                        className="w-full h-full flex flex-col gap-1 items-center"
-                      >
-                        <h5>Scale</h5>
-                        <p className="text-xs font-medium text-muted-foreground">
-                          Adjust recipe for more/fewer servings.
-                        </p>
-                      </Button>
-                    </Link>
-                    <Link href={`/recipe/${slug}/remix?action=equipment`}>
-                      <Button
-                        variant="outline"
-                        className="w-full h-full flex flex-col gap-1 items-center"
-                      >
-                        <h5>Equipment</h5>
-                        <p className="text-xs font-medium text-muted-foreground">
-                          Adapt recipe for different tools.
-                        </p>
-                      </Button>
-                    </Link>
-                  </div>
-                </WaitForRecipe>
-              </Suspense>
-            </div>
-          </Command>
+                      <h5>Substitute</h5>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Find alternative ingredients.
+                      </p>
+                    </Button>
+                  </Link>
+                  <Link href={`/recipe/${slug}/remix?modification=dietary`}>
+                    <Button
+                      variant="outline"
+                      className="w-full h-full flex flex-col gap-1 items-center"
+                    >
+                      <h5>Dietary</h5>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Modify recipe for specific diets.
+                      </p>
+                    </Button>
+                  </Link>
+                  <Link href={`/recipe/${slug}/remix?modification=scale`}>
+                    <Button
+                      variant="outline"
+                      className="w-full h-full flex flex-col gap-1 items-center"
+                    >
+                      <h5>Scale</h5>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Adjust recipe for more/fewer servings.
+                      </p>
+                    </Button>
+                  </Link>
+                  <Link href={`/recipe/${slug}/remix?modification=equipment`}>
+                    <Button
+                      variant="outline"
+                      className="w-full h-full flex flex-col gap-1 items-center"
+                    >
+                      <h5>Equipment</h5>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Adapt recipe for different tools.
+                      </p>
+                    </Button>
+                  </Link>
+                </div>
+              </WaitForRecipe>
+            </Suspense>
+          </div>
         </Card>
       </div>
     </div>

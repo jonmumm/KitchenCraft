@@ -35,6 +35,7 @@ import {
   TipsPredictionPartialOutputSchema,
   TipsPredictionOutputSchema,
   TipsPredictionInputSchema,
+  ModificationSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -105,3 +106,5 @@ export type TipsPredictionOutput = z.infer<
 export type TipsPredictionPartialOutput = z.infer<
   typeof TipsPredictionPartialOutputSchema
 >;
+
+export type Modification = z.infer<typeof ModificationSchema>;

@@ -362,3 +362,10 @@ export const TipsPredictionInputSchema = z.object({
     })
   ),
 });
+
+export const ModificationSchema = z.enum([
+  "substitute",
+  "dietary",
+  "equipment",
+  "scale",
+]);
