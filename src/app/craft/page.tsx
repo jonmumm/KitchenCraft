@@ -1,11 +1,8 @@
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Command,
@@ -14,12 +11,9 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getLLMMessageSet, getRecipe } from "@/lib/db";
-import getQueryClient from "@/lib/getQueryClient";
 import { SlugSchema } from "@/schema";
 import { kv } from "@vercel/kv";
 import { nanoid } from "ai";
-import { ChevronRightIcon, ShuffleIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -28,11 +22,16 @@ import { Header } from "../header";
 import ClientProvider from "./client-provider";
 // import { Chat } from "./components/chat";
 import { pollWithExponentialBackoff } from "@/lib/utils";
-import { ConjureAction } from "./components/conjure-action";
+import Image from "next/image";
+import { AddedIngredientsSection } from "./added-ingredients-section";
+import { ActionsGroup, ConjureIdeasAction } from "./components/actions";
 import { CraftInput } from "./components/craft-input";
 import SuggestionResult from "./components/suggestion-result";
+import { IngredientsGroup } from "./ingredients-group";
 import { Reload } from "./reload";
-import Image from "next/image";
+import { RecipesGroup } from "./recipes-group";
+import { TagsGroup } from "./tags-group";
+import { AddedTagsSection } from "./added-tags-section";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +71,22 @@ export default async function Page({
 }: {
   searchParams: Record<string, string>;
 }) {
+  console.log("page render");
   const { prompt, id } = CraftInputSchema.parse(searchParams);
+  console.log({ prompt });
+
+  // async function addIngredient(ingredient: string) {
+  //   "use server";
+  //   const nextParams = new URLSearchParams(searchParams);
+  //   nextParams.append("ingredients", ingredient);
+  //   nextParams.delete("prompt");
+  //   const url = `/craft?${nextParams.toString()}`;
+  //   redirect(url);
+  // }
+
+  // async function removeIngredient(ingredient: string) {
+  //   "use server";
+  // }
 
   const conjureAction = async (prompt: string) => {
     "use server";
@@ -80,6 +94,10 @@ export default async function Page({
     nextParams.set("prompt", prompt);
     const url = `/craft/suggestions?${nextParams.toString()}`;
     redirect(url);
+  };
+
+  const handleRemoveIngredient = async () => {
+    "use server";
   };
 
   const handleSubmitForm = async (data: FormData) => {
@@ -90,8 +108,18 @@ export default async function Page({
     }
   };
 
+  const getSuggestedIngredients = async (prompt: string) => {
+    "use server";
+    if (prompt.length) {
+      return ["Feta Cheese", "Cheddar Cheese"];
+    } else {
+      return [];
+    }
+  };
+
   return (
     <ClientProvider>
+      {/* <SearchParams defaults={searchParams} /> */}
       <div className="flex flex-col gap-2 max-w-2xl mx-auto px-4">
         <Header hidden={true} />
         <Card>
@@ -135,14 +163,23 @@ export default async function Page({
             </CardHeader>
             <CardContent className="round-md p-0">
               <div className="w-full">
+                <AddedIngredientsSection />
+                <AddedTagsSection />
                 <form action={handleSubmitForm}>
                   <CraftInput
+                    // key={prompt}
                     // onValueChange={changeAction}
                     defaultValue={prompt}
                   />
                 </form>
               </div>
               <CommandList className="p-3 max-h-100">
+                <ActionsGroup>
+                  <ConjureIdeasAction />
+                </ActionsGroup>
+                <IngredientsGroup />
+                <TagsGroup />
+                {/* <RecipesGroup /> */}
                 {/* {remixSrc && resultType === "remix" && (
                   <Suspense fallback={<RemixResultsLoader />}>
                     <RemixResults srcSlug={remixSrc} prompt={prompt} />
@@ -150,7 +187,6 @@ export default async function Page({
                 )} */}
                 {/* <RecentPrompts /> */}
                 {/* {resultType === "suggestions" && <RecipeSuggestions />} */}
-                <ConjureAction />
               </CommandList>
             </CardContent>
           </Command>

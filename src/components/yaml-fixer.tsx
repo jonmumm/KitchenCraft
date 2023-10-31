@@ -27,10 +27,9 @@ export const YamlFixer = async ({
     }
   }
 
-  // todo use onError
-
   const outputRaw = charArray.join("");
   const outputYaml = sanitizeOutput(outputRaw);
+  console.log({ outputRaw, outputYaml });
 
   onComplete && onComplete(outputYaml);
 

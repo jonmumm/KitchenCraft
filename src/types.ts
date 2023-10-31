@@ -29,6 +29,12 @@ import {
   RecipePredictionInputSchema,
   SuggestionSchema,
   SuggestionPredictionPartialOutputSchema,
+  RemixIdeasPredictionInputSchema,
+  RemixIdeasPredictionOutputSchema,
+  RemixIdeasPredictionPartialOutputSchema,
+  TipsPredictionPartialOutputSchema,
+  TipsPredictionOutputSchema,
+  TipsPredictionInputSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -79,3 +85,23 @@ export type RecipePredictionOutput = z.infer<typeof RecipePredictionOutputSchema
 export type RecipePredictionPartialOutput = z.infer<typeof RecipePredictionPartialOutputSchema>;
 
 export type Suggestion = z.infer<typeof SuggestionSchema>;
+
+export type RemixIdeasPredictionInput = z.infer<
+  typeof RemixIdeasPredictionInputSchema
+>;
+export type RemixIdeasPredictionOutput = z.infer<
+  typeof RemixIdeasPredictionOutputSchema
+>;
+export type RemixIdeasPredictionPartialOutput = z.infer<
+  typeof RemixIdeasPredictionPartialOutputSchema
+>;
+
+export type TipsPredictionInput = z.infer<
+  typeof TipsPredictionInputSchema
+>;
+export type TipsPredictionOutput = z.infer<
+  typeof TipsPredictionOutputSchema
+>;
+export type TipsPredictionPartialOutput = z.infer<
+  typeof TipsPredictionPartialOutputSchema
+>;

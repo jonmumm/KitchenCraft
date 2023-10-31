@@ -1,17 +1,20 @@
 import { Header } from "@/app/header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Command } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDuration, noop, waitForStoreValue } from "@/lib/utils";
-import { SuggestionPredictionInputSchema, RecipeSchema } from "@/schema";
+import { RecipeSchema, SuggestionPredictionInputSchema } from "@/schema";
 import { RecipePredictionInput, RecipeSlug } from "@/types";
 import { kv } from "@vercel/kv";
 import { ChatPromptTemplate } from "langchain/prompts";
@@ -20,11 +23,10 @@ import {
   CameraIcon,
   ChefHatIcon,
   ClockIcon,
-  ListPlusIcon,
-  PlusIcon,
   PlusSquareIcon,
   PrinterIcon,
   ScrollIcon,
+  SendHorizonalIcon,
   ShareIcon,
   ShoppingBasketIcon,
   ShuffleIcon,
@@ -32,17 +34,18 @@ import {
 } from "lucide-react";
 import { MapStore, map } from "nanostores";
 import { Metadata } from "next";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { ReactNode, Suspense, useCallback } from "react";
+import { ReactNode, Suspense } from "react";
 import { AddButton } from "./add-button";
+import { AddTagButton } from "./add-tag-button";
+import { PrepartionTips } from "./preparation-tips";
 import { PrintButton } from "./print-button";
 import RecipeGenerator from "./recipe-generator";
 import { StoreProps } from "./schema";
 import { ShareButton } from "./share-button";
 import { UploadMediaButton } from "./upload-media-button";
 import { UpvoteButton } from "./upvote-button";
-import { AddTagButton } from "./add-tag-button";
-import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -52,7 +55,7 @@ type Props = {
 };
 
 export default async function Page(props: Props) {
-  const { slug } = props?.params;
+  const { slug } = props.params;
   const recipeKey = `recipe:${slug}`;
 
   await kv.hsetnx(recipeKey, "runStatus", "initializing");
@@ -96,17 +99,15 @@ export default async function Page(props: Props) {
     );
   }
 
-  const suggestionInput = SuggestionPredictionInputSchema.parse(
+  console.log({ recipe }, recipe.fromSuggestionsKey);
+  const suggestionsInput = SuggestionPredictionInputSchema.parse(
     await kv.hget(recipe.fromSuggestionsKey, "input")
   );
-
-  // const parseResult = SuggestionPredictionInputSchema.safeParse(rawInput);
 
   const input = {
     name: recipe.name,
     description: recipe.description,
-    suggestionsPrompt: suggestionInput.prompt,
-    // suggestionsOutputYaml: jsYaml.dump(suggestions),
+    suggestionsInput,
   } satisfies RecipePredictionInput;
 
   const store = map<StoreProps>({
@@ -114,8 +115,60 @@ export default async function Page(props: Props) {
     recipe,
   });
 
+  const WaitForRecipe = async ({ children }: { children: ReactNode }) => {
+    await waitForStoreValue(store, (state) => !state.loading);
+    return <>{children}</>;
+  };
+
+  const AssistantCommand = async () => {
+    await waitForStoreValue(store, (state) => !state.loading);
+    return (
+      <>
+        <CardHeader className="items-start">
+          <div className="flex flex-row gap-3 items-center">
+            <ChefHatIcon />
+            <div className="flex flex-col gap-1">
+              <span className="font-semibold">Assistant</span>
+              <CardDescription>Ask questions about the recipe.</CardDescription>
+            </div>
+          </div>
+          {/* {action?.actionType === "remix" && (
+              <div>
+                <Link href={`/recipe/${action.remixSrc}`}>
+                  <Badge
+                    variant="outline"
+                    className="flex flex-row gap-2 items-center px-4 py-2"
+                  >
+                    <ShuffleIcon className="mr-1" size={24} />
+                    <div className="flex flex-row gap-1 text-xs items-center">
+                      <span>Remixed from</span>
+                      <span className="font-semibold underline underline-offset-4">
+                        <Suspense fallback={<RecipeNameLoader />}>
+                          <RecipeName slug={action.remixSrc} />
+                        </Suspense>
+                      </span>
+                    </div>
+                    <ChevronRightIcon className="-mr-1" />
+                  </Badge>
+                </Link>
+              </div>
+            )} */}
+        </CardHeader>
+        <CardContent className="p-0">
+          <PrepartionTips slug={slug} />
+        </CardContent>
+        <CardFooter>
+          <Input />
+          <Button size="icon">
+            <SendHorizonalIcon />
+          </Button>
+        </CardFooter>
+      </>
+    );
+  };
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 max-w-2xl mx-auto">
       <Header />
       <div className="flex flex-col gap-2">
         <Card className="flex flex-col gap-2 pb-5 mx-3">
@@ -201,7 +254,7 @@ export default async function Page(props: Props) {
                 <span className="font-bold">1</span>
               </UpvoteButton>
               <Button variant="outline" aria-label="Remix">
-                <Link href={"#remix"}>
+                <Link href={`#remix`}>
                   <ShuffleIcon />
                 </Link>
               </Button>
@@ -245,28 +298,94 @@ export default async function Page(props: Props) {
             </div>
             <div className="mb-4 flex flex-col gap-2">
               <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                <ul className="list-disc pl-5">
+                <ol className="list-decimal pl-5">
                   <InstructionList store={store} />
-                </ul>
+                </ol>
               </Suspense>
             </div>
-            {/* <RecipeInstructions store={store} /> */}
           </div>
         </Card>
-        <Card id="remix" className="mx-3">
-          {/* <RemixForm slug={params.slug}>
-            <RemixHeader />
-            <Separator />
-            <RemixContent>
-              <div className="flex flex-row gap-1 w-full">
-                <RemixInput />
-                <RemixButton />
+        <Card id="remix" className="mx-3 mb-3">
+          <Command>
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Remix
+                </h3>
+                <ShuffleIcon />
               </div>
-              <div className="flex flex-row gap-2 w-full">
-                <div className="flex flex-row gap-2 text-muted-foreground text-sm items-center"></div>
-              </div>
-            </RemixContent>
-          </RemixForm> */}
+            </div>
+            {/* <div className="grid grid-cols-3 gap-4">
+              <Button>
+                <span>Scale Recipe</span> <ScaleIcon />
+              </Button>
+              <Button>
+                <span>Dietary</span> <NutIcon />
+              </Button>
+              <Button>
+                <span>Equipment</span> <MicrowaveIcon />
+              </Button>
+            </div> */}
+            {/* <Suspense fallback={<Skeleton className="w-full h-12" />}> */}
+            {/* <RemixCommand /> */}
+            {/* </Suspense> */}
+            <div className="mb-4 flex flex-col gap-2">
+              <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                <WaitForRecipe>
+                  <div className="grid grid-cols-2 px-3 gap-2">
+                    {/* <CommandGroup heading="Modify this recipe"></CommandGroup> */}
+                    <Link
+                      href={`/recipe/${slug}/remix?action=substitute`}
+                      className="flex-1"
+                    >
+                      <Button
+                        variant="outline"
+                        className="w-full h-full flex flex-col gap-1 items-center"
+                      >
+                        <h5>Substitute</h5>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Find alternatives for missing ingredients.
+                        </p>
+                      </Button>
+                    </Link>
+                    <Link href={`/recipe/${slug}/remix?action=dietary`}>
+                      <Button
+                        variant="outline"
+                        className="w-full h-full flex flex-col gap-1 items-center"
+                      >
+                        <h5>Diet Restrictions</h5>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Modify recipe for specific diets.
+                        </p>
+                      </Button>
+                    </Link>
+                    <Link href={`/recipe/${slug}/remix?action=servings`}>
+                      <Button
+                        variant="outline"
+                        className="w-full h-full flex flex-col gap-1 items-center"
+                      >
+                        <h5>Scale</h5>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Adjust recipe for more/fewer servings.
+                        </p>
+                      </Button>
+                    </Link>
+                    <Link href={`/recipe/${slug}/remix?action=equipment`}>
+                      <Button
+                        variant="outline"
+                        className="w-full h-full flex flex-col gap-1 items-center"
+                      >
+                        <h5>Equipment</h5>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Adapt recipe for different tools.
+                        </p>
+                      </Button>
+                    </Link>
+                  </div>
+                </WaitForRecipe>
+              </Suspense>
+            </div>
+          </Command>
         </Card>
       </div>
     </div>
@@ -292,48 +411,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
-
-async function PrefillGroup(props: {
-  name: string;
-  slug: string;
-  children: ReactNode;
-}) {
-  async function handleSubmit(data: FormData) {
-    // const choices = data.get("choices");
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Badge className="cursor-pointer" variant="outline">
-          {props.name}
-        </Badge>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <form action={handleSubmit}>{props.children}</form>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-async function PrefillGroupItem(props: { children: ReactNode }) {
-  return <>{props.children}</>;
-
-  // return <input type="hidden" name="prompt" value={item} />
-  // <Button variant="ghost" type="submit">
-  //   {item}
-  // </Button>
-}
-
-// {["Make it keto"].map((item) => (
-//   <DropdownMenuItem key={item}>
-//     <form action={handleSelectPrompt}>
-//       <input type="hidden" name="prompt" value={item} />
-//       <Button variant="ghost" type="submit">
-//         {item}
-//       </Button>
-//     </form>
-//   </DropdownMenuItem>
-// ))}
 
 async function CraftingDetails({ createdAt }: { createdAt: string }) {
   const date = new Date(createdAt);
@@ -415,21 +492,21 @@ const Times = ({ store }: { store: MapStore<StoreProps> }) => {
   return (
     <div className="flex flex-row gap-2 px-5 py-2 items-center justify-center">
       <ClockIcon className="h-5" />
-      <div>
-        <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
-          <span>Cook </span>
+      <div className="flex flex-row gap-1">
+        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
+          <span className="font-normal">Cook </span>
           <Suspense fallback={<Skeleton className="w-10 h-4" />}>
             <CookTime />
           </Suspense>
         </Badge>
-        <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
-          <span>Active </span>
+        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
+          <span className="font-normal">Active </span>
           <Suspense fallback={<Skeleton className="w-10 h-4" />}>
             <ActiveTime />
           </Suspense>
         </Badge>
-        <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
-          <span>Total </span>
+        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
+          <span className="font-normal">Total </span>
           <Suspense fallback={<Skeleton className="w-10 h-4" />}>
             <TotalTime />
           </Suspense>

@@ -52,9 +52,6 @@ async function getRecipeStream(props: { input: RecipePredictionInput }) {
 }
 
 async function getReplicateStream({ input }: { input: RecipePredictionInput }) {
-  const inputPromptTemplate = PromptTemplate.fromTemplate(`Name: {name}
-Description: {description}`);
-
   try {
     const response = await replicate.predictions.create({
       version:
@@ -70,7 +67,7 @@ Description: {description}`);
         max_new_tokens: 2048,
         // system_prompt: await systemPromptTemplate.format({}),
         prompt_template: CHAIN_TEMPLATE(input.suggestionsPrompt),
-        prompt: await inputPromptTemplate.format({
+        prompt: await userMessageTemplate.format({
           name: input.name,
           description: input.description,
         }),

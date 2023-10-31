@@ -48,12 +48,7 @@ export default async function Page({
 }: {
   searchParams: Record<string, string>;
 }) {
-  const queryParse = SuggestionPredictionInputSchema.safeParse(searchParams);
-  if (!queryParse.success) {
-    redirect("/craft");
-  }
-
-  const input = queryParse.data;
+  const input = SuggestionPredictionInputSchema.parse(searchParams);
   const inputHash = getObjectHash(input);
 
   await kv.hsetnx(`suggestions:${inputHash}`, "runStatus", "initializing");

@@ -18,8 +18,15 @@ export const RecipeRequiredPropsSchema = z.object({
 const UserIdSchema = z.string();
 
 export const SuggestionPredictionInputSchema = z.object({
-  prompt: z.string().min(1).max(100),
+  prompt: z.string().optional().default(""),
+  ingredients: z.string().optional().default(""),
+  tags: z.string().optional().default(""),
 });
+
+// z.object({
+//   prompt: z.string().min(0),
+//   ingredients: z.string().optional(),
+// });
 
 export const SuggestionPredictionOutputItemSchema = z.object({
   name: z.string(),
@@ -33,6 +40,18 @@ export const SuggestionPredictionOutputSchema = z.object({
 export const SuggestionPredictionPartialOutputSchema =
   SuggestionPredictionOutputSchema.deepPartial();
 
+export const TipsPredictionOutputSchema = z.object({
+  tips: z.array(z.string()),
+});
+export const TipsPredictionPartialOutputSchema =
+  TipsPredictionOutputSchema.deepPartial();
+
+export const RemixIdeasPredictionOutputSchema = z.object({
+  ideas: z.array(z.string()),
+});
+export const RemixIdeasPredictionPartialOutputSchema =
+  RemixIdeasPredictionOutputSchema.deepPartial();
+
 export const SuggestionSchema = SuggestionPredictionOutputItemSchema.merge(
   z.object({
     id: z.string(),
@@ -43,7 +62,8 @@ export const SuggestionsSchema = z.array(SuggestionSchema);
 export const RecipePredictionInputSchema = z.object({
   name: z.string(),
   description: z.string(),
-  suggestionsPrompt: z.string(),
+  suggestionsInput: SuggestionPredictionInputSchema,
+  // ingredients: z.string(),
   // suggestionsOutputYaml: z.string(),
 });
 
@@ -322,3 +342,23 @@ export const RecipeChatInputSchema = z.object({
 export const PromptSchema = z.string().nonempty().min(2).max(500);
 
 export type RecipeRequiredProps = z.infer<typeof RecipeRequiredPropsSchema>;
+
+export const RemixIdeasPredictionInputSchema = z.object({
+  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+    RecipePredictionOutputSchema.shape.recipe.pick({
+      ingredients: true,
+      tags: true,
+      instructions: true,
+    })
+  ),
+});
+
+export const TipsPredictionInputSchema = z.object({
+  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+    RecipePredictionOutputSchema.shape.recipe.pick({
+      ingredients: true,
+      tags: true,
+      instructions: true,
+    })
+  ),
+});

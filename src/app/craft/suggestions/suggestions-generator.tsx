@@ -125,7 +125,7 @@ function eventSourceToAsyncIterable(stream: string): AsyncIterable<string> {
 }
 
 const CHAIN_TEMPLATE = `<|im_start|>system:
-You will be provided with an input related to food – this can include ingredients, dish names, cooking techniques, or other culinary themes. Your task is to generate six distinct recipes that align with the given input.
+You will be provided with an input related to food – this can include ingredients, cooking techniques, or other culinary themes. Your task is to generate six recipes that involve the given input.
 
 Format the response in a YAML block. Each recipe suggestion should have both a 'name' and a 'description'. The top-level key should be "suggestions". Ensure the YAML format has appropriate white space for the list items under suggestions.
 
@@ -140,24 +140,30 @@ suggestions:
 
 Example: 
 
+user:
+
+eggs, feta
+
+assistant:
 \`\`\`yaml
 suggestions:
-  - name: Chocolate Lava Cake
-    description: A warm, gooey chocolate cake with a melted center that is perfect for sharing.
-  - name: Chocolate Mousse
-    description: Light and fluffy chocolate mousse served in individual ramekins or as part of a dessert platter.
-  - name: Chocolate Brownies
-    description: Rich, fudgy brownies made with melted chocolate and topped with frosting.
-  - name: Chocolate Fondue
-    description: Warm, creamy chocolate served with fruit skewers, cookies, or other favorite dipping treats.
-  - name: Chocolate Cake Pops
-    description: Miniature cakes made from chocolate cake crumbs and topped with frosting and sprinkles.
-  - name: Chocolate Tiramisu
-    description: Classic Italian dessert made with layers of coffee-soaked ladyfingers, mascarpone cheese, and rich chocolate sauce.
+  - name: "Feta Omelette"
+    description: "Fluffy eggs, crumbled feta, spinach, tomatoes. Breakfast classic."
+  - name: "Egg Feta Muffins"
+    description: "Whisked eggs, feta, veggies. Baked in muffin tins."
+  - name: "Spinach Egg Pie"
+    description: "Layered phyllo, spinach, eggs, feta. Golden crust delight."
+  - name: "Feta Scramble"
+    description: "Soft scrambled eggs, feta, herbs. Creamy and savory."
+  - name: "Egg Feta Tart"
+    description: "Shortcrust, eggs, feta, olives. Mediterranean-inspired pastry."
+  - name: "Egg-Feta Soufflé"
+    description: "Airy eggs, feta. Puffed up gourmet elegance."
 \`\`\`
+
 <|im_end|>
 <|im_start|>user:
-{prompt}<|im_end|>
+{prompt} {ingredients} {tags}<|im_end|>
 <|im_start|>assistant:
 `;
 
@@ -173,55 +179,10 @@ async function getOllamaStream({
 
   const promptTemplate = PromptTemplate.fromTemplate(CHAIN_TEMPLATE);
   const chain = promptTemplate.pipe(llm);
+  console.log({ input });
   const stream = await chain.stream({
     ...input,
   });
 
   return stream as AsyncIterable<string>;
 }
-
-// const chatPrompt = ChatPromptTemplate.fromMessages([
-//   [
-//     "system",
-//     `You will be provided with an input related to food – this can include ingredients, dish names, cooking techniques, or other culinary themes. Your task is to generate six distinct recipes that align with the given input.
-
-//     Format the response in a YAML block. Each recipe suggestion should have both a 'name' and a 'description'. The top-level key should be "suggestions". Ensure the YAML format has appropriate white space for the list items under suggestions.
-
-//     \`\`\`yaml
-//     suggestions:
-//       - name: Recipe Name 1
-//         description: Description of recipe 1.
-//       - name: Recipe Name 2
-//         description: Description of recipe 2.
-//       ... [and so forth for all six recipes]
-//     \`\`\`
-
-//     Example:
-//     \`\`\`yaml
-//     suggestions:
-//       - name: Chocolate Lava Cake
-//         description: A warm, gooey chocolate cake with a melted center that is perfect for sharing.
-//       - name: Chocolate Mousse
-//         description: Light and fluffy chocolate mousse served in individual ramekins or as part of a dessert platter.
-//       - name: Chocolate Brownies
-//         description: Rich, fudgy brownies made with melted chocolate and topped with frosting.
-//       - name: Chocolate Fondue
-//         description: Warm, creamy chocolate served with fruit skewers, cookies, or other favorite dipping treats.
-//       - name: Chocolate Cake Pops
-//         description: Miniature cakes made from chocolate cake crumbs and topped with frosting and sprinkles.
-//       - name: Chocolate Tiramisu
-//         description: Classic Italian dessert made with layers of coffee-soaked ladyfingers, mascarpone cheese, and rich chocolate sauce.
-//     \`\`\``,
-//   ],
-//   ["human", `{prompt}`],
-// ]);
-
-// Example 1
-// \`\`\`yaml
-// suggestions:
-//   - name: Recipe Name 1
-//     description: Description of recipe 1.
-//   - name: Recipe Name 2
-//     description: Description of recipe 2.
-//   ... [and so forth for all six recipes]
-// \`\`\`
