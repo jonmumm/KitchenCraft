@@ -11,8 +11,8 @@ export const ModificationSection = () => {
   switch (modification) {
     case "substitute":
       return <SubstituteModification />;
-    case "servings":
-      return <ServingsModification />;
+    case "scale":
+      return <ScaleModification />;
     case "equipment":
       return <EquipmentModification />;
     case "dietary":
@@ -20,10 +20,6 @@ export const ModificationSection = () => {
     default:
       return null;
   }
-  //   const modification = ModificationSchema.parse(
-  //     props.searchParams["modification"]
-  //   );
-  return <>{modification}</>;
 };
 
 const EquipmentModification = async () => {
@@ -34,8 +30,8 @@ const DietaryModification = async () => {
   return <>dietary</>;
 };
 
-const ServingsModification = async () => {
-  return <>servings</>;
+const ScaleModification = async () => {
+  return <>scale</>;
 };
 
 const SubstituteModification = async () => {
