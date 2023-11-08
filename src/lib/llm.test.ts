@@ -2,6 +2,45 @@ import * as yaml from "js-yaml";
 import { test } from "vitest";
 import { sanitizeOutput } from "./llm";
 
+const WITH_EXTRA_DELIMITER =
+  "recipe:\n" +
+  "  yield: 3 servings\n" +
+  "  activeTime: PT10M\n" +
+  "  cookTime: PT20M\n" +
+  "  totalTime: PT30M\n" +
+  "  tags:\n" +
+  '    - "Main Course"\n' +
+  '    - "Spicy"\n' +
+  "  ingredients:\n" +
+  '    - "1/2 lb boneless chicken breast"\n' +
+  '    - "1 tbsp vegetable oil"\n' +
+  '    - "1/2 large onion, chopped"\n' +
+  '    - "1 garlic clove, minced"\n' +
+  '    - "1/2 jalapeño, seeded and chopped"\n' +
+  '    - "1/2 tsp ground cumin"\n' +
+  '    - "1/2 tsp dried oregano"\n' +
+  '    - "1/4 tsp paprika"\n' +
+  '    - "1/8 tsp cayenne pepper (optional, for extra spice)"\n' +
+  '    - "2 cups chicken broth"\n' +
+  '    - "1 cup water"\n' +
+  '    - "1 can (14.5 oz) diced tomatoes"\n' +
+  '    - "1 can (15 oz) black beans, drained and rinsed"\n' +
+  '    - "1 can (15 oz) corn, drained"\n' +
+  '    - "1/4 cup frozen corn"\n' +
+  '    - "Salt and pepper to taste"\n' +
+  '    - "Corn tortillas, cut into thin strips"\n' +
+  '    - "Lime wedges, for serving"\n' +
+  "  instructions:\n" +
+  '    - "Season the chicken breasts with salt and pepper. In a large pot, heat the vegetable oil over medium-high heat. Cook the chicken breasts until golden brown and cooked through, about 5 minutes per side."\n' +
+  '    - "Remove and let cool."\n' +
+  '    - "In the same pot, sauté the onion until softened. Add the garlic, jalapeño, cumin, oregano, and paprika. Cook for another 2-3 minutes."\n' +
+  '    - "Shred the cooked chicken and add it back to the pot."\n' +
+  '    - "Stir in the chicken broth, water, diced tomatoes, black beans, and corn."\n' +
+  '    - "Season with salt and pepper to taste. Bring the mixture to a boil, then reduce heat and let it simmer for 20-30 minutes."\n' +
+  '    - "In a separate pan, cook the corn tortilla strips until crispy. Drain on paper towels."\n' +
+  '    - "Ladle the soup into bowls, top with crispy tortilla strips, and serve with lime wedges."\n' +
+  "```";
+
 const WITH_NO_START_DELIMITER = `recipe:
   yield: "6 servings"
   activeTime: "PT20M"
@@ -106,13 +145,13 @@ suggestions:
     description: "Pork tenderloin, seasoning.
 `;
 
-
 const testInputs = [
   WITH_OPEN_AND_CLOSE_DELIMITERS,
   WITH_EXTRA_COLON,
   WITH_NO_START_DELIMITER,
   WITH_NO_DELIMITERS,
   DUPLICATE_YAML_BLOCK,
+  WITH_EXTRA_DELIMITER,
 ];
 
 test.each(testInputs)(

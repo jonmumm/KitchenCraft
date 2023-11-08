@@ -23,14 +23,14 @@ export const useActor = <TMachine extends AnyStateMachine>(
 
   const [actor] = useState(existingActor || createActor(machine, opts));
   useLayoutEffect(() => {
-    if (actor !== existingActor) {
+    if (actor !== appStore.get()[key]) {
       appStore.setKey(key, actor);
       actor.start();
       event$.subscribe((event) => {
         actor.send(event as any);
       });
     }
-  }, [actor, event$, appStore, actor, existingActor]);
+  }, [key, actor, event$, appStore]);
 
   return actor;
 };

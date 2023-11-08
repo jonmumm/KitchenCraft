@@ -36,6 +36,23 @@ import {
   TipsPredictionOutputSchema,
   TipsPredictionInputSchema,
   ModificationSchema,
+  SubstitutionsPredictionOutputSchema,
+  SubstitutionsPredictionPartialOutputSchema,
+  SubstitutionsPredictionInputSchema,
+  NewRecipePredictionInputSchema,
+  ScaleRecipePredictionInputSchema,
+  SubstituteRecipePredictionInputSchema,
+  CraftActionSchema,
+  SuggestionsInputSchema,
+  SubstitutionsInputSchema,
+  GeneratorTypeSchema,
+  RecipeRequiredPropsSchema,
+  EquipmentAdaptationsInputSchema,
+  DietaryAlternativesInputSchema,
+  IdeasPredictionOutputSchema,
+  DietaryAlternativesPredictionInputSchema,
+  EquipmentAdaptationsPredictionInputSchema,
+  FAQsPredictionInputSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -69,7 +86,9 @@ export type SystemMessage = z.infer<typeof SystemMessageSchema>;
 export type LLMMessageSetId = z.infer<typeof LLMMessageSetIdSchema>;
 
 export type RecipePromptResult = z.infer<typeof RecipePredictionOutputSchema>;
-export type RecipeViewerData = z.infer<typeof RecipePredictionPartialOutputSchema>;
+export type RecipeViewerData = z.infer<
+  typeof RecipePredictionPartialOutputSchema
+>;
 
 export type RecipeSlug = z.infer<typeof SlugSchema>;
 export type SuggestionPredictionInput = z.infer<
@@ -82,13 +101,20 @@ export type SuggestionPredictionPartialOutput = z.infer<
   typeof SuggestionPredictionPartialOutputSchema
 >;
 export type RecipePredictionInput = z.infer<typeof RecipePredictionInputSchema>;
-export type RecipePredictionOutput = z.infer<typeof RecipePredictionOutputSchema>;
-export type RecipePredictionPartialOutput = z.infer<typeof RecipePredictionPartialOutputSchema>;
+export type RecipePredictionOutput = z.infer<
+  typeof RecipePredictionOutputSchema
+>;
+export type RecipePredictionPartialOutput = z.infer<
+  typeof RecipePredictionPartialOutputSchema
+>;
 
 export type Suggestion = z.infer<typeof SuggestionSchema>;
 
 export type RemixIdeasPredictionInput = z.infer<
   typeof RemixIdeasPredictionInputSchema
+>;
+export type FAQsPredictionInput = z.infer<
+  typeof FAQsPredictionInputSchema
 >;
 export type RemixIdeasPredictionOutput = z.infer<
   typeof RemixIdeasPredictionOutputSchema
@@ -97,14 +123,53 @@ export type RemixIdeasPredictionPartialOutput = z.infer<
   typeof RemixIdeasPredictionPartialOutputSchema
 >;
 
-export type TipsPredictionInput = z.infer<
-  typeof TipsPredictionInputSchema
->;
-export type TipsPredictionOutput = z.infer<
-  typeof TipsPredictionOutputSchema
->;
+export type TipsPredictionInput = z.infer<typeof TipsPredictionInputSchema>;
+export type TipsPredictionOutput = z.infer<typeof TipsPredictionOutputSchema>;
 export type TipsPredictionPartialOutput = z.infer<
   typeof TipsPredictionPartialOutputSchema
 >;
 
 export type Modification = z.infer<typeof ModificationSchema>;
+
+export type IdeasPredictionOutput = z.infer<typeof IdeasPredictionOutputSchema>;
+
+export type SubstitutionsPredictionInput = z.infer<
+  typeof SubstitutionsPredictionInputSchema
+>;
+export type SubstitutionsPredictionOutput = z.infer<
+  typeof SubstitutionsPredictionOutputSchema
+>;
+export type SubstitutionsPredictionPartialOutput = z.infer<
+  typeof SubstitutionsPredictionPartialOutputSchema
+>;
+
+export type NewRecipePredictionInput = z.infer<
+  typeof NewRecipePredictionInputSchema
+>;
+export type ScaleRecipePredictionInput = z.infer<
+  typeof ScaleRecipePredictionInputSchema
+>;
+export type SubstituteRecipePredictionInput = z.infer<
+  typeof SubstituteRecipePredictionInputSchema
+>;
+
+export type CraftAction = z.infer<typeof CraftActionSchema>;
+
+export type SuggestionsInput = z.infer<typeof SuggestionsInputSchema>;
+export type SubstitutionsInput = z.infer<typeof SubstitutionsInputSchema>;
+export type DietaryAlternativesInput = z.infer<
+  typeof DietaryAlternativesInputSchema
+>;
+export type EquipmentAdaptationsInput = z.infer<
+  typeof EquipmentAdaptationsInputSchema
+>;
+
+export type GeneratorType = z.infer<typeof GeneratorTypeSchema>;
+export type RecipeRequiredProps = z.infer<typeof RecipeRequiredPropsSchema>;
+
+export type DietaryAlternativesPredictionInput = z.infer<
+  typeof DietaryAlternativesPredictionInputSchema
+>;
+export type EquipmentAdaptationsPredictionInput = z.infer<
+  typeof EquipmentAdaptationsPredictionInputSchema
+>;

@@ -67,6 +67,7 @@ export default async function Generator<
     return (
       <YamlFixer
         onError={(error, outputRaw) => {
+          console.log({ error, outputRaw });
           onError && onError(error, outputRaw);
         }}
         onComplete={(outputYaml) => {

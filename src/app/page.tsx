@@ -1,9 +1,7 @@
-import { Button } from "@/components/ui/button";
 import FloatingHeader from "@/components/ui/floating-header";
 import { AxeIcon } from "lucide-react";
-import Link from "next/link";
 import { Header } from "./header";
-import { RecentRecipes } from "@/components/recent-recipes";
+import { NewRecipeButton } from "./new-recipe-button";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +15,7 @@ export default async function Home({
       <Header />
       <FloatingHeader>
         <div className="flex flex-row justify-end">
-
-        {/* <div>
+          {/* <div>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline">
@@ -46,16 +43,12 @@ export default async function Home({
             </PopoverContent>
           </Popover>
           <div> */}
-        <Link href="/craft">
-          <Button variant="outline">
+          <NewRecipeButton variant="outline">
             <AxeIcon />
-          </Button>
-        </Link>
+          </NewRecipeButton>
         </div>
       </FloatingHeader>
-      <div className="flex flex-col flex-end">
-        <RecentRecipes />
-      </div>
+      <div className="flex flex-col flex-end">{/* <RecentRecipes /> */}</div>
       {/* <Footer /> */}
     </div>
   );

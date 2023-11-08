@@ -29,7 +29,6 @@ export const YamlFixer = async ({
 
   const outputRaw = charArray.join("");
   const outputYaml = sanitizeOutput(outputRaw);
-  console.log({ outputRaw, outputYaml });
 
   onComplete && onComplete(outputYaml);
 

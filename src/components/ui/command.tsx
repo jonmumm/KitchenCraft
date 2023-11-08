@@ -1,12 +1,15 @@
 "use client";
 
-import * as React from "react";
 import { DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
-import { Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
+import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useSend } from "@/hooks/useSend";
+import { cn } from "@/lib/utils";
+import { AppEvent } from "@/types";
+import { VariantProps, cva } from "class-variance-authority";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -39,10 +42,17 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
+    icon?: "search" | "prompt";
+  }
+>(({ className, icon = "prompt", ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    {icon !== "prompt" && (
+      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    )}
+    {icon === "prompt" && (
+      <ChevronRight className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    )}
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -89,7 +99,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:uppercase",
+      "py-2 px-3 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:uppercase",
       className
     )}
     {...props}
@@ -109,22 +119,56 @@ const CommandSeparator = React.forwardRef<
   />
 ));
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName;
+// Add your CommandItem variants here
+const commandItemVariants = cva(
+  [
+    "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-offset-2",
+    "aria-selected:bg-slate-500 aria-selected:text-hicontrast-foreground",
+    "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+  ],
+  {
+    variants: {
+      variant: {
+        // ghost: "bg-transparent hover:bg-gray-100 hover:text-gray-900",
+        outline: "border border-gray-300 text-gray-700 hover:bg-gray-100",
+      },
+    },
+    // defaultVariants: {
+    //   variant: "ghost",
+    // },
+  }
+);
 
+// Extend the CommandItem component props to include variants
+export interface CommandItemProps
+  extends React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>,
+    VariantProps<typeof commandItemVariants> {
+  event?: AppEvent;
+}
+
+// Update your CommandItem component to use the new variant prop
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.Item
-    ref={ref}
-    className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    )}
-    {...props}
-  />
-));
+  CommandItemProps
+>(({ event, variant, className, ...props }, ref) => {
+  const send = useSend();
+  const handleSelect = React.useCallback(() => {
+    if (event) {
+      send(event);
+    }
+  }, [event, send]);
 
-CommandItem.displayName = CommandPrimitive.Item.displayName;
+  return (
+    <CommandPrimitive.Item
+      ref={ref}
+      onSelect={event ? handleSelect : undefined}
+      className={cn(commandItemVariants({ variant }), className)}
+      {...props}
+    />
+  );
+});
+
+CommandItem.displayName = "CommandItem";
 
 const CommandShortcut = ({
   className,
@@ -145,11 +189,11 @@ CommandShortcut.displayName = "CommandShortcut";
 export {
   Command,
   CommandDialog,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
-  CommandShortcut,
+  CommandList,
   CommandSeparator,
+  CommandShortcut,
 };

@@ -8,11 +8,27 @@ import {
   TECHNIQUES,
 } from "./constants";
 
+export const ModificationSchema = z.enum([
+  "substitute",
+  "dietary",
+  "equipment",
+  "scale",
+]);
+
+export const RunStatusSchema = z
+  .enum(["initializing", "starting", "started", "receiving", "done", "error"])
+  .nullable();
+
 export const RecipeRequiredPropsSchema = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.string(),
-  fromSuggestionsKey: z.string(),
+  fromResult: z.object({
+    resultId: z.string(),
+    index: z.number(),
+  }),
+  createdAt: z.string(),
+  runStatus: RunStatusSchema,
 });
 
 const UserIdSchema = z.string();
@@ -28,14 +44,23 @@ export const SuggestionPredictionInputSchema = z.object({
 //   ingredients: z.string().optional(),
 // });
 
-export const SuggestionPredictionOutputItemSchema = z.object({
+export const SuggestionItemSchema = z.object({
   name: z.string(),
   description: z.string(),
 });
 
 export const SuggestionPredictionOutputSchema = z.object({
-  suggestions: z.array(SuggestionPredictionOutputItemSchema),
+  suggestions: z.array(SuggestionItemSchema),
 });
+export const QuestionsPredictionOutputSchema = z.object({
+  questions: z.array(z.string()),
+});
+
+export const IdeasPredictionOutputSchema = z.object({
+  ideas: z.array(z.string()),
+});
+export const IdeasPredictionPartialOutputSchema =
+  IdeasPredictionOutputSchema.deepPartial();
 
 export const SuggestionPredictionPartialOutputSchema =
   SuggestionPredictionOutputSchema.deepPartial();
@@ -52,20 +77,32 @@ export const RemixIdeasPredictionOutputSchema = z.object({
 export const RemixIdeasPredictionPartialOutputSchema =
   RemixIdeasPredictionOutputSchema.deepPartial();
 
-export const SuggestionSchema = SuggestionPredictionOutputItemSchema.merge(
+export const SuggestionSchema = SuggestionItemSchema.merge(
   z.object({
     id: z.string(),
   })
 );
 export const SuggestionsSchema = z.array(SuggestionSchema);
 
-export const RecipePredictionInputSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  suggestionsInput: SuggestionPredictionInputSchema,
-  // ingredients: z.string(),
-  // suggestionsOutputYaml: z.string(),
-});
+export const RecipePathSchema = z
+  .string()
+  .refine(
+    (path) => {
+      const parts = path.split("/");
+
+      // Check that the path has the correct structure
+      return parts.length === 3 && parts[0] === "" && parts[1] === "recipe";
+    },
+    {
+      message: "Invalid full pathname. Must be in the format of /recipe/[slug]",
+    }
+  )
+  .transform((path) => {
+    // We know the path has the correct format so we can split and return the slug part directly
+    const slug = path.split("/")[2];
+    // Use the SlugSchema to parse and validate the slug
+    return SlugSchema.parse(slug);
+  });
 
 export const SlugSchema = z
   .string()
@@ -81,10 +118,6 @@ export const SlugSchema = z
 export const MessageContentSchema = z.string();
 
 export const RoleSchema = z.enum(["system", "user", "assistant", "function"]);
-
-export const RunStatusSchema = z
-  .enum(["initializing", "starting", "started", "receiving", "done", "error"])
-  .nullable();
 
 // export const ChainSchema =
 
@@ -164,9 +197,9 @@ export const CreateRecipeInputSchema = z.object({
   description: z.string(),
 });
 
-const ModifyRecipeEventSchema = z.object({
-  type: z.literal("MODIFY"),
-  recipeSlug: SlugSchema,
+const SelectResultEventSchema = z.object({
+  type: z.literal("SELECT_RESULT"),
+  index: z.number(),
 });
 
 const SelectRecipeEventSchema = z.object({
@@ -211,6 +244,11 @@ const SubmitEventSchema = z.object({
   type: z.literal("SUBMIT"),
 });
 
+const SubmitPromptEventSchema = z.object({
+  type: z.literal("SUBMIT_PROMPT"),
+  prompt: z.string(),
+});
+
 const BackEventSchema = z.object({
   type: z.literal("BACK"),
 });
@@ -223,12 +261,115 @@ const CloseConfiguratorEventSchema = z.object({
   type: z.literal("CLOSE_CONFIGURATOR"),
 });
 
+const NewRecipeEventSchema = z.object({
+  type: z.literal("NEW_RECIPE"),
+});
+
+const ModifyEventSchema = z.object({
+  type: z.literal("MODIFY"),
+  modification: ModificationSchema,
+  slug: SlugSchema,
+});
+
+const AddIngredientEventSchema = z.object({
+  type: z.literal("ADD_INGREDIENT"),
+  ingredient: z.string(),
+});
+
+const AddTagEventSchema = z.object({
+  type: z.literal("ADD_TAG"),
+  tag: z.string(),
+});
+
+const RemoveTagEventSchema = z.object({
+  type: z.literal("REMOVE_TAG"),
+  tag: z.string(),
+});
+
+const RemoveIngredientEventSchema = z.object({
+  type: z.literal("REMOVE_INGREDIENT"),
+  ingredient: z.string(),
+});
+
+const CloseEventSchema = z.object({
+  type: z.literal("CLOSE"),
+});
+
+const SaveEventSchema = z.object({
+  type: z.literal("SAVE"),
+  opts: z
+    .object({
+      asNew: z.boolean(),
+    })
+    .optional(),
+});
+
+const CreateNewRecipeLiteral = z.literal("CREATE_NEW_RECIPE");
+const SuggestRecipesLiteral = z.literal("SUGGEST_RECIPES");
+const ModifyRecipeIngredientsLiteral = z.literal("MODIFY_RECIPE_INGREDIENTS");
+const ModifyRecipeDietaryLiteral = z.literal("MODIFY_RECIPE_DIETARY");
+const ModifyReicpeScaleLiteral = z.literal("MODIFY_RECIPE_SCALE");
+const ModifyRecipeEquipmentLiteral = z.literal("MODIFY_RECIPE_EQUIPMENT");
+
+export const CraftActionSchema = z.union([
+  CreateNewRecipeLiteral,
+  SuggestRecipesLiteral,
+  ModifyRecipeIngredientsLiteral,
+  ModifyRecipeDietaryLiteral,
+  ModifyReicpeScaleLiteral,
+  ModifyRecipeEquipmentLiteral,
+]);
+
+const CreateNewRecipeEventSchema = z.object({
+  type: CreateNewRecipeLiteral,
+});
+const SuggestRecipesEventSchema = z.object({
+  type: SuggestRecipesLiteral,
+});
+const ModifyRecipeEquipmentEventSchema = z.object({
+  type: ModifyRecipeEquipmentLiteral,
+});
+const ModifyRecipeDietaryEventSchema = z.object({
+  type: ModifyRecipeDietaryLiteral,
+});
+const ModifyRecipeScaleEventSchema = z.object({
+  type: ModifyReicpeScaleLiteral,
+});
+const ModifyRecipeIngredientsEventSchema = z.object({
+  type: ModifyRecipeIngredientsLiteral,
+});
+const ToggleEventSchema = z.object({
+  type: z.literal("TOGGLE"),
+});
+const ClearEventSchema = z.object({
+  type: z.literal("CLEAR"),
+});
+
+const PageLoadedEventSchema = z.object({
+  type: z.literal("PAGE_LOADED"),
+  pathname: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
-  ModifyRecipeEventSchema,
+  PageLoadedEventSchema,
+  ClearEventSchema,
+  ToggleEventSchema,
+  CreateNewRecipeEventSchema,
+  SuggestRecipesEventSchema,
+  ModifyRecipeIngredientsEventSchema,
+  ModifyRecipeEquipmentEventSchema,
+  ModifyRecipeScaleEventSchema,
+  ModifyRecipeDietaryEventSchema,
+  SaveEventSchema,
+  CloseEventSchema,
+  NewRecipeEventSchema,
+  ModifyEventSchema,
   SelectRecipeEventSchema,
+  SelectResultEventSchema,
   SelectRelatedIdeaEventSchema,
   SetInputEventSchema,
   SubmitEventSchema,
+  SubmitPromptEventSchema,
   FocusPromptEventSchema,
   BlurPromptEventSchema,
   InitEventSchema,
@@ -237,6 +378,10 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   CloseConfiguratorEventSchema,
   SetUsernameEventSchema,
   StartOverEventSchema,
+  RemoveIngredientEventSchema,
+  RemoveTagEventSchema,
+  AddTagEventSchema,
+  AddIngredientEventSchema,
 ]);
 
 // TypeScript Type Literals
@@ -268,11 +413,6 @@ const NutritionFactsSchema = z.object({
   saturatedFats: z.number().optional(),
   sugars: z.number().optional(),
   dietaryFiber: z.number().optional(),
-});
-
-export const FullRecipeSchema = z.object({
-  details: RecipeDetailsSchema,
-  nutritionFacts: NutritionFactsSchema,
 });
 
 export const RecipeAttributesSchema = z.object({
@@ -326,12 +466,38 @@ export const RecipePredictionPartialOutputSchema =
 //   .merge(RecipePredictionDataSchema);
 export const RecipeSchema = RecipeRequiredPropsSchema.merge(
   RecipePredictionOutputSchema.shape.recipe.partial()
-).merge(
-  z.object({
-    runStatus: RunStatusSchema.optional(),
-    createdAt: z.string().optional(),
-  })
 );
+
+export const NewRecipePredictionInputSchema = z.object({
+  type: z.literal("NEW_RECIPE"),
+  recipe: z.object({
+    name: z.string(),
+    description: z.string(),
+  }),
+  suggestionsInput: SuggestionPredictionInputSchema,
+});
+
+export const ScaleRecipePredictionInputSchema = z.object({
+  type: z.literal("SCALE_RECIPE"),
+  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+    RecipePredictionOutputSchema.shape.recipe
+  ),
+  scale: z.string(),
+});
+
+export const SubstituteRecipePredictionInputSchema = z.object({
+  type: z.literal("SUBSTITUTE_RECIPE"),
+  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+    RecipePredictionOutputSchema.shape.recipe
+  ),
+  substitution: z.string(),
+});
+
+export const RecipePredictionInputSchema = z.discriminatedUnion("type", [
+  NewRecipePredictionInputSchema,
+  ScaleRecipePredictionInputSchema,
+  SubstituteRecipePredictionInputSchema,
+]);
 
 export const RecipeChatInputSchema = z.object({
   chatId: z.string(),
@@ -341,16 +507,19 @@ export const RecipeChatInputSchema = z.object({
 
 export const PromptSchema = z.string().nonempty().min(2).max(500);
 
-export type RecipeRequiredProps = z.infer<typeof RecipeRequiredPropsSchema>;
+export const CompletedRecipeSchema = RecipeRequiredPropsSchema.merge(
+  RecipePredictionOutputSchema.shape.recipe
+).merge(
+  z.object({
+    runStatus: z.literal("done"),
+  })
+);
 
 export const RemixIdeasPredictionInputSchema = z.object({
-  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
-    RecipePredictionOutputSchema.shape.recipe.pick({
-      ingredients: true,
-      tags: true,
-      instructions: true,
-    })
-  ),
+  recipe: CompletedRecipeSchema,
+});
+export const FAQsPredictionInputSchema = z.object({
+  recipe: CompletedRecipeSchema,
 });
 
 export const TipsPredictionInputSchema = z.object({
@@ -363,9 +532,62 @@ export const TipsPredictionInputSchema = z.object({
   ),
 });
 
-export const ModificationSchema = z.enum([
-  "substitute",
-  "dietary",
-  "equipment",
-  "scale",
-]);
+export const SubstitutionsPredictionInputSchema = z.object({
+  recipe: CompletedRecipeSchema,
+});
+export const DietaryAlternativesPredictionInputSchema = z.object({
+  recipe: CompletedRecipeSchema,
+});
+export const EquipmentAdaptationsPredictionInputSchema = z.object({
+  recipe: CompletedRecipeSchema,
+});
+
+export const SubstitutionsPredictionOutputSchema = z.object({
+  substitutions: z.array(z.string().min(1)),
+});
+
+export const SubstitutionsPredictionPartialOutputSchema =
+  SubstitutionsPredictionOutputSchema.deepPartial();
+
+export const SuggestionsInputSchema = z
+  .object({
+    ingredients: z.array(z.string()).nullable(),
+    tags: z.array(z.string()).nullable(),
+    prompt: z.string().optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      const hasIngredients = data.ingredients && data.ingredients.length > 0;
+      const hasTags = data.tags && data.tags.length > 0;
+      const hasPrompt = data.prompt?.trim() !== "";
+      return hasIngredients || hasTags || hasPrompt;
+    },
+    {
+      message:
+        "At least one of 'ingredients', 'tags', or 'prompt' must have a non-empty value",
+    }
+  );
+
+export const SubstitutionsInputSchema = z.object({
+  slug: z.string(),
+});
+export const DietaryAlternativesInputSchema = z.object({
+  slug: z.string(),
+});
+
+export const EquipmentAdaptationsInputSchema = z.object({
+  slug: z.string(),
+});
+
+export const GeneratorTypeSchema = z.enum(["suggestions"]);
+
+export const ResultSchema = z.object({
+  status: z.enum(["running", "error", "done"]),
+  type: z.literal("suggestion"),
+  input: SuggestionPredictionInputSchema,
+  outputRaw: z.string(),
+});
+
+export const outputSchemaByType = {
+  suggestion: SuggestionPredictionOutputSchema,
+} as const;

@@ -1,3 +1,10 @@
+export const STATUS = {
+  INITIALIZING: "initializing",
+  RUNNING: "running",
+  DONE: "done",
+  ERROR: "error",
+};
+
 export const DISH_TYPES = [
   "Main Dish",
   "Side Dish",

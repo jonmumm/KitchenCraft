@@ -328,8 +328,11 @@ for (const recipe of testRecipes) {
   test(`RecipeGenerator: ${recipe.name}`, async () => {
     const testPromise = new Promise<void>(async (resolve, reject) => {
       const input = {
-        name: recipe.name,
-        description: recipe.description,
+        type: "NEW_RECIPE" as const,
+        recipe: {
+          name: recipe.name,
+          description: recipe.description,
+        },
         suggestionsInput: recipe.suggestionsInput,
         suggestionsOutputRaw: recipe.suggestionsOutputRaw,
       };

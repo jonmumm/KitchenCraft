@@ -3,6 +3,7 @@ import {
   LLMMessageSetSchema,
   MessageSchema,
   RecipeSchema,
+  ResultSchema,
   SlugSchema,
   SuggestionSchema,
 } from "@/schema";
@@ -57,4 +58,11 @@ export const getLLMMessageSet = async (
 export const getSuggestions = async (kv: typeof _kv, inputHash: string) => {
   const output = await kv.hget(`suggestions:${inputHash}`, "output");
   return z.object({ suggestions: z.array(SuggestionSchema) }).parse(output);
+};
+
+
+export const getResult = async (kv: typeof _kv, id: string) => {
+  const resultKey = `result:${id}`;
+  const result = await kv.hgetall(resultKey);
+  return ResultSchema.parse(result);
 };

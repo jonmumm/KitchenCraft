@@ -177,3 +177,13 @@ export const waitForStoreValue = async <TSelect, TStoreProps extends object>(
     });
   });
 };
+
+export const isMobile = () => {
+  // Return false if the `navigator` object is not present
+  if (typeof navigator === "undefined") return false;
+
+  // Check the user agent string against mobile patterns
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+};

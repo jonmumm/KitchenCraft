@@ -1,14 +1,14 @@
 import Generator from "@/components/generator";
-import { eventSourceToAsyncIterable } from "@/lib/event-source";
-import { assert } from "@/lib/utils";
+import { TokenStream } from "@/lib/token-stream";
 import { RecipePredictionOutputSchema } from "@/schema";
 import {
+  NewRecipePredictionInput,
   RecipePredictionInput,
   RecipePredictionOutput,
   RecipePredictionPartialOutput,
+  ScaleRecipePredictionInput,
+  SubstituteRecipePredictionInput,
 } from "@/types";
-import { Ollama } from "langchain/llms/ollama";
-import { PromptTemplate } from "langchain/prompts";
 import Replicate from "replicate";
 import { z } from "zod";
 import { FORMAT_INSTRUCTIONS } from "./format-instructions";
@@ -27,12 +27,9 @@ type Props = {
 export default async function RecipeGenerator<
   TOutput extends z.ZodRawShape,
   TPartialSchema extends z.ZodTypeAny,
->({ input, onStart, ...props }: Props) {
-  const stream = await getRecipeStream({
-    input,
-  });
-
-  onStart && onStart();
+>({ input, ...props }: Props) {
+  const recipeTokenStream = new RecipeTokenStream();
+  const stream = await recipeTokenStream.getStream(input);
 
   return (
     <Generator
@@ -43,79 +40,122 @@ export default async function RecipeGenerator<
   );
 }
 
-async function getRecipeStream(props: { input: RecipePredictionInput }) {
-  if (process.env.NODE_ENV === "production") {
-    return getReplicateStream(props);
-  } else {
-    return getOllamaStream(props);
+export class RecipeTokenStream extends TokenStream<RecipePredictionInput> {
+  protected async constructPrompt(
+    input: RecipePredictionInput
+  ): Promise<string> {
+    switch (input.type) {
+      case "NEW_RECIPE":
+        return NEW_RECIPE_USER_PROMPT(input);
+      case "SCALE_RECIPE":
+        return SCALE_RECIPE_USER_PROMPT(input);
+      case "SUBSTITUTE_RECIPE":
+        return SUBSTITUTE_RECIPE_USER_PROMPT(input);
+    }
+  }
+
+  protected async constructTemplate(
+    input: RecipePredictionInput
+  ): Promise<string> {
+    switch (input.type) {
+      case "NEW_RECIPE":
+        return NEW_RECIPE_TEMPLATE(input);
+      case "SCALE_RECIPE":
+        return SCALE_RECIPE_TEMPLATE(input);
+      case "SUBSTITUTE_RECIPE":
+        return SUBSTITUTE_RECIPE_TEMPLATE(input);
+    }
+  }
+
+  protected getDefaultTokens(): number {
+    return 2048;
   }
 }
 
-async function getReplicateStream({ input }: { input: RecipePredictionInput }) {
-  try {
-    const response = await replicate.predictions.create({
-      version:
-        "7afe21847d582f7811327c903433e29334c31fe861a7cf23c62882b181bacb88",
-      stream: true,
-      // version:
-      // "ac944f2e49c55c7e965fc3d93ad9a7d9d947866d6793fb849dd6b4747d0c061c", // llama 7b chat
-      // "83b6a56e7c828e667f21fd596c338fd4f0039b46bcfa18d973e8e70e455fda70", // MISTRAL-instruct
-      // "7afe21847d582f7811327c903433e29334c31fe861a7cf23c62882b181bacb88", // mistral open orca https://replicate.com/nateraw/mistral-7b-openorca/versions/7afe21847d582f7811327c903433e29334c31fe861a7cf23c62882b181bacb88
-      // "mistralai/mistral-7b-v0.1:3e8a0fb6d7812ce30701ba597e5080689bef8a013e5c6a724fafb108cc2426a0",
-      input: {
-        temperature: 0.2,
-        max_new_tokens: 2048,
-        // system_prompt: await systemPromptTemplate.format({}),
-        prompt_template: CHAIN_TEMPLATE(
-          `${input.suggestionsInput.prompt} ${input.suggestionsInput.ingredients} ${input.suggestionsInput.tags}`
-        ),
-        prompt: await userMessageTemplate.format({
-          name: input.name,
-          description: input.description,
-        }),
-      },
-    });
-    const { stream } = response.urls;
-    assert(stream, "expected streamUrl");
+const SCALE_RECIPE_USER_PROMPT = (input: ScaleRecipePredictionInput) =>
+  `${input.scale}`;
 
-    return eventSourceToAsyncIterable(stream);
-  } catch (ex) {
-    console.warn(ex);
-    throw ex;
-  }
-}
+const SUBSTITUTE_RECIPE_USER_PROMPT = (
+  input: SubstituteRecipePredictionInput
+) => `${input.substitution}`;
 
-async function getOllamaStream({ input }: { input: RecipePredictionInput }) {
-  const llm = new Ollama({
-    baseUrl: "http://localhost:11434",
-    model: "mistral-openorca",
-  });
-
-  const chainTemplate = PromptTemplate.fromTemplate(
-    CHAIN_TEMPLATE(
-          `${input.suggestionsInput.prompt} ${input.suggestionsInput.ingredients} ${input.suggestionsInput.tags}`
-    )
-  );
-  const chain = chainTemplate.pipe(llm);
-
-  const stream = await chain.stream({
-    prompt: await userMessageTemplate.format({
-      ...input,
-    }),
-  });
-
-  return stream as AsyncIterable<string>;
-}
-
-const userMessageTemplate = PromptTemplate.fromTemplate(`
+const NEW_RECIPE_USER_PROMPT = (input: NewRecipePredictionInput) => `
 \`\`\`yaml
-name: {name}
-description: {description}
+name: ${input.recipe.name}
+description: ${input.recipe.description}
 \`\`\`
-`);
+`;
 
-const CHAIN_TEMPLATE = (suggestionPrompt: string) => `<|im_start|>system:
-The original prompt to come up with recipes ideas was: ${suggestionPrompt}
+const SUBSTITUTE_RECIPE_TEMPLATE = (
+  input: SubstituteRecipePredictionInput
+) => `<|im_start|>system:
+The user will provide a instructions for a substitution they would like to make in the below recipe.
+
+Please give back the yaml for the updated recipe, applying the substitution instructions as specified by the user.
+
+\`\`\`yaml
+recipe:
+  name: ${input.recipe.name}
+  description: ${input.recipe.description}
+  yield: ${input.recipe.yield}
+  activeTime: ${input.recipe.activeTime}
+  cookTime: ${input.recipe.cookTime}
+  totalTime: ${input.recipe.totalTime}
+  tags:
+${input.recipe.tags.map((item) => `    - "${item}"`).join("\n")}
+  ingredients:
+${input.recipe.ingredients.map((item) => `    - "${item}"`).join("\n")}
+  instructions:
+${input.recipe.instructions.map((item) => `\ \ \ \ - "${item}"`).join("\n")}
+\`\`\`
+
+${FORMAT_INSTRUCTIONS}
+
+<|im_end|>
+<|im_start|>user:
+{prompt}
+<|im_end|>
+<|im_start|>assistant:
+\`\`\`yaml
+`;
+
+const SCALE_RECIPE_TEMPLATE = (
+  input: ScaleRecipePredictionInput
+) => `<|im_start|>system:
+The user will provide a instructions for how they would like to scale the serving size for the below recipe.
+
+Please give back the yaml for the updated recipe, applying the scale instructions as specified by the user.
+
+\`\`\`yaml
+recipe:
+  name: ${input.recipe.name}
+  description: ${input.recipe.description}
+  yield: ${input.recipe.yield}
+  activeTime: ${input.recipe.activeTime}
+  cookTime: ${input.recipe.cookTime}
+  totalTime: ${input.recipe.totalTime}
+  tags:
+${input.recipe.tags.map((item) => `    - "${item}"`).join("\n")}
+  ingredients:
+${input.recipe.ingredients.map((item) => `    - "${item}"`).join("\n")}
+  instructions:
+${input.recipe.instructions.map((item) => `    - "${item}"`).join("\n")}
+\`\`\`
+
+${FORMAT_INSTRUCTIONS}
+
+<|im_end|>
+<|im_start|>user:
+{prompt}
+<|im_end|>
+<|im_start|>assistant:
+\`\`\`yaml
+`;
+
+const NEW_RECIPE_TEMPLATE = (
+  input: NewRecipePredictionInput
+) => `<|im_start|>system:
+The original prompt to come up with recipes ideas was: ${input.suggestionsInput}
 The user will provide the name and description for a recipe based on the original prompt. Please generate a full recipe for this selection following the format and examples below.
 
 Format: ${FORMAT_INSTRUCTIONS}

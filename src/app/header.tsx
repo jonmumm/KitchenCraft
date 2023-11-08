@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/ui/dark-mode-toggle";
+import { TypeLogo } from "@/components/ui/logo";
 import {
   Popover,
   PopoverContent,
@@ -9,8 +11,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { ArrowBigLeftIcon, AxeIcon, GripVerticalIcon } from "lucide-react";
+import { AxeIcon, GripVerticalIcon } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -18,12 +21,8 @@ import {
   useEffect,
   useState,
 } from "react";
-import { ActorRefFrom, createActor, createMachine } from "xstate";
-import { RecentRecipes } from "../components/recent-recipes";
-import { usePathname } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { ModeToggle } from "@/components/ui/dark-mode-toggle";
-import { TypeLogo } from "@/components/ui/logo";
+import { ActorRefFrom, createMachine } from "xstate";
+import { EventButton } from "@/components/event-button";
 
 export const createHeaderMachine = () =>
   createMachine({
@@ -120,11 +119,13 @@ export function Header(props: { hidden?: boolean }) {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 flex flex-col gap-4 p-3">
-            <Link href="/craft">
-              <Button size="lg" className="w-full">
-                New Craft
-              </Button>
-            </Link>
+            <EventButton
+              size="lg"
+              className="w-full"
+              event={{ type: "NEW_RECIPE" }}
+            >
+              New Craft
+            </EventButton>
             <Separator />
             <div className="flex flex-row gap-1 justify-between">
               <p className="text-xs text-center flex-1">
@@ -151,11 +152,9 @@ export function Header(props: { hidden?: boolean }) {
       </div>
 
       <div>
-        <Link href="/craft">
-          <Button variant="outline">
-            <AxeIcon />
-          </Button>
-        </Link>
+        <EventButton variant="outline" event={{ type: "NEW_RECIPE" }}>
+          <AxeIcon />
+        </EventButton>
       </div>
     </div>
   );

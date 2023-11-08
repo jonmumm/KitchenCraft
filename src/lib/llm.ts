@@ -15,11 +15,24 @@ export function sanitizeOutput(output: string): string {
   let startIndices = getAllIndicesOf(sanitizedString, startToken);
   let endIndices = getAllIndicesOf(sanitizedString, endToken);
 
+  // If there's an extra ending delimiter without a starting one, remove it.
+  if (!startIndices.length && endIndices.length) {
+    sanitizedString = sanitizedString.replace(endToken, "");
+  }
+
+  // If there's no starting delimiter but an ending one, remove the ending delimiter.
+  if (startIndices.length < endIndices.length) {
+    sanitizedString = sanitizedString.slice(
+      0,
+      sanitizedString.lastIndexOf(endToken)
+    );
+  }
+
+  // If there are multiple YAML blocks, consider only the first one.
   if (startIndices.length && endIndices.length) {
-    // For nested blocks, we will take the first startToken and the last endToken
     sanitizedString = sanitizedString.slice(
       startIndices[0] + startToken.length,
-      endIndices[endIndices.length - 1]
+      endIndices[0]
     );
   }
 

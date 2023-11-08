@@ -16,8 +16,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  craft,
 }: {
   children: ReactNode;
+  craft: ReactNode;
 }) {
   maybeSpinUpReplicateModel().then(noop);
 
@@ -46,7 +48,10 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
       </head>
       <ApplicationProvider>
-        <Body>{children}</Body>
+        <Body>
+          {children}
+          {craft}
+        </Body>
       </ApplicationProvider>
     </html>
   );
