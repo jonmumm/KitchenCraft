@@ -45,7 +45,8 @@ export abstract class TokenStream<T> {
 
     try {
       const response = await replicate.predictions.create({
-        version: "your-version-hash",
+        version:
+          "7afe21847d582f7811327c903433e29334c31fe861a7cf23c62882b181bacb88",
         stream: true,
         input: {
           temperature: 0.2,
