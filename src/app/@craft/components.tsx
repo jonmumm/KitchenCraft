@@ -64,6 +64,7 @@ import { CraftContext } from "./context";
 import { useIsMacDesktop, useKeyboardToggle } from "./hooks";
 import { createCraftMachine } from "./machine";
 import {
+  selectIsEmpty,
   selectIsInputting,
   selectIsModifying,
   selectIsModifyingDietary,
@@ -74,6 +75,7 @@ import {
   selectIsOpen,
   selectShowOverlay,
 } from "./selectors";
+import { Separator } from "@/components/ui/separator";
 
 export default function CraftCommand({
   searchParams,
@@ -103,10 +105,6 @@ export default function CraftCommand({
         <FloatingFooter open={isOpen} overlay={showOverlay} showBack={true}>
           <Command shouldFilter={false} style={{ maxHeight: "85vh" }}>
             <CraftHeader />
-            <AddedIngredientsSection />
-            <AddedTagsSection />
-
-            <CraftInput />
             <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
               <SuggestionsGroup />
               <SubstitutionsGroup />
@@ -118,6 +116,10 @@ export default function CraftCommand({
               <IngredientsGroup />
               <TagsGroup />
             </ScrollLockComponent>
+            <AddedIngredientsSection />
+            <AddedTagsSection />
+            <Separator />
+            <CraftInput />
           </Command>
         </FloatingFooter>
       </ClientOnly>
@@ -321,14 +323,17 @@ const CraftHeader = () => {
   const actor = useContext(CraftContext);
   const isNewRecipe = useSelector(actor, selectIsNew);
   const isModifyingRecipe = useSelector(actor, selectIsModifying);
+  const isEmpty = useSelector(actor, selectIsEmpty);
 
   return (
-    <CardHeader className="flex flex-row gap-2 items-start justify-between">
-      {isNewRecipe && <NewRecipeHeader />}
-      {isModifyingRecipe && <ModifyRecipeHeader />}
+    isEmpty && (
+      <CardHeader className="flex flex-row gap-2 items-start justify-between">
+        {isNewRecipe && <NewRecipeHeader />}
+        {isModifyingRecipe && <ModifyRecipeHeader />}
 
-      <KeyboardShortcutBadge />
-    </CardHeader>
+        <KeyboardShortcutBadge />
+      </CardHeader>
+    )
   );
 };
 

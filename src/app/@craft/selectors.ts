@@ -5,6 +5,14 @@ export const selectIsInputting = (state: CraftSnapshot) =>
 
 export const selectIsNew = (state: CraftSnapshot) => state.matches("Mode.New");
 
+export const selectIsEmpty = (state: CraftSnapshot) => {
+  return (
+    !state.context.prompt &&
+    !state.context.ingredients?.length &&
+    !state.context.tags?.length
+  );
+};
+
 export const selectIsModifying = (state: CraftSnapshot) =>
   state.matches("Mode.Modify");
 
