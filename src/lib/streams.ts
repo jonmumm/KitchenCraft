@@ -1,16 +1,6 @@
-// export const writeToStream = async (
-//   stream: AsyncIterable<string>,
-//   writer: WritableStreamDefaultWriter
-// ) => {
-//   for await (const chunk of stream) {
-//     await writeChunk(writer, chunk);
-//   }
+import { NextResponse } from "next/server";
 
-//   await writer.ready;
-//   await writer.close();
-// };
-
-export class StreamingTextResponse extends Response {
+export class StreamingTextResponse extends NextResponse {
   constructor(stream: ReadableStream<any>) {
     super(stream, {
       status: 200,
