@@ -8,21 +8,18 @@ export class StreamingTextResponse extends NextResponse {
         "Content-Type": "text/event-stream",
         Connection: "keep-alive",
         "Cache-Control": "no-cache, no-transform",
-        "Content-Encoding": "none",
       },
     });
   }
 }
 
+const encoder = new TextEncoder();
+
 export const writeChunk = async (
   writer: WritableStreamDefaultWriter<any>,
   chunk: string
 ) => {
-  console.log("write chunk, await ready");
   await writer.ready;
-  console.log("write chunk begin");
-  await writer.write("event: message\n");
-  console.log("write chunk, writing: " + chunk);
-  await writer.write("data:" + JSON.stringify(chunk) + "\n\n");
-  console.log("write chunk end");
+  await writer.write(encoder.encode("event: message\n"));
+  await writer.write(encoder.encode("data:" + JSON.stringify(chunk) + "\n\n"));
 };

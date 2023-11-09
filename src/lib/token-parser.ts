@@ -24,10 +24,6 @@ export class TokenParser<TSchema extends z.ZodObject<any>> {
     let outputJSON: unknown;
 
     try {
-      console.log("sanitized", outputSanitized);
-      console.log("raw start");
-      console.log(outputRaw);
-      console.log("raw end");
       outputJSON = jsYaml.load(outputSanitized);
     } catch (ex) {
       this.counts.yamlFailures++;
