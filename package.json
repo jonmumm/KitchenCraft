@@ -27,6 +27,7 @@
     "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
     "@sanity/eventsource": "^5.0.1",
+    "@sentry/nextjs": "^7.80.0",
     "@tanstack/react-query": "^4.35.7",
     "@testing-library/react": "^14.0.0",
     "@trpc/client": "^10.38.5",
