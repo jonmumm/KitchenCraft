@@ -1,6 +1,6 @@
 import { eventSourceToAsyncIterable } from "@/lib/event-source";
 import { replicate } from "@/lib/replicate";
-import { writeChunk } from "@/lib/streams";
+import { StreamingTextResponse, writeChunk } from "@/lib/streams";
 import { TokenParser } from "@/lib/token-parser";
 import { TokenStream } from "@/lib/token-stream";
 import { assert, getObjectHash, noop } from "@/lib/utils";
@@ -72,12 +72,5 @@ export async function GET(
 
   process(stream);
 
-  return new Response(readable, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      "Content-Encoding": "none",
-    },
-  });
+  return new StreamingTextResponse(readable);
 }

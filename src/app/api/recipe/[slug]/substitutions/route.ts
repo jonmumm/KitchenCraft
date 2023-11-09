@@ -1,5 +1,5 @@
 import { getErrorMessage } from "@/lib/error";
-import { writeChunk } from "@/lib/streams";
+import { StreamingTextResponse, writeChunk } from "@/lib/streams";
 import { TokenParser } from "@/lib/token-parser";
 import { getObjectHash, noop } from "@/lib/utils";
 import {
@@ -74,12 +74,5 @@ export async function GET(
 
   process(stream);
 
-  return new Response(readable, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      "Content-Encoding": "none",
-    },
-  });
+  return new StreamingTextResponse(readable);
 }

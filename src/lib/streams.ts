@@ -16,8 +16,8 @@ export class StreamingTextResponse extends Response {
       status: 200,
       headers: {
         "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Content-Encoding": "none",
+        Connection: "keep-alive",
+        "Cache-Control": "no-cache, no-transform",
       },
     });
   }
