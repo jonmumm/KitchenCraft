@@ -3,7 +3,6 @@ import { noop } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
-import Replicate from "replicate";
 import "../styles/globals.css";
 import { ApplicationProvider } from "./provider";
 
@@ -21,8 +20,6 @@ export default async function RootLayout({
   children: ReactNode;
   craft: ReactNode;
 }) {
-  maybeSpinUpReplicateModel().then(noop);
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -85,33 +82,3 @@ function Body({ children }: { children: ReactNode }) {
     </body>
   );
 }
-
-let lastSpinUpRequestTimestamp: number | null;
-const SPIN_UP_MIN_INTERVAL_SECONDS = 240;
-
-// Keep replicate alive since were not paying for
-// a min number of servers to avoid long cold boot times.
-const maybeSpinUpReplicateModel = async () => {
-  if (process.env.NODE_ENV === "production") {
-    const now = performance.now();
-    if (
-      !lastSpinUpRequestTimestamp ||
-      lastSpinUpRequestTimestamp < now - 1000 * SPIN_UP_MIN_INTERVAL_SECONDS
-    ) {
-      lastSpinUpRequestTimestamp = now;
-      spinUpReplicate().then(noop);
-    }
-  }
-};
-
-const replicate = new Replicate();
-const spinUpReplicate = async () => {
-  await replicate.predictions.create({
-    version: "7afe21847d582f7811327c903433e29334c31fe861a7cf23c62882b181bacb88",
-    stream: true,
-    input: {
-      temperature: 0.2,
-      prompt: "Test request. No response required.",
-    },
-  });
-};
