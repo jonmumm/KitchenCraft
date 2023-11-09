@@ -4,6 +4,26 @@ import RecipeGenerator from "./recipe-generator";
 
 const testRecipes = [
   {
+    name: "Chocolate Milkshake",
+    description:
+      "A rich and creamy beverage made with chocolate ice cream, milk, and chocolate syrup, often topped with whipped cream.",
+    suggestionsInput: {
+      prompt: "Sweet Beverages",
+      tags: [],
+      ingredients: [],
+    },
+    suggestionsOutputRaw: `- name: Chocolate Milkshake
+        description: A rich and creamy beverage made with chocolate ice cream...
+      - name: Vanilla Milkshake
+        description: Smooth blend of vanilla ice cream and milk, topped with whipped cream.
+      - name: Strawberry Milkshake
+        description: Sweet and fruity shake made with strawberry ice cream and fresh strawberries.
+      - name: Banana Smoothie
+        description: A healthy and refreshing drink made with bananas, yogurt, and honey.
+      - name: Mocha Frappuccino
+        description: A coffee-flavored frozen drink with chocolate and whipped cream.`,
+  },
+  {
     name: "Tiramisu",
     description:
       "A classic Italian dessert made with layers of coffee-soaked ladyfingers and rich mascarpone cheese.",
