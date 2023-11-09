@@ -1,6 +1,6 @@
 import * as jsYaml from "js-yaml";
 import * as z from "zod";
-import { sanitizeOutput } from "./llm";
+import { sanitizeOutput } from "./sanitize";
 import { assert } from "./utils";
 
 export class TokenParser<TSchema extends z.ZodObject<any>> {
@@ -24,6 +24,10 @@ export class TokenParser<TSchema extends z.ZodObject<any>> {
     let outputJSON: unknown;
 
     try {
+      console.log("sanitized", outputSanitized);
+      console.log("raw start");
+      console.log(outputRaw);
+      console.log("raw end");
       outputJSON = jsYaml.load(outputSanitized);
     } catch (ex) {
       this.counts.yamlFailures++;

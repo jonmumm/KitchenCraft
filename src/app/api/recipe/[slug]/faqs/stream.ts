@@ -36,8 +36,7 @@ recipe:
 \`\`\`
 `);
 
-const TEMPLATE = `<|im_start|>system:
-You are an expert chef assistant. You will be provided with a recipe.
+const TEMPLATE = `You are an expert chef assistant. You will be provided with a recipe.
 
 Assume I have no kitchen experience. Come up with a list of 6 of the most common questions I might have about the provided recipe.
 
@@ -55,10 +54,5 @@ questions:
   - What if I over-salt the soup?
 \`\`\`
 
-<|im_end|>
-<|im_start|>user:
-{prompt}<|im_end|>
-<|im_start|>assistant:
-
-\`\`\`yaml
-`;
+User: {prompt}
+AI:`;

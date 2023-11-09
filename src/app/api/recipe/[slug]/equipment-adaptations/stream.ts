@@ -39,8 +39,7 @@ recipe:
 \`\`\`
 `);
 
-const TEMPLATE = `<|im_start|>system:
-You will be provided with a recipe. Come up with 4 ideas for ways to alternate this recipe for different common kitchen equipment.
+const TEMPLATE = `You will be provided with a recipe. Come up with 4 ideas for ways to alternate this recipe for different common kitchen equipment.
 
 If this recipe can be made using different tools, suggest using those tools.
 
@@ -54,10 +53,5 @@ ideas:
   - Less chopped ingredients
 \`\`\`
 
-<|im_end|>
-<|im_start|>user:
-{prompt}<|im_end|>
-<|im_start|>assistant:
-
-\`\`\`yaml
-`;
+User: {prompt}
+AI:`;

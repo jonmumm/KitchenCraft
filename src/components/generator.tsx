@@ -1,4 +1,4 @@
-import { sanitizeOutput } from "@/lib/llm";
+import { sanitizeOutput } from "@/lib/sanitize";
 import { partialUtil } from "@/lib/partial";
 import jsYaml from "js-yaml";
 import { z } from "zod";

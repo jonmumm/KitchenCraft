@@ -3,7 +3,7 @@ import jsYaml from "js-yaml";
 import { Observable, Subject } from "rxjs";
 import { z } from "zod";
 import { getErrorMessage } from "./error";
-import { sanitizeOutput } from "./llm";
+import { sanitizeOutput } from "./sanitize";
 import { partialUtil } from "./partial";
 
 type WithProgress<T extends string> = `${T}_PROGRESS`;

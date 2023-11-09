@@ -18,11 +18,11 @@ export class SuggestionTokenStream extends TokenStream<SuggestionPredictionInput
 
   // Optionally, if you need a different number of tokens for suggestions, override the getDefaultTokens method
   protected getDefaultTokens(): number {
-    return 512; // Set the default token count specific for suggestion token streams
+    return 1024; // Set the default token count specific for suggestion token streams
   }
 }
 
-const CHAIN_TEMPLATE = `<|im_start|>system:
+const CHAIN_TEMPLATE = `
 You will be provided with an input related to food – this can include ingredients, cooking techniques, or other culinary themes. Your task is to generate six recipes that involve the given input.
 
 Format the response in a YAML block. Each recipe suggestion should have both a 'name' and a 'description'. The top-level key should be "suggestions". Ensure the YAML format has appropriate white space for the list items under suggestions.
@@ -54,8 +54,5 @@ suggestions:
     description: "Airy eggs, feta. Puffed up gourmet elegance."
 \`\`\`
 
-<|im_end|>
-<|im_start|>user:
-{prompt}<|im_end|>
-<|im_start|>assistant:
-`;
+User: {prompt}
+AI:`;

@@ -1,5 +1,5 @@
 import { eventSourceToAsyncIterable } from "@/lib/event-source";
-import { sanitizeOutput } from "@/lib/llm";
+import { sanitizeOutput } from "@/lib/sanitize";
 import { assert } from "@/lib/utils";
 import { Ollama } from "langchain/llms/ollama";
 import { PromptTemplate } from "langchain/prompts";

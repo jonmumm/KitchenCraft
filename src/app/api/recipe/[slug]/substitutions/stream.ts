@@ -37,8 +37,7 @@ recipe:
 \`\`\`
 `);
 
-const TEMPLATE = `<|im_start|>system:
-You will be provided with a recipe. Come up with 6 ideas for ways to change this recipe that might be be practical, easy, or delicious.
+const TEMPLATE = `You will be provided with a recipe. Come up with 6 ideas for ways to change this recipe that might be be practical, easy, or delicious.
 
 Each substitutions should be 3-7 words. Format the response in a yaml block with "substitutions" as the root level key for the list.
 
@@ -54,10 +53,5 @@ subsitutions:
   - Exchange cucumber for zucchini.
 \`\`\`
 
-<|im_end|>
-<|im_start|>user:
-{prompt}<|im_end|>
-<|im_start|>assistant:
-
-\`\`\`yaml
-`;
+User: {prompt}
+AI:`;

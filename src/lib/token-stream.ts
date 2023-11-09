@@ -1,7 +1,8 @@
-import { RemixIdeasPredictionInput, SuggestionPredictionInput } from "@/types";
 import { eventSourceToAsyncIterable } from "@/lib/event-source";
+import { ChatOpenAI } from "langchain/chat_models/openai";
 import { Ollama } from "langchain/llms/ollama";
 import { PromptTemplate } from "langchain/prompts";
+import { StringOutputParser } from "langchain/schema/output_parser";
 import Replicate from "replicate";
 
 // Define an abstract class that requires implementers to provide a method for getting a stream
@@ -20,18 +21,39 @@ export abstract class TokenStream<T> {
     // The default tokens number, this should be set as per your requirements or dynamically if needed
     const tokens = this.getDefaultTokens();
 
+    return this.getOpenAIStream(input, template, tokens);
     // If the NODE_ENV is production, use the Replicate stream, else use Ollama
-    if (process.env.NODE_ENV === "production") {
-      return this.getReplicateStream(input, template, tokens);
-    } else {
-      return this.getOllamaStream(input, template);
-    }
+    // if (process.env.NODE_ENV === "production") {
+    //   return this.getReplicateStream(input, template, tokens);
+    // } else {
+    //   return this.getOllamaStream(input, template);
+    // }
   }
 
   protected abstract constructPrompt(input: T): Promise<string>;
 
   // Common logic for processing the stream could be placed here
   // ...
+  protected async getOpenAIStream(
+    input: T,
+    template: string,
+    tokens: number
+  ): Promise<AsyncIterable<string>> {
+    const outputParser = new StringOutputParser();
+
+    const model = new ChatOpenAI({
+      temperature: 1,
+      maxTokens: tokens,
+      modelName: "gpt-3.5-turbo-1106",
+    });
+    const promptTemplate = PromptTemplate.fromTemplate(template);
+    const chain = promptTemplate.pipe(model).pipe(outputParser);
+    const prompt = await this.constructPrompt(input);
+    const stream = await chain.stream({
+      prompt,
+    });
+    return stream as AsyncIterable<string>;
+  }
 
   // Common logic for handling different environments' stream sources
   protected async getReplicateStream(

@@ -154,8 +154,7 @@ ${FORMAT_INSTRUCTIONS}
 
 const NEW_RECIPE_TEMPLATE = (
   input: NewRecipePredictionInput
-) => `<|im_start|>system:
-The original prompt to come up with recipes ideas was: ${input.suggestionsInput}
+) => `The original prompt to come up with recipes ideas was: ${input.suggestionsInput}
 The user will provide the name and description for a recipe based on the original prompt. Please generate a full recipe for this selection following the format and examples below.
 
 Format: ${FORMAT_INSTRUCTIONS}
@@ -167,10 +166,8 @@ Example 1: ${EXAMPLE_1.output}
 Example 2: ${EXAMPLE_2.output}
 
 Example 3: ${EXAMPLE_3.output}
-<|im_end|>
-<|im_start|>user:
-{prompt}
-<|im_end|>
-<|im_start|>assistant:
-\`\`\`yaml
+
+
+User: {prompt}
+AI:
 `;

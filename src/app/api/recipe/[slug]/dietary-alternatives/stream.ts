@@ -36,8 +36,7 @@ recipe:
 \`\`\`
 `);
 
-const TEMPLATE = `<|im_start|>system:
-You will be provided with a recipe. Come up with 6 ideas for ways to alternate this recipe for common dietary or nutritional reasons.
+const TEMPLATE = `You will be provided with a recipe. Come up with 6 ideas for ways to alternate this recipe for common dietary or nutritional reasons.
 
 Each idea should be 3-7 words. Format the response in a yaml block with "ideas" as the root level key for the list.
 
@@ -53,10 +52,5 @@ ideas:
   - Opt for vegan cream cheese alternative.
 \`\`\`
 
-<|im_end|>
-<|im_start|>user:
-{prompt}<|im_end|>
-<|im_start|>assistant:
-
-\`\`\`yaml
-`;
+User: {prompt}
+AI:`;
