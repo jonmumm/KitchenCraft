@@ -29,20 +29,29 @@ export const createCraftMachine = (
   scrollViewRef: RefObject<HTMLDivElement>,
   slug?: string
 ) => {
-  const initialContext = {
-    prompt: parseAsString.parse(searchParams["prompt"]),
-    ingredients: searchParams["ingredients"]
-      ? ingredientsParser.parse(searchParams["ingredients"])
-      : null,
-    tags: searchParams["tags"] ? tagsParser.parse(searchParams["tags"]) : null,
-    slug: slug || null,
-    suggestions: null,
-    substitutions: undefined,
-    dietaryAlternatives: undefined,
-    equipmentAdaptations: undefined,
-    scrollViewRef,
-    resultId: null,
-  } satisfies Context;
+  // const prompt = parseAsString.parse(searchParams["prompt"]);
+
+  const initialContext = (() => {
+    const prompt = parseAsString.parseServerSide(searchParams["prompt"]);
+    const ingredients =
+      searchParams["ingredients"] &&
+      ingredientsParser.parseServerSide(searchParams["ingredients"]);
+    const tags =
+      searchParams["tags"] && tagsParser.parseServerSide(searchParams["tags"]);
+
+    return {
+      prompt: prompt || undefined,
+      ingredients: ingredients || undefined,
+      tags: tags || undefined,
+      slug: slug || null,
+      suggestions: null,
+      substitutions: undefined,
+      dietaryAlternatives: undefined,
+      equipmentAdaptations: undefined,
+      scrollViewRef,
+      resultId: null,
+    } satisfies Context;
+  })();
 
   const { prompt, ingredients, tags } = initialContext;
 
@@ -166,7 +175,7 @@ export const createCraftMachine = (
             }
           | {
               type: "assignTags";
-              params: { tags: string[] | null };
+              params: { tags: string[] | undefined };
             }
           | {
               type: "assignDietaryAlternatives";
@@ -190,11 +199,11 @@ export const createCraftMachine = (
             }
           | {
               type: "assignIngredients";
-              params: { ingredients: string[] | null };
+              params: { ingredients: string[] | undefined };
             }
           | {
               type: "assignPrompt";
-              params: { prompt: string | null };
+              params: { prompt: string | undefined };
             }
           | {
               type: "assignSlug";
@@ -226,7 +235,7 @@ export const createCraftMachine = (
               params: ({ context, event }) => ({
                 tags: context.ingredients
                   ? context.ingredients.filter((item) => item !== event.tag)
-                  : null,
+                  : undefined,
               }),
             },
             {
@@ -251,7 +260,7 @@ export const createCraftMachine = (
                   ? context.ingredients.filter(
                       (item) => item !== event.ingredient
                     )
-                  : null,
+                  : undefined,
               }),
             },
             {
@@ -285,7 +294,7 @@ export const createCraftMachine = (
             {
               type: "assignPrompt",
               params: () => ({
-                prompt: null,
+                prompt: undefined,
               }),
             },
             {
@@ -319,7 +328,7 @@ export const createCraftMachine = (
             {
               type: "assignPrompt",
               params: () => ({
-                prompt: null,
+                prompt: undefined,
               }),
             },
             {
@@ -344,7 +353,7 @@ export const createCraftMachine = (
               params({ context }) {
                 return {
                   key: "prompt",
-                  value: context.prompt !== "" ? context.prompt : null,
+                  value: context.prompt?.length ? context.prompt : null,
                 };
               },
             },
@@ -493,8 +502,9 @@ export const createCraftMachine = (
                       },
                       invoke: {
                         src: "suggestionsGenerator",
-                        input: ({ context }) =>
-                          SuggestionsInputSchema.parse(context),
+                        input: ({ context }) => {
+                          return SuggestionsInputSchema.parse(context);
+                        },
                         onDone: "Idle",
                       },
                     },
@@ -882,13 +892,13 @@ export const createCraftMachine = (
         },
 
         clearPrompt: assign({
-          prompt: () => null,
+          prompt: () => undefined,
         }),
         clearIngredients: assign({
-          ingredients: () => null,
+          ingredients: () => undefined,
         }),
         clearTags: assign({
-          tags: () => null,
+          tags: () => undefined,
         }),
         clearSuggestions: assign({
           suggestions: () => null,

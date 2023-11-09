@@ -3,25 +3,24 @@ import { DietaryAlternativesPredictionInput } from "@/types";
 import { PromptTemplate } from "langchain/prompts";
 
 export class DietaryAlternativesTokenStream extends TokenStream<DietaryAlternativesPredictionInput> {
-  protected async constructPrompt(
+  protected async getUserMessage(
     input: DietaryAlternativesPredictionInput
   ): Promise<string> {
     // Construct the prompt based on the input
-    const userMessage = await userMessageTemplate.format({
+    return await userMessageTemplate.format({
       name: input.recipe.name,
       description: input.recipe.description,
       tags: input.recipe.tags.join("\n"),
       ingredients: input.recipe.ingredients.join("\n"),
       instructions: input.recipe.instructions.join("\n"),
     });
-    return `${TEMPLATE.replace("{prompt}", userMessage)}`;
   }
 
-  protected async constructTemplate(
+  protected async getSystemMessage(
     input: DietaryAlternativesPredictionInput
   ): Promise<string> {
     // Construct and return the template, if needed
-    return TEMPLATE; // Assuming TEMPLATE is a constant defined somewhere in your code.
+    return SYSTEM_MESSAGE; // Assuming TEMPLATE is a constant defined somewhere in your code.
   }
 }
 
@@ -36,7 +35,7 @@ recipe:
 \`\`\`
 `);
 
-const TEMPLATE = `You will be provided with a recipe. Come up with 6 ideas for ways to alternate this recipe for common dietary or nutritional reasons.
+const SYSTEM_MESSAGE = `You will be provided with a recipe. Come up with 6 ideas for ways to alternate this recipe for common dietary or nutritional reasons.
 
 Each idea should be 3-7 words. Format the response in a yaml block with "ideas" as the root level key for the list.
 
@@ -50,7 +49,4 @@ ideas:
   - Swap bananas for low-carb berries.
   - Replace heavy cream with coconut cream.
   - Opt for vegan cream cheese alternative.
-\`\`\`
-
-User: {prompt}
-AI:`;
+\`\`\``;

@@ -1,22 +1,20 @@
+import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
 import { Header } from "@/app/header";
 import { EventButton } from "@/components/event-button";
+import Generator from "@/components/generator";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getResult } from "@/lib/db";
 import { noop, waitForStoreValue } from "@/lib/utils";
 import {
   CompletedRecipeSchema,
-  FAQsPredictionInputSchema,
-  IdeasPredictionOutputSchema,
   QuestionsPredictionOutputSchema,
   RecipeSchema,
   SuggestionPredictionInputSchema,
@@ -28,31 +26,19 @@ import {
   ArrowLeftRightIcon,
   ChefHatIcon,
   ChevronRight,
-  ChevronRightCircleIcon,
   HelpCircle,
   MicrowaveIcon,
   NutOffIcon,
   ScaleIcon,
-  SendHorizonalIcon,
-  ShieldQuestionIcon,
   ShuffleIcon,
 } from "lucide-react";
 import { map } from "nanostores";
 import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
-import React, { ReactNode, Suspense, cloneElement } from "react";
-import { PrepartionTips } from "./preparation-tips";
+import React, { ReactNode, Suspense } from "react";
 import { RecipeContents } from "./recipe-contents";
 import RecipeGenerator from "./recipe-generator";
 import { StoreProps } from "./schema";
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import Generator from "@/components/generator";
-import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;

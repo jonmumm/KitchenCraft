@@ -1,26 +1,22 @@
 import { TokenStream } from "@/lib/token-stream";
-import {
-  DietaryAlternativesPredictionInput,
-  EquipmentAdaptationsPredictionInput,
-} from "@/types";
+import { EquipmentAdaptationsPredictionInput } from "@/types";
 import { PromptTemplate } from "langchain/prompts";
 
 export class EquipmentAdaptationsTokenStream extends TokenStream<EquipmentAdaptationsPredictionInput> {
-  protected async constructPrompt(
+  protected async getUserMessage(
     input: EquipmentAdaptationsPredictionInput
   ): Promise<string> {
     // Construct the prompt based on the input
-    const userMessage = await userMessageTemplate.format({
+    return await userMessageTemplate.format({
       name: input.recipe.name,
       description: input.recipe.description,
       tags: input.recipe.tags.join("\n"),
       ingredients: input.recipe.ingredients.join("\n"),
       instructions: input.recipe.instructions.join("\n"),
     });
-    return `${TEMPLATE.replace("{prompt}", userMessage)}`;
   }
 
-  protected async constructTemplate(
+  protected async getSystemMessage(
     input: EquipmentAdaptationsPredictionInput
   ): Promise<string> {
     // Construct and return the template, if needed
@@ -51,7 +47,4 @@ ideas:
   - Adapt for instant pot
   - Adapt for slow cooker
   - Less chopped ingredients
-\`\`\`
-
-User: {prompt}
-AI:`;
+\`\`\``;

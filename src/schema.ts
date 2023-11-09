@@ -33,11 +33,30 @@ export const RecipeRequiredPropsSchema = z.object({
 
 const UserIdSchema = z.string();
 
-export const SuggestionPredictionInputSchema = z.object({
-  prompt: z.string().optional().default(""),
-  ingredients: z.string().optional().default(""),
-  tags: z.string().optional().default(""),
-});
+export const SuggestionPredictionInputSchema = z
+  .object({
+    ingredients: z.array(z.string()).optional(),
+    tags: z.array(z.string()).optional(),
+    prompt: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      const hasIngredients = data.ingredients && data.ingredients.length > 0;
+      const hasTags = data.tags && data.tags.length > 0;
+      const hasPrompt = data.prompt?.trim() !== "";
+      return hasIngredients || hasTags || hasPrompt;
+    },
+    {
+      message:
+        "At least one of 'ingredients', 'tags', or 'prompt' must have a non-empty value",
+    }
+  );
+
+// export const SuggestionPredictionInputSchema = z.object({
+//   prompt: z.string().optional().default(""),
+//   ingredients: z.string().optional().default(""),
+//   tags: z.string().optional().default(""),
+// });
 
 // z.object({
 //   prompt: z.string().min(0),
@@ -449,21 +468,6 @@ export const RecipePredictionOutputSchema = z.object({
 export const RecipePredictionPartialOutputSchema =
   RecipePredictionOutputSchema.deepPartial();
 
-// Schema for Recipe
-// export const RecipeSchema = z
-//   .object({
-//     slug: SlugSchema,
-//     name: z.string().min(1).max(140),
-//     description: z.string().min(1).max(140),
-//     createdAt: z.string(),
-//     chatId: z.string(),
-//     status: z.enum(["initialized", "crafting", "done"]).default("initialized"),
-//     queryMessageSet: LLMMessageSetIdSchema,
-//     modificationsMessageSet: LLMMessageSetIdSchema.optional(),
-//     tipsMessageSet: LLMMessageSetIdSchema.optional(),
-//     messageSet: LLMMessageSetIdSchema.optional(),
-//   })
-//   .merge(RecipePredictionDataSchema);
 export const RecipeSchema = RecipeRequiredPropsSchema.merge(
   RecipePredictionOutputSchema.shape.recipe.partial()
 );
@@ -536,7 +540,13 @@ export const SubstitutionsPredictionInputSchema = z.object({
   recipe: CompletedRecipeSchema,
 });
 export const DietaryAlternativesPredictionInputSchema = z.object({
-  recipe: CompletedRecipeSchema,
+  recipe: CompletedRecipeSchema.pick({
+    name: true,
+    description: true,
+    tags: true,
+    ingredients: true,
+    instructions: true,
+  }),
 });
 export const EquipmentAdaptationsPredictionInputSchema = z.object({
   recipe: CompletedRecipeSchema,
@@ -549,24 +559,7 @@ export const SubstitutionsPredictionOutputSchema = z.object({
 export const SubstitutionsPredictionPartialOutputSchema =
   SubstitutionsPredictionOutputSchema.deepPartial();
 
-export const SuggestionsInputSchema = z
-  .object({
-    ingredients: z.array(z.string()).nullable(),
-    tags: z.array(z.string()).nullable(),
-    prompt: z.string().optional().nullable(),
-  })
-  .refine(
-    (data) => {
-      const hasIngredients = data.ingredients && data.ingredients.length > 0;
-      const hasTags = data.tags && data.tags.length > 0;
-      const hasPrompt = data.prompt?.trim() !== "";
-      return hasIngredients || hasTags || hasPrompt;
-    },
-    {
-      message:
-        "At least one of 'ingredients', 'tags', or 'prompt' must have a non-empty value",
-    }
-  );
+export const SuggestionsInputSchema = SuggestionPredictionInputSchema;
 
 export const SubstitutionsInputSchema = z.object({
   slug: z.string(),

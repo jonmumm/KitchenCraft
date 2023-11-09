@@ -3,7 +3,7 @@ import { SubstitutionsPredictionInput } from "@/types";
 import { PromptTemplate } from "langchain/prompts";
 
 export class SubstitutionsTokenStream extends TokenStream<SubstitutionsPredictionInput> {
-  protected async constructPrompt(
+  protected async getUserMessage(
     input: SubstitutionsPredictionInput
   ): Promise<string> {
     return await userMessageTemplate.format({
@@ -15,7 +15,7 @@ export class SubstitutionsTokenStream extends TokenStream<SubstitutionsPredictio
     });
   }
 
-  protected async constructTemplate(
+  protected async getSystemMessage(
     input: SubstitutionsPredictionInput
   ): Promise<string> {
     return TEMPLATE;
@@ -51,7 +51,4 @@ subsitutions:
   - Try Greek yogurt for creaminess.
   - Substitute green bell pepper for jalapeños.
   - Exchange cucumber for zucchini.
-\`\`\`
-
-User: {prompt}
-AI:`;
+\`\`\``;

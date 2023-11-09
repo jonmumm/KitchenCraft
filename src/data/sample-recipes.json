@@ -1,0 +1,109 @@
+[
+  {
+    "name": "Caprese Salad",
+    "description": "A simple and refreshing salad made with sliced Roma tomatoes, fresh mozzarella, basil leaves, and a drizzle of balsamic glaze.",
+    "tags": ["Appetizer", "Vegetarian", "Gluten-free"],
+    "ingredients": [
+      "4 large Roma tomatoes, sliced",
+      "16 oz fresh mozzarella, sliced",
+      "1/4 cup fresh basil leaves, torn or chopped",
+      "Balsamic glaze for drizzling",
+      "Salt and pepper to taste"
+    ],
+    "instructions": [
+      "On a large serving platter or individual plates, arrange the sliced Roma tomatoes and mozzarella.",
+      "Sprinkle salt and pepper to taste.",
+      "Scatter the torn basil leaves over the tomatoes and mozzarella.",
+      "Drizzle with balsamic glaze.",
+      "Serve immediately."
+    ]
+  },
+  {
+    "name": "Spicy Chicken Curry",
+    "description": "A rich and hearty Indian curry made with chicken, tomatoes, and a blend of spices.",
+    "tags": ["Main Course", "Spicy"],
+    "ingredients": [
+      "1 lb chicken breast, cut into pieces",
+      "2 tbsp vegetable oil",
+      "1 large onion, finely chopped",
+      "2 garlic cloves, minced",
+      "1 tbsp ginger, grated",
+      "1 can (14 oz) diced tomatoes",
+      "2 tbsp curry powder",
+      "1 tsp cayenne pepper (adjust to taste)",
+      "Salt to taste",
+      "Fresh cilantro for garnish"
+    ],
+    "instructions": [
+      "Heat oil in a large skillet over medium heat. Add onion, garlic, and ginger, cooking until onion is translucent.",
+      "Add chicken pieces and cook until browned on all sides.",
+      "Stir in diced tomatoes, curry powder, cayenne pepper, and salt. Simmer for 20 minutes.",
+      "Garnish with fresh cilantro and serve with rice or naan."
+    ]
+  },
+  {
+    "name": "Vegan Black Bean Burger",
+    "description": "A delicious and hearty vegan burger made from black beans and various vegetables, served on a whole grain bun.",
+    "tags": ["Vegan", "Healthy"],
+    "ingredients": [
+      "2 cans (15 oz each) black beans, drained and rinsed",
+      "1/2 red bell pepper, finely chopped",
+      "1/2 onion, finely chopped",
+      "3 garlic cloves, minced",
+      "1 tbsp cumin",
+      "1/2 cup bread crumbs",
+      "Salt and pepper to taste",
+      "4 whole grain burger buns"
+    ],
+    "instructions": [
+      "Mash black beans in a bowl until thick and pasty.",
+      "In a skillet, sauté bell pepper, onion, and garlic until soft.",
+      "Mix vegetables, beans, cumin, bread crumbs, salt, and pepper. Form into patties.",
+      "Grill or cook patties in a skillet until heated through and crispy on the outside.",
+      "Serve on buns with your choice of toppings."
+    ]
+  },
+  {
+    "name": "Zucchini Noodle Pad Thai",
+    "description": "A light and healthy version of the classic Thai dish, replacing rice noodles with spiralized zucchini.",
+    "tags": ["Healthy", "Low-Carb"],
+    "ingredients": [
+      "4 medium zucchini, spiralized",
+      "2 chicken breasts, thinly sliced",
+      "2 eggs, lightly beaten",
+      "1 cup bean sprouts",
+      "1/4 cup peanuts, crushed",
+      "2 green onions, sliced",
+      "For the sauce: 2 tbsp tamarind paste, 2 tbsp fish sauce, 1 tbsp soy sauce, 1 tbsp brown sugar"
+    ],
+    "instructions": [
+      "Cook chicken in a skillet until fully cooked, set aside.",
+      "In the same skillet, add eggs and scramble, then set aside with chicken.",
+      "Sauté spiralized zucchini in the skillet for 1-2 minutes.",
+      "Add chicken, eggs, bean sprouts, and prepared sauce. Stir well and heat through.",
+      "Garnish with peanuts and green onions."
+    ]
+  },
+  {
+    "name": "Chocolate Lava Cake",
+    "description": "A rich and indulgent chocolate cake with a gooey molten center, perfect for a dessert treat.",
+    "tags": ["Dessert", "Chocolate"],
+    "ingredients": [
+      "4 oz semisweet chocolate, chopped",
+      "1/2 cup unsalted butter",
+      "2 eggs",
+      "2 egg yolks",
+      "1/4 cup sugar",
+      "2 tbsp all-purpose flour",
+      "1 tsp vanilla extract"
+    ],
+    "instructions": [
+      "Preheat oven to 425°F (220°C). Butter and flour four ramekins.",
+      "Melt chocolate and butter in a double boiler, stirring until smooth.",
+      "Whisk together eggs, egg yolks, and sugar, then gradually whisk in the melted chocolate mixture.",
+      "Stir in flour and vanilla until just combined.",
+      "Divide the batter among ramekins. Bake for 12-14 minutes.",
+      "Let stand for 1 minute, then invert onto plates and serve."
+    ]
+  }
+]

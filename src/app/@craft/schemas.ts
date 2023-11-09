@@ -8,9 +8,9 @@ import { RefObject } from "react";
 import { z } from "zod";
 
 export const ContextSchema = z.object({
-  prompt: z.string().nullable(),
-  ingredients: z.array(z.string()).nullable(),
-  tags: z.array(z.string()).nullable(),
+  prompt: z.string().optional(),
+  ingredients: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
   slug: z.string().nullable(),
   suggestions:
     SuggestionPredictionPartialOutputSchema.shape.suggestions.nullable(),

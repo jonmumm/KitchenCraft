@@ -41,6 +41,7 @@ export async function GET(
 
   const process = async (stream: AsyncIterable<string>) => {
     for await (const chunk of stream) {
+      console.log(chunk);
       for (const char of chunk) {
         charArray.push(char);
       }

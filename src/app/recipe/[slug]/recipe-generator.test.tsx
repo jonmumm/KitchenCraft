@@ -9,8 +9,8 @@ const testRecipes = [
       "A classic Italian dessert made with layers of coffee-soaked ladyfingers and rich mascarpone cheese.",
     suggestionsInput: {
       prompt: "Italian Desserts",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Tiramisu
       description: A classic Italian dessert...
@@ -29,8 +29,8 @@ const testRecipes = [
       "A creamy tomato-based curry with tender pieces of chicken, flavored with Indian spices.",
     suggestionsInput: {
       prompt: "Indian Curries",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Butter Chicken
       description: A creamy tomato-based curry...
@@ -49,8 +49,8 @@ const testRecipes = [
       "A Hungarian stew of meat and vegetables, seasoned with paprika and other spices.",
     suggestionsInput: {
       prompt: "Hungarian Dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Goulash
       description: A Hungarian stew of meat...
@@ -69,8 +69,8 @@ const testRecipes = [
       "Grilled or fried fish served in a tortilla, often with slaw, salsa, and a creamy sauce.",
     suggestionsInput: {
       prompt: "Mexian dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Fish Tacos
       description: Grilled or fried fish served in a tortilla...
@@ -89,8 +89,8 @@ const testRecipes = [
       "Crispy rolls filled with vegetables and sometimes shrimp or pork, served with dipping sauce.",
     suggestionsInput: {
       prompt: "Chinese appetizers",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Spring Rolls
       description: Crispy rolls filled with vegetables...
@@ -109,8 +109,8 @@ const testRecipes = [
       "Rich avocado sauce with al dente noodles; vegan comfort food.",
     suggestionsInput: {
       prompt: "Recipes with Avocados",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Creamy Avocado Pasta
       description: Rich avocado sauce with al dente noodles; vegan comfort food.
@@ -131,8 +131,8 @@ const testRecipes = [
       "A Japanese dish of prepared vinegared rice, usually with some sugar and salt, accompanying a variety of ingredients, such as seafood, vegetables, and occasionally tropical fruits.",
     suggestionsInput: {
       prompt: "Japanese Dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Sushi
       description: A Japanese dish of prepared vinegared rice...
@@ -145,8 +145,8 @@ const testRecipes = [
     description: "A buttery, flaky pastry; perfect for breakfast with coffee.",
     suggestionsInput: {
       prompt: "French Breakfast Items",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Croissant
       description: A buttery, flaky pastry...
@@ -160,8 +160,8 @@ const testRecipes = [
       "A baked or fried turnover consisting of pastry and filling, common in Latin American and Filipino cultures.",
     suggestionsInput: {
       prompt: "Chilean dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Empanada
       description: A baked or fried turnover...
@@ -174,8 +174,8 @@ const testRecipes = [
     description: "Fluffy, round cakes prepared from a starch-based batter.",
     suggestionsInput: {
       prompt: "Breakfast dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Pancakes
       description: Fluffy, round cakes...
@@ -189,8 +189,8 @@ const testRecipes = [
       "A spicy stew containing chili peppers, meat, and often tomatoes and beans.",
     suggestionsInput: {
       prompt: "Tex-mex dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Chili Con Carne
       description: A spicy stew containing chili peppers...
@@ -209,8 +209,8 @@ const testRecipes = [
       "A type of pizza made with tomatoes, mozzarella cheese, fresh basil, salt, and extra-virgin olive oil.",
     suggestionsInput: {
       prompt: "Italian dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Pizza Margherita
       description: A type of pizza made with tomatoes...
@@ -229,8 +229,8 @@ const testRecipes = [
       "A rich, sweet dessert pastry made of layers of filo filled with chopped nuts, sweetened and held together with syrup or honey.",
     suggestionsInput: {
       prompt: "Middle Eastern desserts",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Baklava
       description: A rich, sweet dessert pastry...
@@ -249,8 +249,8 @@ const testRecipes = [
       "A smooth, creamy, highly seasoned soup based on lobster broth.",
     suggestionsInput: {
       prompt: "Seafood dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Lobster Bisque
       description: A smooth, creamy soup...
@@ -269,8 +269,8 @@ const testRecipes = [
       "A South African dish consisting of spiced minced meat baked with an egg-based topping.",
     suggestionsInput: {
       prompt: "South African dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Bobotie
       description: A South African dish with spiced minced meat...
@@ -289,8 +289,8 @@ const testRecipes = [
       "A sour soup commonly consumed in Eastern Europe, made with beetroot as the main ingredient.",
     suggestionsInput: {
       prompt: "Eastern European dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Borscht
       description: A sour soup made with beetroot...
@@ -308,8 +308,8 @@ const testRecipes = [
     description: "A hot and sour Thai soup, usually cooked with shrimp.",
     suggestionsInput: {
       prompt: "Thai dishes",
-      tags: "",
-      ingredients: "",
+      tags: [],
+      ingredients: [],
     },
     suggestionsOutputRaw: `- name: Tom Yum Soup
       description: A hot and sour Thai soup...
@@ -345,9 +345,6 @@ for (const recipe of testRecipes) {
           console.error(outputRaw);
           reject(error);
         },
-        // onProgress(output) {
-        //   console.log(output);
-        // },
         onComplete(output) {
           resolve();
         },

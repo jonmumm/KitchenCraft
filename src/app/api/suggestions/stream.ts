@@ -2,14 +2,23 @@ import { TokenStream } from "@/lib/token-stream";
 import { SuggestionPredictionInput } from "@/types";
 
 export class SuggestionTokenStream extends TokenStream<SuggestionPredictionInput> {
-  protected async constructPrompt(
+  protected async getUserMessage(
     input: SuggestionPredictionInput
   ): Promise<string> {
+    let prompt = input.prompt + "\n";
     // Construct the prompt based on the input
-    return `${input.prompt} ${input.ingredients} ${input.tags}`;
+    if (input.ingredients) {
+      prompt += `ingredients: ${input.ingredients.join(",")}`;
+    }
+
+    if (input.tags) {
+      prompt += `tags: ${input.tags.join(",")}`;
+    }
+
+    return prompt;
   }
 
-  protected async constructTemplate(
+  protected async getSystemMessage(
     input: SuggestionPredictionInput
   ): Promise<string> {
     // Construct and return the template
@@ -52,7 +61,4 @@ suggestions:
     description: "Shortcrust, eggs, feta, olives. Mediterranean-inspired pastry."
   - name: "Egg-Feta Soufflé"
     description: "Airy eggs, feta. Puffed up gourmet elegance."
-\`\`\`
-
-User: {prompt}
-AI:`;
+\`\`\``;

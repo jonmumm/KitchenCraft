@@ -1,49 +1,43 @@
 import { ingredientsParser, tagsParser } from "@/app/parsers";
 import { getErrorMessage } from "@/lib/error";
-import { writeChunk } from "@/lib/streams";
+import { StreamingTextResponse, writeChunk } from "@/lib/streams";
 import { TokenParser } from "@/lib/token-parser";
-import { TokenStream } from "@/lib/token-stream";
 import { getObjectHash, noop } from "@/lib/utils";
 import { SuggestionPredictionOutputSchema } from "@/schema";
-import { SuggestionPredictionInput } from "@/types";
 import { kv } from "@vercel/kv";
+import { parseAsString } from "next-usequerystate";
 import { NextRequest } from "next/server";
-import { z } from "zod";
 import { SuggestionTokenStream } from "./stream";
 
 export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   const params = new URLSearchParams(req.url.split("?")[1]);
-  const prompt = z.string().min(1).parse(params.get("prompt"));
+  const prompt = parseAsString.parseServerSide(
+    params.get("prompt") || undefined
+  );
   const ingredients = ingredientsParser.parseServerSide(
     params.get("ingredients") || undefined
   );
   const tags = tagsParser.parseServerSide(params.get("tags") || undefined);
 
   const input = {
-    prompt,
-    ingredients: ingredients.join(", "),
-    tags: tags.join(", "),
+    prompt: prompt || undefined,
+    ingredients,
+    tags,
   };
+
   const resultId = getObjectHash(input);
   const resultKey = `result:${resultId}`;
-
-  const tokenStream = new SuggestionTokenStream();
-  const stream = await tokenStream.getStream({
-    prompt,
-    ingredients: ingredients.join(", "),
-    tags: tags.join(", "),
-  });
-
-  const { readable, writable } = new TransformStream();
-
-  const writer = writable.getWriter();
-
   kv.hset(resultKey, { input, type: "suggestion", status: "running" }).then(
     noop
   );
 
+  const { readable, writable } = new TransformStream();
+  const writer = writable.getWriter();
+
+  const tokenStream = new SuggestionTokenStream();
+  const stream = await tokenStream.getStream(input);
   const parser = new TokenParser(SuggestionPredictionOutputSchema);
   const charArray: string[] = [];
 
@@ -76,12 +70,5 @@ export async function GET(req: NextRequest) {
   writeChunk(writer, resultId).then(noop);
   process(stream);
 
-  return new Response(readable, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      "Content-Encoding": "none",
-    },
-  });
+  return new StreamingTextResponse(readable);
 }

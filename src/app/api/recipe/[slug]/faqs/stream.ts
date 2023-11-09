@@ -4,7 +4,7 @@ import { Ollama } from "langchain/llms/ollama";
 import { PromptTemplate } from "langchain/prompts";
 
 export class FAQsTokenStream extends TokenStream<FAQsPredictionInput> {
-  protected async constructPrompt(input: FAQsPredictionInput): Promise<string> {
+  protected async getUserMessage(input: FAQsPredictionInput): Promise<string> {
     return userMessageTemplate.format({
       name: input.recipe.name,
       description: input.recipe.description,
@@ -14,7 +14,7 @@ export class FAQsTokenStream extends TokenStream<FAQsPredictionInput> {
     });
   }
 
-  protected async constructTemplate(
+  protected async getSystemMessage(
     input: FAQsPredictionInput
   ): Promise<string> {
     return TEMPLATE;
@@ -52,7 +52,4 @@ questions:
   - What’s the best way to break up the whole tomatoes?
   - How do I know if I need to add sugar, and how much should I add?
   - What if I over-salt the soup?
-\`\`\`
-
-User: {prompt}
-AI:`;
+\`\`\``;
