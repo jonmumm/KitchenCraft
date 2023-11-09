@@ -219,7 +219,7 @@ export default async function Page(props: Props) {
               <DisableUntilLoaded>
                 <EventButton
                   variant="outline"
-                  className="w-full h-full flex flex-col gap-1 items-center"
+                  className="w-full h-auto flex flex-col gap-1 items-center"
                   event={{
                     type: "MODIFY_RECIPE_INGREDIENTS",
                   }}
@@ -234,7 +234,7 @@ export default async function Page(props: Props) {
               <DisableUntilLoaded>
                 <EventButton
                   variant="outline"
-                  className="w-full h-full flex flex-col gap-1 items-center"
+                  className="w-full h-auto flex flex-col gap-1 items-center"
                   event={{
                     type: "MODIFY_RECIPE_DIETARY",
                   }}
@@ -249,7 +249,7 @@ export default async function Page(props: Props) {
               <DisableUntilLoaded>
                 <EventButton
                   variant="outline"
-                  className="w-full h-full flex flex-col gap-1 items-center"
+                  className="w-full h-auto flex flex-col gap-1 items-center"
                   event={{
                     type: "MODIFY_RECIPE_SCALE",
                   }}
@@ -264,7 +264,7 @@ export default async function Page(props: Props) {
               <DisableUntilLoaded>
                 <EventButton
                   variant="outline"
-                  className="w-full h-full flex flex-col gap-1 items-center"
+                  className="w-full h-auto flex flex-col gap-1 items-center"
                   event={{ type: "MODIFY_RECIPE_EQUIPMENT" }}
                 >
                   <MicrowaveIcon />
