@@ -2,6 +2,7 @@ import FloatingHeader from "@/components/ui/floating-header";
 import { AxeIcon } from "lucide-react";
 import { Header } from "./header";
 import { NewRecipeButton } from "./new-recipe-button";
+import { RecentRecipes } from "@/components/recent-recipes";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,9 @@ export default async function Home({
           </NewRecipeButton>
         </div>
       </FloatingHeader>
-      <div className="flex flex-col flex-end">{/* <RecentRecipes /> */}</div>
+      <div className="flex flex-col flex-end">
+        <RecentRecipes />
+      </div>
       {/* <Footer /> */}
     </div>
   );

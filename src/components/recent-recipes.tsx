@@ -15,11 +15,17 @@ export async function RecentRecipes() {
 
   return (
     <div className="p-4">
-      <Label className="text-xs uppercase font-semibold">Top Recipes</Label>
+      <Label className="text-xs uppercase font-semibold">New Recipes</Label>
       <ul className="flex flex-col gap-2 mt-1">
-        {new Array(30).fill(0).map((_, index) => (
-          <RecipeLink key={slugs[index]} index={index} slug={slugs[index]} />
-        ))}
+        {new Array(30).fill(0).map((_, index) =>
+          slugs[index] ? (
+            <RecipeLink key={index} index={index} slug={slugs[index]} />
+          ) : (
+            <Card key={index}>
+              <Skeleton className="w-full h-20" />
+            </Card>
+          )
+        )}
       </ul>
     </div>
   );
