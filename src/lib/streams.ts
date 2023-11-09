@@ -8,6 +8,7 @@ export class StreamingTextResponse extends NextResponse {
         "Content-Type": "text/event-stream",
         Connection: "keep-alive",
         "Cache-Control": "no-cache, no-transform",
+        "Content-Encoding": "none",
       },
     });
   }

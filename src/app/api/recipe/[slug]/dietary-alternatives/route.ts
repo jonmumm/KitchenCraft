@@ -26,20 +26,16 @@ export async function GET(
   } satisfies DietaryAlternativesPredictionInput;
 
   const resultId = getObjectHash(input);
-  const resultKey = `result:${resultId}`;
 
   const { readable, writable } = new TransformStream();
-
+  console.log({ input, resultId });
   const writer = writable.getWriter();
-
-  //   kv.hset(resultKey, { input, type: "substitutions", status: "running" }).then(
-  //     noop
-  //   );
 
   const parser = new TokenParser(SuggestionPredictionOutputSchema);
   const charArray: string[] = [];
 
   const process = async (stream: AsyncIterable<string>) => {
+    console.log("processing...");
     for await (const chunk of stream) {
       console.log(chunk);
       for (const char of chunk) {
@@ -62,10 +58,14 @@ export async function GET(
   };
   const response = new StreamingTextResponse(readable);
 
+  console.log("writing first chunk...");
   writeChunk(writer, resultId).then(noop);
 
   const dietaryAlternativesStream = new DietaryAlternativesTokenStream();
+
+  console.log("getting stream");
   const stream = await dietaryAlternativesStream.getStream(input);
+  console.log("got stream");
   process(stream);
 
   return response;
