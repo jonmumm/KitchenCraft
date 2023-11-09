@@ -60,6 +60,7 @@ export async function GET(
       //   kv.hset(resultKey, { status: "error", error: getErrorMessage(ex) });
     }
   };
+  const response = new StreamingTextResponse(readable);
 
   writeChunk(writer, resultId).then(noop);
 
@@ -67,5 +68,5 @@ export async function GET(
   const stream = await dietaryAlternativesStream.getStream(input);
   process(stream);
 
-  return new StreamingTextResponse(readable);
+  return response;
 }
