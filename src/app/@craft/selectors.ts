@@ -3,6 +3,9 @@ import { CraftSnapshot } from "./types";
 export const selectIsInputting = (state: CraftSnapshot) =>
   state.matches("Mode.New.Inputting");
 
+export const selectInputHash = (state: CraftSnapshot) =>
+  state.context.inputHash;
+
 export const selectIsNew = (state: CraftSnapshot) => state.matches("Mode.New");
 
 export const selectIsEmpty = (state: CraftSnapshot) => {

@@ -10,6 +10,7 @@ import { SubstitutionsPredictionInput } from "@/types";
 import { kv } from "@vercel/kv";
 import { NextRequest } from "next/server";
 import { SubstitutionsTokenStream } from "./stream";
+import { z } from "zod";
 
 // IMPORTANT! Set the runtime to edge
 export const runtime = "edge";
@@ -20,7 +21,7 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   console.log(params.slug);
-  //   const prompt = z.string().min(1).parse(params.get("prompt"));
+  // const prompt = z.string().min(1).parse(params.get("prompt"));
   //   const ingredients = ingredientsParser.parseServerSide(
   //     params.get("ingredients") || undefined
   //   );
@@ -65,6 +66,7 @@ export async function GET(
     } catch (ex) {
       kv.hset(resultKey, { status: "error", error: getErrorMessage(ex) });
     }
+    writer.close();
   };
 
   writeChunk(writer, resultId).then(noop);

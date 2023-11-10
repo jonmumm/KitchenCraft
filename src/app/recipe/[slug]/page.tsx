@@ -4,12 +4,7 @@ import { EventButton } from "@/components/event-button";
 import Generator from "@/components/generator";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
+import { CommandGroup, CommandItem } from "@/components/ui/command";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getResult } from "@/lib/db";
 import { noop, waitForStoreValue } from "@/lib/utils";
@@ -17,6 +12,7 @@ import {
   CompletedRecipeSchema,
   QuestionsPredictionOutputSchema,
   RecipeSchema,
+  SousChefPredictionInputSchema,
   SuggestionPredictionInputSchema,
 } from "@/schema";
 import { RecipePredictionInput, RecipeSlug } from "@/types";
@@ -35,10 +31,18 @@ import {
 import { map } from "nanostores";
 import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
-import React, { ReactNode, Suspense } from "react";
+import React, { ComponentProps, ReactNode, Suspense } from "react";
 import { RecipeContents } from "./recipe-contents";
 import RecipeGenerator from "./recipe-generator";
 import { StoreProps } from "./schema";
+import {
+  SousChefCommand,
+  SousChefCommandInput,
+  SousChefCommandItem,
+  SousChefFAQSuggestionsCommandGroup,
+  SousChefOutput,
+  SousChefPromptCommandGroup,
+} from "./sous-chef-command/components";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -148,6 +152,33 @@ export default async function Page(props: Props) {
 
     const items = new Array(6).fill(0);
 
+    const SousChefFAQSuggestionCommandItem = async ({
+      index,
+    }: ComponentProps<typeof CommandItem> & { index: number }) => {
+      const text = await waitForStoreValue(faqStore, (state) => {
+        const nextQuestionExists = !!state.questions[index + 1];
+        if (nextQuestionExists || !state.loading) {
+          return state.questions[index];
+        }
+      });
+
+      return (
+        <SousChefCommandItem
+          key={index}
+          value={text}
+          className="flex flex-row gap-2"
+        >
+          <Button size="icon" variant="secondary">
+            <HelpCircle />
+          </Button>
+          <Suspense fallback={<Skeleton className="w-full h-6" />}>
+            <h4 className="text-sm flex-1">{text}</h4>
+          </Suspense>
+          <ChevronRight />
+        </SousChefCommandItem>
+      );
+    };
+
     const FAQItem = async ({ index }: { index: number }) => {
       const text = await waitForStoreValue(faqStore, (state) => {
         const nextQuestionExists = !!state.questions[index + 1];
@@ -157,6 +188,106 @@ export default async function Page(props: Props) {
       });
       return <h4 className="text-sm flex-1">{text}</h4>;
     };
+
+    // const handleSubmit = async (slug: string, prompt: string) => {
+    //   "use server";
+
+    //   const resultStore = map({
+    //     loading: true,
+    //     tokens: [] as string[],
+    //     lastUpdatedAt: new Date(),
+    //   });
+
+    //   // const Generator = async () => {
+    //   //   const tokenStream = new SousChefTokenStream();
+    //   //   const input = SousChefPredictionInputSchema.parse({
+    //   //     prompt,
+    //   //     recipe: await getRecipe(slug),
+    //   //   });
+    //   //   const stream = await tokenStream.getStream(input);
+
+    //   //   for await (const token of stream) {
+    //   //     resultStore.get().tokens.push(token);
+    //   //     resultStore.setKey("lastUpdatedAt", new Date());
+    //   //   }
+
+    //   //   resultStore.setKey("loading", false);
+    //   //   return <></>;
+    //   // };
+
+    //   const MAX_UPDATES = 1024;
+
+    //   const LineByLineResults = () => {
+    //     const Line = async ({ index }: { index: number }) => {
+    //       const line = await waitForStoreValue(resultStore, (state) => {
+    //         const outputRaw = state.tokens.join("");
+
+    //         const lines = outputRaw.split("\n");
+    //         const nextLineExists = !!lines[index + 1];
+    //         console.log(lines.length);
+
+    //         if (nextLineExists || !state.loading) {
+    //           return lines[index];
+    //         }
+    //         return undefined;
+    //       });
+
+    //       return <p>{line}</p>;
+    //     };
+
+    //     return new Array(MAX_UPDATES).fill(0).map((_, index) => {
+    //       return (
+    //         <Suspense fallback={null} key={index}>
+    //           <Line index={index} />
+    //         </Suspense>
+    //       );
+    //     });
+    //   };
+
+    //   const NUM_UPDATES = 60;
+
+    //   const Results = () => {
+    //     const Result = async ({ index }: { index: number }) => {
+    //       const result = await waitForStoreValue(resultStore, (state) => {
+    //         const nextIndexExists = !!state.tokens[index + 1];
+    //         if (nextIndexExists) {
+    //           console.log(state.tokens.join(""));
+    //           return state.tokens.join("");
+    //         }
+
+    //         if (!state.loading) {
+    //           return null;
+    //         }
+    //       });
+
+    //       if (!result) {
+    //         return null;
+    //       }
+
+    //       return <SousChefSetResult result={result} />;
+    //     };
+
+    //     return (
+    //       <>
+    //         {new Array(NUM_UPDATES).fill(0).map((_, index) => {
+    //           return (
+    //             <Suspense key={index} fallback={null}>
+    //               <Result index={index} />
+    //             </Suspense>
+    //           );
+    //         })}
+    //       </>
+    //     );
+    //   };
+
+    //   return (
+    //     <Suspense fallback={<Skeleton className="w-full h-20" />}>
+    //       <Generator />
+    //       <Results />
+    //       <SousChefResultData />
+    //     </Suspense>
+    //   );
+    // };
 
     return (
       <>
@@ -172,32 +303,31 @@ export default async function Page(props: Props) {
             </h3>
             <ChefHatIcon />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Ask questions about this recipe.
-          </p>
         </div>
-        <Command shouldFilter={false}>
-          <CommandInput />
-          <CommandGroup defaultValue={undefined} heading="FAQs">
+        <SousChefCommand slug={slug}>
+          <SousChefCommandInput />
+          <SousChefOutput />
+          <Suspense fallback={null}>
+            <WaitForRecipe>
+              <SousChefPromptCommandGroup />
+            </WaitForRecipe>
+          </Suspense>
+          <CommandGroup defaultValue={undefined} heading="FAQ">
             <Suspense fallback={<Skeleton className={"w-full h-20"} />}>
               <WaitForRecipe>
                 {items.map((_, index) => {
                   return (
-                    <CommandItem key={index} className="flex flex-row gap-2">
-                      <Button size="icon" variant="secondary">
-                        <HelpCircle />
-                      </Button>
-                      <Suspense fallback={<Skeleton className="w-full h-6" />}>
-                        <FAQItem index={index} />
-                      </Suspense>
-                      <ChevronRight />
-                    </CommandItem>
+                    <SousChefFAQSuggestionCommandItem
+                      key={index}
+                      index={index}
+                      className="flex flex-row gap-2"
+                    />
                   );
                 })}
               </WaitForRecipe>
             </Suspense>
           </CommandGroup>
-        </Command>
+        </SousChefCommand>
       </>
     );
   };

@@ -45,7 +45,7 @@ export abstract class TokenStream<T> {
     });
     const userMessage = await this.getUserMessage(input);
     const systemMessage = await this.getSystemMessage(input);
-    console.log({ systemMessage, userMessage });
+    // console.log({ systemMessage, userMessage });
 
     const stream = await chat.pipe(outputParser).stream([
       ["system", systemMessage],

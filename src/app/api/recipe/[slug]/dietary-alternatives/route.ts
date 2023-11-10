@@ -55,6 +55,7 @@ export async function GET(
     } catch (ex) {
       //   kv.hset(resultKey, { status: "error", error: getErrorMessage(ex) });
     }
+    writer.close();
   };
   const response = new StreamingTextResponse(readable);
 

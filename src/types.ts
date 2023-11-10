@@ -53,6 +53,7 @@ import {
   DietaryAlternativesPredictionInputSchema,
   EquipmentAdaptationsPredictionInputSchema,
   FAQsPredictionInputSchema,
+  SousChefPredictionInputSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -113,9 +114,7 @@ export type Suggestion = z.infer<typeof SuggestionSchema>;
 export type RemixIdeasPredictionInput = z.infer<
   typeof RemixIdeasPredictionInputSchema
 >;
-export type FAQsPredictionInput = z.infer<
-  typeof FAQsPredictionInputSchema
->;
+export type FAQsPredictionInput = z.infer<typeof FAQsPredictionInputSchema>;
 export type RemixIdeasPredictionOutput = z.infer<
   typeof RemixIdeasPredictionOutputSchema
 >;
@@ -172,4 +171,8 @@ export type DietaryAlternativesPredictionInput = z.infer<
 >;
 export type EquipmentAdaptationsPredictionInput = z.infer<
   typeof EquipmentAdaptationsPredictionInputSchema
+>;
+
+export type SousChefPredictionInput = z.infer<
+  typeof SousChefPredictionInputSchema
 >;

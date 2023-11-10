@@ -152,8 +152,21 @@ function simpleHash(str: string): string {
 }
 
 export function getObjectHash(obj: any): string {
-  const str = JSON.stringify(obj);
-  return simpleHash(str);
+  // Serialize the object with sorted keys
+  const sortedObjString = JSON.stringify(obj, Object.keys(obj).sort());
+
+  // Simple hash function (for demonstration purposes)
+  let hash = 0,
+    i,
+    chr;
+  for (i = 0; i < sortedObjString.length; i++) {
+    chr = sortedObjString.charCodeAt(i);
+    hash = (hash << 5) - hash + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+
+  // Convert hash to a string and return the first 8 characters
+  return ("00000000" + hash.toString(16)).substr(-8);
 }
 
 export const noop = () => {};

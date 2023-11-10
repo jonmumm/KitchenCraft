@@ -63,6 +63,7 @@ export async function GET(
     } catch (ex) {
       //   kv.hset(resultKey, { status: "error", error: getErrorMessage(ex) });
     }
+    writer.close();
   };
 
   writeChunk(writer, resultId).then(noop);

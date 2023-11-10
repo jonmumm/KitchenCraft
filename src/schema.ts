@@ -481,6 +481,17 @@ export const NewRecipePredictionInputSchema = z.object({
   suggestionsInput: SuggestionPredictionInputSchema,
 });
 
+export const SousChefPredictionInputSchema = z.object({
+  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+    RecipePredictionOutputSchema.shape.recipe.pick({
+      ingredients: true,
+      tags: true,
+      instructions: true,
+    })
+  ),
+  prompt: z.string(),
+});
+
 export const ScaleRecipePredictionInputSchema = z.object({
   type: z.literal("SCALE_RECIPE"),
   recipe: RecipeSchema.pick({ name: true, description: true }).merge(

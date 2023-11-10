@@ -1,5 +1,5 @@
 import { eventSourceToGenerator } from "@/lib/generator";
-import { assert, isMobile } from "@/lib/utils";
+import { assert, getObjectHash, isMobile } from "@/lib/utils";
 import {
   IdeasPredictionOutputSchema,
   RecipePathSchema,
@@ -50,6 +50,7 @@ export const createCraftMachine = (
       equipmentAdaptations: undefined,
       scrollViewRef,
       resultId: null,
+      inputHash: undefined,
     } satisfies Context;
   })();
 
@@ -200,6 +201,10 @@ export const createCraftMachine = (
           | {
               type: "assignIngredients";
               params: { ingredients: string[] | undefined };
+            }
+          | {
+              type: "assignInputHash";
+              params: Pick<Context, "tags" | "ingredients" | "prompt">;
             }
           | {
               type: "assignPrompt";
@@ -441,6 +446,10 @@ export const createCraftMachine = (
                 SELECT_RESULT: {
                   target: [".Navigating", "#Closed"],
                   actions: [
+                    {
+                      type: "assignInputHash",
+                      params: ({ context }) => ({ ...context }),
+                    },
                     {
                       type: "navigate",
                       params: ({ context, event }) => {
@@ -830,6 +839,14 @@ export const createCraftMachine = (
       actions: {
         assignIngredients: assign({
           ingredients: (_, params) => params.ingredients,
+        }),
+        assignInputHash: assign({
+          inputHash: (_, params) =>
+            getObjectHash({
+              prompt: params.prompt,
+              ingredients: params.ingredients,
+              tags: params.tags,
+            }),
         }),
         assignResultId: assign({
           resultId: (_, params) => params.resultId,

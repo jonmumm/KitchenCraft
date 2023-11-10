@@ -36,6 +36,7 @@ import {
   WrenchIcon,
   XIcon,
   XSquareIcon,
+  ZapIcon,
 } from "lucide-react";
 import { atom } from "nanostores";
 import { parseAsString, useQueryState } from "next-usequerystate";
@@ -116,10 +117,10 @@ export default function CraftCommand({
               <IngredientsGroup />
               <TagsGroup />
             </ScrollLockComponent>
-            <AddedIngredientsSection />
-            <AddedTagsSection />
             <Separator />
             <CraftInput />
+            <AddedIngredientsSection />
+            <AddedTagsSection />
           </Command>
         </FloatingFooter>
       </ClientOnly>
@@ -174,15 +175,53 @@ const SuggestRecipesAction = () => {
   return (
     <CommandItem onSelect={handleSelect}>
       <div className="w-full flex flex-row gap-3 items-center py-2">
-        <Button size="icon" variant="outline">
-          🧪
+        <Button size="icon" variant="secondary">
+          <span className="text-xl">🧪</span>
         </Button>
         <div className="flex-1 flex flex-col gap-1 items-start">
-          <h6 className="w-full">
-            <span className="font-semibold">Conjure (6)</span> recipe ideas for
-            ...
-          </h6>
-          <span className="italic text-xs opacity-70">{search}</span>
+          <h6 className="w-full font-semibold">{search}</h6>
+          <span className="italic text-xs opacity-70">
+            Generate <span className="font-semibold">6</span> Recipe Ideas
+          </span>
+          <div className="flex flex-row gap-1 flex-wrap">
+            {tags.map((item) => (
+              <Badge key={item} variant="secondary">
+                {item}
+              </Badge>
+            ))}
+            {ingredients.map((item) => (
+              <Badge key={item} variant="secondary">
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        <ChevronRightIcon />
+      </div>
+    </CommandItem>
+  );
+};
+
+const InstantRecipeAction = () => {
+  const search = useCommandState((state) => state.search);
+  const [tags] = useQueryState("tags", tagsParser);
+  const [ingredients] = useQueryState("ingredients", ingredientsParser);
+  const send = useSend();
+  const handleSelect = useCallback(() => {
+    // send({ type: "SUGGEST_RECIPES" });
+  }, [send]);
+
+  return (
+    <CommandItem onSelect={handleSelect}>
+      <div className="w-full flex flex-row gap-3 items-center py-2">
+        <Button size="icon" variant="secondary">
+          <ZapIcon />
+        </Button>
+        <div className="flex-1 flex flex-col gap-1 items-start">
+          <h6 className="w-full font-semibold">{search}</h6>
+          <span className="italic text-xs opacity-70">
+            Instantly create a recipe
+          </span>
           <div className="flex flex-row gap-1 flex-wrap">
             {tags.map((item) => (
               <Badge key={item} variant="secondary">
@@ -461,7 +500,7 @@ const AddedIngredientsSection = () => {
   const [ingredients] = useQueryState("ingredients", ingredientsParser);
 
   return ingredients?.length ? (
-    <div className="px-5">
+    <div className="px-5 mb-3">
       <Label className="text-muted-foreground uppercase text-xs">
         Ingredients
       </Label>
@@ -655,7 +694,7 @@ const AddedTagsSection = () => {
   const [tags] = useQueryState("tags", tagsParser);
 
   return tags?.length ? (
-    <div className="px-5">
+    <div className="px-5 mb-3">
       <Label className="text-muted-foreground uppercase text-xs">Tags</Label>
       <AddedTagsList />
     </div>
@@ -1043,6 +1082,7 @@ const NewRecipeActionsGroup = () => {
   return (
     <CommandGroup heading="Actions">
       <SuggestRecipesAction />
+      <InstantRecipeAction />
     </CommandGroup>
   );
 };
