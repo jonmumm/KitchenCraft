@@ -58,7 +58,6 @@ export const SousChefCommand = ({
         source.onerror = () => {
           // ends with error when server closes writer
           store.setKey("loading", false);
-          store.setKey("submittedPrompt", undefined);
           if (source.readyState !== source.CLOSED) {
             source.close();
           }
@@ -108,6 +107,7 @@ export const SousChefCommandItem = ({
 }: ComponentProps<typeof CommandItem>) => {
   const loading = useLoading();
   const handleSelect = useCallback((value: string) => {
+    store.setKey("prompt", value);
     store.setKey("submittedPrompt", value);
   }, []);
   return (
