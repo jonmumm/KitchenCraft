@@ -1,9 +1,11 @@
+import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo } from "react";
+import { CraftContext } from "./context";
 
 export const useKeyboardToggle = () => {
   const send = useSend();
-  
+
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -22,4 +24,19 @@ export const useKeyboardToggle = () => {
 
 export const useIsMacDesktop = () => {
   return useMemo(() => /Mac|iMac|Macintosh/.test(navigator.platform), []);
+};
+
+export const usePrompt = () => {
+  const actor = useContext(CraftContext);
+  return useSelector(actor, (state) => state.context.prompt);
+};
+
+export const useIngredients = () => {
+  const actor = useContext(CraftContext);
+  return useSelector(actor, (state) => state.context.ingredients);
+};
+
+export const useTags = () => {
+  const actor = useContext(CraftContext);
+  return useSelector(actor, (state) => state.context.tags);
 };

@@ -24,7 +24,6 @@ import useDebounce from "@/hooks/useDebounce";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useStore } from "@nanostores/react";
-import { useCommandState } from "cmdk";
 import {
   ArrowLeftRightIcon,
   AxeIcon,
@@ -34,10 +33,7 @@ import {
   MicrowaveIcon,
   NutOffIcon,
   PlusSquareIcon,
-  RulerIcon,
   ScaleIcon,
-  ScrollTextIcon,
-  WrenchIcon,
   XIcon,
   XSquareIcon,
   ZapIcon,
@@ -50,6 +46,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -65,7 +62,13 @@ import {
   NUM_RECIPE_SUGGESTIONS,
 } from "./constants";
 import { CraftContext } from "./context";
-import { useIsMacDesktop, useKeyboardToggle } from "./hooks";
+import {
+  useIngredients,
+  useIsMacDesktop,
+  useKeyboardToggle,
+  usePrompt,
+  useTags,
+} from "./hooks";
 import { createCraftMachine } from "./machine";
 import {
   selectIsEmpty,
@@ -77,8 +80,9 @@ import {
   selectIsModifyingScale,
   selectIsNew,
   selectIsOpen,
+  selectLockScroll,
+  selectPromptEmpty,
   selectShowOverlay,
-  selectSlug,
 } from "./selectors";
 
 export default function CraftCommand({
@@ -86,10 +90,9 @@ export default function CraftCommand({
 }: {
   searchParams: Record<string, string>;
 }) {
-  const [prompt] = useQueryState("prompt", parseAsString);
   const pathname = usePathname();
   const router = useRouter();
-  const slug = pathname.split("/").pop();
+  const slug = useMemo(() => pathname.split("/").pop(), [pathname]);
   const scrollViewRef = useRef<HTMLDivElement>(null);
 
   const actor = useActor(
@@ -99,7 +102,7 @@ export default function CraftCommand({
 
   const isOpen = useSelector(actor, selectIsOpen);
   const showOverlay = useSelector(actor, selectShowOverlay);
-  const lockScroll = !!(prompt?.length && prompt.length > 0);
+  const lockScroll = useSelector(actor, selectLockScroll);
 
   useKeyboardToggle();
 
@@ -111,11 +114,11 @@ export default function CraftCommand({
             <CraftHeader />
             <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
               <SuggestionsGroup />
+              <NewRecipeActionsGroup />
+
               <SubstitutionsGroup />
               <DietaryAlternativesGroup />
-              <NewRecipeActionsGroup />
-              <ModifyScaleActionsGroup />
-              {/* <ModifySubstituteActionsGroup /> */}
+              <ScaleActionsGroup />
               <EquipmentAdaptationsGroup />
               <IngredientsGroup />
               <TagsGroup />
@@ -133,11 +136,6 @@ export default function CraftCommand({
 
 const CraftInput = () => {
   const [prompt] = useQueryState("prompt", parseAsString);
-  const actor = useContext(CraftContext);
-  const isDisabled = useSelector(actor, (state) =>
-    state.matches("Mode.New.Suggestions")
-  );
-
   const send = useSend();
   const handleInputBlur = useCallback(() => {
     send({ type: "BLUR_PROMPT" });
@@ -166,10 +164,14 @@ const CraftInput = () => {
   );
 };
 
+const PromptText = () => {
+  const prompt = usePrompt();
+  return <>{prompt}</>;
+};
+
 const SuggestRecipesAction = () => {
-  const search = useCommandState((state) => state.search);
-  const [tags] = useQueryState("tags", tagsParser);
-  const [ingredients] = useQueryState("ingredients", ingredientsParser);
+  const tags = useTags();
+  const ingredients = useIngredients();
   const send = useSend();
   const handleSelect = useCallback(() => {
     send({ type: "SUGGEST_RECIPES" });
@@ -185,18 +187,22 @@ const SuggestRecipesAction = () => {
           <span className="italic text-xs opacity-70">
             Generate <span className="font-semibold">6</span> recipe ideas
           </span>
-          <h6 className="w-full font-semibold">{search}</h6>
+          <h6 className="w-full font-semibold">
+            <PromptText />
+          </h6>
           <div className="flex flex-row gap-1 flex-wrap">
-            {tags.map((item) => (
-              <Badge key={item} variant="secondary">
-                {item}
-              </Badge>
-            ))}
-            {ingredients.map((item) => (
-              <Badge key={item} variant="secondary">
-                {item}
-              </Badge>
-            ))}
+            {tags &&
+              tags.map((item) => (
+                <Badge key={item} variant="secondary">
+                  {item}
+                </Badge>
+              ))}
+            {ingredients &&
+              ingredients.map((item) => (
+                <Badge key={item} variant="secondary">
+                  {item}
+                </Badge>
+              ))}
           </div>
         </div>
         <ChevronRightIcon />
@@ -206,10 +212,9 @@ const SuggestRecipesAction = () => {
 };
 
 const InstantRecipeAction = () => {
-  const search = useCommandState((state) => state.search);
-  const [tags] = useQueryState("tags", tagsParser);
-  const [ingredients] = useQueryState("ingredients", ingredientsParser);
   const send = useSend();
+  const tags = useTags();
+  const ingredients = useIngredients();
   const handleSelect = useCallback(() => {
     send({ type: "INSTANT_RECIPE" });
   }, [send]);
@@ -224,18 +229,22 @@ const InstantRecipeAction = () => {
           <span className="italic text-xs opacity-70">
             Instantly create a recipe
           </span>
-          <h6 className="w-full font-semibold">{search}</h6>
+          <h6 className="w-full font-semibold">
+            <PromptText />
+          </h6>
           <div className="flex flex-row gap-1 flex-wrap">
-            {tags.map((item) => (
-              <Badge key={item} variant="secondary">
-                {item}
-              </Badge>
-            ))}
-            {ingredients.map((item) => (
-              <Badge key={item} variant="secondary">
-                {item}
-              </Badge>
-            ))}
+            {tags &&
+              tags.map((item) => (
+                <Badge key={item} variant="secondary">
+                  {item}
+                </Badge>
+              ))}
+            {ingredients &&
+              ingredients.map((item) => (
+                <Badge key={item} variant="secondary">
+                  {item}
+                </Badge>
+              ))}
           </div>
         </div>
         <ChevronRightIcon />
@@ -254,10 +263,8 @@ const IngredientsGroup = ({}: {}) => {
     return null;
   }
 
-  //   const ingredients = useStore(ingredients$);
-
   const IngredientsFetcher = () => {
-    const [prompt] = useQueryState<string>("prompt", parseAsString);
+    const prompt = usePrompt();
     const debouncedPrompt = useDebounce(prompt, 500);
 
     useEffect(() => {
@@ -277,7 +284,7 @@ const IngredientsGroup = ({}: {}) => {
           .then((data) => {
             if (data && !signal.aborted) {
               const parsedData = z.array(z.string()).parse(data);
-              ingredients$.set(parsedData); // Assuming ingredients$ is a state management observable
+              ingredients$.set(parsedData);
             }
           })
           .catch((error) => {
@@ -299,8 +306,9 @@ const IngredientsGroup = ({}: {}) => {
 
   const IngredientsList = () => {
     const send = useSend();
-    const [prompt] = useQueryState("prompt", parseAsString);
-
+    const actor = useContext(CraftContext);
+    const promptEmpty = useSelector(actor, selectPromptEmpty);
+    const ingredients = useStore(ingredients$);
     const handleSelect = useCallback(
       (item: string) => {
         return () => {
@@ -311,10 +319,24 @@ const IngredientsGroup = ({}: {}) => {
       [send]
     );
 
-    const ingredients = useStore(ingredients$);
-    return ingredients.length || prompt ? (
+    const MainItem = () => {
+      const prompt = usePrompt();
+
+      return prompt ? (
+        <CommandItem onSelect={handleSelect(prompt)} className="flex flex-row">
+          <span className="flex-1">
+            <span className="italic">Add ingredient</span> &apos;
+            <span className="font-bold">{prompt}</span>&apos;
+          </span>
+          <PlusSquareIcon className="opacity-50" />
+        </CommandItem>
+      ) : null;
+    };
+
+    return ingredients.length || !promptEmpty ? (
       <CommandGroup heading="Ingredients">
         {ingredients.map((item) => {
+          const { prompt } = actor.getSnapshot().context;
           const promptLength = prompt?.length!;
           const matchIndex = item.toLowerCase().indexOf(prompt?.toLowerCase()!);
 
@@ -337,18 +359,7 @@ const IngredientsGroup = ({}: {}) => {
             </CommandItem>
           );
         })}
-        {prompt && (
-          <CommandItem
-            onSelect={handleSelect(prompt)}
-            className="flex flex-row"
-          >
-            <span className="flex-1">
-              <span className="italic">Add ingredient</span> &apos;
-              <span className="font-bold">{prompt}</span>&apos;
-            </span>
-            <PlusSquareIcon className="opacity-50" />
-          </CommandItem>
-        )}
+        <MainItem />
       </CommandGroup>
     ) : null;
   };
@@ -557,7 +568,7 @@ const TagsGroup = ({}: {}) => {
   }
 
   const TagsFetcher: React.FC = () => {
-    const [prompt] = useQueryState<string>("prompt", parseAsString);
+    const prompt = usePrompt();
     const debouncedPrompt = useDebounce(prompt, 500); // Debounce prompt input
 
     useEffect(() => {
@@ -597,7 +608,8 @@ const TagsGroup = ({}: {}) => {
 
   const TagsList = () => {
     // const [tags, setTags] = useQueryState("tags", tagsParser);
-    const [prompt] = useQueryState("prompt", parseAsString);
+    const actor = useContext(CraftContext);
+    const promptEmpty = useSelector(actor, selectPromptEmpty);
     const send = useSend();
 
     const handleSelect = useCallback(
@@ -611,9 +623,24 @@ const TagsGroup = ({}: {}) => {
     );
     const suggestions = useStore(suggestions$);
 
-    return suggestions.length || prompt ? (
+    const MainItem = () => {
+      const prompt = usePrompt();
+
+      return prompt ? (
+        <CommandItem onSelect={handleSelect(prompt)} className="flex flex-row">
+          <span className="flex-1">
+            <span className="italic">Add tag</span> &apos;
+            <span className="font-bold">{prompt}</span>&apos;
+          </span>
+          <PlusSquareIcon className="opacity-50" />
+        </CommandItem>
+      ) : null;
+    };
+
+    return suggestions.length || !promptEmpty ? (
       <CommandGroup heading="Tags">
         {suggestions.map((item) => {
+          const { prompt } = actor.getSnapshot().context;
           const promptLength = prompt?.length!;
           const matchIndex = item.toLowerCase().indexOf(prompt?.toLowerCase()!);
 
@@ -636,18 +663,7 @@ const TagsGroup = ({}: {}) => {
             </CommandItem>
           );
         })}
-        {prompt && (
-          <CommandItem
-            onSelect={handleSelect(prompt)}
-            className="flex flex-row"
-          >
-            <span className="flex-1">
-              <span className="italic">Add tag</span> &apos;
-              <span className="font-bold">{prompt}</span>&apos;
-            </span>
-            <PlusSquareIcon className="opacity-50" />
-          </CommandItem>
-        )}
+        <MainItem />
       </CommandGroup>
     ) : null;
   };
@@ -1066,7 +1082,6 @@ const SuggestionDescriptionToken = ({
 };
 
 const NewRecipeActionsGroup = () => {
-  const [prompt] = useQueryState("prompt", parseAsString);
   const actor = useContext(CraftContext);
   const active = useSelector(actor, selectIsNew);
   const inputReady = useSelector(
@@ -1085,6 +1100,8 @@ const NewRecipeActionsGroup = () => {
     <CommandGroup heading="Actions">
       <SuggestRecipesAction />
       <InstantRecipeAction />
+      {/* <SuggestRecipesAction />
+      <InstantRecipeAction /> */}
     </CommandGroup>
   );
 };
@@ -1095,8 +1112,7 @@ const EquipmentAdaptationsGroup = () => {
   const active = useSelector(actor, (state) =>
     state.matches("Mode.Modify.Equipment")
   );
-
-  const [prompt] = useQueryState("prompt", parseAsString);
+  const prompt = usePrompt();
 
   if (!active) {
     return null;
@@ -1124,10 +1140,9 @@ const EquipmentAdaptationsGroup = () => {
   );
 };
 
-const ModifyScaleActionsGroup = () => {
+const ScaleActionsGroup = () => {
   const actor = useContext(CraftContext);
-  const slug = useSelector(actor, selectSlug);
-  const [prompt] = useQueryState("prompt", parseAsString);
+  const prompt = usePrompt();
   const active = useSelector(actor, selectIsModifyingScale);
 
   if (!active) {

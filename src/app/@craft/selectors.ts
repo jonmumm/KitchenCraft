@@ -5,6 +5,12 @@ export const selectIsInputting = (state: CraftSnapshot) =>
 
 export const selectSlug = (state: CraftSnapshot) => state.context.slug;
 
+export const selectLockScroll = (state: CraftSnapshot) =>
+  !!(state.context.prompt?.length && state.context.prompt.length > 0);
+
+export const selectPromptEmpty = (state: CraftSnapshot) =>
+  !state.context.prompt?.length;
+
 export const selectInputHash = (state: CraftSnapshot) =>
   state.context.inputHash;
 
