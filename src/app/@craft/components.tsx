@@ -27,8 +27,10 @@ import { useStore } from "@nanostores/react";
 import { useCommandState } from "cmdk";
 import {
   ArrowLeftRightIcon,
+  AxeIcon,
   ChevronRightIcon,
   CommandIcon,
+  LightbulbIcon,
   MicrowaveIcon,
   NutOffIcon,
   PlusSquareIcon,
@@ -177,7 +179,7 @@ const SuggestRecipesAction = () => {
     <CommandItem onSelect={handleSelect}>
       <div className="w-full flex flex-row gap-3 items-center py-2">
         <Button size="icon" variant="secondary">
-          <span className="text-xl">🧪</span>
+          <LightbulbIcon />
         </Button>
         <div className="flex-1 flex flex-col gap-1 items-start">
           <span className="italic text-xs opacity-70">
@@ -911,26 +913,31 @@ const RecipeSuggestionItem = ({ index }: { index: number }) => {
   }, [send, index]);
 
   return (
-    <CommandItem
-      className="flex flex-row gap-2 flex-1"
-      value={index.toString()}
-      onSelect={handleSelectRecipe}
-    >
-      <Button size="icon" variant="secondary">
-        <ScrollTextIcon />
-      </Button>
-      <div className="flex flex-col gap-2 flex-1">
-        <h3 className="font-semibold flex flex-row gap-1 flex-wrap">
-          <SuggestionsName index={index} />
-        </h3>
-        <div className="flex flex-row gap-1 flex-wrap">
-          <SuggestionsDescription index={index} />
+    <>
+      <CommandItem
+        className="flex flex-row gap-2 flex-1"
+        value={index.toString()}
+        onSelect={handleSelectRecipe}
+      >
+        <div className="flex flex-col gap-1">
+          <Button className="w-14" size="icon" variant="secondary">
+            <AxeIcon />
+          </Button>
+          <span className="opacity-50 text-xs text-center">Craft</span>
         </div>
-      </div>
-      <Button variant="ghost">
-        <ChevronRightIcon />
-      </Button>
-    </CommandItem>
+        <div className="flex flex-col gap-2 flex-1">
+          <h3 className="font-semibold flex flex-row gap-1 flex-wrap">
+            <SuggestionsName index={index} />
+          </h3>
+          <div className="flex flex-row gap-1 flex-wrap">
+            <SuggestionsDescription index={index} />
+          </div>
+        </div>
+        <Button variant="ghost">
+          <ChevronRightIcon />
+        </Button>
+      </CommandItem>
+    </>
   );
 };
 
