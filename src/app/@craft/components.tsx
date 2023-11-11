@@ -120,8 +120,8 @@ export default function CraftCommand({
               <DietaryAlternativesGroup />
               <ScaleActionsGroup />
               <EquipmentAdaptationsGroup />
-              <IngredientsGroup />
-              <TagsGroup />
+              {/* <IngredientsGroup />
+              <TagsGroup /> */}
             </ScrollLockComponent>
             <Separator />
             <CraftInput />
@@ -178,7 +178,7 @@ const SuggestRecipesAction = () => {
   }, [send]);
 
   return (
-    <CommandItem onSelect={handleSelect}>
+    <CommandItem variant="card" onSelect={handleSelect}>
       <div className="w-full flex flex-row gap-3 items-center py-2">
         <Button size="icon" variant="secondary">
           <LightbulbIcon />
@@ -220,7 +220,7 @@ const InstantRecipeAction = () => {
   }, [send]);
 
   return (
-    <CommandItem onSelect={handleSelect}>
+    <CommandItem variant="card" onSelect={handleSelect}>
       <div className="w-full flex flex-row gap-3 items-center py-2">
         <Button size="icon" variant="secondary">
           <ZapIcon />
@@ -732,10 +732,12 @@ const SuggestionsGroup = () => {
   return (
     hasSuggestions && (
       <CommandGroup heading="Ideas" className="flex flex-col gap-2">
-        {items.map((_, index) => {
-          return <RecipeSuggestionItem key={index} index={index} />;
-        })}
-        <ClearResultsItem />
+        <div className="flex flex-col gap-2">
+          {items.map((_, index) => {
+            return <RecipeSuggestionItem key={index} index={index} />;
+          })}
+          <ClearResultsItem />
+        </div>
       </CommandGroup>
     )
   );
@@ -934,6 +936,7 @@ const RecipeSuggestionItem = ({ index }: { index: number }) => {
         className="flex flex-row gap-2 flex-1"
         value={index.toString()}
         onSelect={handleSelectRecipe}
+        variant="card"
       >
         <div className="flex flex-col gap-1">
           <Button className="w-14" size="icon" variant="secondary">
@@ -1098,8 +1101,10 @@ const NewRecipeActionsGroup = () => {
 
   return (
     <CommandGroup heading="Actions">
-      <SuggestRecipesAction />
-      <InstantRecipeAction />
+      <div className="flex flex-col gap-2">
+        <SuggestRecipesAction />
+        <InstantRecipeAction />
+      </div>
       {/* <SuggestRecipesAction />
       <InstantRecipeAction /> */}
     </CommandGroup>

@@ -130,7 +130,7 @@ const commandItemVariants = cva(
     variants: {
       variant: {
         // ghost: "bg-transparent hover:bg-gray-100 hover:text-gray-900",
-        outline: "border border-gray-300 text-gray-700 hover:bg-gray-100",
+        card: "shadow-lg rounded-xl",
       },
     },
     // defaultVariants: {
