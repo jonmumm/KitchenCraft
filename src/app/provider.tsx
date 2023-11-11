@@ -3,7 +3,7 @@
 import { ApplicationContext } from "@/context/application";
 import { useActor } from "@/hooks/useActor";
 import { map } from "nanostores";
-import { ReactNode, useEffect } from "react";
+import { Profiler, ReactNode, useEffect, useState } from "react";
 import { HeaderContext, createHeaderMachine } from "./header";
 import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import { useSend } from "@/hooks/useSend";
@@ -19,7 +19,7 @@ import { useSend } from "@/hooks/useSend";
 export function ApplicationProvider(props: { children: ReactNode }) {
   // const craftSegments = useSelectedLayoutSegment("craft");
   // console.log({ craftSegments });
-  const store = map<any>({}); // todo define global types here
+  const [store] = useState(map<any>({})); // todo define global types here
 
   return (
     <ApplicationContext.Provider value={store}>

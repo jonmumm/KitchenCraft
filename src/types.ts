@@ -5,7 +5,6 @@ import {
   AssistantMessageSchema,
   CookingTimeSchema,
   CookwareSchema,
-  CraftActionSchema,
   CreateMessageInputSchema,
   CreateRecipeInputSchema,
   CuisineSchema,
