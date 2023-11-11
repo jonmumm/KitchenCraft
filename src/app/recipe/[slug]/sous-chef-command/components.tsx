@@ -8,6 +8,7 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
+import { Label } from "@/components/ui/label";
 import { useCommandState } from "cmdk";
 import { HelpCircle, SendHorizontalIcon } from "lucide-react";
 import { listenKeys } from "nanostores";
@@ -22,6 +23,7 @@ import {
 import { z } from "zod";
 import { useData, useDirty, useLoading, usePrompt } from "./hooks";
 import { store } from "./store";
+import { Separator } from "@/components/ui/separator";
 
 const getSousChefEventSource = (slug: string, prompt: string) => {
   const eventSourceUrl = `/api/recipe/${slug}/sous-chef?prompt=${prompt}`;
@@ -135,9 +137,13 @@ export const SousChefOutput = () => {
   return (
     data &&
     data.length && (
-      <CardContent>
-        <SousChefResultData />
-      </CardContent>
+      <>
+        <CardContent className="flex flex-col gap-2 py-5">
+          <Label>Answer</Label>
+          <SousChefResultData />
+        </CardContent>
+        <Separator />
+      </>
     )
   );
 };
@@ -150,14 +156,14 @@ export const SousChefPromptCommandGroup = () => {
   return !loading && dirty && search.length ? (
     <CommandGroup heading="Actions">
       <SousChefCommandItem value={search} className="flex flex-row gap-2">
-        <Button size="icon" variant="secondary">
-          <HelpCircle />
-        </Button>
+        <HelpCircle className="opacity-40" />
         <div className="flex flex-col gap-1 flex-1">
-          <h4 className="font-semibold">{search}</h4>
-          <span className="text-xs italic uppercase">Ask</span>
+          <span className="text-xs opacity-70">Ask</span>
+          <h4 className="font-semibold flex-1">{search}</h4>
         </div>
-        <SendHorizontalIcon />
+        <Button size="icon">
+          <SendHorizontalIcon />
+        </Button>
       </SousChefCommandItem>
     </CommandGroup>
   ) : null;

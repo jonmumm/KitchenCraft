@@ -1,5 +1,5 @@
 import type { CreateMessage } from "ai";
-import { z } from "zod";
+import { ZodDiscriminatedUnionOption, z } from "zod";
 import {
   COOKING_TIMES,
   COOKWARES,
@@ -8,11 +8,16 @@ import {
   TECHNIQUES,
 } from "./constants";
 
-export const ModificationSchema = z.enum([
-  "substitute",
-  "dietary",
-  "equipment",
-  "scale",
+const SubstituteLiteral = z.literal("substitute");
+const DietaryLiteral = z.literal("dietary");
+const EquipmentLiteral = z.literal("equipment");
+const ScaleLiteral = z.literal("scale");
+
+export const ModificationSchema = z.union([
+  SubstituteLiteral,
+  DietaryLiteral,
+  EquipmentLiteral,
+  ScaleLiteral,
 ]);
 
 export const RunStatusSchema = z
@@ -325,25 +330,20 @@ const SaveEventSchema = z.object({
 
 const CreateNewRecipeLiteral = z.literal("CREATE_NEW_RECIPE");
 const SuggestRecipesLiteral = z.literal("SUGGEST_RECIPES");
+const InstantRecipeLiteral = z.literal("INSTANT_RECIPE");
 const ModifyRecipeIngredientsLiteral = z.literal("MODIFY_RECIPE_INGREDIENTS");
 const ModifyRecipeDietaryLiteral = z.literal("MODIFY_RECIPE_DIETARY");
 const ModifyReicpeScaleLiteral = z.literal("MODIFY_RECIPE_SCALE");
 const ModifyRecipeEquipmentLiteral = z.literal("MODIFY_RECIPE_EQUIPMENT");
-
-export const CraftActionSchema = z.union([
-  CreateNewRecipeLiteral,
-  SuggestRecipesLiteral,
-  ModifyRecipeIngredientsLiteral,
-  ModifyRecipeDietaryLiteral,
-  ModifyReicpeScaleLiteral,
-  ModifyRecipeEquipmentLiteral,
-]);
 
 const CreateNewRecipeEventSchema = z.object({
   type: CreateNewRecipeLiteral,
 });
 const SuggestRecipesEventSchema = z.object({
   type: SuggestRecipesLiteral,
+});
+const InstantRecipeEventSchema = z.object({
+  type: InstantRecipeLiteral,
 });
 const ModifyRecipeEquipmentEventSchema = z.object({
   type: ModifyRecipeEquipmentLiteral,
@@ -375,6 +375,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ToggleEventSchema,
   CreateNewRecipeEventSchema,
   SuggestRecipesEventSchema,
+  InstantRecipeEventSchema,
   ModifyRecipeIngredientsEventSchema,
   ModifyRecipeEquipmentEventSchema,
   ModifyRecipeScaleEventSchema,
@@ -472,8 +473,10 @@ export const RecipeSchema = RecipeRequiredPropsSchema.merge(
   RecipePredictionOutputSchema.shape.recipe.partial()
 );
 
+const NewRecipeLiteral = z.literal("NEW_RECIPE");
+
 export const NewRecipePredictionInputSchema = z.object({
-  type: z.literal("NEW_RECIPE"),
+  type: NewRecipeLiteral,
   recipe: z.object({
     name: z.string(),
     description: z.string(),
@@ -492,26 +495,44 @@ export const SousChefPredictionInputSchema = z.object({
   prompt: z.string(),
 });
 
-export const ScaleRecipePredictionInputSchema = z.object({
-  type: z.literal("SCALE_RECIPE"),
+export const ModifyRecipeDietaryPredictionInputSchema = z.object({
+  type: ModifyRecipeDietaryLiteral,
   recipe: RecipeSchema.pick({ name: true, description: true }).merge(
     RecipePredictionOutputSchema.shape.recipe
   ),
-  scale: z.string(),
+  prompt: z.string(),
 });
 
-export const SubstituteRecipePredictionInputSchema = z.object({
-  type: z.literal("SUBSTITUTE_RECIPE"),
+export const ModifyRecipeScalePredictionInputSchema = z.object({
+  type: ModifyReicpeScaleLiteral,
   recipe: RecipeSchema.pick({ name: true, description: true }).merge(
     RecipePredictionOutputSchema.shape.recipe
   ),
-  substitution: z.string(),
+  prompt: z.string(),
+});
+
+export const ModifyRecipeIngredientsPredictionInputSchema = z.object({
+  type: ModifyRecipeIngredientsLiteral,
+  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+    RecipePredictionOutputSchema.shape.recipe
+  ),
+  prompt: z.string(),
+});
+
+export const ModifyRecipeEquipmentPredictionInputSchema = z.object({
+  type: ModifyRecipeEquipmentLiteral,
+  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+    RecipePredictionOutputSchema.shape.recipe
+  ),
+  prompt: z.string(),
 });
 
 export const RecipePredictionInputSchema = z.discriminatedUnion("type", [
   NewRecipePredictionInputSchema,
-  ScaleRecipePredictionInputSchema,
-  SubstituteRecipePredictionInputSchema,
+  ModifyRecipeScalePredictionInputSchema,
+  ModifyRecipeIngredientsPredictionInputSchema,
+  ModifyRecipeDietaryPredictionInputSchema,
+  ModifyRecipeEquipmentPredictionInputSchema,
 ]);
 
 export const RecipeChatInputSchema = z.object({

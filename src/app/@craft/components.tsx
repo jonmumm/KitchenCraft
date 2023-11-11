@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/command";
 import { FloatingFooter } from "@/components/ui/floating-footer";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActor } from "@/hooks/useActor";
 import useDebounce from "@/hooks/useDebounce";
@@ -31,6 +32,7 @@ import {
   MicrowaveIcon,
   NutOffIcon,
   PlusSquareIcon,
+  RulerIcon,
   ScaleIcon,
   ScrollTextIcon,
   WrenchIcon,
@@ -43,7 +45,6 @@ import { parseAsString, useQueryState } from "next-usequerystate";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Fragment,
-  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -75,8 +76,8 @@ import {
   selectIsNew,
   selectIsOpen,
   selectShowOverlay,
+  selectSlug,
 } from "./selectors";
-import { Separator } from "@/components/ui/separator";
 
 export default function CraftCommand({
   searchParams,
@@ -179,10 +180,10 @@ const SuggestRecipesAction = () => {
           <span className="text-xl">🧪</span>
         </Button>
         <div className="flex-1 flex flex-col gap-1 items-start">
-          <h6 className="w-full font-semibold">{search}</h6>
           <span className="italic text-xs opacity-70">
-            Generate <span className="font-semibold">6</span> Recipe Ideas
+            Generate <span className="font-semibold">6</span> recipe ideas
           </span>
+          <h6 className="w-full font-semibold">{search}</h6>
           <div className="flex flex-row gap-1 flex-wrap">
             {tags.map((item) => (
               <Badge key={item} variant="secondary">
@@ -208,7 +209,7 @@ const InstantRecipeAction = () => {
   const [ingredients] = useQueryState("ingredients", ingredientsParser);
   const send = useSend();
   const handleSelect = useCallback(() => {
-    // send({ type: "SUGGEST_RECIPES" });
+    send({ type: "INSTANT_RECIPE" });
   }, [send]);
 
   return (
@@ -218,10 +219,10 @@ const InstantRecipeAction = () => {
           <ZapIcon />
         </Button>
         <div className="flex-1 flex flex-col gap-1 items-start">
-          <h6 className="w-full font-semibold">{search}</h6>
           <span className="italic text-xs opacity-70">
             Instantly create a recipe
           </span>
+          <h6 className="w-full font-semibold">{search}</h6>
           <div className="flex flex-row gap-1 flex-wrap">
             {tags.map((item) => (
               <Badge key={item} variant="secondary">
@@ -783,9 +784,6 @@ const DietaryAlternativesItem = ({ index }: { index: number }) => {
       value={index.toString()}
       onSelect={text ? handleSelectRecipe : undefined}
     >
-      <Button size="icon" variant="secondary">
-        <ScrollTextIcon />
-      </Button>
       <div className="flex flex-col gap-2 flex-1">
         {text ? <h3>{text}</h3> : <Skeleton className="w-full h-7" />}
       </div>
@@ -847,11 +845,11 @@ const RecipeSubstitutionsItem = ({ index }: { index: number }) => {
       value={index.toString()}
       onSelect={text ? handleSelectRecipe : undefined}
     >
-      <Button size="icon" variant="secondary">
+      {/* <Button size="icon" variant="secondary">
         <ScrollTextIcon />
-      </Button>
+      </Button> */}
       <div className="flex flex-col gap-2 flex-1">
-        {text ? <h3>{text}</h3> : <Skeleton className="w-full h-7" />}
+        {text ? <h5>{text}</h5> : <Skeleton className="w-full h-7" />}
       </div>
       <Button variant="ghost">
         <ChevronRightIcon />
@@ -884,9 +882,6 @@ const EquipmentAdaptationItem = ({ index }: { index: number }) => {
       value={index.toString()}
       onSelect={text ? handleSelectRecipe : undefined}
     >
-      <Button size="icon" variant="secondary">
-        <WrenchIcon />
-      </Button>
       <div className="flex flex-col gap-2 flex-1">
         {text ? <h3>{text}</h3> : <Skeleton className="w-full h-7" />}
       </div>
@@ -1087,55 +1082,6 @@ const NewRecipeActionsGroup = () => {
   );
 };
 
-const ModifyDietaryActionsGroup = () => {
-  const actor = useContext(CraftContext);
-  const active = useSelector(actor, selectIsModifyingDietary);
-  const [prompt] = useQueryState("prompt", parseAsString);
-  const send = useSend();
-
-  if (!active) {
-    return null;
-  }
-
-  return (
-    <CommandGroup heading="Actions">
-      {prompt && prompt !== "" && (
-        <CommandItem
-          event={{ type: "SUBMIT_PROMPT", prompt }}
-          className="flex flex-row gap-2"
-        >
-          <Button variant="outline">
-            <ScaleIcon />
-          </Button>
-          <div className="flex-1 flex flex-col gap-1">
-            <h5>{prompt}</h5>
-            <span className="opacity-70">Scale</span>
-          </div>
-          <ChevronRightIcon />
-        </CommandItem>
-      )}
-      {scaleList.map((item) => {
-        return (
-          <CommandItem
-            key={item}
-            event={{ type: "SUBMIT_PROMPT", prompt: item }}
-            className="flex flex-row gap-2"
-          >
-            <Button variant="secondary">
-              <ScaleIcon />
-            </Button>
-            <div className="flex-1 flex flex-col gap-1">
-              <h5>{item}</h5>
-              <span className="opacity-70">Scale</span>
-            </div>
-            <ChevronRightIcon />
-          </CommandItem>
-        );
-      })}
-    </CommandGroup>
-  );
-};
-
 const EquipmentAdaptationsGroup = () => {
   const [items] = useState(new Array(NUM_RECIPE_EQUIPMENT_ADAPTATIONS).fill(0));
   const actor = useContext(CraftContext);
@@ -1157,9 +1103,6 @@ const EquipmentAdaptationsGroup = () => {
           event={{ type: "SUBMIT_PROMPT", prompt }}
           className="flex flex-row gap-2"
         >
-          <Button variant="secondary" size="icon">
-            <WrenchIcon />
-          </Button>
           <div className="flex-1 flex flex-col gap-1">
             <h5>{prompt}</h5>
             <span className="opacity-70">Scale</span>
@@ -1176,8 +1119,9 @@ const EquipmentAdaptationsGroup = () => {
 
 const ModifyScaleActionsGroup = () => {
   const actor = useContext(CraftContext);
-  const active = useSelector(actor, selectIsModifyingScale);
+  const slug = useSelector(actor, selectSlug);
   const [prompt] = useQueryState("prompt", parseAsString);
+  const active = useSelector(actor, selectIsModifyingScale);
 
   if (!active) {
     return null;
@@ -1191,28 +1135,21 @@ const ModifyScaleActionsGroup = () => {
           event={{ type: "SUBMIT_PROMPT", prompt }}
           className="flex flex-row gap-2"
         >
-          <Button variant="secondary" size="icon">
-            <ScaleIcon />
-          </Button>
           <div className="flex-1 flex flex-col gap-1">
             <h5>{prompt}</h5>
-            <span className="opacity-70">Scale</span>
           </div>
           <ChevronRightIcon />
         </CommandItem>
       )}
       {scaleList.map((item) => {
         return (
-          <CommandItem
-            key={item}
-            event={{ type: "SUBMIT_PROMPT", prompt: item }}
-            className="flex flex-row gap-2"
-          >
-            <Button variant="secondary" size="icon">
-              <ScaleIcon />
+          <CommandItem key={item} className="flex flex-row gap-2 flex-1">
+            <div className="flex flex-col gap-2 flex-1">
+              <h5>{item}</h5>
+            </div>
+            <Button variant="ghost">
+              <ChevronRightIcon />
             </Button>
-            <h5 className="flex-1">&quot;{item}&quot;</h5>
-            <ChevronRightIcon />
           </CommandItem>
         );
       })}

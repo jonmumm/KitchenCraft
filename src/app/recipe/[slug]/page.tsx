@@ -4,7 +4,11 @@ import { EventButton } from "@/components/event-button";
 import Generator from "@/components/generator";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  CommandGroup,
+  CommandItem,
+  CommandSeparator,
+} from "@/components/ui/command";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getResult } from "@/lib/db";
 import { noop, waitForStoreValue } from "@/lib/utils";
@@ -43,6 +47,7 @@ import {
   SousChefOutput,
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
+import { Separator } from "@/components/ui/separator";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -168,13 +173,13 @@ export default async function Page(props: Props) {
           value={text}
           className="flex flex-row gap-2"
         >
-          <Button size="icon" variant="secondary">
-            <HelpCircle />
-          </Button>
           <Suspense fallback={<Skeleton className="w-full h-6" />}>
+            <HelpCircle className="opacity-40" />
             <h4 className="text-sm flex-1">{text}</h4>
           </Suspense>
-          <ChevronRight />
+          <Button variant="ghost">
+            <ChevronRight />
+          </Button>
         </SousChefCommandItem>
       );
     };
@@ -306,6 +311,7 @@ export default async function Page(props: Props) {
         </div>
         <SousChefCommand slug={slug}>
           <SousChefCommandInput />
+          <Separator />
           <SousChefOutput />
           <Suspense fallback={null}>
             <WaitForRecipe>

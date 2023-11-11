@@ -5,9 +5,18 @@ import { WaitForStore } from "@/components/wait-for-store";
 import { getSlug } from "@/lib/slug";
 import {
   CompletedRecipeSchema,
+  ModificationSchema,
+  ModifyRecipeDietaryPredictionInputSchema,
+  ModifyRecipeEquipmentPredictionInputSchema,
   ModifyRecipeIngredientsPredictionInputSchema,
+  ModifyRecipeScalePredictionInputSchema,
 } from "@/schema";
-import { SubstituteRecipePredictionInput } from "@/types";
+import {
+  ModifyRecipeDietaryPredictionInput,
+  ModifyRecipeEquipmentPredictionInput,
+  ModifyRecipeIngredientsPredictionInput,
+  ModifyRecipeScalePredictionInput,
+} from "@/types";
 import { kv } from "@vercel/kv";
 import { nanoid } from "ai";
 import { ArrowRightLeftIcon } from "lucide-react";
@@ -26,23 +35,66 @@ type Props = {
 
 export default async function Page(props: Props) {
   const baseSlug = props.params.slug;
-  const prompt = z.string().min(1).parse(props.searchParams["prompt"]);
-  if (!prompt) {
+
+  let prompt: string;
+  let modification: string;
+  try {
+    prompt = z.string().min(1).parse(props.searchParams["prompt"]);
+    modification = ModificationSchema.parse(props.searchParams["modification"]);
+  } catch (ex) {
     return redirect(`/recipe/${baseSlug}`);
   }
 
   const recipeKey = `recipe:${baseSlug}`;
   const recipe = CompletedRecipeSchema.parse(await kv.hgetall(recipeKey));
-  console.log({ recipe });
+
   const id = nanoid();
   const branchedSlug = getSlug({ id, name: recipe.name });
 
   const Generator = async () => {
-    const input = {
-      type: "SUBSTITUTE_RECIPE",
-      recipe: ModifyRecipeIngredientsPredictionInputSchema.shape.recipe.parse(recipe),
-      substitution: prompt,
-    } satisfies SubstituteRecipePredictionInput;
+    const getInput = () => {
+      switch (modification) {
+        case "substitute":
+          return {
+            type: "MODIFY_RECIPE_INGREDIENTS",
+            recipe:
+              ModifyRecipeIngredientsPredictionInputSchema.shape.recipe.parse(
+                recipe
+              ),
+            prompt,
+          } satisfies ModifyRecipeIngredientsPredictionInput;
+        case "dietary":
+          return {
+            type: "MODIFY_RECIPE_DIETARY",
+            recipe:
+              ModifyRecipeDietaryPredictionInputSchema.shape.recipe.parse(
+                recipe
+              ),
+            prompt,
+          } satisfies ModifyRecipeDietaryPredictionInput;
+        case "equipment":
+          return {
+            type: "MODIFY_RECIPE_EQUIPMENT",
+            recipe:
+              ModifyRecipeEquipmentPredictionInputSchema.shape.recipe.parse(
+                recipe
+              ),
+            prompt,
+          } satisfies ModifyRecipeEquipmentPredictionInput;
+        case "scale":
+          return {
+            type: "MODIFY_RECIPE_SCALE",
+            recipe:
+              ModifyRecipeScalePredictionInputSchema.shape.recipe.parse(recipe),
+            prompt,
+          } satisfies ModifyRecipeScalePredictionInput;
+        default:
+          throw new Error("undefined modification type: " + modification);
+      }
+    };
+
+    const input = getInput();
+
     return (
       <RecipeGenerator
         input={input}

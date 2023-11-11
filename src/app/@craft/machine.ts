@@ -233,6 +233,20 @@ export const createCraftMachine = (
             },
       },
       on: {
+        PAGE_LOADED: {
+          guard: {
+            type: "didNavigateToRecipe",
+            params: ({ event: { pathname } }) => ({
+              pathname,
+            }),
+          },
+          actions: {
+            type: "assignSlug",
+            params: ({ event: { pathname } }) => ({
+              slug: RecipePathSchema.parse(pathname),
+            }),
+          },
+        },
         REMOVE_TAG: {
           actions: [
             {
@@ -520,24 +534,7 @@ export const createCraftMachine = (
                     Idle: {},
                   },
                 },
-                Navigating: {
-                  on: {
-                    PAGE_LOADED: {
-                      guard: {
-                        type: "didNavigateToRecipe",
-                        params: ({ event: { pathname } }) => ({
-                          pathname,
-                        }),
-                      },
-                      actions: {
-                        type: "assignSlug",
-                        params: ({ event: { pathname } }) => ({
-                          slug: RecipePathSchema.parse(pathname),
-                        }),
-                      },
-                    },
-                  },
-                },
+                Navigating: {},
                 Complete: {
                   type: "final",
                 },
@@ -560,7 +557,11 @@ export const createCraftMachine = (
                             assert(prompt, "expected prompt");
                             assert(context.slug, "expected slug");
                             return {
-                              pathname: `/recipe/${context.slug}/substitute?prompt=${prompt}`,
+                              pathname: `/recipe/${
+                                context.slug
+                              }/remix?prompt=${encodeURIComponent(
+                                prompt
+                              )}&modification=substitute`,
                             };
                           },
                         },
@@ -629,9 +630,9 @@ export const createCraftMachine = (
                             const prompt =
                               context.dietaryAlternatives?.[event.index];
                             assert(prompt, "expected prompt");
-                            assert(slug, "expected slug");
+                            assert(context.slug, "expected slug");
                             return {
-                              pathname: `/recipe/${context.slug}/dietary?prompt=${prompt}`,
+                              pathname: `/recipe/${context.slug}/remix?prompt=${prompt}&modification=dietary`,
                             };
                           },
                         },
@@ -700,9 +701,9 @@ export const createCraftMachine = (
                             const prompt =
                               context.equipmentAdaptations?.[event.index];
                             assert(prompt, "expected prompt");
-                            assert(slug, "expected slug");
+                            assert(context.slug, "expected slug");
                             return {
-                              pathname: `/recipe/${context.slug}/equipment?prompt=${prompt}`,
+                              pathname: `/recipe/${context.slug}/remix?prompt=${prompt}&modification=equipment"`,
                             };
                           },
                         },
@@ -770,9 +771,9 @@ export const createCraftMachine = (
                           params: ({ context, event }) => {
                             const prompt = context.substitutions?.[event.index];
                             assert(prompt, "expected prompt");
-                            assert(slug, "expected slug");
+                            assert(context.slug, "expected slug");
                             return {
-                              pathname: `/recipe/${context.slug}/substitute?prompt=${prompt}`,
+                              pathname: `/recipe/${context.slug}/remix?prompt=${prompt}&modification=scale"`,
                             };
                           },
                         },
@@ -871,7 +872,9 @@ export const createCraftMachine = (
         }),
         assignSlug: assign({
           substitutions: undefined,
-          slug: (_, params) => params.slug,
+          slug: (_, params) => {
+            return params.slug;
+          },
         }),
 
         updateQueryParameter: (_, params) => {
@@ -946,8 +949,10 @@ export const createCraftMachine = (
         equipmentAdaptationsGenerator,
       },
       guards: {
-        didNavigateToRecipe: (_, params) =>
-          RecipePathSchema.safeParse(params.pathname).success,
+        didNavigateToRecipe: ({ context }, params) => {
+          const parse = RecipePathSchema.safeParse(params.pathname);
+          return parse.success && parse.data !== context.slug;
+        },
         didCompleteSubstitutions: ({ context }) =>
           context.substitutions?.length === 6,
         didCompleteDietaryAlternatives: ({ context }) =>

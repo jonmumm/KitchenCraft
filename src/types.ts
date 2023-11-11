@@ -2,58 +2,60 @@ import type { z } from "zod";
 import ingredients from "./data/ingredients.json";
 import {
   AppEventSchema,
+  AssistantMessageSchema,
   CookingTimeSchema,
   CookwareSchema,
+  CraftActionSchema,
   CreateMessageInputSchema,
   CreateRecipeInputSchema,
   CuisineSchema,
+  ModifyRecipeDietaryPredictionInputSchema,
+  DietaryAlternativesInputSchema,
+  DietaryAlternativesPredictionInputSchema,
   DishTypeSchema,
+  EquipmentAdaptationsInputSchema,
+  EquipmentAdaptationsPredictionInputSchema,
+  FAQsPredictionInputSchema,
+  GeneratorTypeSchema,
+  IdeasPredictionOutputSchema,
+  LLMMessageSetIdSchema,
+  LLMMessageSetSchema,
+  MessageContentSchema,
   MessageSchema,
-  AssistantMessageSchema,
+  ModificationSchema,
+  NewRecipePredictionInputSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
-  RecipeSchema,
-  TechniqueSchema,
-  RoleSchema,
-  MessageContentSchema,
   RecipeChatInputSchema,
-  UserMessageSchema,
-  LLMMessageSetSchema,
-  SystemMessageSchema,
-  LLMMessageSetIdSchema,
+  RecipePredictionInputSchema,
   RecipePredictionOutputSchema,
   RecipePredictionPartialOutputSchema,
-  SlugSchema,
-  SuggestionPredictionInputSchema,
-  SuggestionPredictionOutputSchema,
-  RecipePredictionInputSchema,
-  SuggestionSchema,
-  SuggestionPredictionPartialOutputSchema,
+  RecipeRequiredPropsSchema,
+  RecipeSchema,
   RemixIdeasPredictionInputSchema,
   RemixIdeasPredictionOutputSchema,
   RemixIdeasPredictionPartialOutputSchema,
-  TipsPredictionPartialOutputSchema,
-  TipsPredictionOutputSchema,
-  TipsPredictionInputSchema,
-  ModificationSchema,
+  RoleSchema,
+  ModifyRecipeScalePredictionInputSchema,
+  SlugSchema,
+  SousChefPredictionInputSchema,
+  ModifyRecipeIngredientsPredictionInputSchema,
+  SubstitutionsInputSchema,
+  SubstitutionsPredictionInputSchema,
   SubstitutionsPredictionOutputSchema,
   SubstitutionsPredictionPartialOutputSchema,
-  SubstitutionsPredictionInputSchema,
-  NewRecipePredictionInputSchema,
-  ScaleRecipePredictionInputSchema,
-  SubstituteRecipePredictionInputSchema,
-  CraftActionSchema,
+  SuggestionPredictionInputSchema,
+  SuggestionPredictionOutputSchema,
+  SuggestionPredictionPartialOutputSchema,
+  SuggestionSchema,
   SuggestionsInputSchema,
-  SubstitutionsInputSchema,
-  GeneratorTypeSchema,
-  RecipeRequiredPropsSchema,
-  EquipmentAdaptationsInputSchema,
-  DietaryAlternativesInputSchema,
-  IdeasPredictionOutputSchema,
-  DietaryAlternativesPredictionInputSchema,
-  EquipmentAdaptationsPredictionInputSchema,
-  FAQsPredictionInputSchema,
-  SousChefPredictionInputSchema,
+  SystemMessageSchema,
+  TechniqueSchema,
+  TipsPredictionInputSchema,
+  TipsPredictionOutputSchema,
+  TipsPredictionPartialOutputSchema,
+  UserMessageSchema,
+  ModifyRecipeEquipmentPredictionInputSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -146,13 +148,23 @@ export type NewRecipePredictionInput = z.infer<
   typeof NewRecipePredictionInputSchema
 >;
 export type ScaleRecipePredictionInput = z.infer<
-  typeof ScaleRecipePredictionInputSchema
+  typeof ModifyRecipeScalePredictionInputSchema
+>;
+export type DietaryAlternativesPredictionInputSchema = z.infer<
+  typeof DietaryAlternativesPredictionInputSchema
+>;
+export type EquipmentAdaptationsPredictionInput = z.infer<
+  typeof EquipmentAdaptationsPredictionInputSchema
 >;
 export type SubstituteRecipePredictionInput = z.infer<
-  typeof SubstituteRecipePredictionInputSchema
+  typeof ModifyRecipeIngredientsPredictionInputSchema
 >;
-
-export type CraftAction = z.infer<typeof CraftActionSchema>;
+export type DietaryAlternativeRecipePredictionInput = z.infer<
+  typeof ModifyRecipeDietaryPredictionInputSchema
+>;
+export type EquipmentAdaptationRecipePredictionInput = z.infer<
+  typeof EquipmentAdaptationsPredictionInputSchema
+>;
 
 export type SuggestionsInput = z.infer<typeof SuggestionsInputSchema>;
 export type SubstitutionsInput = z.infer<typeof SubstitutionsInputSchema>;
@@ -169,10 +181,19 @@ export type RecipeRequiredProps = z.infer<typeof RecipeRequiredPropsSchema>;
 export type DietaryAlternativesPredictionInput = z.infer<
   typeof DietaryAlternativesPredictionInputSchema
 >;
-export type EquipmentAdaptationsPredictionInput = z.infer<
-  typeof EquipmentAdaptationsPredictionInputSchema
->;
-
 export type SousChefPredictionInput = z.infer<
   typeof SousChefPredictionInputSchema
+>;
+
+export type ModifyRecipeIngredientsPredictionInput = z.infer<
+  typeof ModifyRecipeIngredientsPredictionInputSchema
+>;
+export type ModifyRecipeScalePredictionInput = z.infer<
+  typeof ModifyRecipeScalePredictionInputSchema
+>;
+export type ModifyRecipeEquipmentPredictionInput = z.infer<
+  typeof ModifyRecipeEquipmentPredictionInputSchema
+>;
+export type ModifyRecipeDietaryPredictionInput = z.infer<
+  typeof ModifyRecipeDietaryPredictionInputSchema
 >;

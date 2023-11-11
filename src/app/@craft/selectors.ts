@@ -3,6 +3,8 @@ import { CraftSnapshot } from "./types";
 export const selectIsInputting = (state: CraftSnapshot) =>
   state.matches("Mode.New.Inputting");
 
+export const selectSlug = (state: CraftSnapshot) => state.context.slug;
+
 export const selectInputHash = (state: CraftSnapshot) =>
   state.context.inputHash;
 
