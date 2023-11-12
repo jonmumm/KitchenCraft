@@ -122,7 +122,7 @@ CommandSeparator.displayName = CommandPrimitive.Separator.displayName;
 // Add your CommandItem variants here
 const commandItemVariants = cva(
   [
-    "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-offset-2",
+    "relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-offset-2",
     "aria-selected:bg-slate-500 aria-selected:text-hicontrast-foreground",
     "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
   ],

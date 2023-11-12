@@ -22,6 +22,7 @@ import { RefObject } from "react";
 import { assign, createMachine, fromEventObservable } from "xstate";
 import { ingredientsParser, tagsParser } from "../parsers";
 import { Context, GeneratorEvent } from "./types";
+import { selectInputHash } from "./selectors";
 
 export const createCraftMachine = (
   searchParams: Record<string, string>,
@@ -50,7 +51,7 @@ export const createCraftMachine = (
       equipmentAdaptations: undefined,
       scrollViewRef,
       resultId: null,
-      inputHash: undefined,
+      submittedInputHash: undefined,
     } satisfies Context;
   })();
 
@@ -121,6 +122,7 @@ export const createCraftMachine = (
   const suggestionsGenerator = fromEventObservable(
     ({ input }: { input: SuggestionsInput }) => {
       const source = getSuggestionsEventSource(input);
+      console.log("getting suggestions generator", input, source);
       return eventSourceToGenerator(
         source,
         "SUGGESTION",
@@ -151,6 +153,12 @@ export const createCraftMachine = (
             }
           | {
               type: "didCompleteEquipmentAdaptations";
+            }
+          | {
+              type: "hasPristineInput";
+            }
+          | {
+              type: "hasDirtyInput";
             },
         actors: {} as
           | {
@@ -203,7 +211,7 @@ export const createCraftMachine = (
               params: { ingredients: string[] | undefined };
             }
           | {
-              type: "assignInputHash";
+              type: "assignSubmittedInputHash";
               params: Pick<Context, "tags" | "ingredients" | "prompt">;
             }
           | {
@@ -461,10 +469,6 @@ export const createCraftMachine = (
                   target: [".Navigating", "#Closed"],
                   actions: [
                     {
-                      type: "assignInputHash",
-                      params: ({ context }) => ({ ...context }),
-                    },
-                    {
                       type: "navigate",
                       params: ({ context, event }) => {
                         assert(
@@ -483,13 +487,45 @@ export const createCraftMachine = (
               states: {
                 Inputting: {
                   on: {
-                    SUGGEST_RECIPES: "Suggestions",
+                    SUGGEST_RECIPES: {
+                      target: "Suggestions",
+                      actions: {
+                        type: "assignSubmittedInputHash",
+                        params: ({ context }) => ({ ...context }),
+                      },
+                    },
+                    INSTANT_RECIPE: {
+                      target: ["Navigating", "#Closed"],
+                      actions: [
+                        {
+                          type: "navigate",
+                          params: (f) => {
+                            console.log(f.context);
+                            assert(
+                              f.context.prompt?.length,
+                              "expected prompt to be not empty"
+                            );
+                            return {
+                              pathname: `/instant-recipe?prompt=${f.context.prompt}`,
+                            };
+                          },
+                        },
+                      ],
+                    },
                   },
                 },
                 Suggestions: {
                   initial: "Loading",
                   onDone: "Inputting",
-                  entry: ["closeMobileKeyboard"],
+                  entry: [
+                    "closeMobileKeyboard",
+                    {
+                      type: "assignSuggestions",
+                      params: {
+                        suggestions: undefined,
+                      },
+                    },
+                  ],
                   states: {
                     Loading: {
                       after: {
@@ -528,10 +564,12 @@ export const createCraftMachine = (
                         input: ({ context }) => {
                           return SuggestionsInputSchema.parse(context);
                         },
-                        onDone: "Idle",
+                        onDone: "Complete",
                       },
                     },
-                    Idle: {},
+                    Complete: {
+                      type: "final",
+                    },
                   },
                 },
                 Navigating: {},
@@ -841,8 +879,8 @@ export const createCraftMachine = (
         assignIngredients: assign({
           ingredients: (_, params) => params.ingredients,
         }),
-        assignInputHash: assign({
-          inputHash: (_, params) =>
+        assignSubmittedInputHash: assign({
+          submittedInputHash: (_, params) =>
             getObjectHash({
               prompt: params.prompt,
               ingredients: params.ingredients,
@@ -926,7 +964,8 @@ export const createCraftMachine = (
         navigate: (_, params) => {
           router.push(params.pathname);
         },
-        closeMobileKeyboard: () => {
+        closeMobileKeyboard: ({ context }) => {
+          console.log({ context });
           // Close keyboard on mobile
           if (isMobile()) {
             (document.activeElement as HTMLElement)?.blur();

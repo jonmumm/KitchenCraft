@@ -15,9 +15,9 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
-import { FloatingFooter } from "@/components/ui/floating-footer";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActor } from "@/hooks/useActor";
 import useDebounce from "@/hooks/useDebounce";
@@ -34,15 +34,16 @@ import {
   NutOffIcon,
   PlusSquareIcon,
   ScaleIcon,
+  TagIcon,
   XIcon,
   XSquareIcon,
   ZapIcon,
 } from "lucide-react";
 import { atom } from "nanostores";
-import { parseAsString, useQueryState } from "next-usequerystate";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Fragment,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -50,7 +51,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { ingredientsParser, tagsParser } from "../parsers";
 import {
   MAX_NUM_DESCRIPTION_TOKENS,
   MAX_NUM_NAME_TOKENS,
@@ -71,6 +71,7 @@ import {
 } from "./hooks";
 import { createCraftMachine } from "./machine";
 import {
+  selectInputIsPristine,
   selectIsEmpty,
   selectIsInputting,
   selectIsModifying,
@@ -84,6 +85,7 @@ import {
   selectPromptEmpty,
   selectShowOverlay,
 } from "./selectors";
+import { useCommandState } from "cmdk";
 
 export default function CraftCommand({
   searchParams,
@@ -100,6 +102,11 @@ export default function CraftCommand({
     createCraftMachine(searchParams, router, scrollViewRef, slug)
   );
 
+  const filter = useCallback((value: string, search: string) => {
+    // console.log({ value, search });
+    return 1;
+  }, []);
+
   const isOpen = useSelector(actor, selectIsOpen);
   const showOverlay = useSelector(actor, selectShowOverlay);
   const lockScroll = useSelector(actor, selectLockScroll);
@@ -109,33 +116,68 @@ export default function CraftCommand({
   return (
     <CraftContext.Provider value={actor}>
       <ClientOnly>
-        <FloatingFooter open={isOpen} overlay={showOverlay} showBack={true}>
-          <Command shouldFilter={false} style={{ maxHeight: "85vh" }}>
-            <CraftHeader />
-            <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
-              <SuggestionsGroup />
-              <NewRecipeActionsGroup />
+        <Sheet open={isOpen}>
+          {/* <FloatingDock open={isOpen} overlay={showOverlay} showBack={true}> */}
 
-              <SubstitutionsGroup />
-              <DietaryAlternativesGroup />
-              <ScaleActionsGroup />
-              <EquipmentAdaptationsGroup />
-              {/* <IngredientsGroup />
+          <CraftSheetContent
+          // onPointerDownOutside={handlePointerDownOutside}
+          >
+            {/* <ResizeObserverComponent onResize={handleResize}>
+            {children}
+          </ResizeObserverComponent> */}
+
+            <Command shouldFilter={false} style={{ maxHeight: "85vh" }}>
+              <CraftHeader />
+              <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
+                <NewRecipeActionsGroup />
+                <SuggestionsGroup />
+
+                <SubstitutionsGroup />
+                <DietaryAlternativesGroup />
+                <ScaleActionsGroup />
+                <EquipmentAdaptationsGroup />
+                {/* <IngredientsGroup />
               <TagsGroup /> */}
-            </ScrollLockComponent>
-            <Separator />
-            <CraftInput />
-            <AddedIngredientsSection />
-            <AddedTagsSection />
-          </Command>
-        </FloatingFooter>
+              </ScrollLockComponent>
+              <Separator />
+              <CraftInput />
+              <AddedIngredientsSection />
+              <AddedTagsSection />
+            </Command>
+          </CraftSheetContent>
+          {showOverlay && <SheetOverlay />}
+        </Sheet>
       </ClientOnly>
     </CraftContext.Provider>
   );
 }
 
+// const CommandSelect = () => {
+//   const send = useSend();
+//   useCommandState((state) => state.)
+
+//   return null;
+// }
+
+export const CraftSheetContent = ({ children }: { children: ReactNode }) => {
+  const send = useSend();
+  const handlePointerDownOutside = useCallback(() => {
+    send({ type: "CLOSE" });
+  }, [send]);
+
+  return (
+    <SheetContent
+      side={"bottom"}
+      onPointerDownOutside={handlePointerDownOutside}
+    >
+      {children}
+    </SheetContent>
+  );
+};
+
 const CraftInput = () => {
-  const [prompt] = useQueryState("prompt", parseAsString);
+  const prompt = usePrompt();
+  console.log({ prompt });
   const send = useSend();
   const handleInputBlur = useCallback(() => {
     send({ type: "BLUR_PROMPT" });
@@ -169,13 +211,62 @@ const PromptText = () => {
   return <>{prompt}</>;
 };
 
-const SuggestRecipesAction = () => {
-  const tags = useTags();
-  const ingredients = useIngredients();
+const AddTagAction = () => {
   const send = useSend();
   const handleSelect = useCallback(() => {
     send({ type: "SUGGEST_RECIPES" });
   }, [send]);
+
+  return (
+    <CommandItem className="flex-1" variant="card" onSelect={handleSelect}>
+      <div className="w-full flex flex-row gap-3 items-center py-2">
+        <Button size="icon" variant="secondary">
+          <TagIcon />
+        </Button>
+        <div className="flex-1 flex flex-col gap-1 items-start">
+          <span className="italic text-xs opacity-70">Add tag</span>
+          <h6 className="w-full font-semibold">
+            <PromptText />
+          </h6>
+        </div>
+      </div>
+    </CommandItem>
+  );
+};
+
+const AddIngredientAction = () => {
+  const send = useSend();
+  const handleSelect = useCallback(() => {
+    send({ type: "SUGGEST_RECIPES" });
+  }, [send]);
+
+  return (
+    <CommandItem className="flex-1" variant="card" onSelect={handleSelect}>
+      <div className="w-full flex flex-row gap-3 items-center py-2">
+        <Button size="icon" variant="secondary">
+          <PlusSquareIcon className="opacity-50" />
+        </Button>
+        <div className="flex-1 flex flex-col gap-1 items-start">
+          <span className="italic text-xs opacity-70">Add ingredient</span>
+          <h6 className="w-full font-semibold">
+            <PromptText />
+          </h6>
+        </div>
+      </div>
+    </CommandItem>
+  );
+};
+
+const SuggestRecipesAction = () => {
+  const tags = useTags();
+  const ingredients = useIngredients();
+  const actor = useContext(CraftContext);
+  const send = useSend();
+  const handleSelect = useCallback(() => {
+    send({ type: "SUGGEST_RECIPES" });
+  }, [send]);
+  const filtered = useCommandState((state) => state.filtered);
+  console.log([filtered]);
 
   return (
     <CommandItem variant="card" onSelect={handleSelect}>
@@ -223,7 +314,7 @@ const InstantRecipeAction = () => {
     <CommandItem variant="card" onSelect={handleSelect}>
       <div className="w-full flex flex-row gap-3 items-center py-2">
         <Button size="icon" variant="secondary">
-          <ZapIcon />
+          <ZapIcon className="opacity-50" />
         </Button>
         <div className="flex-1 flex flex-col gap-1 items-start">
           <span className="italic text-xs opacity-70">
@@ -247,7 +338,7 @@ const InstantRecipeAction = () => {
               ))}
           </div>
         </div>
-        <ChevronRightIcon />
+        <Badge className="uppercase">Craft</Badge>
       </div>
     </CommandItem>
   );
@@ -511,7 +602,7 @@ const NewRecipeInputtingHeader = () => {
 };
 
 const AddedIngredientsSection = () => {
-  const [ingredients] = useQueryState("ingredients", ingredientsParser);
+  const ingredients = useIngredients();
 
   return ingredients?.length ? (
     <div className="px-5 mb-3">
@@ -525,7 +616,7 @@ const AddedIngredientsSection = () => {
 
 const AddedIngredientsList = () => {
   const send = useSend();
-  const [ingredients] = useQueryState("ingredients", ingredientsParser);
+  const ingredients = useIngredients();
   const actor = useContext(CraftContext);
 
   const handlePressItem = useCallback(
@@ -678,7 +769,7 @@ const TagsGroup = ({}: {}) => {
 
 const AddedTagsList = () => {
   const send = useSend();
-  const [tags] = useQueryState("tags", tagsParser);
+  const tags = useTags();
 
   const handlePressItem = useCallback(
     (tag: string) => {
@@ -710,7 +801,7 @@ const AddedTagsList = () => {
 };
 
 const AddedTagsSection = () => {
-  const [tags] = useQueryState("tags", tagsParser);
+  const tags = useTags();
 
   return tags?.length ? (
     <div className="px-5 mb-3">
@@ -736,7 +827,7 @@ const SuggestionsGroup = () => {
           {items.map((_, index) => {
             return <RecipeSuggestionItem key={index} index={index} />;
           })}
-          <ClearResultsItem />
+          {/* <ClearResultsItem /> */}
         </div>
       </CommandGroup>
     )
@@ -756,7 +847,7 @@ const SubstitutionsGroup = () => {
         {items.map((_, index) => {
           return <RecipeSubstitutionsItem key={index} index={index} />;
         })}
-        <ClearResultsItem />
+        {/* <ClearResultsItem /> */}
       </CommandGroup>
     )
   );
@@ -939,22 +1030,22 @@ const RecipeSuggestionItem = ({ index }: { index: number }) => {
         variant="card"
       >
         <div className="flex flex-col gap-1">
-          <Button className="w-14" size="icon" variant="secondary">
+          <Button size="icon" variant="ghost">
             <AxeIcon />
           </Button>
-          <span className="opacity-50 text-xs text-center">Craft</span>
+          {/* <span className="opacity-50 text-xs text-center">Craft</span> */}
         </div>
         <div className="flex flex-col gap-2 flex-1">
           <h3 className="font-semibold flex flex-row gap-1 flex-wrap">
             <SuggestionsName index={index} />
           </h3>
-          <div className="flex flex-row gap-1 flex-wrap">
+          <div className="flex flex-row gap-1 flex-wrap opacity-70">
             <SuggestionsDescription index={index} />
           </div>
         </div>
-        <Button variant="ghost">
-          <ChevronRightIcon />
-        </Button>
+        <Badge variant="default" className="uppercase">
+          Craft
+        </Badge>
       </CommandItem>
     </>
   );
@@ -1087,6 +1178,15 @@ const SuggestionDescriptionToken = ({
 const NewRecipeActionsGroup = () => {
   const actor = useContext(CraftContext);
   const active = useSelector(actor, selectIsNew);
+  const showAddIngredientAndTags = useSelector(actor, (state) => {
+    const length = state.context.prompt?.length;
+    if (length && length >= 2 && length <= 28) {
+      return true;
+    }
+    return false;
+  });
+  const isPristine = useSelector(actor, selectInputIsPristine);
+  // console.log({ isPristine });
   const inputReady = useSelector(
     actor,
     ({ context }) =>
@@ -1095,18 +1195,21 @@ const NewRecipeActionsGroup = () => {
       context.tags?.length
   );
 
-  if (!active || !inputReady) {
+  console.log(actor.getSnapshot());
+  if (!active || !inputReady || isPristine) {
     return null;
   }
 
   return (
     <CommandGroup heading="Actions">
-      <div className="flex flex-col gap-2">
-        <SuggestRecipesAction />
-        <InstantRecipeAction />
-      </div>
-      {/* <SuggestRecipesAction />
-      <InstantRecipeAction /> */}
+      <SuggestRecipesAction />
+      <InstantRecipeAction />
+      {/* {showAddIngredientAndTags && (
+          <div className="flex flex-row gap-2 w-full flex-wrap">
+            <AddIngredientAction />
+            <AddTagAction />
+          </div>
+        )} */}
     </CommandGroup>
   );
 };

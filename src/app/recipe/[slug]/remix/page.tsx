@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
-import { FloatingFooter } from "@/components/ui/floating-footer";
+import { FloatingDock } from "@/components/ui/floating-dock";
 import { WaitForStore } from "@/components/wait-for-store";
 import { getSlug } from "@/lib/slug";
 import {
@@ -164,7 +164,7 @@ export default async function Page(props: Props) {
         store={store}
         selector={(state) => (state.recipe.yield ? true : undefined)}
       >
-        <FloatingFooter>
+        <FloatingDock>
           <div className="flex flex-col gap-2 p-3">
             <Card className="flex flex-col gap-2">
               <CardHeader className="flex flex-row gap-3 items-center">
@@ -194,7 +194,7 @@ export default async function Page(props: Props) {
               </form>
             </div>
           </div>
-        </FloatingFooter>
+        </FloatingDock>
       </WaitForStore>
     );
   };

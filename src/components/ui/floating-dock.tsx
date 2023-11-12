@@ -1,11 +1,13 @@
 "use client";
 
+import { CraftContext } from "@/app/@craft/context";
 import ResizeObserverComponent from "@/components/resize-observer";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
+import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useStore } from "@nanostores/react";
 import { atom } from "nanostores";
-import { ReactNode, useCallback, useRef, useState } from "react";
+import { ReactNode, useCallback, useContext, useRef, useState } from "react";
 
 type Props = {
   children: ReactNode;
@@ -14,10 +16,20 @@ type Props = {
   showBack?: boolean;
 };
 
-export const FloatingFooter = ({ children, open, overlay }: Props) => {
+export const FloatingDock = ({ children, open, overlay }: Props) => {
   const contentRef = useRef(null);
   const [height$] = useState(atom(0));
   const send = useSend();
+
+  const actor = useContext(CraftContext);
+
+  const side = useSelector(actor, (state) => {
+    if (state.matches("FocusState.Focused")) {
+      return "top" as const;
+    } else {
+      return "bottom" as const;
+    }
+  });
 
   const handleResize = useCallback(
     ({ height }: { height: number }) => {
@@ -41,7 +53,7 @@ export const FloatingFooter = ({ children, open, overlay }: Props) => {
       <Sheet open={open}>
         <SheetContent
           ref={contentRef}
-          side="bottom"
+          side={side}
           onPointerDownOutside={handlePointerDownOutside}
         >
           <ResizeObserverComponent onResize={handleResize}>
@@ -50,7 +62,7 @@ export const FloatingFooter = ({ children, open, overlay }: Props) => {
         </SheetContent>
         {overlay && <SheetOverlay />}
       </Sheet>
-      {open && <Spacer />}
+      {side === "bottom" && open && <Spacer />}
     </>
   );
 };

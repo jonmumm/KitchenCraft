@@ -19,5 +19,5 @@ export const ContextSchema = z.object({
   dietaryAlternatives: IdeasPredictionPartialOutputSchema.shape.ideas,
   scrollViewRef: z.custom<RefObject<HTMLDivElement>>(),
   resultId: z.string().nullable(),
-  inputHash: z.string().optional(),
+  submittedInputHash: z.string().optional(),
 });

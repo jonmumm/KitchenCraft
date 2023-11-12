@@ -1,4 +1,5 @@
-import { CraftSnapshot } from "./types";
+import { getObjectHash } from "@/lib/utils";
+import { Context, CraftSnapshot } from "./types";
 
 export const selectIsInputting = (state: CraftSnapshot) =>
   state.matches("Mode.New.Inputting");
@@ -12,9 +13,12 @@ export const selectPromptEmpty = (state: CraftSnapshot) =>
   !state.context.prompt?.length;
 
 export const selectInputHash = (state: CraftSnapshot) =>
-  state.context.inputHash;
+  state.context.submittedInputHash;
 
 export const selectIsNew = (state: CraftSnapshot) => state.matches("Mode.New");
+
+export const selectIsInputtingNew = (state: CraftSnapshot) =>
+  state.matches("Mode.New.Inputting");
 
 export const selectIsEmpty = (state: CraftSnapshot) => {
   return (
@@ -45,4 +49,21 @@ export const selectIsOpen = (state: CraftSnapshot) => {
 
 export const selectShowOverlay = (state: CraftSnapshot) => {
   return state.matches("OpenState.Open") && state.matches("Mode.New");
+};
+
+export const selectInputIsPristine = ({ context }: CraftSnapshot) => {
+  if (
+    !context.prompt?.length &&
+    !context.ingredients?.length &&
+    !context.tags?.length
+  ) {
+    return false;
+  }
+
+  const hash = getObjectHash({
+    prompt: context.prompt,
+    ingredients: context.ingredients,
+    tags: context.tags,
+  });
+  return hash === context.submittedInputHash;
 };
