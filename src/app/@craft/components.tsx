@@ -24,6 +24,7 @@ import useDebounce from "@/hooks/useDebounce";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useStore } from "@nanostores/react";
+import { useCommandState } from "cmdk";
 import {
   ArrowLeftRightIcon,
   AxeIcon,
@@ -85,7 +86,6 @@ import {
   selectPromptEmpty,
   selectShowOverlay,
 } from "./selectors";
-import { useCommandState } from "cmdk";
 
 export default function CraftCommand({
   searchParams,
@@ -1178,15 +1178,14 @@ const SuggestionDescriptionToken = ({
 const NewRecipeActionsGroup = () => {
   const actor = useContext(CraftContext);
   const active = useSelector(actor, selectIsNew);
-  const showAddIngredientAndTags = useSelector(actor, (state) => {
-    const length = state.context.prompt?.length;
-    if (length && length >= 2 && length <= 28) {
-      return true;
-    }
-    return false;
-  });
+  // const showAddIngredientAndTags = useSelector(actor, (state) => {
+  //   const length = state.context.prompt?.length;
+  //   if (length && length >= 2 && length <= 28) {
+  //     return true;
+  //   }
+  //   return false;
+  // });
   const isPristine = useSelector(actor, selectInputIsPristine);
-  // console.log({ isPristine });
   const inputReady = useSelector(
     actor,
     ({ context }) =>

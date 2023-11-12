@@ -466,7 +466,7 @@ export const createCraftMachine = (
             New: {
               on: {
                 SELECT_RESULT: {
-                  target: [".Navigating", "#Closed"],
+                  target: [".Navigating"],
                   actions: [
                     {
                       type: "navigate",
@@ -495,7 +495,7 @@ export const createCraftMachine = (
                       },
                     },
                     INSTANT_RECIPE: {
-                      target: ["Navigating", "#Closed"],
+                      target: ["Navigating"],
                       actions: [
                         {
                           type: "navigate",
@@ -572,7 +572,11 @@ export const createCraftMachine = (
                     },
                   },
                 },
-                Navigating: {},
+                Navigating: {
+                  always: {
+                    target: ["#Closed"],
+                  },
+                },
                 Complete: {
                   type: "final",
                 },
