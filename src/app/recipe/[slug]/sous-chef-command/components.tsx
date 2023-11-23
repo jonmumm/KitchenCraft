@@ -123,10 +123,16 @@ export const SousChefCommandItem = ({
       ...store.get().history,
       { question: store.get().prompt!, answer: "" },
     ]);
-    store.get().inputRef.current?.focus();
+    const input = store.get().inputRef.current;
+    input?.focus();
     setTimeout(() => {
-      store.get().inputRef.current?.select();
-    }, 0);
+      const length = input?.value.length;
+      if (length) {
+        input?.setSelectionRange(length, length);
+      } else {
+        input?.select();
+      }
+    }, 200);
   }, []);
   return (
     <CommandItem disabled={loading} {...props} onSelect={handleSelect}>
