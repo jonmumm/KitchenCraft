@@ -69,9 +69,9 @@ export const SousChefCommand = ({
           if (source.readyState !== source.CLOSED) {
             source.close();
           }
-          setTimeout(() => {
-            store.get().inputRef.current?.focus();
-          }, 50);
+          // setTimeout(() => {
+          //   store.get().inputRef.current?.focus();
+          // }, 50);
         };
       }
     });
@@ -123,6 +123,10 @@ export const SousChefCommandItem = ({
       ...store.get().history,
       { question: store.get().prompt!, answer: "" },
     ]);
+    store.get().inputRef.current?.focus();
+    setTimeout(() => {
+      store.get().inputRef.current?.select();
+    }, 0);
   }, []);
   return (
     <CommandItem disabled={loading} {...props} onSelect={handleSelect}>
@@ -199,8 +203,7 @@ export const SousChefCommandInput = (
         ref={inputRef}
         value={prompt}
         onValueChange={setPrompt}
-        disabled={loading}
-        postIcon={!loading && prompt?.length ? "send" : undefined}
+        postIcon={!loading && prompt?.length ? "send" : "spinner"}
         {...props}
       />
     </>

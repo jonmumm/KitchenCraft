@@ -2,7 +2,12 @@
 
 import { DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
-import { ChevronRight, Search, SendHorizonalIcon } from "lucide-react";
+import {
+  ChevronRight,
+  Loader2Icon,
+  Search,
+  SendHorizonalIcon,
+} from "lucide-react";
 import * as React from "react";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -46,7 +51,7 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
     preIcon?: "search" | "prompt";
-    postIcon?: "send";
+    postIcon?: "send" | "spinner";
   }
 >(({ className, postIcon, preIcon = "prompt", ...props }, ref) => (
   <div className="flex items-center px-3" cmdk-input-wrapper="">
@@ -69,6 +74,7 @@ const CommandInput = React.forwardRef<
         <SendHorizonalIcon className="opacity-50" />
       </EventButton>
     )}
+    {postIcon === "spinner" && <Loader2Icon className="animate-spin" />}
   </div>
 ));
 
