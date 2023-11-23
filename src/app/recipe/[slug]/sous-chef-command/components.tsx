@@ -218,7 +218,7 @@ export const SousChefCommandInput = (
         ref={inputRef}
         value={prompt}
         onValueChange={setPrompt}
-        postIcon={!loading && prompt?.length ? "send" : "spinner"}
+        postIcon={loading ? "spinner" : prompt?.length ? "send" : undefined}
         {...props}
       />
     </>
