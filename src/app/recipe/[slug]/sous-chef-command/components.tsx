@@ -46,6 +46,7 @@ export const SousChefCommand = ({
       // When we submit, if we we have a prompt and arent already loading
       // ...start loading
       if (history[index].question && !state.loading) {
+        store.setKey("index", index + 1);
         store.setKey("loading", true);
         const source = getSousChefEventSource(slug, history[index].question);
         const chunks: string[] = [];
@@ -63,6 +64,7 @@ export const SousChefCommand = ({
 
         source.onerror = () => {
           // ends with error when server closes writer
+          // store.setKey("index", store.get().index + 1);
           store.setKey("loading", false);
           if (source.readyState !== source.CLOSED) {
             source.close();

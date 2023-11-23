@@ -200,12 +200,12 @@ export default async function Page(props: Props) {
         <SousChefCommand slug={slug}>
           <SousChefCommandInput />
           <Separator />
-          <SousChefOutput />
           <Suspense fallback={null}>
             <WaitForRecipe>
               <SousChefPromptCommandGroup />
             </WaitForRecipe>
           </Suspense>
+          <SousChefOutput />
           <CommandGroup defaultValue={undefined} heading="FAQ">
             <Suspense fallback={<Skeleton className={"w-full h-20"} />}>
               <WaitForRecipe>

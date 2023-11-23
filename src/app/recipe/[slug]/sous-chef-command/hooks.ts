@@ -15,12 +15,12 @@ export const useLoading = () => {
 
 export const useDirty = () => {
   const [dirty$] = useState(
-    computed(store, ({ prompt, history, index }) => {
-      if (prompt && !history[index]) {
-        return true;
+    computed(store, ({ prompt, history, index, loading }) => {
+      if (loading) {
+        return false;
       }
 
-      return prompt !== history[index]?.answer;
+      return prompt !== history[index - 1]?.question;
     })
   );
   return useStore(dirty$);
@@ -28,7 +28,7 @@ export const useDirty = () => {
 
 export const useCurrentAnswer = () => {
   const [answer$] = useState(
-    computed(store, ({ history, index }) => history[index]?.answer)
+    computed(store, ({ history, index }) => history[index - 1]?.answer)
   );
   return useStore(answer$);
 };
