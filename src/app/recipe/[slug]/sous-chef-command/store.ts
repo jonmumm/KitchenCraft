@@ -1,10 +1,9 @@
-import { map } from "nanostores";
-import { ReactNode } from "react";
+import { deepMap, map } from "nanostores";
 
-export const store = map({
+export const store = deepMap({
   loading: false,
+  index: 0,
   prompt: undefined as string | undefined,
-  submittedPrompt: undefined as string | undefined,
-  data: undefined as string | undefined,
-  resultsComponent: undefined as ReactNode | undefined,
+  history: [] as { question: string; answer: string }[],
+  inputRef: { current: null as HTMLInputElement | null },
 });

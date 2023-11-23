@@ -2,7 +2,7 @@
 
 import { DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, Search, SendHorizonalIcon } from "lucide-react";
 import * as React from "react";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -10,6 +10,8 @@ import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { VariantProps, cva } from "class-variance-authority";
+import { Button } from "./button";
+import { EventButton } from "../event-button";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -43,14 +45,15 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
-    icon?: "search" | "prompt";
+    preIcon?: "search" | "prompt";
+    postIcon?: "send";
   }
->(({ className, icon = "prompt", ...props }, ref) => (
+>(({ className, postIcon, preIcon = "prompt", ...props }, ref) => (
   <div className="flex items-center px-3" cmdk-input-wrapper="">
-    {icon !== "prompt" && (
+    {preIcon !== "prompt" && (
       <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
     )}
-    {icon === "prompt" && (
+    {preIcon === "prompt" && (
       <ChevronRight className="mr-2 h-4 w-4 shrink-0 opacity-50" />
     )}
     <CommandPrimitive.Input
@@ -61,6 +64,11 @@ const CommandInput = React.forwardRef<
       )}
       {...props}
     />
+    {postIcon === "send" && (
+      <EventButton event={{ type: "SUBMIT" }} size="icon" variant="ghost">
+        <SendHorizonalIcon className="opacity-50" />
+      </EventButton>
+    )}
   </div>
 ));
 

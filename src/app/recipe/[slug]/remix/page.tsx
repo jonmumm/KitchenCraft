@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
-import { FloatingDock } from "@/components/ui/floating-dock";
 import { WaitForStore } from "@/components/wait-for-store";
 import { getSlug } from "@/lib/slug";
 import {
@@ -27,6 +26,7 @@ import { z } from "zod";
 import { RecipeContents } from "../recipe-contents";
 import RecipeGenerator from "../recipe-generator";
 import { StoreProps } from "../schema";
+import { FloatingFooter } from "@/components/ui/floating-footer";
 
 type Props = {
   params: { slug: string };
@@ -164,7 +164,7 @@ export default async function Page(props: Props) {
         store={store}
         selector={(state) => (state.recipe.yield ? true : undefined)}
       >
-        <FloatingDock>
+        <FloatingFooter>
           <div className="flex flex-col gap-2 p-3">
             <Card className="flex flex-col gap-2">
               <CardHeader className="flex flex-row gap-3 items-center">
@@ -194,7 +194,7 @@ export default async function Page(props: Props) {
               </form>
             </div>
           </div>
-        </FloatingDock>
+        </FloatingFooter>
       </WaitForStore>
     );
   };

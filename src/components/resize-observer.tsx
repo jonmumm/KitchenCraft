@@ -35,7 +35,11 @@ function ResizeObserverComponent({ children, onResize }: Props) {
     return () => {}; // Fallback cleanup function
   }, [onResize, containerRef]);
 
-  return <div ref={containerRef}>{children}</div>;
+  return (
+    <div ref={containerRef}>
+      {children}
+    </div>
+  );
 }
 
 export default ResizeObserverComponent;

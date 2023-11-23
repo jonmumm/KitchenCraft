@@ -33,6 +33,7 @@
     "@trpc/react-query": "^10.38.5",
     "@trpc/server": "^10.38.5",
     "@types/readable-stream": "^4.0.4",
+    "@vercel/blob": "^0.15.0",
     "@vercel/kv": "^0.2.3",
     "@vitejs/plugin-react": "^4.1.0",
     "ai": "^2.2.13",

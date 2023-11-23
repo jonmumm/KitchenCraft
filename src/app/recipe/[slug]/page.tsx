@@ -2,13 +2,11 @@ import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
 import { Header } from "@/app/header";
 import { EventButton } from "@/components/event-button";
 import Generator from "@/components/generator";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  CommandGroup,
-  CommandItem,
-  CommandSeparator,
-} from "@/components/ui/command";
+import { CommandGroup, CommandItem } from "@/components/ui/command";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getResult } from "@/lib/db";
 import { noop, waitForStoreValue } from "@/lib/utils";
@@ -16,7 +14,6 @@ import {
   CompletedRecipeSchema,
   QuestionsPredictionOutputSchema,
   RecipeSchema,
-  SousChefPredictionInputSchema,
   SuggestionPredictionInputSchema,
 } from "@/schema";
 import { RecipePredictionInput, RecipeSlug } from "@/types";
@@ -25,7 +22,6 @@ import { ChatPromptTemplate } from "langchain/prompts";
 import {
   ArrowLeftRightIcon,
   ChefHatIcon,
-  ChevronRight,
   HelpCircle,
   MicrowaveIcon,
   NutOffIcon,
@@ -43,11 +39,13 @@ import {
   SousChefCommand,
   SousChefCommandInput,
   SousChefCommandItem,
-  SousChefFAQSuggestionsCommandGroup,
   SousChefOutput,
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
-import { Separator } from "@/components/ui/separator";
+import { FloatingFooter } from "@/components/ui/floating-footer";
+import ClientOnly from "@/components/client-only";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import ScrollLockComponent from "@/components/scroll-lock";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -174,125 +172,15 @@ export default async function Page(props: Props) {
           className="flex flex-row gap-2"
         >
           <Suspense fallback={<Skeleton className="w-full h-6" />}>
-            <HelpCircle className="opacity-40" />
+            <Button size="icon" variant="secondary">
+              <HelpCircle className="opacity-40" />
+            </Button>
             <h4 className="text-sm flex-1">{text}</h4>
           </Suspense>
-          <Button variant="ghost">
-            <ChevronRight />
-          </Button>
+          <Badge variant="secondary">Ask</Badge>
         </SousChefCommandItem>
       );
     };
-
-    const FAQItem = async ({ index }: { index: number }) => {
-      const text = await waitForStoreValue(faqStore, (state) => {
-        const nextQuestionExists = !!state.questions[index + 1];
-        if (nextQuestionExists || !state.loading) {
-          return state.questions[index];
-        }
-      });
-      return <h4 className="text-sm flex-1">{text}</h4>;
-    };
-
-    // const handleSubmit = async (slug: string, prompt: string) => {
-    //   "use server";
-
-    //   const resultStore = map({
-    //     loading: true,
-    //     tokens: [] as string[],
-    //     lastUpdatedAt: new Date(),
-    //   });
-
-    //   // const Generator = async () => {
-    //   //   const tokenStream = new SousChefTokenStream();
-    //   //   const input = SousChefPredictionInputSchema.parse({
-    //   //     prompt,
-    //   //     recipe: await getRecipe(slug),
-    //   //   });
-    //   //   const stream = await tokenStream.getStream(input);
-
-    //   //   for await (const token of stream) {
-    //   //     resultStore.get().tokens.push(token);
-    //   //     resultStore.setKey("lastUpdatedAt", new Date());
-    //   //   }
-
-    //   //   resultStore.setKey("loading", false);
-    //   //   return <></>;
-    //   // };
-
-    //   const MAX_UPDATES = 1024;
-
-    //   const LineByLineResults = () => {
-    //     const Line = async ({ index }: { index: number }) => {
-    //       const line = await waitForStoreValue(resultStore, (state) => {
-    //         const outputRaw = state.tokens.join("");
-
-    //         const lines = outputRaw.split("\n");
-    //         const nextLineExists = !!lines[index + 1];
-    //         console.log(lines.length);
-
-    //         if (nextLineExists || !state.loading) {
-    //           return lines[index];
-    //         }
-    //         return undefined;
-    //       });
-
-    //       return <p>{line}</p>;
-    //     };
-
-    //     return new Array(MAX_UPDATES).fill(0).map((_, index) => {
-    //       return (
-    //         <Suspense fallback={null} key={index}>
-    //           <Line index={index} />
-    //         </Suspense>
-    //       );
-    //     });
-    //   };
-
-    //   const NUM_UPDATES = 60;
-
-    //   const Results = () => {
-    //     const Result = async ({ index }: { index: number }) => {
-    //       const result = await waitForStoreValue(resultStore, (state) => {
-    //         const nextIndexExists = !!state.tokens[index + 1];
-    //         if (nextIndexExists) {
-    //           console.log(state.tokens.join(""));
-    //           return state.tokens.join("");
-    //         }
-
-    //         if (!state.loading) {
-    //           return null;
-    //         }
-    //       });
-
-    //       if (!result) {
-    //         return null;
-    //       }
-
-    //       return <SousChefSetResult result={result} />;
-    //     };
-
-    //     return (
-    //       <>
-    //         {new Array(NUM_UPDATES).fill(0).map((_, index) => {
-    //           return (
-    //             <Suspense key={index} fallback={null}>
-    //               <Result index={index} />
-    //             </Suspense>
-    //           );
-    //         })}
-    //       </>
-    //     );
-    //   };
-
-    //   return (
-    //     <Suspense fallback={<Skeleton className="w-full h-20" />}>
-    //       <Generator />
-    //       <Results />
-    //       <SousChefResultData />
-    //     </Suspense>
-    //   );
-    // };
 
     return (
       <>

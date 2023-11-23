@@ -201,7 +201,7 @@ const CraftInput = () => {
       autoFocus
       onFocus={handleInputFocus}
       onBlur={handleInputBlur}
-      icon={"prompt"}
+      preIcon={"prompt"}
     />
   );
 };

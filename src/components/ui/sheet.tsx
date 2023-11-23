@@ -1,13 +1,27 @@
 "use client";
 
-import * as React from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
-import { X } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { DialogProps } from "@radix-ui/react-dialog";
+import { useEffect, useState } from "react";
 
-const Sheet = SheetPrimitive.Root;
+const Sheet: React.FC<DialogProps> = (props) => {
+  // This terrible hack is needed to prevent hydration errors.
+  // The Radix Dialog is not rendered correctly server side, so we need to prevent it from rendering until the client side hydration is complete (and `useEffect` is run).
+  // The issue is reported here: https://github.com/radix-ui/primitives/issues/1386
+  const [open, setOpen] = useState<boolean | undefined>(
+    props.open === undefined ? undefined : false
+  );
+
+  useEffect(() => {
+    setOpen(props.open);
+  }, [props.open, setOpen]);
+
+  return <SheetPrimitive.Root {...props} open={open} />;
+};
 
 const SheetTrigger = SheetPrimitive.Trigger;
 
@@ -127,13 +141,13 @@ SheetDescription.displayName = SheetPrimitive.Description.displayName;
 
 export {
   Sheet,
-  SheetPortal,
-  SheetOverlay,
-  SheetTrigger,
   SheetClose,
   SheetContent,
-  SheetHeader,
-  SheetFooter,
-  SheetTitle,
   SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetOverlay,
+  SheetPortal,
+  SheetTitle,
+  SheetTrigger,
 };

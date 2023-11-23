@@ -1,4 +1,6 @@
 import { useStore } from "@nanostores/react";
+import { computed } from "nanostores";
+import { useState } from "react";
 import { store } from "./store";
 
 export const usePrompt = () => {
@@ -11,14 +13,22 @@ export const useLoading = () => {
   return loading;
 };
 
-export const useData = () => {
-  const { data } = useStore(store, { keys: ["data"] });
-  return data;
+export const useDirty = () => {
+  const [dirty$] = useState(
+    computed(store, ({ prompt, history, index }) => {
+      if (prompt && !history[index]) {
+        return true;
+      }
+
+      return prompt !== history[index]?.answer;
+    })
+  );
+  return useStore(dirty$);
 };
 
-export const useDirty = () => {
-  const { prompt, submittedPrompt } = useStore(store, {
-    keys: ["prompt", "submittedPrompt"],
-  });
-  return prompt !== submittedPrompt;
+export const useCurrentAnswer = () => {
+  const [answer$] = useState(
+    computed(store, ({ history, index }) => history[index]?.answer)
+  );
+  return useStore(answer$);
 };

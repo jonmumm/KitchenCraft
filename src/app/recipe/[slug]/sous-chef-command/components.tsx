@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import {
@@ -9,8 +10,10 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useStore } from "@nanostores/react";
 import { useCommandState } from "cmdk";
-import { HelpCircle, SendHorizontalIcon } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import { listenKeys } from "nanostores";
 import {
   ComponentProps,
@@ -21,9 +24,8 @@ import {
   useState,
 } from "react";
 import { z } from "zod";
-import { useData, useDirty, useLoading, usePrompt } from "./hooks";
+import { useCurrentAnswer, useDirty, useLoading, usePrompt } from "./hooks";
 import { store } from "./store";
-import { Separator } from "@/components/ui/separator";
 
 const getSousChefEventSource = (slug: string, prompt: string) => {
   const eventSourceUrl = `/api/recipe/${slug}/sous-chef?prompt=${prompt}`;
@@ -38,12 +40,14 @@ export const SousChefCommand = ({
   slug: string;
 }) => {
   useEffect(() => {
-    return listenKeys(store, ["submittedPrompt"], (state) => {
+    return listenKeys(store, ["history"], (state) => {
+      const { history, index } = store.get();
+
       // When we submit, if we we have a prompt and arent already loading
       // ...start loading
-      if (state.submittedPrompt && !state.loading) {
+      if (history[index].question && !state.loading) {
         store.setKey("loading", true);
-        const source = getSousChefEventSource(slug, state.submittedPrompt);
+        const source = getSousChefEventSource(slug, history[index].question);
         const chunks: string[] = [];
         let resultId: string | null = null;
         source.onmessage = (event) => {
@@ -54,7 +58,7 @@ export const SousChefCommand = ({
 
           const chunk = z.string().parse(JSON.parse(event.data));
           chunks.push(chunk);
-          store.setKey("data", chunks.join(""));
+          store.setKey(`history[${index}].answer`, chunks.join(""));
         };
 
         source.onerror = () => {
@@ -63,6 +67,9 @@ export const SousChefCommand = ({
           if (source.readyState !== source.CLOSED) {
             source.close();
           }
+          setTimeout(() => {
+            store.get().inputRef.current?.focus();
+          }, 50);
         };
       }
     });
@@ -110,7 +117,10 @@ export const SousChefCommandItem = ({
   const loading = useLoading();
   const handleSelect = useCallback((value: string) => {
     store.setKey("prompt", value);
-    store.setKey("submittedPrompt", value);
+    store.setKey("history", [
+      ...store.get().history,
+      { question: store.get().prompt!, answer: "" },
+    ]);
   }, []);
   return (
     <CommandItem disabled={loading} {...props} onSelect={handleSelect}>
@@ -119,24 +129,16 @@ export const SousChefCommandItem = ({
   );
 };
 
-export const SousChefSetResult = ({ result }: { result: string }) => {
-  useEffect(() => {
-    store.setKey("data", result);
-  }, [result]);
-
-  return null;
-};
-
 const SousChefResultData = () => {
-  const data = useData();
-  return <>{data}</>;
+  const answer = useCurrentAnswer();
+  return <>{answer}</>;
 };
 
 export const SousChefOutput = () => {
-  const data = useData();
+  const answer = useCurrentAnswer();
   return (
-    data &&
-    data.length && (
+    answer &&
+    answer.length && (
       <>
         <CardContent className="flex flex-col gap-2 py-5">
           <Label>Answer</Label>
@@ -156,14 +158,14 @@ export const SousChefPromptCommandGroup = () => {
   return !loading && dirty && search.length ? (
     <CommandGroup heading="Actions">
       <SousChefCommandItem value={search} className="flex flex-row gap-2">
-        <HelpCircle className="opacity-40" />
+        <Button size="icon" variant="secondary">
+          <HelpCircle className="opacity-40" />
+        </Button>
         <div className="flex flex-col gap-1 flex-1">
-          <span className="text-xs opacity-70">Ask</span>
+          {/* <span className="text-xs opacity-70">Ask</span> */}
           <h4 className="font-semibold flex-1">{search}</h4>
         </div>
-        <Button size="icon">
-          <SendHorizontalIcon />
-        </Button>
+        <Badge variant="secondary">Ask</Badge>
       </SousChefCommandItem>
     </CommandGroup>
   ) : null;
@@ -176,7 +178,13 @@ export const SousChefCommandInput = (
   const setPrompt = useCallback((value: string) => {
     store.setKey("prompt", value);
   }, []);
+  const { inputRef } = useStore(store, { keys: ["inputRef"] });
+
+  // const handleSubmit = useCallback(() => {
+  //   store.setKey("submittedPrompt", store.get().prompt);
+  // }, [store]);
   const prompt = usePrompt();
+  // const ref = store.get().inputRef;
 
   return (
     <>
@@ -186,9 +194,11 @@ export const SousChefCommandInput = (
         </p>
       </div>
       <CommandInput
+        ref={inputRef}
         value={prompt}
         onValueChange={setPrompt}
         disabled={loading}
+        postIcon={!loading && prompt?.length ? "send" : undefined}
         {...props}
       />
     </>

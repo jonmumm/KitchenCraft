@@ -87,6 +87,10 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    --rsbs-backdrop-bg: rgba(0, 0, 0, 0.6);
+    --rsbs-bg: #fff;
+    --rsbs-handle-bg: hsla(0, 0%, 0%, 0.14);
   }
 
   .dark {
@@ -120,6 +124,10 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    --rsbs-backdrop-bg: rgba(0, 0, 0, 0.6);
+    --rsbs-bg: #000;
+    --rsbs-handle-bg: hsla(100, 100%, 100%, 0.14);
   }
 }
 
