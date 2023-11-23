@@ -32,3 +32,10 @@ export const useCurrentAnswer = () => {
   );
   return useStore(answer$);
 };
+
+export const useCurrentQuestion = () => {
+  const [question$] = useState(
+    computed(store, ({ history, index }) => history[index - 1]?.question)
+  );
+  return useStore(question$);
+};

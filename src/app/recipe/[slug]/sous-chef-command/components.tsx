@@ -24,7 +24,13 @@ import {
   useState,
 } from "react";
 import { z } from "zod";
-import { useCurrentAnswer, useDirty, useLoading, usePrompt } from "./hooks";
+import {
+  useCurrentAnswer,
+  useCurrentQuestion,
+  useDirty,
+  useLoading,
+  usePrompt,
+} from "./hooks";
 import { store } from "./store";
 
 const getSousChefEventSource = (slug: string, prompt: string) => {
@@ -148,12 +154,15 @@ const SousChefResultData = () => {
 
 export const SousChefOutput = () => {
   const answer = useCurrentAnswer();
+  const question = useCurrentQuestion();
   return (
     answer &&
     answer.length && (
       <>
         <CardContent className="flex flex-col gap-2 py-5">
-          <Label>Answer</Label>
+          <Label className="opacity-70">Question</Label>
+          <p>{question}</p>
+          <Label className="opacity-70 mt-5">Answer</Label>
           <SousChefResultData />
         </CardContent>
         <Separator />
