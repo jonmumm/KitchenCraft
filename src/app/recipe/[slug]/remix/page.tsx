@@ -146,6 +146,7 @@ export default async function Page(props: Props) {
       fromResult: recipe.fromResult,
       createdAt: new Date().toISOString(),
       runStatus: "initializing",
+      previewMediaIds: [],
     },
   });
 
