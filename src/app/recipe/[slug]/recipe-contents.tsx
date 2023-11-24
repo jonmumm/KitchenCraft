@@ -4,8 +4,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowBigUpDashIcon,
   CameraIcon,
-  PlusCircle,
-  PlusCircleIcon,
   PlusSquareIcon,
   PrinterIcon,
   ScrollIcon,
@@ -20,6 +18,7 @@ import { AddButton } from "./add-button";
 import { CraftingDetails } from "./crafting-details";
 import { IngredientList } from "./ingredient-list";
 import { InstructionList } from "./instruction-list";
+import { MediaRow } from "./media/components";
 import { PrintButton } from "./print-button";
 import { StoreProps } from "./schema";
 import { ShareButton } from "./share-button";
@@ -28,6 +27,9 @@ import { Times } from "./times";
 import { UploadMediaButton } from "./upload-media-button";
 import { UpvoteButton } from "./upvote-button";
 import { Yield } from "./yield";
+import { kv } from "@vercel/kv";
+import { UploadedMediaSchema } from "./media/schema";
+import { UploadedMedia } from "./media/types";
 
 export const RecipeContents = async ({
   name,
@@ -40,6 +42,17 @@ export const RecipeContents = async ({
   createdAt?: string;
   store: MapStore<StoreProps>;
 }) => {
+  // const mainMediaId = previewMediaIds[0];
+
+  // let mainMedia: UploadedMedia | undefined;
+  // if (mainMediaId) {
+  //   console.log({ mainMediaId });
+  //   mainMedia = UploadedMediaSchema.parse(
+  //     await kv.hgetall(`media:${mainMediaId}`)
+  //   );
+  // }
+  // console.log({ mainMedia });
+
   return (
     <>
       <div className="flex flex-row gap-3 p-5 justify-between">
@@ -66,7 +79,7 @@ export const RecipeContents = async ({
           <AddButton>
             <PlusSquareIcon />
           </AddButton>
-          <UploadMediaButton>
+          <UploadMediaButton slug={store.get().recipe.slug}>
             <CameraIcon />
           </UploadMediaButton>
           <PrintButton>
@@ -92,6 +105,7 @@ export const RecipeContents = async ({
           <CraftingDetails createdAt={createdAt || Date.now().toString()} />
         </div>
       </div>
+      {/* <MediaRow previewMediaIds={previewMediaIds} /> */}
       <Separator className="hidden-print" />
       <Times store={store} />
       <Separator />

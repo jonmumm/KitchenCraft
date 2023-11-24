@@ -16,9 +16,11 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
   craft,
+  gallery,
 }: {
   children: ReactNode;
   craft: ReactNode;
+  gallery: ReactNode;
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -48,6 +50,7 @@ export default async function RootLayout({
         <Body>
           {children}
           {craft}
+          {gallery}
         </Body>
       </ApplicationProvider>
     </html>

@@ -23,6 +23,7 @@ import {
 } from "react";
 import { ActorRefFrom, createMachine } from "xstate";
 import { EventButton } from "@/components/event-button";
+import { cn } from "@/lib/utils";
 
 export const createHeaderMachine = () =>
   createMachine({
@@ -73,7 +74,13 @@ export type HeaderActor = ActorRefFrom<HeaderMachine>;
 
 export const HeaderContext = createContext({} as HeaderActor);
 
-export function Header(props: { hidden?: boolean }) {
+export function Header({
+  className,
+  hidden,
+}: {
+  hidden?: boolean;
+  className?: string;
+}) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const headerActor = useContext(HeaderContext);
   const isBackVisible = useSelector(headerActor, (state) =>
@@ -93,9 +100,12 @@ export function Header(props: { hidden?: boolean }) {
 
   return (
     <div
-      className={`w-full flex items-start justify-between p-4 gap-4 hidden-print ${
-        props.hidden ? "-translate-y-20" : ""
-      }`}
+      className={cn(
+        `w-full flex items-start justify-between p-4 gap-4 hidden-print ${
+          hidden ? "-translate-y-20" : ""
+        }`,
+        className
+      )}
     >
       {/* <div>
         <Button

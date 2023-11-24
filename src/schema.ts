@@ -1,5 +1,5 @@
 import type { CreateMessage } from "ai";
-import { ZodDiscriminatedUnionOption, z } from "zod";
+import { z } from "zod";
 import {
   COOKING_TIMES,
   COOKWARES,
@@ -7,6 +7,10 @@ import {
   DISH_TYPES,
   TECHNIQUES,
 } from "./constants";
+
+export const PublicEnvironmentSchema = z.object({
+  KITCHENCRAFT_URL: z.string(),
+});
 
 const SubstituteLiteral = z.literal("substitute");
 const DietaryLiteral = z.literal("dietary");
@@ -34,6 +38,7 @@ export const RecipeRequiredPropsSchema = z.object({
   }),
   createdAt: z.string(),
   runStatus: RunStatusSchema,
+  previewMediaIds: z.array(z.string()).optional().default([]),
 });
 
 const UserIdSchema = z.string();

@@ -8,6 +8,8 @@ import { Card } from "@/components/ui/card";
 import { CommandGroup, CommandItem } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+
+import { env } from "@/env";
 import { getResult } from "@/lib/db";
 import { noop, waitForStoreValue } from "@/lib/utils";
 import {
@@ -31,6 +33,11 @@ import { map } from "nanostores";
 import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
 import React, { ComponentProps, ReactNode, Suspense } from "react";
+import { z } from "zod";
+import { MediaCarousel } from "./media-carousel/components.client";
+import { UploadedMediaSchema } from "./media/schema";
+import { UploadedMedia } from "./media/types";
+import { contentType, size } from "./opengraph-image";
 import { RecipeContents } from "./recipe-contents";
 import RecipeGenerator from "./recipe-generator";
 import { StoreProps } from "./schema";
@@ -41,6 +48,7 @@ import {
   SousChefOutput,
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
+import { getRecipe } from "./utils";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -55,13 +63,11 @@ export default async function Page(props: Props) {
 
   const data = await kv.hgetall(recipeKey);
   const recipe = RecipeSchema.parse(data);
-  // console.log({ recipe });
   const { runStatus } = recipe;
 
   const isDone = runStatus === "done";
   const isError = runStatus === "error";
   const isInitializing = runStatus === "initializing";
-  console.log({ runStatus });
   const loading = !isDone && !isError;
 
   if (isError) {
@@ -328,9 +334,42 @@ export default async function Page(props: Props) {
     );
   };
 
+  const mainMediaId = store.get().recipe.previewMediaIds[0];
+  let mainMedia: UploadedMedia | undefined;
+  if (mainMediaId) {
+    console.log({ mainMediaId });
+    mainMedia = UploadedMediaSchema.parse(
+      await kv.hgetall(`media:${mainMediaId}`)
+    );
+  }
+
   return (
     <div className="flex flex-col gap-2 max-w-2xl mx-auto">
-      <Header />
+      <div>
+        {mainMediaId ? (
+          <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
+            <Header className="absolute left-0 right-0 top-0" />
+            <Suspense fallback={<Skeleton className="w-full h-20" />}>
+              <MediaCarousel
+                previewMedia={z
+                  .array(UploadedMediaSchema)
+                  .parse(
+                    await Promise.all(
+                      store
+                        .get()
+                        .recipe.previewMediaIds.map((id) =>
+                          kv.hgetall(`media:${id}`)
+                        )
+                    )
+                  )}
+              />
+            </Suspense>
+          </div>
+        ) : (
+          <Header />
+        )}
+      </div>
+      {/* <Header /> */}
       <div className="flex flex-col gap-2">
         <Card className="flex flex-col gap-2 pb-5 mx-3">
           {isInitializing && (
@@ -407,6 +446,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const recipe = await getRecipe(params.slug);
   const title = `${recipe.name} by @InspectorT | KitchenCraft.ai`;
 
+  const mainMediaId = recipe.previewMediaIds[0];
+  let mainMedia: UploadedMedia | undefined;
+  if (mainMediaId) {
+    console.log({ mainMediaId });
+    mainMedia = UploadedMediaSchema.parse(
+      await kv.hgetall(`media:${mainMediaId}`)
+    );
+  }
+
   const now = new Date(); // todo actually store this on the recipe
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
@@ -414,14 +462,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }).format(now);
   const dateStr = formattedDate.split(" at ").join(" @ ");
 
+  const images = mainMedia
+    ? [
+        {
+          url: env.KITCHENCRAFT_URL + `/recipe/${recipe.slug}/opengraph-image`,
+          secure_url:
+            env.KITCHENCRAFT_URL + `/recipe/${recipe.slug}/opengraph-image`,
+          type: contentType,
+          width: size.width,
+          height: size.height,
+        },
+      ]
+    : undefined;
+
+  // todo add updatedTime
   return {
     title,
     openGraph: {
       title,
       description: `${recipe.description} Crafted by @InspectorT on ${dateStr}`,
+      images,
     },
   };
 }
-
-const getRecipe = async (slug: RecipeSlug) =>
-  RecipeSchema.parse(await kv.hgetall(`recipe:${slug}`));
