@@ -8,6 +8,11 @@ import {
   TECHNIQUES,
 } from "./constants";
 
+
+export const SecretsEnvironmentSchema = z.object({
+  KITCHENCRAFT_URL: z.string(),
+});
+
 export const PublicEnvironmentSchema = z.object({
   KITCHENCRAFT_URL: z.string(),
 });

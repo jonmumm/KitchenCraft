@@ -9,7 +9,7 @@ import { CommandGroup, CommandItem } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { env } from "@/env";
+import { env } from "@/env.public";
 import { getResult } from "@/lib/db";
 import { noop, waitForStoreValue } from "@/lib/utils";
 import {

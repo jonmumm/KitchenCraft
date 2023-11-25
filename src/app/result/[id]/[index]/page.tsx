@@ -60,6 +60,7 @@ const CreateRecipe = async ({
       index,
     },
     runStatus: "initializing",
+    previewMediaIds: [],
   } satisfies RecipeRequiredProps;
 
   await kv.hset(`recipe:${slug}`, recipe);

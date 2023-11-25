@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { env } from "@/env";
+import { env } from "@/env.public";
 import { upload } from "@vercel/blob/client";
 import { ChangeEventHandler, ReactNode, useCallback, useRef } from "react";
 import { extractMetadata } from "./media/utils";
