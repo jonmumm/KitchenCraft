@@ -43,6 +43,7 @@ export const RecipeRequiredPropsSchema = z.object({
   }),
   createdAt: z.string(),
   runStatus: RunStatusSchema,
+  mediaCount: z.number().default(0),
   previewMediaIds: z.array(z.string()).optional().default([]),
 });
 

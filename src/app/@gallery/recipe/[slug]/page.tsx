@@ -1,4 +1,4 @@
 export default async function Page(props: { params: { slug: string } }) {
-  console.log("hi gallery");
-  return <>Gallery {props.params.slug}</>;
+  // Here we can load up all the images we might ever need...
+  return <></>;
 }

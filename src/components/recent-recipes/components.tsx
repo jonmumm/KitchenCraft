@@ -1,5 +1,5 @@
 import { Label } from "@/components/ui/label";
-import { getRecentRecipeSlugs } from "@/lib/db";
+import { getRecentRecipeSlugs, getRecentRecipes } from "@/lib/db";
 import { RecipeSlug } from "@/types";
 import { kv } from "@vercel/kv";
 import { ArrowBigUpIcon, ChevronRightIcon } from "lucide-react";
@@ -14,16 +14,27 @@ import { getRecipe } from "@/app/recipe/[slug]/utils";
 import Image from "next/image";
 import { UploadedMedia } from "@/app/recipe/[slug]/media/types";
 import { UploadedMediaSchema } from "@/app/recipe/[slug]/media/schema";
+import { Badge } from "../ui/badge";
+import {
+  ImageCarousel,
+  RecipeCardButton,
+  RecipeLink,
+} from "./components.client";
 
 export async function RecentRecipes() {
-  const slugs = await getRecentRecipeSlugs(kv);
+  const recipes = await getRecentRecipes(kv);
 
   const Item = ({ index }: { index: number }) => {
     return (
       <>
-        {slugs[index] ? (
+        {recipes[index] ? (
           <Suspense fallback={<Skeleton className="w-full h-40" />}>
-            <RecipeLink key={index} index={index} slug={slugs[index]} />
+            <RecipeCard
+              key={index}
+              index={index}
+              recipe={recipes[index]!}
+              slug={recipes[index]?.slug!}
+            />
           </Suspense>
         ) : (
           <Card key={index}>
@@ -58,10 +69,14 @@ export async function RecentRecipes() {
   );
 }
 
-async function RecipeLink(props: { slug: RecipeSlug; index: number }) {
-  const recipe = await getRecipe(props.slug);
+async function RecipeCard(props: {
+  slug: RecipeSlug;
+  index: number;
+  recipe: Awaited<ReturnType<typeof getRecipe>>;
+}) {
+  // const recipe = await getRecipe(props.slug);
 
-  const mainMediaId = recipe.previewMediaIds[0];
+  const mainMediaId = props.recipe.previewMediaIds[0];
   let mainMedia: UploadedMedia | undefined;
   if (mainMediaId) {
     console.log({ mainMediaId });
@@ -83,12 +98,16 @@ async function RecipeLink(props: { slug: RecipeSlug; index: number }) {
           <span>1</span>
         </Button>
       </div>
-      <Card className="flex flex-row h-full gap-2 items-center justify-between overflow-hidden">
+      <Card className="flex flex-row gap-2 items-center justify-between overflow-hidden">
         <div className="h-full flex flex-col gap-1">
           {mainMedia && (
             <div className="w-full aspect-square relative overflow-hidden">
-              <Image
-                alt={`${recipe.name} - Image 1`}
+              <ImageCarousel
+                initialMedia={mainMedia}
+                previewMediaIds={props.recipe.previewMediaIds}
+              />
+              {/* <Image
+                alt={`${props.recipe.name} - Image 1`}
                 src={mainMedia.url}
                 width={mainMedia.metadata.width}
                 height={mainMedia.metadata.height}
@@ -99,21 +118,35 @@ async function RecipeLink(props: { slug: RecipeSlug; index: number }) {
                   top: "50%",
                   transform: "translateY(-50%)",
                 }}
-              />
+              /> */}
+              {/* {recipe.mediaCount > 1 && (
+                <Badge className="absolute right-3 top-2 shadow-md">
+                  1/{recipe.mediaCount}
+                </Badge>
+              )} */}
+
               {/* <div className="absolute bottom-0 left-0 w-full px-3 pb-2 pt-8 bg-gradient-to-b from-transparent to-card">
                 <h2 className="font-medium text-lg">{recipe.name}</h2>
               </div> */}
             </div>
           )}
-          <Link className="w-full block flex-1" href={`/recipe/${props.slug}`}>
+          <RecipeLink
+            className="w-full block flex-1"
+            href={`/recipe/${props.slug}`}
+          >
             <div className="px-3 py-2">
-              <h2 className="font-medium text-lg">{recipe.name}</h2>
+              <h2 className="font-medium text-lg">{props.recipe.name}</h2>
               <p className="text-sm text-secondary-foreground">
-                {recipe.description}
+                {props.recipe.description}
               </p>
-              <p className="text-sm text-muted-foreground">3 hours ago</p>
+              <div className="flex-1 flex flex-row items-center justify-between">
+                <p className="flex-1 text-sm text-muted-foreground">
+                  3 hours ago
+                </p>
+                <RecipeCardButton />
+              </div>
             </div>
-          </Link>
+          </RecipeLink>
         </div>
       </Card>
     </li>

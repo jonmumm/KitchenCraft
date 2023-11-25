@@ -67,6 +67,7 @@ export async function POST(
             .parse(
               (await kv.hget(`recipe:${params.slug}`, "previewMediaIds")) || []
             );
+          multi.hincrby(`recipe:${params.slug}`, "mediaCount", 1);
 
           multi.hset(`recipe:${params.slug}`, {
             previewMediaIds: [...previewMediaIds, mediaId].slice(0, 5),

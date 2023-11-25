@@ -147,6 +147,7 @@ export default async function Page(props: Props) {
       createdAt: new Date().toISOString(),
       runStatus: "initializing",
       previewMediaIds: [],
+      mediaCount: 0,
     },
   });
 

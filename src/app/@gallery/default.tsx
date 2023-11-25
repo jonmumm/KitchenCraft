@@ -5,6 +5,5 @@ export default function Page({
 }: {
   searchParams: Record<string, string>;
 }) {
-  console.log("hi gallery cefault");
   return <MediaViewer />;
 }
