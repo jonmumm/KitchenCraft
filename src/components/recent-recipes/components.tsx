@@ -17,9 +17,11 @@ import { UploadedMediaSchema } from "@/app/recipe/[slug]/media/schema";
 import { Badge } from "../ui/badge";
 import {
   ImageCarousel,
+  ImageCarouselItem,
   RecipeCardButton,
   RecipeLink,
 } from "./components.client";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 export async function RecentRecipes() {
   const recipes = await getRecentRecipes(kv);
@@ -85,6 +87,21 @@ async function RecipeCard(props: {
     );
   }
 
+  const ImageCarouselItemLoader = async ({ id }: { id: string }) => {
+    const media = UploadedMediaSchema.parse(await kv.hgetall(`media:${id}`));
+    return <ImageCarouselItem media={media} recipeName={props.recipe.name} />;
+  };
+
+  const ImageCarouselItems = () => {
+    return (
+      <>
+        {props.recipe.previewMediaIds.slice(1).map((id) => (
+          <ImageCarouselItemLoader key={id} id={id} />
+        ))}
+      </>
+    );
+  };
+
   return (
     <li className="flex flex-row flex-1 gap-1">
       <div className="flex flex-col gap-1 items-center justify-between">
@@ -102,9 +119,29 @@ async function RecipeCard(props: {
         <div className="h-full flex flex-col gap-1">
           {mainMedia && (
             <div className="w-full aspect-square relative overflow-hidden">
-              <ImageCarousel
-                initialMedia={mainMedia}
-                previewMediaIds={props.recipe.previewMediaIds}
+              {/* <ImageCarousel></ImageCarousel> */}
+
+              {/* <ImageCarousel>
+                <ImageCarouselItem
+                  recipeName={props.recipe.name}
+                  media={mainMedia}
+                />
+                <ImageCarouselItem
+                  recipeName={props.recipe.name}
+                  media={mainMedia}
+                /> */}
+              {/* <Suspense fallback={<></>}>
+                  <ImageCarouselItems />
+                </Suspense> */}
+              {/* </ImageCarousel> */}
+              <Image
+                src={mainMedia.url}
+                priority
+                width={mainMedia.metadata.width}
+                height={mainMedia.metadata.width}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                alt={props.recipe.name}
+                style={{ objectFit: "fill" }}
               />
               {/* <Image
                 alt={`${props.recipe.name} - Image 1`}

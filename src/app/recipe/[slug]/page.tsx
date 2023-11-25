@@ -50,7 +50,6 @@ import {
 } from "./sous-chef-command/components";
 import { getRecipe } from "./utils";
 
-export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 type Props = {
@@ -349,7 +348,7 @@ export default async function Page(props: Props) {
       <div>
         {mainMediaId ? (
           <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
-            <Header className="absolute left-0 right-0 top-0" />
+            <Header className="absolute left-0 right-0 top-0 z-10" />
             <Suspense fallback={<Skeleton className="w-full h-20" />}>
               <MediaCarousel
                 previewMedia={z
