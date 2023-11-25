@@ -18,7 +18,7 @@ import {
   RecipeSchema,
   SuggestionPredictionInputSchema,
 } from "@/schema";
-import { RecipePredictionInput, RecipeSlug } from "@/types";
+import { RecipePredictionInput } from "@/types";
 import { kv } from "@vercel/kv";
 import {
   ArrowLeftRightIcon,

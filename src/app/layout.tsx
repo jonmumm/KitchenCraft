@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import "../styles/globals.css";
 import { ApplicationProvider } from "./provider";
+import { AnimatePresence } from "framer-motion";
 
 const inter = Inter({ subsets: ["latin"] });
 
