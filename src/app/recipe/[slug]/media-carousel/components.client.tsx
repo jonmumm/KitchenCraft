@@ -8,6 +8,7 @@ import { UploadedMedia } from "../media/types";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
+import { Pagination } from "swiper/modules";
 
 export const MediaCarousel = ({
   previewMedia,
@@ -42,7 +43,11 @@ export const MediaCarousel = ({
   return (
     <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
       {/* <Header className="absolute left-0 right-0 top-0" /> */}
-      <Swiper className="h-full">
+      <Swiper
+        className="h-full"
+        pagination={{ dynamicBullets: true }}
+        modules={[Pagination]}
+      >
         {previewMedia.map((media) => (
           <SwiperSlide className="h-full" key={media.id}>
             <Image
@@ -52,7 +57,7 @@ export const MediaCarousel = ({
               height={media.metadata.width}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               alt="Main media"
-              style={{ objectFit: "fill" }}
+              style={{ objectFit: "cover" }}
             />
           </SwiperSlide>
         ))}
