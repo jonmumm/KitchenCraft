@@ -7,10 +7,13 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { z } from "zod";
 
-import { ResponsiveAd } from "../responsive-ad";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
+import { getRecipe } from "@/app/recipe/[slug]/utils";
+import Image from "next/image";
+import { UploadedMedia } from "@/app/recipe/[slug]/media/types";
+import { UploadedMediaSchema } from "@/app/recipe/[slug]/media/schema";
 
 export async function RecentRecipes() {
   const slugs = await getRecentRecipeSlugs(kv);
@@ -19,7 +22,9 @@ export async function RecentRecipes() {
     return (
       <>
         {slugs[index] ? (
-          <RecipeLink key={index} index={index} slug={slugs[index]} />
+          <Suspense fallback={<Skeleton className="w-full h-40" />}>
+            <RecipeLink key={index} index={index} slug={slugs[index]} />
+          </Suspense>
         ) : (
           <Card key={index}>
             <Skeleton className="w-full h-20" />
@@ -33,9 +38,9 @@ export async function RecentRecipes() {
     <div className="p-4">
       <Label className="text-xs uppercase font-semibold">New Recipes</Label>
       <ul className="flex flex-col gap-2 mt-1">
-        <div className="w-full h-40 overflow-hidden">
+        {/* <div className="w-full h-40 overflow-hidden">
           <ResponsiveAd slotId={"4156907864"} />
-        </div>
+        </div> */}
 
         {/* <div className="w-80 h-20 bg-blue-300">
           <AdSenseAd
@@ -53,7 +58,18 @@ export async function RecentRecipes() {
   );
 }
 
-function RecipeLink(props: { slug: RecipeSlug; index: number }) {
+async function RecipeLink(props: { slug: RecipeSlug; index: number }) {
+  const recipe = await getRecipe(props.slug);
+
+  const mainMediaId = recipe.previewMediaIds[0];
+  let mainMedia: UploadedMedia | undefined;
+  if (mainMediaId) {
+    console.log({ mainMediaId });
+    mainMedia = UploadedMediaSchema.parse(
+      await kv.hgetall(`media:${mainMediaId}`)
+    );
+  }
+
   return (
     <li className="flex flex-row flex-1 gap-1">
       <div className="flex flex-col gap-1 items-center justify-between">
@@ -67,22 +83,39 @@ function RecipeLink(props: { slug: RecipeSlug; index: number }) {
           <span>1</span>
         </Button>
       </div>
-      <Link className="w-full block flex-1" href={`/recipe/${props.slug}`}>
-        <Card className="flex flex-row h-full gap-2 px-3 py-2 items-center justify-between">
-          <div className="h-full flex flex-col gap-1">
-            <h2 className="font-medium">
-              <Suspense fallback={<RecipeNamePlaceholder />}>
-                <RecentRecipeName slug={props.slug} />
-              </Suspense>
-            </h2>
-            <Suspense fallback={<RecipeDescriptionPlaceholder />}>
-              <RecentRecipeDescription slug={props.slug} />
-            </Suspense>
-            <p className="text-sm text-muted-foreground">3 hours ago</p>
-          </div>
-          <ChevronRightIcon />
-        </Card>
-      </Link>
+      <Card className="flex flex-row h-full gap-2 items-center justify-between overflow-hidden">
+        <div className="h-full flex flex-col gap-1">
+          {mainMedia && (
+            <div className="w-full aspect-square relative overflow-hidden">
+              <Image
+                alt={`${recipe.name} - Image 1`}
+                src={mainMedia.url}
+                width={mainMedia.metadata.width}
+                height={mainMedia.metadata.height}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                style={{
+                  width: "100%",
+                  position: "absolute",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                }}
+              />
+              {/* <div className="absolute bottom-0 left-0 w-full px-3 pb-2 pt-8 bg-gradient-to-b from-transparent to-card">
+                <h2 className="font-medium text-lg">{recipe.name}</h2>
+              </div> */}
+            </div>
+          )}
+          <Link className="w-full block flex-1" href={`/recipe/${props.slug}`}>
+            <div className="px-3 py-2">
+              <h2 className="font-medium text-lg">{recipe.name}</h2>
+              <p className="text-sm text-secondary-foreground">
+                {recipe.description}
+              </p>
+              <p className="text-sm text-muted-foreground">3 hours ago</p>
+            </div>
+          </Link>
+        </div>
+      </Card>
     </li>
   );
 }
@@ -92,6 +125,7 @@ const RecipeNamePlaceholder = () => {
 };
 
 export const RecentRecipeName = async ({ slug }: { slug: string }) => {
+  // todo cache this...
   const name = await kv.hget(`recipe:${slug}`, "name");
   return <>{name}</>;
 };
