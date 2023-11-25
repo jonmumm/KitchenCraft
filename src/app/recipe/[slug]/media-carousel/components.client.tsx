@@ -2,13 +2,15 @@
 
 import { Header } from "@/app/header";
 import Image from "next/image";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 
 import { UploadedMedia } from "../media/types";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
 import { Pagination } from "swiper/modules";
+import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 export const MediaCarousel = ({
   previewMedia,
@@ -40,6 +42,18 @@ export const MediaCarousel = ({
   }
   console.log({ previewMedia });
 
+  const CurrentIndexBadge = () => {
+    const swiper = useSwiper();
+    const [index, setIndex] = useState(swiper.activeIndex);
+    swiper.on("activeIndexChange", (swiper) => setIndex(swiper.activeIndex));
+
+    return (
+      <Badge className="z-30 absolute bottom-3 right-2" variant="secondary">
+        {index + 1} / {previewMedia.length}
+      </Badge>
+    );
+  };
+
   return (
     <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
       {/* <Header className="absolute left-0 right-0 top-0" /> */}
@@ -61,6 +75,7 @@ export const MediaCarousel = ({
             />
           </SwiperSlide>
         ))}
+        <CurrentIndexBadge />
       </Swiper>
       {/* <Image
         src={mainMedia.url}
