@@ -4,7 +4,7 @@ import { AxeIcon } from "lucide-react";
 import { Header } from "./header";
 import { NewRecipeButton } from "./new-recipe-button";
 
-// export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 export default async function Home({
   searchParams,
