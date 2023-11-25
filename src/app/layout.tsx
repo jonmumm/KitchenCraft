@@ -45,6 +45,12 @@ export default async function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9096699111782321"
+          // @ts-ignore
+          crossorigin="anonymous"
+        ></script>
       </head>
       <ApplicationProvider>
         <Body>
