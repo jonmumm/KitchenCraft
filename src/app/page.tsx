@@ -1,8 +1,8 @@
+import { RecentRecipes } from "@/components/recent-recipes";
 import FloatingHeader from "@/components/ui/floating-header";
 import { AxeIcon } from "lucide-react";
 import { Header } from "./header";
 import { NewRecipeButton } from "./new-recipe-button";
-import { RecentRecipes } from "@/components/recent-recipes";
 
 export const dynamic = "force-dynamic";
 

@@ -2,18 +2,44 @@
 
 import { Header } from "@/app/header";
 import Image from "next/image";
+import { Swiper, SwiperSlide } from 'swiper/react';
+
 import { UploadedMedia } from "../media/types";
+import 'swiper/css';
+import 'swiper/css/effect-coverflow';
+import 'swiper/css/pagination';
 
 export const MediaCarousel = ({
   previewMedia,
 }: {
   previewMedia: UploadedMedia[];
 }) => {
+
+  // const { 
+  //   carouselFragment, 
+  //   slideToPrevItem, 
+  //   slideToNextItem 
+  // } = useSpringCarousel({
+  //   itemsPerSlide: 3,
+  //   withLoop: true,
+  //   startEndGutter: 24,
+  //   items: mockedItems.map((i) => ({
+  //     id: i.id,
+  //     renderItem: (
+  //       <CarouselItem color={i.color}>
+  //         {i.title}
+  //       </CarouselItem>
+  //     ),
+  //   })),
+  // });
+
+
   const mainMedia = previewMedia[0];
   if (!mainMedia) {
     console.error("Expected media but not found");
     return null;
   }
+  console.log({ previewMedia });
 
   return (
     <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">

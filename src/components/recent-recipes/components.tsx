@@ -1,31 +1,53 @@
 import { Label } from "@/components/ui/label";
-import { getRecentRecipeSlugs, getRecipe } from "@/lib/db";
+import { getRecentRecipeSlugs } from "@/lib/db";
 import { RecipeSlug } from "@/types";
 import { kv } from "@vercel/kv";
-import Link from "next/link";
-import { Card } from "./ui/card";
 import { ArrowBigUpIcon, ChevronRightIcon } from "lucide-react";
-import { Button } from "./ui/button";
+import Link from "next/link";
 import { Suspense } from "react";
-import { Skeleton } from "./ui/skeleton";
 import { z } from "zod";
+
+import { ResponsiveAd } from "../responsive-ad";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
+import { Skeleton } from "../ui/skeleton";
 
 export async function RecentRecipes() {
   const slugs = await getRecentRecipeSlugs(kv);
+
+  const Item = ({ index }: { index: number }) => {
+    return (
+      <>
+        {slugs[index] ? (
+          <RecipeLink key={index} index={index} slug={slugs[index]} />
+        ) : (
+          <Card key={index}>
+            <Skeleton className="w-full h-20" />
+          </Card>
+        )}
+      </>
+    );
+  };
 
   return (
     <div className="p-4">
       <Label className="text-xs uppercase font-semibold">New Recipes</Label>
       <ul className="flex flex-col gap-2 mt-1">
-        {new Array(30).fill(0).map((_, index) =>
-          slugs[index] ? (
-            <RecipeLink key={index} index={index} slug={slugs[index]} />
-          ) : (
-            <Card key={index}>
-              <Skeleton className="w-full h-20" />
-            </Card>
-          )
-        )}
+        <div className="w-full h-40 overflow-hidden">
+          <ResponsiveAd slotId={"4156907864"} />
+        </div>
+
+        {/* <div className="w-80 h-20 bg-blue-300">
+          <AdSenseAd
+            adClient="ca-pub-9096699111782321"
+            adSlot="2756180374"
+            adFormat="fluid"
+            adLayoutKey="-i5-f+2e-23-1h"
+          />
+        </div> */}
+        {new Array(30).fill(0).map((_, index) => (
+          <Item key={index} index={index} />
+        ))}
       </ul>
     </div>
   );

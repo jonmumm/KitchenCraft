@@ -1,7 +1,7 @@
 import { getResult } from "@/lib/db";
 import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
-import { RecipeRequiredPropsSchema, outputSchemaByType } from "@/schema";
+import { outputSchemaByType } from "@/schema";
 import { RecipeRequiredProps } from "@/types";
 import { kv } from "@vercel/kv";
 import { nanoid } from "ai";

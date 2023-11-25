@@ -1,5 +1,5 @@
+import { GoogleAdSense } from "@/components/google-adsense";
 import { ThemeProvider } from "@/components/theme-provider";
-import { noop } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
@@ -45,12 +45,7 @@ export default async function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9096699111782321"
-          // @ts-ignore
-          crossorigin="anonymous"
-        ></script>
+        <GoogleAdSense />
       </head>
       <ApplicationProvider>
         <Body>

@@ -342,6 +342,7 @@ export default async function Page(props: Props) {
       await kv.hgetall(`media:${mainMediaId}`)
     );
   }
+  console.log(store.get().recipe.previewMediaIds);
 
   return (
     <div className="flex flex-col gap-2 max-w-2xl mx-auto">

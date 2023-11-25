@@ -1,9 +1,7 @@
 import { nanoid } from "ai";
 import { NextRequest, NextResponse } from "next/server";
-import { createActor, createMachine } from "xstate";
 import { z } from "zod";
 import { actorMap } from "./shared";
-import { AppEvent } from "./types";
 
 // This example protects all routes including api/trpc routes
 // Please edit this to allow other routes to be public as needed.
