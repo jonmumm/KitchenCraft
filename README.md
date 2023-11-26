@@ -4,7 +4,7 @@ KitchenCraft.ai is the fastest way to craft, remix and share recipes.
 
 ## Developing
 
-Clone the repo. Run `npm install` and `npm run dev.
+Clone the repo. Run `npm install` and `npm run dev`.
 
 ## Deploy to Vercel
 
