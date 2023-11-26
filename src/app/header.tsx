@@ -25,7 +25,7 @@ import { ActorRefFrom, createMachine } from "xstate";
 import { EventButton } from "@/components/event-button";
 import { cn } from "@/lib/utils";
 import { useEventHandler } from "@/hooks/useEventHandler";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
 
@@ -100,6 +100,11 @@ export function Header({
   useEventHandler("SIGN_IN", () => {
     signIn("google").then(() => {
       console.log("signed in!");
+    });
+  });
+  useEventHandler("SIGN_OUT", () => {
+    signOut().then(() => {
+      console.log("signed out!");
     });
   });
 
