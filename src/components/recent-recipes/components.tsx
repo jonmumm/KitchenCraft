@@ -116,7 +116,7 @@ async function RecipeCard(props: {
           <span>1</span>
         </Button>
       </div>
-      <Card className="flex flex-row gap-2 items-center justify-between overflow-hidden">
+      <Card className="flex-1 flex flex-row gap-2 items-center justify-between overflow-hidden">
         <div className="h-full flex flex-col gap-1">
           <RecipeLink
             className="w-full block flex-1"
