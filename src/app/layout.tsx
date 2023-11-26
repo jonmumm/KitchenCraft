@@ -2,10 +2,11 @@ import { GoogleAdSense } from "@/components/google-adsense";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ReactNode } from "react";
+import { ReactNode, useContext } from "react";
 import "../styles/globals.css";
 import { ApplicationProvider } from "./provider";
 import { AnimatePresence } from "framer-motion";
+import { ApplicationContext } from "@/context/application";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,26 @@ export default async function RootLayout({
   craft: ReactNode;
   gallery: ReactNode;
 }) {
+  const Body = () => {
+    return (
+      <body
+        className={`${inter.className}`}
+        // className={`bg-gray-100 ${inter.className} flex flex-col mx-auto max-w-lg xl:max-w-xl justify-center`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          {craft}
+          {gallery}
+        </ThemeProvider>
+      </body>
+    );
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -49,41 +70,8 @@ export default async function RootLayout({
         <GoogleAdSense />
       </head>
       <ApplicationProvider>
-        <Body>
-          {children}
-          {craft}
-          {gallery}
-        </Body>
+        <Body />
       </ApplicationProvider>
     </html>
-  );
-}
-
-function Body({ children }: { children: ReactNode }) {
-  // const cookies = getCookies();
-  // let themeValue = cookies.get("theme");
-  // if (!themeValue) {
-  //   themeValue = "system";
-  //   cookies.set("theme", themeValue);
-  // }
-  // console.log({ cookies });
-
-  // async function
-
-  return (
-    <body
-      className={`${inter.className}`}
-      // className={`bg-gray-100 ${inter.className} flex flex-col mx-auto max-w-lg xl:max-w-xl justify-center`}
-    >
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        {children}
-      </ThemeProvider>
-      {/* <Main>{children}</Main>; */}
-    </body>
   );
 }

@@ -1,28 +1,31 @@
 "use client";
-import { Pagination, Navigation } from "swiper/modules";
 
 import { UploadedMedia } from "@/app/recipe/[slug]/media/types";
+import { cn } from "@/lib/utils";
+import { useStore } from "@nanostores/react";
 import { ChevronRightIcon, Loader2Icon } from "lucide-react";
-import { deepMap, map } from "nanostores";
-import Image from "next/image";
+import { map } from "nanostores";
+import Link from "next/link";
 import {
   ComponentProps,
+  ComponentPropsWithRef,
   ReactNode,
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
+import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Button } from "../ui/button";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { useStore } from "@nanostores/react";
-import { Swiper, SwiperSlide } from "swiper/react";
 
+import Image from "next/image";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "./styles.css";
+import { Badge } from "../ui/badge";
+import { Pagination } from "swiper/modules";
 
 const CarouselItem = ({
   color,
@@ -137,30 +140,61 @@ export const RecipeCardButton = () => {
   );
 };
 
-export const ImageCarouselItem = ({
-  media,
-  recipeName,
+export const RecipeMediaCarousel = ({
+  initialMedia,
+  getNext,
 }: {
-  media: UploadedMedia;
-  recipeName: string;
+  initialMedia: UploadedMedia[];
+  getNext: () => Promise<ReactNode>;
 }) => {
+  const CurrentIndexBadge = () => {
+    const swiper = useSwiper();
+    const [index, setIndex] = useState(swiper.activeIndex);
+
+    useEffect(() => {
+      const listener = (s: typeof swiper) => setIndex(s.activeIndex);
+      swiper.on("activeIndexChange", listener);
+      return () => {
+        swiper.off("activeIndexChange", listener);
+      };
+    });
+
+    return (
+      <Badge className="z-30 absolute bottom-3 right-2" variant="secondary">
+        {index + 1} / {initialMedia.length}
+      </Badge>
+    );
+  };
+
   return (
-    <SwiperSlide>
-      {media.url}
-      <Button>111</Button>
-      {/* <Image
-        alt={`${recipeName}`}
-        src={media.url}
-        width={media.metadata.width}
-        height={media.metadata.height}
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        style={{
-          width: "100%",
-          position: "absolute",
-          top: "50%",
-          transform: "translateY(-50%)",
-        }}
-      /> */}
-    </SwiperSlide>
+    <Swiper
+      slidesPerView={1}
+      className="w-full aspect-square absolute top-0 left-0"
+      pagination={{ dynamicBullets: true }}
+      modules={[Pagination]}
+    >
+      {initialMedia.map((item, index) => {
+        return (
+          <SwiperSlide key={item.id}>
+            <Image
+              priority={index === 0}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              src={item.url}
+              width={item.metadata.width}
+              height={item.metadata.height}
+              alt={item.pathname}
+              style={{ objectFit: "cover" }}
+            />
+          </SwiperSlide>
+        );
+      })}
+      <CurrentIndexBadge />
+    </Swiper>
   );
+};
+
+export const RecipeMediaCarouselItem = (
+  props: ComponentPropsWithRef<typeof SwiperSlide>
+) => {
+  return <SwiperSlide {...props}>{props.children}</SwiperSlide>;
 };

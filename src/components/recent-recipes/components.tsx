@@ -1,25 +1,25 @@
 import { Label } from "@/components/ui/label";
-import { getRecentRecipeSlugs, getRecentRecipes } from "@/lib/db";
+
+import { getRecentRecipes } from "@/lib/db";
 import { RecipeSlug } from "@/types";
 import { kv } from "@vercel/kv";
-import { ArrowBigUpIcon, ChevronRightIcon } from "lucide-react";
+import { ArrowBigUpIcon } from "lucide-react";
 import Link from "next/link";
-import { Suspense } from "react";
+import { ReactNode, Suspense } from "react";
 import { z } from "zod";
 
+import { UploadedMediaSchema } from "@/app/recipe/[slug]/media/schema";
+import { UploadedMedia } from "@/app/recipe/[slug]/media/types";
+import { getRecipe } from "@/app/recipe/[slug]/utils";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
-import { getRecipe } from "@/app/recipe/[slug]/utils";
-import Image from "next/image";
-import { UploadedMedia } from "@/app/recipe/[slug]/media/types";
-import { UploadedMediaSchema } from "@/app/recipe/[slug]/media/schema";
-import { Badge } from "../ui/badge";
 import {
-  ImageCarousel,
   ImageCarouselItem,
   RecipeCardButton,
   RecipeLink,
+  RecipeMediaCarousel,
+  RecipeMediaCarouselItem,
 } from "./components.client";
 import { Swiper, SwiperSlide } from "swiper/react";
 
@@ -102,6 +102,24 @@ async function RecipeCard(props: {
     );
   };
 
+  const getInitialMedia = async () =>
+    Promise.all(
+      props.recipe.previewMediaIds
+        .map((id) => kv.hgetall(`media:${id}`))
+        .map((req) => {
+          return new Promise<UploadedMedia>((resolve) => {
+            req.then(UploadedMediaSchema.parse).then(resolve);
+          });
+        })
+    );
+
+  const getNext = async () => {
+    "use server";
+    console.log("hello");
+    return <></>;
+  };
+  const initialMedia = await getInitialMedia();
+
   return (
     <li className="flex flex-row flex-1 gap-1">
       <div className="flex flex-col gap-1 items-center justify-between">
@@ -119,6 +137,10 @@ async function RecipeCard(props: {
         <div className="h-full flex flex-col gap-1">
           {mainMedia && (
             <div className="w-full aspect-square relative overflow-hidden">
+              <RecipeMediaCarousel
+                initialMedia={initialMedia}
+                getNext={getNext}
+              />
               {/* <ImageCarousel></ImageCarousel> */}
 
               {/* <ImageCarousel>
@@ -134,7 +156,7 @@ async function RecipeCard(props: {
                   <ImageCarouselItems />
                 </Suspense> */}
               {/* </ImageCarousel> */}
-              <Image
+              {/* <Image
                 src={mainMedia.url}
                 priority
                 width={mainMedia.metadata.width}
@@ -142,7 +164,7 @@ async function RecipeCard(props: {
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 alt={props.recipe.name}
                 style={{ objectFit: "fill" }}
-              />
+              /> */}
               {/* <Image
                 alt={`${props.recipe.name} - Image 1`}
                 src={mainMedia.url}

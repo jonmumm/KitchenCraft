@@ -34,7 +34,7 @@ import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
 import React, { ComponentProps, ReactNode, Suspense } from "react";
 import { z } from "zod";
-import { MediaCarousel } from "./media-carousel/components.client";
+import { MediaCarousel } from "../../../components/ui/media-carousel/components.client";
 import { UploadedMediaSchema } from "./media/schema";
 import { UploadedMedia } from "./media/types";
 import { contentType, size } from "./opengraph-image";
