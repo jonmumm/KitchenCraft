@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/input/button";
 import { ReactNode } from "react";
 
 export const ShareButton = (props: { children: ReactNode }) => {

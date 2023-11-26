@@ -1,7 +1,7 @@
 "use client";
 
 import ResizeObserverComponent from "@/components/resize-observer";
-import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetOverlay } from "@/components/layout/sheet";
 import { useSend } from "@/hooks/useSend";
 import { useStore } from "@nanostores/react";
 import { atom, computed } from "nanostores";

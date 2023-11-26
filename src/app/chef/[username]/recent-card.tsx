@@ -1,12 +1,12 @@
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/display/label";
 import { getRecentRecipeSlugs, getRecipe } from "@/lib/db";
 import { RecipeSlug } from "@/types";
 import { kv } from "@vercel/kv";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/display/card";
 import { ArrowBigUpIcon, ChevronRightIcon, ScrollTextIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/input/button";
+import { Separator } from "@/components/display/separator";
 
 export async function RecentCard() {
   const recipeSlugs = await getRecentRecipeSlugs(kv);

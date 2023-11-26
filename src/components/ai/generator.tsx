@@ -1,9 +1,9 @@
-import { sanitizeOutput } from "@/lib/sanitize";
+import { getErrorMessage } from "@/lib/error";
 import { partialUtil } from "@/lib/partial";
+import { sanitizeOutput } from "@/lib/sanitize";
 import jsYaml from "js-yaml";
 import { z } from "zod";
 import { YamlFixer } from "./yaml-fixer";
-import { getErrorMessage } from "@/lib/error";
 
 export default async function Generator<
   TOutput extends z.ZodRawShape,

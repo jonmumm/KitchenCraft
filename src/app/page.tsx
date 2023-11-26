@@ -1,5 +1,5 @@
-import { RecentRecipes } from "@/components/recent-recipes";
-import FloatingHeader from "@/components/ui/floating-header";
+import { RecentRecipes } from "@/components/modules/recent-recipes";
+import FloatingHeader from "@/components/layout/floating-header";
 import { AxeIcon } from "lucide-react";
 import { Header } from "./header";
 import { NewRecipeButton } from "./new-recipe-button";

@@ -1,7 +1,7 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/display/badge";
+import { Button } from "@/components/input/button";
 import { PlusIcon } from "lucide-react";
 import { useCallback } from "react";
 

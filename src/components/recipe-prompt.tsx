@@ -5,10 +5,10 @@ import { useChat } from "ai/react";
 import { KeyboardEventHandler, useCallback, useContext, useRef } from "react";
 import { RecipeConfigurator } from "./recipe-configurator";
 import RecipeIngredients from "./recipe-ingredients";
-import { Card } from "./ui/card";
-import { Command, CommandInput } from "./ui/command";
-import { Label } from "./ui/label";
-import { ScrollArea } from "./ui/scroll-area";
+import { Card } from "./display/card";
+import { Command, CommandInput } from "./input/command";
+import { Label } from "./display/label";
+import { ScrollArea } from "./layout/scroll-area";
 
 export function RecipePrompt() {
   return (

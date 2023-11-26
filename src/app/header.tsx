@@ -1,17 +1,17 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/ui/dark-mode-toggle";
-import { TypeLogo } from "@/components/ui/logo";
+import { Button } from "@/components/input/button";
+import { ModeToggle } from "@/components/dark-mode-toggle";
+import { TypeLogo } from "@/components/logo";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+} from "@/components/layout/popover";
+import { Separator } from "@/components/display/separator";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { AxeIcon, GripVerticalIcon } from "lucide-react";
+import { AxeIcon, ChefHatIcon, EditIcon, GripVerticalIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -24,6 +24,10 @@ import {
 import { ActorRefFrom, createMachine } from "xstate";
 import { EventButton } from "@/components/event-button";
 import { cn } from "@/lib/utils";
+import { useEventHandler } from "@/hooks/useEventHandler";
+import { signIn, useSession } from "next-auth/react";
+import { Badge } from "@/components/display/badge";
+import { Label } from "@/components/display/label";
 
 export const createHeaderMachine = () =>
   createMachine({
@@ -86,11 +90,18 @@ export function Header({
   const isBackVisible = useSelector(headerActor, (state) =>
     state.matches("Back.Visible")
   );
+  const session = useSession();
+  console.log({ session });
 
   const pathname = usePathname();
   useEffect(() => {
     setIsPopoverOpen(false);
   }, [pathname, setIsPopoverOpen]);
+  useEventHandler("SIGN_IN", () => {
+    signIn("google").then(() => {
+      console.log("signed in!");
+    });
+  });
 
   const send = useSend();
 
@@ -129,14 +140,68 @@ export function Header({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 flex flex-col gap-4 p-3">
-            <EventButton
-              size="lg"
-              className="w-full"
-              event={{ type: "NEW_RECIPE" }}
-            >
-              New Craft
-            </EventButton>
-            <Separator />
+            {session.status === "authenticated" && (
+              <>
+                <div className="flex flex-col gap-1 items-center">
+                  <Label className="uppercase text-xs font-bold text-accent-foreground">
+                    Chef
+                  </Label>
+                  <div className="flex flex-row gap-2 items-center justify-center">
+                    <Badge variant="outline">
+                      <h3 className="font-bold text-xl">
+                        <div className="flex flex-col gap-1 items-center">
+                          <div className="flex flex-row gap-1 items-center">
+                            <ChefHatIcon />
+                            <span>
+                              <span className="underline">InspectorT</span>
+                            </span>
+                          </div>
+                        </div>
+                      </h3>
+                    </Badge>{" "}
+                  </div>
+                </div>
+                <div className="flex flex-row gap-2 items-center justify-center gap-3">
+                  <div className="flex flex-col gap-1 items-center">
+                    <Label className="uppercase text-xs font-bold text-accent-foreground">
+                      30 Days
+                    </Label>
+                    <div className="flex flex-row gap-2 items-center justify-center">
+                      <span className="font-bold">(+30 🧪)</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1 items-center">
+                    <Label className="uppercase text-xs font-bold text-accent-foreground">
+                      Lifetime
+                    </Label>
+                    <div className="flex flex-row gap-2 items-center justify-center">
+                      <span className="font-bold">(+1048 🧪)</span>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                <EventButton
+                  size="lg"
+                  className="w-full"
+                  event={{ type: "SIGN_OUT" }}
+                  variant="ghost"
+                >
+                  Sign Out
+                </EventButton>
+              </>
+            )}
+            {session.status === "unauthenticated" && (
+              <>
+                <EventButton
+                  size="lg"
+                  className="w-full"
+                  event={{ type: "SIGN_IN" }}
+                >
+                  Sign In
+                </EventButton>
+                <Separator />
+              </>
+            )}
             <div className="flex flex-row gap-1 justify-between">
               <p className="text-xs text-center flex-1">
                 Questions or bugs

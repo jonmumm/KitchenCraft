@@ -9,7 +9,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "@/components/input/command";
 
 export function IngredientSearch() {
   // todo next, add the statemachine

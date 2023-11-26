@@ -1,4 +1,4 @@
-import Generator from "@/components/generator";
+import Generator from "@/components/ai/generator";
 import { RecipePredictionOutputSchema } from "@/schema";
 import {
   RecipePredictionInput,

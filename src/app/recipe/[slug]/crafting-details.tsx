@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/display/badge";
+import { Label } from "@/components/display/label";
 import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 

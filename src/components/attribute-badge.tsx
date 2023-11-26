@@ -1,5 +1,5 @@
 import { FC, ReactNode, createContext, useCallback, useContext } from "react";
-import { Badge } from "./ui/badge";
+import { Badge } from "./display/badge";
 import { createActor, createMachine } from "xstate";
 import { useSelector } from "@/hooks/useSelector";
 import { RecipeAttribute } from "@/types";

@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/display/badge";
+import { Skeleton } from "@/components/display/skeleton";
 import { waitForStoreValue } from "@/lib/utils";
 import { TagIcon } from "lucide-react";
 import { MapStore } from "nanostores";

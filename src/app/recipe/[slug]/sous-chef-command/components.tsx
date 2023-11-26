@@ -1,16 +1,16 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/display/badge";
+import { Button } from "@/components/input/button";
+import { CardContent } from "@/components/display/card";
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from "@/components/ui/command";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+} from "@/components/input/command";
+import { Label } from "@/components/display/label";
+import { Separator } from "@/components/display/separator";
 import { useStore } from "@nanostores/react";
 import { useCommandState } from "cmdk";
 import { HelpCircle } from "lucide-react";

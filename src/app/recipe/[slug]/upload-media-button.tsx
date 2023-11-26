@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/input/button";
 import { env } from "@/env.public";
 import { upload } from "@vercel/blob/client";
 import { ChangeEventHandler, ReactNode, useCallback, useRef } from "react";

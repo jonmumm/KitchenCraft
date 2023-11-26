@@ -1,5 +1,6 @@
 "use client";
 
+import { SessionProvider } from "next-auth/react";
 import { ApplicationContext } from "@/context/application";
 import { useActor } from "@/hooks/useActor";
 import { map } from "nanostores";
@@ -28,40 +29,20 @@ import { useSend } from "@/hooks/useSend";
 // type ApplicationInput = z.infer<typeof ApplicationInputSchema>;
 
 export function ApplicationProvider(props: { children: ReactNode }) {
-  // const craftSegments = useSelectedLayoutSegment("craft");
-  // console.log({ craftSegments });
-  const router = useRouter();
   const [store] = useState(map<any>({})); // todo define global types here
-  useScrollRestoration();
-
-  useEffect(() => {
-    const handleRouteChange = (event: PopStateEvent) => {
-      // Prevent the default back navigation
-      event.preventDefault();
-      console.log("PREVENT BACK!");
-
-      // Use router.back() to mimic the back button behavior
-      // router.back();
-      return false;
-    };
-
-    window.addEventListener("popstate", handleRouteChange);
-
-    // Remove the event listener on component unmount
-    return () => {
-      window.removeEventListener("popstate", handleRouteChange);
-    };
-  }, [router]);
+  useScrollRestoration(); // i dont know if this is well working or not
 
   return (
-    <ApplicationContext.Provider value={store}>
-      <PageLoadProvider />
-      <HeaderProvider>{props.children}</HeaderProvider>
-    </ApplicationContext.Provider>
+    <SessionProvider>
+      <ApplicationContext.Provider value={store}>
+        <PageLoadEventsProvider />
+        <HeaderProvider>{props.children}</HeaderProvider>
+      </ApplicationContext.Provider>
+    </SessionProvider>
   );
 }
 
-const PageLoadProvider = () => {
+const PageLoadEventsProvider = () => {
   const pathname = usePathname();
   const send = useSend();
 

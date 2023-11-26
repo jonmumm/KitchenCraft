@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/layout/dialog";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";

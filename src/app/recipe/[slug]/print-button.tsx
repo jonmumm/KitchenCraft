@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/input/button";
 import { ReactNode } from "react";
 
 export const PrintButton = ({ children }: { children: ReactNode }) => {

@@ -1,6 +1,5 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/input/button";
 import { Header } from "../header";
-import { CulinaryClubSchema } from "./schema";
 
 export default async function Page() {
   // get if im part of a club or not...

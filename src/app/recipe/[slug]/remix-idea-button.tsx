@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/input/button";
 import { ReactNode, useCallback } from "react";
 
 export const RemixIdeaButton = ({

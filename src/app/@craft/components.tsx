@@ -4,21 +4,25 @@ import scaleList from "@/data/serving-scalings.json";
 import Image from "next/image";
 import { z } from "zod";
 
-import ClientOnly from "@/components/client-only";
-import ScrollLockComponent from "@/components/scroll-lock";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/input/button";
+import { Badge } from "@/components/display/badge";
+import {
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/display/card";
+import { Label } from "@/components/display/label";
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from "@/components/ui/command";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetOverlay } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/components/input/command";
+import ScrollLockComponent from "@/components/scroll-lock";
+import { Separator } from "@/components/display/separator";
+import { Sheet, SheetContent, SheetOverlay } from "@/components/layout/sheet";
+import { Skeleton } from "@/components/display/skeleton";
+import ClientOnly from "@/components/util/client-only";
 import { useActor } from "@/hooks/useActor";
 import useDebounce from "@/hooks/useDebounce";
 import { useSelector } from "@/hooks/useSelector";

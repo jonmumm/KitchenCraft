@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader } from "@/components/ui/card";
-import { WaitForStore } from "@/components/wait-for-store";
+import { Button } from "@/components/input/button";
+import { Card, CardHeader } from "@/components/display/card";
+import { WaitForStore } from "@/components/util/wait-for-store";
 import { getSlug } from "@/lib/slug";
 import {
   CompletedRecipeSchema,
@@ -26,7 +26,7 @@ import { z } from "zod";
 import { RecipeContents } from "../recipe-contents";
 import RecipeGenerator from "../recipe-generator";
 import { StoreProps } from "../schema";
-import { FloatingFooter } from "@/components/ui/floating-footer";
+import { FloatingFooter } from "@/components/layout/floating-footer";
 
 type Props = {
   params: { slug: string };

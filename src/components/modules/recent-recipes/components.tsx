@@ -1,4 +1,4 @@
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/display/label";
 
 import { getRecentRecipes } from "@/lib/db";
 import { RecipeSlug } from "@/types";
@@ -12,9 +12,9 @@ import { z } from "zod";
 import { UploadedMediaSchema } from "@/app/recipe/[slug]/media/schema";
 import { UploadedMedia } from "@/app/recipe/[slug]/media/types";
 import { getRecipe } from "@/app/recipe/[slug]/utils";
-import { Button } from "../ui/button";
-import { Card } from "../ui/card";
-import { Skeleton } from "../ui/skeleton";
+import { Button } from "../../input/button";
+import { Card } from "../../display/card";
+import { Skeleton } from "../../display/skeleton";
 import {
   RecipeCardButton,
   RecipeLink,

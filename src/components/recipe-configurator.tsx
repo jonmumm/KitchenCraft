@@ -5,7 +5,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "@/components/display/accordion";
 import {
   COOKING_TIMES,
   COOKWARES,
@@ -17,7 +17,7 @@ import { map } from "nanostores";
 import { createContext, forwardRef } from "react";
 import ingredients from "../data/ingredients.json";
 import { AttributeBadge } from "./attribute-badge";
-import { Label } from "./ui/label";
+import { Label } from "./display/label";
 
 const RecipeConfiguratorCategory = forwardRef<
   React.ElementRef<typeof AccordionItem>,

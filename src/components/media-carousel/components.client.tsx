@@ -4,12 +4,12 @@ import { Header } from "@/app/header";
 import Image from "next/image";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 
-import { UploadedMedia } from "../../../app/recipe/[slug]/media/types";
+import { UploadedMedia } from "../../app/recipe/[slug]/media/types";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
 import { Pagination } from "swiper/modules";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/display/badge";
 import { useState } from "react";
 import { MotionImage } from "../motion-image";
 

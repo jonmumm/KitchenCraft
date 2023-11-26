@@ -9,7 +9,8 @@ import {
 } from "./constants";
 
 export const SecretsEnvironmentSchema = z.object({
-  KITCHENCRAFT_URL: z.string(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
 });
 
 export const PublicEnvironmentSchema = z.object({
@@ -380,8 +381,18 @@ const PageLoadedEventSchema = z.object({
   pathname: z.string(),
 });
 
+const SignInEventSchema = z.object({
+  type: z.literal("SIGN_IN"),
+});
+
+const SignOutEventSchema = z.object({
+  type: z.literal("SIGN_OUT"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   PageLoadedEventSchema,
+  SignInEventSchema,
+  SignOutEventSchema,
   ClearEventSchema,
   ToggleEventSchema,
   CreateNewRecipeEventSchema,

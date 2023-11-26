@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/input/button";
 import { AxeIcon } from "lucide-react";
 import { useContext } from "react";
 import { RemixContext } from "./remix-context";

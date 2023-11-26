@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/input/button";
+import { Separator } from "@/components/display/separator";
+import { Skeleton } from "@/components/display/skeleton";
 import {
   ArrowBigUpDashIcon,
   CameraIcon,

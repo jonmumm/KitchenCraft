@@ -3,8 +3,8 @@
 import { PromptContext } from "@/context/prompt";
 import { useChat } from "ai/react";
 import { useContext, useEffect } from "react";
-import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
+import { Badge } from "./display/badge";
+import { Separator } from "./display/separator";
 
 export default function RecipeIngredients({}: {}) {
   const { messages, isLoading, append, setMessages, setInput, stop } = useChat({

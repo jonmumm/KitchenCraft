@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/input/button";
 import { useSend } from "@/hooks/useSend";
 import { ComponentProps, forwardRef, useCallback } from "react";
 

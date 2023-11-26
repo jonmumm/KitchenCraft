@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/display/skeleton";
 import { waitForStoreValue } from "@/lib/utils";
 import { MapStore } from "nanostores";
 import { Suspense } from "react";

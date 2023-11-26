@@ -1,8 +1,7 @@
 import { Header } from "@/app/header";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { ChefHatIcon, ScrollTextIcon } from "lucide-react";
+import { Card } from "@/components/display/card";
+import { Separator } from "@/components/display/separator";
+import { ChefHatIcon } from "lucide-react";
 import { RecentCard } from "./recent-card";
 
 type Props = {

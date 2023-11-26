@@ -58,6 +58,7 @@
     "lucide-react": "^0.279.0",
     "nanostores": "^0.9.3",
     "next": "^14.0.3",
+    "next-auth": "^4.24.5",
     "next-themes": "^0.2.1",
     "next-usequerystate": "^1.9.1",
     "openai": "^4.10.0",

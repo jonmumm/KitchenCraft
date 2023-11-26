@@ -1,7 +1,7 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/display/badge";
+import { Button } from "@/components/input/button";
+import { Label } from "@/components/display/label";
+import { Textarea } from "@/components/input/textarea";
 import {
   ArrowRightFromLineIcon,
   BadgeInfoIcon,
