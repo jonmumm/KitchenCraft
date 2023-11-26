@@ -171,7 +171,9 @@ const CommandItem = React.forwardRef<
 >(({ event, variant, className, ...props }, ref) => {
   const send = useSend();
   const handleSelect = React.useCallback(() => {
-    if (event) {
+    if (typeof event === "function") {
+      send(event());
+    } else if (typeof event === "object") {
       send(event);
     }
   }, [event, send]);
