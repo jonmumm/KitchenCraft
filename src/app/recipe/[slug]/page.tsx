@@ -5,7 +5,12 @@ import Generator from "@/components/ai/generator";
 import { Badge } from "@/components/display/badge";
 import { Button } from "@/components/input/button";
 import { Card } from "@/components/display/card";
-import { CommandGroup, CommandItem } from "@/components/input/command";
+import {
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/input/command";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
 
@@ -49,6 +54,12 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { getRecipe } from "./utils";
+import {
+  RemixCommand,
+  RemixCommandGroup,
+  RemixCommandInput,
+} from "./components.client";
+import { redirect } from "next/navigation";
 
 export const maxDuration = 300;
 
@@ -226,6 +237,11 @@ export default async function Page(props: Props) {
     );
   };
 
+  // const remix = async (prompt: string) => {
+  //   "use server";
+  //   redirect(`/recipe/${slug}/remix?prompt=${prompt}&modification=free_text`);
+  // };
+
   const RemixContent = () => {
     return (
       <>
@@ -237,6 +253,11 @@ export default async function Page(props: Props) {
             <ShuffleIcon />
           </div>
         </div>
+        <RemixCommand slug={slug}>
+          <RemixCommandInput />
+          <RemixCommandGroup />
+        </RemixCommand>
+        <Separator className="mb-4" />
         <div className="mb-4 flex flex-col gap-2">
           <Suspense fallback={<Skeleton className="w-full h-20" />}>
             <div className="grid grid-cols-2 px-3 gap-2">

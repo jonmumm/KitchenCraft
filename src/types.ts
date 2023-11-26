@@ -55,6 +55,7 @@ import {
   TipsPredictionPartialOutputSchema,
   UserMessageSchema,
   ModifyRecipeEquipmentPredictionInputSchema,
+  ModifyRecipeFreeTextPredictionInputSchema,
 } from "./schema";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -189,6 +190,9 @@ export type ModifyRecipeIngredientsPredictionInput = z.infer<
 >;
 export type ModifyRecipeScalePredictionInput = z.infer<
   typeof ModifyRecipeScalePredictionInputSchema
+>;
+export type ModifyRecipeFreeTextPredictionInput = z.infer<
+  typeof ModifyRecipeFreeTextPredictionInputSchema
 >;
 export type ModifyRecipeEquipmentPredictionInput = z.infer<
   typeof ModifyRecipeEquipmentPredictionInputSchema

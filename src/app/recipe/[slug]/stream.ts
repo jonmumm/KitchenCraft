@@ -2,6 +2,7 @@ import { TokenStream } from "@/lib/token-stream";
 import {
   ModifyRecipeDietaryPredictionInput,
   ModifyRecipeEquipmentPredictionInput,
+  ModifyRecipeFreeTextPredictionInput,
   ModifyRecipeIngredientsPredictionInput,
   ModifyRecipeScalePredictionInput,
   NewRecipePredictionInput,
@@ -27,6 +28,8 @@ export class RecipeTokenStream extends TokenStream<RecipePredictionInput> {
         return SUBSTITUTE_RECIPE_USER_PROMPT(input);
       case "MODIFY_RECIPE_SCALE":
         return SCALE_RECIPE_USER_PROMPT(input);
+      case "MODIFY_RECIPE_FREE_TEXT":
+        return FREE_TEXT_RECIPE_USER_PROMPT(input);
     }
   }
 
@@ -44,6 +47,8 @@ export class RecipeTokenStream extends TokenStream<RecipePredictionInput> {
         return SUBSTITUTE_RECIPE_TEMPLATE(input);
       case "MODIFY_RECIPE_SCALE":
         return SCALE_RECIPE_TEMPLATE(input);
+      case "MODIFY_RECIPE_FREE_TEXT":
+        return FREE_TEXT_RECIPE_TEMPLATE(input);
     }
   }
 
@@ -51,6 +56,10 @@ export class RecipeTokenStream extends TokenStream<RecipePredictionInput> {
     return 2048;
   }
 }
+
+const FREE_TEXT_RECIPE_USER_PROMPT = (
+  input: ModifyRecipeFreeTextPredictionInput
+) => `${input.prompt}`;
 
 const SCALE_RECIPE_USER_PROMPT = (input: ModifyRecipeScalePredictionInput) =>
   `${input.prompt}`;
@@ -94,6 +103,30 @@ ${input.recipe.tags.map((item) => `    - "${item}"`).join("\n")}
 ${input.recipe.ingredients.map((item) => `    - "${item}"`).join("\n")}
   instructions:
 ${input.recipe.instructions.map((item) => `\ \ \ \ - "${item}"`).join("\n")}
+\`\`\`
+
+${FORMAT_INSTRUCTIONS}`;
+
+const FREE_TEXT_RECIPE_TEMPLATE = (
+  input: ModifyRecipeFreeTextPredictionInput
+) => `The user will provide a instructions for how they would like to modify the recipe below.
+
+Please give back the yaml for the updated recipe, applying the modifications instructions as specified by the user.
+
+\`\`\`yaml
+recipe:
+  name: ${input.recipe.name}
+  description: ${input.recipe.description}
+  yield: ${input.recipe.yield}
+  activeTime: ${input.recipe.activeTime}
+  cookTime: ${input.recipe.cookTime}
+  totalTime: ${input.recipe.totalTime}
+  tags:
+${input.recipe.tags.map((item) => `    - "${item}"`).join("\n")}
+  ingredients:
+${input.recipe.ingredients.map((item) => `    - "${item}"`).join("\n")}
+  instructions:
+${input.recipe.instructions.map((item) => `    - "${item}"`).join("\n")}
 \`\`\`
 
 ${FORMAT_INSTRUCTIONS}`;

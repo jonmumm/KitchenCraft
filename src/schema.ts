@@ -18,12 +18,14 @@ export const PublicEnvironmentSchema = z.object({
   ADSENSE_PUBLISHER_ID: z.string(),
 });
 
+const FreeTextLiteral = z.literal("free_text");
 const SubstituteLiteral = z.literal("substitute");
 const DietaryLiteral = z.literal("dietary");
 const EquipmentLiteral = z.literal("equipment");
 const ScaleLiteral = z.literal("scale");
 
 export const ModificationSchema = z.union([
+  FreeTextLiteral,
   SubstituteLiteral,
   DietaryLiteral,
   EquipmentLiteral,
@@ -347,6 +349,7 @@ const ModifyRecipeIngredientsLiteral = z.literal("MODIFY_RECIPE_INGREDIENTS");
 const ModifyRecipeDietaryLiteral = z.literal("MODIFY_RECIPE_DIETARY");
 const ModifyReicpeScaleLiteral = z.literal("MODIFY_RECIPE_SCALE");
 const ModifyRecipeEquipmentLiteral = z.literal("MODIFY_RECIPE_EQUIPMENT");
+const ModifyRecipeFreeTextLiteral = z.literal("MODIFY_RECIPE_FREE_TEXT");
 
 const CreateNewRecipeEventSchema = z.object({
   type: CreateNewRecipeLiteral,
@@ -356,6 +359,10 @@ const SuggestRecipesEventSchema = z.object({
 });
 const InstantRecipeEventSchema = z.object({
   type: InstantRecipeLiteral,
+});
+export const ModifyRecipeFreeTextEventSchema = z.object({
+  type: ModifyRecipeFreeTextLiteral,
+  prompt: z.string(),
 });
 const ModifyRecipeEquipmentEventSchema = z.object({
   type: ModifyRecipeEquipmentLiteral,
@@ -400,6 +407,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   InstantRecipeEventSchema,
   ModifyRecipeIngredientsEventSchema,
   ModifyRecipeEquipmentEventSchema,
+  ModifyRecipeFreeTextEventSchema,
   ModifyRecipeScaleEventSchema,
   ModifyRecipeDietaryEventSchema,
   SaveEventSchema,
@@ -541,6 +549,14 @@ export const ModifyRecipeIngredientsPredictionInputSchema = z.object({
   prompt: z.string(),
 });
 
+export const ModifyRecipeFreeTextPredictionInputSchema = z.object({
+  type: ModifyRecipeFreeTextLiteral,
+  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+    RecipePredictionOutputSchema.shape.recipe
+  ),
+  prompt: z.string(),
+});
+
 export const ModifyRecipeEquipmentPredictionInputSchema = z.object({
   type: ModifyRecipeEquipmentLiteral,
   recipe: RecipeSchema.pick({ name: true, description: true }).merge(
@@ -555,6 +571,7 @@ export const RecipePredictionInputSchema = z.discriminatedUnion("type", [
   ModifyRecipeIngredientsPredictionInputSchema,
   ModifyRecipeDietaryPredictionInputSchema,
   ModifyRecipeEquipmentPredictionInputSchema,
+  ModifyRecipeFreeTextPredictionInputSchema,
 ]);
 
 export const RecipeChatInputSchema = z.object({

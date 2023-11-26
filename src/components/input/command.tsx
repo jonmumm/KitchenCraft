@@ -1,7 +1,7 @@
 "use client";
 
 import { DialogProps } from "@radix-ui/react-dialog";
-import { Command as CommandPrimitive } from "cmdk";
+import { Command as CommandPrimitive, useCommandState } from "cmdk";
 import {
   ChevronRight,
   Loader2Icon,
@@ -53,30 +53,34 @@ const CommandInput = React.forwardRef<
     preIcon?: "search" | "prompt";
     postIcon?: "send" | "spinner";
   }
->(({ className, postIcon, preIcon = "prompt", ...props }, ref) => (
-  <div className="flex items-center px-3" cmdk-input-wrapper="">
-    {preIcon !== "prompt" && (
-      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-    )}
-    {preIcon === "prompt" && (
-      <ChevronRight className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-    )}
-    <CommandPrimitive.Input
-      ref={ref}
-      className={cn(
-        "flex h-11 w-full rounded-md bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-        className
+>(({ className, postIcon, preIcon = "prompt", ...props }, ref) => {
+  const isEmpty = useCommandState((search) => search.search === "");
+
+  return (
+    <div className="flex items-center px-3" cmdk-input-wrapper="">
+      {preIcon !== "prompt" && (
+        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
       )}
-      {...props}
-    />
-    {postIcon === "send" && (
-      <EventButton event={{ type: "SUBMIT" }} size="icon" variant="ghost">
-        <SendHorizonalIcon className="opacity-50" />
-      </EventButton>
-    )}
-    {postIcon === "spinner" && <Loader2Icon className="animate-spin" />}
-  </div>
-));
+      {preIcon === "prompt" && (
+        <ChevronRight className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+      )}
+      <CommandPrimitive.Input
+        ref={ref}
+        className={cn(
+          "flex h-11 w-full rounded-md bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        {...props}
+      />
+      {postIcon === "send" && (
+        <EventButton event={{ type: "SUBMIT" }} size="icon" variant="ghost">
+          <SendHorizonalIcon className={isEmpty ? "opacity-50" : ""} />
+        </EventButton>
+      )}
+      {postIcon === "spinner" && <Loader2Icon className="animate-spin" />}
+    </div>
+  );
+});
 
 CommandInput.displayName = CommandPrimitive.Input.displayName;
 
@@ -157,7 +161,7 @@ const commandItemVariants = cva(
 export interface CommandItemProps
   extends React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>,
     VariantProps<typeof commandItemVariants> {
-  event?: AppEvent;
+  event?: AppEvent | (() => AppEvent);
 }
 
 // Update your CommandItem component to use the new variant prop
