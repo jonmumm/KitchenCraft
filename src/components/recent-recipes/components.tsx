@@ -5,6 +5,7 @@ import { RecipeSlug } from "@/types";
 import { kv } from "@vercel/kv";
 import { ArrowBigUpIcon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense } from "react";
 import { z } from "zod";
 
@@ -84,7 +85,6 @@ async function RecipeCard(props: {
     );
   }
 
-
   const getInitialMedia = async () =>
     Promise.all(
       props.recipe.previewMediaIds
@@ -118,71 +118,38 @@ async function RecipeCard(props: {
       </div>
       <Card className="flex flex-row gap-2 items-center justify-between overflow-hidden">
         <div className="h-full flex flex-col gap-1">
-          {mainMedia && (
-            <div className="w-full aspect-square relative overflow-hidden">
-              <RecipeMediaCarousel
-                initialMedia={initialMedia}
-                getNext={getNext}
-              />
-              {/* <ImageCarousel></ImageCarousel> */}
-
-              {/* <ImageCarousel>
-                <ImageCarouselItem
-                  recipeName={props.recipe.name}
-                  media={mainMedia}
-                />
-                <ImageCarouselItem
-                  recipeName={props.recipe.name}
-                  media={mainMedia}
-                /> */}
-              {/* <Suspense fallback={<></>}>
-                  <ImageCarouselItems />
-                </Suspense> */}
-              {/* </ImageCarousel> */}
-              {/* <Image
-                src={mainMedia.url}
-                priority
-                width={mainMedia.metadata.width}
-                height={mainMedia.metadata.width}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                alt={props.recipe.name}
-                style={{ objectFit: "fill" }}
-              /> */}
-              {/* <Image
-                alt={`${props.recipe.name} - Image 1`}
-                src={mainMedia.url}
-                width={mainMedia.metadata.width}
-                height={mainMedia.metadata.height}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                style={{
-                  width: "100%",
-                  position: "absolute",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                }}
-              /> */}
-              {/* {recipe.mediaCount > 1 && (
-                <Badge className="absolute right-3 top-2 shadow-md">
-                  1/{recipe.mediaCount}
-                </Badge>
-              )} */}
-
-              {/* <div className="absolute bottom-0 left-0 w-full px-3 pb-2 pt-8 bg-gradient-to-b from-transparent to-card">
-                <h2 className="font-medium text-lg">{recipe.name}</h2>
-              </div> */}
-            </div>
-          )}
           <RecipeLink
             className="w-full block flex-1"
             href={`/recipe/${props.slug}`}
           >
             <div className="px-3 py-2">
-              <h2 className="font-medium text-lg">{props.recipe.name}</h2>
-              <p className="text-sm text-secondary-foreground">
-                {props.recipe.description}
-              </p>
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-row gap-3">
+                  <h2 className="font-medium text-lg flex-1">
+                    {props.recipe.name}
+                  </h2>
+                  {/* {mainMedia && <Skeleton className="h-20 w-20" />} */}
+                  {mainMedia && (
+                    <Image
+                      // loader={<Skeleton className="h-20 w-20" />}
+                      src={mainMedia.url}
+                      className="w-20 h-20 rounded-md"
+                      // layoutId={`${media.id}-${index}`}
+                      priority
+                      width={mainMedia.metadata.width}
+                      height={mainMedia.metadata.width}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      alt="Main media"
+                      style={{ objectFit: "cover" }}
+                    />
+                  )}
+                </div>
+                <p className="text-sm text-secondary-foreground">
+                  {props.recipe.description}
+                </p>
+              </div>
               <div className="flex-1 flex flex-row items-center justify-between">
-                <p className="flex-1 text-sm text-muted-foreground">
+                <p className="flex-1 text-xs text-muted-foreground">
                   3 hours ago
                 </p>
                 <RecipeCardButton />

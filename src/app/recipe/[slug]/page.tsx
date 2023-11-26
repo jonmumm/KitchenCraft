@@ -51,7 +51,6 @@ import {
 import { getRecipe } from "./utils";
 
 export const maxDuration = 300;
-export const dynamic = "force-dynamic";
 
 type Props = {
   params: { slug: string };

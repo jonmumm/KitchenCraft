@@ -12,11 +12,12 @@ export default async function Home({
   searchParams: Record<string, string>;
 }) {
   return (
-    <div className="max-w-2xl mx-auto">
-      <Header />
-      <FloatingHeader>
-        <div className="flex flex-row justify-end">
-          {/* <div>
+    <>
+      <div className="max-w-2xl mx-auto">
+        <Header />
+        <FloatingHeader>
+          <div className="flex flex-row justify-end">
+            {/* <div>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline">
@@ -44,15 +45,16 @@ export default async function Home({
             </PopoverContent>
           </Popover>
           <div> */}
-          <NewRecipeButton variant="outline">
-            <AxeIcon />
-          </NewRecipeButton>
+            <NewRecipeButton variant="outline">
+              <AxeIcon />
+            </NewRecipeButton>
+          </div>
+        </FloatingHeader>
+        <div className="flex flex-col flex-end">
+          <RecentRecipes />
         </div>
-      </FloatingHeader>
-      <div className="flex flex-col flex-end">
-        <RecentRecipes />
+        {/* <Footer /> */}
       </div>
-      {/* <Footer /> */}
-    </div>
+    </>
   );
 }

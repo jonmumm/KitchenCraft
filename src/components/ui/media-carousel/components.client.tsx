@@ -4,13 +4,14 @@ import { Header } from "@/app/header";
 import Image from "next/image";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 
-import { UploadedMedia } from "../media/types";
+import { UploadedMedia } from "../../../app/recipe/[slug]/media/types";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
 import { Pagination } from "swiper/modules";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { MotionImage } from "../motion-image";
 
 export const MediaCarousel = ({
   previewMedia,
@@ -62,10 +63,11 @@ export const MediaCarousel = ({
         pagination={{ dynamicBullets: true }}
         modules={[Pagination]}
       >
-        {previewMedia.map((media) => (
+        {previewMedia.map((media, index) => (
           <SwiperSlide className="h-full" key={media.id}>
             <Image
               src={media.url}
+              // layoutId={`${media.id}-${index}`}
               priority
               width={media.metadata.width}
               height={media.metadata.width}

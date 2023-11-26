@@ -26,6 +26,7 @@ import "swiper/css/pagination";
 import "./styles.css";
 import { Badge } from "../ui/badge";
 import { Pagination } from "swiper/modules";
+import { MotionImage } from "../ui/motion-image";
 
 const CarouselItem = ({
   color,
@@ -178,6 +179,7 @@ export const RecipeMediaCarousel = ({
           <SwiperSlide key={item.id}>
             <Image
               priority={index === 0}
+              // layoutId={`${item.id}-${index}`}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               src={item.url}
               width={item.metadata.width}
