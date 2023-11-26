@@ -5,7 +5,7 @@ import { RecipeSlug } from "@/types";
 import { kv } from "@vercel/kv";
 import { ArrowBigUpIcon } from "lucide-react";
 import Link from "next/link";
-import { ReactNode, Suspense } from "react";
+import { Suspense } from "react";
 import { z } from "zod";
 
 import { UploadedMediaSchema } from "@/app/recipe/[slug]/media/schema";
@@ -15,13 +15,10 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
 import {
-  ImageCarouselItem,
   RecipeCardButton,
   RecipeLink,
   RecipeMediaCarousel,
-  RecipeMediaCarouselItem,
 } from "./components.client";
-import { Swiper, SwiperSlide } from "swiper/react";
 
 export async function RecentRecipes() {
   const recipes = await getRecentRecipes(kv);
@@ -87,20 +84,6 @@ async function RecipeCard(props: {
     );
   }
 
-  const ImageCarouselItemLoader = async ({ id }: { id: string }) => {
-    const media = UploadedMediaSchema.parse(await kv.hgetall(`media:${id}`));
-    return <ImageCarouselItem media={media} recipeName={props.recipe.name} />;
-  };
-
-  const ImageCarouselItems = () => {
-    return (
-      <>
-        {props.recipe.previewMediaIds.slice(1).map((id) => (
-          <ImageCarouselItemLoader key={id} id={id} />
-        ))}
-      </>
-    );
-  };
 
   const getInitialMedia = async () =>
     Promise.all(
