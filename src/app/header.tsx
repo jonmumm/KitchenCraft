@@ -147,41 +147,76 @@ export function Header({
           <PopoverContent className="w-80 flex flex-col gap-4 p-3">
             {session.status === "authenticated" && (
               <>
-                <div className="flex flex-col gap-1 items-center">
+                <div className="flex flex-col gap-1 items-center justify-center">
                   <Label className="uppercase text-xs font-bold text-accent-foreground">
                     Chef
                   </Label>
                   <div className="flex flex-row gap-2 items-center justify-center">
-                    <Badge variant="outline">
-                      <h3 className="font-bold text-xl">
-                        <div className="flex flex-col gap-1 items-center">
-                          <div className="flex flex-row gap-1 items-center">
-                            <ChefHatIcon />
-                            <span>
-                              <span className="underline">InspectorT</span>
-                            </span>
+                    <Link href="/chef/inspectorT">
+                      <Badge variant="outline">
+                        <h3 className="font-bold text-xl">
+                          <div className="flex flex-col gap-1 items-center">
+                            <div className="flex flex-row gap-1 items-center">
+                              <ChefHatIcon />
+                              <span>
+                                <span className="underline">InspectorT</span>
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </h3>
-                    </Badge>{" "}
+                        </h3>
+                      </Badge>{" "}
+                    </Link>
+                    {/* <Button size="icon" variant="secondary">
+                      <EditIcon />
+                    </Button> */}
                   </div>
                 </div>
-                <div className="flex flex-row gap-2 items-center justify-center gap-3">
-                  <div className="flex flex-col gap-1 items-center">
-                    <Label className="uppercase text-xs font-bold text-accent-foreground">
-                      30 Days
-                    </Label>
-                    <div className="flex flex-row gap-2 items-center justify-center">
-                      <span className="font-bold">(+30 🧪)</span>
+                <Separator />
+                <div className="flex flex-row gap-2 items-center justify-between">
+                  <Label className="uppercase text-xs text-center font-bold text-accent-foreground">
+                    Points
+                  </Label>
+                  <div className="flex flex-row gap-2">
+                    <div className="flex flex-col gap-1 items-center">
+                      <Badge variant="outline">
+                        <div className="flex flex-row gap-2 items-center justify-center">
+                          <span className="font-bold">+30 🧪</span>
+                        </div>
+                      </Badge>
+                      <Label className="uppercase text-xs font-bold text-accent-foreground">
+                        30 Days
+                      </Label>
+                    </div>
+                    <div className="flex flex-col gap-1 items-center">
+                      <Badge variant="outline">
+                        <div className="flex flex-row gap-2 items-center justify-center">
+                          <span className="font-bold">+1048 🧪</span>
+                        </div>
+                      </Badge>
+                      <Label className="uppercase text-xs font-bold text-accent-foreground">
+                        Lifetime
+                      </Label>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1 items-center">
-                    <Label className="uppercase text-xs font-bold text-accent-foreground">
-                      Lifetime
-                    </Label>
-                    <div className="flex flex-row gap-2 items-center justify-center">
-                      <span className="font-bold">(+1048 🧪)</span>
+                </div>
+                <Separator />
+                <div className="flex flex-row gap-1 items-center justify-between">
+                  <Label className="uppercase text-xs font-bold text-accent-foreground">
+                    Email
+                  </Label>
+                  <div className="flex flex-row gap-2 items-center justify-center">
+                    <div className="flex flex-col gap-1 items-center">
+                      <div className="flex flex-row gap-1 items-center">
+                        <span>
+                          <span className="underline">
+                            {session.data?.user?.email}
+                          </span>
+                        </span>
+                      </div>
                     </div>
+                    {/* <Button size="icon" variant="secondary">
+                      <EditIcon />
+                    </Button> */}
                   </div>
                 </div>
                 <Separator />
