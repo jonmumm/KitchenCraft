@@ -1,18 +1,13 @@
 import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
 import { Header } from "@/app/header";
-import { EventButton } from "@/components/event-button";
 import Generator from "@/components/ai/generator";
 import { Badge } from "@/components/display/badge";
-import { Button } from "@/components/input/button";
 import { Card } from "@/components/display/card";
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/input/command";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
+import { EventButton } from "@/components/event-button";
+import { Button } from "@/components/input/button";
+import { CommandGroup, CommandItem } from "@/components/input/command";
 
 import { env } from "@/env.public";
 import { getResult } from "@/lib/db";
@@ -26,26 +21,43 @@ import {
 import { RecipePredictionInput } from "@/types";
 import { kv } from "@vercel/kv";
 import {
+  ArrowBigUpDashIcon,
   ArrowLeftRightIcon,
+  CameraIcon,
   ChefHatIcon,
   HelpCircle,
+  Link,
   MicrowaveIcon,
   NutOffIcon,
+  PlusSquareIcon,
+  PrinterIcon,
   ScaleIcon,
+  ScrollIcon,
+  ShareIcon,
+  ShoppingBasketIcon,
   ShuffleIcon,
 } from "lucide-react";
 import { map } from "nanostores";
 import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
+import { notFound } from "next/navigation";
 import React, { ComponentProps, ReactNode, Suspense } from "react";
-import { z } from "zod";
-import { MediaCarousel } from "../../../components/media-carousel/components.client";
+import { AddButton } from "./add-button";
+import {
+  RemixCommand,
+  RemixCommandGroup,
+  RemixCommandInput,
+} from "./components.client";
+import { CraftingDetails } from "./crafting-details";
+import { IngredientList } from "./ingredient-list";
+import { InstructionList } from "./instruction-list";
 import { UploadedMediaSchema } from "./media/schema";
 import { UploadedMedia } from "./media/types";
 import { contentType, size } from "./opengraph-image";
-import { RecipeContents } from "./recipe-contents";
+import { PrintButton } from "./print-button";
 import RecipeGenerator from "./recipe-generator";
 import { StoreProps } from "./schema";
+import { ShareButton } from "./share-button";
 import {
   SousChefCommand,
   SousChefCommandInput,
@@ -53,14 +65,13 @@ import {
   SousChefOutput,
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
+import { Tags } from "./tags";
+import { Times } from "./times";
+import { UploadMediaButton } from "./upload-media-button";
+import { UpvoteButton } from "./upvote-button";
 import { getRecipe } from "./utils";
-import {
-  RemixCommand,
-  RemixCommandGroup,
-  RemixCommandInput,
-} from "./components.client";
-import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 type Props = {
@@ -82,7 +93,6 @@ export default async function Page(props: Props) {
 
   if (isError) {
     const error = (await kv.hget(`recipe:${slug}`, "error")) as string;
-    console.log(error);
     const outputRaw = (await kv.hget(`recipe:${slug}`, "outputRaw")) as string;
     const outputSanitized = (await kv.hget(
       `recipe:${slug}`,
@@ -106,17 +116,33 @@ export default async function Page(props: Props) {
     );
   }
 
-  const result = await getResult(kv, recipe.fromResult.resultId);
-  const suggestionsInput = SuggestionPredictionInputSchema.parse(result.input);
+  let input: RecipePredictionInput;
+  if (recipe.fromResult) {
+    const result = await getResult(kv, recipe.fromResult.resultId);
+    const suggestionsInput = SuggestionPredictionInputSchema.parse(
+      result.input
+    );
 
-  const input = {
-    type: "NEW_RECIPE",
-    recipe: {
-      name: recipe.name,
-      description: recipe.description,
-    },
-    suggestionsInput,
-  } satisfies RecipePredictionInput;
+    input = {
+      type: "NEW_RECIPE_FROM_SUGGESTIONS",
+      recipe: {
+        name: recipe.name,
+        description: recipe.description,
+      },
+      suggestionsInput,
+    } satisfies RecipePredictionInput;
+  } else if (recipe.fromPrompt) {
+    input = {
+      type: "NEW_INSTANT_RECIPE",
+      recipe: {
+        name: recipe.name,
+        description: recipe.description,
+      },
+      prompt: recipe.fromPrompt,
+    } satisfies RecipePredictionInput;
+  } else {
+    return notFound();
+  }
 
   const store = map<StoreProps>({
     loading,
@@ -125,10 +151,7 @@ export default async function Page(props: Props) {
 
   const WaitForRecipe = async ({ children }: { children: ReactNode }) => {
     await waitForStoreValue(store, (state) => {
-      if (state.loading) {
-        return undefined;
-      }
-      return true;
+      if (!state.loading) return true;
     });
     return <>{children}</>;
   };
@@ -357,17 +380,29 @@ export default async function Page(props: Props) {
   const mainMediaId = store.get().recipe.previewMediaIds[0];
   let mainMedia: UploadedMedia | undefined;
   if (mainMediaId) {
-    console.log({ mainMediaId });
     mainMedia = UploadedMediaSchema.parse(
       await kv.hgetall(`media:${mainMediaId}`)
     );
   }
-  console.log(store.get().recipe.previewMediaIds);
+
+  const Name = () => {
+    return <>{store.get().recipe.name}</>;
+  };
+
+  async function Yields() {
+    const recipeYield = await waitForStoreValue(store, (state) => {
+      if (state.recipe.activeTime && state.recipe.yield) {
+        return state.recipe.yield;
+      }
+    });
+    return <>{recipeYield}</>;
+  }
 
   return (
     <div className="flex flex-col gap-2 max-w-2xl mx-auto">
       <div>
-        {mainMediaId ? (
+        <Header />
+        {/* {mainMediaId ? (
           <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
             <Header className="absolute left-0 right-0 top-0 z-10" />
             <Suspense fallback={<Skeleton className="w-full h-20" />}>
@@ -388,22 +423,14 @@ export default async function Page(props: Props) {
           </div>
         ) : (
           <Header />
-        )}
+        )} */}
       </div>
-      {/* <Header /> */}
       <div className="flex flex-col gap-2">
         <Card className="flex flex-col gap-2 pb-5 mx-3">
           {isInitializing && (
             <Suspense fallback={null}>
               <RecipeGenerator
-                input={{
-                  type: "NEW_RECIPE",
-                  recipe: {
-                    name: recipe.name,
-                    description: recipe.description,
-                  },
-                  suggestionsInput: input.suggestionsInput,
-                }}
+                input={input}
                 onStart={() => {
                   kv.hset(`recipe:${slug}`, {
                     runStatus: "started",
@@ -411,6 +438,7 @@ export default async function Page(props: Props) {
                   }).then(noop);
                 }}
                 onProgress={(output) => {
+                  // console.log("progress", output);
                   if (output.recipe) {
                     store.setKey("recipe", {
                       ...recipe,
@@ -419,7 +447,7 @@ export default async function Page(props: Props) {
                   }
                 }}
                 onError={(error, outputRaw) => {
-                  console.log("error");
+                  console.log("error", error);
                   kv.hset(`recipe:${slug}`, {
                     runStatus: "error",
                     error,
@@ -437,6 +465,7 @@ export default async function Page(props: Props) {
                     runStatus: "done",
                     ...output.recipe,
                   }).then(() => {
+                    console.log("DONE LOADING!");
                     store.setKey("loading", false);
                   });
 
@@ -450,7 +479,99 @@ export default async function Page(props: Props) {
               />
             </Suspense>
           )}
-          <RecipeContents store={store} {...recipe} />
+          {/* <RecipeContents store={store} {...recipe} /> */}
+          <>
+            <div className="flex flex-row gap-3 p-5 justify-between">
+              <div className="flex flex-col gap-2">
+                <h1 className="text-2xl font-semibold">
+                  <Name />
+                </h1>
+                <p className="text-lg text-muted-foreground">
+                  {store.get().recipe.description}
+                </p>
+                <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
+                  <span>Yields</span>
+                  <span>
+                    <Suspense fallback={<Skeleton className="w-24 h-5" />}>
+                      <Yields />
+                    </Suspense>
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1 hidden-print">
+                <AddButton>
+                  <PlusSquareIcon />
+                </AddButton>
+                <UploadMediaButton slug={store.get().recipe.slug}>
+                  <CameraIcon />
+                </UploadMediaButton>
+                <PrintButton>
+                  <PrinterIcon />
+                </PrintButton>
+                <ShareButton>
+                  <ShareIcon />
+                </ShareButton>
+                <UpvoteButton>
+                  <ArrowBigUpDashIcon />
+                  <span className="font-bold">1</span>
+                </UpvoteButton>
+                <Button variant="outline" aria-label="Remix">
+                  <Link href={`#remix`}>
+                    <ShuffleIcon />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <Separator />
+            <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
+              <div className="flex flex-col gap-2 items-center">
+                <CraftingDetails
+                  createdAt={
+                    store.get().recipe.createdAt || Date.now().toString()
+                  }
+                />
+              </div>
+            </div>
+            <Separator className="hidden-print" />
+            <Times store={store} />
+            <Separator />
+            <Tags store={store} />
+            <Separator />
+
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Ingredients
+                </h3>
+                <ShoppingBasketIcon />
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                  <ul className="list-disc pl-5">
+                    <IngredientList store={store} />
+                  </ul>
+                </Suspense>
+              </div>
+            </div>
+            <Separator />
+
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Instructions
+                </h3>
+                <ScrollIcon />
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                  <ol className="list-decimal pl-5">
+                    <InstructionList store={store} />
+                  </ol>
+                </Suspense>
+              </div>
+            </div>
+          </>
         </Card>
         <Card id="remix" className="mx-3 mb-3">
           <RemixContent />
@@ -470,7 +591,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const mainMediaId = recipe.previewMediaIds[0];
   let mainMedia: UploadedMedia | undefined;
   if (mainMediaId) {
-    console.log({ mainMediaId });
     mainMedia = UploadedMediaSchema.parse(
       await kv.hgetall(`media:${mainMediaId}`)
     );
@@ -499,6 +619,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // todo add updatedTime
   return {
     title,
+    metadataBase: new URL(env.KITCHENCRAFT_URL),
     openGraph: {
       title,
       description: `${recipe.description} Crafted by @InspectorT on ${dateStr}`,

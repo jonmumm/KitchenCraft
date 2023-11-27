@@ -8,5 +8,6 @@ export async function Yield({ store }: { store: MapStore<StoreProps> }) {
       return state.recipe.yield;
     }
   });
+  console.log({recipeYield})
   return <>{recipeYield}</>;
 }

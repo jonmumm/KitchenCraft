@@ -5,6 +5,7 @@ import { ContextSchema } from "./schemas";
 import { GeneratorObervableEvent } from "@/lib/generator";
 import {
   IdeasPredictionOutput,
+  InstantRecipeMetadataPredictionOutput,
   SubstitutionsPredictionOutput,
   SuggestionPredictionOutput,
 } from "@/types";
@@ -18,4 +19,8 @@ export type GeneratorEvent =
   | GeneratorObervableEvent<"EQUIPMENT_ADAPTATIONS", IdeasPredictionOutput>
   | GeneratorObervableEvent<"DIETARY_ALTERNATIVES", IdeasPredictionOutput>
   | GeneratorObervableEvent<"SUBSTITUTIONS", SubstitutionsPredictionOutput>
-  | GeneratorObervableEvent<"SUGGESTION", SuggestionPredictionOutput>;
+  | GeneratorObervableEvent<"SUGGESTION", SuggestionPredictionOutput>
+  | GeneratorObervableEvent<
+      "INSTANT_RECIPE_METADATA",
+      InstantRecipeMetadataPredictionOutput
+    >;

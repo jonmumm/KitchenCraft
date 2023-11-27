@@ -91,7 +91,6 @@ export function Header({
     state.matches("Back.Visible")
   );
   const session = useSession();
-  console.log({ session });
 
   const pathname = usePathname();
   useEffect(() => {

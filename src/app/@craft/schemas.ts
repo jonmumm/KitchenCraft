@@ -1,10 +1,12 @@
 import {
   IdeasPredictionOutputSchema,
   IdeasPredictionPartialOutputSchema,
+  InstantRecipeMetadataPredictionOutputSchema,
   SubstitutionsPredictionPartialOutputSchema,
   SuggestionPredictionPartialOutputSchema,
 } from "@/schema";
 import { RefObject } from "react";
+import { AnyActorRef } from "xstate";
 import { z } from "zod";
 
 export const ContextSchema = z.object({
@@ -20,4 +22,7 @@ export const ContextSchema = z.object({
   scrollViewRef: z.custom<RefObject<HTMLDivElement>>(),
   resultId: z.string().nullable(),
   submittedInputHash: z.string().optional(),
+  instantRecipeMetadataGeneratorId: z.string().optional(),
+  instantRecipeMetadata:
+    InstantRecipeMetadataPredictionOutputSchema.partial().optional(),
 });

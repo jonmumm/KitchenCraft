@@ -1,6 +1,6 @@
-import { Button } from "@/components/input/button";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
+import { Button } from "@/components/input/button";
 import {
   ArrowBigUpDashIcon,
   CameraIcon,
@@ -18,7 +18,6 @@ import { AddButton } from "./add-button";
 import { CraftingDetails } from "./crafting-details";
 import { IngredientList } from "./ingredient-list";
 import { InstructionList } from "./instruction-list";
-import { MediaRow } from "./media/components";
 import { PrintButton } from "./print-button";
 import { StoreProps } from "./schema";
 import { ShareButton } from "./share-button";
@@ -27,9 +26,6 @@ import { Times } from "./times";
 import { UploadMediaButton } from "./upload-media-button";
 import { UpvoteButton } from "./upvote-button";
 import { Yield } from "./yield";
-import { kv } from "@vercel/kv";
-import { UploadedMediaSchema } from "./media/schema";
-import { UploadedMedia } from "./media/types";
 
 export const RecipeContents = async ({
   name,

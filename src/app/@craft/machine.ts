@@ -2,6 +2,7 @@ import { eventSourceToGenerator } from "@/lib/generator";
 import { assert, getObjectHash, isMobile } from "@/lib/utils";
 import {
   IdeasPredictionOutputSchema,
+  InstantRecipeMetadataPredictionOutputSchema,
   RecipePathSchema,
   SubstitutionsPredictionOutputSchema,
   SuggestionPredictionOutputSchema,
@@ -11,6 +12,7 @@ import {
   AppEvent,
   DietaryAlternativesInput,
   EquipmentAdaptationsInput,
+  InstantRecipeMetdataInput,
   SubstitutionsInput,
   SubstitutionsPredictionPartialOutput,
   SuggestionPredictionPartialOutput,
@@ -22,7 +24,6 @@ import { RefObject } from "react";
 import { assign, createMachine, fromEventObservable } from "xstate";
 import { ingredientsParser, tagsParser } from "../parsers";
 import { Context, GeneratorEvent } from "./types";
-import { selectInputHash } from "./selectors";
 
 export const createCraftMachine = (
   searchParams: Record<string, string>,
@@ -62,6 +63,14 @@ export const createCraftMachine = (
 
   const getSubstitutionsEventSource = (input: SubstitutionsInput) => {
     const eventSourceUrl = `/api/recipe/${input.slug}/substitutions`;
+    return new EventSource(eventSourceUrl);
+  };
+
+  const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
+    const params = new URLSearchParams();
+    if (input.prompt) params.set("prompt", input.prompt);
+
+    const eventSourceUrl = `/api/instant-recipe?${params.toString()}`;
     return new EventSource(eventSourceUrl);
   };
 
@@ -119,6 +128,17 @@ export const createCraftMachine = (
     }
   );
 
+  const instantRecipeMetadataGenerator = fromEventObservable(
+    ({ input }: { input: InstantRecipeMetdataInput }) => {
+      const source = getInstantRecipeMetadataEventSource(input);
+      return eventSourceToGenerator(
+        source,
+        "INSTANT_RECIPE_METADATA",
+        InstantRecipeMetadataPredictionOutputSchema
+      );
+    }
+  );
+
   const suggestionsGenerator = fromEventObservable(
     ({ input }: { input: SuggestionsInput }) => {
       const source = getSuggestionsEventSource(input);
@@ -161,6 +181,10 @@ export const createCraftMachine = (
               type: "hasDirtyInput";
             },
         actors: {} as
+          | {
+              src: "instantRecipeMetadataGenerator";
+              logic: typeof instantRecipeMetadataGenerator;
+            }
           | {
               src: "suggestionsGenerator";
               logic: typeof suggestionsGenerator;
@@ -367,25 +391,6 @@ export const createCraftMachine = (
             },
           ],
         },
-        SET_INPUT: {
-          actions: [
-            {
-              type: "assignPrompt",
-              params: ({ event }) => ({
-                prompt: event.value,
-              }),
-            },
-            {
-              type: "updateQueryParameter",
-              params({ context }) {
-                return {
-                  key: "prompt",
-                  value: context.prompt?.length ? context.prompt : null,
-                };
-              },
-            },
-          ],
-        },
         NEW_RECIPE: { target: [".Mode.New", ".OpenState.Open"] },
         MODIFY: { target: [".Mode.Modify", ".OpenState.Open"] },
         MODIFY_RECIPE_DIETARY: {
@@ -408,6 +413,25 @@ export const createCraftMachine = (
           on: {
             FOCUS_PROMPT: ".Focused",
             BLUR_PROMPT: ".NotFocused",
+            SET_INPUT: {
+              actions: [
+                {
+                  type: "assignPrompt",
+                  params: ({ event }) => ({
+                    prompt: event.value,
+                  }),
+                },
+                {
+                  type: "updateQueryParameter",
+                  params({ context }) {
+                    return {
+                      key: "prompt",
+                      value: context.prompt?.length ? context.prompt : null,
+                    };
+                  },
+                },
+              ],
+            },
           },
           states: {
             NotFocused: {},
@@ -484,8 +508,100 @@ export const createCraftMachine = (
                 },
               },
               initial: "Inputting",
+              // after: {
+              //   500: {
+              //     actions: assign({
+              //       instantRecipeMetadata: undefined,
+              //       instantRecipeMetadataGeneratorId: ({ spawn, context }) => {
+              //         if (context.instantRecipeMetadataGeneratorId) {
+              //           stop(context.instantRecipeMetadataGeneratorId);
+              //         }
+
+              //         if (context.prompt?.length) {
+              //           const id = nanoid();
+              //           spawn("instantRecipeMetadataGenerator", {
+              //             id,
+              //             input: {
+              //               prompt: context.prompt!,
+              //             },
+              //           });
+              //           return id;
+              //         } else {
+              //           return undefined;
+              //         }
+              //       },
+              //     }),
+              //   },
+              // },
               states: {
                 Inputting: {
+                  type: "parallel",
+                  states: {
+                    InstantRecipe: {
+                      initial: !!prompt?.length ? "Holding" : "Idle",
+                      states: {
+                        Idle: {
+                          on: {
+                            SET_INPUT: {
+                              target: "Holding",
+                              guard: ({ context }) => !!context.prompt?.length,
+                            },
+                          },
+                        },
+                        Holding: {
+                          entry: assign({
+                            instantRecipeMetadata: undefined,
+                          }),
+                          on: {
+                            SET_INPUT: [
+                              {
+                                target: "Holding",
+                                guard: ({ context }) =>
+                                  !!context.prompt?.length,
+                              },
+                              { target: "Idle" },
+                            ],
+                          },
+                          after: {
+                            1000: {
+                              target: "InProgress",
+                              guard: ({ context }) => !!context.prompt?.length,
+                            },
+                          },
+                        },
+                        InProgress: {
+                          invoke: {
+                            src: "instantRecipeMetadataGenerator",
+                            input: ({ context }) => {
+                              assert(context.prompt, "expected prompt");
+                              return { prompt: context.prompt };
+                            },
+                            onDone: "Idle",
+                          },
+                          on: {
+                            SET_INPUT: {
+                              target: "Holding",
+                              actions: assign({
+                                instantRecipeMetadata: undefined,
+                              }),
+                            },
+                            INSTANT_RECIPE_METADATA_PROGRESS: {
+                              actions: assign({
+                                instantRecipeMetadata: ({ event }) =>
+                                  event.data,
+                              }),
+                            },
+                            INSTANT_RECIPE_METADATA_COMPLETE: {
+                              actions: assign({
+                                instantRecipeMetadata: ({ event }) =>
+                                  event.data,
+                              }),
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
                   on: {
                     SUGGEST_RECIPES: {
                       target: "Suggestions",
@@ -494,19 +610,61 @@ export const createCraftMachine = (
                         params: ({ context }) => ({ ...context }),
                       },
                     },
+                    SET_INPUT: {
+                      target: ["Inputting"],
+                      // actions: assign({
+                      //   instantRecipeMetadata: undefined,
+                      //   instantRecipeMetadataGeneratorId: ({
+                      //     spawn,
+                      //     context,
+                      //   }) => {
+                      //     if (context.instantRecipeMetadataGeneratorId) {
+                      //       stop(context.instantRecipeMetadataGeneratorId);
+                      //     }
+
+                      //     if (context.prompt?.length) {
+                      //       const id = nanoid();
+                      //       spawn("instantRecipeMetadataGenerator", {
+                      //         id,
+                      //         input: {
+                      //           prompt: context.prompt!,
+                      //         },
+                      //       });
+                      //       return id;
+                      //     } else {
+                      //       return undefined;
+                      //     }
+                      //   },
+                      // }),
+                    },
                     INSTANT_RECIPE: {
                       target: ["Navigating"],
                       actions: [
                         {
                           type: "navigate",
                           params: (f) => {
-                            console.log(f.context);
                             assert(
                               f.context.prompt?.length,
                               "expected prompt to be not empty"
                             );
+                            const params = new URLSearchParams();
+                            params.set("prompt", f.context.prompt);
+                            const name = f.context.instantRecipeMetadata?.name;
+                            const description =
+                              f.context.instantRecipeMetadata?.description;
+                            if (name && description) {
+                              params.set("name", name);
+                              params.set("description", description);
+                            }
+
+                            const paramString = params.toString();
+                            console.log(
+                              { paramString, name, description },
+                              f.context
+                            );
+
                             return {
-                              pathname: `/instant-recipe?prompt=${f.context.prompt}`,
+                              pathname: `/instant-recipe?${paramString}`,
                             };
                           },
                         },
@@ -988,6 +1146,7 @@ export const createCraftMachine = (
       actors: {
         substitutionsGenerator,
         suggestionsGenerator,
+        instantRecipeMetadataGenerator,
         dietaryAlternativesGenerator,
         equipmentAdaptationsGenerator,
       },

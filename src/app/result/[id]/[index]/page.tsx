@@ -2,7 +2,7 @@ import { getResult } from "@/lib/db";
 import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
 import { outputSchemaByType } from "@/schema";
-import { RecipeRequiredProps } from "@/types";
+import { Recipe } from "@/types";
 import { kv } from "@vercel/kv";
 import { nanoid } from "ai";
 import { redirect } from "next/navigation";
@@ -19,9 +19,7 @@ export default async function Page(props: Props) {
 
   return (
     <div className="flex flex-col gap-2 max-w-2xl mx-auto">
-      <Suspense fallback={<div>Generating Recipe</div>}>
-        <CreateRecipe resultId={id} index={z.number().parse(parseInt(index))} />
-      </Suspense>
+      <CreateRecipe resultId={id} index={z.number().parse(parseInt(index))} />
     </div>
   );
 }
@@ -62,7 +60,7 @@ const CreateRecipe = async ({
     runStatus: "initializing",
     previewMediaIds: [],
     mediaCount: 0,
-  } satisfies RecipeRequiredProps;
+  } satisfies Recipe;
 
   await kv.hset(`recipe:${slug}`, recipe);
   redirect(`/recipe/${slug}`);

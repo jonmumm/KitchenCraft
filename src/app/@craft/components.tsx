@@ -4,7 +4,6 @@ import scaleList from "@/data/serving-scalings.json";
 import Image from "next/image";
 import { z } from "zod";
 
-import { Button } from "@/components/input/button";
 import { Badge } from "@/components/display/badge";
 import {
   CardDescription,
@@ -12,16 +11,17 @@ import {
   CardTitle,
 } from "@/components/display/card";
 import { Label } from "@/components/display/label";
+import { Separator } from "@/components/display/separator";
+import { Skeleton } from "@/components/display/skeleton";
+import { Button } from "@/components/input/button";
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
 } from "@/components/input/command";
-import ScrollLockComponent from "@/components/scroll-lock";
-import { Separator } from "@/components/display/separator";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/layout/sheet";
-import { Skeleton } from "@/components/display/skeleton";
+import ScrollLockComponent from "@/components/scroll-lock";
 import ClientOnly from "@/components/util/client-only";
 import { useActor } from "@/hooks/useActor";
 import useDebounce from "@/hooks/useDebounce";
@@ -35,6 +35,7 @@ import {
   ChevronRightIcon,
   CommandIcon,
   LightbulbIcon,
+  LoaderIcon,
   MicrowaveIcon,
   NutOffIcon,
   PlusSquareIcon,
@@ -181,7 +182,6 @@ export const CraftSheetContent = ({ children }: { children: ReactNode }) => {
 
 const CraftInput = () => {
   const prompt = usePrompt();
-  console.log({ prompt });
   const send = useSend();
   const handleInputBlur = useCallback(() => {
     send({ type: "BLUR_PROMPT" });
@@ -270,7 +270,6 @@ const SuggestRecipesAction = () => {
     send({ type: "SUGGEST_RECIPES" });
   }, [send]);
   const filtered = useCommandState((state) => state.filtered);
-  console.log([filtered]);
 
   return (
     <CommandItem variant="card" onSelect={handleSelect}>
@@ -314,6 +313,16 @@ const InstantRecipeAction = () => {
     send({ type: "INSTANT_RECIPE" });
   }, [send]);
 
+  const actor = useContext(CraftContext);
+  const name = useSelector(
+    actor,
+    (state) => state.context.instantRecipeMetadata?.name
+  );
+  const description = useSelector(
+    actor,
+    (state) => state.context.instantRecipeMetadata?.description
+  );
+
   return (
     <CommandItem variant="card" onSelect={handleSelect}>
       <div className="w-full flex flex-row gap-3 items-center py-2">
@@ -324,9 +333,20 @@ const InstantRecipeAction = () => {
           <span className="italic text-xs opacity-70">
             Instantly create a recipe
           </span>
-          <h6 className="w-full font-semibold">
-            <PromptText />
-          </h6>
+          <div className="w-full">
+            {name ? (
+              <>
+                <h3 className="font-semibold text-sm">{name}</h3>
+                {description && <p>{description}</p>}
+              </>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <Skeleton className="w-full h-5" />
+                <Skeleton className="w-full h-5" />
+                <Skeleton className="w-full h-5" />
+              </div>
+            )}
+          </div>
           <div className="flex flex-row gap-1 flex-wrap">
             {tags &&
               tags.map((item) => (
@@ -342,7 +362,11 @@ const InstantRecipeAction = () => {
               ))}
           </div>
         </div>
-        <Badge className="uppercase">Craft</Badge>
+        {name ? (
+          <Badge className="uppercase">Craft</Badge>
+        ) : (
+          <LoaderIcon className="animate-spin" />
+        )}
       </div>
     </CommandItem>
   );
@@ -1198,7 +1222,6 @@ const NewRecipeActionsGroup = () => {
       context.tags?.length
   );
 
-  console.log(actor.getSnapshot());
   if (!active || !inputReady || isPristine) {
     return null;
   }

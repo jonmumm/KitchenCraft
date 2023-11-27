@@ -22,7 +22,7 @@ import {
   MessageContentSchema,
   MessageSchema,
   ModificationSchema,
-  NewRecipePredictionInputSchema,
+  NewRecipeFromSuggestionsPredictionInputSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
   RecipeChatInputSchema,
@@ -56,7 +56,12 @@ import {
   UserMessageSchema,
   ModifyRecipeEquipmentPredictionInputSchema,
   ModifyRecipeFreeTextPredictionInputSchema,
+  NewInstantRecipePredictionInputSchema,
+  InstantRecipeMetadataPredictionInputSchema,
+  InstantRecipeMetdataInputSchema,
+  InstantRecipeMetadataPredictionOutputSchema,
 } from "./schema";
+import { InstantRecipeMetadataStream } from "./app/instant-recipe/streams";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 
@@ -117,6 +122,12 @@ export type RemixIdeasPredictionInput = z.infer<
   typeof RemixIdeasPredictionInputSchema
 >;
 export type FAQsPredictionInput = z.infer<typeof FAQsPredictionInputSchema>;
+export type InstantRecipeMetadataPredictionInput = z.infer<
+  typeof InstantRecipeMetadataPredictionInputSchema
+>;
+export type InstantRecipeMetadataPredictionOutput = z.infer<
+  typeof InstantRecipeMetadataPredictionOutputSchema
+>;
 export type RemixIdeasPredictionOutput = z.infer<
   typeof RemixIdeasPredictionOutputSchema
 >;
@@ -144,8 +155,11 @@ export type SubstitutionsPredictionPartialOutput = z.infer<
   typeof SubstitutionsPredictionPartialOutputSchema
 >;
 
-export type NewRecipePredictionInput = z.infer<
-  typeof NewRecipePredictionInputSchema
+export type NewInstantRecipePredictionInput = z.infer<
+  typeof NewInstantRecipePredictionInputSchema
+>;
+export type NewRecipeFromSuggestionsPredictionInput = z.infer<
+  typeof NewRecipeFromSuggestionsPredictionInputSchema
 >;
 export type ScaleRecipePredictionInput = z.infer<
   typeof ModifyRecipeScalePredictionInputSchema
@@ -166,6 +180,9 @@ export type EquipmentAdaptationRecipePredictionInput = z.infer<
   typeof EquipmentAdaptationsPredictionInputSchema
 >;
 
+export type InstantRecipeMetdataInput = z.infer<
+  typeof InstantRecipeMetdataInputSchema
+>;
 export type SuggestionsInput = z.infer<typeof SuggestionsInputSchema>;
 export type SubstitutionsInput = z.infer<typeof SubstitutionsInputSchema>;
 export type DietaryAlternativesInput = z.infer<

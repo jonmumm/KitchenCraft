@@ -40,10 +40,6 @@ export const RecipeRequiredPropsSchema = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.string(),
-  fromResult: z.object({
-    resultId: z.string(),
-    index: z.number(),
-  }),
   createdAt: z.string(),
   runStatus: RunStatusSchema,
   mediaCount: z.number().default(0),
@@ -86,6 +82,8 @@ export const SuggestionItemSchema = z.object({
   name: z.string(),
   description: z.string(),
 });
+
+export const InstantRecipeMetadataPredictionOutputSchema = SuggestionItemSchema;
 
 export const SuggestionPredictionOutputSchema = z.object({
   suggestions: z.array(SuggestionItemSchema),
@@ -501,12 +499,35 @@ export const RecipePredictionPartialOutputSchema =
 
 export const RecipeSchema = RecipeRequiredPropsSchema.merge(
   RecipePredictionOutputSchema.shape.recipe.partial()
+).merge(
+  z.object({
+    fromPrompt: z.string().optional(),
+    fromResult: z
+      .object({
+        resultId: z.string(),
+        index: z.number(),
+      })
+      .optional(),
+  })
 );
 
-const NewRecipeLiteral = z.literal("NEW_RECIPE");
+const NewRecipeFromSuggestionsLiteral = z.literal(
+  "NEW_RECIPE_FROM_SUGGESTIONS"
+);
 
-export const NewRecipePredictionInputSchema = z.object({
-  type: NewRecipeLiteral,
+const NewInstantRecipeLiteral = z.literal("NEW_INSTANT_RECIPE");
+
+export const NewInstantRecipePredictionInputSchema = z.object({
+  type: NewInstantRecipeLiteral,
+  recipe: z.object({
+    name: z.string(),
+    description: z.string(),
+  }),
+  prompt: z.string(),
+});
+
+export const NewRecipeFromSuggestionsPredictionInputSchema = z.object({
+  type: NewRecipeFromSuggestionsLiteral,
   recipe: z.object({
     name: z.string(),
     description: z.string(),
@@ -566,7 +587,8 @@ export const ModifyRecipeEquipmentPredictionInputSchema = z.object({
 });
 
 export const RecipePredictionInputSchema = z.discriminatedUnion("type", [
-  NewRecipePredictionInputSchema,
+  NewInstantRecipePredictionInputSchema,
+  NewRecipeFromSuggestionsPredictionInputSchema,
   ModifyRecipeScalePredictionInputSchema,
   ModifyRecipeIngredientsPredictionInputSchema,
   ModifyRecipeDietaryPredictionInputSchema,
@@ -595,6 +617,9 @@ export const RemixIdeasPredictionInputSchema = z.object({
 });
 export const FAQsPredictionInputSchema = z.object({
   recipe: CompletedRecipeSchema,
+});
+export const InstantRecipeMetadataPredictionInputSchema = z.object({
+  prompt: z.string(),
 });
 
 export const TipsPredictionInputSchema = z.object({
@@ -631,6 +656,8 @@ export const SubstitutionsPredictionPartialOutputSchema =
   SubstitutionsPredictionOutputSchema.deepPartial();
 
 export const SuggestionsInputSchema = SuggestionPredictionInputSchema;
+export const InstantRecipeMetdataInputSchema =
+  InstantRecipeMetadataPredictionInputSchema;
 
 export const SubstitutionsInputSchema = z.object({
   slug: z.string(),

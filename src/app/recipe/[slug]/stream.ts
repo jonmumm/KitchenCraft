@@ -5,10 +5,9 @@ import {
   ModifyRecipeFreeTextPredictionInput,
   ModifyRecipeIngredientsPredictionInput,
   ModifyRecipeScalePredictionInput,
-  NewRecipePredictionInput,
+  NewInstantRecipePredictionInput,
+  NewRecipeFromSuggestionsPredictionInput,
   RecipePredictionInput,
-  ScaleRecipePredictionInput,
-  SubstituteRecipePredictionInput,
 } from "@/types";
 import { FORMAT_INSTRUCTIONS } from "./format-instructions";
 import { EXAMPLE_1, EXAMPLE_2, EXAMPLE_3 } from "./prediction-examples";
@@ -18,8 +17,10 @@ export class RecipeTokenStream extends TokenStream<RecipePredictionInput> {
     input: RecipePredictionInput
   ): Promise<string> {
     switch (input.type) {
-      case "NEW_RECIPE":
-        return NEW_RECIPE_USER_PROMPT(input);
+      case "NEW_RECIPE_FROM_SUGGESTIONS":
+        return NEW_RECIPE_FROM_SUGGESTIONS_USER_PROMPT(input);
+      case "NEW_INSTANT_RECIPE":
+        return NEW_INSTANT_RECIPE_USER_PROMPT(input);
       case "MODIFY_RECIPE_DIETARY":
         return DIETARY_RECIPE_USER_PROMPT(input);
       case "MODIFY_RECIPE_EQUIPMENT":
@@ -37,8 +38,10 @@ export class RecipeTokenStream extends TokenStream<RecipePredictionInput> {
     input: RecipePredictionInput
   ): Promise<string> {
     switch (input.type) {
-      case "NEW_RECIPE":
-        return NEW_RECIPE_TEMPLATE(input);
+      case "NEW_INSTANT_RECIPE":
+        return NEW_INSTANT_RECIPE_TEMPLATE(input);
+      case "NEW_RECIPE_FROM_SUGGESTIONS":
+        return NEW_RECIPE_FROM_SUGGESTIONS_TEMPLATE(input);
       case "MODIFY_RECIPE_DIETARY":
         return DIETARY_RECIPE_TEMPLATE(input);
       case "MODIFY_RECIPE_EQUIPMENT":
@@ -76,7 +79,13 @@ const SUBSTITUTE_RECIPE_USER_PROMPT = (
   input: ModifyRecipeIngredientsPredictionInput
 ) => `${input.prompt}`;
 
-const NEW_RECIPE_USER_PROMPT = (input: NewRecipePredictionInput) => `
+const NEW_INSTANT_RECIPE_USER_PROMPT = (
+  input: NewInstantRecipePredictionInput
+) => input.prompt;
+
+const NEW_RECIPE_FROM_SUGGESTIONS_USER_PROMPT = (
+  input: NewRecipeFromSuggestionsPredictionInput
+) => `
 \`\`\`yaml
 name: ${input.recipe.name}
 description: ${input.recipe.description}
@@ -155,8 +164,21 @@ ${input.recipe.instructions.map((item) => `    - "${item}"`).join("\n")}
 
 ${FORMAT_INSTRUCTIONS}`;
 
-const NEW_RECIPE_TEMPLATE = (
-  input: NewRecipePredictionInput
+const NEW_INSTANT_RECIPE_TEMPLATE = (_: NewInstantRecipePredictionInput) => `
+The user will provide for a prompt to generate a recipe. Please generate a full recipe for this selection following the format and examples below.
+
+Format: ${FORMAT_INSTRUCTIONS}
+
+Here are example outputs:
+
+Example 1: ${EXAMPLE_1.output}
+
+Example 2: ${EXAMPLE_2.output}
+
+Example 3: ${EXAMPLE_3.output}`;
+
+const NEW_RECIPE_FROM_SUGGESTIONS_TEMPLATE = (
+  input: NewRecipeFromSuggestionsPredictionInput
 ) => `The original prompt to come up with recipes ideas was: ${JSON.stringify(
   input.suggestionsInput.prompt,
   null,
