@@ -171,7 +171,6 @@ export default async function Page(props: Props) {
       name: recipe.name,
       description: recipe.description,
       slug: branchedSlug,
-      fromResult: recipe.fromResult,
       createdAt: new Date().toISOString(),
       runStatus: "initializing",
       previewMediaIds: [],
