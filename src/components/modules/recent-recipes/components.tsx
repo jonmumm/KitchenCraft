@@ -117,7 +117,7 @@ async function RecipeCard(props: {
         </Button>
       </div>
       <Card className="flex-1 flex flex-row gap-2 items-center justify-between overflow-hidden">
-        <div className="h-full flex flex-col gap-1">
+        <div className="w-full h-full flex flex-col gap-1">
           <RecipeLink
             className="w-full block flex-1"
             href={`/recipe/${props.slug}`}
