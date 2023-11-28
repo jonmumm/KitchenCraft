@@ -128,11 +128,7 @@ export default async function RootLayout({
         <GoogleAdSense />
       </head>
       <ApplicationProvider>
-        <UserProvider
-          user={user}
-          signOut={signOut}
-          signIn={signIn.bind(null, origin)}
-        >
+        <UserProvider user={user} signOut={signOut} signIn={signIn}>
           <Body />
         </UserProvider>
       </ApplicationProvider>
