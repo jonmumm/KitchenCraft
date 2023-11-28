@@ -12,7 +12,10 @@ import {
   PopoverTrigger,
 } from "@/components/layout/popover";
 import { TypeLogo } from "@/components/logo";
+import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
+import { useSend } from "@/hooks/useSend";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import {
   AxeIcon,
@@ -22,9 +25,17 @@ import {
   GripVerticalIcon,
   YoutubeIcon,
 } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { ActorRefFrom, createMachine } from "xstate";
 import { UserContext } from "./context";
 
@@ -86,10 +97,39 @@ export function Header({
 }) {
   const { user, signIn, signOut } = useContext(UserContext);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const headerActor = useContext(HeaderContext);
+  const isBackVisible = useSelector(headerActor, (state) =>
+    state.matches("Back.Visible")
+  );
+  // const session = useSession();
+
+  const supabase = useMemo(() => createClient(), []);
+
   const pathname = usePathname();
   useEffect(() => {
     setIsPopoverOpen(false);
   }, [pathname, setIsPopoverOpen]);
+
+  // useEventHandler("SIGN_IN", () => {
+  //   // supabase.auth.signInWithOAuth({
+  //   //   provider: "google",
+  //   //   options: {
+  //   //     redirectTo: `${window.location.protocol}://${window.location.hostname}/auth/callback`,
+  //   //   },
+  //   // });
+  //   // signIn("google").then(() => {
+  //   //   console.log("signed in!");
+  //   // });
+  // });
+  // useEventHandler("SIGN_OUT", () => {
+  //   supabase.auth.signOut();
+  // });
+
+  const send = useSend();
+
+  const handlePressBack = useCallback(() => {
+    send({ type: "BACK" });
+  }, [send]);
 
   return (
     <div

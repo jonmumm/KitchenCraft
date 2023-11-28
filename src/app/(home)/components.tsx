@@ -238,7 +238,7 @@ export const RecipeUpvoteButton = ({
         className="absolute right-2 bottom-3 z-50"
       >
         <ArrowBigUpIcon />
-        <span>1</span>
+        <span>1{/* <UpvoteCounter slug={slug} initial={upvotes} /> */}</span>
       </Button>
     );
   };

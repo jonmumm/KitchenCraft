@@ -62,13 +62,15 @@ export default async function RootLayout({
     "use server";
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
+    const redirectTo = `${env.KITCHENCRAFT_URL}/auth/callback`;
 
     const result = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${env.KITCHENCRAFT_URL}/auth/callback`,
+        redirectTo,
       },
     });
+    console.log({ result, redirectTo });
 
     if (result.data.url) {
       redirect(result.data.url);
