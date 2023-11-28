@@ -2,12 +2,11 @@ import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
 import { assert } from "@/lib/utils";
 import { InstantRecipeMetadataPredictionOutputSchema } from "@/schema";
-import { Recipe } from "@/types";
-import { kv } from "@vercel/kv";
 import { nanoid } from "ai";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { createRecipe } from "../recipe/lib";
 import { InstantRecipeMetadataStream } from "./streams";
 
 export const maxDuration = 300;
@@ -29,8 +28,8 @@ async function GET(req: NextRequest) {
       for (const char of chunk) {
         charArray.push(char);
       }
-      const outputRaw = charArray.join("");
-      const output = parser.parsePartial(outputRaw);
+      // const outputRaw = charArray.join("");
+      // const output = parser.parsePartial(outputRaw);
 
       // only write the output if it's parseable
       // if (output) {
@@ -55,7 +54,7 @@ async function GET(req: NextRequest) {
   }
 
   const slug = getSlug({ id, name });
-  const recipe = {
+  await createRecipe({
     slug,
     name,
     description,
@@ -64,10 +63,8 @@ async function GET(req: NextRequest) {
     runStatus: "initializing",
     previewMediaIds: [],
     mediaCount: 0,
-    upvotes: 0,
-  } satisfies Recipe;
+  });
 
-  await kv.hset(`recipe:${slug}`, recipe);
   return redirect(`/recipe/${slug}`);
 
   // return (

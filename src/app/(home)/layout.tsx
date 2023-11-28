@@ -1,3 +1,4 @@
+import { Label } from "@/components/display/label";
 import {
   TabsContent,
   TabsList,
@@ -6,14 +7,22 @@ import {
 import Link from "next/link";
 import { ReactNode } from "react";
 import { Header } from "../header";
+import { MyReceiptRecipes } from "./components";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
-import { MyReceiptRecipes } from "./components";
-import { Label } from "@/components/display/label";
 
 export default async function Layout({ children }: { children: ReactNode }) {
+  async function upvote(slug: string) {
+    "use server";
+    console.log("upvote", slug);
+  }
+  // upvote = async (slug: string) => {
+  //   "use server";
+  //   console.log("upvote", slug);
+  // };
+
   return (
-    <LayoutClient>
+    <LayoutClient upvote={upvote}>
       <div>
         <Header />
       </div>

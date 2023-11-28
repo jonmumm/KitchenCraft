@@ -1,12 +1,11 @@
+import { createRecipe } from "@/app/recipe/lib";
 import { getResult } from "@/lib/db";
 import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
 import { outputSchemaByType } from "@/schema";
-import { Recipe } from "@/types";
 import { kv } from "@vercel/kv";
 import { nanoid } from "ai";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 import { z } from "zod";
 
 export const maxDuration = 300;
@@ -48,7 +47,7 @@ const CreateRecipe = async ({
   const id = nanoid();
   const slug = getSlug({ id, name });
 
-  const recipe = {
+  await createRecipe({
     slug,
     name,
     description,
@@ -60,9 +59,7 @@ const CreateRecipe = async ({
     runStatus: "initializing",
     previewMediaIds: [],
     mediaCount: 0,
-    upvotes: 0,
-  } satisfies Recipe;
+  });
 
-  await kv.hset(`recipe:${slug}`, recipe);
   redirect(`/recipe/${slug}`);
 };

@@ -1,33 +1,32 @@
 "use client";
 
-import { Button } from "@/components/input/button";
 import { ModeToggle } from "@/components/dark-mode-toggle";
-import { TypeLogo } from "@/components/logo";
+import { Badge } from "@/components/display/badge";
+import { Label } from "@/components/display/label";
+import { Separator } from "@/components/display/separator";
+import { EventButton } from "@/components/event-button";
+import { Button } from "@/components/input/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/layout/popover";
-import { Separator } from "@/components/display/separator";
+import { TypeLogo } from "@/components/logo";
 import { useSelector } from "@/hooks/useSelector";
-import { useSend } from "@/hooks/useSend";
-import { AxeIcon, ChefHatIcon, EditIcon, GripVerticalIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  AxeIcon,
+  ChefHatIcon,
+  ExternalLinkIcon,
+  GithubIcon,
+  GripVerticalIcon,
+  YoutubeIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { ActorRefFrom, createMachine } from "xstate";
-import { EventButton } from "@/components/event-button";
-import { cn } from "@/lib/utils";
-import { useEventHandler } from "@/hooks/useEventHandler";
-import { signIn, signOut, useSession } from "next-auth/react";
-import { Badge } from "@/components/display/badge";
-import { Label } from "@/components/display/label";
+import { UserContext } from "./context";
 
 export const createHeaderMachine = () =>
   createMachine({
@@ -85,33 +84,12 @@ export function Header({
   hidden?: boolean;
   className?: string;
 }) {
+  const { user, signIn, signOut } = useContext(UserContext);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const headerActor = useContext(HeaderContext);
-  const isBackVisible = useSelector(headerActor, (state) =>
-    state.matches("Back.Visible")
-  );
-  const session = useSession();
-
   const pathname = usePathname();
   useEffect(() => {
     setIsPopoverOpen(false);
   }, [pathname, setIsPopoverOpen]);
-  useEventHandler("SIGN_IN", () => {
-    signIn("google").then(() => {
-      console.log("signed in!");
-    });
-  });
-  useEventHandler("SIGN_OUT", () => {
-    signOut().then(() => {
-      console.log("signed out!");
-    });
-  });
-
-  const send = useSend();
-
-  const handlePressBack = useCallback(() => {
-    send({ type: "BACK" });
-  }, [send]);
 
   return (
     <div
@@ -144,13 +122,13 @@ export function Header({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 flex flex-col gap-4 p-3">
-            {session.status === "authenticated" && (
+            {user && (
               <>
                 <div className="flex flex-col gap-1 items-center justify-center">
                   <Label className="uppercase text-xs font-bold text-accent-foreground">
                     Chef
                   </Label>
-                  <div className="flex flex-row gap-2 items-center justify-center">
+                  <div className="flex flex-col gap-2 items-center justify-center">
                     <Link href="/chef/inspectorT">
                       <Badge variant="outline">
                         <h3 className="font-bold text-xl">
@@ -165,6 +143,13 @@ export function Header({
                         </h3>
                       </Badge>{" "}
                     </Link>
+                    {/* <EventButton
+                      className="w-full"
+                      event={{ type: "SIGN_OUT" }}
+                      variant="ghost"
+                    >
+                      Sign Out
+                    </EventButton> */}
                     {/* <Button size="icon" variant="secondary">
                       <EditIcon />
                     </Button> */}
@@ -207,9 +192,7 @@ export function Header({
                     <div className="flex flex-col gap-1 items-center">
                       <div className="flex flex-row gap-1 items-center">
                         <span>
-                          <span className="underline">
-                            {session.data?.user?.email}
-                          </span>
+                          <span>{user.email}</span>
                         </span>
                       </div>
                     </div>
@@ -219,40 +202,83 @@ export function Header({
                   </div>
                 </div>
                 <Separator />
-                <EventButton
-                  size="lg"
-                  className="w-full"
-                  event={{ type: "SIGN_OUT" }}
-                  variant="ghost"
-                >
-                  Sign Out
-                </EventButton>
-              </>
-            )}
-            {session.status === "unauthenticated" && (
-              <>
-                <EventButton
-                  size="lg"
-                  className="w-full"
-                  event={{ type: "SIGN_IN" }}
-                >
-                  Sign In
-                </EventButton>
+                <div className="flex flex-row gap-1 items-center justify-between">
+                  <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
+                    Theme
+                  </Label>
+                  <ModeToggle />
+                </div>
+                <Separator />
+                <div className="flex flex-row gap-1 items-center justify-between">
+                  <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
+                    Links
+                    <ExternalLinkIcon size={16} className="opacity-70" />
+                  </Label>
+                  <div className="flex flex-row justify-center gap-2">
+                    <Link
+                      target="_blank"
+                      href="https://github.com/jonmumm/kitchencraft"
+                    >
+                      <Button size="icon" variant="outline">
+                        <GithubIcon />
+                      </Button>
+                    </Link>
+                    <Link
+                      target="_blank"
+                      href="https://www.youtube.com/@KitchenCraftAI"
+                    >
+                      <Button size="icon" variant="outline">
+                        <YoutubeIcon />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+                <Separator />
+                <div className="flex justify-center">
+                  <form action={signOut}>
+                    <Button
+                      type="submit"
+                      variant="ghost"
+                      className="text-sm underline text-center"
+                    >
+                      Sign Out
+                    </Button>
+                  </form>
+                </div>
                 <Separator />
               </>
             )}
+            {!user && (
+              <>
+                <form action={signIn}>
+                  <Button type="submit" size="lg" className="w-full">
+                    Sign In
+                  </Button>
+                  <Separator />
+                </form>
+              </>
+            )}
+            <div className="flex flex-row gap-3 items-center justify-center">
+              <Link href="/privacy" className="text-xs underline">
+                Privacy
+              </Link>
+              <Link href="/terms" className="text-xs underline">
+                Terms
+              </Link>
+            </div>
             <div className="flex flex-row gap-1 justify-between">
               <p className="text-xs text-center flex-1">
-                Questions or bugs
-                <br />
-                <a
-                  className="underline font-semibold"
-                  href="mailto:feedback@kitchencraft.ai"
+                © 2023 Open Game Collective, LLC. All rights reserved. This
+                software is distributed under the{" "}
+                <Link
+                  target="_blank"
+                  className="underline"
+                  href="https://github.com/jonmumm/KitchenCraft/blob/main/LICENSE.md"
                 >
-                  feedback@kitchencraft.ai
-                </a>
+                  AGPL-3.0 license
+                </Link>
+                .
               </p>
-              <ModeToggle />
             </div>
             {/* <RecentRecipes /> */}
           </PopoverContent>

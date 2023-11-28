@@ -7,11 +7,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/input/dropdown-menu";
-import { HomeContext } from "./context";
-import { useContext } from "react";
+import { useEventHandler } from "@/hooks/useEventHandler";
+import { UpvoteEvent } from "@/types";
 import { useStore } from "@nanostores/react";
+import { atom } from "nanostores";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useContext, useState } from "react";
+import { HomeContext } from "./context";
 
 export const BestDropdown = () => {
   const store = useContext(HomeContext);
@@ -57,4 +59,27 @@ export const BestDropdown = () => {
       </DropdownMenu>
     </Badge>
   ) : null;
+};
+
+export const UpvoteCounter = ({
+  slug,
+  initial,
+}: {
+  slug: string;
+  initial: number;
+}) => {
+  const [value$] = useState(atom(initial));
+  const value = useStore(value$);
+  const handleUpvote = useCallback(
+    (event: UpvoteEvent) => {
+      if (event.slug === slug) {
+        value$.set(value$.get() + 1);
+      }
+    },
+    [slug, value$]
+  );
+
+  useEventHandler("UPVOTE", handleUpvote);
+
+  return <>{value}</>;
 };

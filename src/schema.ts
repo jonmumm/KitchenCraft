@@ -16,6 +16,8 @@ export const SecretsEnvironmentSchema = z.object({
 export const PublicEnvironmentSchema = z.object({
   KITCHENCRAFT_URL: z.string(),
   ADSENSE_PUBLISHER_ID: z.string(),
+  SUPABASE_URL: z.string(),
+  SUPABASE_ANON_KEY: z.string(),
 });
 
 const FreeTextLiteral = z.literal("free_text");
@@ -394,8 +396,14 @@ const SignOutEventSchema = z.object({
   type: z.literal("SIGN_OUT"),
 });
 
+export const UpvoteEventSchema = z.object({
+  type: z.literal("UPVOTE"),
+  slug: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   PageLoadedEventSchema,
+  UpvoteEventSchema,
   SignInEventSchema,
   SignOutEventSchema,
   ClearEventSchema,
@@ -439,30 +447,6 @@ export const CookwareSchema = z.enum(COOKWARES);
 export const TechniqueSchema = z.enum(TECHNIQUES);
 export const CuisineSchema = z.enum(CUISINES);
 
-const RecipeDetailsSchema = z.object({
-  name: z.string(),
-  ingredients: z.array(
-    z.object({
-      ingredient: z.string(),
-      quantity: z.string(),
-    })
-  ),
-  instructions: z.array(z.string()),
-  preparationTime: z.string(),
-  cookingTime: z.string(),
-  serves: z.string(),
-});
-
-const NutritionFactsSchema = z.object({
-  calories: z.number(),
-  carbohydrates: z.number(),
-  proteins: z.number(),
-  fats: z.number(),
-  saturatedFats: z.number().optional(),
-  sugars: z.number().optional(),
-  dietaryFiber: z.number().optional(),
-});
-
 export const RecipeAttributesSchema = z.object({
   prompt: z.string().optional(),
   ingredients: z.record(z.boolean()),
@@ -501,7 +485,6 @@ export const RecipeSchema = RecipeRequiredPropsSchema.merge(
   RecipePredictionOutputSchema.shape.recipe.partial()
 ).merge(
   z.object({
-    upvotes: z.number(),
     fromPrompt: z.string().optional(),
     fromResult: z
       .object({

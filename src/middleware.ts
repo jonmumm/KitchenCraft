@@ -2,6 +2,7 @@ import { nanoid } from "ai";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { actorMap } from "./shared";
+import { createClient } from "./lib/supabase/middleware";
 
 // This example protects all routes including api/trpc routes
 // Please edit this to allow other routes to be public as needed.
@@ -30,32 +31,32 @@ import { actorMap } from "./shared";
 
 const JwtTokenSchema = z.string();
 
-export function middleware(request: NextRequest) {
-  let actorId = request.cookies.get("actorId")?.value;
-  // // todo swap actorId with actorToken and use jst
-  // // problem with jsonwebtoken/crypto in edge runtime
-  // const actorIdParseResult = JwtTokenSchema.safeParse(
-  //   request.cookies.get("actorId")
-  // );
+// export function middleware(request: NextRequest) {
+//   let actorId = request.cookies.get("actorId")?.value;
+//   // // todo swap actorId with actorToken and use jst
+//   // // problem with jsonwebtoken/crypto in edge runtime
+//   // const actorIdParseResult = JwtTokenSchema.safeParse(
+//   //   request.cookies.get("actorId")
+//   // );
 
-  // let actorId: string;
-  if (!actorId || !actorMap.has(actorId)) {
-    actorId = nanoid();
-    request.cookies.set("actorId", actorId);
-  }
+//   // let actorId: string;
+//   if (!actorId || !actorMap.has(actorId)) {
+//     actorId = nanoid();
+//     request.cookies.set("actorId", actorId);
+//   }
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-actor-id", actorId);
+//   const requestHeaders = new Headers(request.headers);
+//   requestHeaders.set("x-actor-id", actorId);
 
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+//   const response = NextResponse.next({
+//     request: {
+//       headers: requestHeaders,
+//     },
+//   });
 
-  response.cookies.set("actorId", actorId);
-  return response;
-}
+//   response.cookies.set("actorId", actorId);
+//   return response;
+// }
 
 // Example sessToken from clerk
 // {
@@ -160,3 +161,30 @@ export function middleware(request: NextRequest) {
 
 //   return response
 // }
+
+// import { NextResponse, type NextRequest } from 'next/server'
+// import { createClient } from '@/utils/supabase/middleware'
+
+export async function middleware(request: NextRequest) {
+  try {
+    // This `try/catch` block is only here for the interactive tutorial.
+    // Feel free to remove once you have Supabase connected.
+    const { supabase, response } = createClient(request);
+
+    // Refresh session if expired - required for Server Components
+    // https://supabase.com/docs/guides/auth/auth-helpers/nextjs#managing-session-with-middleware
+    await supabase.auth.getSession();
+    // console.log({ session });
+
+    return response;
+  } catch (e) {
+    // If you are here, a Supabase client could not be created!
+    // This is likely because you have not set up environment variables.
+    // Check out http://localhost:3000 for Next Steps.
+    return NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    });
+  }
+}

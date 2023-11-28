@@ -74,6 +74,7 @@ export async function POST(
           });
 
           multi.exec();
+
           // Run any logic after the file upload completed
           // const { userId } = JSON.parse(tokenPayload);
           // await db.update({ avatar: blob.url, userId });

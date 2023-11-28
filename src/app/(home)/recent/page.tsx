@@ -29,6 +29,7 @@ export default async function Page({
 
   getRecentRecipes(kv).then((recipes) => {
     store.set({
+      error: undefined,
       loading: false,
       recipes,
     });

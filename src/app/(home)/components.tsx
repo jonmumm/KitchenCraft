@@ -1,16 +1,17 @@
+import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
+import { Button } from "@/components/input/button";
+import { getMyRecentRecipes } from "@/lib/db";
 import { timeAgo, waitForStoreValue } from "@/lib/utils";
 import { kv } from "@vercel/kv";
+import { ArrowBigUpIcon, ChevronRightIcon } from "lucide-react";
 import { map } from "nanostores";
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import { UploadedMediaSchema } from "../recipe/[slug]/media/schema";
+import { UpvoteCounter } from "./components.client";
 import { RecipeStore } from "./types";
-import { getMyRecentRecipes } from "@/lib/db";
-import { Card } from "@/components/display/card";
-import { ChevronRightIcon } from "lucide-react";
-import { Button } from "@/components/input/button";
 
 export const RecipeTimestamp = async ({
   store,
@@ -39,7 +40,7 @@ export const RecipeDescription = async ({
   const description = await waitForStoreValue(store, (state) => {
     const recipe = state.recipes[index];
     if (!state.loading) {
-      return recipe.description || null;
+      return recipe?.description || null;
     }
   });
 
@@ -56,30 +57,38 @@ export const RecipeName = async ({
   const name = await waitForStoreValue(store, (state) => {
     const recipe = state.recipes[index];
     if (!state.loading) {
-      return recipe.name || null;
+      return recipe?.name || null;
     }
   });
 
   return <>{name}</>;
 };
 
-export const RecipeLink = async (props: {
+export const RecipeLink = (props: {
   index: number;
   store: RecipeStore;
   children: ReactNode;
 }) => {
-  const slug = await waitForStoreValue(props.store, (state) => {
-    if (!state.loading) {
-      return state.recipes[props.index].slug || null;
-    }
-  });
-  return (
-    <Suspense
-      fallback={<div className="flex flex-col gap-1">{props.children}</div>}
-    >
-      <Link href={`/recipe/${slug}`} className="flex flex-col gap-1">
+  const Content = async () => {
+    const slug = await waitForStoreValue(props.store, (state) => {
+      if (!state.loading) {
+        return state.recipes[props.index]?.slug || null;
+      }
+    });
+
+    return (
+      <Link
+        href={slug ? `/recipe/${slug}` : "/?gallery"}
+        className="flex flex-col gap-1"
+      >
         {props.children}
       </Link>
+    );
+  };
+
+  return (
+    <Suspense fallback={<>{props.children}</>}>
+      <Content />
     </Suspense>
   );
 };
@@ -117,7 +126,7 @@ export const RecipeImage = async (props: {
       />
     );
   } else {
-    return <></>;
+    return <Skeleton className="w-72 aspect-square" />;
   }
 };
 
@@ -130,6 +139,7 @@ export const MyReceiptRecipes = () => {
 
   getMyRecentRecipes(kv).then((recipes) => {
     store.set({
+      error: undefined,
       loading: false,
       recipes,
     });
@@ -162,7 +172,7 @@ export const MyReceiptRecipes = () => {
           <div key={index} className="carousel-item">
             <Suspense fallback={<Skeleton className="w-64 h-36" />}>
               <RecipeLink index={index} store={store}>
-                <Card className="w-64 h-36 bg-secondary flex flex-col gap-1 justify-center">
+                <Card className="w-64 h-36 bg-secondary flex flex-col gap-1 justify-between py-2">
                   <div className="flex flex-row gap-1 px-3 items-center">
                     <h3 className="text-lg font-semibold flex-1">
                       <RecipeName store={store} index={index} />
@@ -184,5 +194,58 @@ export const MyReceiptRecipes = () => {
         );
       })}
     </>
+  );
+};
+
+export const RecipeUpvoteButton = ({
+  store,
+  index,
+}: {
+  index: number;
+  store: RecipeStore;
+}) => {
+  const Content = async () => {
+    const slug = await waitForStoreValue(store, (state) => {
+      if (state.recipes[index] || !state.loading) {
+        return state.recipes[index]?.slug || null;
+      }
+    });
+    const upvotes = await waitForStoreValue(store, (state) => {
+      if (state.recipes[index] || !state.loading) {
+        return 0;
+      }
+    });
+
+    if (!slug || typeof upvotes !== "number") {
+      return <></>;
+    }
+
+    // if (!slug) {
+    //   return null;
+    // }
+
+    // if (upvotes === undefined) {
+    //   return null;
+    // }
+
+    return (
+      <Button
+        event={{
+          type: "UPVOTE",
+          slug,
+        }}
+        variant="outline"
+        className="absolute right-2 bottom-3 z-50"
+      >
+        <ArrowBigUpIcon />
+        <span>1</span>
+      </Button>
+    );
+  };
+
+  return (
+    <Suspense fallback={<></>}>
+      <Content />
+    </Suspense>
   );
 };
