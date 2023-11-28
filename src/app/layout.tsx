@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import "../styles/globals.css";
 import { ApplicationProvider, UserProvider } from "./provider";
+import { env } from "@/env.public";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -49,14 +50,15 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const headerList = headers();
-  const host = headerList.get("host");
-  assert(host, "expected host");
-  const protocol =
-    host.match("localhost") || host.match("127.0.0.1") ? "http" : "https";
-  const origin = `${protocol}://${host}`;
+  // const headerList = headers();
+  // const host = headerList.get("host");
+  // assert(host, "expected host");
+  // const protocol =
+  //   host.match("localhost") || host.match("127.0.0.1") ? "http" : "https";
+  // const origin = `${protocol}://${host}`;
+  // console.log({ origin });
 
-  async function signIn(origin: string) {
+  async function signIn() {
     "use server";
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
@@ -64,7 +66,7 @@ export default async function RootLayout({
     const result = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${origin}/auth/callback`,
+        redirectTo: `${env.KITCHENCRAFT_URL}/auth/callback`,
       },
     });
 
