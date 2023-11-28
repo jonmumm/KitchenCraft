@@ -501,6 +501,7 @@ export const RecipeSchema = RecipeRequiredPropsSchema.merge(
   RecipePredictionOutputSchema.shape.recipe.partial()
 ).merge(
   z.object({
+    upvotes: z.number(),
     fromPrompt: z.string().optional(),
     fromResult: z
       .object({

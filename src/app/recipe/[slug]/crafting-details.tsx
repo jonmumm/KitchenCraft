@@ -4,9 +4,7 @@ import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 
 export async function CraftingDetails({ createdAt }: { createdAt: string }) {
-  console.log({ createdAt });
   const date = new Date(createdAt);
-  console.log({ date });
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
     timeStyle: "short",

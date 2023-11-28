@@ -20,5 +20,5 @@ export const useOnMatches = <TActor extends AnyActorRef>(
       }
       didMatchRef.current = doesMatch;
     }).unsubscribe;
-  }, [actor, cb, didMatchRef]);
+  }, [actor, cb, didMatchRef, matcher]);
 };

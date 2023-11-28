@@ -1,3 +1,4 @@
+import { TimeParam } from "@/app/(home)/types";
 import {
   LLMMessageSetIdSchema,
   LLMMessageSetSchema,
@@ -22,6 +23,75 @@ export const getRecentRecipeSlugs = async (kv: KV) =>
     .array(SlugSchema)
     .parse(await kv.zrange(`recipes:new`, 0, -1, { rev: true }));
 
+export const getTopRecipes = async (kv: KV) => {
+  // Fetch slugs/keys for the recipes
+  const slugs = await kv.zrange(`recipes:new`, 0, -1, { rev: true });
+
+  // Create a multi-execution context
+  const multi = kv.multi();
+
+  // Queue up the commands to fetch each recipe
+  slugs.forEach((slug) => {
+    multi.hgetall(`recipe:${slug}`);
+  });
+
+  // Execute all queued commands in a single round trip
+  const results = await multi.exec();
+
+  // Parse and return the recipes
+  return results
+    .map((result) => {
+      return RecipeSchema.parse(result);
+    })
+    .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
+};
+
+export const getMyRecentRecipes = async (kv: KV) => {
+  // Fetch slugs/keys for the recipes
+  const slugs = await kv.zrange(`recipes:new`, 0, -1, { rev: true });
+
+  // Create a multi-execution context
+  const multi = kv.multi();
+
+  // Queue up the commands to fetch each recipe
+  slugs.forEach((slug) => {
+    multi.hgetall(`recipe:${slug}`);
+  });
+
+  // Execute all queued commands in a single round trip
+  const results = await multi.exec();
+
+  // Parse and return the recipes
+  return results
+    .map((result) => {
+      return RecipeSchema.parse(result);
+    })
+    .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
+};
+
+export const getBestRecipes = async (timeParam: TimeParam, kv: KV) => {
+  // Fetch slugs/keys for the recipes
+  const slugs = await kv.zrange(`recipes:new`, 0, -1, { rev: true });
+
+  // Create a multi-execution context
+  const multi = kv.multi();
+
+  // Queue up the commands to fetch each recipe
+  slugs.forEach((slug) => {
+    multi.hgetall(`recipe:${slug}`);
+  });
+
+  // Execute all queued commands in a single round trip
+  const results = await multi.exec();
+
+  // Parse and return the recipes
+  return results
+    .map((result) => {
+      return RecipeSchema.parse(result);
+    })
+    .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
+};
+
 export const getRecentRecipes = async (kv: KV) => {
   // Fetch slugs/keys for the recipes
   const slugs = await kv.zrange(`recipes:new`, 0, -1, { rev: true });
@@ -39,16 +109,8 @@ export const getRecentRecipes = async (kv: KV) => {
 
   // Parse and return the recipes
   return results
-    .map((result, index) => {
-      try {
-        return RecipeSchema.parse(result);
-      } catch (err) {
-        console.error(
-          `Error parsing recipe data for slug ${slugs[index]}:`,
-          err
-        );
-        return null;
-      }
+    .map((result) => {
+      return RecipeSchema.parse(result);
     })
     .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
 };

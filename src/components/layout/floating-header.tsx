@@ -26,7 +26,7 @@ const FloatingHeader = ({
     return () => {
       window.removeEventListener("scroll", toggleVisibility);
     };
-  }, [setIsVisible]);
+  }, [setIsVisible, triggerOffset]);
 
   return (
     <div

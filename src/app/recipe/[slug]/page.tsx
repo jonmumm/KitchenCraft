@@ -26,7 +26,6 @@ import {
   CameraIcon,
   ChefHatIcon,
   HelpCircle,
-  Link,
   MicrowaveIcon,
   NutOffIcon,
   PlusSquareIcon,
@@ -40,6 +39,7 @@ import {
 import { map } from "nanostores";
 import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import React, { ComponentProps, ReactNode, Suspense } from "react";
 import { AddButton } from "./add-button";
