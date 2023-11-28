@@ -124,21 +124,11 @@ export const SousChefCommandItem = ({
 }: ComponentProps<typeof CommandItem>) => {
   const loading = useLoading();
   const handleSelect = useCallback((value: string) => {
-    store.setKey("prompt", value);
     store.setKey("history", [
       ...store.get().history,
-      { question: store.get().prompt!, answer: "" },
+      { question: value, answer: "" },
     ]);
-    const input = store.get().inputRef.current;
-    input?.focus();
-    setTimeout(() => {
-      const length = input?.value.length;
-      if (length) {
-        input?.setSelectionRange(length, length);
-      } else {
-        input?.select();
-      }
-    }, 200);
+    store.setKey("prompt", "");
   }, []);
   return (
     <CommandItem disabled={loading} {...props} onSelect={handleSelect}>

@@ -30,7 +30,7 @@ import { useSend } from "@/hooks/useSend";
 
 export function ApplicationProvider(props: { children: ReactNode }) {
   const [store] = useState(map<any>({})); // todo define global types here
-  useScrollRestoration(); // i dont know if this is well working or not
+  // useScrollRestoration(); // i dont know if this is well working or not
 
   return (
     <SessionProvider>
@@ -66,40 +66,40 @@ const HeaderProvider = (props: { children: ReactNode }) => {
 //   <CookiesProvider {...props} />
 // );
 
-const useScrollRestoration = () => {
-  const pathname = usePathname();
+// const useScrollRestoration = () => {
+//   const pathname = usePathname();
 
-  // Save the scroll position to localStorage
-  const saveScrollPosition = useCallback(() => {
-    const scrollPosition = window.scrollY;
-    const scrollPositions = JSON.parse(
-      localStorage.getItem("scrollPositions") || "{}"
-    );
-    scrollPositions[pathname] = scrollPosition;
-    localStorage.setItem("scrollPositions", JSON.stringify(scrollPositions));
-  }, [pathname]);
+//   // Save the scroll position to localStorage
+//   const saveScrollPosition = useCallback(() => {
+//     const scrollPosition = window.scrollY;
+//     const scrollPositions = JSON.parse(
+//       localStorage.getItem("scrollPositions") || "{}"
+//     );
+//     scrollPositions[pathname] = scrollPosition;
+//     localStorage.setItem("scrollPositions", JSON.stringify(scrollPositions));
+//   }, [pathname]);
 
-  // Load the scroll position from localStorage
-  const loadScrollPosition = useCallback(() => {
-    const scrollPositions = JSON.parse(
-      localStorage.getItem("scrollPositions") || "{}"
-    );
-    const savedPosition = scrollPositions[pathname];
-    if (savedPosition) {
-      window.scrollTo(0, savedPosition);
-    }
-  }, [pathname]);
+//   // Load the scroll position from localStorage
+//   const loadScrollPosition = useCallback(() => {
+//     const scrollPositions = JSON.parse(
+//       localStorage.getItem("scrollPositions") || "{}"
+//     );
+//     const savedPosition = scrollPositions[pathname];
+//     if (savedPosition) {
+//       window.scrollTo(0, savedPosition);
+//     }
+//   }, [pathname]);
 
-  useEffect(() => {
-    // Add scroll event listener
-    window.addEventListener("scroll", saveScrollPosition);
+//   useEffect(() => {
+//     // Add scroll event listener
+//     window.addEventListener("scroll", saveScrollPosition);
 
-    // Load the scroll position when the component mounts
-    loadScrollPosition();
+//     // Load the scroll position when the component mounts
+//     loadScrollPosition();
 
-    // Clean up event listener
-    return () => {
-      window.removeEventListener("scroll", saveScrollPosition);
-    };
-  }, [saveScrollPosition, loadScrollPosition]);
-};
+//     // Clean up event listener
+//     return () => {
+//       window.removeEventListener("scroll", saveScrollPosition);
+//     };
+//   }, [saveScrollPosition, loadScrollPosition]);
+// };
