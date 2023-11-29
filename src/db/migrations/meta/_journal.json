@@ -1,0 +1,34 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1701265394585,
+      "tag": "0000_create_auth",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1701267006078,
+      "tag": "0001_create_recipes",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1701267105174,
+      "tag": "0002_create_upvotes",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1701269617806,
+      "tag": "0003_curious_gideon",
+      "breakpoints": true
+    }
+  ]
+}

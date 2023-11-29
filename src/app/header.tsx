@@ -12,7 +12,6 @@ import {
   PopoverTrigger,
 } from "@/components/layout/popover";
 import { TypeLogo } from "@/components/logo";
-import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { createClient } from "@/lib/supabase/client";
@@ -25,7 +24,7 @@ import {
   GripVerticalIcon,
   YoutubeIcon,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -95,20 +94,28 @@ export function Header({
   hidden?: boolean;
   className?: string;
 }) {
-  const { user, signIn, signOut } = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const headerActor = useContext(HeaderContext);
+  const session = useSession();
+  console.log({ session });
   const isBackVisible = useSelector(headerActor, (state) =>
     state.matches("Back.Visible")
   );
   // const session = useSession();
 
-  const supabase = useMemo(() => createClient(), []);
-
   const pathname = usePathname();
   useEffect(() => {
     setIsPopoverOpen(false);
   }, [pathname, setIsPopoverOpen]);
+
+  const handleClickGoogle = useCallback(() => {
+    signIn("google");
+  }, []);
+
+  const handleSignOut = useCallback(() => {
+    signOut();
+  }, []);
 
   // useEventHandler("SIGN_IN", () => {
   //   // supabase.auth.signInWithOAuth({
@@ -162,7 +169,7 @@ export function Header({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 flex flex-col gap-4 p-3">
-            {user && (
+            {session.status === "authenticated" && (
               <>
                 <div className="flex flex-col gap-1 items-center justify-center">
                   <Label className="uppercase text-xs font-bold text-accent-foreground">
@@ -232,7 +239,7 @@ export function Header({
                     <div className="flex flex-col gap-1 items-center">
                       <div className="flex flex-row gap-1 items-center">
                         <span>
-                          <span>{user.email}</span>
+                          <span>{session.data.user?.email}</span>
                         </span>
                       </div>
                     </div>
@@ -275,27 +282,37 @@ export function Header({
                 </div>
                 <Separator />
                 <div className="flex justify-center">
-                  <form action={signOut}>
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      className="text-sm underline text-center"
-                    >
-                      Sign Out
-                    </Button>
-                  </form>
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    className="text-sm underline text-center"
+                    onClick={handleSignOut}
+                  >
+                    Sign Out
+                  </Button>
                 </div>
                 <Separator />
               </>
             )}
-            {!user && (
+            {session.status === "unauthenticated" && (
               <>
-                <form action={signIn}>
+                {/* <form action={signUp}>
+                  <Label htmlFor="email" className="uppercase text-xs opacity-70">Email</Label>
+                  <Input type="email" name="email" />
                   <Button type="submit" size="lg" className="w-full">
-                    Sign In
+                    Sign Up
                   </Button>
                   <Separator />
-                </form>
+                </form> */}
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  onClick={handleClickGoogle}
+                >
+                  Sign In With Google
+                </Button>
+                <Separator />
               </>
             )}
             <div className="flex flex-row gap-3 items-center justify-center">

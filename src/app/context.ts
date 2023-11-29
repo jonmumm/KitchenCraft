@@ -6,7 +6,8 @@ import { createContext } from "react";
 export const UserContext = createContext(
   {} as {
     user: User | null;
-    signOut: () => Promise<void>;
-    signIn: () => Promise<void>;
+    // signOut: () => Promise<void>;
+    // signUp: (formData: FormData) => Promise<void>;
+    // signIn: () => Promise<void>;
   }
 );

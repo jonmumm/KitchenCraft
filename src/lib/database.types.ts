@@ -9,12 +9,31 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       recipes: {
         Row: {
           active_time: string
           cook_time: string
           created_at: string
           description: string
+          id: string
           ingredients: string[]
           instructions: string[]
           name: string
@@ -30,6 +49,7 @@ export interface Database {
           cook_time: string
           created_at?: string
           description: string
+          id?: string
           ingredients: string[]
           instructions: string[]
           name: string
@@ -45,6 +65,7 @@ export interface Database {
           cook_time?: string
           created_at?: string
           description?: string
+          id?: string
           ingredients?: string[]
           instructions?: string[]
           name?: string

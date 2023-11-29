@@ -3,6 +3,7 @@
 import { ApplicationContext } from "@/context/application";
 import { useActor } from "@/hooks/useActor";
 import { useSend } from "@/hooks/useSend";
+import { getSession } from "@/lib/auth/session";
 import { map } from "nanostores";
 import { SessionProvider } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -18,12 +19,15 @@ import { HeaderContext, createHeaderMachine } from "./header";
 // });
 // type ApplicationInput = z.infer<typeof ApplicationInputSchema>;
 
-export function ApplicationProvider(props: { children: ReactNode }) {
+export function ApplicationProvider(props: {
+  children: ReactNode;
+  session: Awaited<ReturnType<typeof getSession>>;
+}) {
   const [store] = useState(map<any>({})); // todo define global types here
   // useScrollRestoration(); // i dont know if this is well working or not
 
   return (
-    <SessionProvider>
+    <SessionProvider session={props.session}>
       <ApplicationContext.Provider value={store}>
         <PageLoadEventsProvider />
         <HeaderProvider>{props.children}</HeaderProvider>
