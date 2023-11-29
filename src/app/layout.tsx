@@ -1,13 +1,11 @@
 import { GoogleAdSense } from "@/components/google-adsense";
 import { ThemeProvider } from "@/components/theme-provider";
 import { getSession } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { cookies } from "next/headers";
 import { ReactNode } from "react";
 import "../styles/globals.css";
-import { ApplicationProvider, UserProvider } from "./provider";
+import { ApplicationProvider } from "./provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,12 +40,6 @@ export default async function RootLayout({
     );
   };
 
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -74,9 +66,7 @@ export default async function RootLayout({
         <GoogleAdSense />
       </head>
       <ApplicationProvider session={await getSession()}>
-        <UserProvider user={user}>
-          <Body />
-        </UserProvider>
+        <Body />
       </ApplicationProvider>
     </html>
   );

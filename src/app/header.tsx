@@ -14,7 +14,6 @@ import {
 import { TypeLogo } from "@/components/logo";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import {
   AxeIcon,
@@ -32,11 +31,9 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { ActorRefFrom, createMachine } from "xstate";
-import { UserContext } from "./context";
 
 export const createHeaderMachine = () =>
   createMachine({
@@ -94,7 +91,7 @@ export function Header({
   hidden?: boolean;
   className?: string;
 }) {
-  const { user } = useContext(UserContext);
+  // const { user } = useContext(UserContext);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const headerActor = useContext(HeaderContext);
   const session = useSession();

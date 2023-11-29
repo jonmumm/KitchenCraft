@@ -62,8 +62,6 @@ import {
   InstantRecipeMetadataPredictionOutputSchema,
   UpvoteEventSchema,
 } from "./schema";
-import { InstantRecipeMetadataStream } from "./app/instant-recipe/streams";
-import { createClient } from "./lib/supabase/server";
 
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
@@ -222,8 +220,3 @@ export type ModifyRecipeDietaryPredictionInput = z.infer<
 >;
 
 export type UpvoteEvent = z.infer<typeof UpvoteEventSchema>;
-
-type SupabaseClient = ReturnType<typeof createClient>;
-export type User = NonNullable<
-  Awaited<ReturnType<SupabaseClient["auth"]["getUser"]>>["data"]["user"]
->;

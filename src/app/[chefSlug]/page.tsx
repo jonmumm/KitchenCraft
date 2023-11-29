@@ -1,9 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { Header } from "../header";
 
 export default async function Page(props: { params: { chefSlug: string } }) {
-  const supabase = createClient(cookies());
+  // const supabase = createClient(cookies());
 
   return (
     <>
