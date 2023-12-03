@@ -1,44 +1,43 @@
-import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
-import { getMyRecentRecipes } from "@/lib/db";
+import { QueryStoreState } from "@/lib/query";
 import { timeAgo, waitForStoreValue } from "@/lib/utils";
 import { kv } from "@vercel/kv";
-import { ArrowBigUpIcon, ChevronRightIcon } from "lucide-react";
-import { map } from "nanostores";
+import { ArrowBigUpIcon } from "lucide-react";
+import { MapStore } from "nanostores";
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import { UploadedMediaSchema } from "../recipe/[slug]/media/schema";
-import { UpvoteCounter } from "./components.client";
+import { getMediaIdSelector, getSlugSelector } from "./selectors";
 import { RecipeStore } from "./types";
 
-export const RecipeTimestamp = async ({
+export const RecipeTimestamp = async <T extends { createdAt: string }[]>({
   store,
   index,
 }: {
-  store: RecipeStore;
+  store: MapStore<QueryStoreState<T>>;
   index: number;
 }) => {
   const createdAt = await waitForStoreValue(store, (state) => {
-    const recipe = state.recipes[index];
-    if (!state.loading) {
-      return recipe.createdAt || null;
+    const recipe = state.data[index];
+    if (recipe || !state.loading) {
+      return recipe?.createdAt || null;
     }
   });
 
   return <>{createdAt ? timeAgo(createdAt) : null}</>;
 };
 
-export const RecipeDescription = async ({
+export const RecipeDescription = async <T extends { description: string }[]>({
   store,
   index,
 }: {
-  store: RecipeStore;
+  store: MapStore<QueryStoreState<T>>;
   index: number;
 }) => {
   const description = await waitForStoreValue(store, (state) => {
-    const recipe = state.recipes[index];
+    const recipe = state.data[index];
     if (!state.loading) {
       return recipe?.description || null;
     }
@@ -47,15 +46,15 @@ export const RecipeDescription = async ({
   return <>{description}</>;
 };
 
-export const RecipeName = async ({
+export const RecipeName = async <T extends { name: string }[]>({
   store,
   index,
 }: {
-  store: RecipeStore;
+  store: MapStore<QueryStoreState<T>>;
   index: number;
 }) => {
   const name = await waitForStoreValue(store, (state) => {
-    const recipe = state.recipes[index];
+    const recipe = state.data[index];
     if (!state.loading) {
       return recipe?.name || null;
     }
@@ -64,48 +63,55 @@ export const RecipeName = async ({
   return <>{name}</>;
 };
 
-export const RecipeLink = (props: {
+export const RecipeLink = <T extends { slug: string }>({
+  index,
+  store,
+  children,
+}: {
   index: number;
-  store: RecipeStore;
+  store: MapStore<QueryStoreState<T[]>>;
   children: ReactNode;
 }) => {
   const Content = async () => {
-    const slug = await waitForStoreValue(props.store, (state) => {
-      if (!state.loading) {
-        return state.recipes[props.index]?.slug || null;
-      }
-    });
+    const slug = await waitForStoreValue(store, getSlugSelector(index));
 
     return (
       <Link
         href={slug ? `/recipe/${slug}` : "/?gallery"}
         className="flex flex-col gap-1"
       >
-        {props.children}
+        {children}
       </Link>
     );
   };
 
   return (
-    <Suspense fallback={<>{props.children}</>}>
+    <Suspense fallback={<>{children}</>}>
       <Content />
     </Suspense>
   );
 };
 
-export const RecipeImage = async (props: {
-  store: RecipeStore;
+export const RecipeImage = async <
+  T extends { previewMediaIds: string[] }[],
+>(props: {
+  store: MapStore<QueryStoreState<T>>;
   index: number;
   mediaIndex: number;
 }) => {
-  const mediaId = await waitForStoreValue(props.store, (state) => {
-    const recipe = state.recipes[props.index];
-    if (recipe?.previewMediaIds.length) {
-      return recipe.previewMediaIds[props.mediaIndex] || null;
-    }
+  const mediaId = await waitForStoreValue(
+    props.store,
+    getMediaIdSelector(props.index, props.mediaIndex)
+  );
 
-    if (!state.loading) return null;
-  });
+  //   (state) => {
+  //   const recipe = state.data[props.index];
+  //   if (recipe?.previewMediaIds.length) {
+  //     return recipe.previewMediaIds[props.mediaIndex] || null;
+  //   }
+
+  //   if (!state.loading) return null;
+  // });
 
   if (mediaId) {
     const media = UploadedMediaSchema.parse(
@@ -130,73 +136,6 @@ export const RecipeImage = async (props: {
   }
 };
 
-export const MyReceiptRecipes = () => {
-  // const recipes = await getMyRecentRecipes(kv);
-  const store: RecipeStore = map({
-    loading: true,
-    recipes: [],
-  });
-
-  getMyRecentRecipes(kv).then((recipes) => {
-    store.set({
-      error: undefined,
-      loading: false,
-      recipes,
-    });
-  });
-
-  // getMyRecentRecipes(kv).then((recipes) => {
-  //   console.log({ recipes });
-  // });
-
-  // getRecentRecipes(kv).then((recipes) => {
-  //   store.set({
-  //     loading: false,
-  //     recipes,
-  //   });
-  // });
-
-  // getMyRecentRecipes(kv).then((recipes) => {
-  //   store.set({
-  //     loading: false,
-  //     recipes,
-  //   });
-  // });
-
-  const items = new Array(6).fill(0);
-
-  return (
-    <>
-      {items.map((_, index) => {
-        return (
-          <div key={index} className="carousel-item">
-            <Suspense fallback={<Skeleton className="w-64 h-36" />}>
-              <RecipeLink index={index} store={store}>
-                <Card className="w-64 h-36 bg-secondary flex flex-col gap-1 justify-between py-2">
-                  <div className="flex flex-row gap-1 px-3 items-center">
-                    <h3 className="text-lg font-semibold flex-1">
-                      <RecipeName store={store} index={index} />
-                    </h3>
-                    <Button size="icon" variant="outline">
-                      <ChevronRightIcon />
-                    </Button>
-                  </div>
-                  <div className="line-clamp-2 text-xs text-muted-foreground leading-5 px-3">
-                    <RecipeDescription store={store} index={index} />
-                  </div>
-                  <div className="text-xs text-muted-foreground px-3">
-                    <RecipeTimestamp store={store} index={index} />
-                  </div>
-                </Card>
-              </RecipeLink>
-            </Suspense>
-          </div>
-        );
-      })}
-    </>
-  );
-};
-
 export const RecipeUpvoteButton = ({
   store,
   index,
@@ -206,12 +145,12 @@ export const RecipeUpvoteButton = ({
 }) => {
   const Content = async () => {
     const slug = await waitForStoreValue(store, (state) => {
-      if (state.recipes[index] || !state.loading) {
-        return state.recipes[index]?.slug || null;
+      if (state.data[index] || !state.loading) {
+        return state.data[index]?.slug || null;
       }
     });
     const upvotes = await waitForStoreValue(store, (state) => {
-      if (state.recipes[index] || !state.loading) {
+      if (state.data[index] || !state.loading) {
         return 0;
       }
     });
@@ -219,14 +158,6 @@ export const RecipeUpvoteButton = ({
     if (!slug || typeof upvotes !== "number") {
       return <></>;
     }
-
-    // if (!slug) {
-    //   return null;
-    // }
-
-    // if (upvotes === undefined) {
-    //   return null;
-    // }
 
     return (
       <Button

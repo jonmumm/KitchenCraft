@@ -26,7 +26,6 @@ const StickyHeader = ({ children }: { children: ReactNode }) => {
     },
     [setHeaderHeight]
   );
-  console.log({ headerHeight, isScrolled });
 
   return (
     <>

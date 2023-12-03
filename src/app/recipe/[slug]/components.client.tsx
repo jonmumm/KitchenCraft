@@ -9,22 +9,26 @@ import {
   CommandItem,
 } from "@/components/input/command";
 import { useEventHandler } from "@/hooks/useEventHandler";
-import { assert, noop } from "@/lib/utils";
+import { assert } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { useStore } from "@nanostores/react";
 import { useCommandState } from "cmdk";
-import { ShuffleIcon } from "lucide-react";
-import { map } from "nanostores";
+import { ArrowBigUpDashIcon, PlusIcon, ShuffleIcon } from "lucide-react";
+import { atom, map } from "nanostores";
 import { useRouter } from "next/navigation";
 
 import {
   ComponentProps,
   ComponentPropsWithoutRef,
+  MouseEventHandler,
   createContext,
   forwardRef,
   useCallback,
   useContext,
+  useState,
+  useTransition,
 } from "react";
+import { RecipeContext } from "./context";
 
 type Actions = {
   remix: (prompt: string) => Promise<string>;
@@ -116,5 +120,49 @@ export const RemixCommandInput = (
       </div>
       <CommandInput postIcon={loading ? "spinner" : "send"} {...props} />
     </>
+  );
+};
+
+export const UpvoteButton = (props: { count: number; disabled?: boolean }) => {
+  const { upvote } = useContext(RecipeContext);
+  const [count$] = useState(atom(props.count));
+  const count = useStore(count$);
+  const [isPending, startTransition] = useTransition();
+
+  const handleClick: MouseEventHandler = useCallback(
+    (event) => {
+      event.preventDefault();
+      count$.set(count$.get() + 1);
+      startTransition(() => upvote().then());
+    },
+    [count$]
+  );
+
+  return (
+    <form action={upvote}>
+      <Button
+        disabled={props.disabled || isPending}
+        onClick={handleClick}
+        variant="outline"
+        className="flex flex-row gap-1"
+        aria-label="Upvote"
+        type="submit"
+      >
+        <ArrowBigUpDashIcon />
+        <span className="font-bold">{count}</span>
+      </Button>
+    </form>
+  );
+};
+
+export const AddTagButton = () => {
+  const handlePress = useCallback(() => {
+    alert("add tag not yet implemented");
+  }, []);
+
+  return (
+    <Badge variant="outline" onClick={handlePress}>
+      <PlusIcon size={15} />
+    </Badge>
   );
 };

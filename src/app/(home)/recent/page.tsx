@@ -31,7 +31,7 @@ export default async function Page({
     store.set({
       error: undefined,
       loading: false,
-      recipes,
+      data: recipes,
     });
   });
 

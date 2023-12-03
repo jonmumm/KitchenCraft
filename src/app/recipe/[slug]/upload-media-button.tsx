@@ -20,6 +20,7 @@ export const UploadMediaButton = ({
     const file = event.target.files?.[0];
     if (file) {
       const metadata = await extractMetadata(file);
+      console.log(env.KITCHENCRAFT_URL);
       const newBlob = await upload(file.name, file, {
         access: "public",
         handleUploadUrl: `${env.KITCHENCRAFT_URL}/recipe/${slug}/media`,

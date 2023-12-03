@@ -1,92 +1,34 @@
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
-import { RecipeSchema } from "@/schema";
-import { Recipe } from "@/types";
-import { kv } from "@vercel/kv";
-import { map } from "nanostores";
-import { Suspense } from "react";
-import { Subject, concatMap, from } from "rxjs";
-import {
-  RecipeDescription,
-  RecipeImage,
-  RecipeLink,
-  RecipeName,
-  RecipeUpvoteButton,
-} from "./components";
-import { RecipeStore } from "./types";
+import { getSession } from "@/lib/auth/session";
+import { timeAgo } from "@/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { ReactNode, Suspense } from "react";
+import { Observable, lastValueFrom } from "rxjs";
+import { getSortedMediaForRecipe, getTopRecipes } from "./queries";
 
 // export const dynamic = "force-dynamic";
-
 export default async function Page({
   searchParams,
 }: {
   searchParams: Record<string, string>;
 }) {
   const items = new Array(30).fill(0);
+  const session = await getSession();
+  const query = await getTopRecipes(session?.user.id);
+  // const query$ = from(getTopRecipes(session?.user.id));
 
-  const store: RecipeStore = map({
-    loading: true,
-    error: undefined,
-    recipes: [],
-  });
-
-  const loader = new Subject<Recipe>();
-
-  (async () => {
-    const dataArray = await kv.zrange(`recipes:new`, 0, -1, {
-      rev: true,
-      withScores: true,
-    });
-
-    const recipes = [];
-    for (let i = 0; i < dataArray.length; i += 2) {
-      recipes.push({
-        slug: dataArray[i],
-        createdAt: dataArray[i + 1],
-      });
+  const RecipeListItem = ({ index }: { index: number }) => {
+    const recipe = query[index];
+    if (!recipe) {
+      return null;
     }
-
-    const observable = from(
-      recipes.map((recipe) => {
-        return new Promise<Recipe>((resolve) => {
-          kv.hgetall(`recipe:${recipe.slug}`).then((data) => {
-            resolve(RecipeSchema.parse(data));
-          });
-        });
-      })
-    );
-
-    observable.pipe(concatMap((promise) => promise)).subscribe({
-      next: (result) => {
-        loader.next(result);
-      },
-      error: (err) => {
-        console.error(err);
-      },
-      complete() {
-        loader.complete();
-      },
-    });
-  })();
-
-  loader.subscribe({
-    next(recipe) {
-      store.setKey("recipes", [...store.get().recipes, recipe]);
-    },
-    error(err) {
-      store.setKey("error", err);
-    },
-    complete() {
-      store.setKey("loading", false);
-    },
-  });
-
-  const RecipeListItem = async ({ index }: { index: number }) => {
-    const mediaItems = new Array(8).fill(0);
+    // const recipe$ = getObservableAtIndex(index, query$);
 
     return (
-      <RecipeLink index={index} store={store}>
+      <Link key={index} href={`/recipe/${recipe.slug}`}>
         <div className="w-full h-64 flex flex-row gap-4 relative">
           <Button
             className="absolute bottom-3 left-2 z-50"
@@ -96,11 +38,14 @@ export default async function Page({
             {index + 1}.
           </Button>
           {/* <RecipeUpvoteButton index={index} store={store} /> */}
-          <div className="carousel carousel-center space-x-2 flex-1 px-4">
+          <RecipeCarousel slug={recipe.slug} />
+          {/* <div className="carousel carousel-center space-x-2 flex-1 px-4">
             {mediaItems.map((item, mediaIndex) => {
               return (
                 <div key={mediaIndex} className="carousel-item">
-                  <Suspense fallback={<Skeleton className="w-64 aspect-square" />}>
+                  <Suspense
+                    fallback={<Skeleton className="w-64 aspect-square" />}
+                  >
                     <RecipeImage
                       store={store}
                       index={index}
@@ -110,34 +55,18 @@ export default async function Page({
                 </div>
               );
             })}
-          </div>
+          </div> */}
         </div>
         <div className="px-5 flex flex-row gap-3 items-center">
           <div className="flex-1">
-            <h2 className="font-semibold text-lg">
-              <Suspense fallback={<Skeleton className="w-full h-7" />}>
-                <RecipeName store={store} index={index} />
-              </Suspense>
-            </h2>
-            <Suspense
-              fallback={
-                <div className="flex flex-col gap-2">
-                  <Skeleton className="w-full h-8" />
-                  <Skeleton className="w-full h-8" />
-                  <Skeleton className="w-full h-8" />
-                </div>
-              }
-            >
-              <p>
-                <RecipeDescription store={store} index={index} />
-              </p>
-            </Suspense>
+            <h2 className="font-semibold text-lg">{recipe.name}</h2>
+            <p>{recipe.description}</p>
           </div>
           <Button size="icon" variant="outline">
             <ChevronRightIcon />
           </Button>
         </div>
-      </RecipeLink>
+      </Link>
     );
   };
 
@@ -149,3 +78,128 @@ export default async function Page({
     </div>
   );
 }
+interface RecipeTimestampProps {
+  observable: Observable<{ createdAt: string }>;
+}
+
+export const RecipeTimestamp = async ({ observable }: RecipeTimestampProps) => {
+  const state = await lastValueFrom(observable);
+  const createdAt = state.createdAt;
+
+  return <>{createdAt ? timeAgo(createdAt) : null}</>;
+};
+
+interface RecipeDescriptionProps {
+  observable: Observable<{ description: string } | undefined>;
+}
+
+export const RecipeDescription = async ({
+  observable,
+}: RecipeDescriptionProps) => {
+  const state = await lastValueFrom(observable);
+  const description = state?.description;
+
+  return <>{description}</>;
+};
+
+interface RecipeNameProps {
+  observable: Observable<{ name: string } | undefined>;
+}
+
+export const RecipeName = async ({ observable }: RecipeNameProps) => {
+  const state = await lastValueFrom(observable);
+  const name = state?.name;
+
+  return <>{name}</>;
+};
+
+interface RecipeCarouselProps {
+  observable: Observable<{ slug: string; name: string } | undefined>;
+}
+
+const RecipeCarousel = async ({ slug }: { slug: string }) => {
+  const items = new Array(6).fill(0);
+
+  const Loader = async () => {
+    return (
+      <>
+        {items.map((_, index) => {
+          return (
+            <div className="carousel-item" key={index}>
+              <Skeleton className="w-72 aspect-square" />
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
+  const Content = async () => {
+    const mediaList = await getSortedMediaForRecipe(slug);
+
+    return (
+      <>
+        {items.map((_, index) => {
+          const media = mediaList[index];
+          if (!media) {
+            return (
+              <div className="carousel-item" key={index}>
+                <Skeleton className="w-72 aspect-square" />
+              </div>
+            );
+          }
+
+          return (
+            <div className="carousel-item" key={index}>
+              <Image
+                className="w-72 aspect-square"
+                src={media.url}
+                priority={index === 0}
+                width={media.width}
+                height={media.height}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                alt="Main media"
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
+  return (
+    <div className="carousel carousel-center overflow-y-hidden space-x-2 flex-1 px-4">
+      <Suspense fallback={<Loader />}>
+        <Content />
+      </Suspense>
+    </div>
+  );
+};
+
+interface RecipeLinkProps {
+  observable: Observable<{ slug: string } | undefined>;
+  children: ReactNode;
+}
+
+const RecipeLink = ({ observable, children }: RecipeLinkProps) => {
+  const Content = async () => {
+    const state = await lastValueFrom(observable);
+    const slug = state?.slug;
+
+    return (
+      <Link
+        href={slug ? `/recipe/${slug}` : "/?gallery"}
+        className="flex flex-col gap-1"
+      >
+        {children}
+      </Link>
+    );
+  };
+
+  return (
+    <Suspense fallback={<>{children}</>}>
+      <Content />
+    </Suspense>
+  );
+};

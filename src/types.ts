@@ -30,7 +30,7 @@ import {
   RecipePredictionOutputSchema,
   RecipePredictionPartialOutputSchema,
   RecipeRequiredPropsSchema,
-  RecipeSchema,
+  TempRecipeSchema,
   RemixIdeasPredictionInputSchema,
   RemixIdeasPredictionOutputSchema,
   RemixIdeasPredictionPartialOutputSchema,
@@ -68,7 +68,7 @@ export type AppEvent = z.infer<typeof AppEventSchema>;
 
 export type Ingredient = (typeof ingredients)[0];
 
-export type Recipe = z.infer<typeof RecipeSchema>;
+export type Recipe = z.infer<typeof TempRecipeSchema>;
 export type DishType = z.infer<typeof DishTypeSchema>;
 export type CookingTime = z.infer<typeof CookingTimeSchema>;
 export type Cookware = z.infer<typeof CookwareSchema>;

@@ -248,13 +248,6 @@ export function Header({
                 <Separator />
                 <div className="flex flex-row gap-1 items-center justify-between">
                   <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
-                    Theme
-                  </Label>
-                  <ModeToggle />
-                </div>
-                <Separator />
-                <div className="flex flex-row gap-1 items-center justify-between">
-                  <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
                     Links
                     <ExternalLinkIcon size={16} className="opacity-70" />
                   </Label>
@@ -277,6 +270,17 @@ export function Header({
                     </Link>
                   </div>
                 </div>
+              </>
+            )}
+            <Separator />
+            <div className="flex flex-row gap-1 items-center justify-between">
+              <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
+                Theme
+              </Label>
+              <ModeToggle />
+            </div>
+            {session.status === "authenticated" && (
+              <>
                 <Separator />
                 <div className="flex justify-center">
                   <Button
@@ -288,9 +292,9 @@ export function Header({
                     Sign Out
                   </Button>
                 </div>
-                <Separator />
               </>
             )}
+            <Separator />
             {session.status === "unauthenticated" && (
               <>
                 {/* <form action={signUp}>

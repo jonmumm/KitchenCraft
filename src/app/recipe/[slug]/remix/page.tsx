@@ -1,12 +1,14 @@
+import { getRecipe } from "@/app/(home)/queries";
 import { Card } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import StickyHeader from "@/components/layout/sticky-header";
-import { WaitForStore } from "@/components/util/wait-for-store";
+import { LastValue } from "@/components/util/last-value";
+import { WaitForLastValue } from "@/components/util/wait-for-last-value";
+import { Recipe } from "@/db/types";
 import { getSlug } from "@/lib/slug";
 import {
-  CompletedRecipeSchema,
   ModificationSchema,
   ModifyRecipeDietaryPredictionInputSchema,
   ModifyRecipeEquipmentPredictionInputSchema,
@@ -21,7 +23,6 @@ import {
   ModifyRecipeIngredientsPredictionInput,
   ModifyRecipeScalePredictionInput,
 } from "@/types";
-import { kv } from "@vercel/kv";
 import { nanoid } from "ai";
 import {
   ArrowLeftIcon,
@@ -29,18 +30,23 @@ import {
   ScrollIcon,
   ShoppingBasketIcon,
 } from "lucide-react";
-import { map } from "nanostores";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { BehaviorSubject, identity } from "rxjs";
 import { z } from "zod";
-import { IngredientList } from "../ingredient-list";
-import { InstructionList } from "../instruction-list";
+import {
+  CraftingDetails,
+  Ingredients,
+  Instructions,
+  Tags,
+  Times,
+} from "../components";
+import { getObservables } from "../observables";
 import RecipeGenerator from "../recipe-generator";
-import { StoreProps } from "../schema";
-import { Tags } from "../tags";
-import { Times } from "../times";
-import { Yield } from "../yield";
+// import { Tags } from "../tags";
+// import { Times } from "../times";
+// import { Yield } from "../yield";
 
 type Props = {
   params: { slug: string };
@@ -64,8 +70,29 @@ export default async function Page(props: Props) {
     return redirect(`/recipe/${baseSlug}`);
   }
 
-  const recipeKey = `recipe:${baseSlug}`;
-  const recipe = CompletedRecipeSchema.parse(await kv.hgetall(recipeKey));
+  // const recipeKey = `recipe:${baseSlug}`;
+  // const recipe = CompletedRecipeSchema.parse(await kv.hgetall(recipeKey));
+  const recipe = await getRecipe(baseSlug);
+  if (!recipe) {
+    throw new Error(`Recipe ${baseSlug} not found`);
+  }
+  const remix$ = new BehaviorSubject<Partial<Recipe>>({});
+
+  const {
+    ingredients$,
+    instructions$,
+    tags$,
+    yield$,
+    activeTime$,
+    cookTime$,
+    totalTime$,
+  } = getObservables(remix$);
+
+  // instructions$.pipe(identity).subscribe({
+  //   next(value) {
+  //     console.log(value);
+  //   },
+  // });
 
   const id = nanoid();
   const branchedSlug = getSlug({ id, name: recipe.name });
@@ -128,10 +155,7 @@ export default async function Page(props: Props) {
         input={input}
         onProgress={(output) => {
           if (output.recipe) {
-            store.setKey("recipe", {
-              ...store.get().recipe,
-              ...output.recipe,
-            });
+            remix$.next(output.recipe);
           }
         }}
         onError={(error, outputRaw) => {
@@ -143,11 +167,14 @@ export default async function Page(props: Props) {
           // }).then(noop);
         }}
         onComplete={(output) => {
-          console.log(output);
-          store.setKey("recipe", {
-            ...store.get().recipe,
-            ...output.recipe,
-          });
+          remix$.next(output.recipe);
+          // console.log(output.recipe);
+          remix$.complete();
+
+          // store.setKey("recipe", {
+          //   ...store.get().recipe,
+          //   ...output.recipe,
+          // });
           //   kv.hset(`recipe:${slug}`, {
           //     runStatus: "done",
           //     ...output.recipe,
@@ -159,24 +186,11 @@ export default async function Page(props: Props) {
           //     revalidatePath("/");
           //   });
 
-          store.setKey("loading", false);
+          // store.setKey("loading", false);
         }}
       />
     );
   };
-
-  const store = map<StoreProps>({
-    loading: true,
-    recipe: {
-      name: recipe.name,
-      description: recipe.description,
-      slug: branchedSlug,
-      createdAt: new Date().toISOString(),
-      runStatus: "initializing",
-      previewMediaIds: [],
-      mediaCount: 0,
-    },
-  });
 
   const SaveButtons = () => {
     const saveAsNewRecipe = async () => {
@@ -223,14 +237,9 @@ export default async function Page(props: Props) {
               </div>
             }
           >
-            <WaitForStore
-              store={store}
-              selector={(state) => {
-                if (!state.loading) return true;
-              }}
-            >
+            <WaitForLastValue observable={remix$}>
               <SaveButtons />
-            </WaitForStore>
+            </WaitForLastValue>
           </Suspense>
         </div>
       </StickyHeader>
@@ -241,39 +250,36 @@ export default async function Page(props: Props) {
         </Suspense>
         <div className="flex flex-row gap-3 p-5 justify-between">
           <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-semibold">
-              {store.get().recipe.name}
-            </h1>
+            <h1 className="text-2xl font-semibold">{recipe.name}</h1>
             <p className="text-lg text-muted-foreground">
-              {store.get().recipe.description}
+              {recipe.description}
             </p>
             <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
               <span>Yields</span>
               <span>
                 <Suspense fallback={<Skeleton className="w-24 h-5" />}>
-                  <Yield store={store} />
+                  <LastValue observable={yield$} />
                 </Suspense>
               </span>
             </div>
-            {/* <div className="flex flex-row gap-2">
-            <Skeleton className="w-20 h-20 animate-none" />
-            <Skeleton className="w-20 h-20 animate-none" />
-            <Skeleton className="w-20 h-20 animate-none" />
-            <span className="sr-only">Upload Photo</span>
-          </div> */}
           </div>
         </div>
         <Separator />
-        {/* <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
+        <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
           <div className="flex flex-col gap-2 items-center">
-            <CraftingDetails createdAt={store.get().recipe.createdAt} />
+            <Suspense fallback={<Skeleton className="w-full h-20" />}>
+              <CraftingDetails createdAt={new Date().toDateString()} />
+            </Suspense>
           </div>
-        </div> */}
-        {/* <MediaRow previewMediaIds={previewMediaIds} /> */}
+        </div>
         <Separator className="hidden-print" />
-        <Times store={store} />
+        <Times
+          totalTime$={totalTime$}
+          activeTime$={activeTime$}
+          cookTime$={cookTime$}
+        />
         <Separator />
-        <Tags store={store} />
+        <Tags tags$={tags$} />
         <Separator />
 
         <div className="px-5">
@@ -284,11 +290,9 @@ export default async function Page(props: Props) {
             <ShoppingBasketIcon />
           </div>
           <div className="mb-4 flex flex-col gap-2">
-            <Suspense fallback={<Skeleton className="w-full h-20" />}>
-              <ul className="list-disc pl-5">
-                <IngredientList store={store} />
-              </ul>
-            </Suspense>
+            <ul className="list-disc pl-5 flex flex-col gap-2">
+              <Ingredients ingredients$={ingredients$} />
+            </ul>
           </div>
         </div>
         <Separator />
@@ -301,11 +305,9 @@ export default async function Page(props: Props) {
             <ScrollIcon />
           </div>
           <div className="mb-4 flex flex-col gap-2">
-            <Suspense fallback={<Skeleton className="w-full h-20" />}>
-              <ol className="list-decimal pl-5">
-                <InstructionList store={store} />
-              </ol>
-            </Suspense>
+            <ol className="list-decimal pl-5 flex flex-col gap-2">
+              <Instructions instructions$={instructions$} />
+            </ol>
           </div>
         </div>
       </Card>

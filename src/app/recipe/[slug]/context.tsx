@@ -1,22 +1,23 @@
 "use client";
 
-import { RecipeSlug } from "@/types";
-import { ReactNode, createContext, useContext } from "react";
+import { ReactNode, createContext } from "react";
 
-export const RecipePageContext = createContext({
-  slug: "" as string,
-});
+type Props = {
+  slug: string;
+  upvote: () => Promise<void | never>;
+};
 
-export const RecipePageProvider = ({
-  slug,
+export const RecipeContext = createContext({} as Props);
+
+export const RecipePropsProvider = ({
   children,
-}: {
-  slug: RecipeSlug;
+  ...props
+}: Props & {
   children: ReactNode;
 }) => {
   return (
-    <RecipePageContext.Provider value={{ slug }}>
+    <RecipeContext.Provider value={{ ...props }}>
       {children}
-    </RecipePageContext.Provider>
+    </RecipeContext.Provider>
   );
 };

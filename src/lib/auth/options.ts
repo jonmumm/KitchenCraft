@@ -1,9 +1,10 @@
 import { UsersTable, db } from "@/db";
 import { privateEnv } from "@/env.secrets";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { pgDrizzleAdapter } from "./adapter";
 
 type User = {
   username: string;
@@ -29,9 +30,16 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ token, session }) {
+    async signIn(params) {
+      // console.log("sign in", params);
+      return true;
+    },
+
+    // e.g. getSession(), useSession(), /api/auth/session
+    async session(params) {
+      // console.log("session", params);
+      const { token, session } = params;
       if (session.user && token) {
-        // @ts-ignore
         session.user.id = token.id;
         session.user.name = token.name;
         session.user.email = token.email;
@@ -41,7 +49,11 @@ export const authOptions: NextAuthOptions = {
         throw new Error("expected token and user in session");
       }
     },
-    async jwt({ token, user }) {
+
+    // this data can become available to the browser
+    async jwt(params) {
+      // console.log("jwt", params);
+      const { token, user } = params;
       const [dbUser] = await db
         .select()
         .from(UsersTable)

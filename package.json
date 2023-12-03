@@ -51,7 +51,7 @@
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
     "dotenv": "^16.3.1",
-    "drizzle-orm": "^0.29.0",
+    "drizzle-orm": "^0.29.1",
     "drizzle-zod": "^0.5.1",
     "encoding": "^0.1.13",
     "event-source-polyfill": "^1.0.31",
