@@ -43,7 +43,8 @@ export const authOptions: NextAuthOptions = {
           // from: "KitchenCraft <signin@kitchencraft.ai>",
           to: email,
           subject: "Your Sign-In Code",
-          html: `<p>To sign-in to KitchenCraft, enter this code: ${token}</p>`,
+          text: `To sign-in to KitchenCraft, enter this code: ${token}. This code will expire in 5 minutes.`,
+          html: `<div><p>To sign-in to KitchenCraft, enter this code:</p><p>${token}</p><p>This code will expire in 5 minutes.</p></div>`,
         });
         if (result.error) {
           throw new Error(result.error.message);

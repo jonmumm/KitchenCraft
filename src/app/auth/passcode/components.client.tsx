@@ -17,7 +17,7 @@ import {
 } from "@/components/input/form";
 import { assert } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { ClipboardEventHandler, useCallback, useState } from "react";
 
 // Update the schema to validate a 5-character token
 const formSchema = z.object({
@@ -26,6 +26,7 @@ const formSchema = z.object({
 
 export function PasscodeForm() {
   // const router = useRouter();
+  const [disabled, setDisabled] = useState(false);
   const params = useSearchParams();
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -36,11 +37,12 @@ export function PasscodeForm() {
   const email = params.get("email");
   assert(email, "expected email");
 
-  const onSubmit = useCallback(
-    (data: z.infer<typeof formSchema>) => {
+  const submit = useCallback(
+    (token: string) => {
+      setDisabled(true);
       const emailCallbackParams = new URLSearchParams({
         email,
-        token: data.token,
+        token: token,
       });
 
       const callbackUrl = params.get("callbackUrl");
@@ -53,7 +55,27 @@ export function PasscodeForm() {
       const url = `/api/auth/callback/email?${emailCallbackParams.toString()}`;
       window.location.href = url;
     },
-    [params, email]
+    [setDisabled, params, email]
+  );
+
+  const handleOnPaste: ClipboardEventHandler<HTMLInputElement> = useCallback(
+    (event) => {
+      // If it's valid submit it
+      const result = formSchema.safeParse({
+        token: event.clipboardData.getData("text"),
+      });
+      if (result.success) {
+        submit(result.data.token);
+      }
+    },
+    [submit]
+  );
+
+  const onSubmit = useCallback(
+    (data: z.infer<typeof formSchema>) => {
+      submit(data.token);
+    },
+    [submit]
   );
 
   return (
@@ -67,6 +89,9 @@ export function PasscodeForm() {
               <FormLabel>Token</FormLabel>
               <FormControl>
                 <Input
+                  autoFocus
+                  disabled={disabled}
+                  onPaste={handleOnPaste}
                   type="text"
                   placeholder="Enter your 5-digit token"
                   {...field}
@@ -82,7 +107,9 @@ export function PasscodeForm() {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button disabled={disabled} type="submit">
+          Submit
+        </Button>
       </form>
     </Form>
   );
