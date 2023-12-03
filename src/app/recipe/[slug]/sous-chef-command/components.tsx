@@ -48,13 +48,14 @@ export const SousChefCommand = ({
   useEffect(() => {
     return listenKeys(store, ["history"], (state) => {
       const { history, index } = store.get();
+      const item = history[index];
 
       // When we submit, if we we have a prompt and arent already loading
       // ...start loading
-      if (history[index].question && !state.loading) {
+      if (item && item.question && !state.loading) {
         store.setKey("index", index + 1);
         store.setKey("loading", true);
-        const source = getSousChefEventSource(slug, history[index].question);
+        const source = getSousChefEventSource(slug, item.question);
         const chunks: string[] = [];
         let resultId: string | null = null;
         source.onmessage = (event) => {

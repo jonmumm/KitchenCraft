@@ -4,15 +4,6 @@ import { eq } from "drizzle-orm";
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { pgDrizzleAdapter } from "./adapter";
-
-type User = {
-  username: string;
-  name?: string;
-  email?: string;
-  image?: string;
-  expires?: string;
-};
 
 export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db),

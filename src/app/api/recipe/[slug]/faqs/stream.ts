@@ -8,9 +8,15 @@ export class FAQsTokenStream extends TokenStream<FAQsPredictionInput> {
     return userMessageTemplate.format({
       name: input.recipe.name,
       description: input.recipe.description,
-      tags: input.recipe.tags.join("\n"),
-      ingredients: input.recipe.ingredients.join("\n"),
-      instructions: input.recipe.instructions.join("\n"),
+      tags: Array.isArray(input.recipe.tags)
+        ? input.recipe.tags.join("\n")
+        : "",
+      ingredients: Array.isArray(input.recipe.ingredients)
+        ? input.recipe.ingredients.join("\n")
+        : "",
+      instructions: Array.isArray(input.recipe.instructions)
+        ? input.recipe.instructions.join("\n")
+        : "",
     });
   }
 

@@ -7,6 +7,10 @@ export const LayoutClient = ({ children }: { children: ReactNode }) => {
   return (
     <RecipeContext.Provider
       value={{
+        upvote: async () => {
+          "use server";
+          console.log("upvote!");
+        },
         slug: "",
       }}
     >

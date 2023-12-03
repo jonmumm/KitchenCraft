@@ -14,12 +14,12 @@ import { map } from "nanostores";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import { Header } from "../header";
-import {
-  RecipeDescription,
-  RecipeLink,
-  RecipeName,
-  RecipeTimestamp,
-} from "./components";
+// import {
+//   RecipeDescription,
+//   RecipeLink,
+//   RecipeName,
+//   RecipeTimestamp,
+// } from "./components";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
 import { RecipeStore } from "./types";

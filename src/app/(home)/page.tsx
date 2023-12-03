@@ -78,22 +78,22 @@ export default async function Page({
     </div>
   );
 }
-interface RecipeTimestampProps {
-  observable: Observable<{ createdAt: string }>;
-}
+// interface RecipeTimestampProps {
+//   observable: Observable<{ createdAt: string }>;
+// }
 
-export const RecipeTimestamp = async ({ observable }: RecipeTimestampProps) => {
-  const state = await lastValueFrom(observable);
-  const createdAt = state.createdAt;
+// const RecipeTimestamp = async ({ observable }: RecipeTimestampProps) => {
+//   const state = await lastValueFrom(observable);
+//   const createdAt = state.createdAt;
 
-  return <>{createdAt ? timeAgo(createdAt) : null}</>;
-};
+//   return <>{createdAt ? timeAgo(createdAt) : null}</>;
+// };
 
 interface RecipeDescriptionProps {
   observable: Observable<{ description: string } | undefined>;
 }
 
-export const RecipeDescription = async ({
+const RecipeDescription = async ({
   observable,
 }: RecipeDescriptionProps) => {
   const state = await lastValueFrom(observable);
@@ -106,7 +106,7 @@ interface RecipeNameProps {
   observable: Observable<{ name: string } | undefined>;
 }
 
-export const RecipeName = async ({ observable }: RecipeNameProps) => {
+const RecipeName = async ({ observable }: RecipeNameProps) => {
   const state = await lastValueFrom(observable);
   const name = state?.name;
 

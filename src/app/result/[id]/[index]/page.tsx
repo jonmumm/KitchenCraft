@@ -2,6 +2,7 @@ import { createRecipe } from "@/app/recipe/lib";
 import { getResult } from "@/lib/db";
 import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
+import { assert } from "@/lib/utils";
 import { outputSchemaByType } from "@/schema";
 import { kv } from "@vercel/kv";
 import { nanoid } from "ai";
@@ -39,7 +40,9 @@ const CreateRecipe = async ({
     return <>Suggestions not found</>;
   }
 
-  const { name, description } = output.suggestions[index];
+  const item = output.suggestions[index];
+  assert(item, "expected item");
+  const { name, description } = item;
   if (!name || !description) {
     return <>Missing recipe info</>;
   }

@@ -12,7 +12,7 @@ import {
   CUISINES,
   TECHNIQUES,
 } from "@/data/constants";
-import { cn } from "@/lib/utils";
+import { assert, cn } from "@/lib/utils";
 import { map } from "nanostores";
 import { createContext, forwardRef } from "react";
 import ingredients from "../data/ingredients.json";
@@ -186,13 +186,18 @@ const Techniques = () => {
 };
 
 const Ingredients = () => {
-  const categoriesMap = ingredients.reduce((acc, ingredient) => {
-    if (!acc[ingredient.category]) {
-      acc[ingredient.category] = [];
-    }
-    acc[ingredient.category].push(ingredient.name);
-    return acc;
-  }, {} as Record<string, string[]>);
+  const categoriesMap = ingredients.reduce(
+    (acc, ingredient) => {
+      if (!acc[ingredient.category]) {
+        acc[ingredient.category] = [];
+      }
+      const item = acc[ingredient.category];
+      assert(item, "expected item");
+      item.push(ingredient.name);
+      return acc;
+    },
+    {} as Record<string, string[]>
+  );
 
   return (
     <AccordionItem value="ingredients">
