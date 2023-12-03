@@ -39,7 +39,7 @@ export const authOptions: NextAuthOptions = {
         provider,
       }) => {
         const result = await resend.emails.send({
-          from: "Acme <onboarding@resend.dev>",
+          from: "KitchenCraft <onboarding@resend.dev>",
           // from: "KitchenCraft <signin@kitchencraft.ai>",
           to: email,
           subject: "Your Sign-In Code",
