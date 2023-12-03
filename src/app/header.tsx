@@ -106,8 +106,8 @@ export function Header({
     setIsPopoverOpen(false);
   }, [pathname, setIsPopoverOpen]);
 
-  const handleClickGoogle = useCallback(() => {
-    signIn("google");
+  const handlePressSignIn = useCallback(() => {
+    signIn("email");
   }, []);
 
   const handleSignOut = useCallback(() => {
@@ -309,9 +309,9 @@ export function Header({
                   type="submit"
                   size="lg"
                   className="w-full"
-                  onClick={handleClickGoogle}
+                  onClick={handlePressSignIn}
                 >
-                  Sign In With Google
+                  Sign In / Sign Up
                 </Button>
                 <Separator />
               </>

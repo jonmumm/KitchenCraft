@@ -2,6 +2,7 @@ import { Header } from "@/app/header";
 import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
 import Image from "next/image";
+import { Recipe as RecipeJSONLDSchema, WithContext } from "schema-dts";
 
 import {
   getFirstMediaForRecipe,
@@ -15,12 +16,12 @@ import { Separator } from "@/components/display/separator";
 import { EventButton } from "@/components/event-button";
 import { Button } from "@/components/input/button";
 import { CommandGroup, CommandItem } from "@/components/input/command";
+import { LastValue } from "@/components/util/last-value";
 import { RecipeSchema, RecipesTable, db } from "@/db";
 import { NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
 import { getSession } from "@/lib/auth/session";
 import { getResult } from "@/lib/db";
-import { getTokenObservableAtIndex } from "@/lib/rxjs";
 import { noop } from "@/lib/utils";
 import {
   QuestionsPredictionOutputSchema,
@@ -50,12 +51,9 @@ import {
   BehaviorSubject,
   Observable,
   defaultIfEmpty,
-  filter,
-  firstValueFrom,
   lastValueFrom,
   map,
   of,
-  take,
   takeWhile,
 } from "rxjs";
 import {
@@ -80,7 +78,6 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
-import { LastValue } from "@/components/util/last-value";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -493,137 +490,177 @@ export default async function Page(props: Props) {
     );
   };
 
+  const Schema = () => {
+    if (!recipe) {
+      return null;
+    }
+    const mainMedia = media[0];
+
+    const image = mainMedia
+      ? {
+          image: mainMedia.url,
+        }
+      : {};
+
+    const jsonLd: WithContext<RecipeJSONLDSchema> = {
+      "@context": "https://schema.org",
+      "@type": "Recipe",
+      name: recipe.name,
+      description: recipe.description,
+      recipeYield: recipe.yield,
+      recipeIngredient: recipe.ingredients,
+      recipeInstructions: recipe.instructions,
+      totalTime: recipe.totalTime,
+      prepTime: recipe.activeTime,
+      cookTime: recipe.cookTime,
+      image: `/recipe/${slug}/media/${0}`,
+    };
+
+    return (
+      <section>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </section>
+    );
+  };
+
   return (
-    <div className="flex flex-col gap-2 max-w-2xl mx-auto">
-      <CurrentRecipeGenerator />
-      <div>
-        {media.length ? (
-          <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
-            <Header className="absolute left-0 right-0 top-0 z-10" />
-            <div className="carousel carousel-center w-full aspect-square">
-              {media.map((media, index) => {
-                return (
-                  <Image
-                    key={media.id}
-                    className="carousel-item"
-                    src={media.url}
-                    priority={index == 0}
-                    width={media.width}
-                    height={media.height}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt={`${name} - Image ${index + 1}`}
-                    style={{ objectFit: "cover" }}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <Header />
-        )}
-      </div>
-      <div className="flex flex-col gap-2">
-        <Card className="flex flex-col gap-2 pb-5 mx-3">
-          <div className="flex flex-row gap-3 p-5 justify-between">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl font-semibold">{name}</h1>
-              <p className="text-lg text-muted-foreground">{description}</p>
-              <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
-                <span>Yields</span>
-                <span>
-                  <Suspense fallback={<Skeleton className="w-24 h-5" />}>
-                    <LastValue observable={yield$} />
-                  </Suspense>
-                </span>
+    <>
+      <Schema />
+
+      <div className="flex flex-col gap-2 max-w-2xl mx-auto">
+        <CurrentRecipeGenerator />
+        <div>
+          {media.length ? (
+            <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
+              <Header className="absolute left-0 right-0 top-0 z-10" />
+              <div className="carousel carousel-center w-full aspect-square">
+                {media.map((media, index) => {
+                  return (
+                    <Image
+                      key={media.id}
+                      className="carousel-item"
+                      src={media.url}
+                      priority={index == 0}
+                      width={media.width}
+                      height={media.height}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      alt={`${name} - Image ${index + 1}`}
+                      style={{ objectFit: "cover" }}
+                    />
+                  );
+                })}
               </div>
             </div>
+          ) : (
+            <Header />
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <Card className="flex flex-col gap-2 pb-5 mx-3">
+            <div className="flex flex-row gap-3 p-5 justify-between">
+              <div className="flex flex-col gap-2">
+                <h1 className="text-2xl font-semibold">{name}</h1>
+                <p className="text-lg text-muted-foreground">{description}</p>
+                <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
+                  <span>Yields</span>
+                  <span>
+                    <Suspense fallback={<Skeleton className="w-24 h-5" />}>
+                      <LastValue observable={yield$} />
+                    </Suspense>
+                  </span>
+                </div>
+              </div>
 
-            <div className="flex flex-col gap-1 hidden-print">
-              <UploadMediaButton slug={slug}>
-                <CameraIcon />
-              </UploadMediaButton>
-              {/* <AddButton>
+              <div className="flex flex-col gap-1 hidden-print">
+                <UploadMediaButton slug={slug}>
+                  <CameraIcon />
+                </UploadMediaButton>
+                {/* <AddButton>
                 <PlusSquareIcon />
               </AddButton>
               <UploadMediaButton slug={store.get().recipe.slug}>
                 <CameraIcon />
               </UploadMediaButton> */}
-              {/* <PrintButton>
+                {/* <PrintButton>
                 <PrinterIcon />
               </PrintButton> */}
-              {/* <ShareButton>
+                {/* <ShareButton>
                 <ShareIcon />
               </ShareButton> */}
-              {/* <UpvoteButton>
+                {/* <UpvoteButton>
                 <ArrowBigUpDashIcon />
                 <span className="font-bold">1</span>
               </UpvoteButton> */}
-              <Button variant="outline" aria-label="Remix">
-                <Link href={`#remix`}>
-                  <ShuffleIcon />
-                </Link>
-              </Button>
+                <Button variant="outline" aria-label="Remix">
+                  <Link href={`#remix`}>
+                    <ShuffleIcon />
+                  </Link>
+                </Button>
+              </div>
             </div>
-          </div>
-          <Separator />
-          <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
-            <div className="flex flex-col gap-2 items-center">
-              <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                <CraftingDetails createdAt={new Date().toDateString()} />
-              </Suspense>
+            <Separator />
+            <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
+              <div className="flex flex-col gap-2 items-center">
+                <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                  <CraftingDetails createdAt={new Date().toDateString()} />
+                </Suspense>
+              </div>
             </div>
-          </div>
-          <Separator className="hidden-print" />
-          <Times
-            totalTime$={totalTime$}
-            activeTime$={activeTime$}
-            cookTime$={cookTime$}
-          />
-          <Separator />
-          <Tags tags$={tags$} />
-          <Separator />
+            <Separator className="hidden-print" />
+            <Times
+              totalTime$={totalTime$}
+              activeTime$={activeTime$}
+              cookTime$={cookTime$}
+            />
+            <Separator />
+            <Tags tags$={tags$} />
+            <Separator />
 
-          <div className="px-5">
-            <div className="flex flex-row justify-between gap-1 items-center py-4">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Ingredients
-              </h3>
-              <ShoppingBasketIcon />
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Ingredients
+                </h3>
+                <ShoppingBasketIcon />
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                  <ul className="list-disc pl-5 flex flex-col gap-2">
+                    <Ingredients ingredients$={ingredients$} />
+                  </ul>
+                </Suspense>
+              </div>
             </div>
-            <div className="mb-4 flex flex-col gap-2">
-              <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                <ul className="list-disc pl-5 flex flex-col gap-2">
-                  <Ingredients ingredients$={ingredients$} />
-                </ul>
-              </Suspense>
-            </div>
-          </div>
-          <Separator />
+            <Separator />
 
-          <div className="px-5">
-            <div className="flex flex-row justify-between gap-1 items-center py-4">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Instructions
-              </h3>
-              <ScrollIcon />
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Instructions
+                </h3>
+                <ScrollIcon />
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                  <ol className="list-decimal pl-5 flex flex-col gap-2">
+                    <Instructions instructions$={instructions$} />
+                  </ol>
+                </Suspense>
+              </div>
             </div>
-            <div className="mb-4 flex flex-col gap-2">
-              <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                <ol className="list-decimal pl-5 flex flex-col gap-2">
-                  <Instructions instructions$={instructions$} />
-                </ol>
-              </Suspense>
-            </div>
-          </div>
-        </Card>
-        <Card id="remix" className="mx-3 mb-3">
-          <RemixContent />
-        </Card>
-        <Card id="assistant" className="mx-3 mb-3">
-          <AssistantContent />
-        </Card>
+          </Card>
+          <Card id="remix" className="mx-3 mb-3">
+            <RemixContent />
+          </Card>
+          <Card id="assistant" className="mx-3 mb-3">
+            <AssistantContent />
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

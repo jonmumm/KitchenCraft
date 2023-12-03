@@ -13,6 +13,7 @@ export const SecretsEnvironmentSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   NEXTAUTH_SECRET: z.string(),
+  RESEND_API_KEY: z.string(),
 });
 
 export const PublicEnvironmentSchema = z.object({

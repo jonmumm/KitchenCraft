@@ -1,9 +1,23 @@
 import { UsersTable, db } from "@/db";
 import { privateEnv } from "@/env.secrets";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
 import { NextAuthOptions } from "next-auth";
+import Email from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { Resend } from "resend";
+
+const resend = new Resend(privateEnv.RESEND_API_KEY);
+
+function generateLoginCode(): string {
+  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Avoid confusing characters
+  let code = "";
+  for (let i = 0; i < 5; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    code += characters[randomIndex];
+  }
+  return code;
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db),
@@ -12,9 +26,34 @@ export const authOptions: NextAuthOptions = {
   },
   secret: privateEnv.NEXTAUTH_SECRET,
   pages: {
-    signIn: "/",
+    signIn: "/auth/signin",
   },
   providers: [
+    Email({
+      from: "auth@kitchencraft.ai",
+      maxAge: 5 * 60, // 5 minutes
+      sendVerificationRequest: async ({
+        identifier: email,
+        url,
+        token,
+        provider,
+      }) => {
+        const result = await resend.emails.send({
+          from: "Acme <onboarding@resend.dev>",
+          // from: "KitchenCraft <signin@kitchencraft.ai>",
+          to: email,
+          subject: "Your Sign-In Code",
+          html: `<p>To sign-in to KitchenCraft, enter this code: ${token}</p>`,
+        });
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+      },
+      generateVerificationToken: async () => {
+        const token = await generateLoginCode();
+        return token;
+      },
+    }),
     GoogleProvider({
       clientId: privateEnv.GOOGLE_CLIENT_ID,
       clientSecret: privateEnv.GOOGLE_CLIENT_SECRET,
