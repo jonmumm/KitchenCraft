@@ -67,6 +67,7 @@ export function SignInForm() {
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input
+                  autoFocus
                   disabled={disabled}
                   type="email"
                   placeholder="you@example.com"
