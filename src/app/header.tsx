@@ -95,7 +95,6 @@ export function Header({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const headerActor = useContext(HeaderContext);
   const session = useSession();
-  console.log({ session });
   const isBackVisible = useSelector(headerActor, (state) =>
     state.matches("Back.Visible")
   );
