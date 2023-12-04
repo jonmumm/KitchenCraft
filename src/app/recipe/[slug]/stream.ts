@@ -1,10 +1,5 @@
 import { TokenStream } from "@/lib/token-stream";
 import {
-  ModifyRecipeDietaryPredictionInput,
-  ModifyRecipeEquipmentPredictionInput,
-  ModifyRecipeFreeTextPredictionInput,
-  ModifyRecipeIngredientsPredictionInput,
-  ModifyRecipeScalePredictionInput,
   NewInstantRecipePredictionInput,
   NewRecipeFromSuggestionsPredictionInput,
   RecipePredictionInput,
@@ -21,16 +16,6 @@ export class RecipeTokenStream extends TokenStream<RecipePredictionInput> {
         return NEW_RECIPE_FROM_SUGGESTIONS_USER_PROMPT(input);
       case "NEW_INSTANT_RECIPE":
         return NEW_INSTANT_RECIPE_USER_PROMPT(input);
-      case "MODIFY_RECIPE_DIETARY":
-        return DIETARY_RECIPE_USER_PROMPT(input);
-      case "MODIFY_RECIPE_EQUIPMENT":
-        return EQUIPMENT_RECIPE_USER_PROMPT(input);
-      case "MODIFY_RECIPE_INGREDIENTS":
-        return SUBSTITUTE_RECIPE_USER_PROMPT(input);
-      case "MODIFY_RECIPE_SCALE":
-        return SCALE_RECIPE_USER_PROMPT(input);
-      case "MODIFY_RECIPE_FREE_TEXT":
-        return FREE_TEXT_RECIPE_USER_PROMPT(input);
     }
   }
 
@@ -42,16 +27,6 @@ export class RecipeTokenStream extends TokenStream<RecipePredictionInput> {
         return NEW_INSTANT_RECIPE_TEMPLATE(input);
       case "NEW_RECIPE_FROM_SUGGESTIONS":
         return NEW_RECIPE_FROM_SUGGESTIONS_TEMPLATE(input);
-      case "MODIFY_RECIPE_DIETARY":
-        return DIETARY_RECIPE_TEMPLATE(input);
-      case "MODIFY_RECIPE_EQUIPMENT":
-        return EQUIPMENT_RECIPE_TEMPLATE(input);
-      case "MODIFY_RECIPE_INGREDIENTS":
-        return SUBSTITUTE_RECIPE_TEMPLATE(input);
-      case "MODIFY_RECIPE_SCALE":
-        return SCALE_RECIPE_TEMPLATE(input);
-      case "MODIFY_RECIPE_FREE_TEXT":
-        return FREE_TEXT_RECIPE_TEMPLATE(input);
     }
   }
 
@@ -59,25 +34,6 @@ export class RecipeTokenStream extends TokenStream<RecipePredictionInput> {
     return 2048;
   }
 }
-
-const FREE_TEXT_RECIPE_USER_PROMPT = (
-  input: ModifyRecipeFreeTextPredictionInput
-) => `${input.prompt}`;
-
-const SCALE_RECIPE_USER_PROMPT = (input: ModifyRecipeScalePredictionInput) =>
-  `${input.prompt}`;
-
-const DIETARY_RECIPE_USER_PROMPT = (
-  input: ModifyRecipeDietaryPredictionInput
-) => `${input.prompt}`;
-
-const EQUIPMENT_RECIPE_USER_PROMPT = (
-  input: ModifyRecipeEquipmentPredictionInput
-) => `${input.prompt}`;
-
-const SUBSTITUTE_RECIPE_USER_PROMPT = (
-  input: ModifyRecipeIngredientsPredictionInput
-) => `${input.prompt}`;
 
 const NEW_INSTANT_RECIPE_USER_PROMPT = (
   input: NewInstantRecipePredictionInput
@@ -91,78 +47,6 @@ name: ${input.recipe.name}
 description: ${input.recipe.description}
 \`\`\`
 `;
-
-const SUBSTITUTE_RECIPE_TEMPLATE = (
-  input: ModifyRecipeIngredientsPredictionInput
-) => `The user will provide a instructions for a substitution they would like to make in the below recipe.
-
-Please give back the yaml for the updated recipe, applying the substitution instructions as specified by the user.
-
-\`\`\`yaml
-recipe:
-  name: ${input.recipe.name}
-  description: ${input.recipe.description}
-  yield: ${input.recipe.yield}
-  activeTime: ${input.recipe.activeTime}
-  cookTime: ${input.recipe.cookTime}
-  totalTime: ${input.recipe.totalTime}
-  tags:
-${input.recipe.tags.map((item) => `    - "${item}"`).join("\n")}
-  ingredients:
-${input.recipe.ingredients.map((item) => `    - "${item}"`).join("\n")}
-  instructions:
-${input.recipe.instructions.map((item) => `\ \ \ \ - "${item}"`).join("\n")}
-\`\`\`
-
-${FORMAT_INSTRUCTIONS}`;
-
-const FREE_TEXT_RECIPE_TEMPLATE = (
-  input: ModifyRecipeFreeTextPredictionInput
-) => `The user will provide a instructions for how they would like to modify the recipe below.
-
-Please give back the yaml for the updated recipe, applying the modifications instructions as specified by the user.
-
-\`\`\`yaml
-recipe:
-  name: ${input.recipe.name}
-  description: ${input.recipe.description}
-  yield: ${input.recipe.yield}
-  activeTime: ${input.recipe.activeTime}
-  cookTime: ${input.recipe.cookTime}
-  totalTime: ${input.recipe.totalTime}
-  tags:
-${input.recipe.tags.map((item) => `    - "${item}"`).join("\n")}
-  ingredients:
-${input.recipe.ingredients.map((item) => `    - "${item}"`).join("\n")}
-  instructions:
-${input.recipe.instructions.map((item) => `    - "${item}"`).join("\n")}
-\`\`\`
-
-${FORMAT_INSTRUCTIONS}`;
-
-const SCALE_RECIPE_TEMPLATE = (
-  input: ModifyRecipeScalePredictionInput
-) => `The user will provide a instructions for how they would like to scale the serving size for the below recipe.
-
-Please give back the yaml for the updated recipe, applying the scale instructions as specified by the user.
-
-\`\`\`yaml
-recipe:
-  name: ${input.recipe.name}
-  description: ${input.recipe.description}
-  yield: ${input.recipe.yield}
-  activeTime: ${input.recipe.activeTime}
-  cookTime: ${input.recipe.cookTime}
-  totalTime: ${input.recipe.totalTime}
-  tags:
-${input.recipe.tags.map((item) => `    - "${item}"`).join("\n")}
-  ingredients:
-${input.recipe.ingredients.map((item) => `    - "${item}"`).join("\n")}
-  instructions:
-${input.recipe.instructions.map((item) => `    - "${item}"`).join("\n")}
-\`\`\`
-
-${FORMAT_INSTRUCTIONS}`;
 
 const NEW_INSTANT_RECIPE_TEMPLATE = (_: NewInstantRecipePredictionInput) => `
 The user will provide for a prompt to generate a recipe. Please generate a full recipe for this selection following the format and examples below.
@@ -195,47 +79,3 @@ Example 1: ${EXAMPLE_1.output}
 Example 2: ${EXAMPLE_2.output}
 
 Example 3: ${EXAMPLE_3.output}`;
-
-const DIETARY_RECIPE_TEMPLATE = (
-  input: ModifyRecipeDietaryPredictionInput
-) => `The user will provide a instructions for a change they'd like to make to the recipe for dietary reasons.
-
-Please give back the yaml for the updated recipe, applying the dietary instructions as specified by the user.
-
-\`\`\`yaml
-recipe:
-  name: ${input.recipe.name}
-  description: ${input.recipe.description}
-  yield: ${input.recipe.yield}
-  activeTime: ${input.recipe.activeTime}
-  cookTime: ${input.recipe.cookTime}
-  totalTime: ${input.recipe.totalTime}
-  tags:
-${input.recipe.tags.map((item) => `    - "${item}"`).join("\n")}
-  ingredients:
-${input.recipe.ingredients.map((item) => `    - "${item}"`).join("\n")}
-  instructions:
-${input.recipe.instructions.map((item) => `\ \ \ \ - "${item}"`).join("\n")}
-\`\`\``;
-
-const EQUIPMENT_RECIPE_TEMPLATE = (
-  input: ModifyRecipeEquipmentPredictionInput
-) => `The user will provide a instructions for a change they'd like to make to the equipment used in this recipe.
-
-Please give back the yaml for the updated recipe, applying any changes as specified by the user.
-
-\`\`\`yaml
-recipe:
-  name: ${input.recipe.name}
-  description: ${input.recipe.description}
-  yield: ${input.recipe.yield}
-  activeTime: ${input.recipe.activeTime}
-  cookTime: ${input.recipe.cookTime}
-  totalTime: ${input.recipe.totalTime}
-  tags:
-${input.recipe.tags.map((item) => `    - "${item}"`).join("\n")}
-  ingredients:
-${input.recipe.ingredients.map((item) => `    - "${item}"`).join("\n")}
-  instructions:
-${input.recipe.instructions.map((item) => `\ \ \ \ - "${item}"`).join("\n")}
-\`\`\``;

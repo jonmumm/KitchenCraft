@@ -466,7 +466,7 @@ export default async function Page(props: Props) {
                 db.insert(RecipesTable)
                   .values(recipe)
                   .then(() => {
-                    console.log("saved to db!");
+                    revalidatePath("/");
                   });
 
                 kv.hset(`recipe:${slug}`, {
@@ -476,12 +476,12 @@ export default async function Page(props: Props) {
                   generatorSubject.complete();
                 });
 
-                kv.zadd(`recipes:new`, {
-                  score: Date.now(),
-                  member: slug,
-                }).then(() => {
-                  revalidatePath("/");
-                });
+                // kv.zadd(`recipes:new`, {
+                //   score: Date.now(),
+                //   member: slug,
+                // }).then(() => {
+                //   revalidatePath("/");
+                // });
               }}
             />
           </Suspense>

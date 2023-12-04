@@ -61,6 +61,8 @@ import {
   InstantRecipeMetdataInputSchema,
   InstantRecipeMetadataPredictionOutputSchema,
   UpvoteEventSchema,
+  RemixRecipeMetadataPredictionInputSchema,
+  RemixPredictionInputSchema,
 } from "./schema";
 
 
@@ -110,6 +112,7 @@ export type SuggestionPredictionPartialOutput = z.infer<
   typeof SuggestionPredictionPartialOutputSchema
 >;
 export type RecipePredictionInput = z.infer<typeof RecipePredictionInputSchema>;
+export type RemixPredictionInput = z.infer<typeof RemixPredictionInputSchema>;
 export type RecipePredictionOutput = z.infer<
   typeof RecipePredictionOutputSchema
 >;
@@ -125,6 +128,9 @@ export type RemixIdeasPredictionInput = z.infer<
 export type FAQsPredictionInput = z.infer<typeof FAQsPredictionInputSchema>;
 export type InstantRecipeMetadataPredictionInput = z.infer<
   typeof InstantRecipeMetadataPredictionInputSchema
+>;
+export type RemixRecipeMetadataPredictionInput = z.infer<
+  typeof RemixRecipeMetadataPredictionInputSchema
 >;
 export type InstantRecipeMetadataPredictionOutput = z.infer<
   typeof InstantRecipeMetadataPredictionOutputSchema

@@ -2,6 +2,24 @@ import { Observable, filter, map, takeWhile } from "rxjs";
 import { Recipe } from "../../../db/types";
 
 export const getObservables = (recipe$: Observable<Partial<Recipe>>) => ({
+  name$: recipe$.pipe(
+    takeWhile((item: Partial<Recipe>) => item.description === undefined, true), // Keep emitting until ingredients is not undefined
+    filter(
+      (item: Partial<Recipe>): item is Partial<Recipe> & { name: string } =>
+        item.name !== undefined
+    ),
+    map((item) => item.name)
+  ),
+  description$: recipe$.pipe(
+    takeWhile((item: Partial<Recipe>) => item.tags === undefined, true), // Keep emitting until ingredients is not undefined
+    filter(
+      (
+        item: Partial<Recipe>
+      ): item is Partial<Recipe> & { description: string } =>
+        item.description !== undefined
+    ),
+    map((item) => item.description)
+  ),
   ingredients$: recipe$.pipe(
     takeWhile((item: Partial<Recipe>) => item.instructions === undefined, true), // Keep emitting until ingredients is not undefined
     filter(

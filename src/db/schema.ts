@@ -169,3 +169,16 @@ export const RecipeHistoryTable = pgTable("recipe_history", {
     .references(() => UsersTable.id), // Assuming changes are made by a user
   modifiedAt: timestamp("modified_at", { mode: "date" }).notNull().defaultNow(),
 });
+
+export const RecipeModificationTable = pgTable("recipe_modification", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  recipeSlug: text("recipe_slug")
+    .notNull()
+    .references(() => RecipesTable.slug),
+  modifiedBy: text("modified_by")
+    .notNull()
+    .references(() => UsersTable.id),
+  modificationType: text("modification_type").notNull(), // e.g., "ingredients", "scale"
+  modificationDetails: jsonb("modification_details").notNull(), // details of the modification
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});

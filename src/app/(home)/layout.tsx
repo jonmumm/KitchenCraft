@@ -7,10 +7,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/navigation/tabs";
-import { getMyRecentRecipes } from "@/lib/db";
-import { kv } from "@vercel/kv";
-import { ChevronRightIcon } from "lucide-react";
-import { map } from "nanostores";
+import { ChevronRightIcon, TimerIcon } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import { Header } from "../header";
@@ -20,12 +17,11 @@ import { Header } from "../header";
 //   RecipeName,
 //   RecipeTimestamp,
 // } from "./components";
-import { BestDropdown } from "./components.client";
-import LayoutClient, { HomeTabs } from "./layout.client";
-import { RecipeStore } from "./types";
-import { getRecentRecipesByUser } from "./queries";
 import { getSession } from "@/lib/auth/session";
 import { timeAgo } from "@/lib/utils";
+import { BestDropdown } from "./components.client";
+import LayoutClient, { HomeTabs } from "./layout.client";
+import { getRecentRecipesByUser } from "./queries";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const userId = (await getSession())?.user.id;
@@ -111,8 +107,15 @@ const MyRecipes = ({ userId }: { userId: string }) => {
                   <div className="line-clamp-2 text-xs text-muted-foreground leading-5 px-3">
                     {recipe.description}
                   </div>
-                  <div className="text-xs text-muted-foreground px-3">
-                    {timeAgo(recipe.createdAt.toISOString())}
+                  <div className="flex flex-row justify-between px-3 items-end">
+                    <div className="text-xs text-muted-foreground flex flex-row gap-1">
+                      <TimerIcon size={14} />
+                      <span>15 min</span>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground">
+                      {timeAgo(recipe.createdAt.toISOString())}
+                    </div>
                   </div>
                 </Card>
               </Link>

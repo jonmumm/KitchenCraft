@@ -68,6 +68,7 @@ export function SignInForm() {
               <FormControl>
                 <Input
                   autoFocus
+                  autoComplete="email"
                   disabled={disabled}
                   type="email"
                   placeholder="you@example.com"

@@ -5,9 +5,11 @@ import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import StickyHeader from "@/components/layout/sticky-header";
 import { LastValue } from "@/components/util/last-value";
-import { WaitForLastValue } from "@/components/util/wait-for-last-value";
-import { Recipe } from "@/db/types";
+import { RenderFirstValue } from "@/components/util/render-first-value";
+import { NewRecipe, Recipe } from "@/db/types";
+import { getSession } from "@/lib/auth/session";
 import { getSlug } from "@/lib/slug";
+import { assert } from "@/lib/utils";
 import {
   ModificationSchema,
   ModifyRecipeDietaryPredictionInputSchema,
@@ -33,7 +35,7 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { BehaviorSubject, identity } from "rxjs";
+import { BehaviorSubject, Subject } from "rxjs";
 import { z } from "zod";
 import {
   CraftingDetails,
@@ -43,10 +45,7 @@ import {
   Times,
 } from "../components";
 import { getObservables } from "../observables";
-import RecipeGenerator from "../recipe-generator";
-// import { Tags } from "../tags";
-// import { Times } from "../times";
-// import { Yield } from "../yield";
+import { RemixGenerator } from "./components";
 
 type Props = {
   params: { slug: string };
@@ -59,6 +58,9 @@ type Props = {
  * @returns
  */
 export default async function Page(props: Props) {
+  const session = await getSession();
+  const userId = session?.user.id;
+  assert(userId, "expected userId");
   const baseSlug = props.params.slug;
 
   let prompt: string;
@@ -70,15 +72,19 @@ export default async function Page(props: Props) {
     return redirect(`/recipe/${baseSlug}`);
   }
 
-  // const recipeKey = `recipe:${baseSlug}`;
-  // const recipe = CompletedRecipeSchema.parse(await kv.hgetall(recipeKey));
   const recipe = await getRecipe(baseSlug);
   if (!recipe) {
     throw new Error(`Recipe ${baseSlug} not found`);
   }
+
   const remix$ = new BehaviorSubject<Partial<Recipe>>({});
+  const newRecipe$ = new Subject<NewRecipe>();
+
+  // const name$ = from();
 
   const {
+    name$,
+    description$,
     ingredients$,
     instructions$,
     tags$,
@@ -87,15 +93,6 @@ export default async function Page(props: Props) {
     cookTime$,
     totalTime$,
   } = getObservables(remix$);
-
-  // instructions$.pipe(identity).subscribe({
-  //   next(value) {
-  //     console.log(value);
-  //   },
-  // });
-
-  const id = nanoid();
-  const branchedSlug = getSlug({ id, name: recipe.name });
 
   const Generator = async () => {
     const getInput = () => {
@@ -151,7 +148,7 @@ export default async function Page(props: Props) {
     const input = getInput();
 
     return (
-      <RecipeGenerator
+      <RemixGenerator
         input={input}
         onProgress={(output) => {
           if (output.recipe) {
@@ -160,48 +157,77 @@ export default async function Page(props: Props) {
         }}
         onError={(error, outputRaw) => {
           console.log("error", error, outputRaw);
-          // kv.hset(`recipe:${slug}`, {
-          //   runStatus: "error",
-          //   error,
-          //   outputRaw,
-          // }).then(noop);
         }}
         onComplete={(output) => {
           remix$.next(output.recipe);
-          // console.log(output.recipe);
           remix$.complete();
 
-          // store.setKey("recipe", {
-          //   ...store.get().recipe,
-          //   ...output.recipe,
-          // });
-          //   kv.hset(`recipe:${slug}`, {
-          //     runStatus: "done",
-          //     ...output.recipe,
-          //   }).then(noop);
-          //   kv.zadd(`recipes:new`, {
-          //     score: Date.now(),
-          //     member: slug,
-          //   }).then(() => {
-          //     revalidatePath("/");
-          //   });
+          const id = nanoid();
+          const newSlug = getSlug({ id, name: output.recipe.name });
 
-          // store.setKey("loading", false);
+          newRecipe$.next({
+            slug: newSlug,
+            name: output.recipe.name,
+            description: output.recipe.description,
+            yield: output.recipe.yield,
+            tags: output.recipe.tags,
+            ingredients: output.recipe.ingredients,
+            instructions: output.recipe.instructions,
+            cookTime: output.recipe.cookTime,
+            activeTime: output.recipe.activeTime,
+            totalTime: output.recipe.totalTime,
+            createdBy: userId,
+            createdAt: new Date(),
+          });
+          newRecipe$.complete();
         }}
       />
     );
   };
 
-  const SaveButtons = () => {
+  const SaveButtons = ({ newRecipe }: { newRecipe: NewRecipe }) => {
     const saveAsNewRecipe = async () => {
       "use server";
+      // todo
       console.log("SAVE! new");
-      return redirect("/");
+      console.log(newRecipe);
+
+      redirect("/");
     };
     const saveRecipe = async () => {
       "use server";
+
+      console.log(newRecipe);
+      // const newRecipe = await firstValueFrom(remix$);
+
+      // todo
       console.log("SAVE!");
-      return redirect("/");
+
+      // await db.transaction(async (tx) => {
+      //   // Define the new recipe
+      //   const newRecipe = {
+      //     slug: 'new-recipe-slug',
+      //     name: 'New Recipe',
+      //     description: 'Description of new recipe',
+      //     // ... other required fields
+      //   };
+
+      //   // Insert the new recipe
+      //   await tx.insert(RecipesTable).values(newRecipe);
+
+      //   // Define the modification record
+      //   const newModification = {
+      //     recipeSlug: newRecipe.slug,
+      //     modifiedBy: 'user-id-of-modifier',
+      //     modificationType: 'creation',
+      //     modificationDetails: { /* detailed JSON data about the creation */ },
+      //   };
+
+      //   // Insert the modification record
+      //   await tx.insert(RecipeModificationTable).values(newModification);
+      // });
+
+      // redirect("/");
     };
 
     return (
@@ -237,9 +263,12 @@ export default async function Page(props: Props) {
               </div>
             }
           >
-            <WaitForLastValue observable={remix$}>
-              <SaveButtons />
-            </WaitForLastValue>
+            <RenderFirstValue
+              observable={newRecipe$}
+              render={(newRecipe) => {
+                return <SaveButtons newRecipe={newRecipe} />;
+              }}
+            />
           </Suspense>
         </div>
       </StickyHeader>
@@ -249,11 +278,17 @@ export default async function Page(props: Props) {
           <Generator />
         </Suspense>
         <div className="flex flex-row gap-3 p-5 justify-between">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-semibold">{recipe.name}</h1>
-            <p className="text-lg text-muted-foreground">
-              {recipe.description}
-            </p>
+          <div className="flex flex-col gap-2 flex-1">
+            <Suspense fallback={<Skeleton className="w-full h-14" />}>
+              <h1 className="text-2xl font-semibold">
+                <LastValue observable={name$} />
+              </h1>
+            </Suspense>
+            <Suspense fallback={<Skeleton className="w-full h-24" />}>
+              <p className="text-lg text-muted-foreground">
+                <LastValue observable={description$} />
+              </p>
+            </Suspense>
             <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
               <span>Yields</span>
               <span>
@@ -311,9 +346,6 @@ export default async function Page(props: Props) {
           </div>
         </div>
       </Card>
-      {/* <Suspense fallback={null}>
-        <Footer />
-      </Suspense> */}
     </div>
   );
 }
