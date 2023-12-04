@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/display/skeleton";
-import { formatDuration } from "@/lib/utils";
+import { formatDuration, sentenceToSlug } from "@/lib/utils";
 import { ClockIcon, TagIcon } from "lucide-react";
 import { Suspense } from "react";
 
@@ -40,10 +40,7 @@ export async function CraftingDetails({ createdAt }: { createdAt: string }) {
         Crafted By
       </Label>
 
-      <Link
-        href="/chef/InspectorT"
-        className="flex flex-row gap-1 items-center"
-      >
+      <Link href="/@inspectorT" className="flex flex-row gap-1 items-center">
         <Badge variant="outline">
           <h3 className="font-bold text-xl">
             <div className="flex flex-col gap-1 items-center">
@@ -128,9 +125,14 @@ export const Tags = ({ tags$ }: { tags$: Observable<string[]> }) => {
     return (
       <>
         {tag ? (
-          <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
-            {tag}
-          </Badge>
+          <Link href={`/tag/${sentenceToSlug(tag)}`}>
+            <Badge
+              variant="outline"
+              className="inline-flex flex-row gap-1 px-2"
+            >
+              {tag}
+            </Badge>
+          </Link>
         ) : null}
       </>
     );
