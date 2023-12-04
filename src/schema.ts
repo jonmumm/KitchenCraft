@@ -9,6 +9,23 @@ import {
 } from "./constants";
 import { RecipeSchema } from "./db";
 
+// Regex for URL-friendly string (alphanumeric, hyphens, underscores)
+const isUrlFriendly = (str: string) => /^[a-zA-Z0-9_-]*$/.test(str);
+
+export const ProfileSlugSchema = z.custom<`@${string}`>((val) => {
+  return typeof val === "string" && val[0] === "@"
+    ? isUrlFriendly(val.slice(1))
+    : false;
+});
+
+// // Example usage
+// try {
+//     ProfileSchema.parse("@inspectorT");  // This should pass
+//     TagSchema.parse("#fried");           // This should pass
+// } catch (e) {
+//     console.error(e);
+// }
+
 export const SecretsEnvironmentSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
@@ -17,7 +34,7 @@ export const SecretsEnvironmentSchema = z.object({
 });
 
 export const PublicEnvironmentSchema = z.object({
-  KITCHENCRAFT_URL: z.string(),
+  KITCHENCRAFT_URL: z.string().url(),
   ADSENSE_PUBLISHER_ID: z.string(),
 });
 

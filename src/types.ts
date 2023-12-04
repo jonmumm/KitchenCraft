@@ -8,7 +8,6 @@ import {
   CreateMessageInputSchema,
   CreateRecipeInputSchema,
   CuisineSchema,
-  ModifyRecipeDietaryPredictionInputSchema,
   DietaryAlternativesInputSchema,
   DietaryAlternativesPredictionInputSchema,
   DishTypeSchema,
@@ -17,12 +16,22 @@ import {
   FAQsPredictionInputSchema,
   GeneratorTypeSchema,
   IdeasPredictionOutputSchema,
+  InstantRecipeMetadataPredictionInputSchema,
+  InstantRecipeMetadataPredictionOutputSchema,
+  InstantRecipeMetdataInputSchema,
   LLMMessageSetIdSchema,
   LLMMessageSetSchema,
   MessageContentSchema,
   MessageSchema,
   ModificationSchema,
+  ModifyRecipeDietaryPredictionInputSchema,
+  ModifyRecipeEquipmentPredictionInputSchema,
+  ModifyRecipeFreeTextPredictionInputSchema,
+  ModifyRecipeIngredientsPredictionInputSchema,
+  ModifyRecipeScalePredictionInputSchema,
+  NewInstantRecipePredictionInputSchema,
   NewRecipeFromSuggestionsPredictionInputSchema,
+  ProfileSlugSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
   RecipeChatInputSchema,
@@ -30,15 +39,16 @@ import {
   RecipePredictionOutputSchema,
   RecipePredictionPartialOutputSchema,
   RecipeRequiredPropsSchema,
-  TempRecipeSchema,
   RemixIdeasPredictionInputSchema,
   RemixIdeasPredictionOutputSchema,
   RemixIdeasPredictionPartialOutputSchema,
+  RemixPredictionInputSchema,
+  RemixPredictionOutputSchema,
+  RemixPredictionPartialOutputSchema,
+  RemixRecipeMetadataPredictionInputSchema,
   RoleSchema,
-  ModifyRecipeScalePredictionInputSchema,
   SlugSchema,
   SousChefPredictionInputSchema,
-  ModifyRecipeIngredientsPredictionInputSchema,
   SubstitutionsInputSchema,
   SubstitutionsPredictionInputSchema,
   SubstitutionsPredictionOutputSchema,
@@ -50,23 +60,13 @@ import {
   SuggestionsInputSchema,
   SystemMessageSchema,
   TechniqueSchema,
+  TempRecipeSchema,
   TipsPredictionInputSchema,
   TipsPredictionOutputSchema,
   TipsPredictionPartialOutputSchema,
-  UserMessageSchema,
-  ModifyRecipeEquipmentPredictionInputSchema,
-  ModifyRecipeFreeTextPredictionInputSchema,
-  NewInstantRecipePredictionInputSchema,
-  InstantRecipeMetadataPredictionInputSchema,
-  InstantRecipeMetdataInputSchema,
-  InstantRecipeMetadataPredictionOutputSchema,
   UpvoteEventSchema,
-  RemixRecipeMetadataPredictionInputSchema,
-  RemixPredictionInputSchema,
-  RemixPredictionOutputSchema,
-  RemixPredictionPartialOutputSchema,
+  UserMessageSchema,
 } from "./schema";
-
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 
@@ -118,9 +118,7 @@ export type RemixPredictionInput = z.infer<typeof RemixPredictionInputSchema>;
 export type RecipePredictionOutput = z.infer<
   typeof RecipePredictionOutputSchema
 >;
-export type RemixPredictionOutput = z.infer<
-  typeof RemixPredictionOutputSchema
->;
+export type RemixPredictionOutput = z.infer<typeof RemixPredictionOutputSchema>;
 export type RecipePredictionPartialOutput = z.infer<
   typeof RecipePredictionPartialOutputSchema
 >;
@@ -234,3 +232,5 @@ export type ModifyRecipeDietaryPredictionInput = z.infer<
 >;
 
 export type UpvoteEvent = z.infer<typeof UpvoteEventSchema>;
+
+export type ProfileSlug = z.infer<typeof ProfileSlugSchema>;
