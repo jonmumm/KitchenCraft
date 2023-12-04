@@ -1,7 +1,8 @@
+import { Badge } from "@/components/display/badge";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { getSession } from "@/lib/auth/session";
-import { formatDuration } from "@/lib/utils";
+import { formatDuration, sentenceToSlug, slugToSentence } from "@/lib/utils";
 import { ChevronRightIcon, TimerIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,7 +13,6 @@ import { upvote } from "../recipe/actions";
 import { UpvoteButton } from "../recipe/components.client";
 import { RecipePropsProvider } from "../recipe/context";
 import { getSortedMediaForRecipe, getTopRecipes } from "./queries";
-import { Badge } from "@/components/display/badge";
 
 // export const dynamic = "force-dynamic";
 export default async function Page({
@@ -48,9 +48,13 @@ export default async function Page({
             : requireLogin
         }
       >
-        <Link key={index} href={`/recipe/${recipe.slug}`} className="flex flex-col gap-3">
+        <Link
+          key={index}
+          href={`/recipe/${recipe.slug}`}
+          className="flex flex-col gap-3"
+        >
           <div className="w-full h-64 flex flex-row gap-4 relative">
-            <div className="absolute bottom-3 left-2 right-2 z-50 flex flex-row justify-between items-center">
+            <div className="absolute bottom-3 left-2 right-2 z-50 flex flex-row justify-between items-center gap-3">
               <Button variant="outline" size="icon">
                 {index + 1}.
               </Button>
@@ -77,11 +81,17 @@ export default async function Page({
             })}
           </div> */}
           </div>
+          <div className="px-5 flex flex-row justify-between items-center gap-4">
+            <h2 className="font-semibold text-lg flex-1">{recipe.name}</h2>
+            <Link href="/@inspectorT">
+              <Badge variant="secondary" className="float-right">
+                <span>@inspectorT</span>
+                {/* <span className="text-muted-foreground">(+1048 🧪)</span> */}
+              </Badge>
+            </Link>
+          </div>
           <div className="px-5 flex flex-row gap-4 items-center">
-            <div className="flex-1">
-              <h2 className="font-semibold text-lg">{recipe.name}</h2>
-              <p>{recipe.description}</p>
-            </div>
+            <p className="flex-1">{recipe.description}</p>
             <Button size="icon" variant="outline">
               <ChevronRightIcon />
             </Button>
@@ -96,9 +106,9 @@ export default async function Page({
             </Badge>
             <div className="flex-1 flex flex-row gap-1 flex-wrap justify-end">
               {recipe.tags.map((tag) => (
-                <Badge variant="secondary" key={tag}>
-                  {tag}
-                </Badge>
+                <Link href={`/tag/${sentenceToSlug(tag)}`} key={tag}>
+                  <Badge variant="secondary">{tag}</Badge>
+                </Link>
               ))}
             </div>
           </div>

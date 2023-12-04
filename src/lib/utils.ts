@@ -35,6 +35,19 @@ export function sentenceToSlug(sentence: string): string {
     .replace(/^-|-$/g, "");
 }
 
+export function slugToSentence(slug: string): string {
+  // Replace dashes with spaces
+  let sentence = slug.replace(/-/g, " ");
+
+  // Capitalize the first letter of each word
+  sentence = sentence
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  return sentence;
+}
+
 // Generate a random ID with a given length
 export function generateRandomId(length: number = 6): string {
   const characters =
@@ -199,12 +212,12 @@ export function timeAgo(isoString: string): string {
   const days = Math.floor(hours / 24);
 
   if (days > 0) {
-      return `${days} days ago`;
+    return `${days} days ago`;
   } else if (hours > 0) {
-      return `${hours} hours ago`;
+    return `${hours} hours ago`;
   } else if (minutes > 0) {
-      return `${minutes} minutes ago`;
+    return `${minutes} minutes ago`;
   } else {
-      return `${seconds} seconds ago`;
+    return `${seconds} seconds ago`;
   }
 }

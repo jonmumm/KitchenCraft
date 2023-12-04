@@ -9,15 +9,14 @@ import { HomeContext } from "./context";
 import { TabSchema, TimeParamSchema } from "./schema";
 import { HomeStore } from "./types";
 
-export default function LayoutClient(props: {
-  children: ReactNode;
-}) {
+export default function LayoutClient(props: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const segment = pathname.split("/")[1];
 
   const [store] = useState<HomeStore>(
     map({
-      tab: TabSchema.parse(pathname.split("/")[1] || "hot"),
+      tab: TabSchema.parse(segment || "hot"),
       timeParam: searchParams.get("t"),
     })
   );
