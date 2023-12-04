@@ -1,9 +1,6 @@
 "use client";
 
 import { Tabs } from "@/components/navigation/tabs";
-import { useEventHandler } from "@/hooks/useEventHandler";
-import { noop } from "@/lib/utils";
-import { UpvoteEvent } from "@/types";
 import { useStore } from "@nanostores/react";
 import { map } from "nanostores";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -14,7 +11,6 @@ import { HomeStore } from "./types";
 
 export default function LayoutClient(props: {
   children: ReactNode;
-  upvote: (slug: string) => Promise<void>;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -26,14 +22,14 @@ export default function LayoutClient(props: {
     })
   );
 
-  const handleUpvote = useCallback(
-    (event: UpvoteEvent) => {
-      props.upvote(event.slug).then(noop);
-    },
-    [props.upvote]
-  );
+  // const handleUpvote = useCallback(
+  //   (event: UpvoteEvent) => {
+  //     props.upvote(event.slug).then(noop);
+  //   },
+  //   [props.upvote]
+  // );
 
-  useEventHandler("UPVOTE", handleUpvote);
+  // useEventHandler("UPVOTE", handleUpvote);
 
   const SearchParams = () => {
     const searchParams = useSearchParams();

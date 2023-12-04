@@ -13,6 +13,7 @@ export default async function Page() {
     <div className="flex flex-col max-w-2xl mx-auto">
       <Header />
       <section>
+        <h1 className="font-semibold text-xl">Check Your Email</h1>
         <PasscodeForm />
       </section>
     </div>

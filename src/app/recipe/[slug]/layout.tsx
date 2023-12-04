@@ -2,7 +2,7 @@ import { upvote } from "@/actions";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
-import { RecipePropsProvider } from "./context";
+import { RecipePropsProvider } from "../context";
 
 export default async function Layout({
   children,
@@ -17,7 +17,7 @@ export default async function Layout({
   const requireLogin = async () => {
     "use server";
 
-    redirect("/login");
+    redirect("/auth/signin");
   };
 
   return (

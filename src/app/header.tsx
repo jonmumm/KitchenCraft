@@ -144,15 +144,6 @@ export function Header({
         className
       )}
     >
-      {/* <div>
-        <Button
-          onClick={handlePressBack}
-          className={!isBackVisible ? "invisible" : ""}
-          variant="outline"
-        >
-          <ArrowBigLeftIcon />
-        </Button>
-      </div> */}
       <div>
         <Popover
           open={isPopoverOpen}

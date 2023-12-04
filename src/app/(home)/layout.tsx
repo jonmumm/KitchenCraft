@@ -36,17 +36,19 @@ export default async function Layout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <LayoutClient upvote={upvote}>
+    <LayoutClient>
       <div>
         <Header />
       </div>
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1 w-full">
-          <Label className="px-4 uppercase font-semibold text-accent-foreground opacity-70 text-xs">
-            InspectorT&apos;s Crafts
-          </Label>
-          {userId && <MyRecipes userId={userId} />}
-        </div>
+        {userId && (
+          <div className="flex flex-col gap-1 w-full">
+            <Label className="px-4 uppercase font-semibold text-accent-foreground opacity-70 text-xs">
+              InspectorT&apos;s Crafts
+            </Label>
+            <MyRecipes userId={userId} />
+          </div>
+        )}
         <HomeTabs>
           <TabsList className="w-full">
             <TabsTrigger value="hot" asChild>

@@ -28,7 +28,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import { RecipeContext } from "./context";
+import { RecipeContext } from "../context";
 
 type Actions = {
   remix: (prompt: string) => Promise<string>;
@@ -120,38 +120,6 @@ export const RemixCommandInput = (
       </div>
       <CommandInput postIcon={loading ? "spinner" : "send"} {...props} />
     </>
-  );
-};
-
-export const UpvoteButton = (props: { count: number; disabled?: boolean }) => {
-  const { upvote } = useContext(RecipeContext);
-  const [count$] = useState(atom(props.count));
-  const count = useStore(count$);
-  const [isPending, startTransition] = useTransition();
-
-  const handleClick: MouseEventHandler = useCallback(
-    (event) => {
-      event.preventDefault();
-      count$.set(count$.get() + 1);
-      startTransition(() => upvote().then());
-    },
-    [count$]
-  );
-
-  return (
-    <form action={upvote}>
-      <Button
-        disabled={props.disabled || isPending}
-        onClick={handleClick}
-        variant="outline"
-        className="flex flex-row gap-1"
-        aria-label="Upvote"
-        type="submit"
-      >
-        <ArrowBigUpDashIcon />
-        <span className="font-bold">{count}</span>
-      </Button>
-    </form>
   );
 };
 
