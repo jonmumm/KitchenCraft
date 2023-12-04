@@ -2,7 +2,7 @@ import { Badge } from "@/components/display/badge";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { getSession } from "@/lib/auth/session";
-import { formatDuration, sentenceToSlug, slugToSentence } from "@/lib/utils";
+import { formatDuration, sentenceToSlug } from "@/lib/utils";
 import { ChevronRightIcon, TimerIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,6 +37,7 @@ export default async function Page({
     if (!recipe) {
       return null;
     }
+    const href = `/recipe/${recipe.slug}`;
     // const recipe$ = getObservableAtIndex(index, query$);
 
     return (
@@ -48,22 +49,19 @@ export default async function Page({
             : requireLogin
         }
       >
-        <Link
-          key={index}
-          href={`/recipe/${recipe.slug}`}
-          className="flex flex-col gap-3"
-        >
-          <div className="w-full h-64 flex flex-row gap-4 relative">
-            <div className="absolute bottom-3 left-2 right-2 z-50 flex flex-row justify-between items-center gap-3">
-              <Button variant="outline" size="icon">
-                {index + 1}.
-              </Button>
+        <div key={index} className="flex flex-col gap-3">
+          <Link href={href}>
+            <div className="w-full h-64 flex flex-row gap-4 relative">
+              <div className="absolute bottom-3 left-2 right-2 z-50 flex flex-row justify-between items-center gap-3">
+                <Button variant="outline" size="icon">
+                  {index + 1}.
+                </Button>
 
-              <UpvoteButton count={1} />
-            </div>
+                <UpvoteButton count={1} />
+              </div>
 
-            <RecipeCarousel slug={recipe.slug} />
-            {/* <div className="carousel carousel-center space-x-2 flex-1 px-4">
+              <RecipeCarousel slug={recipe.slug} />
+              {/* <div className="carousel carousel-center space-x-2 flex-1 px-4">
             {mediaItems.map((item, mediaIndex) => {
               return (
                 <div key={mediaIndex} className="carousel-item">
@@ -80,7 +78,8 @@ export default async function Page({
               );
             })}
           </div> */}
-          </div>
+            </div>
+          </Link>
           <div className="px-5 flex flex-row justify-between items-center gap-4">
             <h2 className="font-semibold text-lg flex-1">{recipe.name}</h2>
             <Link href="/@inspectorT">
@@ -90,12 +89,14 @@ export default async function Page({
               </Badge>
             </Link>
           </div>
-          <div className="px-5 flex flex-row gap-4 items-center">
-            <p className="flex-1">{recipe.description}</p>
-            <Button size="icon" variant="outline">
-              <ChevronRightIcon />
-            </Button>
-          </div>
+          <Link href={href}>
+            <div className="px-5 flex flex-row gap-4 items-center">
+              <p className="flex-1">{recipe.description}</p>
+              <Button size="icon" variant="outline">
+                <ChevronRightIcon />
+              </Button>
+            </div>
+          </Link>
           <div className="w-full px-5 flex flex-row justify-between items-center">
             <Badge
               className="text-xs text-muted-foreground flex flex-row gap-1"
@@ -106,13 +107,19 @@ export default async function Page({
             </Badge>
             <div className="flex-1 flex flex-row gap-1 flex-wrap justify-end">
               {recipe.tags.map((tag) => (
-                <Link href={`/tag/${sentenceToSlug(tag)}`} key={tag}>
-                  <Badge variant="secondary">{tag}</Badge>
+                <Link
+                  href={`/tag/${sentenceToSlug(tag)}`}
+                  key={tag}
+                  passHref={true}
+                >
+                  <Badge key={tag} variant="secondary">
+                    {tag}
+                  </Badge>
                 </Link>
               ))}
             </div>
           </div>
-        </Link>
+        </div>
       </RecipePropsProvider>
     );
   };
