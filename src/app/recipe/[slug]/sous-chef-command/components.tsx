@@ -1,16 +1,18 @@
 "use client";
 
 import { Badge } from "@/components/display/badge";
-import { Button } from "@/components/input/button";
 import { CardContent } from "@/components/display/card";
+import { Label } from "@/components/display/label";
+import { Separator } from "@/components/display/separator";
+import { Button } from "@/components/input/button";
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandItemClearPrompt,
 } from "@/components/input/command";
-import { Label } from "@/components/display/label";
-import { Separator } from "@/components/display/separator";
+import { useEventHandler } from "@/hooks/useEventHandler";
 import { useStore } from "@nanostores/react";
 import { useCommandState } from "cmdk";
 import { HelpCircle } from "lucide-react";
@@ -179,6 +181,7 @@ export const SousChefPromptCommandGroup = () => {
         </div>
         <Badge variant="secondary">Ask</Badge>
       </SousChefCommandItem>
+      <CommandItemClearPrompt />
     </CommandGroup>
   ) : null;
 };
@@ -192,10 +195,19 @@ export const SousChefCommandInput = (
   }, []);
   const { inputRef } = useStore(store, { keys: ["inputRef"] });
 
+  const handleClear = useCallback(() => {
+    store.setKey("prompt", "");
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [inputRef]);
+  useEventHandler("CLEAR", handleClear);
+
   // const handleSubmit = useCallback(() => {
   //   store.setKey("submittedPrompt", store.get().prompt);
   // }, [store]);
   const prompt = usePrompt();
+  console.log({ prompt });
   // const ref = store.get().inputRef;
 
   return (

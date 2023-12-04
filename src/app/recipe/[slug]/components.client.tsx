@@ -7,28 +7,26 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandItemClearPrompt,
 } from "@/components/input/command";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { assert } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { useStore } from "@nanostores/react";
 import { useCommandState } from "cmdk";
-import { ArrowBigUpDashIcon, PlusIcon, ShuffleIcon } from "lucide-react";
-import { atom, map } from "nanostores";
+import { PlusIcon, ShuffleIcon } from "lucide-react";
+import { map } from "nanostores";
 import { useRouter } from "next/navigation";
 
 import {
   ComponentProps,
   ComponentPropsWithoutRef,
-  MouseEventHandler,
   createContext,
   forwardRef,
   useCallback,
   useContext,
-  useState,
-  useTransition,
+  useRef,
 } from "react";
-import { RecipeContext } from "../context";
 
 type Actions = {
   remix: (prompt: string) => Promise<string>;
@@ -38,6 +36,7 @@ const RemixCommandContext = createContext(
   map({
     loading: false,
     submittedPrompt: undefined as string | undefined,
+    prompt: "" as string,
   })
 );
 
@@ -100,6 +99,7 @@ export const RemixCommandGroup = forwardRef<
         </div>
         <Badge className="uppercase">Remix</Badge>
       </CommandItem>
+      <CommandItemClearPrompt />
     </CommandGroup>
   ) : null;
 });
@@ -109,8 +109,23 @@ export const RemixCommandInput = (
   props: ComponentProps<typeof CommandInput>
 ) => {
   const store = useContext(RemixCommandContext);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { loading } = useStore(store, { keys: ["loading"] });
+  const { prompt } = useStore(store, { keys: ["prompt"] });
+  const handleClear = useCallback(() => {
+    store.setKey("prompt", "");
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [inputRef, store]);
+  const handleValueChange = useCallback(
+    (value: string) => {
+      store.setKey("prompt", value);
+    },
+    [store]
+  );
 
+  useEventHandler("CLEAR", handleClear);
   return (
     <>
       <div className="px-5">
@@ -118,7 +133,13 @@ export const RemixCommandInput = (
           Describe your modification to this recipe.
         </p>
       </div>
-      <CommandInput postIcon={loading ? "spinner" : "send"} {...props} />
+      <CommandInput
+        ref={inputRef}
+        value={prompt}
+        onValueChange={handleValueChange}
+        postIcon={loading ? "spinner" : "send"}
+        {...props}
+      />
     </>
   );
 };
