@@ -99,7 +99,7 @@ export default async function Page({
           <div className="w-full px-5 flex flex-row justify-between items-center">
             <Badge
               className="text-xs text-muted-foreground flex flex-row gap-1"
-              variant="secondary"
+              variant="outline"
             >
               <TimerIcon size={14} />
               <span>{formatDuration(recipe.totalTime)}</span>
