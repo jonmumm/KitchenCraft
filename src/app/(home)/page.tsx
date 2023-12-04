@@ -1,16 +1,18 @@
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { getSession } from "@/lib/auth/session";
-import { ChevronRightIcon } from "lucide-react";
+import { formatDuration } from "@/lib/utils";
+import { ChevronRightIcon, TimerIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ReactNode, Suspense } from "react";
 import { Observable, lastValueFrom } from "rxjs";
 import { upvote } from "../recipe/actions";
+import { UpvoteButton } from "../recipe/components.client";
 import { RecipePropsProvider } from "../recipe/context";
 import { getSortedMediaForRecipe, getTopRecipes } from "./queries";
-import { UpvoteButton } from "../recipe/components.client";
+import { Badge } from "@/components/display/badge";
 
 // export const dynamic = "force-dynamic";
 export default async function Page({
@@ -46,16 +48,13 @@ export default async function Page({
             : requireLogin
         }
       >
-        <Link key={index} href={`/recipe/${recipe.slug}`}>
+        <Link key={index} href={`/recipe/${recipe.slug}`} className="flex flex-col gap-3">
           <div className="w-full h-64 flex flex-row gap-4 relative">
-            <Button
-              className="absolute bottom-3 left-2 z-50"
-              variant="outline"
-              size="icon"
-            >
-              {index + 1}.
-            </Button>
-            <div className="absolute bottom-3 right-2 z-50">
+            <div className="absolute bottom-3 left-2 right-2 z-50 flex flex-row justify-between items-center">
+              <Button variant="outline" size="icon">
+                {index + 1}.
+              </Button>
+
               <UpvoteButton count={1} />
             </div>
 
@@ -78,7 +77,7 @@ export default async function Page({
             })}
           </div> */}
           </div>
-          <div className="px-5 flex flex-row gap-3 items-center">
+          <div className="px-5 flex flex-row gap-4 items-center">
             <div className="flex-1">
               <h2 className="font-semibold text-lg">{recipe.name}</h2>
               <p>{recipe.description}</p>
@@ -86,6 +85,22 @@ export default async function Page({
             <Button size="icon" variant="outline">
               <ChevronRightIcon />
             </Button>
+          </div>
+          <div className="w-full px-5 flex flex-row justify-between items-center">
+            <Badge
+              className="text-xs text-muted-foreground flex flex-row gap-1"
+              variant="secondary"
+            >
+              <TimerIcon size={14} />
+              <span>{formatDuration(recipe.totalTime)}</span>
+            </Badge>
+            <div className="flex-1 flex flex-row gap-1 flex-wrap justify-end">
+              {recipe.tags.map((tag) => (
+                <Badge variant="secondary" key={tag}>
+                  {tag}
+                </Badge>
+              ))}
+            </div>
           </div>
         </Link>
       </RecipePropsProvider>

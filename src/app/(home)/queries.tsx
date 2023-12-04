@@ -21,6 +21,8 @@ export const getTopRecipes = async (userId?: string) => {
       slug: RecipesTable.slug,
       name: RecipesTable.name,
       description: RecipesTable.description,
+      tags: RecipesTable.tags,
+      totalTime: RecipesTable.totalTime,
       points: sql<number>`COUNT(${UpvotesTable.userId})`,
       hoursSincePosted: sql<number>`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds}`,
       score: scoreExpression,
