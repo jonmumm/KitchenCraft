@@ -110,6 +110,7 @@ export const getRecentRecipesByUser = async (userId: string) => {
       slug: RecipesTable.slug,
       name: RecipesTable.name,
       description: RecipesTable.description,
+      totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
     })

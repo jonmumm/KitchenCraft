@@ -18,7 +18,7 @@ import { Header } from "../header";
 //   RecipeTimestamp,
 // } from "./components";
 import { getSession } from "@/lib/auth/session";
-import { timeAgo } from "@/lib/utils";
+import { formatDuration, timeAgo } from "@/lib/utils";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
 import { getRecentRecipesByUser } from "./queries";
@@ -110,7 +110,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
                   <div className="flex flex-row justify-between px-3 items-end">
                     <div className="text-xs text-muted-foreground flex flex-row gap-1">
                       <TimerIcon size={14} />
-                      <span>15 min</span>
+                      <span>{formatDuration(recipe.totalTime)}</span>
                     </div>
 
                     <div className="text-xs text-muted-foreground">
