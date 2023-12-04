@@ -81,7 +81,9 @@ export default async function Page({
             </div>
           </Link>
           <div className="px-5 flex flex-row justify-between items-center gap-4">
-            <h2 className="font-semibold text-lg flex-1">{recipe.name}</h2>
+            <Link href={href}>
+              <h2 className="font-semibold text-lg flex-1">{recipe.name}</h2>
+            </Link>
             <Link href="/@inspectorT">
               <Badge variant="secondary" className="float-right">
                 <span>@inspectorT</span>
