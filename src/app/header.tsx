@@ -163,7 +163,7 @@ export function Header({
                     Chef
                   </Label>
                   <div className="flex flex-col gap-2 items-center justify-center">
-                    <Link href="/chef/inspectorT">
+                    <Link href="/@inspectorT">
                       <Badge variant="outline">
                         <h3 className="font-bold text-xl">
                           <div className="flex flex-col gap-1 items-center">

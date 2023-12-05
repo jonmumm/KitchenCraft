@@ -175,7 +175,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
     return (
       <>
         {items.map((_, index) => {
-          const width = Math.random() < 0.5 ? 48 : 72;
+          const width = Math.random() < 0.5 ? 44 : 64;
           return (
             <div className="carousel-item h-64" key={index}>
               <Skeleton className={`w-${width} h-64`} />
@@ -194,7 +194,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
         {items.map((_, index) => {
           const media = mediaList[index];
           if (!media) {
-            const width = Math.random() < 0.5 ? 48 : 72;
+            const width = Math.random() < 0.5 ? 44 : 64;
             return (
               <div className="carousel-item" key={index}>
                 <Skeleton animation="none" className={`w-${width} h-64`} />
