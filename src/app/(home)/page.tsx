@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth/session";
-import { getHotRecipes } from "../../db/queries/queries";
+import { getHotRecipes } from "../../db/queries";
 import { RecipeListItem } from "../recipe/components";
 
 // export const dynamic = "force-dynamic";

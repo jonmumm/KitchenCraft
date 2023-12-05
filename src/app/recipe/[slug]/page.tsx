@@ -16,7 +16,7 @@ import {
   getFirstMediaForRecipe,
   getRecipe,
   getSortedMediaForRecipe,
-} from "@/db/queries/queries";
+} from "@/db/queries";
 import { NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
 import { getSession } from "@/lib/auth/session";

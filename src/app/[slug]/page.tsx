@@ -3,7 +3,7 @@ import { Card } from "@/components/display/card";
 import {
   getProfileBySlug,
   getRecentRecipesByProfile,
-} from "@/db/queries/queries";
+} from "@/db/queries";
 import { ProfileSlugSchema } from "@/schema";
 import { ChefHatIcon } from "lucide-react";
 import { Header } from "../header";

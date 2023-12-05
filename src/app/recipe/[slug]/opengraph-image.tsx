@@ -3,7 +3,7 @@ import { getRecipe } from "./utils";
 import { UploadedMedia } from "./media/types";
 import { UploadedMediaSchema } from "./media/schema";
 import { kv } from "@vercel/kv";
-import { getFirstMediaForRecipe } from "@/db/queries/queries";
+import { getFirstMediaForRecipe } from "@/db/queries";
 
 // Image metadata
 // export const alt = "About Acme";

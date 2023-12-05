@@ -156,3 +156,38 @@ export const getProfileBySlug = async (profileSlug: string) => {
     .execute()
     .then((res) => res[0]); // Return the first (and expectedly only) result
 };
+
+export const getRecipesByTag = async (tag: string) => {
+  return await db
+    .select({
+      slug: RecipesTable.slug,
+      name: RecipesTable.name,
+      description: RecipesTable.description,
+      tags: RecipesTable.tags,
+      totalTime: RecipesTable.totalTime,
+      createdBy: RecipesTable.createdBy,
+      createdAt: RecipesTable.createdAt,
+    })
+    .from(RecipesTable)
+    .where(
+      sql`LOWER(${tag}) = ANY (SELECT LOWER(jsonb_array_elements_text(${RecipesTable.tags})))`
+    )
+    .limit(30)
+    .execute();
+};
+
+export const getRecentRecipes = async () => {
+  return await db
+    .select({
+      slug: RecipesTable.slug,
+      name: RecipesTable.name,
+      description: RecipesTable.description,
+      totalTime: RecipesTable.totalTime,
+      createdBy: RecipesTable.createdBy,
+      createdAt: RecipesTable.createdAt,
+    })
+    .from(RecipesTable)
+    .orderBy(desc(RecipesTable.createdAt))
+    .limit(30) // You can adjust the limit as needed
+    .execute();
+};

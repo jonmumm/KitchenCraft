@@ -14,7 +14,7 @@ import { Ollama } from "langchain/llms/ollama";
 import { PromptTemplate } from "langchain/prompts";
 import { NextRequest } from "next/server";
 import { FAQsTokenStream } from "./stream";
-import { getRecipe } from "@/db/queries/queries";
+import { getRecipe } from "@/db/queries";
 
 // IMPORTANT! Set the runtime to edge
 export const runtime = "edge";

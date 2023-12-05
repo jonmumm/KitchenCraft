@@ -211,6 +211,20 @@
       "when": 1701809658794,
       "tag": "0029_chubby_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1701810415948,
+      "tag": "0030_fat_the_anarchist",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1701810521240,
+      "tag": "0031_sturdy_lady_bullseye",
+      "breakpoints": true
     }
   ]
 }

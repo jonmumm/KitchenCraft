@@ -1,7 +1,9 @@
 import type { AdapterAccount } from "@auth/core/adapters";
+import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  index,
   integer,
   jsonb,
   pgEnum,
@@ -74,22 +76,33 @@ export const VerificationTokensTable = pgTable(
 export const VerificationTokenSchema = createSelectSchema(SessionsTable);
 export const NewVerificatoknTokenSchema = createInsertSchema(SessionsTable);
 
-export const RecipesTable = pgTable("recipe", {
-  slug: text("slug").notNull().primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  yield: text("yield").notNull(),
-  createdBy: text("createdBy")
-    .notNull()
-    .references(() => UsersTable.id, { onDelete: "cascade" }),
-  tags: jsonb("tags").$type<string[]>().notNull(), // Using jsonb to store tags
-  activeTime: text("activeTime").notNull(),
-  cookTime: text("cookTime").notNull(),
-  totalTime: text("totalTime").notNull(),
-  ingredients: jsonb("ingredients").$type<string[]>().notNull(), // Using jsonb to store ingredients
-  instructions: jsonb("instructions").$type<string[]>().notNull(), // Using jsonb to store ingredients
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-});
+export const RecipesTable = pgTable(
+  "recipe",
+  {
+    slug: text("slug").notNull().primaryKey(),
+    name: text("name").notNull(),
+    description: text("description").notNull(),
+    yield: text("yield").notNull(),
+    createdBy: text("createdBy")
+      .notNull()
+      .references(() => UsersTable.id, { onDelete: "cascade" }),
+    tags: jsonb("tags").$type<string[]>().notNull(), // Using jsonb to store tags
+    activeTime: text("activeTime").notNull(),
+    cookTime: text("cookTime").notNull(),
+    totalTime: text("totalTime").notNull(),
+    ingredients: jsonb("ingredients").$type<string[]>().notNull(), // Using jsonb to store ingredients
+    instructions: jsonb("instructions").$type<string[]>().notNull(), // Using jsonb to store ingredients
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => {
+    return {
+      // tagsIdx: index("tags_idx").on(table.tags),
+      tagsIndex: index("tags_gin_idx")
+        .on(table.tags)
+        .using(sql`gin`),
+    };
+  }
+);
 
 export const RecipeSchema = createSelectSchema(RecipesTable);
 export const NewRecipeSchema = createInsertSchema(RecipesTable);
