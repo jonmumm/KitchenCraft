@@ -15,7 +15,7 @@ import {
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useStore } from "@nanostores/react";
 import { useCommandState } from "cmdk";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, ThumbsDown, ThumbsUpIcon } from "lucide-react";
 import { listenKeys } from "nanostores";
 import {
   ComponentProps,
@@ -159,6 +159,26 @@ export const SousChefOutput = () => {
           <p>{question}</p>
           <Label className="opacity-70 mt-5">Answer</Label>
           <SousChefResultData />
+          <div className="flex flex-col gap-1 mt-3">
+            <p className="text-muted-foreground text-xs flex flex-row gap-1 items-center justify-center">
+              <HelpCircle size={14} />
+              <span>Was this helpful?</span>
+            </p>
+            <div className="flex flex-row gap-2">
+              <Button
+                variant="secondary"
+                className="flex flex-row gap-1 flex-1"
+              >
+                <span>No</span> <ThumbsDown />
+              </Button>
+              <Button
+                variant="secondary"
+                className="flex flex-row gap-1 flex-1"
+              >
+                <span>Yes</span> <ThumbsUpIcon />
+              </Button>
+            </div>
+          </div>
         </CardContent>
         <Separator />
       </>
