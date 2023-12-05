@@ -1,3 +1,4 @@
+import { TimeParamSchema } from "@/app/(home)/schema";
 import {
   MediaTable,
   ProfileTable,
@@ -7,6 +8,7 @@ import {
   db,
 } from "@/db";
 import { count, desc, eq, sql } from "drizzle-orm";
+import { z } from "zod";
 
 const oneHourInSeconds = 3600;
 const hoursSincePosted = sql<number>`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds}`;
@@ -190,4 +192,47 @@ export const getRecentRecipes = async () => {
     .orderBy(desc(RecipesTable.createdAt))
     .limit(30) // You can adjust the limit as needed
     .execute();
+};
+
+export const getBestRecipes = async (
+  timeFrame: z.infer<typeof TimeParamSchema>,
+  userId?: string
+) => {
+  const timeCondition = getTimeCondition(timeFrame); // Function to get the time condition based on the timeFrame parameter
+
+  return await db
+    .select({
+      slug: RecipesTable.slug,
+      name: RecipesTable.name,
+      description: RecipesTable.description,
+      tags: RecipesTable.tags,
+      totalTime: RecipesTable.totalTime,
+      createdBy: RecipesTable.createdBy,
+      createdAt: RecipesTable.createdAt,
+    })
+    .from(RecipesTable)
+    .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
+    .where(timeCondition) // Apply time condition
+    .groupBy(RecipesTable.slug)
+    .orderBy(desc(sql<number>`COUNT(${UpvotesTable.userId})`)) // Order by count of upvotes
+    .limit(30)
+    .execute();
+};
+
+const getTimeCondition = (timeFrame: string) => {
+  const oneHourInSeconds = 3600; // Seconds in an hour
+  switch (timeFrame) {
+    case "today":
+      return sql`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} < 24`;
+    case "week":
+      return sql`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} < 168`; // 168 hours in a week
+    case "month":
+      return sql`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} < 720`; // Approx 720 hours in a month
+    case "year":
+      return sql`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} < 8760`; // Approx 8760 hours in a year
+    case "all":
+      return sql`TRUE`; // No time condition, select all
+    default:
+      throw new Error("Invalid time frame");
+  }
 };
