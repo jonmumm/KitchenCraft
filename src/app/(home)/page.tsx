@@ -165,7 +165,7 @@ interface RecipeCarouselProps {
 }
 
 const RecipeCarousel = async ({ slug }: { slug: string }) => {
-  const items = new Array(6).fill(0);
+  const items = new Array(10).fill(0);
 
   const Loader = async () => {
     return (
@@ -189,9 +189,11 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
         {items.map((_, index) => {
           const media = mediaList[index];
           if (!media) {
+            const height = Math.random() > 0.5 ? 48 : 64;
+            const weight = height === 48 ? 64 : 48;
             return (
               <div className="carousel-item" key={index}>
-                <Skeleton className="w-72 h-64" />
+                <Skeleton className={`w-${weight} h-${height}`} />
               </div>
             );
           }
