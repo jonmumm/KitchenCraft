@@ -1,5 +1,6 @@
 import {
   MediaTable,
+  ProfileTable,
   RecipeMediaTable,
   RecipesTable,
   UpvotesTable,
@@ -120,5 +121,23 @@ export const getRecentRecipesByUser = async (userId: string) => {
     .where(eq(RecipesTable.createdBy, userId))
     .orderBy(desc(RecipesTable.createdAt))
     .limit(30)
+    .execute();
+};
+
+export const getRecentRecipesByProfile = async (profileSlug: string) => {
+  return await db
+    .select({
+      slug: RecipesTable.slug,
+      name: RecipesTable.name,
+      description: RecipesTable.description,
+      totalTime: RecipesTable.totalTime,
+      createdBy: RecipesTable.createdBy,
+      createdAt: RecipesTable.createdAt,
+    })
+    .from(RecipesTable)
+    .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy)) // Join with the Profile table
+    .where(eq(ProfileTable.profileSlug, profileSlug)) // Filter by the profile slug
+    .orderBy(desc(RecipesTable.createdAt)) // Order by most recent
+    .limit(30) // Limit the number of results
     .execute();
 };

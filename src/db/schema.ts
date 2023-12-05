@@ -1,6 +1,7 @@
 import type { AdapterAccount } from "@auth/core/adapters";
 import {
   bigint,
+  boolean,
   integer,
   jsonb,
   pgEnum,
@@ -182,3 +183,18 @@ export const RecipeModificationTable = pgTable("recipe_modification", {
   modificationDetails: jsonb("modification_details").notNull(), // details of the modification
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
+
+// Define the ProfileTable
+export const ProfileTable = pgTable("profile", {
+  profileSlug: text("profile_slug").notNull().primaryKey(),
+  activated: boolean("activated").notNull().default(false),
+  mediaId: uuid("media_id").references(() => MediaTable.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => UsersTable.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+// Create schemas for selection and insertion
+export const ProfileSchema = createSelectSchema(ProfileTable);
+export const NewProfileSchema = createInsertSchema(ProfileTable);
