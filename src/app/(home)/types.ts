@@ -6,7 +6,7 @@ import { TabSchema, TimeParamSchema } from "./schema";
 export type RecipeStore = MapStore<{
   error: undefined | string;
   loading: boolean;
-  recipes: Recipe[];
+  data: Recipe[];
 }>;
 
 export type Tab = z.infer<typeof TabSchema>;

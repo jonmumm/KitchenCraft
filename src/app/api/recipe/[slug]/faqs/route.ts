@@ -14,6 +14,7 @@ import { Ollama } from "langchain/llms/ollama";
 import { PromptTemplate } from "langchain/prompts";
 import { NextRequest } from "next/server";
 import { FAQsTokenStream } from "./stream";
+import { getRecipe } from "@/app/(home)/queries";
 
 // IMPORTANT! Set the runtime to edge
 export const runtime = "edge";
@@ -24,7 +25,8 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   const recipeKey = `recipe:${params.slug}`;
-  const recipe = CompletedRecipeSchema.parse(await kv.hgetall(recipeKey));
+  const recipe = await getRecipe(params.slug);
+  assert(recipe, "expected recipe");
 
   const input = {
     recipe,

@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/input/command";
+import { assert } from "@/lib/utils";
 
 export function IngredientSearch() {
   // todo next, add the statemachine
@@ -31,13 +32,18 @@ export function IngredientSearch() {
   );
 
   // Group ingredients by category
-  const groupedIngredients = filteredIngredients.reduce((acc, ingredient) => {
-    if (!acc[ingredient.category]) {
-      acc[ingredient.category] = [];
-    }
-    acc[ingredient.category].push(ingredient);
-    return acc;
-  }, {} as Record<string, Ingredient[]>);
+  const groupedIngredients = filteredIngredients.reduce(
+    (acc, ingredient) => {
+      if (!acc[ingredient.category]) {
+        acc[ingredient.category] = [];
+      }
+      const item = acc[ingredient.category];
+      assert(item, "expected category");
+      item.push(ingredient);
+      return acc;
+    },
+    {} as Record<string, Ingredient[]>
+  );
 
   return (
     <Command className="rounded-lg border shadow-md">
@@ -53,7 +59,7 @@ export function IngredientSearch() {
         )}
         {Object.keys(groupedIngredients).map((category) => (
           <CommandGroup key={category} heading={category}>
-            {groupedIngredients[category].map((ingredient) => (
+            {groupedIngredients[category]?.map((ingredient) => (
               <CommandItem key={ingredient.name}>
                 <span>{ingredient.name}</span>
               </CommandItem>

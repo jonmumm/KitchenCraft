@@ -1,16 +1,18 @@
 "use client";
 
 import { Badge } from "@/components/display/badge";
-import { Button } from "@/components/input/button";
 import { CardContent } from "@/components/display/card";
+import { Label } from "@/components/display/label";
+import { Separator } from "@/components/display/separator";
+import { Button } from "@/components/input/button";
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandItemClearPrompt,
 } from "@/components/input/command";
-import { Label } from "@/components/display/label";
-import { Separator } from "@/components/display/separator";
+import { useEventHandler } from "@/hooks/useEventHandler";
 import { useStore } from "@nanostores/react";
 import { useCommandState } from "cmdk";
 import { HelpCircle } from "lucide-react";
@@ -48,13 +50,14 @@ export const SousChefCommand = ({
   useEffect(() => {
     return listenKeys(store, ["history"], (state) => {
       const { history, index } = store.get();
+      const item = history[index];
 
       // When we submit, if we we have a prompt and arent already loading
       // ...start loading
-      if (history[index].question && !state.loading) {
+      if (item && item.question && !state.loading) {
         store.setKey("index", index + 1);
         store.setKey("loading", true);
-        const source = getSousChefEventSource(slug, history[index].question);
+        const source = getSousChefEventSource(slug, item.question);
         const chunks: string[] = [];
         let resultId: string | null = null;
         source.onmessage = (event) => {
@@ -115,7 +118,9 @@ export const SousChefCommandResult = ({
 export const SousChefFAQSuggestionsCommandGroup = (
   props: ComponentProps<typeof CommandGroup>
 ) => {
-  return <CommandGroup {...props} />;
+  const prompt = usePrompt();
+
+  return !prompt?.length ? <CommandGroup {...props} /> : null;
 };
 
 export const SousChefCommandItem = ({
@@ -178,6 +183,7 @@ export const SousChefPromptCommandGroup = () => {
         </div>
         <Badge variant="secondary">Ask</Badge>
       </SousChefCommandItem>
+      <CommandItemClearPrompt />
     </CommandGroup>
   ) : null;
 };
@@ -191,11 +197,15 @@ export const SousChefCommandInput = (
   }, []);
   const { inputRef } = useStore(store, { keys: ["inputRef"] });
 
-  // const handleSubmit = useCallback(() => {
-  //   store.setKey("submittedPrompt", store.get().prompt);
-  // }, [store]);
+  const handleClear = useCallback(() => {
+    store.setKey("prompt", "");
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [inputRef]);
+  useEventHandler("CLEAR", handleClear);
+
   const prompt = usePrompt();
-  // const ref = store.get().inputRef;
 
   return (
     <>

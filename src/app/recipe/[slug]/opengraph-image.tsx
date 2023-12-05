@@ -3,6 +3,7 @@ import { getRecipe } from "./utils";
 import { UploadedMedia } from "./media/types";
 import { UploadedMediaSchema } from "./media/schema";
 import { kv } from "@vercel/kv";
+import { getFirstMediaForRecipe } from "@/app/(home)/queries";
 
 // Image metadata
 // export const alt = "About Acme";
@@ -21,20 +22,25 @@ export const contentType = "image/png";
 
 // Image generation
 export default async function Image(props: { params: { slug: string } }) {
-  const recipe = await getRecipe(props.params.slug);
+  // const recipe = await getRecipe(props.params.slug);
   // Font
   //   const interSemiBold = fetch(
   //     new URL("./Inter-SemiBold.ttf", import.meta.url)
   //   ).then((res) => res.arrayBuffer());
 
-  const mainMediaId = recipe.previewMediaIds[0];
-  let mainMedia: UploadedMedia | undefined;
-  if (mainMediaId) {
-    console.log({ mainMediaId });
-    mainMedia = UploadedMediaSchema.parse(
-      await kv.hgetall(`media:${mainMediaId}`)
-    );
-  }
+  // const mainMediaId = recipe.previewMediaIds[0];
+  // let mainMedia: UploadedMedia | undefined;
+  // if (mainMediaId) {
+  //   console.log({ mainMediaId });
+  //   mainMedia = UploadedMediaSchema.parse(
+  //     await kv.hgetall(`media:${mainMediaId}`)
+  //   );
+  // }
+
+  const [recipe, mainMedia] = await Promise.all([
+    getRecipe(props.params.slug),
+    getFirstMediaForRecipe(props.params.slug),
+  ]);
 
   return new ImageResponse(
     (

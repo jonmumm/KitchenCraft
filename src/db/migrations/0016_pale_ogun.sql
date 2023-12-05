@@ -1,0 +1,1 @@
+ALTER TABLE "recipe" ADD COLUMN "activeTime" text NOT NULL;

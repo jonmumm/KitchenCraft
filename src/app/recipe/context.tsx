@@ -1,0 +1,23 @@
+"use client";
+
+import { ReactNode, createContext } from "react";
+
+type Props = {
+  slug: string;
+  upvote: () => Promise<void | never>;
+};
+
+export const RecipeContext = createContext({} as Props);
+
+export const RecipePropsProvider = ({
+  children,
+  ...props
+}: Props & {
+  children: ReactNode;
+}) => {
+  return (
+    <RecipeContext.Provider value={{ ...props }}>
+      {children}
+    </RecipeContext.Provider>
+  );
+};

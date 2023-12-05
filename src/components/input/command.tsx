@@ -7,6 +7,7 @@ import {
   Loader2Icon,
   Search,
   SendHorizonalIcon,
+  XSquareIcon,
 } from "lucide-react";
 import * as React from "react";
 
@@ -15,7 +16,7 @@ import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { VariantProps, cva } from "class-variance-authority";
-import { Button } from "./button";
+import { Badge } from "../display/badge";
 import { EventButton } from "../event-button";
 
 const Command = React.forwardRef<
@@ -205,6 +206,27 @@ const CommandShortcut = ({
   );
 };
 CommandShortcut.displayName = "CommandShortcut";
+
+export const CommandItemClearPrompt = () => {
+  const send = useSend();
+  const search = useCommandState((state) => state.search);
+
+  const handleSelect = React.useCallback(() => {
+    send({ type: "CLEAR" });
+  }, [send]);
+
+  return search.length ? (
+    <CommandItem
+      onSelect={handleSelect}
+      className="flex flex-row justify-center py-3"
+    >
+      <Badge variant="secondary" className="flex flex-row gap-1">
+        <span>Clear</span>
+        <XSquareIcon size={14} />
+      </Badge>
+    </CommandItem>
+  ) : null;
+};
 
 export {
   Command,

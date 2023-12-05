@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/feedback/toaster";
 import { GoogleAdSense } from "@/components/google-adsense";
 import { ThemeProvider } from "@/components/theme-provider";
 import { getSession } from "@/lib/auth/session";
@@ -17,9 +18,11 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
   craft,
+  remix,
 }: {
   children: ReactNode;
   craft: ReactNode;
+  remix: ReactNode;
 }) {
   const Body = () => {
     return (
@@ -35,7 +38,9 @@ export default async function RootLayout({
         >
           {children}
           {craft}
+          {remix}
         </ThemeProvider>
+        <Toaster />
       </body>
     );
   };

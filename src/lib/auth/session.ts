@@ -1,14 +1,7 @@
 import { getServerSession } from "next-auth";
-import { eq } from "drizzle-orm";
 import { authOptions } from "./options";
-import { db } from "@/db";
-import { UsersTable } from "@/db/schema";
 
-export const getSession = async () => {
-  const session = await getServerSession(authOptions);
-
-  return session;
-};
+export const getSession = () => getServerSession(authOptions);
 
 // export const getCurrentUser = async () => {
 //   const session = await getServerSession(authOptions);

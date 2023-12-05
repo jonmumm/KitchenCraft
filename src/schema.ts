@@ -7,15 +7,34 @@ import {
   DISH_TYPES,
   TECHNIQUES,
 } from "./constants";
+import { RecipeSchema } from "./db";
+
+// Regex for URL-friendly string (alphanumeric, hyphens, underscores)
+const isUrlFriendly = (str: string) => /^[a-zA-Z0-9_-]*$/.test(str);
+
+export const ProfileSlugSchema = z.custom<`@${string}`>((val) => {
+  return typeof val === "string" && val[0] === "@"
+    ? isUrlFriendly(val.slice(1))
+    : false;
+});
+
+// // Example usage
+// try {
+//     ProfileSchema.parse("@inspectorT");  // This should pass
+//     TagSchema.parse("#fried");           // This should pass
+// } catch (e) {
+//     console.error(e);
+// }
 
 export const SecretsEnvironmentSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   NEXTAUTH_SECRET: z.string(),
+  RESEND_API_KEY: z.string(),
 });
 
 export const PublicEnvironmentSchema = z.object({
-  KITCHENCRAFT_URL: z.string(),
+  KITCHENCRAFT_URL: z.string().url(),
   ADSENSE_PUBLISHER_ID: z.string(),
 });
 
@@ -400,7 +419,13 @@ export const UpvoteEventSchema = z.object({
   slug: z.string(),
 });
 
+export const RemixEventSchema = z.object({
+  type: z.literal("REMIX"),
+  slug: SlugSchema,
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  RemixEventSchema,
   PageLoadedEventSchema,
   UpvoteEventSchema,
   SignInEventSchema,
@@ -463,24 +488,46 @@ const HowToStep = z.object({
   text: z.string(),
 });
 
-const RecipePredictionDataSchema = z.object({
-  activeTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
-  cookTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
-  totalTime: z.string().regex(/^PT(\d+H)?(\d+M)?$/),
-  yield: z.string(),
-  tags: z.array(z.string()),
-  ingredients: z.array(z.string()),
-  instructions: z.array(z.string()),
-});
+const TimeDurationSchema = z.string().regex(/^PT(\d+H)?(\d+M)?$/);
+
+// const RecipePredictionDataSchema = z.object({
+//   activeTime: TimeDurationSchema,
+//   cookTime: TimeDurationSchema,
+//   totalTime: TimeDurationSchema,
+//   yield: z.string(),
+//   tags: z.array(z.string()),
+//   ingredients: z.array(z.string()),
+//   instructions: z.array(z.string()),
+// });
 
 export const RecipePredictionOutputSchema = z.object({
-  recipe: RecipePredictionDataSchema,
+  recipe: z.object({
+    activeTime: TimeDurationSchema,
+    cookTime: TimeDurationSchema,
+    totalTime: TimeDurationSchema,
+    yield: z.string(),
+    tags: z.array(z.string()),
+    ingredients: z.array(z.string()),
+    instructions: z.array(z.string()),
+  }),
+});
+
+export const RemixPredictionOutputSchema = z.object({
+  recipe: RecipePredictionOutputSchema.shape.recipe.merge(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+    })
+  ),
 });
 
 export const RecipePredictionPartialOutputSchema =
   RecipePredictionOutputSchema.deepPartial();
 
-export const RecipeSchema = RecipeRequiredPropsSchema.merge(
+export const RemixPredictionPartialOutputSchema =
+  RemixPredictionOutputSchema.deepPartial();
+
+export const TempRecipeSchema = RecipeRequiredPropsSchema.merge(
   RecipePredictionOutputSchema.shape.recipe.partial()
 ).merge(
   z.object({
@@ -519,7 +566,7 @@ export const NewRecipeFromSuggestionsPredictionInputSchema = z.object({
 });
 
 export const SousChefPredictionInputSchema = z.object({
-  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+  recipe: TempRecipeSchema.pick({ name: true, description: true }).merge(
     RecipePredictionOutputSchema.shape.recipe.pick({
       ingredients: true,
       tags: true,
@@ -531,7 +578,7 @@ export const SousChefPredictionInputSchema = z.object({
 
 export const ModifyRecipeDietaryPredictionInputSchema = z.object({
   type: ModifyRecipeDietaryLiteral,
-  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+  recipe: TempRecipeSchema.pick({ name: true, description: true }).merge(
     RecipePredictionOutputSchema.shape.recipe
   ),
   prompt: z.string(),
@@ -539,7 +586,7 @@ export const ModifyRecipeDietaryPredictionInputSchema = z.object({
 
 export const ModifyRecipeScalePredictionInputSchema = z.object({
   type: ModifyReicpeScaleLiteral,
-  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+  recipe: TempRecipeSchema.pick({ name: true, description: true }).merge(
     RecipePredictionOutputSchema.shape.recipe
   ),
   prompt: z.string(),
@@ -547,7 +594,7 @@ export const ModifyRecipeScalePredictionInputSchema = z.object({
 
 export const ModifyRecipeIngredientsPredictionInputSchema = z.object({
   type: ModifyRecipeIngredientsLiteral,
-  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+  recipe: TempRecipeSchema.pick({ name: true, description: true }).merge(
     RecipePredictionOutputSchema.shape.recipe
   ),
   prompt: z.string(),
@@ -555,7 +602,7 @@ export const ModifyRecipeIngredientsPredictionInputSchema = z.object({
 
 export const ModifyRecipeFreeTextPredictionInputSchema = z.object({
   type: ModifyRecipeFreeTextLiteral,
-  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+  recipe: TempRecipeSchema.pick({ name: true, description: true }).merge(
     RecipePredictionOutputSchema.shape.recipe
   ),
   prompt: z.string(),
@@ -563,7 +610,7 @@ export const ModifyRecipeFreeTextPredictionInputSchema = z.object({
 
 export const ModifyRecipeEquipmentPredictionInputSchema = z.object({
   type: ModifyRecipeEquipmentLiteral,
-  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+  recipe: TempRecipeSchema.pick({ name: true, description: true }).merge(
     RecipePredictionOutputSchema.shape.recipe
   ),
   prompt: z.string(),
@@ -572,6 +619,9 @@ export const ModifyRecipeEquipmentPredictionInputSchema = z.object({
 export const RecipePredictionInputSchema = z.discriminatedUnion("type", [
   NewInstantRecipePredictionInputSchema,
   NewRecipeFromSuggestionsPredictionInputSchema,
+]);
+
+export const RemixPredictionInputSchema = z.discriminatedUnion("type", [
   ModifyRecipeScalePredictionInputSchema,
   ModifyRecipeIngredientsPredictionInputSchema,
   ModifyRecipeDietaryPredictionInputSchema,
@@ -581,7 +631,7 @@ export const RecipePredictionInputSchema = z.discriminatedUnion("type", [
 
 export const RecipeChatInputSchema = z.object({
   chatId: z.string(),
-  recipe: RecipeSchema.optional(),
+  recipe: TempRecipeSchema.optional(),
   recipeMessages: z.array(MessageSchema),
 });
 
@@ -599,14 +649,19 @@ export const RemixIdeasPredictionInputSchema = z.object({
   recipe: CompletedRecipeSchema,
 });
 export const FAQsPredictionInputSchema = z.object({
-  recipe: CompletedRecipeSchema,
+  recipe: RecipeSchema,
 });
 export const InstantRecipeMetadataPredictionInputSchema = z.object({
   prompt: z.string(),
 });
+export const RemixRecipeMetadataPredictionInputSchema = z.object({
+  prompt: z.string(),
+  modification: z.string(),
+  recipe: RecipeSchema,
+});
 
 export const TipsPredictionInputSchema = z.object({
-  recipe: RecipeSchema.pick({ name: true, description: true }).merge(
+  recipe: TempRecipeSchema.pick({ name: true, description: true }).merge(
     RecipePredictionOutputSchema.shape.recipe.pick({
       ingredients: true,
       tags: true,

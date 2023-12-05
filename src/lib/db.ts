@@ -3,7 +3,7 @@ import {
   LLMMessageSetIdSchema,
   LLMMessageSetSchema,
   MessageSchema,
-  RecipeSchema,
+  TempRecipeSchema,
   ResultSchema,
   SlugSchema,
   SuggestionSchema,
@@ -41,7 +41,7 @@ export const getTopRecipes = async (kv: KV) => {
   // Parse and return the recipes
   return results
     .map((result) => {
-      return RecipeSchema.parse(result);
+      return TempRecipeSchema.parse(result);
     })
     .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
 };
@@ -64,7 +64,7 @@ export const getMyRecentRecipes = async (kv: KV) => {
   // Parse and return the recipes
   return results
     .map((result) => {
-      return RecipeSchema.parse(result);
+      return TempRecipeSchema.parse(result);
     })
     .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
 };
@@ -87,7 +87,7 @@ export const getBestRecipes = async (timeParam: TimeParam, kv: KV) => {
   // Parse and return the recipes
   return results
     .map((result) => {
-      return RecipeSchema.parse(result);
+      return TempRecipeSchema.parse(result);
     })
     .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
 };
@@ -110,7 +110,7 @@ export const getRecentRecipes = async (kv: KV) => {
   // Parse and return the recipes
   return results
     .map((result) => {
-      return RecipeSchema.parse(result);
+      return TempRecipeSchema.parse(result);
     })
     .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
 };
@@ -119,7 +119,7 @@ export const getRecentRecipes = async (kv: KV) => {
 //   CraftSchema.parse(await kv.hgetall(`craft:${id}`));
 
 export const getRecipe = async (kv: KV, slug: RecipeSlug) =>
-  RecipeSchema.parse(await kv.hgetall(`recipe:${slug}`));
+  TempRecipeSchema.parse(await kv.hgetall(`recipe:${slug}`));
 
 export const getModificationMessages = async (kv: KV, slug: RecipeSlug) => {
   const messageSetId = await LLMMessageSetIdSchema.parse(

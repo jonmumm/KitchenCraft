@@ -1,11 +1,14 @@
 import type { AdapterAccount } from "@auth/core/adapters";
 import {
+  bigint,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
@@ -14,7 +17,7 @@ export const UsersTable = pgTable("user", {
   name: text("name"),
   email: text("email").notNull(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
-  createdAt: timestamp("created_at", { mode: "date" }),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
   image: text("image"),
 });
 export const UserSchema = createSelectSchema(UsersTable);
@@ -55,7 +58,7 @@ export const SessionsTable = pgTable("session", {
 export const SessionSchema = createSelectSchema(SessionsTable);
 export const NewSessionSchema = createInsertSchema(SessionsTable);
 
-export const VerificationTokens = pgTable(
+export const VerificationTokensTable = pgTable(
   "verificationToken",
   {
     identifier: text("identifier").notNull(),
@@ -71,30 +74,111 @@ export const VerificationTokenSchema = createSelectSchema(SessionsTable);
 export const NewVerificatoknTokenSchema = createInsertSchema(SessionsTable);
 
 export const RecipesTable = pgTable("recipe", {
-  id: text("id").notNull().primaryKey(),
+  slug: text("slug").notNull().primaryKey(),
   name: text("name").notNull(),
-  description: text("description"),
+  description: text("description").notNull(),
+  yield: text("yield").notNull(),
   createdBy: text("createdBy")
     .notNull()
     .references(() => UsersTable.id, { onDelete: "cascade" }),
-  tags: jsonb("tags"), // Using jsonb to store tags
-  ingredients: jsonb("ingredients"), // Using jsonb to store ingredients
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
+  tags: jsonb("tags").$type<string[]>().notNull(), // Using jsonb to store tags
+  activeTime: text("activeTime").notNull(),
+  cookTime: text("cookTime").notNull(),
+  totalTime: text("totalTime").notNull(),
+  ingredients: jsonb("ingredients").$type<string[]>().notNull(), // Using jsonb to store ingredients
+  instructions: jsonb("instructions").$type<string[]>().notNull(), // Using jsonb to store ingredients
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
 
 export const RecipeSchema = createSelectSchema(RecipesTable);
 export const NewRecipeSchema = createInsertSchema(RecipesTable);
 
-export const UpvotesTable = pgTable("upvote", {
-  id: text("id").notNull().primaryKey(),
-  recipeId: text("recipeId")
-    .notNull()
-    .references(() => RecipesTable.id, { onDelete: "cascade" }),
-  userId: text("userId")
-    .notNull()
-    .references(() => UsersTable.id, { onDelete: "cascade" }),
-  createdAt: timestamp("createdAt", { mode: "date" }).notNull(),
-});
+export const UpvotesTable = pgTable(
+  "upvote",
+  {
+    slug: text("slug")
+      .notNull()
+      .references(() => RecipesTable.slug),
+    userId: text("userId")
+      .notNull()
+      .references(() => UsersTable.id),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.slug, table.userId] }),
+    };
+  }
+);
 
 export const UpvoteSchema = createSelectSchema(UpvotesTable);
 export const NewUpvoteSchema = createInsertSchema(UpvotesTable);
+
+export const mediaTypeEnum = pgEnum("mediaType", ["IMAGE", "VIDEO"]);
+
+// Consolidated MediaUploads Table
+export const MediaTable = pgTable("media", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => UsersTable.id),
+  mediaType: mediaTypeEnum("media_type").notNull(),
+  contentType: text("content_type").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  filename: text("filename"),
+  duration: integer("duration"),
+  url: text("url").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const MediaSchema = createSelectSchema(MediaTable);
+export const NewMediaSchema = createInsertSchema(MediaTable);
+
+// New RecipeMedia Table
+export const RecipeMediaTable = pgTable(
+  "recipe_media",
+  {
+    recipeSlug: text("recipe_slug")
+      .notNull()
+      .references(() => RecipesTable.slug),
+    mediaId: uuid("media_id")
+      .notNull()
+      .references(() => MediaTable.id),
+    sortOrder: bigint("sort_order", { mode: "number" }).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.recipeSlug, table.mediaId] }),
+    };
+  }
+);
+
+export const RecipeMediaSchema = createSelectSchema(RecipeMediaTable);
+export const NewRecipeMediaSchema = createInsertSchema(RecipeMediaTable);
+
+export const RecipeHistoryTable = pgTable("recipe_history", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  recipeSlug: text("recipe_slug")
+    .notNull()
+    .references(() => RecipesTable.slug),
+  previousVersion: jsonb("previous_version").notNull(), // Store the entire previous version of the recipe
+  modifiedBy: text("modified_by")
+    .notNull()
+    .references(() => UsersTable.id), // Assuming changes are made by a user
+  modifiedAt: timestamp("modified_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+export const RecipeModificationTable = pgTable("recipe_modification", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  recipeSlug: text("recipe_slug")
+    .notNull()
+    .references(() => RecipesTable.slug),
+  modifiedBy: text("modified_by")
+    .notNull()
+    .references(() => UsersTable.id),
+  modificationType: text("modification_type").notNull(), // e.g., "ingredients", "scale"
+  modificationDetails: jsonb("modification_details").notNull(), // details of the modification
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});

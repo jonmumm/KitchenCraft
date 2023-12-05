@@ -8,7 +8,6 @@ import {
   CreateMessageInputSchema,
   CreateRecipeInputSchema,
   CuisineSchema,
-  ModifyRecipeDietaryPredictionInputSchema,
   DietaryAlternativesInputSchema,
   DietaryAlternativesPredictionInputSchema,
   DishTypeSchema,
@@ -17,12 +16,22 @@ import {
   FAQsPredictionInputSchema,
   GeneratorTypeSchema,
   IdeasPredictionOutputSchema,
+  InstantRecipeMetadataPredictionInputSchema,
+  InstantRecipeMetadataPredictionOutputSchema,
+  InstantRecipeMetdataInputSchema,
   LLMMessageSetIdSchema,
   LLMMessageSetSchema,
   MessageContentSchema,
   MessageSchema,
   ModificationSchema,
+  ModifyRecipeDietaryPredictionInputSchema,
+  ModifyRecipeEquipmentPredictionInputSchema,
+  ModifyRecipeFreeTextPredictionInputSchema,
+  ModifyRecipeIngredientsPredictionInputSchema,
+  ModifyRecipeScalePredictionInputSchema,
+  NewInstantRecipePredictionInputSchema,
   NewRecipeFromSuggestionsPredictionInputSchema,
+  ProfileSlugSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
   RecipeChatInputSchema,
@@ -30,15 +39,17 @@ import {
   RecipePredictionOutputSchema,
   RecipePredictionPartialOutputSchema,
   RecipeRequiredPropsSchema,
-  RecipeSchema,
+  RemixEventSchema,
   RemixIdeasPredictionInputSchema,
   RemixIdeasPredictionOutputSchema,
   RemixIdeasPredictionPartialOutputSchema,
+  RemixPredictionInputSchema,
+  RemixPredictionOutputSchema,
+  RemixPredictionPartialOutputSchema,
+  RemixRecipeMetadataPredictionInputSchema,
   RoleSchema,
-  ModifyRecipeScalePredictionInputSchema,
   SlugSchema,
   SousChefPredictionInputSchema,
-  ModifyRecipeIngredientsPredictionInputSchema,
   SubstitutionsInputSchema,
   SubstitutionsPredictionInputSchema,
   SubstitutionsPredictionOutputSchema,
@@ -50,25 +61,19 @@ import {
   SuggestionsInputSchema,
   SystemMessageSchema,
   TechniqueSchema,
+  TempRecipeSchema,
   TipsPredictionInputSchema,
   TipsPredictionOutputSchema,
   TipsPredictionPartialOutputSchema,
-  UserMessageSchema,
-  ModifyRecipeEquipmentPredictionInputSchema,
-  ModifyRecipeFreeTextPredictionInputSchema,
-  NewInstantRecipePredictionInputSchema,
-  InstantRecipeMetadataPredictionInputSchema,
-  InstantRecipeMetdataInputSchema,
-  InstantRecipeMetadataPredictionOutputSchema,
   UpvoteEventSchema,
+  UserMessageSchema,
 } from "./schema";
-
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 
 export type Ingredient = (typeof ingredients)[0];
 
-export type Recipe = z.infer<typeof RecipeSchema>;
+export type Recipe = z.infer<typeof TempRecipeSchema>;
 export type DishType = z.infer<typeof DishTypeSchema>;
 export type CookingTime = z.infer<typeof CookingTimeSchema>;
 export type Cookware = z.infer<typeof CookwareSchema>;
@@ -110,11 +115,16 @@ export type SuggestionPredictionPartialOutput = z.infer<
   typeof SuggestionPredictionPartialOutputSchema
 >;
 export type RecipePredictionInput = z.infer<typeof RecipePredictionInputSchema>;
+export type RemixPredictionInput = z.infer<typeof RemixPredictionInputSchema>;
 export type RecipePredictionOutput = z.infer<
   typeof RecipePredictionOutputSchema
 >;
+export type RemixPredictionOutput = z.infer<typeof RemixPredictionOutputSchema>;
 export type RecipePredictionPartialOutput = z.infer<
   typeof RecipePredictionPartialOutputSchema
+>;
+export type RemixPredictionPartialOutput = z.infer<
+  typeof RemixPredictionPartialOutputSchema
 >;
 
 export type Suggestion = z.infer<typeof SuggestionSchema>;
@@ -125,6 +135,9 @@ export type RemixIdeasPredictionInput = z.infer<
 export type FAQsPredictionInput = z.infer<typeof FAQsPredictionInputSchema>;
 export type InstantRecipeMetadataPredictionInput = z.infer<
   typeof InstantRecipeMetadataPredictionInputSchema
+>;
+export type RemixRecipeMetadataPredictionInput = z.infer<
+  typeof RemixRecipeMetadataPredictionInputSchema
 >;
 export type InstantRecipeMetadataPredictionOutput = z.infer<
   typeof InstantRecipeMetadataPredictionOutputSchema
@@ -220,3 +233,6 @@ export type ModifyRecipeDietaryPredictionInput = z.infer<
 >;
 
 export type UpvoteEvent = z.infer<typeof UpvoteEventSchema>;
+export type RemixEvent = z.infer<typeof RemixEventSchema>;
+
+export type ProfileSlug = z.infer<typeof ProfileSlugSchema>;

@@ -1,0 +1,1 @@
+ALTER TABLE "media" ADD COLUMN "content_type" text NOT NULL;

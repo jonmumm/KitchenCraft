@@ -22,6 +22,7 @@ export const MediaMetadataSchema = z.discriminatedUnion("type", [
 
 export const BaseMediaSchema = z.object({
   id: z.string(),
+  userId: z.string(),
   pathname: z.string(),
   uploadStatus: z.literal("created"),
   metadata: MediaMetadataSchema,

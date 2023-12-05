@@ -1,12 +1,16 @@
+import { getRecipe } from "@/app/(home)/queries";
 import { Card } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import StickyHeader from "@/components/layout/sticky-header";
-import { WaitForStore } from "@/components/util/wait-for-store";
+import { LastValue } from "@/components/util/last-value";
+import { RenderFirstValue } from "@/components/util/render-first-value";
+import { NewRecipe, Recipe } from "@/db/types";
+import { getSession } from "@/lib/auth/session";
 import { getSlug } from "@/lib/slug";
+import { assert } from "@/lib/utils";
 import {
-  CompletedRecipeSchema,
   ModificationSchema,
   ModifyRecipeDietaryPredictionInputSchema,
   ModifyRecipeEquipmentPredictionInputSchema,
@@ -21,7 +25,6 @@ import {
   ModifyRecipeIngredientsPredictionInput,
   ModifyRecipeScalePredictionInput,
 } from "@/types";
-import { kv } from "@vercel/kv";
 import { nanoid } from "ai";
 import {
   ArrowLeftIcon,
@@ -29,18 +32,20 @@ import {
   ScrollIcon,
   ShoppingBasketIcon,
 } from "lucide-react";
-import { map } from "nanostores";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { BehaviorSubject, Subject } from "rxjs";
 import { z } from "zod";
-import { IngredientList } from "../ingredient-list";
-import { InstructionList } from "../instruction-list";
-import RecipeGenerator from "../recipe-generator";
-import { StoreProps } from "../schema";
-import { Tags } from "../tags";
-import { Times } from "../times";
-import { Yield } from "../yield";
+import {
+  CraftingDetails,
+  Ingredients,
+  Instructions,
+  Tags,
+  Times,
+} from "../components";
+import { getObservables } from "../observables";
+import { RemixGenerator } from "./components";
 
 type Props = {
   params: { slug: string };
@@ -53,6 +58,9 @@ type Props = {
  * @returns
  */
 export default async function Page(props: Props) {
+  const session = await getSession();
+  const userId = session?.user.id;
+  assert(userId, "expected userId");
   const baseSlug = props.params.slug;
 
   let prompt: string;
@@ -64,11 +72,27 @@ export default async function Page(props: Props) {
     return redirect(`/recipe/${baseSlug}`);
   }
 
-  const recipeKey = `recipe:${baseSlug}`;
-  const recipe = CompletedRecipeSchema.parse(await kv.hgetall(recipeKey));
+  const recipe = await getRecipe(baseSlug);
+  if (!recipe) {
+    throw new Error(`Recipe ${baseSlug} not found`);
+  }
 
-  const id = nanoid();
-  const branchedSlug = getSlug({ id, name: recipe.name });
+  const remix$ = new BehaviorSubject<Partial<Recipe>>({});
+  const newRecipe$ = new Subject<NewRecipe>();
+
+  // const name$ = from();
+
+  const {
+    name$,
+    description$,
+    ingredients$,
+    instructions$,
+    tags$,
+    yield$,
+    activeTime$,
+    cookTime$,
+    totalTime$,
+  } = getObservables(remix$);
 
   const Generator = async () => {
     const getInput = () => {
@@ -124,70 +148,86 @@ export default async function Page(props: Props) {
     const input = getInput();
 
     return (
-      <RecipeGenerator
+      <RemixGenerator
         input={input}
         onProgress={(output) => {
           if (output.recipe) {
-            store.setKey("recipe", {
-              ...store.get().recipe,
-              ...output.recipe,
-            });
+            remix$.next(output.recipe);
           }
         }}
         onError={(error, outputRaw) => {
           console.log("error", error, outputRaw);
-          // kv.hset(`recipe:${slug}`, {
-          //   runStatus: "error",
-          //   error,
-          //   outputRaw,
-          // }).then(noop);
         }}
         onComplete={(output) => {
-          console.log(output);
-          store.setKey("recipe", {
-            ...store.get().recipe,
-            ...output.recipe,
-          });
-          //   kv.hset(`recipe:${slug}`, {
-          //     runStatus: "done",
-          //     ...output.recipe,
-          //   }).then(noop);
-          //   kv.zadd(`recipes:new`, {
-          //     score: Date.now(),
-          //     member: slug,
-          //   }).then(() => {
-          //     revalidatePath("/");
-          //   });
+          remix$.next(output.recipe);
+          remix$.complete();
 
-          store.setKey("loading", false);
+          const id = nanoid();
+          const newSlug = getSlug({ id, name: output.recipe.name });
+
+          newRecipe$.next({
+            slug: newSlug,
+            name: output.recipe.name,
+            description: output.recipe.description,
+            yield: output.recipe.yield,
+            tags: output.recipe.tags,
+            ingredients: output.recipe.ingredients,
+            instructions: output.recipe.instructions,
+            cookTime: output.recipe.cookTime,
+            activeTime: output.recipe.activeTime,
+            totalTime: output.recipe.totalTime,
+            createdBy: userId,
+            createdAt: new Date(),
+          });
+          newRecipe$.complete();
         }}
       />
     );
   };
 
-  const store = map<StoreProps>({
-    loading: true,
-    recipe: {
-      name: recipe.name,
-      description: recipe.description,
-      slug: branchedSlug,
-      createdAt: new Date().toISOString(),
-      runStatus: "initializing",
-      previewMediaIds: [],
-      mediaCount: 0,
-    },
-  });
-
-  const SaveButtons = () => {
+  const SaveButtons = ({ newRecipe }: { newRecipe: NewRecipe }) => {
     const saveAsNewRecipe = async () => {
       "use server";
+      // todo
       console.log("SAVE! new");
-      return redirect("/");
+      console.log(newRecipe);
+
+      redirect("/");
     };
     const saveRecipe = async () => {
       "use server";
+
+      console.log(newRecipe);
+      // const newRecipe = await firstValueFrom(remix$);
+
+      // todo
       console.log("SAVE!");
-      return redirect("/");
+
+      // await db.transaction(async (tx) => {
+      //   // Define the new recipe
+      //   const newRecipe = {
+      //     slug: 'new-recipe-slug',
+      //     name: 'New Recipe',
+      //     description: 'Description of new recipe',
+      //     // ... other required fields
+      //   };
+
+      //   // Insert the new recipe
+      //   await tx.insert(RecipesTable).values(newRecipe);
+
+      //   // Define the modification record
+      //   const newModification = {
+      //     recipeSlug: newRecipe.slug,
+      //     modifiedBy: 'user-id-of-modifier',
+      //     modificationType: 'creation',
+      //     modificationDetails: { /* detailed JSON data about the creation */ },
+      //   };
+
+      //   // Insert the modification record
+      //   await tx.insert(RecipeModificationTable).values(newModification);
+      // });
+
+      // redirect("/");
     };
 
     return (
@@ -223,14 +263,12 @@ export default async function Page(props: Props) {
               </div>
             }
           >
-            <WaitForStore
-              store={store}
-              selector={(state) => {
-                if (!state.loading) return true;
+            <RenderFirstValue
+              observable={newRecipe$}
+              render={(newRecipe) => {
+                return <SaveButtons newRecipe={newRecipe} />;
               }}
-            >
-              <SaveButtons />
-            </WaitForStore>
+            />
           </Suspense>
         </div>
       </StickyHeader>
@@ -240,40 +278,43 @@ export default async function Page(props: Props) {
           <Generator />
         </Suspense>
         <div className="flex flex-row gap-3 p-5 justify-between">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-semibold">
-              {store.get().recipe.name}
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              {store.get().recipe.description}
-            </p>
+          <div className="flex flex-col gap-2 flex-1">
+            <Suspense fallback={<Skeleton className="w-full h-14" />}>
+              <h1 className="text-2xl font-semibold">
+                <LastValue observable={name$} />
+              </h1>
+            </Suspense>
+            <Suspense fallback={<Skeleton className="w-full h-24" />}>
+              <p className="text-lg text-muted-foreground">
+                <LastValue observable={description$} />
+              </p>
+            </Suspense>
             <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
               <span>Yields</span>
               <span>
                 <Suspense fallback={<Skeleton className="w-24 h-5" />}>
-                  <Yield store={store} />
+                  <LastValue observable={yield$} />
                 </Suspense>
               </span>
             </div>
-            {/* <div className="flex flex-row gap-2">
-            <Skeleton className="w-20 h-20 animate-none" />
-            <Skeleton className="w-20 h-20 animate-none" />
-            <Skeleton className="w-20 h-20 animate-none" />
-            <span className="sr-only">Upload Photo</span>
-          </div> */}
           </div>
         </div>
         <Separator />
-        {/* <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
+        <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
           <div className="flex flex-col gap-2 items-center">
-            <CraftingDetails createdAt={store.get().recipe.createdAt} />
+            <Suspense fallback={<Skeleton className="w-full h-20" />}>
+              <CraftingDetails createdAt={new Date().toDateString()} />
+            </Suspense>
           </div>
-        </div> */}
-        {/* <MediaRow previewMediaIds={previewMediaIds} /> */}
+        </div>
         <Separator className="hidden-print" />
-        <Times store={store} />
+        <Times
+          totalTime$={totalTime$}
+          activeTime$={activeTime$}
+          cookTime$={cookTime$}
+        />
         <Separator />
-        <Tags store={store} />
+        <Tags tags$={tags$} />
         <Separator />
 
         <div className="px-5">
@@ -284,11 +325,9 @@ export default async function Page(props: Props) {
             <ShoppingBasketIcon />
           </div>
           <div className="mb-4 flex flex-col gap-2">
-            <Suspense fallback={<Skeleton className="w-full h-20" />}>
-              <ul className="list-disc pl-5">
-                <IngredientList store={store} />
-              </ul>
-            </Suspense>
+            <ul className="list-disc pl-5 flex flex-col gap-2">
+              <Ingredients ingredients$={ingredients$} />
+            </ul>
           </div>
         </div>
         <Separator />
@@ -301,17 +340,12 @@ export default async function Page(props: Props) {
             <ScrollIcon />
           </div>
           <div className="mb-4 flex flex-col gap-2">
-            <Suspense fallback={<Skeleton className="w-full h-20" />}>
-              <ol className="list-decimal pl-5">
-                <InstructionList store={store} />
-              </ol>
-            </Suspense>
+            <ol className="list-decimal pl-5 flex flex-col gap-2">
+              <Instructions instructions$={instructions$} />
+            </ol>
           </div>
         </div>
       </Card>
-      {/* <Suspense fallback={null}>
-        <Footer />
-      </Suspense> */}
     </div>
   );
 }

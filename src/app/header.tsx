@@ -95,7 +95,6 @@ export function Header({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const headerActor = useContext(HeaderContext);
   const session = useSession();
-  console.log({ session });
   const isBackVisible = useSelector(headerActor, (state) =>
     state.matches("Back.Visible")
   );
@@ -106,8 +105,8 @@ export function Header({
     setIsPopoverOpen(false);
   }, [pathname, setIsPopoverOpen]);
 
-  const handleClickGoogle = useCallback(() => {
-    signIn("google");
+  const handlePressSignIn = useCallback(() => {
+    signIn("email");
   }, []);
 
   const handleSignOut = useCallback(() => {
@@ -144,15 +143,6 @@ export function Header({
         className
       )}
     >
-      {/* <div>
-        <Button
-          onClick={handlePressBack}
-          className={!isBackVisible ? "invisible" : ""}
-          variant="outline"
-        >
-          <ArrowBigLeftIcon />
-        </Button>
-      </div> */}
       <div>
         <Popover
           open={isPopoverOpen}
@@ -248,13 +238,6 @@ export function Header({
                 <Separator />
                 <div className="flex flex-row gap-1 items-center justify-between">
                   <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
-                    Theme
-                  </Label>
-                  <ModeToggle />
-                </div>
-                <Separator />
-                <div className="flex flex-row gap-1 items-center justify-between">
-                  <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
                     Links
                     <ExternalLinkIcon size={16} className="opacity-70" />
                   </Label>
@@ -277,6 +260,17 @@ export function Header({
                     </Link>
                   </div>
                 </div>
+              </>
+            )}
+            <Separator />
+            <div className="flex flex-row gap-1 items-center justify-between">
+              <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
+                Theme
+              </Label>
+              <ModeToggle />
+            </div>
+            {session.status === "authenticated" && (
+              <>
                 <Separator />
                 <div className="flex justify-center">
                   <Button
@@ -288,9 +282,9 @@ export function Header({
                     Sign Out
                   </Button>
                 </div>
-                <Separator />
               </>
             )}
+            <Separator />
             {session.status === "unauthenticated" && (
               <>
                 {/* <form action={signUp}>
@@ -305,9 +299,9 @@ export function Header({
                   type="submit"
                   size="lg"
                   className="w-full"
-                  onClick={handleClickGoogle}
+                  onClick={handlePressSignIn}
                 >
-                  Sign In With Google
+                  Sign In / Sign Up
                 </Button>
                 <Separator />
               </>
