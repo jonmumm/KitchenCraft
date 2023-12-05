@@ -333,6 +333,13 @@ const AddIngredientEventSchema = z.object({
   ingredient: z.string(),
 });
 
+const SousChefFeedbackEventSchema = z.object({
+  type: z.literal("FEEDBACK"),
+  positive: z.boolean(),
+  question: z.string(),
+  answer: z.string(),
+});
+
 const AddTagEventSchema = z.object({
   type: z.literal("ADD_TAG"),
   tag: z.string(),
@@ -463,6 +470,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   RemoveTagEventSchema,
   AddTagEventSchema,
   AddIngredientEventSchema,
+  SousChefFeedbackEventSchema,
 ]);
 
 // TypeScript Type Literals

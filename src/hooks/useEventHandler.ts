@@ -1,5 +1,6 @@
 import { AppEvent } from "@/types";
 import { useEffect } from "react";
+import { skip } from "rxjs";
 import { useEvents } from "./useEvents";
 
 type ExtractAppEvent<T extends AppEvent["type"]> = AppEvent extends { type: T }
@@ -13,7 +14,7 @@ export const useEventHandler = <TEventType extends AppEvent["type"]>(
   const event$ = useEvents();
 
   useEffect(() => {
-    const sub = event$.subscribe((event) => {
+    const sub = event$.pipe(skip(1)).subscribe((event) => {
       if (event.type === type) {
         cb(event as ExtractAppEvent<TEventType>);
       }

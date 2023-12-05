@@ -22,6 +22,7 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -150,6 +151,18 @@ const SousChefResultData = () => {
 export const SousChefOutput = () => {
   const answer = useCurrentAnswer();
   const question = useCurrentQuestion();
+  const loading = useLoading();
+  const [feedbackComplete, setFeedbackComplete] = useState(false);
+
+  useLayoutEffect(() => {
+    setFeedbackComplete(false);
+  }, [loading, setFeedbackComplete]);
+
+  const handleFeedback = useCallback(() => {
+    setFeedbackComplete(true);
+  }, [setFeedbackComplete]);
+  useEventHandler("FEEDBACK", handleFeedback);
+
   return (
     answer &&
     answer.length && (
@@ -159,26 +172,48 @@ export const SousChefOutput = () => {
           <p>{question}</p>
           <Label className="opacity-70 mt-5">Answer</Label>
           <SousChefResultData />
-          <div className="flex flex-col gap-1 mt-3">
-            <p className="text-muted-foreground text-xs flex flex-row gap-1 items-center justify-center">
-              <HelpCircle size={14} />
-              <span>Was this helpful?</span>
-            </p>
-            <div className="flex flex-row gap-2">
-              <Button
-                variant="secondary"
-                className="flex flex-row gap-1 flex-1"
-              >
-                <span>No</span> <ThumbsDown />
-              </Button>
-              <Button
-                variant="secondary"
-                className="flex flex-row gap-1 flex-1"
-              >
-                <span>Yes</span> <ThumbsUpIcon />
-              </Button>
-            </div>
-          </div>
+          {question && !loading && (
+            <>
+              {feedbackComplete ? (
+                <p className="text-muted-foreground text-xs flex flex-row gap-1 items-center justify-center mt-3">
+                  Thank you for your feedback!
+                </p>
+              ) : (
+                <div className="flex flex-col gap-1 mt-3">
+                  <p className="text-muted-foreground text-xs flex flex-row gap-1 items-center justify-center">
+                    <HelpCircle size={14} />
+                    <span>Was this helpful?</span>
+                  </p>
+                  <div className="flex flex-row gap-2">
+                    <Button
+                      event={{
+                        type: "FEEDBACK",
+                        positive: false,
+                        question,
+                        answer,
+                      }}
+                      variant="secondary"
+                      className="flex flex-row gap-1 flex-1"
+                    >
+                      <span>No</span> <ThumbsDown />
+                    </Button>
+                    <Button
+                      event={{
+                        type: "FEEDBACK",
+                        positive: true,
+                        question,
+                        answer,
+                      }}
+                      variant="secondary"
+                      className="flex flex-row gap-1 flex-1"
+                    >
+                      <span>Yes</span> <ThumbsUpIcon />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
         <Separator />
       </>
