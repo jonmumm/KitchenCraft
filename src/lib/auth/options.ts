@@ -10,7 +10,7 @@ import { Resend } from "resend";
 const resend = new Resend(privateEnv.RESEND_API_KEY);
 
 function generateLoginCode(): string {
-  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Avoid confusing characters
+  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // Avoid confusing characters
   let code = "";
   for (let i = 0; i < 5; i++) {
     const randomIndex = Math.floor(Math.random() * characters.length);
