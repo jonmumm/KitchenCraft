@@ -75,14 +75,14 @@ export function SignInForm() {
                   {...field}
                 />
               </FormControl>
-              <FormDescription>We will email you a passcode.</FormDescription>
+              <FormDescription>Enter your email to send a login code.</FormDescription>
               {fieldState.error && (
                 <FormMessage>{fieldState.error.message}</FormMessage>
               )}
             </FormItem>
           )}
         />
-        <Button disabled={disabled} type="submit">
+        <Button disabled={disabled} type="submit" className="w-full" size="lg">
           Submit
         </Button>
       </form>

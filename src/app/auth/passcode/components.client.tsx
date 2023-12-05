@@ -17,7 +17,12 @@ import {
 } from "@/components/input/form";
 import { assert } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
-import { ClipboardEventHandler, useCallback, useState } from "react";
+import {
+  ChangeEventHandler,
+  ClipboardEventHandler,
+  useCallback,
+  useState,
+} from "react";
 
 // Update the schema to validate a 5-character token
 const formSchema = z.object({
@@ -78,6 +83,15 @@ export function PasscodeForm() {
     [submit]
   );
 
+  const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (event) => {
+      const { value } = event.target;
+      const newValue = value.toUpperCase();
+      form.setValue("token", newValue);
+    },
+    [form]
+  );
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -95,6 +109,7 @@ export function PasscodeForm() {
                   type="text"
                   placeholder="Enter your 5-digit token"
                   {...field}
+                  onChange={handleInputChange} // Use the custom onChange handler
                 />
               </FormControl>
               <FormDescription>
@@ -107,7 +122,7 @@ export function PasscodeForm() {
             </FormItem>
           )}
         />
-        <Button disabled={disabled} type="submit">
+        <Button disabled={disabled} type="submit" className="w-full" size="lg">
           Submit
         </Button>
       </form>

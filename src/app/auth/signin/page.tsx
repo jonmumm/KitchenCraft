@@ -10,7 +10,7 @@ export default async function Page() {
   }
 
   return (
-    <div className="flex flex-col max-w-2xl mx-auto">
+    <div className="flex flex-col max-w-2xl mx-auto px-4">
       <Header />
       <section>
         <SignInForm />
