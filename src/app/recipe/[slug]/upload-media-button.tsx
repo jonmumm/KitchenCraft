@@ -1,12 +1,11 @@
 "use client";
 
-import { Button } from "@/components/input/button";
-import { env } from "@/env.public";
 import { ToastAction } from "@/components/feedback/toast";
+import { useToast } from "@/components/feedback/use-toast";
+import { Button } from "@/components/input/button";
 import { upload } from "@vercel/blob/client";
 import { ChangeEventHandler, ReactNode, useCallback, useRef } from "react";
 import { extractMetadata } from "./media/utils";
-import { useToast } from "@/components/feedback/use-toast";
 
 export const UploadMediaButton = ({
   children,
@@ -16,6 +15,19 @@ export const UploadMediaButton = ({
   slug: string;
 }) => {
   const inputFileRef = useRef<HTMLInputElement>(null);
+
+  const ReloadAction = () => {
+    const handlePressRefresh = useCallback(() => {
+      window.location.reload();
+    }, []);
+
+    return (
+      <ToastAction onClick={handlePressRefresh} altText="Refresh">
+        Refresh Page
+      </ToastAction>
+    );
+  };
+
   const { toast } = useToast();
   const handleFileChange: ChangeEventHandler<HTMLInputElement> = async (
     event
@@ -27,7 +39,8 @@ export const UploadMediaButton = ({
         description: "You upload has started",
       });
       const metadata = await extractMetadata(file);
-      const newBlob = await upload(file.name, file, {
+      // const newBlob = await upload(file.name, file, {
+      await upload(file.name, file, {
         access: "public",
         handleUploadUrl: `${window.location.origin}/recipe/${slug}/media`,
         clientPayload: JSON.stringify(metadata),
@@ -36,9 +49,9 @@ export const UploadMediaButton = ({
         id: notif.id,
         title: "Upload complete!",
         description: "Press to refresh the page.",
-        action: <ToastAction altText="Try again">Refresh Page</ToastAction>,
+        open: true,
+        action: <ReloadAction />,
       });
-      console.log(newBlob.url);
     }
   };
 
