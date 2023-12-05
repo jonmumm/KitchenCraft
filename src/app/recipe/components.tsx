@@ -68,8 +68,8 @@ export const RecipeListItem = ({
           <Link href={href}>
             <h2 className="font-semibold text-lg flex-1">{recipe.name}</h2>
           </Link>
-          <Link href="/@inspectorT">
-            <Badge variant="secondary" className="float-right flex flex-row gap-1">
+          <Link href="/@inspectorT" className="flex-shrink-0">
+            <Badge variant="secondary" className="flex flex-row gap-1">
               <span>@inspectorT</span>
               <span className="text-muted-foreground">(+1048 🧪)</span>
             </Badge>
