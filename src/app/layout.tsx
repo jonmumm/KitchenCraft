@@ -6,6 +6,7 @@ import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import "../styles/globals.css";
 import { ApplicationProvider } from "./provider";
+import { Toaster } from "@/components/feedback/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,6 +37,7 @@ export default async function RootLayout({
           {children}
           {craft}
         </ThemeProvider>
+        <Toaster />
       </body>
     );
   };
