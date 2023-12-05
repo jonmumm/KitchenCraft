@@ -51,7 +51,7 @@ export default async function Page({
       >
         <div key={index} className="flex flex-col gap-3">
           <Link href={href}>
-            <div className="w-full h-64 flex flex-row gap-4 relative">
+            <div className="w-full h-72 flex flex-row gap-4 relative">
               <div className="absolute bottom-3 left-2 right-2 z-50 flex flex-row justify-between items-center gap-3">
                 <Button variant="outline" size="icon">
                   {index + 1}.
@@ -172,8 +172,8 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
       <>
         {items.map((_, index) => {
           return (
-            <div className="carousel-item" key={index}>
-              <Skeleton className="w-72 aspect-square" />
+            <div className="carousel-item h-72" key={index}>
+              <Skeleton className="w-72 h-auto" />
             </div>
           );
         })}
@@ -191,15 +191,15 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
           if (!media) {
             return (
               <div className="carousel-item" key={index}>
-                <Skeleton className="w-72 h-auto" />
+                <Skeleton className="w-72 h-64" />
               </div>
             );
           }
 
           return (
-            <div className="carousel-item" key={index}>
+            <div className="carousel-item h-64" key={index}>
               <Image
-                className="rounded-box w-auto"
+                className="rounded-box h-64 w-auto"
                 src={media.url}
                 priority={index === 0}
                 width={media.width}
