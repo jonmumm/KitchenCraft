@@ -22,6 +22,7 @@ import { formatDuration, timeAgo } from "@/lib/utils";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
 import { getRecentRecipesByUser } from "./queries";
+import { Badge } from "@/components/display/badge";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const userId = (await getSession())?.user.id;
@@ -39,9 +40,14 @@ export default async function Layout({ children }: { children: ReactNode }) {
       <div className="flex flex-col gap-3">
         {userId && (
           <div className="flex flex-col gap-1 w-full">
-            <Label className="px-4 uppercase font-semibold text-accent-foreground opacity-70 text-xs">
-              InspectorT&apos;s Crafts
-            </Label>
+            <div className="flex flex-row justify-between items-center px-4">
+              <Label className="uppercase font-semibold text-accent-foreground opacity-70 text-xs">
+                InspectorT&apos;s Crafts
+              </Label>
+              <Link href="/@inspectorT">
+                <Badge variant="outline">View All ⇨</Badge>
+              </Link>
+            </div>
             <MyRecipes userId={userId} />
           </div>
         )}
