@@ -11,7 +11,7 @@ import {
   getHotRecipes,
   getRecentRecipesByUser,
   getSortedMediaForRecipe,
-} from "../(home)/queries";
+} from "../../db/queries/queries";
 import { upvote } from "../recipe/actions";
 import { UpvoteButton } from "./components.client";
 import { RecipePropsProvider } from "./context";

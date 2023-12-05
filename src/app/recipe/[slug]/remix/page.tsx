@@ -1,4 +1,4 @@
-import { getRecipe } from "@/app/(home)/queries";
+import { getRecipe } from "@/db/queries/queries";
 import { Card } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";

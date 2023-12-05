@@ -21,7 +21,7 @@ import { getSession } from "@/lib/auth/session";
 import { formatDuration, timeAgo } from "@/lib/utils";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
-import { getRecentRecipesByUser } from "./queries";
+import { getRecentRecipesByUser } from "../../db/queries/queries";
 import { Badge } from "@/components/display/badge";
 
 export default async function Layout({ children }: { children: ReactNode }) {

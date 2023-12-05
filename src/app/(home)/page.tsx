@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth/session";
 import { RecipeListItem } from "../recipe/components";
-import { getHotRecipes } from "./queries";
+import { getHotRecipes } from "../../db/queries/queries";
 
 // export const dynamic = "force-dynamic";
 export default async function Page() {

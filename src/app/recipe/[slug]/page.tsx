@@ -8,7 +8,7 @@ import {
   getFirstMediaForRecipe,
   getRecipe,
   getSortedMediaForRecipe,
-} from "@/app/(home)/queries";
+} from "@/db/queries/queries";
 import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
 import Generator from "@/components/ai/generator";
 import { Badge } from "@/components/display/badge";

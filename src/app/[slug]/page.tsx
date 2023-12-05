@@ -13,7 +13,7 @@ import {
   ScrollTextIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { getRecipe } from "../(home)/queries";
+import { getRecipe } from "../../db/queries/queries";
 import { Header } from "../header";
 
 export default async function Page(props: { params: { slug: string } }) {
