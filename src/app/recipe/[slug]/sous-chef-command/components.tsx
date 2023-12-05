@@ -118,7 +118,9 @@ export const SousChefCommandResult = ({
 export const SousChefFAQSuggestionsCommandGroup = (
   props: ComponentProps<typeof CommandGroup>
 ) => {
-  return <CommandGroup {...props} />;
+  const prompt = usePrompt();
+
+  return !prompt?.length ? <CommandGroup {...props} /> : null;
 };
 
 export const SousChefCommandItem = ({
@@ -203,12 +205,7 @@ export const SousChefCommandInput = (
   }, [inputRef]);
   useEventHandler("CLEAR", handleClear);
 
-  // const handleSubmit = useCallback(() => {
-  //   store.setKey("submittedPrompt", store.get().prompt);
-  // }, [store]);
   const prompt = usePrompt();
-  console.log({ prompt });
-  // const ref = store.get().inputRef;
 
   return (
     <>

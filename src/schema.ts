@@ -419,7 +419,13 @@ export const UpvoteEventSchema = z.object({
   slug: z.string(),
 });
 
+export const RemixEventSchema = z.object({
+  type: z.literal("REMIX"),
+  slug: SlugSchema,
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  RemixEventSchema,
   PageLoadedEventSchema,
   UpvoteEventSchema,
   SignInEventSchema,

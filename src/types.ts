@@ -39,6 +39,7 @@ import {
   RecipePredictionOutputSchema,
   RecipePredictionPartialOutputSchema,
   RecipeRequiredPropsSchema,
+  RemixEventSchema,
   RemixIdeasPredictionInputSchema,
   RemixIdeasPredictionOutputSchema,
   RemixIdeasPredictionPartialOutputSchema,
@@ -232,5 +233,6 @@ export type ModifyRecipeDietaryPredictionInput = z.infer<
 >;
 
 export type UpvoteEvent = z.infer<typeof UpvoteEventSchema>;
+export type RemixEvent = z.infer<typeof RemixEventSchema>;
 
 export type ProfileSlug = z.infer<typeof ProfileSlugSchema>;

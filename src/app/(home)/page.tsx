@@ -127,7 +127,7 @@ export default async function Page({
   };
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       {items.map((_, index) => (
         <RecipeListItem key={index} index={index} />
       ))}
@@ -199,7 +199,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
           return (
             <div className="carousel-item" key={index}>
               <Image
-                className="w-72 aspect-square"
+                className="w-72 aspect-square rounded-box"
                 src={media.url}
                 priority={index === 0}
                 width={media.width}
@@ -216,7 +216,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
   };
 
   return (
-    <div className="carousel carousel-center overflow-y-hidden space-x-2 flex-1 px-4">
+    <div className="carousel carousel-center overflow-y-hidden space-x-2 flex-1 p-4 bg-slate-900">
       <Suspense fallback={<Loader />}>
         <Content />
       </Suspense>

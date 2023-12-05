@@ -1,16 +1,15 @@
 import { AppEvent } from "@/types";
-import { WritableAtom } from "nanostores";
 import { useCallback } from "react";
-import { useEvents } from "./useEvents";
+import { useEventSubject } from "./useEvents";
 
 export const useSend = () => {
-  const event$ = useEvents() as WritableAtom<AppEvent>;
+  const subject = useEventSubject();
 
   const send = useCallback(
     (event: AppEvent) => {
-      event$.set(event);
+      subject.next(event);
     },
-    [event$]
+    [subject]
   );
 
   return send;

@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/feedback/toaster";
 import { GoogleAdSense } from "@/components/google-adsense";
 import { ThemeProvider } from "@/components/theme-provider";
 import { getSession } from "@/lib/auth/session";
@@ -6,7 +7,6 @@ import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import "../styles/globals.css";
 import { ApplicationProvider } from "./provider";
-import { Toaster } from "@/components/feedback/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,9 +18,11 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
   craft,
+  remix,
 }: {
   children: ReactNode;
   craft: ReactNode;
+  remix: ReactNode;
 }) {
   const Body = () => {
     return (
@@ -36,6 +38,7 @@ export default async function RootLayout({
         >
           {children}
           {craft}
+          {remix}
         </ThemeProvider>
         <Toaster />
       </body>
