@@ -188,7 +188,7 @@ export const SousChefOutput = () => {
                     <Button
                       event={{
                         type: "FEEDBACK",
-                        positive: false,
+                        rating: 0,
                         question,
                         answer,
                       }}
@@ -200,7 +200,7 @@ export const SousChefOutput = () => {
                     <Button
                       event={{
                         type: "FEEDBACK",
-                        positive: true,
+                        rating: 1,
                         question,
                         answer,
                       }}

@@ -335,7 +335,7 @@ const AddIngredientEventSchema = z.object({
 
 const SousChefFeedbackEventSchema = z.object({
   type: z.literal("FEEDBACK"),
-  positive: z.boolean(),
+  rating: z.number(),
   question: z.string(),
   answer: z.string(),
 });
