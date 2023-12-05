@@ -141,3 +141,18 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
     .limit(30) // Limit the number of results
     .execute();
 };
+
+export const getProfileBySlug = async (profileSlug: string) => {
+  return await db
+    .select({
+      profileSlug: ProfileTable.profileSlug,
+      activated: ProfileTable.activated,
+      mediaId: ProfileTable.mediaId,
+      userId: ProfileTable.userId,
+      createdAt: ProfileTable.createdAt,
+    })
+    .from(ProfileTable)
+    .where(eq(ProfileTable.profileSlug, profileSlug)) // Filter by the given profile slug
+    .execute()
+    .then((res) => res[0]); // Return the first (and expectedly only) result
+};

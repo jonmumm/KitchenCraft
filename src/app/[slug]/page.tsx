@@ -1,6 +1,9 @@
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
-import { getRecentRecipesByProfile } from "@/db/queries/queries";
+import {
+  getProfileBySlug,
+  getRecentRecipesByProfile,
+} from "@/db/queries/queries";
 import { ProfileSlugSchema } from "@/schema";
 import { ChefHatIcon } from "lucide-react";
 import { Header } from "../header";
@@ -14,9 +17,12 @@ export default async function Page(props: { params: { slug: string } }) {
     const username = profileParse.data;
 
     // Fetch recent recipes by profile
-    const recipes = await getRecentRecipesByProfile(slug);
+    const [recipes, profile] = await Promise.all([
+      getRecentRecipesByProfile(slug),
+      getProfileBySlug(username),
+    ]);
 
-    return (
+    return profile ? (
       <div className="flex flex-col">
         <div className="max-w-2xl w-full mx-auto">
           <Header />
@@ -34,7 +40,9 @@ export default async function Page(props: { params: { slug: string } }) {
                   <span className="font-medium text-sm">(+123 🧪)</span>
                 </div>
                 <div className="flex-1 flex flex-col h-full gap-1 justify-start items-end">
-                  <Badge variant="outline">Joined Dec '23</Badge>
+                  <Badge variant="outline">
+                    {formatDate(profile.createdAt)}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -49,8 +57,32 @@ export default async function Page(props: { params: { slug: string } }) {
           </div>
         </div>
       </div>
+    ) : (
+      <div>Not Found</div>
     );
   }
 
   return <div>Not Found</div>;
 }
+
+const formatDate = (date: Date) => {
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const month = monthNames[date.getMonth()];
+  const year = `'${date.getFullYear().toString().slice(-2)}`;
+
+  return `Joined ${month} ${year}`;
+};
