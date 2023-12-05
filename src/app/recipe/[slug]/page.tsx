@@ -4,11 +4,6 @@ import { Skeleton } from "@/components/display/skeleton";
 import Image from "next/image";
 import { Recipe as RecipeJSONLDSchema, WithContext } from "schema-dts";
 
-import {
-  getFirstMediaForRecipe,
-  getRecipe,
-  getSortedMediaForRecipe,
-} from "@/db/queries/queries";
 import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
 import Generator from "@/components/ai/generator";
 import { Badge } from "@/components/display/badge";
@@ -17,6 +12,11 @@ import { Button } from "@/components/input/button";
 import { CommandItem } from "@/components/input/command";
 import { LastValue } from "@/components/util/last-value";
 import { RecipeSchema, RecipesTable, db } from "@/db";
+import {
+  getFirstMediaForRecipe,
+  getRecipe,
+  getSortedMediaForRecipe,
+} from "@/db/queries/queries";
 import { NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
 import { getSession } from "@/lib/auth/session";

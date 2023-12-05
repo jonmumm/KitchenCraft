@@ -17,6 +17,7 @@ import { useStore } from "@nanostores/react";
 import { useCommandState } from "cmdk";
 import { HelpCircle, ThumbsDown, ThumbsUpIcon } from "lucide-react";
 import { listenKeys } from "nanostores";
+import { usePathname } from "next/navigation";
 import {
   ComponentProps,
   ReactNode,
@@ -153,6 +154,11 @@ export const SousChefOutput = () => {
   const question = useCurrentQuestion();
   const loading = useLoading();
   const [feedbackComplete, setFeedbackComplete] = useState(false);
+
+  const pathname = usePathname();
+  useLayoutEffect(() => {
+    store.setKey("history", []);
+  }, [pathname]);
 
   useLayoutEffect(() => {
     setFeedbackComplete(false);
