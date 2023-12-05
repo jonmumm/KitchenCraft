@@ -199,14 +199,13 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
           return (
             <div className="carousel-item" key={index}>
               <Image
-                className="rounded-box"
+                className="rounded-box w-auto"
                 src={media.url}
                 priority={index === 0}
                 width={media.width}
                 height={media.height}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 alt="Main media"
-                layout="responsive"
                 // style={{ objectFit: "cover" }}
               />
             </div>
