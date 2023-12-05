@@ -34,13 +34,13 @@ export default async function Layout({ children }: { children: ReactNode }) {
 
   return (
     <LayoutClient>
-      <div>
+      <div className="max-w-2xl mx-auto">
         <Header />
       </div>
       <div className="flex flex-col gap-3">
         {userId && (
           <div className="flex flex-col gap-1 w-full">
-            <div className="flex flex-row justify-between items-center px-4">
+            <div className="flex flex-row justify-between items-center px-4 max-w-2xl">
               <Label className="uppercase font-semibold text-accent-foreground opacity-70 text-xs">
                 InspectorT&apos;s Crafts
               </Label>

@@ -52,13 +52,17 @@ export default async function Page({
         <div key={index} className="flex flex-col gap-3">
           <Link href={href}>
             <div className="w-full h-72 flex flex-row gap-4 relative">
-              <div className="absolute bottom-3 left-2 right-2 z-50 flex flex-row justify-between items-center gap-3">
-                <Button variant="outline" size="icon">
-                  {index + 1}.
-                </Button>
+              <div className="absolute bottom-3 z-50 left-0 right-0 flex justify-center">
+                <div className="w-full max-w-2xl flex flex-row justify-between px-4">
+                  <Button variant="outline" size="icon">
+                    {index + 1}.
+                  </Button>
 
-                <UpvoteButton count={1} />
+                  <UpvoteButton count={1} />
+                </div>
               </div>
+              {/* <div className="absolute bottom-3 z-50 flex flex-row justify-between items-center gap-3 w-full max-w-2xl mx-auto"> */}
+              {/* </div> */}
 
               <RecipeCarousel slug={recipe.slug} />
               {/* <div className="carousel carousel-center space-x-2 flex-1 px-4">
@@ -80,7 +84,7 @@ export default async function Page({
           </div> */}
             </div>
           </Link>
-          <div className="px-5 flex flex-row justify-between items-center gap-4">
+          <div className="px-5 flex flex-row justify-between items-center gap-4 w-full max-w-2xl mx-auto">
             <Link href={href}>
               <h2 className="font-semibold text-lg flex-1">{recipe.name}</h2>
             </Link>
@@ -91,7 +95,7 @@ export default async function Page({
               </Badge>
             </Link>
           </div>
-          <Link href={href}>
+          <Link href={href} className="w-full max-w-2xl mx-auto">
             <div className="px-5 flex flex-row gap-4 items-center">
               <p className="flex-1">{recipe.description}</p>
               <Button size="icon" variant="outline">
@@ -99,7 +103,7 @@ export default async function Page({
               </Button>
             </div>
           </Link>
-          <div className="w-full px-5 flex flex-row justify-between items-center">
+          <div className="w-full px-5 flex flex-row justify-between items-center w-full max-w-2xl mx-auto">
             <Badge
               className="text-xs text-muted-foreground flex flex-row gap-1"
               variant="outline"
