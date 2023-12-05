@@ -191,7 +191,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
           if (!media) {
             return (
               <div className="carousel-item" key={index}>
-                <Skeleton className="w-72 aspect-square" />
+                <Skeleton className="w-72 h-auto" />
               </div>
             );
           }
@@ -199,14 +199,15 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
           return (
             <div className="carousel-item" key={index}>
               <Image
-                className="w-72 aspect-square rounded-box"
+                className="rounded-box"
                 src={media.url}
                 priority={index === 0}
                 width={media.width}
                 height={media.height}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 alt="Main media"
-                style={{ objectFit: "cover" }}
+                layout="responsive"
+                // style={{ objectFit: "cover" }}
               />
             </div>
           );
