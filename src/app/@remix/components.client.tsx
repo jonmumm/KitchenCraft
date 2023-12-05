@@ -55,21 +55,12 @@ export const Remix = () => {
 
   const handleRemix = useCallback(
     (event: RemixEvent) => {
-      console.log("OPEN!");
       store.setKey("slug", event.slug);
       store.setKey("open", true);
     },
     [store]
   );
   useEventHandler("REMIX", handleRemix);
-
-  const handleOpenChange = useCallback(
-    (value: boolean) => {
-      store.setKey("open", value);
-    },
-    [store]
-  );
-  console.log({ open });
 
   return (
     <ClientOnly>

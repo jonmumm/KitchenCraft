@@ -54,7 +54,6 @@ const Button = React.forwardRef<
   const handleClick = React.useMemo(() => {
     if (event && !props.onClick) {
       const handler: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-        console.log({ event });
         send(event);
         e.preventDefault();
       };

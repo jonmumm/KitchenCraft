@@ -14,13 +14,14 @@ export const useEventHandler = <TEventType extends AppEvent["type"]>(
 
   useEffect(() => {
     const sub = event$.subscribe((event) => {
-      console.log("EVENT", { event });
       if (event.type === type) {
         cb(event as ExtractAppEvent<TEventType>);
       }
     });
     return () => {
-      // sub.unsubscribe
+      if (!sub.closed) {
+        sub.unsubscribe();
+      }
     };
   }, [event$, type, cb]);
 };

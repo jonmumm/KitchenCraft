@@ -1,7 +1,9 @@
 "use client";
 
 import { ApplicationContext } from "@/context/application";
+import { env } from "@/env.public";
 import { useActor } from "@/hooks/useActor";
+import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
 import { getSession } from "@/lib/auth/session";
 import { map } from "nanostores";
@@ -29,11 +31,17 @@ export function ApplicationProvider(props: {
     <SessionProvider session={props.session}>
       <ApplicationContext.Provider value={store}>
         <PageLoadEventsProvider />
+        <AnalyticsProvider />
         <HeaderProvider>{props.children}</HeaderProvider>
       </ApplicationContext.Provider>
     </SessionProvider>
   );
 }
+
+const AnalyticsProvider = () => {
+  usePosthogAnalytics(env.POSTHOG_CLIENT_KEY);
+  return null;
+};
 
 const PageLoadEventsProvider = () => {
   const pathname = usePathname();
