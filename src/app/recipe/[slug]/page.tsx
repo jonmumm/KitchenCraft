@@ -32,6 +32,7 @@ import { kv } from "@vercel/kv";
 import {
   CameraIcon,
   ChefHatIcon,
+  EditIcon,
   HelpCircle,
   ScrollIcon,
   ShoppingBasketIcon,
@@ -39,6 +40,7 @@ import {
 } from "lucide-react";
 import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ComponentProps, ReactNode, Suspense } from "react";
 import {
@@ -480,6 +482,11 @@ export default async function Page(props: Props) {
                 >
                   <ShuffleIcon />
                 </Button>
+                <Link href={`/recipe/${slug}/edit`}>
+                  <Button variant="outline" aria-label="Remix">
+                    <EditIcon />
+                  </Button>
+                </Link>
               </div>
             </div>
             <Separator />

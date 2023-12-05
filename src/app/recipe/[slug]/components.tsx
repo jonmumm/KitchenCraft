@@ -151,7 +151,7 @@ export const Tags = ({ tags$ }: { tags$: Observable<string[]> }) => {
           </Suspense>
         );
       })}
-      <AddTagButton />
+      {/* <AddTagButton /> */}
     </div>
   );
 };
