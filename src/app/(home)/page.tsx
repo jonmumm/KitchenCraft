@@ -1,232 +1,95 @@
-import { Badge } from "@/components/display/badge";
-import { Skeleton } from "@/components/display/skeleton";
-import { Button } from "@/components/input/button";
 import { getSession } from "@/lib/auth/session";
-import { formatDuration, sentenceToSlug } from "@/lib/utils";
-import { ChevronRightIcon, TimerIcon } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
-import { Observable, lastValueFrom } from "rxjs";
-import { upvote } from "../recipe/actions";
-import { UpvoteButton } from "../recipe/components.client";
-import { RecipePropsProvider } from "../recipe/context";
-import { getSortedMediaForRecipe, getTopRecipes } from "./queries";
+import { RecipeListItem } from "../recipe/components";
+import { getHotRecipes } from "./queries";
 
 // export const dynamic = "force-dynamic";
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Record<string, string>;
-}) {
+export default async function Page() {
   const items = new Array(30).fill(0);
   const session = await getSession();
   const userId = session?.user.id;
-  const query = await getTopRecipes(session?.user.id);
-
-  const requireLogin = async () => {
-    "use server";
-
-    redirect("/auth/signin");
-  };
-  // const query$ = from(getTopRecipes(session?.user.id));
-
-  const RecipeListItem = ({ index }: { index: number }) => {
-    const recipe = query[index];
-    if (!recipe) {
-      return null;
-    }
-    const href = `/recipe/${recipe.slug}`;
-    // const recipe$ = getObservableAtIndex(index, query$);
-
-    return (
-      <RecipePropsProvider
-        slug={recipe.slug}
-        upvote={
-          userId
-            ? upvote.bind(null, userId).bind(null, recipe.slug)
-            : requireLogin
-        }
-      >
-        <div key={index} className="flex flex-col gap-3">
-          <Link href={href}>
-            <div className="w-full h-72 flex flex-row gap-4 relative">
-              <div className="absolute bottom-3 z-50 left-0 right-0 flex justify-center">
-                <div className="w-full max-w-2xl flex flex-row justify-between px-4">
-                  <Button variant="outline" size="icon">
-                    {index + 1}.
-                  </Button>
-
-                  <UpvoteButton count={1} />
-                </div>
-              </div>
-              {/* <div className="absolute bottom-3 z-50 flex flex-row justify-between items-center gap-3 w-full max-w-2xl mx-auto"> */}
-              {/* </div> */}
-
-              <RecipeCarousel slug={recipe.slug} />
-              {/* <div className="carousel carousel-center space-x-2 flex-1 px-4">
-            {mediaItems.map((item, mediaIndex) => {
-              return (
-                <div key={mediaIndex} className="carousel-item">
-                  <Suspense
-                    fallback={<Skeleton className="w-64 aspect-square" />}
-                  >
-                    <RecipeImage
-                      store={store}
-                      index={index}
-                      mediaIndex={mediaIndex}
-                    />
-                  </Suspense>
-                </div>
-              );
-            })}
-          </div> */}
-            </div>
-          </Link>
-          <div className="px-5 flex flex-row justify-between items-center gap-4 w-full max-w-2xl mx-auto">
-            <Link href={href}>
-              <h2 className="font-semibold text-lg flex-1">{recipe.name}</h2>
-            </Link>
-            <Link href="/@inspectorT">
-              <Badge variant="secondary" className="float-right">
-                <span>@inspectorT</span>
-                {/* <span className="text-muted-foreground">(+1048 🧪)</span> */}
-              </Badge>
-            </Link>
-          </div>
-          <Link href={href} className="w-full max-w-2xl mx-auto">
-            <div className="px-5 flex flex-row gap-4 items-center">
-              <p className="flex-1">{recipe.description}</p>
-              <Button size="icon" variant="outline">
-                <ChevronRightIcon />
-              </Button>
-            </div>
-          </Link>
-          <div className="w-full px-5 flex flex-row justify-between items-center w-full max-w-2xl mx-auto">
-            <Badge
-              className="text-xs text-muted-foreground flex flex-row gap-1"
-              variant="outline"
-            >
-              <TimerIcon size={14} />
-              <span>{formatDuration(recipe.totalTime)}</span>
-            </Badge>
-            <div className="flex-1 flex flex-row gap-1 flex-wrap justify-end">
-              {recipe.tags.map((tag) => (
-                <Link
-                  href={`/tag/${sentenceToSlug(tag)}`}
-                  key={tag}
-                  passHref={true}
-                >
-                  <Badge key={tag} variant="secondary">
-                    {tag}
-                  </Badge>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </RecipePropsProvider>
-    );
-  };
+  const recipes = await getHotRecipes(session?.user.id);
 
   return (
     <div className="flex flex-col gap-12">
-      {items.map((_, index) => (
-        <RecipeListItem key={index} index={index} />
-      ))}
+      {items.map((_, index) => {
+        const recipe = recipes[index];
+
+        if (!recipe) {
+          return null;
+        }
+
+        return (
+          <RecipeListItem
+            key={index}
+            index={index}
+            recipe={recipe}
+            userId={userId}
+          />
+        );
+      })}
     </div>
   );
 }
-// interface RecipeTimestampProps {
-//   observable: Observable<{ createdAt: string }>;
-// }
 
-// const RecipeTimestamp = async ({ observable }: RecipeTimestampProps) => {
-//   const state = await lastValueFrom(observable);
-//   const createdAt = state.createdAt;
+// const RecipeCarousel = async ({ slug }: { slug: string }) => {
+//   const items = new Array(10).fill(0);
 
-//   return <>{createdAt ? timeAgo(createdAt) : null}</>;
+//   const Loader = async () => {
+//     return (
+//       <>
+//         {items.map((_, index) => {
+//           const width = Math.random() < 0.5 ? 44 : 64;
+//           return (
+//             <div className="carousel-item h-64" key={index}>
+//               <Skeleton className={`w-${width} h-64`} />
+//             </div>
+//           );
+//         })}
+//       </>
+//     );
+//   };
+
+//   const Content = async () => {
+//     const mediaList = await getSortedMediaForRecipe(slug);
+
+//     return (
+//       <>
+//         {items.map((_, index) => {
+//           const media = mediaList[index];
+//           if (!media) {
+//             const width = Math.random() < 0.5 ? 44 : 64;
+//             return (
+//               <div className="carousel-item" key={index}>
+//                 <Skeleton animation="none" className={`w-${width} h-64`} />
+//               </div>
+//             );
+//           }
+
+//           return (
+//             <div className="carousel-item h-64" key={index}>
+//               <Image
+//                 className="rounded-box h-64 w-auto"
+//                 src={media.url}
+//                 priority={index === 0}
+//                 width={media.width}
+//                 height={media.height}
+//                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+//                 alt="Main media"
+//                 // placeholder="empty"
+//                 // style={{ objectFit: "cover" }}
+//               />
+//             </div>
+//           );
+//         })}
+//       </>
+//     );
+//   };
+
+//   return (
+//     <div className="carousel carousel-center overflow-y-hidden space-x-2 flex-1 p-4 bg-slate-900">
+//       <Suspense fallback={<Loader />}>
+//         <Content />
+//       </Suspense>
+//     </div>
+//   );
 // };
-
-interface RecipeDescriptionProps {
-  observable: Observable<{ description: string } | undefined>;
-}
-
-const RecipeDescription = async ({ observable }: RecipeDescriptionProps) => {
-  const state = await lastValueFrom(observable);
-  const description = state?.description;
-
-  return <>{description}</>;
-};
-
-interface RecipeNameProps {
-  observable: Observable<{ name: string } | undefined>;
-}
-
-interface RecipeCarouselProps {
-  observable: Observable<{ slug: string; name: string } | undefined>;
-}
-
-const RecipeCarousel = async ({ slug }: { slug: string }) => {
-  const items = new Array(10).fill(0);
-
-  const Loader = async () => {
-    return (
-      <>
-        {items.map((_, index) => {
-          const width = Math.random() < 0.5 ? 44 : 64;
-          return (
-            <div className="carousel-item h-64" key={index}>
-              <Skeleton className={`w-${width} h-64`} />
-            </div>
-          );
-        })}
-      </>
-    );
-  };
-
-  const Content = async () => {
-    const mediaList = await getSortedMediaForRecipe(slug);
-
-    return (
-      <>
-        {items.map((_, index) => {
-          const media = mediaList[index];
-          if (!media) {
-            const width = Math.random() < 0.5 ? 44 : 64;
-            return (
-              <div className="carousel-item" key={index}>
-                <Skeleton animation="none" className={`w-${width} h-64`} />
-              </div>
-            );
-          }
-
-          return (
-            <div className="carousel-item h-64" key={index}>
-              <Image
-                className="rounded-box h-64 w-auto"
-                src={media.url}
-                priority={index === 0}
-                width={media.width}
-                height={media.height}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                alt="Main media"
-                // placeholder="empty"
-                // style={{ objectFit: "cover" }}
-              />
-            </div>
-          );
-        })}
-      </>
-    );
-  };
-
-  return (
-    <div className="carousel carousel-center overflow-y-hidden space-x-2 flex-1 p-4 bg-slate-900">
-      <Suspense fallback={<Loader />}>
-        <Content />
-      </Suspense>
-    </div>
-  );
-};

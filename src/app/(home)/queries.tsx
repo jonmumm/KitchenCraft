@@ -7,8 +7,10 @@ import {
 } from "@/db";
 import { count, desc, eq, sql } from "drizzle-orm";
 
-export const getTopRecipes = async (userId?: string) => {
-  const oneHourInSeconds = 3600;
+const oneHourInSeconds = 3600;
+const hoursSincePosted = sql<number>`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds}`;
+
+export const getHotRecipes = async (userId?: string) => {
   const gravity = 1.8;
 
   const scoreExpression = sql<number>`(COUNT(${UpvotesTable.userId}) - 1) / POW((EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} + 2), ${gravity})`;
@@ -24,7 +26,7 @@ export const getTopRecipes = async (userId?: string) => {
       tags: RecipesTable.tags,
       totalTime: RecipesTable.totalTime,
       points: sql<number>`COUNT(${UpvotesTable.userId})`,
-      hoursSincePosted: sql<number>`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds}`,
+      hoursSincePosted,
       score: scoreExpression,
       // userVoted: userVotedExpression,
     })
