@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import posthog from "posthog-js";
 import { useLayoutEffect, useRef, useState } from "react";
 import { skip } from "rxjs";
@@ -5,14 +6,23 @@ import { useEvents } from "./useEvents";
 
 export const usePosthogAnalytics = (posthogClientKey: string) => {
   const didSendInitialRef = useRef(false);
-
-  const [client] = useState(() =>
-    posthog.init(posthogClientKey, {
-      api_host: "https://app.posthog.com",
-    })
-  );
-
+  const session = useSession();
   const event$ = useEvents();
+
+  const [client] = useState(() => {
+    const client = posthog.init(posthogClientKey, {
+      api_host: "https://app.posthog.com",
+    });
+
+    return client;
+  });
+
+  useLayoutEffect(() => {
+    if (session.status === "authenticated") {
+      const { email, name } = session.data.user;
+      posthog.identify(session.data.user.id, { email, name });
+    }
+  }, [session]);
 
   useLayoutEffect(() => {
     if (!client) {

@@ -1,5 +1,6 @@
 "use client";
 
+import posthog from "posthog-js";
 import { ModeToggle } from "@/components/dark-mode-toggle";
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
@@ -110,6 +111,7 @@ export function Header({
   }, []);
 
   const handleSignOut = useCallback(() => {
+    posthog.reset();
     signOut();
   }, []);
 
