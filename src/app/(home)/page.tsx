@@ -7,7 +7,7 @@ import { ChevronRightIcon, TimerIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ReactNode, Suspense } from "react";
+import { Suspense } from "react";
 import { Observable, lastValueFrom } from "rxjs";
 import { upvote } from "../recipe/actions";
 import { UpvoteButton } from "../recipe/components.client";
@@ -171,9 +171,10 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
     return (
       <>
         {items.map((_, index) => {
+          const width = Math.random() < 0.5 ? 48 : 72;
           return (
-            <div className="carousel-item h-72" key={index}>
-              <Skeleton className="w-72 h-auto" />
+            <div className="carousel-item h-64" key={index}>
+              <Skeleton className={`w-${width} h-64`} />
             </div>
           );
         })}
@@ -189,11 +190,10 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
         {items.map((_, index) => {
           const media = mediaList[index];
           if (!media) {
-            const height = Math.random() > 0.5 ? 48 : 64;
-            const weight = height === 48 ? 64 : 48;
+            const width = Math.random() < 0.5 ? 48 : 72;
             return (
               <div className="carousel-item" key={index}>
-                <Skeleton className={`w-${weight} h-${height}`} />
+                <Skeleton animation="none" className={`w-${width} h-64`} />
               </div>
             );
           }
@@ -208,6 +208,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
                 height={media.height}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 alt="Main media"
+                // placeholder="empty"
                 // style={{ objectFit: "cover" }}
               />
             </div>
@@ -223,32 +224,5 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
         <Content />
       </Suspense>
     </div>
-  );
-};
-
-interface RecipeLinkProps {
-  observable: Observable<{ slug: string } | undefined>;
-  children: ReactNode;
-}
-
-const RecipeLink = ({ observable, children }: RecipeLinkProps) => {
-  const Content = async () => {
-    const state = await lastValueFrom(observable);
-    const slug = state?.slug;
-
-    return (
-      <Link
-        href={slug ? `/recipe/${slug}` : "/?gallery"}
-        className="flex flex-col gap-1"
-      >
-        {children}
-      </Link>
-    );
-  };
-
-  return (
-    <Suspense fallback={<>{children}</>}>
-      <Content />
-    </Suspense>
   );
 };

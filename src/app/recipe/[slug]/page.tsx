@@ -411,16 +411,16 @@ export default async function Page(props: Props) {
     <>
       <Schema />
 
-      <div className="flex flex-col gap-2 max-w-2xl mx-auto">
+      <div className="flex flex-col gap-2 max-w-3xl mx-auto">
         <CurrentRecipeGenerator />
         {media.length ? (
           <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
             <Header className="absolute left-0 right-0 top-0 z-10" />
-            <div className="carousel carousel-center w-full p-4 bg-neutral space-x-2 aspect-square">
+            <div className="carousel carousel-center w-full p-8 bg-neutral aspect-square space-x-4">
               {media.map((media, index) => {
                 return (
                   <Image
-                    className="carousel-item rounded-box"
+                    className="carousel-item aspect-square w-full rounded-box"
                     key={media.id}
                     src={media.url}
                     priority={index == 0}
@@ -437,7 +437,7 @@ export default async function Page(props: Props) {
         ) : (
           <Header />
         )}
-        <div className="flex flex-col gap-2 max-w-2xl mx-auto">
+        <div className="flex flex-col gap-2 max-w-xl mx-auto">
           <Card className="flex flex-col gap-2 pb-5 mx-3">
             <div className="flex flex-row gap-3 p-5 justify-between">
               <div className="flex flex-col gap-2">
