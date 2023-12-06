@@ -13,6 +13,7 @@ import { z } from "zod";
 const oneHourInSeconds = 3600;
 const hoursSincePosted = sql<number>`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds}`;
 const points = sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`;
+const mediaCount = sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`;
 
 export const getHotRecipes = async (userId?: string) => {
   const gravity = 1.8;
@@ -29,7 +30,7 @@ export const getHotRecipes = async (userId?: string) => {
       points,
       hoursSincePosted,
       score: scoreExpression,
-      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`, // Counts the number of unique media items per recipe
+      mediaCount,
     })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
@@ -120,7 +121,7 @@ export const getRecentRecipesByUser = async (userId: string) => {
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
-      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`,
+      points,
       mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`, // Counts the number of unique media items per recipe
     })
     .from(RecipesTable)
@@ -145,8 +146,8 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
-      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`,
-      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
+      points,
+      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`,
     })
     .from(RecipesTable)
     .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
@@ -187,8 +188,8 @@ export const getRecipesByTag = async (tag: string) => {
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
-      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`,
-      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
+      points,
+      mediaCount,
     })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
@@ -214,8 +215,8 @@ export const getRecentRecipes = async () => {
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
-      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`,
-      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
+      points,
+      mediaCount,
     })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
@@ -244,8 +245,8 @@ export const getBestRecipes = async (
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
-      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`,
-      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
+      points,
+      mediaCount,
     })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
