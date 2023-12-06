@@ -419,53 +419,55 @@ export default async function Page(props: Props) {
       <div className="flex flex-col gap-2 max-w-3xl mx-auto">
         <CurrentRecipeGenerator />
         {mediaList.length ? (
-          <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
-            <Header className="absolute left-0 right-0 top-0 z-10" />
-            <div className="carousel carousel-center w-full p-8 bg-neutral aspect-square space-x-4">
-              {mediaList.map((media, index) => {
-                return (
-                  <div
-                    id={`media-${index}`}
-                    className="carousel-item w-full aspect-square rounded-box overflow-hidden relative"
-                    key={media.id}
-                  >
-                    <Image
-                      src={media.url}
-                      priority={index == 0}
-                      width={media.width}
-                      height={media.height}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      alt={`${name} - Image ${index + 1}`}
-                      style={{ objectFit: "cover" }}
-                    />
-                    {index >= 1 && (
-                      <Link
-                        href={`#media-${index - 1}`}
-                        shallow
-                        className="absolute left-4 top-[50%] z-50 hidden sm:block"
-                      >
-                        <Button size="icon" variant="outline">
-                          <ArrowLeftCircleIcon />
-                          <span className="sr-only">Next Photo</span>
-                        </Button>
-                      </Link>
-                    )}
+          <div className="w-full h-[50vh] relative rounded-b-xl shadow-md">
+            <Header className="absolute left-0 right-0 top-0 z-50" />
+            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 flex justify-center z-40">
+              <div className="carousel carousel-center overflow-y-hidden h-[50vh] space-x-2 flex-1 md:justify-center">
+                {mediaList.map((media, index) => {
+                  return (
+                    <div
+                      className="carousel-item h-[50vh]"
+                      id={`media-${index}`}
+                      key={media.id}
+                    >
+                      <Image
+                        className="h-auto w-auto rounded-box"
+                        src={media.url}
+                        priority={index == 0}
+                        width={media.width}
+                        height={media.height}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        alt={`${name} - Image ${index + 1}`}
+                      />
+                      {/* {index >= 1 && (
+                        <Link
+                          href={`#media-${index - 1}`}
+                          shallow
+                          className="absolute left-4 top-[50%] z-50 hidden sm:block"
+                        >
+                          <Button size="icon" variant="outline">
+                            <ArrowLeftCircleIcon />
+                            <span className="sr-only">Next Photo</span>
+                          </Button>
+                        </Link>
+                      )} */}
 
-                    {index < mediaList.length - 1 && (
-                      <Link
-                        href={`#media-${index + 1}`}
-                        shallow
-                        className="absolute right-4 top-[50%] z-50 hidden sm:block"
-                      >
-                        <Button size="icon" variant="outline">
-                          <ArrowRightCircleIcon />
-                          <span className="sr-only">Next Photo</span>
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                );
-              })}
+                      {/* {index < mediaList.length - 1 && (
+                        <Link
+                          href={`#media-${index + 1}`}
+                          shallow
+                          className="absolute right-4 top-[50%] z-50 hidden sm:block"
+                        >
+                          <Button size="icon" variant="outline">
+                            <ArrowRightCircleIcon />
+                            <span className="sr-only">Next Photo</span>
+                          </Button>
+                        </Link>
+                      )} */}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         ) : (
