@@ -437,8 +437,13 @@ export const ShareEventSchema = z.object({
   slug: SlugSchema,
 });
 
-export const ShareCompleteEventSchema = z.object({
+const ShareCompleteEventSchema = z.object({
   type: z.literal("SHARE_COMPLETE"),
+  slug: SlugSchema,
+});
+
+const ShareCancelEventSchema = z.object({
+  type: z.literal("SHARE_CANCEL"),
   slug: SlugSchema,
 });
 
@@ -447,6 +452,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   PageLoadedEventSchema,
   ShareEventSchema,
   ShareCompleteEventSchema,
+  ShareCancelEventSchema,
   UpvoteEventSchema,
   SignInEventSchema,
   SignOutEventSchema,

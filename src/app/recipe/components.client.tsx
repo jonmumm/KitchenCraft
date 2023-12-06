@@ -78,6 +78,8 @@ export const ShareButton = ({
         })
         .then(() => {
           send({ type: "SHARE_COMPLETE", slug });
+        }).catch(() => {
+          send({ type: "SHARE_CANCEL", slug });
         });
     } else if ("clipboard" in navigator) {
       // @ts-ignore
