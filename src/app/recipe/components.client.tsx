@@ -44,7 +44,7 @@ export const UpvoteButton = (props: { count: number; disabled?: boolean }) => {
       <Button
         disabled={disabled}
         onClick={handleClick}
-        variant="outline"
+        variant="ghost"
         className="flex flex-row gap-1"
         aria-label="Upvote"
         type="submit"

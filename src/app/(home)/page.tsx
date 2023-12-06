@@ -10,7 +10,7 @@ export default async function Page() {
   const recipes = await getHotRecipes(session?.user.id);
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-14">
       {items.map((_, index) => {
         const recipe = recipes[index];
 
