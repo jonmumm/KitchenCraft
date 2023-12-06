@@ -142,10 +142,18 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
+      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`,
+      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
-    .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy)) // Join with the Profile table
-    .where(eq(ProfileTable.profileSlug, profileSlug)) // Filter by the profile slug
+    .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
+    .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
+    .leftJoin(
+      RecipeMediaTable,
+      eq(RecipesTable.slug, RecipeMediaTable.recipeSlug)
+    )
+    .where(eq(ProfileTable.profileSlug, profileSlug))
+    .groupBy(RecipesTable.slug)
     .orderBy(desc(RecipesTable.createdAt)) // Order by most recent
     .limit(30) // Limit the number of results
     .execute();
@@ -176,11 +184,20 @@ export const getRecipesByTag = async (tag: string) => {
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
+      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`,
+      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
+    .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
+    .leftJoin(
+      RecipeMediaTable,
+      eq(RecipesTable.slug, RecipeMediaTable.recipeSlug)
+    )
     .where(
       sql`LOWER(${tag}) = ANY (SELECT LOWER(jsonb_array_elements_text(${RecipesTable.tags})))`
     )
+    .groupBy(RecipesTable.slug)
+    .orderBy(desc(RecipesTable.createdAt)) // Or any other order you prefer
     .limit(30)
     .execute();
 };
@@ -194,10 +211,18 @@ export const getRecentRecipes = async () => {
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
+      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`,
+      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
+    .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
+    .leftJoin(
+      RecipeMediaTable,
+      eq(RecipesTable.slug, RecipeMediaTable.recipeSlug)
+    )
+    .groupBy(RecipesTable.slug)
     .orderBy(desc(RecipesTable.createdAt))
-    .limit(30) // You can adjust the limit as needed
+    .limit(30) // Adjust the limit as needed
     .execute();
 };
 
@@ -205,7 +230,7 @@ export const getBestRecipes = async (
   timeFrame: z.infer<typeof TimeParamSchema>,
   userId?: string
 ) => {
-  const timeCondition = getTimeCondition(timeFrame); // Function to get the time condition based on the timeFrame parameter
+  const timeCondition = getTimeCondition(timeFrame);
 
   return await db
     .select({
@@ -216,12 +241,18 @@ export const getBestRecipes = async (
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
+      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`,
+      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
-    .where(timeCondition) // Apply time condition
+    .leftJoin(
+      RecipeMediaTable,
+      eq(RecipesTable.slug, RecipeMediaTable.recipeSlug)
+    )
+    .where(timeCondition)
     .groupBy(RecipesTable.slug)
-    .orderBy(desc(sql<number>`COUNT(${UpvotesTable.userId})`)) // Order by count of upvotes
+    .orderBy(desc(sql<number>`COUNT(${UpvotesTable.userId})`)) // You may also consider ordering by 'points' if that aligns better with your definition of 'best'
     .limit(30)
     .execute();
 };
