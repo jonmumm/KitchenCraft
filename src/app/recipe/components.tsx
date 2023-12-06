@@ -140,7 +140,11 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
       <div className="h-72 carousel carousel-center overflow-y-hidden space-x-2 flex-1 p-4 sm:p-0 md:justify-center">
         {mediaList.map((media, index) => {
           return (
-            <div className="carousel-item h-64" key={index}>
+            <Link
+              className="carousel-item h-64"
+              key={index}
+              href={`/recipe/${slug}?#media-${index}`}
+            >
               <Image
                 className="rounded-box h-64 w-auto"
                 src={media.url}
@@ -154,7 +158,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
                 // placeholder="empty"
                 // style={{ objectFit: "cover" }}
               />
-            </div>
+            </Link>
           );
         })}
       </div>
