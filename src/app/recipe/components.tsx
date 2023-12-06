@@ -63,7 +63,7 @@ export const RecipeListItem = ({
             <Link href={href} className="flex-1">
               <h2 className="font-semibold text-lg">{recipe.name}</h2>
             </Link>
-            <UpvoteButton count={1} />
+            <UpvoteButton count={recipe.points} />
           </div>
         </div>
         {recipe.mediaCount > 0 ? (
