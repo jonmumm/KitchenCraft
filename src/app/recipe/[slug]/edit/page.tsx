@@ -4,11 +4,12 @@ import { Skeleton } from "@/components/display/skeleton";
 import { Separator } from "@/components/display/separator";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
+import { Textarea } from "@/components/input/textarea";
 import StickyHeader from "@/components/layout/sticky-header";
 import {
-  getFirstMediaForRecipe,
-  getRecipe,
-  getSortedMediaForRecipe,
+    getFirstMediaForRecipe,
+    getRecipe,
+    getSortedMediaForRecipe,
 } from "@/db/queries";
 import { Recipe } from "@/db/types";
 import { env } from "@/env.public";
@@ -26,7 +27,6 @@ import { BehaviorSubject, Observable, firstValueFrom, of } from "rxjs";
 import { Ingredients, Instructions, Tags, Times } from "../components";
 import { getObservables } from "../observables";
 import { EditName } from "./components.client";
-import { Textarea } from "@/components/input/textarea";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -190,7 +190,7 @@ export default async function Page(props: Props) {
         <div className="flex flex-col gap-2 max-w-xl mx-auto">
           <Card className="flex flex-col gap-2 pb-5 mx-3">
             <div className="flex flex-row gap-3 p-5 justify-between">
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 w-full">
                 <EditName defaultValue={name} />
                 <Textarea
                   name="description"
