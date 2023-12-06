@@ -7,7 +7,7 @@ import {
   UpvotesTable,
   db,
 } from "@/db";
-import { count, desc, eq, sql } from "drizzle-orm";
+import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 const oneHourInSeconds = 3600;
@@ -278,4 +278,51 @@ const getTimeCondition = (timeFrame: string) => {
     default:
       throw new Error("Invalid time frame");
   }
+};
+
+interface MediaItem {
+  id: string;
+  url: string;
+  width: number;
+  height: number;
+  mediaType: string;
+  blobDataURL: string;
+  recipeSlug: string; // Include the recipe slug to identify the media's recipe
+}
+
+export const getSortedMediaForMultipleRecipes = async (
+  recipeSlugs: string[]
+): Promise<{ [slug: string]: MediaItem[] }> => {
+  const mediaItems = (await db
+    .select({
+      id: MediaTable.id,
+      url: MediaTable.url,
+      width: MediaTable.width,
+      height: MediaTable.height,
+      mediaType: MediaTable.mediaType,
+      blobDataURL: MediaTable.blurDataURL,
+      recipeSlug: RecipeMediaTable.recipeSlug,
+    })
+    .from(RecipeMediaTable)
+    .innerJoin(MediaTable, eq(MediaTable.id, RecipeMediaTable.mediaId))
+    .where(inArray(RecipeMediaTable.recipeSlug, recipeSlugs))
+    .orderBy(RecipeMediaTable.sortOrder)
+    .execute()) as MediaItem[];
+
+  // Group media items by their recipe slug
+  let mediaBySlug: { [slug: string]: MediaItem[] } = {};
+  mediaItems.forEach((media) => {
+    if (!mediaBySlug[media.recipeSlug]) {
+      mediaBySlug[media.recipeSlug] = [];
+    }
+    mediaBySlug[media.recipeSlug]?.push(media);
+  });
+
+  // Optional: Arrange the results in the order of the provided slugs
+  let orderedResults: { [slug: string]: MediaItem[] } = {};
+  recipeSlugs.forEach((slug) => {
+    orderedResults[slug] = mediaBySlug[slug] || [];
+  });
+
+  return orderedResults;
 };

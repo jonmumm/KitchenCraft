@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Skeleton } from "@/components/display/skeleton";
@@ -17,12 +18,15 @@ import { Header } from "../header";
 //   RecipeName,
 //   RecipeTimestamp,
 // } from "./components";
+import { Badge } from "@/components/display/badge";
 import { getSession } from "@/lib/auth/session";
 import { formatDuration, timeAgo } from "@/lib/utils";
+import {
+  getRecentRecipesByUser,
+  getSortedMediaForMultipleRecipes,
+} from "../../db/queries";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
-import { getRecentRecipesByUser } from "../../db/queries";
-import { Badge } from "@/components/display/badge";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const userId = (await getSession())?.user.id;
@@ -89,6 +93,8 @@ const MyRecipes = ({ userId }: { userId: string }) => {
 
   const Content = async () => {
     const recipes = await getRecentRecipesByUser(userId);
+    const slugs = recipes.map((recipe) => recipe.slug);
+    const mediaBySlug = await getSortedMediaForMultipleRecipes(slugs);
 
     return (
       <>
@@ -97,18 +103,35 @@ const MyRecipes = ({ userId }: { userId: string }) => {
           if (!recipe) {
             return <Skeleton key={index} className="w-64 h-36 carousel-item" />;
           }
+          const media = mediaBySlug[recipe.slug]?.[0];
 
           return (
             <div key={index} className="carousel-item w-64 h-36">
               <Link key={recipe.slug} href={`/recipe/${recipe.slug}`}>
                 <Card className="w-64 h-36 bg-secondary flex flex-col gap-1 justify-between py-2">
-                  <div className="flex flex-row gap-1 px-3 items-center">
+                  <div className="flex flex-row gap-1 px-3 items-start">
                     <h3 className="text-lg font-semibold flex-1">
                       {recipe.name}
                     </h3>
-                    <Button size="icon" variant="outline">
-                      <ChevronRightIcon />
-                    </Button>
+                    {!media ? (
+                      <Button size="icon" variant="outline">
+                        <ChevronRightIcon />
+                      </Button>
+                    ) : (
+                      <>
+                        <Image
+                          priority={index === 0}
+                          className="w-16 aspect-square rounded-sm"
+                          // layoutId={`${item.id}-${index}`}
+                          sizes="(max-width: 768px) 20vw, (max-width: 1200px) 15vw, 10vw"
+                          src={media.url}
+                          width={media.width}
+                          height={media.height}
+                          alt={recipe.name}
+                          style={{ objectFit: "cover" }}
+                        />
+                      </>
+                    )}
                   </div>
                   <div className="line-clamp-2 text-xs text-muted-foreground leading-5 px-3">
                     {recipe.description}
