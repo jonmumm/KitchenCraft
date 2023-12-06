@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
   },
   providers: [
     Email({
-      from: "auth@kitchencraft.ai",
+      from: "KitchenCraft <signin@mail.kitchencraft.ai>",
       maxAge: 5 * 60, // 5 minutes
       sendVerificationRequest: async ({
         identifier: email,
@@ -39,8 +39,7 @@ export const authOptions: NextAuthOptions = {
         provider,
       }) => {
         const result = await resend.emails.send({
-          from: "KitchenCraft <onboarding@resend.dev>",
-          // from: "KitchenCraft <signin@kitchencraft.ai>",
+          from: "KitchenCraft <signin@mail.kitchencraft.ai>",
           to: email,
           subject: "Your Sign-In Code",
           text: `To sign-in to KitchenCraft, enter this code: ${token}. This code will expire in 5 minutes.`,
