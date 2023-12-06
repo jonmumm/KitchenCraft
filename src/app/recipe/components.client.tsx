@@ -2,16 +2,25 @@
 
 import { Button } from "@/components/input/button";
 import { useStore } from "@nanostores/react";
-import { ArrowBigUpDashIcon } from "lucide-react";
+import {
+  ArrowBigUpDashIcon,
+  ArrowLeftCircleIcon,
+  ArrowRightCircleIcon,
+} from "lucide-react";
 import { atom } from "nanostores";
 import {
   MouseEventHandler,
   useCallback,
   useContext,
+  useEffect,
   useState,
   useTransition,
 } from "react";
 import { RecipeContext } from "./context";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useLocationHash } from "@/hooks/useLocationHash";
+import { z } from "zod";
 
 export const UpvoteButton = (props: { count: number; disabled?: boolean }) => {
   const { upvote } = useContext(RecipeContext);

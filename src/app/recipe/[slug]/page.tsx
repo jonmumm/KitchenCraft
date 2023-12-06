@@ -30,6 +30,8 @@ import {
 import { RecipePredictionInput } from "@/types";
 import { kv } from "@vercel/kv";
 import {
+  ArrowLeftCircleIcon,
+  ArrowRightCircleIcon,
   CameraIcon,
   ChefHatIcon,
   EditIcon,
@@ -81,7 +83,7 @@ type Props = {
 export default async function Page(props: Props) {
   const { slug } = props.params;
 
-  const [session, recipe, media] = await Promise.all([
+  const [session, recipe, mediaList] = await Promise.all([
     getSession(),
     getRecipe(slug),
     getSortedMediaForRecipe(slug),
@@ -377,7 +379,7 @@ export default async function Page(props: Props) {
     if (!recipe) {
       return null;
     }
-    const mainMedia = media[0];
+    const mainMedia = mediaList[0];
 
     const image = mainMedia
       ? {
@@ -415,23 +417,52 @@ export default async function Page(props: Props) {
 
       <div className="flex flex-col gap-2 max-w-3xl mx-auto">
         <CurrentRecipeGenerator />
-        {media.length ? (
+        {mediaList.length ? (
           <div className="w-full aspect-square overflow-hidden relative rounded-b-xl shadow-md">
             <Header className="absolute left-0 right-0 top-0 z-10" />
             <div className="carousel carousel-center w-full p-8 bg-neutral aspect-square space-x-4">
-              {media.map((media, index) => {
+              {mediaList.map((media, index) => {
                 return (
-                  <Image
-                    className="carousel-item aspect-square w-full rounded-box"
+                  <div
+                    id={`media-${index}`}
+                    className="carousel-item w-full aspect-square rounded-box overflow-hidden relative"
                     key={media.id}
-                    src={media.url}
-                    priority={index == 0}
-                    width={media.width}
-                    height={media.height}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt={`${name} - Image ${index + 1}`}
-                    style={{ objectFit: "cover" }}
-                  />
+                  >
+                    <Image
+                      src={media.url}
+                      priority={index == 0}
+                      width={media.width}
+                      height={media.height}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      alt={`${name} - Image ${index + 1}`}
+                      style={{ objectFit: "cover" }}
+                    />
+                    {index >= 1 && (
+                      <Link
+                        href={`#media-${index - 1}`}
+                        shallow
+                        className="absolute left-4 top-[50%] z-50 hidden sm:block"
+                      >
+                        <Button size="icon" variant="outline">
+                          <ArrowLeftCircleIcon />
+                          <span className="sr-only">Next Photo</span>
+                        </Button>
+                      </Link>
+                    )}
+
+                    {index < mediaList.length - 1 && (
+                      <Link
+                        href={`#media-${index + 1}`}
+                        shallow
+                        className="absolute right-4 top-[50%] z-50 hidden sm:block"
+                      >
+                        <Button size="icon" variant="outline">
+                          <ArrowRightCircleIcon />
+                          <span className="sr-only">Next Photo</span>
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
                 );
               })}
             </div>
