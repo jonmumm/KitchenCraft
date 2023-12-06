@@ -144,6 +144,8 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
                 height={media.height}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 alt="Main media"
+                placeholder="blur"
+                blurDataURL={media.blobDataURL}
                 // placeholder="empty"
                 // style={{ objectFit: "cover" }}
               />

@@ -74,6 +74,7 @@ export const getSortedMediaForRecipe = async (recipeSlug: string) => {
       width: MediaTable.width,
       height: MediaTable.height,
       mediaType: MediaTable.mediaType,
+      blobDataURL: MediaTable.blurDataURL,
     })
     .from(RecipeMediaTable)
     .innerJoin(MediaTable, eq(MediaTable.id, RecipeMediaTable.mediaId))
