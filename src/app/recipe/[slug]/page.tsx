@@ -423,7 +423,7 @@ export default async function Page(props: Props) {
           >
             <Header className="absolute left-0 right-0 top-0 z-50" />
             <div className="absolute top-24 w-screen left-1/2 transform -translate-x-1/2 flex justify-center z-40">
-              <div className="carousel carousel-center overflow-y-hidden h-[50vh] space-x-2 flex-1 md:justify-center">
+              <div className="carousel carousel-center overflow-y-hidden h-[50vh] space-x-2 flex-1 md:justify-center pl-2 pr-4">
                 {mediaList.map((media, index) => {
                   return (
                     <div
