@@ -431,7 +431,7 @@ export default async function Page(props: Props) {
                       key={media.id}
                     >
                       <Image
-                        className="h-auto w-auto rounded-box"
+                        className="h-[50vh] w-auto rounded-box"
                         src={media.url}
                         priority={index == 0}
                         width={media.width}
