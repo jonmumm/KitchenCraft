@@ -72,8 +72,8 @@ export const RecipeListItem = ({
           </div>
         </div>
         {recipe.mediaCount > 0 ? (
-          <div className="h-72 relative">
-            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-72 flex justify-center z-50">
+          <div className="h-64 relative">
+            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-50">
               <RecipeCarousel slug={recipe.slug} />
             </div>
             {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
@@ -87,8 +87,15 @@ export const RecipeListItem = ({
             </Button>
           </div>
         </Link>
-        <div className="flex-1 flex flex-row gap-1 flex-wrap px-4 justify-between">
-          <div className="flex flex-row gap-1">
+        <div className="flex-1 flex flex-row gap-1 px-4 justify-between items-start">
+          <Badge
+            className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0"
+            variant="outline"
+          >
+            <TimerIcon size={14} />
+            <span>{formatDuration(recipe.totalTime)}</span>
+          </Badge>
+          <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
             {"tags" in recipe &&
               recipe.tags.map((tag) => (
                 <Link
@@ -102,13 +109,6 @@ export const RecipeListItem = ({
                 </Link>
               ))}
           </div>
-          <Badge
-            className="text-xs text-muted-foreground flex flex-row gap-1"
-            variant="outline"
-          >
-            <TimerIcon size={14} />
-            <span>{formatDuration(recipe.totalTime)}</span>
-          </Badge>
         </div>
       </Card>
     </RecipePropsProvider>
@@ -137,7 +137,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
     const mediaList = await getSortedMediaForRecipe(slug);
 
     return mediaList.length ? (
-      <div className="h-72 carousel carousel-center overflow-y-hidden space-x-2 flex-1 p-4 sm:p-0 md:justify-center">
+      <div className="h-72 carousel carousel-center overflow-y-hidden space-x-2 flex-1 sm:p-0 md:justify-center">
         {mediaList.map((media, index) => {
           return (
             <Link

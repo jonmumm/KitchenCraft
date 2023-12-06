@@ -10,16 +10,17 @@ import {
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
+// constants
+const gravity = 1.8;
 const oneHourInSeconds = 3600;
+
+// common select expressions
 const hoursSincePosted = sql<number>`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds}`;
 const points = sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`;
 const mediaCount = sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`;
+const scoreExpression = sql<number>`(${points} - 1) / POW((EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} + 2), ${gravity})`;
 
 export const getHotRecipes = async (userId?: string) => {
-  const gravity = 1.8;
-
-  const scoreExpression = sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) - 1) / POW((EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} + 2), ${gravity})`;
-
   return await db
     .select({
       slug: RecipesTable.slug,

@@ -4,7 +4,9 @@ import { ReactNode, createContext } from "react";
 
 type Props = {
   slug: string;
-  upvote: () => Promise<void | never>;
+  upvote: () => Promise<
+    ({ success: true } | { success: false; error: string }) | never
+  >;
 };
 
 export const RecipeContext = createContext({} as Props);
