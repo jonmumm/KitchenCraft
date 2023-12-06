@@ -25,13 +25,16 @@ interface RecipeListItemProps {
   recipe: Recipes; // Define RecipeType according to your data structure
   index: number;
   userId?: string;
+  upvoted?: boolean;
 }
 
 export const RecipeListItem = ({
   recipe,
   userId,
   index,
+  upvoted,
 }: RecipeListItemProps) => {
+  console.log(upvoted, recipe.slug)
   const href = `/recipe/${recipe.slug}`;
   const requireLogin = async () => {
     "use server";
@@ -39,6 +42,11 @@ export const RecipeListItem = ({
     redirect("/auth/signin");
   };
   // const recipe$ = getObservableAtIndex(index, query$);
+
+  // const UpvoteButtonContainer = async () => {
+
+  //   return <UpvoteButton count={recipe.points} alreadyVoted={false} />;
+  // };
 
   return (
     <RecipePropsProvider
@@ -68,7 +76,14 @@ export const RecipeListItem = ({
               name={recipe.name}
               description={recipe.description}
             />
-            <UpvoteButton count={recipe.points} />
+            <Suspense>
+              <UpvoteButton
+                count={recipe.points}
+                alreadyVoted={upvoted || false}
+              />
+              {/* {props.upvoted& ? <FirstValue
+              <UpvoteButtonContainer /> */}
+            </Suspense>
           </div>
         </div>
         {recipe.mediaCount > 0 ? (

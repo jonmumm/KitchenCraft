@@ -19,9 +19,12 @@ import {
 } from "react";
 import { RecipeContext } from "./context";
 
-export const UpvoteButton = (props: { count: number; disabled?: boolean }) => {
+export const UpvoteButton = (props: {
+  count: number;
+  alreadyVoted: boolean;
+}) => {
   const { upvote } = useContext(RecipeContext);
-  const [disabled, setDisabled] = useState(props.disabled);
+  const [disabled, setDisabled] = useState(props.alreadyVoted);
   const [count$] = useState(atom(props.count));
   const count = useStore(count$);
   const [_, startTransition] = useTransition();
@@ -78,7 +81,8 @@ export const ShareButton = ({
         })
         .then(() => {
           send({ type: "SHARE_COMPLETE", slug });
-        }).catch(() => {
+        })
+        .catch(() => {
           send({ type: "SHARE_CANCEL", slug });
         });
     } else if ("clipboard" in navigator) {

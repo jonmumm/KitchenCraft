@@ -1,5 +1,8 @@
 import { getSession } from "@/lib/auth/session";
-import { getHotRecipes } from "../../db/queries";
+import {
+  getHotRecipes,
+  getUpvoteStatusForMultipleRecipes,
+} from "../../db/queries";
 import { RecipeListItem } from "../recipe/components";
 
 // export const dynamic = "force-dynamic";
@@ -8,6 +11,13 @@ export default async function Page() {
   const session = await getSession();
   const userId = session?.user.id;
   const recipes = await getHotRecipes(session?.user.id);
+
+  const upvoteStatusBySlug = userId
+    ? await getUpvoteStatusForMultipleRecipes(
+        recipes.map(({ slug }) => slug),
+        userId
+      )
+    : {};
 
   return (
     <div className="flex flex-col gap-14">
@@ -24,6 +34,7 @@ export default async function Page() {
             index={index}
             recipe={recipe}
             userId={userId}
+            upvoted={upvoteStatusBySlug[recipe.slug]}
           />
         );
       })}

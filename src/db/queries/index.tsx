@@ -7,7 +7,7 @@ import {
   UpvotesTable,
   db,
 } from "@/db";
-import { count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
 // constants
@@ -326,4 +326,40 @@ export const getSortedMediaForMultipleRecipes = async (
   });
 
   return orderedResults;
+};
+
+export const getUpvoteStatusForMultipleRecipes = async (
+  recipeSlugs: string[],
+  userId: string
+): Promise<{ [slug: string]: boolean }> => {
+  const upvoteItems = (await db
+    .select({
+      slug: UpvotesTable.slug,
+      userId: UpvotesTable.userId,
+    })
+    .from(UpvotesTable)
+    .where(
+      and(
+        inArray(UpvotesTable.slug, recipeSlugs),
+        eq(UpvotesTable.userId, userId)
+      )
+    )
+    .execute()) as { slug: string; userId: string }[];
+
+  // Initialize a dictionary to hold the upvote status for each recipe
+  let upvoteStatusBySlug: { [slug: string]: boolean } = {};
+
+  // Set default values for each recipe slug as false (no upvote)
+  recipeSlugs.forEach((slug) => {
+    upvoteStatusBySlug[slug] = false;
+  });
+
+  // Update the dictionary based on the upvote data
+  upvoteItems.forEach((item) => {
+    if (item.userId === userId) {
+      upvoteStatusBySlug[item.slug] = true;
+    }
+  });
+
+  return upvoteStatusBySlug;
 };
