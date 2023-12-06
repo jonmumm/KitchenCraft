@@ -30,8 +30,6 @@ import {
 import { RecipePredictionInput } from "@/types";
 import { kv } from "@vercel/kv";
 import {
-  ArrowLeftCircleIcon,
-  ArrowRightCircleIcon,
   CameraIcon,
   ChefHatIcon,
   EditIcon,
@@ -419,9 +417,12 @@ export default async function Page(props: Props) {
       <div className="flex flex-col gap-2 max-w-3xl mx-auto">
         <CurrentRecipeGenerator />
         {mediaList.length ? (
-          <div className="w-full h-[50vh] relative rounded-b-xl shadow-md">
+          <div
+            className="w-full relative rounded-b-xl shadow-md"
+            style={{ height: `calc(50vh + 6rem)` }}
+          >
             <Header className="absolute left-0 right-0 top-0 z-50" />
-            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 flex justify-center z-40">
+            <div className="absolute top-24 w-screen left-1/2 transform -translate-x-1/2 flex justify-center z-40">
               <div className="carousel carousel-center overflow-y-hidden h-[50vh] space-x-2 flex-1 md:justify-center">
                 {mediaList.map((media, index) => {
                   return (
