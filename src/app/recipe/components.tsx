@@ -137,7 +137,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
     const mediaList = await getSortedMediaForRecipe(slug);
 
     return mediaList.length ? (
-      <div className="h-72 carousel carousel-center overflow-y-hidden space-x-2 flex-1 sm:p-0 md:justify-center">
+      <div className="h-72 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-2 pr-4 sm:p-0 md:justify-center">
         {mediaList.map((media, index) => {
           return (
             <Link
