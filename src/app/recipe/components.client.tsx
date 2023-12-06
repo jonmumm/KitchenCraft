@@ -98,7 +98,7 @@ export const ShareButton = ({
             <ShareIcon />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-fit">URL Copied!</PopoverContent>
+        <PopoverContent className="w-fit px-2 py-1">URL Copied!</PopoverContent>
       </Popover>
     </div>
   );
