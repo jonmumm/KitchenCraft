@@ -418,7 +418,7 @@ export default async function Page(props: Props) {
         <CurrentRecipeGenerator />
         {mediaList.length ? (
           <div
-            className="w-full relative rounded-b-xl shadow-md"
+            className="w-full relative rounded-b-xl"
             style={{ height: `calc(50vh + 6rem)` }}
           >
             <Header className="absolute left-0 right-0 top-0 z-50" />

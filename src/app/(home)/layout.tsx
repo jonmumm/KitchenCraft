@@ -109,7 +109,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
             <div key={index} className="carousel-item w-64 h-36">
               <Link key={recipe.slug} href={`/recipe/${recipe.slug}`}>
                 <Card className="w-64 h-36 bg-secondary flex flex-col gap-1 justify-between py-2">
-                  <div className="flex flex-row gap-1 px-3 items-start">
+                  <div className="flex flex-row gap-2 px-3 items-start">
                     <h3 className="text-lg font-semibold flex-1">
                       {recipe.name}
                     </h3>
