@@ -54,6 +54,7 @@ import {
   of,
   takeWhile,
 } from "rxjs";
+import { ShareButton } from "../components.client";
 import {
   CraftingDetails,
   Ingredients,
@@ -518,6 +519,11 @@ export default async function Page(props: Props) {
                     <EditIcon />
                   </Button>
                 </Link>
+                <ShareButton
+                  slug={slug}
+                  name={name}
+                  description={description}
+                />
               </div>
             </div>
             <Separator />

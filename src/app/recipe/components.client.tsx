@@ -1,18 +1,19 @@
 "use client";
 
 import { Button } from "@/components/input/button";
-import { useStore } from "@nanostores/react";
 import {
-  ArrowBigUpDashIcon,
-  ArrowLeftCircleIcon,
-  ArrowRightCircleIcon,
-} from "lucide-react";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/layout/popover";
+import { useSend } from "@/hooks/useSend";
+import { useStore } from "@nanostores/react";
+import { ArrowBigUpDashIcon, ShareIcon } from "lucide-react";
 import { atom } from "nanostores";
 import {
   MouseEventHandler,
   useCallback,
   useContext,
-  useEffect,
   useState,
   useTransition,
 } from "react";
@@ -49,5 +50,56 @@ export const UpvoteButton = (props: { count: number; disabled?: boolean }) => {
         <span className="font-bold">{count}</span>
       </Button>
     </form>
+  );
+};
+
+export const ShareButton = ({
+  slug,
+  name,
+  description,
+}: {
+  slug: string;
+  name: string;
+  description: string;
+}) => {
+  const [showCopied, setShowCopied] = useState(false);
+  const send = useSend();
+
+  const handlePressCopy = useCallback(() => {
+    const { origin } = window.location;
+    const url = `${origin}/recipe/${slug}`;
+
+    if ("share" in navigator) {
+      navigator
+        .share({
+          title: name,
+          text: description,
+          url,
+        })
+        .then(() => {
+          send({ type: "SHARE_COMPLETE", slug });
+        });
+    } else if ("clipboard" in navigator) {
+      // @ts-ignore
+      navigator.clipboard.writeText(url);
+
+      setShowCopied(true);
+      setTimeout(() => {
+        setShowCopied(false);
+      }, 3000);
+    }
+  }, [setShowCopied, slug, send, description, name]);
+
+  return (
+    <div>
+      <Popover open={showCopied} onOpenChange={handlePressCopy}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" event={{ type: "SHARE", slug }}>
+            <ShareIcon />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-fit">URL Copied!</PopoverContent>
+      </Popover>
+    </div>
   );
 };

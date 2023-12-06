@@ -221,3 +221,12 @@ export function timeAgo(isoString: string): string {
     return `${seconds} seconds ago`;
   }
 }
+
+export const isTouchDevice = (): boolean => {
+  if (typeof window === 'undefined') {
+    // Server-side rendering environment
+    return false;
+  }
+
+  return 'ontouchstart' in window || (window.navigator && window.navigator.maxTouchPoints > 0);
+};

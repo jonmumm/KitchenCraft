@@ -14,7 +14,7 @@ import {
   getSortedMediaForRecipe,
 } from "../../db/queries";
 import { upvote } from "../recipe/actions";
-import { UpvoteButton } from "./components.client";
+import { ShareButton, UpvoteButton } from "./components.client";
 import { RecipePropsProvider } from "./context";
 
 type Recipes =
@@ -60,9 +60,14 @@ export const RecipeListItem = ({
                 {index + 1}.
               </Button>
             </Link>
-            <Link href={href} className="flex-1">
+            <Link href={href} className="flex-1 active:opacity-70">
               <h2 className="font-semibold text-lg">{recipe.name}</h2>
             </Link>
+            <ShareButton
+              slug={recipe.slug}
+              name={recipe.name}
+              description={recipe.description}
+            />
             <UpvoteButton count={recipe.points} />
           </div>
         </div>

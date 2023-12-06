@@ -432,9 +432,21 @@ export const RemixEventSchema = z.object({
   slug: SlugSchema,
 });
 
+export const ShareEventSchema = z.object({
+  type: z.literal("SHARE"),
+  slug: SlugSchema,
+});
+
+export const ShareCompleteEventSchema = z.object({
+  type: z.literal("SHARE_COMPLETE"),
+  slug: SlugSchema,
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   RemixEventSchema,
   PageLoadedEventSchema,
+  ShareEventSchema,
+  ShareCompleteEventSchema,
   UpvoteEventSchema,
   SignInEventSchema,
   SignOutEventSchema,
