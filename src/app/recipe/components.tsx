@@ -1,8 +1,9 @@
 import { Badge } from "@/components/display/badge";
+import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
-import { ArrowUpIcon, ChevronRightIcon, TimerIcon } from "lucide-react";
+import { ChevronRightIcon, TimerIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -48,43 +49,32 @@ export const RecipeListItem = ({
           : requireLogin
       }
     >
-      <div key={index} className="flex flex-col gap-3">
-        <div className="px-5 flex flex-row justify-between items-center gap-4 w-full max-w-2xl mx-auto">
-          <Link
-            href={href}
-            className="flex flex-row gap-2 justify-between items-center w-full"
-          >
-            <Button variant="outline" size="icon">
-              {index + 1}.
-            </Button>
-            <div className="flex flex-col gap-1 items-start flex-1">
-              <h2 className="font-semibold text-lg flex-1">{recipe.name}</h2>
-              <Link href="/@inspectorT">
-                <Badge variant="secondary" className="flex flex-row gap-1">
-                  <span>@inspectorT</span>
-                  <span className="text-muted-foreground">(+1048 🧪)</span>
-                </Badge>
-              </Link>
-            </div>
+      <Card
+        key={index}
+        className="flex flex-col gap-3 max-w-2xl w-full mx-auto py-4 rounded-2xl border-none sm:border-solid"
+      >
+        <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">
+          <div className="flex flex-row gap-3 justify-between items-center w-full">
+            <Link href={href}>
+              <Button variant="ghost" size="icon">
+                {index + 1}.
+              </Button>
+            </Link>
+            <Link href={href} className="flex-1">
+              <h2 className="font-semibold text-lg">{recipe.name}</h2>
+            </Link>
             <UpvoteButton count={1} />
-          </Link>
-        </div>
-        <Link href={href}>
-          <div className="w-full flex flex-row gap-4 relative">
-            {/* <div className="absolute bottom-3 z-50 left-0 right-0 flex justify-center">
-              <div className="w-full max-w-2xl flex flex-row justify-between px-4">
-                <Button variant="outline" size="icon">
-                  {index + 1}.
-                </Button>
-
-                <UpvoteButton count={1} />
-              </div>
-            </div> */}
-
-            <RecipeCarousel slug={recipe.slug} />
           </div>
-        </Link>
-        <Link href={href} className="w-full max-w-2xl mx-auto">
+        </div>
+        {recipe.mediaCount > 0 ? (
+          <div className="h-72 relative">
+            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-72 flex justify-center z-50">
+              <RecipeCarousel slug={recipe.slug} />
+            </div>
+            {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
+          </div>
+        ) : null}
+        <Link href={href}>
           <div className="px-5 flex flex-row gap-4 items-center">
             <p className="flex-1">{recipe.description}</p>
             <Button size="icon" variant="outline">
@@ -92,15 +82,8 @@ export const RecipeListItem = ({
             </Button>
           </div>
         </Link>
-        <div className="w-full px-5 flex flex-row justify-between items-center max-w-2xl mx-auto gap-2">
-          <Badge
-            className="text-xs text-muted-foreground flex flex-row gap-1"
-            variant="outline"
-          >
-            <TimerIcon size={14} />
-            <span>{formatDuration(recipe.totalTime)}</span>
-          </Badge>
-          <div className="flex-1 flex flex-row gap-1 flex-wrap justify-end">
+        <div className="flex-1 flex flex-row gap-1 flex-wrap px-4 justify-between">
+          <div className="flex flex-row gap-1">
             {"tags" in recipe &&
               recipe.tags.map((tag) => (
                 <Link
@@ -114,8 +97,15 @@ export const RecipeListItem = ({
                 </Link>
               ))}
           </div>
+          <Badge
+            className="text-xs text-muted-foreground flex flex-row gap-1"
+            variant="outline"
+          >
+            <TimerIcon size={14} />
+            <span>{formatDuration(recipe.totalTime)}</span>
+          </Badge>
         </div>
-      </div>
+      </Card>
     </RecipePropsProvider>
   );
 };
@@ -142,7 +132,7 @@ const RecipeCarousel = async ({ slug }: { slug: string }) => {
     const mediaList = await getSortedMediaForRecipe(slug);
 
     return mediaList.length ? (
-      <div className="h-64 carousel carousel-center overflow-y-hidden space-x-2 flex-1 justify-center">
+      <div className="h-72 carousel carousel-center overflow-y-hidden space-x-2 flex-1 p-4 sm:p-0 md:justify-center">
         {mediaList.map((media, index) => {
           return (
             <div className="carousel-item h-64" key={index}>

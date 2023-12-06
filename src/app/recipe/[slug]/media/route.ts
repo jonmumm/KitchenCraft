@@ -5,6 +5,7 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import sharp from "sharp";
 import { z } from "zod";
 import {
   BaseMediaSchema,
@@ -56,7 +57,28 @@ export async function POST(
         const { mediaId } = TokenPayloadSchema.parse(JSON.parse(tokenPayload));
         const mediaJSON = await kv.get(`media:${mediaId}`);
         const media = BaseMediaSchema.parse(mediaJSON);
-        console.log({ mediaJSON, media });
+
+        const imgResponse = await fetch(blob.url);
+        if (!imgResponse.ok) {
+          throw new Error(
+            `Failed to fetch ${blob.url}: ${imgResponse.statusText}`
+          );
+        }
+        const blobData = await imgResponse.blob();
+        const buffer = Buffer.from(await blobData.arrayBuffer());
+
+        let processedImage: Buffer;
+        try {
+          processedImage = await sharp(buffer)
+            .resize(10, 10) // Resize to a very small image
+            .blur() // Optional: add a blur effect
+            .toBuffer();
+        } catch (ex) {
+          console.error(ex);
+          throw ex;
+        }
+        const base64Image = processedImage.toString("base64");
+
         // Start a transaction
         await db.transaction(async (transaction) => {
           const newMediaId = randomUUID();
@@ -69,6 +91,7 @@ export async function POST(
               height: media.metadata.height,
               url: blob.url,
               width: media.metadata.width,
+              blurDataURL: base64Image,
               duration: undefined,
             });
           } catch (error) {

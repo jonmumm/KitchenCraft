@@ -142,6 +142,7 @@ export const MediaTable = pgTable("media", {
   height: integer("height").notNull(),
   filename: text("filename"),
   duration: integer("duration"),
+  blurDataURL: text("blurDataURL").notNull(), // You may want to make this nullable
   url: text("url").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });

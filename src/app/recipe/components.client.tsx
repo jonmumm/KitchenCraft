@@ -17,10 +17,6 @@ import {
   useTransition,
 } from "react";
 import { RecipeContext } from "./context";
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useLocationHash } from "@/hooks/useLocationHash";
-import { z } from "zod";
 
 export const UpvoteButton = (props: { count: number; disabled?: boolean }) => {
   const { upvote } = useContext(RecipeContext);
@@ -44,7 +40,7 @@ export const UpvoteButton = (props: { count: number; disabled?: boolean }) => {
       <Button
         disabled={disabled}
         onClick={handleClick}
-        variant="ghost"
+        variant="outline"
         className="flex flex-row gap-1"
         aria-label="Upvote"
         type="submit"

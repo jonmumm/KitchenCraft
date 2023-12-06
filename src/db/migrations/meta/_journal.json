@@ -225,6 +225,13 @@
       "when": 1701810521240,
       "tag": "0031_sturdy_lady_bullseye",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1701833097991,
+      "tag": "0032_hot_the_enforcers",
+      "breakpoints": true
     }
   ]
 }

@@ -16,10 +16,7 @@ const hoursSincePosted = sql<number>`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.c
 export const getHotRecipes = async (userId?: string) => {
   const gravity = 1.8;
 
-  const scoreExpression = sql<number>`(COUNT(${UpvotesTable.userId}) - 1) / POW((EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} + 2), ${gravity})`;
-  // const userVotedExpression = userId
-  //   ? sql<boolean>`CASE WHEN ${UpvotesTable.userId} = ${userId} THEN true ELSE false END`
-  //   : sql<boolean>`false`; // Default to false if userId is not provided
+  const scoreExpression = sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) - 1) / POW((EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} + 2), ${gravity})`;
 
   return await db
     .select({
@@ -28,13 +25,17 @@ export const getHotRecipes = async (userId?: string) => {
       description: RecipesTable.description,
       tags: RecipesTable.tags,
       totalTime: RecipesTable.totalTime,
-      points: sql<number>`COUNT(${UpvotesTable.userId})`,
+      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))`, // Sum of total number of media and total number of upvotes
       hoursSincePosted,
       score: scoreExpression,
-      // userVoted: userVotedExpression,
+      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`, // Counts the number of unique media items per recipe
     })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
+    .leftJoin(
+      RecipeMediaTable,
+      eq(RecipesTable.slug, RecipeMediaTable.recipeSlug)
+    ) // LEFT JOIN to include recipes with no media
     .groupBy(RecipesTable.slug)
     .orderBy(desc(scoreExpression))
     .limit(30)
@@ -118,9 +119,15 @@ export const getRecentRecipesByUser = async (userId: string) => {
       totalTime: RecipesTable.totalTime,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
+      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`, // Counts the number of unique media items per recipe
     })
     .from(RecipesTable)
+    .leftJoin(
+      RecipeMediaTable,
+      eq(RecipesTable.slug, RecipeMediaTable.recipeSlug)
+    ) // LEFT JOIN to include media count
     .where(eq(RecipesTable.createdBy, userId))
+    .groupBy(RecipesTable.slug) // Group by Recipe slug to allow COUNT to work correctly
     .orderBy(desc(RecipesTable.createdAt))
     .limit(30)
     .execute();
