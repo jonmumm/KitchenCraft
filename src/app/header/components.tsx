@@ -11,7 +11,11 @@ import {
 } from "@/components/layout/popover";
 import { TypeLogo } from "@/components/logo";
 import { RenderFirstValue } from "@/components/util/render-first-value";
-import { getProfileByUserId } from "@/db/queries";
+import {
+  getProfileByUserId,
+  getUserLifetimePoints,
+  getUserPointsLast30Days,
+} from "@/db/queries";
 import { getSession } from "@/lib/auth/session";
 import { cn } from "@/lib/utils";
 import {
@@ -20,10 +24,12 @@ import {
   ExternalLinkIcon,
   GithubIcon,
   GripVerticalIcon,
+  LoaderIcon,
   YoutubeIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { BehaviorSubject } from "rxjs";
+import { Suspense } from "react";
+import { BehaviorSubject, from, shareReplay } from "rxjs";
 
 export async function Header({ className }: { className?: string }) {
   const session = await getSession();
@@ -101,7 +107,20 @@ export async function Header({ className }: { className?: string }) {
                     <div className="flex flex-col gap-1 items-center">
                       <Badge variant="outline">
                         <div className="flex flex-row gap-2 items-center justify-center">
-                          <span className="font-bold">+30 🧪</span>
+                          <span className="font-bold">
+                            +
+                            <Suspense
+                              fallback={<LoaderIcon className="animate-spin" />}
+                            >
+                              <RenderFirstValue
+                                observable={from(
+                                  getUserPointsLast30Days(userId)
+                                ).pipe(shareReplay(1))}
+                                render={(value) => <>{value}</>}
+                              />
+                            </Suspense>
+                            🧪
+                          </span>
                         </div>
                       </Badge>
                       <Label className="uppercase text-xs font-bold text-accent-foreground">
@@ -111,7 +130,20 @@ export async function Header({ className }: { className?: string }) {
                     <div className="flex flex-col gap-1 items-center">
                       <Badge variant="outline">
                         <div className="flex flex-row gap-2 items-center justify-center">
-                          <span className="font-bold">+1048 🧪</span>
+                          <span className="font-bold">
+                            +
+                            <Suspense
+                              fallback={<LoaderIcon className="animate-spin" />}
+                            >
+                              <RenderFirstValue
+                                observable={from(
+                                  getUserLifetimePoints(userId)
+                                ).pipe(shareReplay(1))}
+                                render={(value) => <>{value}</>}
+                              />
+                            </Suspense>
+                            🧪
+                          </span>
                         </div>
                       </Badge>
                       <Label className="uppercase text-xs font-bold text-accent-foreground">
