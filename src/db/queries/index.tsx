@@ -848,5 +848,25 @@ export const getStripeCustomerId = async (
     throw new Error("No user found with the given ID.");
   }
   const stripeCustomerId = result[0]?.stripeCustomerId;
-  return stripeCustomerId;
+  return stripeCustomerId || undefined;
+};
+
+export const findUserByEmail = async (
+  dbOrTransaction: DbOrTransaction,
+  userEmail: string
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  const user = await queryRunner
+    .select() // or specify the columns you need
+    .from(UsersTable)
+    .where(eq(UsersTable.email, userEmail))
+    .execute();
+
+  if (user.length === 0) {
+    throw new Error("No user found with the specified email.");
+  }
+
+  return user[0]!;
 };

@@ -13,8 +13,10 @@ import {
 } from "@/components/layout/popover";
 import { TypeLogo } from "@/components/logo";
 import { RenderFirstValue } from "@/components/util/render-first-value";
+import { db } from "@/db";
 import {
   getProfileByUserId,
+  getStripeCustomerId,
   getUserLifetimePoints,
   getUserPointsLast30Days,
 } from "@/db/queries";
@@ -31,24 +33,27 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { BehaviorSubject, from, shareReplay } from "rxjs";
+import { Observable, from, map, of, shareReplay } from "rxjs";
 
 export async function Header({ className }: { className?: string }) {
   const session = await getSession();
 
   const userId = session?.user.id;
   const email = session?.user.email;
-  const profileSlug$ = new BehaviorSubject<string | undefined>(undefined);
+  let profileSlug$: Observable<string | undefined>;
+  let stripeCustomerId$: Observable<string | undefined>;
 
   if (userId) {
-    getProfileByUserId(userId).then((profile) => {
-      if (profile) {
-        profileSlug$.next(profile?.profileSlug);
-      }
-      profileSlug$.complete();
-    });
+    profileSlug$ = from(getProfileByUserId(userId)).pipe(
+      shareReplay(1),
+      map((profile) => profile?.profileSlug)
+    );
+    stripeCustomerId$ = from(getStripeCustomerId(db, userId)).pipe(
+      shareReplay(1)
+    );
   } else {
-    profileSlug$.complete();
+    profileSlug$ = of(undefined);
+    stripeCustomerId$ = of(undefined);
   }
 
   return (
@@ -164,16 +169,14 @@ export async function Header({ className }: { className?: string }) {
                   </div>
                 </div>
                 <Separator />
-                <div className="flex flex-row gap-1 items-center justify-between">
+                <div className="flex flex-row gap-3 items-center justify-between">
                   <Label className="uppercase text-xs font-bold text-accent-foreground">
                     Email
                   </Label>
                   <div className="flex flex-row gap-2 items-center justify-center">
                     <div className="flex flex-col gap-1 items-center">
                       <div className="flex flex-row gap-1 items-center">
-                        <span>
-                          <span>{email}</span>
-                        </span>
+                        <span className="truncate">{email}</span>
                       </div>
                     </div>
                     {/* <Button size="icon" variant="secondary">
@@ -182,7 +185,55 @@ export async function Header({ className }: { className?: string }) {
                   </div>
                 </div>
                 <Separator />
-                <div className="flex flex-row gap-1 items-center justify-between">
+                <div className="flex flex-row gap-3 items-center justify-between">
+                  <Label className="uppercase text-xs font-bold text-accent-foreground">
+                    Subscription
+                  </Label>
+                  <div className="flex-1 flex flex-row justify-end">
+                    <Suspense>
+                      <RenderFirstValue
+                        observable={stripeCustomerId$}
+                        render={(stripeCustomerId) => {
+                          return stripeCustomerId ? (
+                            <Link href="/chefs-club/manage">
+                              <Badge variant="secondary">Friends & Family</Badge>
+                            </Link>
+                          ) : (
+                            <Link href="/chefs-club">
+                              <Badge variant="secondary">Upgrade</Badge>
+                            </Link>
+                          );
+                        }}
+                      />
+                    </Suspense>
+                  </div>
+                </div>
+                <Separator />
+                <div className="flex flex-row gap-3 items-center justify-between">
+                  <Label className="uppercase text-xs font-bold text-accent-foreground">
+                    Billing
+                  </Label>
+                  <div className="flex-1 flex flex-row justify-end">
+                    <Suspense>
+                      <RenderFirstValue
+                        observable={stripeCustomerId$}
+                        render={(stripeCustomerId) => {
+                          return stripeCustomerId ? (
+                            <Link href="/billing">
+                              <Badge variant="secondary">Manage</Badge>
+                            </Link>
+                          ) : (
+                            <Link href="/chefs-club">
+                              <Badge variant="secondary">Upgrade</Badge>
+                            </Link>
+                          );
+                        }}
+                      />
+                    </Suspense>
+                  </div>
+                </div>
+                <Separator />
+                <div className="flex flex-row gap-3 items-center justify-between">
                   <Label className="uppercase text-xs font-bold text-accent-foreground">
                     Quota
                   </Label>
