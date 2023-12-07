@@ -45,10 +45,8 @@ export default async function Page() {
 
   const addMember = async (subscriptionId: number, formData: FormData) => {
     "use server";
-    console.log("HI");
 
     const email = z.string().email().parse(formData.get("email"));
-    console.log({ email, subscriptionId });
 
     await db.transaction(async (transaction) => {
       const user = await getUserByEmail(transaction, email);
@@ -63,11 +61,31 @@ export default async function Page() {
         userId = user.id;
       }
 
-      // create the user if not exists
-      await transaction.insert(SubscriptionMembersTable).values({
-        userId,
-        subscriptionId,
-      });
+      const query = await db
+        .select()
+        .from(SubscriptionMembersTable)
+        .where(
+          and(
+            eq(SubscriptionMembersTable.subscriptionId, subscriptionId),
+            eq(SubscriptionMembersTable.userId, userId)
+          )
+        )
+        .execute();
+      const existingMember = query[0];
+
+      if (existingMember) {
+        await updateMemberStatusInSubscription(
+          transaction,
+          existingMember.id,
+          "active"
+        );
+      } else {
+        // create the user if not exists
+        await transaction.insert(SubscriptionMembersTable).values({
+          userId,
+          subscriptionId,
+        });
+      }
     });
 
     revalidatePath("/chefs-club/manage");

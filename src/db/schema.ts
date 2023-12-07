@@ -13,6 +13,7 @@ import {
   serial,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -207,17 +208,23 @@ export const SubscriptionsTable = pgTable("subscription", {
 });
 
 // ... [SubscriptionsTable Schemas]
-export const SubscriptionMembersTable = pgTable("subscription_member", {
-  id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
-  subscriptionId: bigint("subscription_id", { mode: "number" })
-    .notNull()
-    .references(() => SubscriptionsTable.id),
-  userId: text("user_id")
-    .notNull()
-    .references(() => UsersTable.id),
-  addedAt: timestamp("added_at", { mode: "date" }).notNull().defaultNow(),
-  status: text("status").notNull().default("active"), // e.g., 'active', 'removed'
-});
+export const SubscriptionMembersTable = pgTable(
+  "subscription_member",
+  {
+    id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
+    subscriptionId: bigint("subscription_id", { mode: "number" })
+      .notNull()
+      .references(() => SubscriptionsTable.id),
+    userId: text("user_id")
+      .notNull()
+      .references(() => UsersTable.id),
+    addedAt: timestamp("added_at", { mode: "date" }).notNull().defaultNow(),
+    status: text("status").notNull().default("active"), // e.g., 'active', 'removed'
+  },
+  (table) => {
+    return { unique: unique().on(table.subscriptionId, table.userId) };
+  }
+);
 
 export const SubscriptionMemberSchema = createSelectSchema(
   SubscriptionMembersTable
