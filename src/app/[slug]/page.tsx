@@ -43,14 +43,14 @@ export default async function Page(props: { params: { slug: string } }) {
                     <ChefHatIcon />
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 flex-1">
                   <h1 className="underline font-bold text-xl">{username}</h1>
-                  <span className="font-medium text-sm">(+{points} 🧪)</span>
-                </div>
-                <div className="flex-1 flex flex-col h-full gap-1 justify-start items-end">
-                  <Badge variant="outline">
-                    {formatDate(profile.createdAt)}
-                  </Badge>
+                  <div className="flex flex-row justify-between">
+                    <span className="font-medium text-sm">+{points} 🧪</span>
+                    <Badge variant="outline">
+                      {formatDate(profile.createdAt)}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </div>
@@ -65,8 +65,8 @@ export default async function Page(props: { params: { slug: string } }) {
                   Your chef page is visible to you but not others.
                 </p>
               </div>
-              <Link href="/chefs-club">
-                <Button>Join the Chef&apos;s Club</Button>
+              <Link href="/chefs-club" className="h-full">
+                <Button className="h-full">Join Chef&apos;s Club</Button>
               </Link>
             </Card>
           )}
