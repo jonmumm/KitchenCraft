@@ -131,7 +131,11 @@ export default function CraftCommand({
             {children}
           </ResizeObserverComponent> */}
 
-            <Command shouldFilter={false} style={{ maxHeight: "85vh" }}>
+            <Command
+              className="mb-8"
+              shouldFilter={false}
+              style={{ maxHeight: "85vh" }}
+            >
               <CraftHeader />
               <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
                 <NewRecipeActionsGroup />
