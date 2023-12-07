@@ -2,7 +2,6 @@
 
 import { ApplicationContext } from "@/context/application";
 import { env } from "@/env.public";
-import { useActor } from "@/hooks/useActor";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
 import { getSession } from "@/lib/auth/session";
@@ -10,7 +9,6 @@ import { map } from "nanostores";
 import { SessionProvider } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
-import { HeaderContext, createHeaderMachine } from "./header";
 
 // export const ApplicationContext = createContext()
 
@@ -32,7 +30,7 @@ export function ApplicationProvider(props: {
       <ApplicationContext.Provider value={store}>
         <PageLoadEventsProvider />
         <AnalyticsProvider />
-        <HeaderProvider>{props.children}</HeaderProvider>
+        {props.children}
       </ApplicationContext.Provider>
     </SessionProvider>
   );
@@ -54,11 +52,11 @@ const PageLoadEventsProvider = () => {
   return null;
 };
 
-const HeaderProvider = (props: { children: ReactNode }) => {
-  const headerActor = useActor("header", createHeaderMachine());
-  return (
-    <HeaderContext.Provider value={headerActor}>
-      {props.children}
-    </HeaderContext.Provider>
-  );
-};
+// const HeaderProvider = (props: { children: ReactNode }) => {
+//   const headerActor = useActor("header", createHeaderMachine());
+//   return (
+//     <HeaderContext.Provider value={headerActor}>
+//       {props.children}
+//     </HeaderContext.Provider>
+//   );
+// };

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Skeleton } from "@/components/display/skeleton";
@@ -9,6 +8,7 @@ import {
   TabsTrigger,
 } from "@/components/navigation/tabs";
 import { ChevronRightIcon, TimerIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import { Header } from "../header";
@@ -22,6 +22,7 @@ import { Badge } from "@/components/display/badge";
 import { getSession } from "@/lib/auth/session";
 import { formatDuration, timeAgo } from "@/lib/utils";
 import {
+  getProfileByUserId,
   getRecentRecipesByUser,
   getSortedMediaForMultipleRecipes,
 } from "../../db/queries";
@@ -30,6 +31,11 @@ import LayoutClient, { HomeTabs } from "./layout.client";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const userId = (await getSession())?.user.id;
+  let username: string | undefined;
+  if (userId) {
+    const result = await getProfileByUserId(userId);
+    username = result?.profileSlug;
+  }
 
   async function upvote(slug: string) {
     "use server";
@@ -46,9 +52,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
           <div className="flex flex-col gap-1 w-full">
             <div className="flex flex-row justify-between items-end px-4 pb-1 w-full max-w-2xl mx-auto">
               <Label className="uppercase font-semibold text-accent-foreground opacity-70 text-xs">
-                InspectorT&apos;s Crafts
+                {username}&apos;s Crafts
               </Label>
-              <Link href="/@inspectorT">
+              <Link href={`/@${username}`}>
                 <Badge variant="outline">View All ⇨</Badge>
               </Link>
             </div>
@@ -94,7 +100,9 @@ const MyRecipes = ({ userId }: { userId: string }) => {
   const Content = async () => {
     const recipes = await getRecentRecipesByUser(userId);
     const slugs = recipes.map((recipe) => recipe.slug);
-    const mediaBySlug = await getSortedMediaForMultipleRecipes(slugs);
+    const mediaBySlug = slugs.length
+      ? await getSortedMediaForMultipleRecipes(slugs)
+      : {};
 
     return (
       <>

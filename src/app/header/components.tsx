@@ -1,6 +1,3 @@
-"use client";
-
-import posthog from "posthog-js";
 import { ModeToggle } from "@/components/dark-mode-toggle";
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
@@ -13,8 +10,9 @@ import {
   PopoverTrigger,
 } from "@/components/layout/popover";
 import { TypeLogo } from "@/components/logo";
-import { useSelector } from "@/hooks/useSelector";
-import { useSend } from "@/hooks/useSend";
+import { RenderFirstValue } from "@/components/util/render-first-value";
+import { getProfileByUserId } from "@/db/queries";
+import { getSession } from "@/lib/auth/session";
 import { cn } from "@/lib/utils";
 import {
   AxeIcon,
@@ -24,171 +22,74 @@ import {
   GripVerticalIcon,
   YoutubeIcon,
 } from "lucide-react";
-import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { ActorRefFrom, createMachine } from "xstate";
+import { BehaviorSubject } from "rxjs";
 
-export const createHeaderMachine = () =>
-  createMachine({
-    id: "Header",
-    type: "parallel",
-    types: {
-      events: {} as
-        | { type: "HIDE" }
-        | { type: "SHOW_BACK" }
-        | { type: "FOCUS_PROMPT" }
-        | { type: "TOGGLE_CONFIGURATOR" },
-    },
-    on: {
-      FOCUS_PROMPT: {
-        target: [".Logo.OffScreen", ".Position.Floating"],
-      },
-      TOGGLE_CONFIGURATOR: {
-        target: ".Logo.OffScreen",
-      },
-    },
-    states: {
-      Position: {
-        initial: "Block",
-        states: {
-          Block: {},
-          Floating: {},
-        },
-      },
-      Back: {
-        initial: "Invisible",
-        states: {
-          Invisible: {},
-          Visible: {},
-        },
-      },
-      Logo: {
-        initial: "Visible",
-        states: {
-          OffScreen: {},
-          Visible: {},
-        },
-      },
-    },
-  });
+export async function Header({ className }: { className?: string }) {
+  const session = await getSession();
 
-type HeaderMachine = ReturnType<typeof createHeaderMachine>;
-export type HeaderActor = ActorRefFrom<HeaderMachine>;
+  const userId = session?.user.id;
+  const email = session?.user.email;
+  const profileSlug$ = new BehaviorSubject<string | undefined>(undefined);
 
-export const HeaderContext = createContext({} as HeaderActor);
-
-export function Header({
-  className,
-  hidden,
-}: {
-  hidden?: boolean;
-  className?: string;
-}) {
-  // const { user } = useContext(UserContext);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const headerActor = useContext(HeaderContext);
-  const session = useSession();
-  const isBackVisible = useSelector(headerActor, (state) =>
-    state.matches("Back.Visible")
-  );
-  // const session = useSession();
-
-  const pathname = usePathname();
-  useEffect(() => {
-    setIsPopoverOpen(false);
-  }, [pathname, setIsPopoverOpen]);
-
-  const handlePressSignIn = useCallback(() => {
-    signIn("email");
-  }, []);
-
-  const handleSignOut = useCallback(() => {
-    posthog.reset();
-    signOut();
-  }, []);
-
-  // useEventHandler("SIGN_IN", () => {
-  //   // supabase.auth.signInWithOAuth({
-  //   //   provider: "google",
-  //   //   options: {
-  //   //     redirectTo: `${window.location.protocol}://${window.location.hostname}/auth/callback`,
-  //   //   },
-  //   // });
-  //   // signIn("google").then(() => {
-  //   //   console.log("signed in!");
-  //   // });
-  // });
-  // useEventHandler("SIGN_OUT", () => {
-  //   supabase.auth.signOut();
-  // });
-
-  const send = useSend();
-
-  const handlePressBack = useCallback(() => {
-    send({ type: "BACK" });
-  }, [send]);
+  if (userId) {
+    getProfileByUserId(userId).then((profile) => {
+      if (profile) {
+        profileSlug$.next(profile?.profileSlug);
+      }
+      profileSlug$.complete();
+    });
+  } else {
+    profileSlug$.complete();
+  }
 
   return (
     <div
       className={cn(
-        `w-full flex items-start justify-between p-4 gap-4 hidden-print ${
-          hidden ? "-translate-y-20" : ""
-        }`,
+        `w-full flex items-start justify-between p-4 gap-4 hidden-print `,
         className
       )}
     >
       <div>
-        <Popover
-          open={isPopoverOpen}
-          onOpenChange={(open) => setIsPopoverOpen(open)}
-        >
+        <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline">
               <GripVerticalIcon
-                className={isPopoverOpen ? "transform rotate-90" : ""}
+              // className={isPopoverOpen ? "transform rotate-90" : ""}
               />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 flex flex-col gap-4 p-3">
-            {session.status === "authenticated" && (
+            {userId && (
               <>
                 <div className="flex flex-col gap-1 items-center justify-center">
                   <Label className="uppercase text-xs font-bold text-accent-foreground">
                     Chef
                   </Label>
                   <div className="flex flex-col gap-2 items-center justify-center">
-                    <Link href="/@inspectorT">
-                      <Badge variant="outline">
-                        <h3 className="font-bold text-xl">
-                          <div className="flex flex-col gap-1 items-center">
-                            <div className="flex flex-row gap-1 items-center">
-                              <ChefHatIcon />
-                              <span>
-                                <span className="underline">InspectorT</span>
-                              </span>
-                            </div>
-                          </div>
-                        </h3>
-                      </Badge>{" "}
-                    </Link>
-                    {/* <EventButton
-                      className="w-full"
-                      event={{ type: "SIGN_OUT" }}
-                      variant="ghost"
-                    >
-                      Sign Out
-                    </EventButton> */}
-                    {/* <Button size="icon" variant="secondary">
-                      <EditIcon />
-                    </Button> */}
+                    <RenderFirstValue
+                      observable={profileSlug$}
+                      render={(profileSlug) => {
+                        return (
+                          <Link href={`/@${profileSlug}`}>
+                            <Badge variant="outline">
+                              <h3 className="font-bold text-xl">
+                                <div className="flex flex-col gap-1 items-center">
+                                  <div className="flex flex-row gap-1 items-center">
+                                    <ChefHatIcon />
+                                    <span>
+                                      <span className="underline">
+                                        {profileSlug}
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              </h3>
+                            </Badge>{" "}
+                          </Link>
+                        );
+                      }}
+                    ></RenderFirstValue>
                   </div>
                 </div>
                 <Separator />
@@ -228,7 +129,7 @@ export function Header({
                     <div className="flex flex-col gap-1 items-center">
                       <div className="flex flex-row gap-1 items-center">
                         <span>
-                          <span>{session.data.user?.email}</span>
+                          <span>{email}</span>
                         </span>
                       </div>
                     </div>
@@ -271,23 +172,24 @@ export function Header({
               </Label>
               <ModeToggle />
             </div>
-            {session.status === "authenticated" && (
+            {userId && (
               <>
                 <Separator />
                 <div className="flex justify-center">
-                  <Button
-                    type="submit"
-                    variant="ghost"
-                    className="text-sm underline text-center"
-                    onClick={handleSignOut}
-                  >
-                    Sign Out
-                  </Button>
+                  <form method="POST" action="/api/auth/signout">
+                    <Button
+                      type="submit"
+                      variant="ghost"
+                      className="text-sm underline text-center"
+                    >
+                      Sign Out
+                    </Button>
+                  </form>
                 </div>
               </>
             )}
             <Separator />
-            {session.status === "unauthenticated" && (
+            {!userId && (
               <>
                 {/* <form action={signUp}>
                   <Label htmlFor="email" className="uppercase text-xs opacity-70">Email</Label>
@@ -297,14 +199,11 @@ export function Header({
                   </Button>
                   <Separator />
                 </form> */}
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  onClick={handlePressSignIn}
-                >
-                  Sign In / Sign Up
-                </Button>
+                <Link href="/auth/signin">
+                  <Button size="lg" className="w-full">
+                    Sign In / Sign Up
+                  </Button>
+                </Link>
                 <Separator />
               </>
             )}
@@ -337,7 +236,7 @@ export function Header({
 
       <div className="flex-1 flex justify-center">
         <Link href="/">
-          <AnimatedLogo />
+          <TypeLogo className="h-16" />
         </Link>
       </div>
 
@@ -350,10 +249,10 @@ export function Header({
   );
 }
 
-const AnimatedLogo = () => {
-  const headerActor = useContext(HeaderContext);
-  const isLogoOffScreen = useSelector(headerActor, (state) => {
-    return state.matches("Logo.OffScreen");
-  });
-  return <TypeLogo className="h-16" />;
-};
+// const AnimatedLogo = () => {
+//   const headerActor = useContext(HeaderContext);
+//   const isLogoOffScreen = useSelector(headerActor, (state) => {
+//     return state.matches("Logo.OffScreen");
+//   });
+//   return <TypeLogo className="h-16" />;
+// };

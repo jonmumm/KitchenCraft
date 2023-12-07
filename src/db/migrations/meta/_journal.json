@@ -232,6 +232,69 @@
       "when": 1701833097991,
       "tag": "0032_hot_the_enforcers",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1701904527311,
+      "tag": "0033_legal_james_howlett",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1701904575845,
+      "tag": "0034_spicy_randall",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "5",
+      "when": 1701904595944,
+      "tag": "0035_vengeful_victor_mancha",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1701905691745,
+      "tag": "0036_loose_molten_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "5",
+      "when": 1701905790943,
+      "tag": "0037_robust_talkback",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1701906454556,
+      "tag": "0038_busy_guardian",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1701906512382,
+      "tag": "0039_rare_shen",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1701907384610,
+      "tag": "0040_redundant_cerise",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1701907401063,
+      "tag": "0041_same_sabra",
+      "breakpoints": true
     }
   ]
 }

@@ -34,7 +34,6 @@ export const RecipeListItem = ({
   index,
   upvoted,
 }: RecipeListItemProps) => {
-  console.log(upvoted, recipe.slug)
   const href = `/recipe/${recipe.slug}`;
   const requireLogin = async () => {
     "use server";

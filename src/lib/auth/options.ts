@@ -61,7 +61,6 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn(params) {
-      // console.log("sign in", params);
       return true;
     },
 

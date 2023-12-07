@@ -1,9 +1,6 @@
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
-import {
-  getProfileBySlug,
-  getRecentRecipesByProfile,
-} from "@/db/queries";
+import { getProfileBySlug, getRecentRecipesByProfile } from "@/db/queries";
 import { ProfileSlugSchema } from "@/schema";
 import { ChefHatIcon } from "lucide-react";
 import { Header } from "../header";
@@ -13,8 +10,9 @@ export default async function Page(props: { params: { slug: string } }) {
   const slug = decodeURIComponent(props.params.slug);
 
   const profileParse = ProfileSlugSchema.safeParse(slug);
+  console.log(profileParse, slug);
   if (profileParse.success) {
-    const username = profileParse.data;
+    const username = profileParse.data.slice(1);
 
     // Fetch recent recipes by profile
     const [recipes, profile] = await Promise.all([
@@ -60,6 +58,9 @@ export default async function Page(props: { params: { slug: string } }) {
     ) : (
       <div>Not Found</div>
     );
+  } else {
+    console.log(profileParse.error)
+
   }
 
   return <div>Not Found</div>;

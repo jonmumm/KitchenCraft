@@ -363,3 +363,18 @@ export const getUpvoteStatusForMultipleRecipes = async (
 
   return upvoteStatusBySlug;
 };
+
+export const getProfileByUserId = async (userId: string) => {
+  return await db
+    .select({
+      profileSlug: ProfileTable.profileSlug,
+      activated: ProfileTable.activated,
+      mediaId: ProfileTable.mediaId,
+      userId: ProfileTable.userId,
+      createdAt: ProfileTable.createdAt,
+    })
+    .from(ProfileTable)
+    .where(eq(ProfileTable.userId, userId)) // Filter by the given userId
+    .execute()
+    .then((res) => res[0]); // Return the first (and expectedly only) result
+};

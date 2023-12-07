@@ -2,6 +2,7 @@ import type { AdapterAccount } from "@auth/core/adapters";
 import { sql } from "drizzle-orm";
 import {
   bigint,
+  bigserial,
   boolean,
   index,
   integer,
@@ -18,7 +19,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 export const UsersTable = pgTable("user", {
   id: text("id").notNull().primaryKey(),
   name: text("name"),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
   image: text("image"),
@@ -203,6 +204,7 @@ export const ProfileTable = pgTable("profile", {
   profileSlug: text("profile_slug").notNull().primaryKey(),
   activated: boolean("activated").notNull().default(false),
   mediaId: uuid("media_id").references(() => MediaTable.id),
+  serialNum: bigserial("serial_num", { mode: "number" }),
   userId: text("user_id")
     .notNull()
     .references(() => UsersTable.id, { onDelete: "cascade" }),
