@@ -1,10 +1,8 @@
 "use client";
 
-import { ReactNode, useContext } from "react";
-import { HeaderContext } from "./header";
+import { ReactNode } from "react";
 
 export default function Body(props: { children: ReactNode }) {
-  const headerActor = useContext(HeaderContext);
   // const headerIsFloating = useSelector(headerActor, (state) =>
   //   state.matches("Position.Floating")
   // );

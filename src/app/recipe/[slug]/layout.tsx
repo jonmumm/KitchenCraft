@@ -1,8 +1,8 @@
-import { upvote } from "@/actions";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { RecipePropsProvider } from "../context";
+import { upvote } from "../actions";
 
 export default async function Layout({
   children,
