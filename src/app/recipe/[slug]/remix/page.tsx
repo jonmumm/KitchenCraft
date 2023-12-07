@@ -1,4 +1,3 @@
-import { getRecipe } from "@/db/queries";
 import { Card } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
@@ -6,6 +5,7 @@ import { Button } from "@/components/input/button";
 import StickyHeader from "@/components/layout/sticky-header";
 import { LastValue } from "@/components/util/last-value";
 import { RenderFirstValue } from "@/components/util/render-first-value";
+import { getRecipe } from "@/db/queries";
 import { NewRecipe, Recipe } from "@/db/types";
 import { getSession } from "@/lib/auth/session";
 import { getSlug } from "@/lib/slug";
@@ -303,7 +303,10 @@ export default async function Page(props: Props) {
         <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
           <div className="flex flex-col gap-2 items-center">
             <Suspense fallback={<Skeleton className="w-full h-20" />}>
-              <CraftingDetails createdAt={new Date().toDateString()} />
+              <CraftingDetails
+                createdAt={new Date().toDateString()}
+                createdBy={recipe.createdBy}
+              />
             </Suspense>
           </div>
         </div>
