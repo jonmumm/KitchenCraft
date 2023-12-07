@@ -215,6 +215,7 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
     .where(eq(ProfileTable.profileSlug, profileSlug))
     .groupBy(
       RecipesTable.id,
+      RecipesTable.versionId,
       RecipesTable.slug,
       RecipesTable.name,
       RecipesTable.description,
