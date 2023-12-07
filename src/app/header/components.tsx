@@ -2,6 +2,8 @@ import { ModeToggle } from "@/components/dark-mode-toggle";
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
+import { Progress } from "@/components/feedback/progress";
+
 import { EventButton } from "@/components/event-button";
 import { Button } from "@/components/input/button";
 import {
@@ -97,7 +99,10 @@ export async function Header({ className }: { className?: string }) {
                       }}
                     />
                     <Link href="/chefs-club">
-                      <Button variant="secondary" className="flex flex-row gap-1">
+                      <Button
+                        variant="secondary"
+                        className="flex flex-row gap-1"
+                      >
                         <span>Join the </span>
                         <span className="font-semibold">Chef&apos;s Club</span>
                       </Button>
@@ -175,6 +180,13 @@ export async function Header({ className }: { className?: string }) {
                       <EditIcon />
                     </Button> */}
                   </div>
+                </div>
+                <Separator />
+                <div className="flex flex-row gap-1 items-center justify-between">
+                  <Label className="uppercase text-xs font-bold text-accent-foreground">
+                    Quota
+                  </Label>
+                  <Progress value={20} />
                 </div>
                 <Separator />
                 <div className="flex flex-row gap-1 items-center justify-between">

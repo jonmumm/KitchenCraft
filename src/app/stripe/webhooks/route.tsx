@@ -57,7 +57,7 @@ const handleStripeEvent = async (event: any) => {
       typeof sessionWithLineItems.customer_email === "string",
       "expected customerEmail"
     );
-    updateStripeCustomerIdByEmail(
+    await updateStripeCustomerIdByEmail(
       db,
       sessionWithLineItems.customer_email,
       sessionWithLineItems.customer
