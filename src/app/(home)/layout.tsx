@@ -28,6 +28,8 @@ import {
 } from "../../db/queries";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
+import { SubscriptionMembersTable, db } from "@/db";
+import { and, eq, ne } from "drizzle-orm";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const userId = (await getSession())?.user.id;
@@ -41,6 +43,8 @@ export default async function Layout({ children }: { children: ReactNode }) {
     "use server";
     console.log("upvote", slug);
   }
+
+
 
   return (
     <LayoutClient>

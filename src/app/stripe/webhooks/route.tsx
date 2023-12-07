@@ -1,4 +1,9 @@
-import { SubscriptionsTable, db } from "@/db";
+import {
+  SubscriptionMembersTable,
+  SubscriptionsTable,
+  UsersTable,
+  db,
+} from "@/db";
 import { findUserByEmail, updateStripeCustomerIdByEmail } from "@/db/queries";
 import { privateEnv } from "@/env.secrets";
 import { getErrorMessage } from "@/lib/error";
@@ -63,11 +68,20 @@ const handleStripeEvent = async (event: Stripe.Event) => {
         await updateStripeCustomerIdByEmail(transaction, email, customerId);
 
         // Create the subscription
-        await transaction.insert(SubscriptionsTable).values({
+        const [row] = await transaction
+          .insert(SubscriptionsTable)
+          .values({
+            userId: user.id,
+            stripeSubscriptionId,
+            plan: "monthly", // todo pull from line items
+            status: "active",
+          })
+          .returning({ insertedId: UsersTable.id });
+        assert(row?.insertedId, "expected inserted row");
+
+        await transaction.insert(SubscriptionMembersTable).values({
           userId: user.id,
-          stripeSubscriptionId,
-          plan: "monthly", // todo pull from line items
-          status: "active",
+          subscriptionId: parseInt(row.insertedId),
         });
       });
     }

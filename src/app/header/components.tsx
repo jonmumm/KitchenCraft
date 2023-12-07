@@ -15,8 +15,8 @@ import { TypeLogo } from "@/components/logo";
 import { RenderFirstValue } from "@/components/util/render-first-value";
 import { db } from "@/db";
 import {
+  getActiveSubscriptionForUserId,
   getProfileByUserId,
-  getStripeCustomerId,
   getUserLifetimePoints,
   getUserPointsLast30Days,
 } from "@/db/queries";
@@ -41,19 +41,26 @@ export async function Header({ className }: { className?: string }) {
   const userId = session?.user.id;
   const email = session?.user.email;
   let profileSlug$: Observable<string | undefined>;
-  let stripeCustomerId$: Observable<string | undefined>;
+  // let stripeCustomerId$: Observable<string | undefined>;
+  let activeSubscription$: Observable<
+    { id: number; managingUserId: string } | undefined
+  >;
 
   if (userId) {
     profileSlug$ = from(getProfileByUserId(userId)).pipe(
       shareReplay(1),
       map((profile) => profile?.profileSlug)
     );
-    stripeCustomerId$ = from(getStripeCustomerId(db, userId)).pipe(
+    // stripeCustomerId$ = from(getStripeCustomerId(db, userId)).pipe(
+    //   shareReplay(1)
+    // );
+    activeSubscription$ = from(getActiveSubscriptionForUserId(db, userId)).pipe(
       shareReplay(1)
     );
   } else {
     profileSlug$ = of(undefined);
-    stripeCustomerId$ = of(undefined);
+    // stripeCustomerId$ = of(undefined);
+    activeSubscription$ = of(undefined);
   }
 
   return (
@@ -192,11 +199,18 @@ export async function Header({ className }: { className?: string }) {
                   <div className="flex-1 flex flex-row justify-end">
                     <Suspense>
                       <RenderFirstValue
-                        observable={stripeCustomerId$}
-                        render={(stripeCustomerId) => {
-                          return stripeCustomerId ? (
-                            <Link href="/chefs-club/manage">
-                              <Badge variant="secondary">Friends & Family</Badge>
+                        observable={activeSubscription$}
+                        render={(sub) => {
+                          const isManager = userId === sub?.managingUserId;
+                          return sub ? (
+                            <Link
+                              href={
+                                isManager ? "/chefs-club/manage" : "/chefs-club"
+                              }
+                            >
+                              <Badge variant="secondary">
+                                Friends & Family
+                              </Badge>
                             </Link>
                           ) : (
                             <Link href="/chefs-club">
@@ -216,9 +230,9 @@ export async function Header({ className }: { className?: string }) {
                   <div className="flex-1 flex flex-row justify-end">
                     <Suspense>
                       <RenderFirstValue
-                        observable={stripeCustomerId$}
-                        render={(stripeCustomerId) => {
-                          return stripeCustomerId ? (
+                        observable={activeSubscription$}
+                        render={(sub) => {
+                          return sub ? (
                             <Link href="/billing">
                               <Badge variant="secondary">Manage</Badge>
                             </Link>

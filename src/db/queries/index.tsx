@@ -650,31 +650,23 @@ export const getSubscriptionByUserId = async (
   dbOrTransaction: DbOrTransaction,
   userId: string
 ) => {
-  try {
-    const queryRunner =
-      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
-    const subscription = await queryRunner
-      .select({
-        subscriptionId: SubscriptionsTable.id,
-        stripeSubscriptionId: SubscriptionsTable.stripeSubscriptionId,
-        plan: SubscriptionsTable.plan,
-        status: SubscriptionsTable.status,
-        createdAt: SubscriptionsTable.createdAt,
-      })
-      .from(SubscriptionsTable)
-      .where(eq(SubscriptionsTable.userId, userId))
-      .execute()
-      .then((res) => res[0]);
+  const subscription = await queryRunner
+    .select({
+      id: SubscriptionsTable.id,
+      stripeSubscriptionId: SubscriptionsTable.stripeSubscriptionId,
+      plan: SubscriptionsTable.plan,
+      status: SubscriptionsTable.status,
+      createdAt: SubscriptionsTable.createdAt,
+    })
+    .from(SubscriptionsTable)
+    .where(eq(SubscriptionsTable.userId, userId))
+    .execute()
+    .then((res) => res[0]);
 
-    if (!subscription) {
-      throw new Error("Subscription not found for the given user ID.");
-    }
-
-    return { success: true, subscription };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error) };
-  }
+  return subscription;
 };
 
 export const updateSubscriptionStatus = async (
@@ -851,6 +843,17 @@ export const getStripeCustomerId = async (
   return stripeCustomerId || undefined;
 };
 
+export const getUserByEmail = async (
+  dbOrTransaction: DbOrTransaction,
+  userEmail: string
+) => {
+  try {
+    return await findUserByEmail(dbOrTransaction, userEmail);
+  } catch (ex) {
+    return undefined;
+  }
+};
+
 export const findUserByEmail = async (
   dbOrTransaction: DbOrTransaction,
   userEmail: string
@@ -869,4 +872,53 @@ export const findUserByEmail = async (
   }
 
   return user[0]!;
+};
+
+export const findUserById = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  const user = await queryRunner
+    .select() // or specify the columns you need
+    .from(UsersTable)
+    .where(eq(UsersTable.id, userId))
+    .execute();
+
+  if (user.length === 0) {
+    throw new Error("No user found with the specified email.");
+  }
+
+  return user[0]!;
+};
+
+export const getActiveSubscriptionForUserId = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  const result = await queryRunner
+    .select({
+      id: SubscriptionsTable.id,
+      managingUserId: SubscriptionsTable.userId,
+    })
+    .from(SubscriptionMembersTable)
+    .innerJoin(
+      SubscriptionsTable,
+      eq(SubscriptionMembersTable.subscriptionId, SubscriptionsTable.id)
+    )
+    .where(
+      and(
+        eq(SubscriptionMembersTable.userId, userId),
+        eq(SubscriptionMembersTable.status, "active"), // Checking if the user's subscription member status is active
+        eq(SubscriptionsTable.status, "active") // Checking if the subscription itself is active
+      )
+    )
+    .execute();
+
+  return result[0]; // Return the first active subscription details
 };

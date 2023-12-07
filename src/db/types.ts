@@ -6,10 +6,12 @@ import {
   NewMediaSchema,
   NewRecipeSchema,
   NewSessionSchema,
+  NewSubscriptionSchema,
   NewUserSchema,
   NewVerificatoknTokenSchema,
   RecipeSchema,
   SessionSchema,
+  SubscriptionSchema,
   UserSchema,
   VerificationTokenSchema,
 } from "./schema";
@@ -31,3 +33,5 @@ export type NewVerificatoknToken = z.infer<typeof NewVerificatoknTokenSchema>;
 
 export type Media = z.infer<typeof MediaSchema>;
 export type NewMedia = z.infer<typeof NewMediaSchema>;
+export type Subscription = z.infer<typeof SubscriptionSchema>;
+export type NewSubscription = z.infer<typeof NewSubscriptionSchema>;
