@@ -15,6 +15,13 @@
       "when": 1701927670650,
       "tag": "0001_massive_mentor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1701970842098,
+      "tag": "0002_numerous_night_thrasher",
+      "breakpoints": true
     }
   ]
 }

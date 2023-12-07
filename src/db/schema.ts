@@ -10,6 +10,7 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
+  serial,
   text,
   timestamp,
   uuid,
@@ -23,6 +24,7 @@ export const UsersTable = pgTable("user", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
   image: text("image"),
+  stripeCustomerId: text("stripe_customer_id"),
 });
 export const UserSchema = createSelectSchema(UsersTable);
 export const NewUserSchema = createInsertSchema(UsersTable);
@@ -173,31 +175,6 @@ export const RecipeMediaTable = pgTable(
 export const RecipeMediaSchema = createSelectSchema(RecipeMediaTable);
 export const NewRecipeMediaSchema = createInsertSchema(RecipeMediaTable);
 
-// export const RecipeHistoryTable = pgTable("recipe_history", {
-//   id: uuid("id").defaultRandom().primaryKey(),
-//   recipeId: text("recipe_id")
-//     .notNull()
-//     .references(() => RecipesTable.id),
-//   previousVersion: jsonb("previous_version").notNull(), // Store the entire previous version of the recipe
-//   modifiedBy: text("modified_by")
-//     .notNull()
-//     .references(() => UsersTable.id), // Assuming changes are made by a user
-//   modifiedAt: timestamp("modified_at", { mode: "date" }).notNull().defaultNow(),
-// });
-
-// export const RecipeModificationTable = pgTable("recipe_modification", {
-//   id: uuid("id").defaultRandom().primaryKey(),
-//   recipeId: text("recipe_id")
-//     .notNull()
-//     .references(() => RecipesTable.id),
-//   modifiedBy: text("modified_by")
-//     .notNull()
-//     .references(() => UsersTable.id),
-//   modificationType: text("modification_type").notNull(), // e.g., "ingredients", "scale"
-//   modificationDetails: jsonb("modification_details").notNull(), // details of the modification
-//   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-// });
-
 // Define the ProfileTable
 export const ProfileTable = pgTable("profile", {
   profileSlug: text("profile_slug").notNull().primaryKey(),
@@ -206,10 +183,77 @@ export const ProfileTable = pgTable("profile", {
   serialNum: bigserial("serial_num", { mode: "number" }),
   userId: text("user_id")
     .notNull()
-    .references(() => UsersTable.id, { onDelete: "cascade" }),
+    .references(() => UsersTable.id, { onDelete: "cascade" })
+    .unique(),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
 
 // Create schemas for selection and insertion
 export const ProfileSchema = createSelectSchema(ProfileTable);
 export const NewProfileSchema = createInsertSchema(ProfileTable);
+
+// ... [existing imports and tables]
+
+// Subscriptions Table
+export const SubscriptionsTable = pgTable("subscription", {
+  id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => UsersTable.id, { onDelete: "cascade" }),
+  stripeSubscriptionId: text("stripe_subscription_id").notNull(), // Store Stripe Subscription ID
+  plan: text("plan").notNull(), // e.g., 'monthly', 'quarterly', 'annual'
+  status: text("status").notNull(), // e.g., 'active', 'cancelled'
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+// ... [SubscriptionsTable Schemas]
+export const SubscriptionMembersTable = pgTable("subscription_member", {
+  id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
+  subscriptionId: bigint("subscription_id", { mode: "number" })
+    .notNull()
+    .references(() => SubscriptionsTable.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => UsersTable.id),
+  addedAt: timestamp("added_at", { mode: "date" }).notNull().defaultNow(),
+  status: text("status").notNull().default("active"), // e.g., 'active', 'removed'
+});
+
+export const SubscriptionMemberSchema = createSelectSchema(
+  SubscriptionMembersTable
+);
+export const NewSubscriptionMemberSchema = createInsertSchema(
+  SubscriptionMembersTable
+);
+
+export const SubscriptionSchema = createSelectSchema(SubscriptionsTable);
+export const NewSubscriptionSchema = createInsertSchema(SubscriptionsTable);
+
+// Features Table
+export const FeaturesTable = pgTable("feature", {
+  id: serial("id").notNull().primaryKey(),
+  featureName: text("feature_name").notNull(),
+  description: text("description"),
+  quotaLimit: integer("quota_limit"),
+});
+
+export const FeatureSchema = createSelectSchema(FeaturesTable);
+export const NewFeatureSchema = createInsertSchema(FeaturesTable);
+
+// User Feature Usage Table
+export const UserFeatureUsageTable = pgTable("user_feature_usage", {
+  id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => UsersTable.id),
+  featureId: integer("feature_id")
+    .notNull()
+    .references(() => FeaturesTable.id),
+  timestamp: timestamp("timestamp").defaultNow(),
+  usageCount: integer("usage_count").default(1),
+});
+
+export const UserFeatureUsageSchema = createSelectSchema(UserFeatureUsageTable);
+export const NewUserFeatureUsageSchema = createInsertSchema(
+  UserFeatureUsageTable
+);

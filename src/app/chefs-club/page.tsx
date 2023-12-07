@@ -1,4 +1,5 @@
 import { Button } from "@/components/input/button";
+import Link from "next/link";
 import { Header } from "../header";
 
 export default async function Page() {
@@ -11,7 +12,9 @@ export default async function Page() {
         <li>No ads.</li>
         <li>Share with 5 friends or family.</li>
       </ul>
-      <Button>Upgrade Now</Button>
+      <Link href="/checkout">
+        <Button>Upgrade Now</Button>
+      </Link>
     </div>
   );
 }

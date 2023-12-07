@@ -31,12 +31,14 @@ export const SecretsEnvironmentSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string(),
   NEXTAUTH_SECRET: z.string(),
   RESEND_API_KEY: z.string(),
+  STRIPE_SECRET_KEY: z.string(),
 });
 
 export const PublicEnvironmentSchema = z.object({
   KITCHENCRAFT_URL: z.string().url(),
   ADSENSE_PUBLISHER_ID: z.string(),
   POSTHOG_CLIENT_KEY: z.string(),
+  STRIPE_PUBLIC_KEY: z.string(),
 });
 
 const FreeTextLiteral = z.literal("free_text");

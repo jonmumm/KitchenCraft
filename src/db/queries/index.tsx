@@ -4,7 +4,10 @@ import {
   ProfileTable,
   RecipeMediaTable,
   RecipesTable,
+  SubscriptionMembersTable,
+  SubscriptionsTable,
   UpvotesTable,
+  UserFeatureUsageTable,
   db,
 } from "@/db";
 import { getErrorMessage } from "@/lib/error";
@@ -612,6 +615,187 @@ export const createRecipeMedia = async (
       mediaId: newMediaId,
       sortOrder: new Date().getTime(),
     });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const createSubscription = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string,
+  stripeSubscriptionId: string,
+  plan: string
+) => {
+  try {
+    const queryRunner =
+      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+    await queryRunner.insert(SubscriptionsTable).values({
+      userId,
+      stripeSubscriptionId,
+      plan,
+      status: "active", // Assuming the default status is 'active'
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const getSubscriptionByUserId = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string
+) => {
+  try {
+    const queryRunner =
+      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+    const subscription = await queryRunner
+      .select({
+        subscriptionId: SubscriptionsTable.id,
+        stripeSubscriptionId: SubscriptionsTable.stripeSubscriptionId,
+        plan: SubscriptionsTable.plan,
+        status: SubscriptionsTable.status,
+        createdAt: SubscriptionsTable.createdAt,
+      })
+      .from(SubscriptionsTable)
+      .where(eq(SubscriptionsTable.userId, userId))
+      .execute()
+      .then((res) => res[0]);
+
+    if (!subscription) {
+      throw new Error("Subscription not found for the given user ID.");
+    }
+
+    return { success: true, subscription };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const updateSubscriptionStatus = async (
+  dbOrTransaction: DbOrTransaction,
+  subscriptionId: number, // Assuming the subscription ID is a number
+  newStatus: string
+) => {
+  try {
+    const queryRunner =
+      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+    const updateResult = await queryRunner
+      .update(SubscriptionsTable)
+      .set({ status: newStatus })
+      .where(eq(SubscriptionsTable.id, subscriptionId))
+      .execute();
+
+    if (updateResult.count === 0) {
+      throw new Error(
+        "No subscription found or status already set to the new value."
+      );
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const trackFeatureUsage = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string,
+  featureId: number, // Assuming the feature ID is a number
+  usageCount: number = 1 // Default usage count is 1
+) => {
+  try {
+    const queryRunner =
+      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+    await queryRunner.insert(UserFeatureUsageTable).values({
+      userId,
+      featureId,
+      timestamp: new Date(), // Records the time of usage
+      usageCount,
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const getFeatureUsage = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string,
+  featureId: number // Assuming the feature ID is a number
+) => {
+  try {
+    const queryRunner =
+      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+    const featureUsage = await queryRunner
+      .select({
+        usageCount: UserFeatureUsageTable.usageCount,
+      })
+      .from(UserFeatureUsageTable)
+      .where(
+        and(
+          eq(UserFeatureUsageTable.userId, userId),
+          eq(UserFeatureUsageTable.featureId, featureId)
+        )
+      )
+      .execute();
+
+    return { success: true, featureUsage };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const addMemberToSubscription = async (
+  dbOrTransaction: DbOrTransaction,
+  subscriptionId: number, // Assuming the subscription ID is a number
+  userId: string
+) => {
+  try {
+    const queryRunner =
+      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+    await queryRunner.insert(SubscriptionMembersTable).values({
+      subscriptionId,
+      userId,
+      addedAt: new Date(),
+      status: "active",
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const updateMemberStatusInSubscription = async (
+  dbOrTransaction: DbOrTransaction,
+  memberId: number, // Assuming the member ID is a number
+  newStatus: string
+) => {
+  try {
+    const queryRunner =
+      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+    const updateResult = await queryRunner
+      .update(SubscriptionMembersTable)
+      .set({ status: newStatus })
+      .where(eq(SubscriptionMembersTable.id, memberId))
+      .execute();
+
+    if (updateResult.count === 0) {
+      throw new Error(
+        "No member found or status already set to the new value."
+      );
+    }
 
     return { success: true };
   } catch (error) {

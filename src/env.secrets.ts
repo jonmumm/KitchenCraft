@@ -6,4 +6,5 @@ export const privateEnv = SecretsEnvironmentSchema.parse({
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 });
