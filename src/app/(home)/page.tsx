@@ -11,16 +11,18 @@ export default async function Page() {
   const session = await getSession();
   const userId = session?.user.id;
   const recipes = await getHotRecipes(session?.user.id);
+  const slugs = recipes.map(({ slug }) => slug);
 
-  const upvoteStatusBySlug = userId
-    ? await getUpvoteStatusForMultipleRecipes(
-        recipes.map(({ slug }) => slug),
-        userId
-      )
-    : {};
+  const upvoteStatusBySlug =
+    slugs.length && userId
+      ? await getUpvoteStatusForMultipleRecipes(
+          recipes.map(({ slug }) => slug),
+          userId
+        )
+      : {};
 
   return (
-    <div className="flex flex-col gap-14">
+    <div className="flex flex-col gap-10 mt-0 sm:mt-10">
       {items.map((_, index) => {
         const recipe = recipes[index];
 

@@ -1,1 +1,0 @@
-ALTER TABLE "recipe_media" ADD CONSTRAINT "recipe_media_recipe_slug_media_id_pk" PRIMARY KEY("recipe_slug","media_id");

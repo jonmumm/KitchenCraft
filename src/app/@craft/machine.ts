@@ -142,7 +142,6 @@ export const createCraftMachine = (
   const suggestionsGenerator = fromEventObservable(
     ({ input }: { input: SuggestionsInput }) => {
       const source = getSuggestionsEventSource(input);
-      console.log("getting suggestions generator", input, source);
       return eventSourceToGenerator(
         source,
         "SUGGESTION",
@@ -658,10 +657,6 @@ export const createCraftMachine = (
                             }
 
                             const paramString = params.toString();
-                            console.log(
-                              { paramString, name, description },
-                              f.context
-                            );
 
                             return {
                               pathname: `/instant-recipe?${paramString}`,
@@ -1127,7 +1122,6 @@ export const createCraftMachine = (
           router.push(params.pathname);
         },
         closeMobileKeyboard: ({ context }) => {
-          console.log({ context });
           // Close keyboard on mobile
           if (isMobile()) {
             (document.activeElement as HTMLElement)?.blur();

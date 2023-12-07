@@ -13,7 +13,7 @@ import {
   getRecentRecipesByUser,
   getSortedMediaForRecipe,
 } from "../../db/queries";
-import { upvote } from "../recipe/actions";
+import { upvoteById } from "../recipe/actions";
 import { ShareButton, UpvoteButton } from "./components.client";
 import { RecipePropsProvider } from "./context";
 
@@ -52,7 +52,7 @@ export const RecipeListItem = ({
       slug={recipe.slug}
       upvote={
         userId
-          ? upvote.bind(null, userId).bind(null, recipe.slug)
+          ? upvoteById.bind(null, userId).bind(null, recipe.id)
           : requireLogin
       }
     >

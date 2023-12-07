@@ -27,7 +27,7 @@ export default async function RootLayout({
   const Body = () => {
     return (
       <body
-        className={`${inter.className} overflow-x-hidden`}
+        className={`${inter.className} overflow-x-hidden pb-16`}
         // className={`bg-gray-100 ${inter.className} flex flex-col mx-auto max-w-lg xl:max-w-xl justify-center`}
       >
         <ThemeProvider

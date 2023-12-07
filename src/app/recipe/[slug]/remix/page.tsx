@@ -25,7 +25,7 @@ import {
   ModifyRecipeIngredientsPredictionInput,
   ModifyRecipeScalePredictionInput,
 } from "@/types";
-import { nanoid } from "ai";
+import { randomUUID } from "crypto";
 import {
   ArrowLeftIcon,
   LoaderIcon,
@@ -162,10 +162,12 @@ export default async function Page(props: Props) {
           remix$.next(output.recipe);
           remix$.complete();
 
-          const id = nanoid();
+          const id = randomUUID();
           const newSlug = getSlug({ id, name: output.recipe.name });
 
           newRecipe$.next({
+            id,
+            versionId: 0,
             slug: newSlug,
             name: output.recipe.name,
             description: output.recipe.description,

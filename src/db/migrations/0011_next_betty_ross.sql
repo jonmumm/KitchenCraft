@@ -1,1 +1,0 @@
-ALTER TABLE "upvote" RENAME COLUMN "createdAt" TO "created_at";

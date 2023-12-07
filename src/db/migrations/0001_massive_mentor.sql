@@ -10,7 +10,7 @@ BEGIN
     base_name := split_part(split_part(email_address, '+', 1), '@', 1);
 
     -- Get the next value from the existing sequence
-    unique_seq := nextval('profile_bigserial_seq');
+    unique_seq := nextval('profile_serial_num_seq');
 
     -- Combine the base name with the unique sequence number, separated by a dash
     profile_name := base_name || '-' || unique_seq;
@@ -20,3 +20,18 @@ BEGIN
     VALUES (profile_name, (SELECT id FROM public.user WHERE email = email_address), false, NOW(), unique_seq);
 END;
 $$;
+
+
+CREATE OR REPLACE FUNCTION trigger_create_profile()
+RETURNS TRIGGER AS $$
+BEGIN
+    CALL create_unique_profile_name(NEW.email);
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_user_insert
+AFTER INSERT ON "user"
+FOR EACH ROW
+EXECUTE FUNCTION trigger_create_profile();

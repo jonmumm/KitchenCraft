@@ -80,7 +80,9 @@ export const NewVerificatoknTokenSchema = createInsertSchema(SessionsTable);
 export const RecipesTable = pgTable(
   "recipe",
   {
-    slug: text("slug").notNull().primaryKey(),
+    id: uuid("id").notNull().defaultRandom(),
+    versionId: integer("version_id").notNull(),
+    slug: text("slug").notNull().unique(),
     name: text("name").notNull(),
     description: text("description").notNull(),
     yield: text("yield").notNull(),
@@ -97,7 +99,7 @@ export const RecipesTable = pgTable(
   },
   (table) => {
     return {
-      // tagsIdx: index("tags_idx").on(table.tags),
+      // pk: primaryKey({ columns: [table.id, table.versionId] }),
       tagsIndex: index("tags_gin_idx")
         .on(table.tags)
         .using(sql`gin`),
@@ -111,21 +113,20 @@ export const NewRecipeSchema = createInsertSchema(RecipesTable);
 export const UpvotesTable = pgTable(
   "upvote",
   {
-    slug: text("slug")
-      .notNull()
-      .references(() => RecipesTable.slug),
-    userId: text("userId")
+    recipeId: uuid("recipe_id").notNull(),
+    userId: text("user_id")
       .notNull()
       .references(() => UsersTable.id),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
   (table) => {
     return {
-      pk: primaryKey({ columns: [table.slug, table.userId] }),
+      pk: primaryKey({
+        columns: [table.recipeId, table.userId],
+      }),
     };
   }
 );
-
 export const UpvoteSchema = createSelectSchema(UpvotesTable);
 export const NewUpvoteSchema = createInsertSchema(UpvotesTable);
 
@@ -155,9 +156,7 @@ export const NewMediaSchema = createInsertSchema(MediaTable);
 export const RecipeMediaTable = pgTable(
   "recipe_media",
   {
-    recipeSlug: text("recipe_slug")
-      .notNull()
-      .references(() => RecipesTable.slug),
+    recipeId: uuid("recipe_id"),
     mediaId: uuid("media_id")
       .notNull()
       .references(() => MediaTable.id),
@@ -166,7 +165,7 @@ export const RecipeMediaTable = pgTable(
   },
   (table) => {
     return {
-      pk: primaryKey({ columns: [table.recipeSlug, table.mediaId] }),
+      pk: primaryKey({ columns: [table.recipeId, table.mediaId] }),
     };
   }
 );
@@ -174,30 +173,30 @@ export const RecipeMediaTable = pgTable(
 export const RecipeMediaSchema = createSelectSchema(RecipeMediaTable);
 export const NewRecipeMediaSchema = createInsertSchema(RecipeMediaTable);
 
-export const RecipeHistoryTable = pgTable("recipe_history", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  recipeSlug: text("recipe_slug")
-    .notNull()
-    .references(() => RecipesTable.slug),
-  previousVersion: jsonb("previous_version").notNull(), // Store the entire previous version of the recipe
-  modifiedBy: text("modified_by")
-    .notNull()
-    .references(() => UsersTable.id), // Assuming changes are made by a user
-  modifiedAt: timestamp("modified_at", { mode: "date" }).notNull().defaultNow(),
-});
+// export const RecipeHistoryTable = pgTable("recipe_history", {
+//   id: uuid("id").defaultRandom().primaryKey(),
+//   recipeId: text("recipe_id")
+//     .notNull()
+//     .references(() => RecipesTable.id),
+//   previousVersion: jsonb("previous_version").notNull(), // Store the entire previous version of the recipe
+//   modifiedBy: text("modified_by")
+//     .notNull()
+//     .references(() => UsersTable.id), // Assuming changes are made by a user
+//   modifiedAt: timestamp("modified_at", { mode: "date" }).notNull().defaultNow(),
+// });
 
-export const RecipeModificationTable = pgTable("recipe_modification", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  recipeSlug: text("recipe_slug")
-    .notNull()
-    .references(() => RecipesTable.slug),
-  modifiedBy: text("modified_by")
-    .notNull()
-    .references(() => UsersTable.id),
-  modificationType: text("modification_type").notNull(), // e.g., "ingredients", "scale"
-  modificationDetails: jsonb("modification_details").notNull(), // details of the modification
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-});
+// export const RecipeModificationTable = pgTable("recipe_modification", {
+//   id: uuid("id").defaultRandom().primaryKey(),
+//   recipeId: text("recipe_id")
+//     .notNull()
+//     .references(() => RecipesTable.id),
+//   modifiedBy: text("modified_by")
+//     .notNull()
+//     .references(() => UsersTable.id),
+//   modificationType: text("modification_type").notNull(), // e.g., "ingredients", "scale"
+//   modificationDetails: jsonb("modification_details").notNull(), // details of the modification
+//   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+// });
 
 // Define the ProfileTable
 export const ProfileTable = pgTable("profile", {

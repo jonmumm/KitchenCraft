@@ -1,8 +1,8 @@
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
+import { upvoteBySlug } from "../actions";
 import { RecipePropsProvider } from "../context";
-import { upvote } from "../actions";
 
 export default async function Layout({
   children,
@@ -24,7 +24,7 @@ export default async function Layout({
     <RecipePropsProvider
       upvote={
         userId
-          ? upvote.bind(null, userId).bind(null, params.slug)
+          ? upvoteBySlug.bind(null, userId).bind(null, params.slug)
           : requireLogin
       }
       slug={params.slug}

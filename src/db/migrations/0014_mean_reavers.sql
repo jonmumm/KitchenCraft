@@ -1,1 +1,0 @@
-ALTER TABLE "mediaUpload" DROP COLUMN IF EXISTS "uploadStatus";

@@ -1,4 +1,5 @@
-import { db, MediaTable, RecipeMediaTable } from "@/db";
+import { db, MediaTable } from "@/db";
+import { createRecipeMedia } from "@/db/queries";
 import { getSession } from "@/lib/auth/session";
 import { assert } from "@/lib/utils";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
@@ -100,11 +101,7 @@ export async function POST(
           }
 
           try {
-            await transaction.insert(RecipeMediaTable).values({
-              recipeSlug: params.slug,
-              mediaId: newMediaId,
-              sortOrder: new Date().getTime(),
-            });
+            await createRecipeMedia(transaction, params.slug, newMediaId);
           } catch (error) {
             console.error(error);
             return;

@@ -95,7 +95,13 @@ export async function Header({ className }: { className?: string }) {
                           </Link>
                         );
                       }}
-                    ></RenderFirstValue>
+                    />
+                    <Link href="/chefs-club">
+                      <Button variant="secondary" className="flex flex-row gap-1">
+                        <span>Join the </span>
+                        <span className="font-semibold">Chef&apos;s Club</span>
+                      </Button>
+                    </Link>
                   </div>
                 </div>
                 <Separator />

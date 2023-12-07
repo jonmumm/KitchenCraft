@@ -1,1 +1,0 @@
-CREATE INDEX IF NOT EXISTS "tags_idx" ON "recipe" ("tags");

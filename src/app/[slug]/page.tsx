@@ -1,5 +1,7 @@
+import { Avatar, AvatarFallback } from "@/components/display/avatar";
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
+import { Button } from "@/components/input/button";
 import {
   getProfileBySlug,
   getProfileLifetimePoints,
@@ -7,6 +9,7 @@ import {
 } from "@/db/queries";
 import { ProfileSlugSchema } from "@/schema";
 import { ChefHatIcon } from "lucide-react";
+import Link from "next/link";
 import { Header } from "../header";
 import { RecipeListItem } from "../recipe/components";
 
@@ -14,7 +17,6 @@ export default async function Page(props: { params: { slug: string } }) {
   const slug = decodeURIComponent(props.params.slug);
 
   const profileParse = ProfileSlugSchema.safeParse(slug);
-  console.log(profileParse, slug);
   if (profileParse.success) {
     const username = profileParse.data.slice(1);
 
@@ -24,7 +26,6 @@ export default async function Page(props: { params: { slug: string } }) {
       getProfileBySlug(username),
       getProfileLifetimePoints(username),
     ]);
-    console.log({ recipes });
 
     return profile ? (
       <div className="flex flex-col">
@@ -32,13 +33,16 @@ export default async function Page(props: { params: { slug: string } }) {
           <Header />
         </div>
 
-        <div className="w-full max-w-2xl mx-auto p-4">
-          <Card className="py-2">
+        <div className="w-full max-w-2xl mx-auto p-4 gap-2 flex flex-col mb-8">
+          <Card className="py-4">
             <div className="flex flex-col gap-2">
-              <div className="flex flex-row gap-1 items-center px-2">
-                <div className="px-4">
-                  <ChefHatIcon />
-                </div>
+              <div className="flex flex-row gap-4 items-center px-4">
+                <Avatar>
+                  {/* <AvatarImage src="https://github.com/shadcn.png" /> */}
+                  <AvatarFallback>
+                    <ChefHatIcon />
+                  </AvatarFallback>
+                </Avatar>
                 <div className="flex flex-col gap-1">
                   <h1 className="underline font-bold text-xl">{username}</h1>
                   <span className="font-medium text-sm">(+{points} 🧪)</span>
@@ -51,6 +55,21 @@ export default async function Page(props: { params: { slug: string } }) {
               </div>
             </div>
           </Card>
+          {!profile.activated && (
+            <Card className="text-primary text-sm flex flex-row justify-between items-center py-2 px-4">
+              <div className="flex flex-col gap-1">
+                <h3 className="flex-1 text-sm text-muted-foreground font-semibold">
+                  Not Active
+                </h3>
+                <p className="text-xs">
+                  Your chef page is visible to you but not others.
+                </p>
+              </div>
+              <Link href="/chefs-club">
+                <Button>Join the Chef&apos;s Club</Button>
+              </Link>
+            </Card>
+          )}
         </div>
         <div className="w-full flex flex-col gap-4">
           {/* Display the recipes using RecipeListItem */}

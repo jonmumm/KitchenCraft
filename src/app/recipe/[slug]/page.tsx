@@ -29,6 +29,7 @@ import {
 } from "@/schema";
 import { RecipePredictionInput } from "@/types";
 import { kv } from "@vercel/kv";
+import { randomUUID } from "crypto";
 import {
   CameraIcon,
   ChefHatIcon,
@@ -338,7 +339,9 @@ export default async function Page(props: Props) {
               }}
               onComplete={(output) => {
                 const recipe = {
+                  id: randomUUID(),
                   slug,
+                  versionId: 0,
                   description,
                   name,
                   yield: output.recipe.yield,
@@ -427,8 +430,8 @@ export default async function Page(props: Props) {
             className="w-full relative rounded-b-xl"
             style={{ height: `calc(50vh + 6rem)` }}
           >
-            <Header className="absolute left-0 right-0 top-0 z-50" />
-            <div className="absolute top-24 w-screen left-1/2 transform -translate-x-1/2 flex z-40">
+            <Header className="absolute left-0 right-0 top-0 z-20" />
+            <div className="absolute top-24 w-screen left-1/2 transform -translate-x-1/2 flex z-10 justify-center">
               <div className="carousel space-x-2 absolute pr-8">
                 <div className="w-2 h-full carousel-item" />
                 {mediaList.map((media, index) => {

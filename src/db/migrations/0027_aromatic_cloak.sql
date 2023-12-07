@@ -1,1 +1,0 @@
-ALTER TABLE "profile" ALTER COLUMN "activated" SET DEFAULT false;
