@@ -420,3 +420,47 @@ export const getUserLifetimePoints = async (userId: string) => {
     .execute()
     .then((res) => res[0]?.points || 0);
 };
+
+export const getProfileLifetimePoints = async (profileSlug: string) => {
+  return await db
+    .select({
+      profileSlug: ProfileTable.profileSlug,
+      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
+    })
+    .from(RecipesTable)
+    .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
+    .leftJoin(
+      RecipeMediaTable,
+      eq(RecipesTable.slug, RecipeMediaTable.recipeSlug)
+    )
+    .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
+    .where(eq(ProfileTable.profileSlug, profileSlug))
+    .groupBy(ProfileTable.profileSlug)
+    .execute()
+    .then((res) => res[0]?.points || 0);
+};
+
+export const getProfilePointsLast30Days = async (profileSlug: string) => {
+  const thirtyDaysInSeconds = 30 * 24 * 3600; // Seconds in 30 days
+  return await db
+    .select({
+      profileSlug: ProfileTable.profileSlug,
+      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
+    })
+    .from(RecipesTable)
+    .leftJoin(UpvotesTable, eq(RecipesTable.slug, UpvotesTable.slug))
+    .leftJoin(
+      RecipeMediaTable,
+      eq(RecipesTable.slug, RecipeMediaTable.recipeSlug)
+    )
+    .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
+    .where(
+      and(
+        eq(ProfileTable.profileSlug, profileSlug),
+        sql`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) <= ${thirtyDaysInSeconds}`
+      )
+    )
+    .groupBy(ProfileTable.profileSlug)
+    .execute()
+    .then((res) => res[0]?.points || 0);
+};

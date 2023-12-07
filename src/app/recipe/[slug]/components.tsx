@@ -5,29 +5,37 @@ import { Suspense } from "react";
 
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
+import { RenderFirstValue } from "@/components/util/render-first-value";
+import { getProfileByUserId, getUserLifetimePoints } from "@/db/queries";
 import { getObservableAtIndex, getTokenObservableAtIndex } from "@/lib/rxjs";
 import { notUndefined } from "@/lib/type-guards";
 import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 import {
   Observable,
-  combineLatest,
   defaultIfEmpty,
   filter,
-  first,
   firstValueFrom,
-  identity,
+  from,
   lastValueFrom,
   map,
-  startWith,
+  shareReplay,
   take,
-  takeUntil,
-  takeWhile,
-  tap,
 } from "rxjs";
-import { AddTagButton } from "./components.client";
 
-export async function CraftingDetails({ createdAt }: { createdAt: string }) {
+export function CraftingDetails({
+  createdAt,
+  createdBy,
+}: {
+  createdAt: string;
+  createdBy: string;
+}) {
+  const profile$ = from(getProfileByUserId(createdBy)).pipe(
+    shareReplay(1),
+    filter(notUndefined)
+  );
+  const points$ = from(getUserLifetimePoints(createdBy)).pipe(shareReplay(1));
+
   const date = new Date(createdAt);
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
@@ -47,13 +55,29 @@ export async function CraftingDetails({ createdAt }: { createdAt: string }) {
               <div className="flex flex-row gap-1 items-center">
                 <ChefHatIcon />
                 <span>
-                  <span className="underline">InspectorT</span>
+                  <span className="underline">
+                    <Suspense fallback={<Skeleton className="w-16 h-7" />}>
+                      <RenderFirstValue
+                        observable={profile$}
+                        render={(profile) => {
+                          return <>@{profile.profileSlug}</>;
+                        }}
+                      />
+                    </Suspense>
+                  </span>
                 </span>
               </div>
             </div>
           </h3>
         </Badge>{" "}
-        <span className="font-bold">(+123 🧪)</span>
+        <span className="font-bold">
+          (+
+          <RenderFirstValue
+            observable={points$}
+            render={(value) => <>{value}</>}
+          />{" "}
+          🧪)
+        </span>
       </Link>
       <Label className="text-muted-foreground uppercase text-xs">
         {formattedDate.split(" at ").join(" @ ")}

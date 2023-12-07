@@ -1,6 +1,6 @@
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
-import { getProfileBySlug, getRecentRecipesByProfile } from "@/db/queries";
+import { getProfileBySlug, getProfileLifetimePoints, getRecentRecipesByProfile } from "@/db/queries";
 import { ProfileSlugSchema } from "@/schema";
 import { ChefHatIcon } from "lucide-react";
 import { Header } from "../header";
@@ -15,9 +15,10 @@ export default async function Page(props: { params: { slug: string } }) {
     const username = profileParse.data.slice(1);
 
     // Fetch recent recipes by profile
-    const [recipes, profile] = await Promise.all([
+    const [recipes, profile, points] = await Promise.all([
       getRecentRecipesByProfile(slug),
       getProfileBySlug(username),
+      getProfileLifetimePoints(username)
     ]);
 
     return profile ? (
@@ -35,7 +36,7 @@ export default async function Page(props: { params: { slug: string } }) {
                 </div>
                 <div className="flex flex-col gap-1">
                   <h1 className="underline font-bold text-xl">{username}</h1>
-                  <span className="font-medium text-sm">(+123 🧪)</span>
+                  <span className="font-medium text-sm">(+{points} 🧪)</span>
                 </div>
                 <div className="flex-1 flex flex-col h-full gap-1 justify-start items-end">
                   <Badge variant="outline">

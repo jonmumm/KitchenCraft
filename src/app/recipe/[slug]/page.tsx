@@ -95,13 +95,18 @@ export default async function Page(props: Props) {
   let input: RecipePredictionInput | undefined;
   let name: string;
   let description: string;
+  let recipeUserId: string;
 
   if (!recipe) {
-    // Recipe doesn't exist, check redis to see if there is one pending for this slug...
+    if (!userId) {
+      redirect("/auth/signin");
+    }
+
     const recipeKey = `recipe:${slug}`;
     const data = await kv.hgetall(recipeKey);
     const tempRecipe = TempRecipeSchema.parse(data);
     const { runStatus, fromResult, fromPrompt } = tempRecipe;
+    recipeUserId = userId;
     ({ name, description } = tempRecipe);
 
     const isDone = runStatus === "done";
@@ -139,6 +144,7 @@ export default async function Page(props: Props) {
     }
   } else {
     ({ name, description } = recipe);
+    recipeUserId = recipe.createdBy;
   }
 
   if (isError) {
@@ -534,7 +540,10 @@ export default async function Page(props: Props) {
             <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
               <div className="flex flex-col gap-2 items-center">
                 <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                  <CraftingDetails createdAt={new Date().toDateString()} />
+                  <CraftingDetails
+                    createdAt={new Date().toDateString()}
+                    createdBy={recipeUserId}
+                  />
                 </Suspense>
               </div>
             </div>
