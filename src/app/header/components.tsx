@@ -110,15 +110,24 @@ export async function Header({ className }: { className?: string }) {
                         );
                       }}
                     />
-                    <Link href="/chefs-club">
-                      <Button
-                        variant="secondary"
-                        className="flex flex-row gap-1"
-                      >
-                        <span>Join the </span>
-                        <span className="font-semibold">Chef&apos;s Club</span>
-                      </Button>
-                    </Link>
+                    <RenderFirstValue
+                      observable={activeSubscription$}
+                      render={(sub) => {
+                        return !sub ? (
+                          <Link href="/chefs-club">
+                            <Button
+                              variant="secondary"
+                              className="flex flex-row gap-1"
+                            >
+                              <span>Join the </span>
+                              <span className="font-semibold">
+                                Chef&apos;s Club
+                              </span>
+                            </Button>
+                          </Link>
+                        ) : null;
+                      }}
+                    />
                   </div>
                 </div>
                 <Separator />
