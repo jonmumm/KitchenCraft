@@ -1,6 +1,10 @@
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
-import { getProfileBySlug, getProfileLifetimePoints, getRecentRecipesByProfile } from "@/db/queries";
+import {
+  getProfileBySlug,
+  getProfileLifetimePoints,
+  getRecentRecipesByProfile,
+} from "@/db/queries";
 import { ProfileSlugSchema } from "@/schema";
 import { ChefHatIcon } from "lucide-react";
 import { Header } from "../header";
@@ -16,10 +20,11 @@ export default async function Page(props: { params: { slug: string } }) {
 
     // Fetch recent recipes by profile
     const [recipes, profile, points] = await Promise.all([
-      getRecentRecipesByProfile(slug),
+      getRecentRecipesByProfile(username),
       getProfileBySlug(username),
-      getProfileLifetimePoints(username)
+      getProfileLifetimePoints(username),
     ]);
+    console.log({ recipes });
 
     return profile ? (
       <div className="flex flex-col">
@@ -60,8 +65,7 @@ export default async function Page(props: { params: { slug: string } }) {
       <div>Not Found</div>
     );
   } else {
-    console.log(profileParse.error)
-
+    console.log(profileParse.error);
   }
 
   return <div>Not Found</div>;
