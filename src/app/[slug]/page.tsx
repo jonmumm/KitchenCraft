@@ -16,6 +16,7 @@ import { RecipeListItem } from "../recipe/components";
 export default async function Page(props: { params: { slug: string } }) {
   const slug = decodeURIComponent(props.params.slug);
 
+  console.log({ slug });
   const profileParse = ProfileSlugSchema.safeParse(slug);
   if (profileParse.success) {
     const username = profileParse.data.slice(1);
@@ -84,7 +85,7 @@ export default async function Page(props: { params: { slug: string } }) {
       <div>Not Found</div>
     );
   } else {
-    console.log(profileParse.error);
+    // console.log(profileParse.error);
   }
 
   return <div>Not Found</div>;

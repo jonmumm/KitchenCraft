@@ -32,6 +32,7 @@ export const SecretsEnvironmentSchema = z.object({
   NEXTAUTH_SECRET: z.string(),
   RESEND_API_KEY: z.string(),
   STRIPE_SECRET_KEY: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string(),
 });
 
 export const PublicEnvironmentSchema = z.object({

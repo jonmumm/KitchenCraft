@@ -8,6 +8,7 @@ import {
   SubscriptionsTable,
   UpvotesTable,
   UserFeatureUsageTable,
+  UsersTable,
   db,
 } from "@/db";
 import { getErrorMessage } from "@/lib/error";
@@ -801,4 +802,51 @@ export const updateMemberStatusInSubscription = async (
   } catch (error) {
     return { success: false, error: getErrorMessage(error) };
   }
+};
+
+export const updateStripeCustomerIdByEmail = async (
+  dbOrTransaction: DbOrTransaction,
+  userEmail: string, // The email of the user whose Stripe customer ID needs to be updated
+  newStripeCustomerId: string // The new Stripe customer ID to set
+) => {
+  try {
+    const queryRunner =
+      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+    const updateResult = await queryRunner
+      .update(UsersTable)
+      .set({ stripeCustomerId: newStripeCustomerId })
+      .where(eq(UsersTable.email, userEmail)) // Use email to locate the user
+      .execute();
+
+    if (updateResult.count === 0) {
+      throw new Error(
+        "No user found with the specified email or Stripe customer ID already set to the new value."
+      );
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+export const getStripeCustomerId = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  const result = await queryRunner
+    .select({ stripeCustomerId: UsersTable.stripeCustomerId })
+    .from(UsersTable)
+    .where(eq(UsersTable.id, userId))
+    .execute();
+
+  if (result.length === 0) {
+    throw new Error("No user found with the given ID.");
+  }
+  const stripeCustomerId = result[0]?.stripeCustomerId;
+  return stripeCustomerId;
 };
