@@ -5,7 +5,8 @@ import { Button } from "@/components/input/button";
 import StickyHeader from "@/components/layout/sticky-header";
 import { LastValue } from "@/components/util/last-value";
 import { RenderFirstValue } from "@/components/util/render-first-value";
-import { getRecipe } from "@/db/queries";
+import { RecipesTable, db } from "@/db";
+import { getCurrentVersionId, getRecipe } from "@/db/queries";
 import { NewRecipe, Recipe } from "@/db/types";
 import { getSession } from "@/lib/auth/session";
 import { getSlug } from "@/lib/slug";
@@ -76,9 +77,10 @@ export default async function Page(props: Props) {
   if (!recipe) {
     throw new Error(`Recipe ${baseSlug} not found`);
   }
+  const baseRecipeId = recipe.id;
 
   const remix$ = new BehaviorSubject<Partial<Recipe>>({});
-  const newRecipe$ = new Subject<NewRecipe>();
+  const newRecipe$ = new Subject<Omit<NewRecipe, "id" | "slug">>();
 
   // const name$ = from();
 
@@ -162,13 +164,8 @@ export default async function Page(props: Props) {
           remix$.next(output.recipe);
           remix$.complete();
 
-          const id = randomUUID();
-          const newSlug = getSlug({ id, name: output.recipe.name });
-
           newRecipe$.next({
-            id,
             versionId: 0,
-            slug: newSlug,
             name: output.recipe.name,
             description: output.recipe.description,
             yield: output.recipe.yield,
@@ -187,59 +184,24 @@ export default async function Page(props: Props) {
     );
   };
 
-  const SaveButtons = ({ newRecipe }: { newRecipe: NewRecipe }) => {
-    const saveAsNewRecipe = async () => {
-      "use server";
-      // todo
-      console.log("SAVE! new");
-      console.log(newRecipe);
-
-      redirect("/");
-    };
-    const saveRecipe = async () => {
-      "use server";
-
-      console.log(newRecipe);
-      // const newRecipe = await firstValueFrom(remix$);
-
-      // todo
-      console.log("SAVE!");
-
-      // await db.transaction(async (tx) => {
-      //   // Define the new recipe
-      //   const newRecipe = {
-      //     slug: 'new-recipe-slug',
-      //     name: 'New Recipe',
-      //     description: 'Description of new recipe',
-      //     // ... other required fields
-      //   };
-
-      //   // Insert the new recipe
-      //   await tx.insert(RecipesTable).values(newRecipe);
-
-      //   // Define the modification record
-      //   const newModification = {
-      //     recipeSlug: newRecipe.slug,
-      //     modifiedBy: 'user-id-of-modifier',
-      //     modificationType: 'creation',
-      //     modificationDetails: { /* detailed JSON data about the creation */ },
-      //   };
-
-      //   // Insert the modification record
-      //   await tx.insert(RecipeModificationTable).values(newModification);
-      // });
-
-      // redirect("/");
-    };
-
+  const SaveButtons = ({
+    newRecipe,
+  }: {
+    newRecipe: Omit<NewRecipe, "id" | "slug">;
+  }) => {
     return (
       <div className="flex flex-row gap-2">
-        <form action={saveRecipe}>
+        <form
+          action={saveRecipe
+            .bind(null, newRecipe)
+            .bind(null, baseRecipeId)
+            .bind(null, userId)}
+        >
           <Button type="submit" size="lg">
             Save (Over)
           </Button>
         </form>
-        <form action={saveAsNewRecipe}>
+        <form action={saveAsNewRecipe.bind(null, newRecipe).bind(null, userId)}>
           <Button type="submit" size="lg">
             Save New
           </Button>
@@ -354,3 +316,101 @@ export default async function Page(props: Props) {
     </div>
   );
 }
+
+const saveRecipe = async (
+  newRecipe: Omit<NewRecipe, "id" | "slug">,
+  baseRecipeId: string,
+  userId: string
+) => {
+  "use server";
+  if (!newRecipe) {
+    return;
+  }
+
+  const slug = await db.transaction(async (transaction) => {
+    const currentVersionId = await getCurrentVersionId(
+      transaction,
+      baseRecipeId
+    );
+    assert(
+      typeof currentVersionId === "number",
+      "expected existing versionId to incremeent but was undefined"
+    );
+    const slug =
+      getSlug({ id: baseRecipeId, name: newRecipe.name }) +
+      `-${currentVersionId + 1}`;
+
+    await transaction.insert(RecipesTable).values({
+      id: baseRecipeId,
+      slug,
+      description: newRecipe.description,
+      name: newRecipe.name,
+      versionId: currentVersionId + 1,
+      yield: newRecipe.yield,
+      tags: Array.isArray(newRecipe.tags)
+        ? newRecipe.tags.map((item) => (typeof item == "string" ? item : ""))
+        : [],
+      ingredients: Array.isArray(newRecipe.ingredients)
+        ? newRecipe.ingredients.map((item) =>
+            typeof item == "string" ? item : ""
+          )
+        : [],
+      instructions: Array.isArray(newRecipe.instructions)
+        ? newRecipe.instructions.map((item) =>
+            typeof item == "string" ? item : ""
+          )
+        : [],
+      cookTime: newRecipe.cookTime,
+      activeTime: newRecipe.activeTime,
+      totalTime: newRecipe.totalTime,
+      createdBy: userId,
+      createdAt: new Date(),
+    } satisfies NewRecipe);
+
+    return slug;
+  });
+
+  redirect(`/recipe/${slug}`);
+};
+
+const saveAsNewRecipe = async (
+  newRecipe: Omit<NewRecipe, "id" | "slug">,
+  userId: string
+) => {
+  "use server";
+
+  if (!newRecipe) {
+    return;
+  }
+  const id = randomUUID();
+  const slug = getSlug({ id, name: newRecipe.name });
+
+  await db.insert(RecipesTable).values({
+    id,
+    slug: slug,
+    description: newRecipe.description,
+    name: newRecipe.name,
+    versionId: 0,
+    yield: newRecipe.yield,
+    tags: Array.isArray(newRecipe.tags)
+      ? newRecipe.tags.map((item) => (typeof item == "string" ? item : ""))
+      : [],
+    ingredients: Array.isArray(newRecipe.ingredients)
+      ? newRecipe.ingredients.map((item) =>
+          typeof item == "string" ? item : ""
+        )
+      : [],
+    instructions: Array.isArray(newRecipe.instructions)
+      ? newRecipe.instructions.map((item) =>
+          typeof item == "string" ? item : ""
+        )
+      : [],
+    cookTime: newRecipe.cookTime,
+    activeTime: newRecipe.activeTime,
+    totalTime: newRecipe.totalTime,
+    createdBy: userId,
+    createdAt: new Date(),
+  } satisfies NewRecipe);
+
+  redirect(`/recipe/${slug}`);
+};

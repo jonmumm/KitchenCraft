@@ -922,3 +922,19 @@ export const getActiveSubscriptionForUserId = async (
 
   return result[0]; // Return the first active subscription details
 };
+
+export const getCurrentVersionId = async (
+  dbOrTransaction: DbOrTransaction,
+  recipeId: string
+) => {
+  const result = await dbOrTransaction
+    .select({
+      maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
+    })
+    .from(RecipesTable)
+    .where(eq(RecipesTable.id, recipeId))
+    .groupBy(RecipesTable.id)
+    .execute();
+  const maxVersionId = result[0]?.maxVersionId;
+  return maxVersionId;
+};
