@@ -87,7 +87,7 @@ export const RecipeListItem = ({
         </div>
         {recipe.mediaCount > 0 ? (
           <div className="h-64 relative">
-            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-50">
+            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20">
               <RecipeCarousel slug={recipe.slug} />
             </div>
             {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
