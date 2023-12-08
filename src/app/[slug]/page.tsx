@@ -57,17 +57,17 @@ export default async function Page(props: { params: { slug: string } }) {
             </div>
           </Card>
           {!profile.activated && (
-            <Card className="text-primary text-sm flex flex-row justify-between items-center py-2 px-4">
+            <Card className="text-primary text-sm flex flex-row gap-2 justify-between items-center py-2 px-4">
               <div className="flex flex-col gap-1">
                 <h3 className="flex-1 text-sm text-muted-foreground font-semibold">
                   Not Active
                 </h3>
-                <p className="text-xs">
+                <p className="text-xs flex-1">
                   Your chef page is visible to you but not others.
                 </p>
               </div>
-              <Link href="/chefs-club" className="h-full">
-                <Button className="h-full">Join Chef&apos;s Club</Button>
+              <Link href="/chefs-club">
+                <Button className="whitespace-nowrap">Join Chef&apos;s Club</Button>
               </Link>
             </Card>
           )}

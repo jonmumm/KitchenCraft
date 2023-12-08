@@ -93,7 +93,7 @@ export const ShareButton = ({
         setShowCopied(false);
       }, 3000);
     }
-  }, [setShowCopied, slug, send, description, name]);
+  }, [setShowCopied, slug, send, name]);
 
   return (
     <div>

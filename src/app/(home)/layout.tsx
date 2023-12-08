@@ -118,13 +118,11 @@ const MyRecipes = ({ userId }: { userId: string }) => {
                 <EventButton event={{ type: "NEW_RECIPE" }} className="p-0">
                   <Card
                     key={index}
-                    className="w-64 h-36 carousel-item bg-muted rounded-lg flex flex-col gap-2 items-start justify-between text-sm p-3 box-border"
+                    className="w-64 h-36 carousel-item bg-muted rounded-lg flex flex-col gap-2 items-start justify-between text-xs p-3 box-border"
                   >
-                    <div className="flex flex-col gap-1">
-                      {quotes[index]?.quote}
-                    </div>
+                    <p className="text-left">{quotes[index]?.quote}</p>
                     <div className="flex flex-row justify-between w-full flex-shrink-0 items-center text-xs">
-                      <p>— {quotes[index]?.author}</p>
+                      <span>— {quotes[index]?.author}</span>
                       <Badge
                         variant="outline"
                         className="flex flex-row gap-1 flex-shrink-0"
