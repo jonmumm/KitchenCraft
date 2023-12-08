@@ -22,7 +22,6 @@ import {
 } from "@/components/input/command";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/layout/sheet";
 import ScrollLockComponent from "@/components/scroll-lock";
-import ClientOnly from "@/components/util/client-only";
 import { useActor } from "@/hooks/useActor";
 import useDebounce from "@/hooks/useDebounce";
 import { useSelector } from "@/hooks/useSelector";
@@ -69,6 +68,7 @@ import {
 } from "./constants";
 import { CraftContext } from "./context";
 import {
+  useCraftContext,
   useIngredients,
   useIsMacDesktop,
   useKeyboardToggle,
@@ -91,12 +91,15 @@ import {
   selectPromptEmpty,
   selectShowOverlay,
 } from "./selectors";
+import { Dialog, DialogContent } from "@/components/layout/dialog";
 
-export default function CraftCommand({
+export const CraftContextProvider = ({
   searchParams,
+  children,
 }: {
   searchParams: Record<string, string>;
-}) {
+  children: ReactNode;
+}) => {
   const pathname = usePathname();
   const router = useRouter();
   const slug = useMemo(() => pathname.split("/").pop(), [pathname]);
@@ -107,55 +110,79 @@ export default function CraftCommand({
     createCraftMachine(searchParams, router, scrollViewRef, slug)
   );
 
-  const filter = useCallback((value: string, search: string) => {
-    // console.log({ value, search });
-    return 1;
-  }, []);
+  return (
+    <CraftContext.Provider value={actor}>{children}</CraftContext.Provider>
+  );
+};
 
+export const MobileCommandSheet = ({ children }: { children: ReactNode }) => {
+  const actor = useCraftContext();
   const isOpen = useSelector(actor, selectIsOpen);
   const showOverlay = useSelector(actor, selectShowOverlay);
   const lockScroll = useSelector(actor, selectLockScroll);
 
+  return (
+    <Sheet open={isOpen}>
+      {showOverlay && <SheetOverlay />}
+      <CraftSheetContent
+      // onPointerDownOutside={handlePointerDownOutside}
+      >
+        {children}
+      </CraftSheetContent>
+    </Sheet>
+  );
+};
+
+export const DesktopCommandDialog = ({ children }: { children: ReactNode }) => {
+  const actor = useCraftContext();
   useKeyboardToggle();
+  const isOpen = useSelector(actor, selectIsOpen);
+  const send = useSend();
+  const handleOpenChange = useCallback(
+    (value: boolean) => {
+      if (!value) {
+        send({ type: "CLOSE" });
+      }
+    },
+    [send]
+  );
 
   return (
-    <CraftContext.Provider value={actor}>
-      <Sheet open={isOpen}>
-        {/* <FloatingDock open={isOpen} overlay={showOverlay} showBack={true}> */}
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="p-0">{children}</DialogContent>
+    </Dialog>
+  );
+};
 
-        <CraftSheetContent
-        // onPointerDownOutside={handlePointerDownOutside}
-        >
-          {/* <ResizeObserverComponent onResize={handleResize}>
-            {children}
-          </ResizeObserverComponent> */}
+export default function CraftCommand() {
+  const actor = useCraftContext();
+  const lockScroll = useSelector(actor, selectLockScroll);
+  const scrollViewRef = useSelector(
+    actor,
+    (state) => state.context.scrollViewRef
+  );
 
-          <Command
-            className="mb-8"
-            shouldFilter={false}
-            style={{ maxHeight: "85vh" }}
-          >
-            <CraftHeader />
-            <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
-              <NewRecipeActionsGroup />
-              <SuggestionsGroup />
+  return (
+    <>
+      <Command shouldFilter={false}>
+        <CraftHeader />
+        <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
+          <NewRecipeActionsGroup />
+          <SuggestionsGroup />
 
-              <SubstitutionsGroup />
-              <DietaryAlternativesGroup />
-              <ScaleActionsGroup />
-              <EquipmentAdaptationsGroup />
-              {/* <IngredientsGroup />
+          <SubstitutionsGroup />
+          <DietaryAlternativesGroup />
+          <ScaleActionsGroup />
+          <EquipmentAdaptationsGroup />
+          {/* <IngredientsGroup />
               <TagsGroup /> */}
-            </ScrollLockComponent>
-            <Separator />
-            <CraftInput />
-            <AddedIngredientsSection />
-            <AddedTagsSection />
-          </Command>
-        </CraftSheetContent>
-        {showOverlay && <SheetOverlay />}
-      </Sheet>
-    </CraftContext.Provider>
+        </ScrollLockComponent>
+        <Separator />
+        <CraftInput />
+        <AddedIngredientsSection />
+        <AddedTagsSection />
+      </Command>
+    </>
   );
 }
 

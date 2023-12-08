@@ -3,6 +3,10 @@ import { useSend } from "@/hooks/useSend";
 import { useContext, useEffect, useMemo } from "react";
 import { CraftContext } from "./context";
 
+export const useCraftContext = () => {
+  return useContext(CraftContext);
+};
+
 export const useKeyboardToggle = () => {
   const send = useSend();
 

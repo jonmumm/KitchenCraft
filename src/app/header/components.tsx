@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Observable, from, map, of, shareReplay } from "rxjs";
+import { Observable, combineLatest, from, map, of, shareReplay } from "rxjs";
 
 export async function Header({ className }: { className?: string }) {
   const session = await getSession();
@@ -73,7 +73,7 @@ export async function Header({ className }: { className?: string }) {
       <div>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline">
+            <Button variant="ghost">
               <GripVerticalIcon
               // className={isPopoverOpen ? "transform rotate-90" : ""}
               />
@@ -97,47 +97,49 @@ export async function Header({ className }: { className?: string }) {
                     Chef
                   </Label>
                   <div className="flex flex-col gap-2 items-center justify-center">
-                    <RenderFirstValue
-                      observable={profileSlug$}
-                      render={(profileSlug) => {
-                        return (
-                          <Link href={`/@${profileSlug}`}>
-                            <Badge variant="outline">
-                              <h3 className="font-bold text-xl">
-                                <div className="flex flex-col gap-1 items-center">
-                                  <div className="flex flex-row gap-1 items-center">
-                                    <ChefHatIcon />
-                                    <span>
-                                      <span className="underline">
-                                        {profileSlug}
+                    <Suspense fallback={null}>
+                      <RenderFirstValue
+                        observable={profileSlug$}
+                        render={(profileSlug) => {
+                          return (
+                            <Link href={`/@${profileSlug}`}>
+                              <Badge variant="outline">
+                                <h3 className="font-bold text-xl">
+                                  <div className="flex flex-col gap-1 items-center">
+                                    <div className="flex flex-row gap-1 items-center">
+                                      <ChefHatIcon />
+                                      <span>
+                                        <span className="underline">
+                                          {profileSlug}
+                                        </span>
                                       </span>
-                                    </span>
+                                    </div>
                                   </div>
-                                </div>
-                              </h3>
-                            </Badge>{" "}
-                          </Link>
-                        );
-                      }}
-                    />
-                    <RenderFirstValue
-                      observable={activeSubscription$}
-                      render={(sub) => {
-                        return !sub ? (
-                          <Link href="/chefs-club">
-                            <Button
-                              variant="secondary"
-                              className="flex flex-row gap-1"
+                                </h3>
+                              </Badge>{" "}
+                            </Link>
+                          );
+                        }}
+                      />
+                    </Suspense>
+                    <Suspense fallback={null}>
+                      <RenderFirstValue
+                        observable={combineLatest([
+                          activeSubscription$,
+                          profileSlug$,
+                        ])}
+                        render={([sub, slug]) => {
+                          return !sub ? (
+                            <Link
+                              href="/chefs-club"
+                              className="text-muted-foreground text-xs"
                             >
-                              <span>Join the </span>
-                              <span className="font-semibold">
-                                Chef&apos;s Club
-                              </span>
-                            </Button>
-                          </Link>
-                        ) : null;
-                      }}
-                    />
+                              <span>Inactive</span>
+                            </Link>
+                          ) : null;
+                        }}
+                      />
+                    </Suspense>
                   </div>
                 </div>
                 <div className="flex flex-row gap-8 items-center justify-around">
@@ -233,9 +235,6 @@ export async function Header({ className }: { className?: string }) {
                         <span className="truncate">{email}</span>
                       </div>
                     </div>
-                    {/* <Button size="icon" variant="secondary">
-                      <EditIcon />
-                    </Button> */}
                   </div>
                 </div>
                 <Separator />
@@ -275,7 +274,7 @@ export async function Header({ className }: { className?: string }) {
                     Billing
                   </Label>
                   <div className="flex-1 flex flex-row justify-end">
-                    <Suspense>
+                    <Suspense fallback={null}>
                       <RenderFirstValue
                         observable={activeSubscription$}
                         render={(sub) => {
@@ -301,30 +300,6 @@ export async function Header({ className }: { className?: string }) {
                   <Progress value={20} />
                 </div>
                 <Separator />
-                <div className="flex flex-row gap-1 items-center justify-between">
-                  <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
-                    Links
-                    <ExternalLinkIcon size={16} className="opacity-70" />
-                  </Label>
-                  <div className="flex flex-row justify-center gap-2">
-                    <Link
-                      target="_blank"
-                      href="https://github.com/jonmumm/kitchencraft"
-                    >
-                      <Button size="icon" variant="outline">
-                        <GithubIcon />
-                      </Button>
-                    </Link>
-                    <Link
-                      target="_blank"
-                      href="https://www.youtube.com/@KitchenCraftAI"
-                    >
-                      <Button size="icon" variant="outline">
-                        <YoutubeIcon />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
                 <Separator />
               </>
             )}
@@ -350,6 +325,27 @@ export async function Header({ className }: { className?: string }) {
                 </div>
               </>
             )}
+            <Separator />
+            <div className="flex flex-row gap-2 justify-center">
+              <div className="flex flex-row justify-center gap-2">
+                <Link
+                  target="_blank"
+                  href="https://github.com/jonmumm/kitchencraft"
+                >
+                  <Button size="icon" variant="outline">
+                    <GithubIcon />
+                  </Button>
+                </Link>
+                <Link
+                  target="_blank"
+                  href="https://www.youtube.com/@KitchenCraftAI"
+                >
+                  <Button size="icon" variant="outline">
+                    <YoutubeIcon />
+                  </Button>
+                </Link>
+              </div>
+            </div>
             <Separator />
             <div className="flex flex-row gap-3 items-center justify-center">
               <Link href="/privacy" className="text-xs underline">
@@ -385,9 +381,9 @@ export async function Header({ className }: { className?: string }) {
       </div>
 
       <div>
-        <EventButton variant="outline" event={{ type: "NEW_RECIPE" }}>
+        <Button variant="outline" event={{ type: "NEW_RECIPE" }}>
           <AxeIcon />
-        </EventButton>
+        </Button>
       </div>
     </div>
   );

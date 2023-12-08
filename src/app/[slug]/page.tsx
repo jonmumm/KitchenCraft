@@ -12,11 +12,11 @@ import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 import { Header } from "../header";
 import { RecipeListItem } from "../recipe/components";
+import { headers } from "next/headers";
 
 export default async function Page(props: { params: { slug: string } }) {
   const slug = decodeURIComponent(props.params.slug);
 
-  console.log({ slug });
   const profileParse = ProfileSlugSchema.safeParse(slug);
   if (profileParse.success) {
     const username = profileParse.data.slice(1);
@@ -67,7 +67,9 @@ export default async function Page(props: { params: { slug: string } }) {
                 </p>
               </div>
               <Link href="/chefs-club">
-                <Button className="whitespace-nowrap">Join Chef&apos;s Club</Button>
+                <Button className="whitespace-nowrap">
+                  Join Chef&apos;s Club
+                </Button>
               </Link>
             </Card>
           )}

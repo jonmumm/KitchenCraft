@@ -53,6 +53,7 @@
     "@vercel/postgres": "^0.5.1",
     "@vitejs/plugin-react": "^4.1.0",
     "ai": "^2.2.13",
+    "bowser": "^2.11.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
