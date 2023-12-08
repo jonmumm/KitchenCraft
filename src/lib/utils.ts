@@ -253,3 +253,25 @@ export function shuffle<T>(array: T[]): T[] {
 
   return array;
 }
+
+export const formatJoinDateStr = (date: Date) => {
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const month = monthNames[date.getMonth()];
+  const year = `'${date.getFullYear().toString().slice(-2)}`;
+
+  return `Joined ${month} ${year}`;
+};

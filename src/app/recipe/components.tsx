@@ -57,7 +57,6 @@ export const RecipeListItem = ({
       }
     >
       <Card
-        key={index}
         className="flex flex-col gap-3 max-w-2xl w-full mx-auto py-4 rounded-2xl border-none shadow-none sm:border-solid sm:shadow-md sm:hover:shadow-lg"
       >
         <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">

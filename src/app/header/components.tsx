@@ -3,8 +3,8 @@ import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Progress } from "@/components/feedback/progress";
+import Image from "next/image";
 
-import { EventButton } from "@/components/event-button";
 import { Button } from "@/components/input/button";
 import {
   Popover,
@@ -25,7 +25,6 @@ import { cn } from "@/lib/utils";
 import {
   AxeIcon,
   ChefHatIcon,
-  ExternalLinkIcon,
   GithubIcon,
   GripVerticalIcon,
   LoaderIcon,
@@ -34,9 +33,19 @@ import {
 import Link from "next/link";
 import { Suspense } from "react";
 import { Observable, combineLatest, from, map, of, shareReplay } from "rxjs";
+import { headers } from "next/headers";
+import Bowser from "bowser";
+import { AppInstallContainer } from "./components.client";
+import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
+import { MainMenu } from "@/components/modules/main-menu";
+import { Sheet, SheetContent, SheetOverlay, SheetTrigger } from "@/components/layout/sheet";
 
 export async function Header({ className }: { className?: string }) {
   const session = await getSession();
+  const headerList = headers();
+  const browser = Bowser.getParser(headerList.get("user-agent")!);
+  const canInstallPWA =
+    browser.getOSName() === "iOS" && browser.getBrowserName() === "Safari";
 
   const userId = session?.user.id;
   const email = session?.user.email;
@@ -70,308 +79,21 @@ export async function Header({ className }: { className?: string }) {
         className
       )}
     >
+      {canInstallPWA && <SafariInstallPrompt />}
       <div>
-        <Popover>
-          <PopoverTrigger asChild>
+        <Sheet>
+          <SheetTrigger asChild>
             <Button variant="ghost">
               <GripVerticalIcon
               // className={isPopoverOpen ? "transform rotate-90" : ""}
               />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 flex flex-col gap-4 p-3">
-            {!userId && (
-              <>
-                <Link href="/auth/signin">
-                  <Button size="lg" className="w-full">
-                    Sign In / Sign Up
-                  </Button>
-                </Link>
-                <Separator />
-              </>
-            )}
-            {userId && (
-              <>
-                <div className="flex flex-col gap-1 items-center justify-center">
-                  <Label className="uppercase text-xs font-bold text-accent-foreground">
-                    Chef
-                  </Label>
-                  <div className="flex flex-col gap-2 items-center justify-center">
-                    <Suspense fallback={null}>
-                      <RenderFirstValue
-                        observable={profileSlug$}
-                        render={(profileSlug) => {
-                          return (
-                            <Link href={`/@${profileSlug}`}>
-                              <Badge variant="outline">
-                                <h3 className="font-bold text-xl">
-                                  <div className="flex flex-col gap-1 items-center">
-                                    <div className="flex flex-row gap-1 items-center">
-                                      <ChefHatIcon />
-                                      <span>
-                                        <span className="underline">
-                                          {profileSlug}
-                                        </span>
-                                      </span>
-                                    </div>
-                                  </div>
-                                </h3>
-                              </Badge>{" "}
-                            </Link>
-                          );
-                        }}
-                      />
-                    </Suspense>
-                    <Suspense fallback={null}>
-                      <RenderFirstValue
-                        observable={combineLatest([
-                          activeSubscription$,
-                          profileSlug$,
-                        ])}
-                        render={([sub, slug]) => {
-                          return !sub ? (
-                            <Link
-                              href="/chefs-club"
-                              className="text-muted-foreground text-xs"
-                            >
-                              <span>Inactive</span>
-                            </Link>
-                          ) : null;
-                        }}
-                      />
-                    </Suspense>
-                  </div>
-                </div>
-                <div className="flex flex-row gap-8 items-center justify-around">
-                  <div className="flex flex-row justify-around gap-8">
-                    <div className="flex flex-col gap-1 items-center">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Badge variant="outline">
-                            <div className="flex flex-row gap-2 items-center justify-center">
-                              <span className="font-bold">
-                                +
-                                <Suspense
-                                  fallback={
-                                    <LoaderIcon className="animate-spin" />
-                                  }
-                                >
-                                  <RenderFirstValue
-                                    observable={from(
-                                      getUserPointsLast30Days(userId)
-                                    ).pipe(shareReplay(1))}
-                                    render={(value) => <>{value}</>}
-                                  />
-                                </Suspense>
-                                🧪
-                              </span>
-                            </div>
-                          </Badge>
-                        </PopoverTrigger>
-                        <PopoverContent className="px-2 py-1 w-36 text-sm">
-                          <div className="flex flex-row justify-between">
-                            <span className="font-semibold">Add Photo</span>
-                            <span>+1</span>
-                          </div>
-                          <div className="flex flex-row justify-between">
-                            <span className="font-semibold">Upvote</span>
-                            <span>+1</span>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <Label className="uppercase text-xs font-bold text-accent-foreground">
-                        30 Days
-                      </Label>
-                    </div>
-                    <div className="flex flex-col gap-1 items-center">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Badge variant="outline">
-                            <div className="flex flex-row gap-2 items-center justify-center">
-                              <span className="font-bold">
-                                +
-                                <Suspense
-                                  fallback={
-                                    <LoaderIcon className="animate-spin" />
-                                  }
-                                >
-                                  <RenderFirstValue
-                                    observable={from(
-                                      getUserLifetimePoints(userId)
-                                    ).pipe(shareReplay(1))}
-                                    render={(value) => <>{value}</>}
-                                  />
-                                </Suspense>
-                                🧪
-                              </span>
-                            </div>
-                          </Badge>
-                        </PopoverTrigger>
-                        <PopoverContent className="px-2 py-1 w-36 text-sm">
-                          <div className="flex flex-row justify-between">
-                            <span className="font-semibold">Add Photo</span>
-                            <span>+1</span>
-                          </div>
-                          <div className="flex flex-row justify-between">
-                            <span className="font-semibold">Upvote</span>
-                            <span>+1</span>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <Label className="uppercase text-xs font-bold text-accent-foreground">
-                        Lifetime
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex flex-row gap-3 items-center justify-between">
-                  <Label className="uppercase text-xs font-bold text-accent-foreground">
-                    Email
-                  </Label>
-                  <div className="flex flex-row gap-2 items-center justify-center">
-                    <div className="flex flex-col gap-1 items-center">
-                      <div className="flex flex-row gap-1 items-center">
-                        <span className="truncate">{email}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex flex-row gap-3 items-center justify-between">
-                  <Label className="uppercase text-xs font-bold text-accent-foreground">
-                    Subscription
-                  </Label>
-                  <div className="flex-1 flex flex-row justify-end">
-                    <Suspense>
-                      <RenderFirstValue
-                        observable={activeSubscription$}
-                        render={(sub) => {
-                          const isManager = userId === sub?.managingUserId;
-                          return sub ? (
-                            <Link
-                              href={
-                                isManager ? "/chefs-club/manage" : "/chefs-club"
-                              }
-                            >
-                              <Badge variant="secondary">
-                                Friends & Family
-                              </Badge>
-                            </Link>
-                          ) : (
-                            <Link href="/chefs-club">
-                              <Badge variant="secondary">Upgrade</Badge>
-                            </Link>
-                          );
-                        }}
-                      />
-                    </Suspense>
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex flex-row gap-3 items-center justify-between">
-                  <Label className="uppercase text-xs font-bold text-accent-foreground">
-                    Billing
-                  </Label>
-                  <div className="flex-1 flex flex-row justify-end">
-                    <Suspense fallback={null}>
-                      <RenderFirstValue
-                        observable={activeSubscription$}
-                        render={(sub) => {
-                          return sub ? (
-                            <Link href="/billing">
-                              <Badge variant="secondary">Manage</Badge>
-                            </Link>
-                          ) : (
-                            <Link href="/chefs-club">
-                              <Badge variant="secondary">Upgrade</Badge>
-                            </Link>
-                          );
-                        }}
-                      />
-                    </Suspense>
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex flex-row gap-3 items-center justify-between">
-                  <Label className="uppercase text-xs font-bold text-accent-foreground">
-                    Quota
-                  </Label>
-                  <Progress value={20} />
-                </div>
-                <Separator />
-                <Separator />
-              </>
-            )}
-            <div className="flex flex-row gap-1 items-center justify-between">
-              <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
-                Theme
-              </Label>
-              <ModeToggle />
-            </div>
-            {userId && (
-              <>
-                <Separator />
-                <div className="flex justify-center">
-                  <form method="POST" action="/api/auth/signout">
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      className="text-sm underline text-center"
-                    >
-                      Sign Out
-                    </Button>
-                  </form>
-                </div>
-              </>
-            )}
-            <Separator />
-            <div className="flex flex-row gap-2 justify-center">
-              <div className="flex flex-row justify-center gap-2">
-                <Link
-                  target="_blank"
-                  href="https://github.com/jonmumm/kitchencraft"
-                >
-                  <Button size="icon" variant="outline">
-                    <GithubIcon />
-                  </Button>
-                </Link>
-                <Link
-                  target="_blank"
-                  href="https://www.youtube.com/@KitchenCraftAI"
-                >
-                  <Button size="icon" variant="outline">
-                    <YoutubeIcon />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            <Separator />
-            <div className="flex flex-row gap-3 items-center justify-center">
-              <Link href="/privacy" className="text-xs underline">
-                Privacy
-              </Link>
-              <Link href="/terms" className="text-xs underline">
-                Terms
-              </Link>
-            </div>
-            <div className="flex flex-row gap-1 justify-between">
-              <p className="text-xs text-center flex-1">
-                © 2023 Open Game Collective, LLC. All rights reserved. This
-                software is distributed under the{" "}
-                <Link
-                  target="_blank"
-                  className="underline"
-                  href="https://github.com/jonmumm/KitchenCraft/blob/main/LICENSE.md"
-                >
-                  AGPL-3.0 license
-                </Link>
-                .
-              </p>
-            </div>
-            {/* <RecentRecipes /> */}
-          </PopoverContent>
-        </Popover>
+          </SheetTrigger>
+          <SheetOverlay />
+          <SheetContent side="left" className="w-80 flex flex-col gap-4 p-3">
+            <MainMenu />
+          </SheetContent>
+        </Sheet>
       </div>
 
       <div className="flex-1 flex justify-center">

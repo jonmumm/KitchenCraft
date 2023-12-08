@@ -88,6 +88,7 @@ export default async function Page(props: Props) {
     getRecipe(slug),
     getSortedMediaForRecipe(slug),
   ]);
+  console.log({ slug, recipe });
 
   const userId = session?.user.id;
 
@@ -184,6 +185,7 @@ export default async function Page(props: Props) {
   const recipe$: Observable<Partial<Recipe>> = recipe
     ? of(recipe)
     : generatorSubject;
+  console.log(recipe);
 
   const {
     ingredients$,
@@ -598,7 +600,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } else {
     ({ name, description } = recipe);
   }
-  const title = `${name} by @InspectorT | KitchenCraft.ai`;
+  const creatorSlug = `@${recipe?.createdBySlug}` || "Anonymous";
+  const title = `${name} by ${creatorSlug} | KitchenCraft.ai`;
 
   const now = new Date(); // todo actually store this on the recipe
   const formattedDate = new Intl.DateTimeFormat("en-US", {
@@ -628,7 +631,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     metadataBase: new URL(env.KITCHENCRAFT_URL),
     openGraph: {
       title,
-      description: `${recipe?.description} Crafted by @InspectorT on ${dateStr}`,
+      description: `${recipe?.description} Crafted by ${creatorSlug} on ${dateStr}`,
       images,
     },
   };

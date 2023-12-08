@@ -9,6 +9,10 @@ import {
 } from "./constants";
 import { RecipeSchema } from "./db";
 
+export const PlanSchema = z
+  .enum(["quarterly", "monthly", "annual"])
+  .default("quarterly");
+
 // Regex for URL-friendly string (alphanumeric, hyphens, underscores)
 const isUrlFriendly = (str: string) => /^[a-zA-Z0-9_-]*$/.test(str);
 
@@ -450,7 +454,12 @@ const ShareCancelEventSchema = z.object({
   slug: SlugSchema,
 });
 
+const DownloadAppEventShema = z.object({
+  type: z.literal("DOWNLOAD_APP"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  DownloadAppEventShema,
   RemixEventSchema,
   PageLoadedEventSchema,
   ShareEventSchema,

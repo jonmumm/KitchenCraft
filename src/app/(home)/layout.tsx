@@ -115,7 +115,11 @@ const MyRecipes = ({ userId }: { userId: string }) => {
           if (!recipe) {
             return (
               quote && (
-                <EventButton event={{ type: "NEW_RECIPE" }} className="p-0">
+                <EventButton
+                  key={index}
+                  event={{ type: "NEW_RECIPE" }}
+                  className="p-0"
+                >
                   <Card
                     key={index}
                     className="w-64 h-36 carousel-item bg-muted rounded-lg flex flex-col gap-2 items-start justify-between text-xs p-3 box-border"

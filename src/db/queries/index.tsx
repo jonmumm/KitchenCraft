@@ -86,6 +86,7 @@ export const getRecipe = async (slug: string) => {
       name: RecipesTable.name,
       description: RecipesTable.description,
       createdBy: RecipesTable.createdBy,
+      createdBySlug: ProfileTable.profileSlug,
       yield: RecipesTable.yield,
       tags: RecipesTable.tags,
       ingredients: RecipesTable.ingredients,
@@ -96,6 +97,10 @@ export const getRecipe = async (slug: string) => {
       createdAt: RecipesTable.createdAt,
     })
     .from(RecipesTable)
+    .innerJoin(
+      ProfileTable,
+      eq(RecipesTable.createdBy, ProfileTable.userId)
+    )
     .where(eq(RecipesTable.slug, slug))
     .execute()
     .then((res) => res[0]);
