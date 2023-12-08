@@ -76,7 +76,6 @@ export const ShareButton = ({
       navigator
         .share({
           title: name,
-          text: description,
           url,
         })
         .then(() => {

@@ -7,6 +7,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/navigation/tabs";
+import quoteList from "@/data/quotes.json";
 import { ChevronRightIcon, TimerIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,7 +21,7 @@ import { Header } from "../header";
 // } from "./components";
 import { Badge } from "@/components/display/badge";
 import { getSession } from "@/lib/auth/session";
-import { formatDuration, timeAgo } from "@/lib/utils";
+import { formatDuration, shuffle, timeAgo } from "@/lib/utils";
 import {
   getProfileByUserId,
   getRecentRecipesByUser,
@@ -28,8 +29,7 @@ import {
 } from "../../db/queries";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
-import { SubscriptionMembersTable, db } from "@/db";
-import { and, eq, ne } from "drizzle-orm";
+import { EventButton } from "@/components/event-button";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const userId = (await getSession())?.user.id;
@@ -43,8 +43,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
     "use server";
     console.log("upvote", slug);
   }
-
-
 
   return (
     <LayoutClient>
@@ -90,7 +88,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
 }
 
 const MyRecipes = ({ userId }: { userId: string }) => {
-  const items = new Array(30).fill(0);
+  const items = new Array(20).fill(0);
   const Loader = () => {
     return (
       <>
@@ -104,6 +102,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
   const Content = async () => {
     const recipes = await getRecentRecipesByUser(userId);
     const slugs = recipes.map((recipe) => recipe.slug);
+    const quotes = shuffle(quoteList);
     const mediaBySlug = slugs.length
       ? await getSortedMediaForMultipleRecipes(slugs)
       : {};
@@ -112,8 +111,34 @@ const MyRecipes = ({ userId }: { userId: string }) => {
       <>
         {items.map((_, index) => {
           const recipe = recipes[index];
+          const quote = quotes[index]?.quote;
           if (!recipe) {
-            return <Skeleton key={index} className="w-64 h-36 carousel-item" />;
+            return (
+              quote && (
+                <EventButton event={{ type: "NEW_RECIPE" }} className="p-0">
+                  <Card
+                    key={index}
+                    className="w-64 h-36 carousel-item bg-muted rounded-lg flex flex-col gap-2 items-start justify-between text-sm p-3 box-border"
+                  >
+                    <div className="flex flex-col gap-1">
+                      {quotes[index]?.quote}
+                    </div>
+                    <div className="flex flex-row justify-between w-full flex-shrink-0 items-center text-xs">
+                      <p>— {quotes[index]?.author}</p>
+                      <Badge
+                        variant="outline"
+                        className="flex flex-row gap-1 flex-shrink-0"
+                      >
+                        <span>Craft New</span>
+                        <span>
+                          <ChevronRightIcon />
+                        </span>
+                      </Badge>
+                    </div>
+                  </Card>
+                </EventButton>
+              )
+            );
           }
           const media = mediaBySlug[recipe.slug]?.[0];
 

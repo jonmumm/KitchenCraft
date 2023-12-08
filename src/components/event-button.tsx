@@ -20,11 +20,15 @@ export const EventButton = forwardRef<HTMLButtonElement, EventButtonProps>(
     }, [send, appEvent]);
 
     return (
-      <Button onClick={handleClick} ref={ref} {...rest}>
+      <button
+        onClick={handleClick}
+        ref={ref}
+        {...rest}
+        className="bg-transparent border-none p-0 m-0 text-inherit font-inherit align-baseline"
+      >
         {children}
-      </Button>
+      </button>
     );
   }
 );
-
 EventButton.displayName = "EventButton";

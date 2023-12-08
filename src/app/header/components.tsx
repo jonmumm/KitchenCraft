@@ -80,6 +80,16 @@ export async function Header({ className }: { className?: string }) {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 flex flex-col gap-4 p-3">
+            {!userId && (
+              <>
+                <Link href="/auth/signin">
+                  <Button size="lg" className="w-full">
+                    Sign In / Sign Up
+                  </Button>
+                </Link>
+                <Separator />
+              </>
+            )}
             {userId && (
               <>
                 <div className="flex flex-col gap-1 items-center justify-center">
@@ -130,54 +140,82 @@ export async function Header({ className }: { className?: string }) {
                     />
                   </div>
                 </div>
-                <Separator />
-                <div className="flex flex-row gap-2 items-center justify-between">
-                  <Label className="uppercase text-xs text-center font-bold text-accent-foreground">
-                    Points
-                  </Label>
-                  <div className="flex flex-row gap-2">
+                <div className="flex flex-row gap-8 items-center justify-around">
+                  <div className="flex flex-row justify-around gap-8">
                     <div className="flex flex-col gap-1 items-center">
-                      <Badge variant="outline">
-                        <div className="flex flex-row gap-2 items-center justify-center">
-                          <span className="font-bold">
-                            +
-                            <Suspense
-                              fallback={<LoaderIcon className="animate-spin" />}
-                            >
-                              <RenderFirstValue
-                                observable={from(
-                                  getUserPointsLast30Days(userId)
-                                ).pipe(shareReplay(1))}
-                                render={(value) => <>{value}</>}
-                              />
-                            </Suspense>
-                            🧪
-                          </span>
-                        </div>
-                      </Badge>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Badge variant="outline">
+                            <div className="flex flex-row gap-2 items-center justify-center">
+                              <span className="font-bold">
+                                +
+                                <Suspense
+                                  fallback={
+                                    <LoaderIcon className="animate-spin" />
+                                  }
+                                >
+                                  <RenderFirstValue
+                                    observable={from(
+                                      getUserPointsLast30Days(userId)
+                                    ).pipe(shareReplay(1))}
+                                    render={(value) => <>{value}</>}
+                                  />
+                                </Suspense>
+                                🧪
+                              </span>
+                            </div>
+                          </Badge>
+                        </PopoverTrigger>
+                        <PopoverContent className="px-2 py-1 w-36 text-sm">
+                          <div className="flex flex-row justify-between">
+                            <span className="font-semibold">Add Photo</span>
+                            <span>+1</span>
+                          </div>
+                          <div className="flex flex-row justify-between">
+                            <span className="font-semibold">Upvote</span>
+                            <span>+1</span>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                       <Label className="uppercase text-xs font-bold text-accent-foreground">
                         30 Days
                       </Label>
                     </div>
                     <div className="flex flex-col gap-1 items-center">
-                      <Badge variant="outline">
-                        <div className="flex flex-row gap-2 items-center justify-center">
-                          <span className="font-bold">
-                            +
-                            <Suspense
-                              fallback={<LoaderIcon className="animate-spin" />}
-                            >
-                              <RenderFirstValue
-                                observable={from(
-                                  getUserLifetimePoints(userId)
-                                ).pipe(shareReplay(1))}
-                                render={(value) => <>{value}</>}
-                              />
-                            </Suspense>
-                            🧪
-                          </span>
-                        </div>
-                      </Badge>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Badge variant="outline">
+                            <div className="flex flex-row gap-2 items-center justify-center">
+                              <span className="font-bold">
+                                +
+                                <Suspense
+                                  fallback={
+                                    <LoaderIcon className="animate-spin" />
+                                  }
+                                >
+                                  <RenderFirstValue
+                                    observable={from(
+                                      getUserLifetimePoints(userId)
+                                    ).pipe(shareReplay(1))}
+                                    render={(value) => <>{value}</>}
+                                  />
+                                </Suspense>
+                                🧪
+                              </span>
+                            </div>
+                          </Badge>
+                        </PopoverTrigger>
+                        <PopoverContent className="px-2 py-1 w-36 text-sm">
+                          <div className="flex flex-row justify-between">
+                            <span className="font-semibold">Add Photo</span>
+                            <span>+1</span>
+                          </div>
+                          <div className="flex flex-row justify-between">
+                            <span className="font-semibold">Upvote</span>
+                            <span>+1</span>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                       <Label className="uppercase text-xs font-bold text-accent-foreground">
                         Lifetime
                       </Label>
@@ -287,9 +325,9 @@ export async function Header({ className }: { className?: string }) {
                     </Link>
                   </div>
                 </div>
+                <Separator />
               </>
             )}
-            <Separator />
             <div className="flex flex-row gap-1 items-center justify-between">
               <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
                 Theme
@@ -313,24 +351,6 @@ export async function Header({ className }: { className?: string }) {
               </>
             )}
             <Separator />
-            {!userId && (
-              <>
-                {/* <form action={signUp}>
-                  <Label htmlFor="email" className="uppercase text-xs opacity-70">Email</Label>
-                  <Input type="email" name="email" />
-                  <Button type="submit" size="lg" className="w-full">
-                    Sign Up
-                  </Button>
-                  <Separator />
-                </form> */}
-                <Link href="/auth/signin">
-                  <Button size="lg" className="w-full">
-                    Sign In / Sign Up
-                  </Button>
-                </Link>
-                <Separator />
-              </>
-            )}
             <div className="flex flex-row gap-3 items-center justify-center">
               <Link href="/privacy" className="text-xs underline">
                 Privacy

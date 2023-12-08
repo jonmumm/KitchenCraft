@@ -120,43 +120,41 @@ export default function CraftCommand({
 
   return (
     <CraftContext.Provider value={actor}>
-      <ClientOnly>
-        <Sheet open={isOpen}>
-          {/* <FloatingDock open={isOpen} overlay={showOverlay} showBack={true}> */}
+      <Sheet open={isOpen}>
+        {/* <FloatingDock open={isOpen} overlay={showOverlay} showBack={true}> */}
 
-          <CraftSheetContent
-          // onPointerDownOutside={handlePointerDownOutside}
-          >
-            {/* <ResizeObserverComponent onResize={handleResize}>
+        <CraftSheetContent
+        // onPointerDownOutside={handlePointerDownOutside}
+        >
+          {/* <ResizeObserverComponent onResize={handleResize}>
             {children}
           </ResizeObserverComponent> */}
 
-            <Command
-              className="mb-8"
-              shouldFilter={false}
-              style={{ maxHeight: "85vh" }}
-            >
-              <CraftHeader />
-              <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
-                <NewRecipeActionsGroup />
-                <SuggestionsGroup />
+          <Command
+            className="mb-8"
+            shouldFilter={false}
+            style={{ maxHeight: "85vh" }}
+          >
+            <CraftHeader />
+            <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
+              <NewRecipeActionsGroup />
+              <SuggestionsGroup />
 
-                <SubstitutionsGroup />
-                <DietaryAlternativesGroup />
-                <ScaleActionsGroup />
-                <EquipmentAdaptationsGroup />
-                {/* <IngredientsGroup />
+              <SubstitutionsGroup />
+              <DietaryAlternativesGroup />
+              <ScaleActionsGroup />
+              <EquipmentAdaptationsGroup />
+              {/* <IngredientsGroup />
               <TagsGroup /> */}
-              </ScrollLockComponent>
-              <Separator />
-              <CraftInput />
-              <AddedIngredientsSection />
-              <AddedTagsSection />
-            </Command>
-          </CraftSheetContent>
-          {showOverlay && <SheetOverlay />}
-        </Sheet>
-      </ClientOnly>
+            </ScrollLockComponent>
+            <Separator />
+            <CraftInput />
+            <AddedIngredientsSection />
+            <AddedTagsSection />
+          </Command>
+        </CraftSheetContent>
+        {showOverlay && <SheetOverlay />}
+      </Sheet>
     </CraftContext.Provider>
   );
 }

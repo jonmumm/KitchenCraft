@@ -18,6 +18,7 @@ import { AppEvent } from "@/types";
 import { VariantProps, cva } from "class-variance-authority";
 import { Badge } from "../display/badge";
 import { EventButton } from "../event-button";
+import { Button } from "./button";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -74,9 +75,9 @@ const CommandInput = React.forwardRef<
         {...props}
       />
       {postIcon === "send" && (
-        <EventButton event={{ type: "SUBMIT" }} size="icon" variant="ghost">
+        <Button event={{ type: "SUBMIT" }} size="icon" variant="ghost">
           <SendHorizonalIcon className={isEmpty ? "opacity-50" : ""} />
-        </EventButton>
+        </Button>
       )}
       {postIcon === "spinner" && <Loader2Icon className="animate-spin" />}
     </div>

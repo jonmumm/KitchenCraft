@@ -504,22 +504,6 @@ export default async function Page(props: Props) {
                 <UploadMediaButton slug={slug}>
                   <CameraIcon />
                 </UploadMediaButton>
-                {/* <AddButton>
-                <PlusSquareIcon />
-              </AddButton>
-              <UploadMediaButton slug={store.get().recipe.slug}>
-                <CameraIcon />
-              </UploadMediaButton> */}
-                {/* <PrintButton>
-                <PrinterIcon />
-              </PrintButton> */}
-                {/* <ShareButton>
-                <ShareIcon />
-              </ShareButton> */}
-                {/* <UpvoteButton>
-                <ArrowBigUpDashIcon />
-                <span className="font-bold">1</span>
-              </UpvoteButton> */}
                 <Button
                   event={{ type: "REMIX", slug }}
                   variant="outline"

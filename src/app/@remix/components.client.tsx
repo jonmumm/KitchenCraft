@@ -83,7 +83,7 @@ export const Remix = () => {
           <div className="mb-4 flex flex-col gap-2">
             <Suspense fallback={<Skeleton className="w-full h-20" />}>
               <div className="grid grid-cols-2 px-3 gap-2">
-                <EventButton
+                <Button
                   variant="outline"
                   className="w-full h-auto flex flex-col gap-1 items-center"
                   event={{
@@ -95,8 +95,8 @@ export const Remix = () => {
                   <p className="text-xs font-medium text-muted-foreground">
                     Add or replace ingredients.
                   </p>
-                </EventButton>
-                <EventButton
+                </Button>
+                <Button
                   variant="outline"
                   className="w-full h-auto flex flex-col gap-1 items-center"
                   event={{
@@ -108,8 +108,8 @@ export const Remix = () => {
                   <p className="text-xs font-medium text-muted-foreground">
                     Modify recipe for specific diets.
                   </p>
-                </EventButton>
-                <EventButton
+                </Button>
+                <Button
                   variant="outline"
                   className="w-full h-auto flex flex-col gap-1 items-center"
                   event={{
@@ -121,8 +121,8 @@ export const Remix = () => {
                   <p className="text-xs font-medium text-muted-foreground">
                     Adjust recipe for more/fewer servings.
                   </p>
-                </EventButton>
-                <EventButton
+                </Button>
+                <Button
                   variant="outline"
                   className="w-full h-auto flex flex-col gap-1 items-center"
                   event={{ type: "MODIFY_RECIPE_EQUIPMENT" }}
@@ -132,7 +132,7 @@ export const Remix = () => {
                   <p className="text-xs font-medium text-muted-foreground">
                     Adapt recipe for different tools.
                   </p>
-                </EventButton>
+                </Button>
               </div>
             </Suspense>
           </div>
