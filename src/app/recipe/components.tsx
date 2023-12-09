@@ -3,7 +3,7 @@ import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
-import { ChevronRightIcon, TimerIcon } from "lucide-react";
+import { ChefHatIcon, ChevronRightIcon, TimerIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -16,6 +16,7 @@ import {
 import { upvoteById } from "../recipe/actions";
 import { ShareButton, UpvoteButton } from "./components.client";
 import { RecipePropsProvider } from "./context";
+import { Separator } from "@/components/display/separator";
 
 type Recipes =
   | Awaited<ReturnType<typeof getHotRecipes>>[0]
@@ -56,9 +57,7 @@ export const RecipeListItem = ({
           : requireLogin
       }
     >
-      <Card
-        className="flex flex-col gap-3 max-w-2xl w-full mx-auto py-4 rounded-2xl border-none shadow-none sm:border-solid sm:shadow-md sm:hover:shadow-lg"
-      >
+      <Card className="flex flex-col gap-3 max-w-2xl w-full mx-auto py-4 rounded-2xl border-none shadow-none sm:border-solid sm:shadow-md sm:hover:shadow-lg">
         <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">
           <div className="flex flex-row gap-3 justify-between items-center w-full">
             <Link href={href}>
@@ -66,14 +65,32 @@ export const RecipeListItem = ({
                 {index + 1}.
               </Button>
             </Link>
-            <Link href={href} className="flex-1 active:opacity-70">
-              <h2 className="font-semibold text-lg">{recipe.name}</h2>
-            </Link>
-            <ShareButton
+            <div className="flex flex-col gap-1 flex-1 justify-start">
+              <Link href={href} className="flex-1 active:opacity-70">
+                <h2 className="font-semibold text-lg">{recipe.name}</h2>
+              </Link>
+              <div>
+                {"createdBySlug" in recipe && recipe.createdBySlug && (
+                  <Link
+                    href={`/${recipe.createdBySlug}`}
+                    className="inline-block"
+                  >
+                    <Badge
+                      className="flex flex-row gap-1 items-center"
+                      variant="outline"
+                    >
+                      <ChefHatIcon size={16} />
+                      {recipe.createdBySlug}
+                    </Badge>
+                  </Link>
+                )}
+              </div>
+            </div>
+            {/* <ShareButton
               slug={recipe.slug}
               name={recipe.name}
               description={recipe.description}
-            />
+            /> */}
             <Suspense>
               <UpvoteButton
                 count={recipe.points}
@@ -123,6 +140,7 @@ export const RecipeListItem = ({
               ))}
           </div>
         </div>
+        <Separator className="mb-4 mt-4 sm:hidden" />
       </Card>
     </RecipePropsProvider>
   );

@@ -22,7 +22,7 @@ export default async function Page() {
       : {};
 
   return (
-    <div className="flex flex-col gap-10 mt-0 sm:mt-10">
+    <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
       {items.map((_, index) => {
         const recipe = recipes[index];
 

@@ -51,6 +51,7 @@ export const getHotRecipes = async (userId?: string) => {
       hoursSincePosted,
       score: scoreExpression,
       mediaCount,
+      createdBySlug: ProfileTable.profileSlug, // Include user profile slug
     })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
@@ -62,6 +63,8 @@ export const getHotRecipes = async (userId?: string) => {
         eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
       )
     )
+    .leftJoin(UsersTable, eq(RecipesTable.createdBy, UsersTable.id)) // Join UsersTable
+    .leftJoin(ProfileTable, eq(UsersTable.id, ProfileTable.userId)) // Join ProfileTable
     .groupBy(
       RecipesTable.id,
       RecipesTable.versionId, // Include versionId in groupBy
@@ -70,7 +73,8 @@ export const getHotRecipes = async (userId?: string) => {
       RecipesTable.description,
       RecipesTable.tags,
       RecipesTable.totalTime,
-      RecipesTable.createdAt
+      RecipesTable.createdAt,
+      ProfileTable.profileSlug
     )
     .orderBy(desc(scoreExpression))
     .limit(30)
@@ -308,6 +312,7 @@ export const getRecentRecipes = async () => {
       createdAt: RecipesTable.createdAt,
       points,
       mediaCount,
+      userProfileSlug: ProfileTable.profileSlug, // Include user profile slug
     })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
@@ -319,6 +324,8 @@ export const getRecentRecipes = async () => {
         eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
       )
     )
+    .leftJoin(UsersTable, eq(RecipesTable.createdBy, UsersTable.id)) // Join UsersTable
+    .leftJoin(ProfileTable, eq(UsersTable.id, ProfileTable.userId)) // Join ProfileTable
     .groupBy(
       RecipesTable.id,
       RecipesTable.versionId, // Include versionId in groupBy
@@ -365,6 +372,7 @@ export const getBestRecipes = async (
       createdAt: RecipesTable.createdAt,
       points,
       mediaCount,
+      createdBySlug: ProfileTable.profileSlug, // Include user profile slug
     })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
@@ -376,6 +384,8 @@ export const getBestRecipes = async (
         eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
       )
     )
+    .leftJoin(UsersTable, eq(RecipesTable.createdBy, UsersTable.id)) // Join UsersTable
+    .leftJoin(ProfileTable, eq(UsersTable.id, ProfileTable.userId)) // Join ProfileTable
     .where(timeCondition)
     .groupBy(
       RecipesTable.id,
