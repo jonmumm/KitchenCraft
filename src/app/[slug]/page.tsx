@@ -14,25 +14,33 @@ import { formatJoinDateStr } from "@/lib/utils";
 import { ProfileSlugSchema } from "@/schema";
 import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
-import { from, shareReplay } from "rxjs";
+import { combineLatest, from, map, shareReplay } from "rxjs";
 import { Header } from "../header";
 import { RecipeListItem } from "../recipe/components";
+import { getSession } from "@/lib/auth/session";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
 
 export default async function Page(props: { params: { slug: string } }) {
+  const session = await getSession();
   const slug = decodeURIComponent(props.params.slug);
   const profileParse = ProfileSlugSchema.safeParse(slug);
   if (!profileParse.success) {
     return <>Error parsing URL for slug</>;
   }
-  const username = profileParse.data.slice(1);
+  const profileSlug = profileParse.data.slice(1);
 
   const [recipes$, profile$, points$] = [
-    from(getRecentRecipesByProfile(username)).pipe(shareReplay(1)),
-    from(getProfileBySlug(username)).pipe(shareReplay(1)),
-    from(getProfileLifetimePoints(username)).pipe(shareReplay(1)),
+    from(getRecentRecipesByProfile(profileSlug)).pipe(shareReplay(1)),
+    from(getProfileBySlug(profileSlug)).pipe(shareReplay(1)),
+    from(getProfileLifetimePoints(profileSlug)).pipe(shareReplay(1)),
   ];
+
+  const claimDate$ = profile$.pipe(map((profile) => profile?.createdAt));
+  const isOwner$ = profile$.pipe(
+    map((profile) => profile?.userId === session?.user.id)
+  );
+  // const is
 
   // const recipesByIndex$ = new Array(NUM_PLACEHOLDER_RECIPES)
   //   .fill(0)
@@ -51,7 +59,7 @@ export default async function Page(props: { params: { slug: string } }) {
     return (
       <AsyncRenderFirstValue
         observable={profile$}
-        render={(profile) => <>{profile?.profileSlug}</>}
+        render={(profile) => <>{slug}</>}
         fallback={<Skeleton className="w-full h-4" />}
       />
     );
@@ -67,11 +75,13 @@ export default async function Page(props: { params: { slug: string } }) {
     );
   };
 
-  const JoinDate = () => {
+  const ClaimDate = () => {
     return (
       <AsyncRenderFirstValue
-        observable={profile$}
-        render={(profile) => <>{formatJoinDateStr(profile?.createdAt!)}</>}
+        observable={claimDate$}
+        render={(claimDate) => (
+          <>{claimDate ? formatJoinDateStr(claimDate) : <>Unclaimed</>}</>
+        )}
         fallback={<Skeleton className="w-full h-4" />}
       />
     );
@@ -94,15 +104,13 @@ export default async function Page(props: { params: { slug: string } }) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col gap-1 flex-1">
-                <h1 className="underline font-bold text-xl">
-                  <Username />
-                </h1>
+                <h1 className="underline font-bold text-xl">{profileSlug}</h1>
                 <div className="flex flex-row justify-between">
                   <span className="font-medium text-sm">
                     +<Points /> 🧪
                   </span>
                   <Badge variant="outline">
-                    <JoinDate />
+                    <ClaimDate />
                   </Badge>
                 </div>
               </div>
@@ -110,9 +118,10 @@ export default async function Page(props: { params: { slug: string } }) {
           </div>
         </Card>
         <AsyncRenderFirstValue
-          observable={profile$}
-          render={(profile) => {
+          observable={combineLatest([profile$, isOwner$])}
+          render={([profile, isOwner]) => {
             return (
+              isOwner &&
               !profile?.activated && (
                 <Card className="text-primary text-sm flex flex-row gap-2 justify-between items-center py-2 px-4">
                   <div className="flex flex-col gap-1">
