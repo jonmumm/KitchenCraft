@@ -39,6 +39,8 @@ import {
   take,
 } from "rxjs";
 import { AppInstallContainer } from "./app-install-container";
+import { Switch } from "@/components/input/switch";
+import { NotificationsSwitch } from "./notifications-switch";
 
 export async function MainMenu({ className }: { className?: string }) {
   const session = await getSession();
@@ -323,6 +325,14 @@ export async function MainMenu({ className }: { className?: string }) {
                 <RecipeQuotaUsage />/
                 <RecipeQuotaLimit />
               </div>
+            </div>
+          </div>
+          <div className="flex flex-row gap-3 items-center justify-between">
+            <Label className="uppercase text-xs font-bold text-accent-foreground">
+              Notifications
+            </Label>
+            <div>
+              <NotificationsSwitch />
             </div>
           </div>
           <Separator />
