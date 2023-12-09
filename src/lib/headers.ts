@@ -10,3 +10,8 @@ export const getOrigin = () => {
   const origin = `${protocol}${host}`;
   return origin;
 };
+
+export const getUserAgent = () => {
+  const headersList = headers();
+  return headersList.get("user-agent")!;
+};

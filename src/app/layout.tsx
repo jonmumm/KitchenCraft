@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/feedback/toaster";
 import { GoogleAdSense } from "@/components/google-adsense";
-import { AppleStartupImages } from "@/components/meta/apple-startup-images";
+import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { getSession } from "@/lib/auth/session";
 import type { Metadata } from "next";
@@ -67,7 +67,7 @@ export default async function RootLayout({
           href="/favicon-16x16.png"
         />
         <link rel="manifest" href="/site.webmanifest" />
-        <AppleStartupImages />
+        <IOSStartupImages />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"

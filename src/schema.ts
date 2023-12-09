@@ -759,3 +759,27 @@ export const ResultSchema = z.object({
 export const outputSchemaByType = {
   suggestion: SuggestionPredictionOutputSchema,
 } as const;
+
+export const SizeStringSchema = z
+  .string()
+  .regex(
+    /^[0-9]+x[0-9]+\.png$/,
+    "Size must be in the format WIDTHxHEIGHT.png with positive numbers"
+  )
+  .transform((input) => {
+    const parts = input.split(".");
+    if (parts.length !== 2 || parts[1] !== "png") {
+      throw new Error("File extension must be .png");
+    }
+
+    const sizeWithoutExtension = parts[0]!;
+    const [widthStr, heightStr] = sizeWithoutExtension.split("x");
+    if (!widthStr || !heightStr) {
+      throw new Error("Invalid size format");
+    }
+
+    const width = Number(widthStr);
+    const height = Number(heightStr);
+
+    return { width, height, extension: "png" };
+  });
