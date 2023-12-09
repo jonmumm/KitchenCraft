@@ -23,7 +23,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "typeRoots": ["types"]
+    "typeRoots": ["./types"]
   },
   "include": [
     "types/next-env.d.ts",

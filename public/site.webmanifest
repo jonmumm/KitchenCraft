@@ -1,7 +1,7 @@
 {
   "name": "KitchenCraft",
   "short_name": "KitchenCraft",
-  "description": "An app to craft your culinary skills and manage your kitchen efficiently.",
+  "description": "The fastest way to create, save and share recipes.",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
