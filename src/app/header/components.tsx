@@ -89,7 +89,7 @@ export async function Header({ className }: { className?: string }) {
               />
             </Button>
           </SheetTrigger>
-          <SheetOverlay />
+          <SheetOverlay  />
           <SheetContent side="left" className="w-80 flex flex-col gap-4 p-3">
             <MainMenu />
           </SheetContent>

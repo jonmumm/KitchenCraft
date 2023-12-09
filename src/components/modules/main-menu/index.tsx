@@ -125,6 +125,7 @@ export async function MainMenu({ className }: { className?: string }) {
     <>
       {!userId && (
         <>
+          <AppInstall />
           <Link href="/auth/signin">
             <Button size="lg" className="w-full">
               Sign In / Sign Up
@@ -222,28 +223,7 @@ export async function MainMenu({ className }: { className?: string }) {
               </div>
             </div>
           </div>
-          <Separator />
-          {canInstallPWA && (
-            <AppInstallContainer>
-              <Button
-                className="text-xs w-full h-fit flex flex-row gap-4 rounded-xl py-2"
-                event={{ type: "DOWNLOAD_APP" }}
-                variant="outline"
-              >
-                <Image
-                  src={"/apple-touch-icon.png"}
-                  className="h-14 w-14"
-                  alt={"App Icon"}
-                  width={512}
-                  height={512}
-                />
-                <div className="flex flex-col gap-1 items-center">
-                  <span className="opacity-80 text-md">Download</span>
-                  <span className="text-lg font-medium">KitchenCraft App</span>
-                </div>
-              </Button>
-            </AppInstallContainer>
-          )}
+          {canInstallPWA && <AppInstall />}
           <Separator />
           <div className="flex flex-row items-center justify-between max-w-full gap-3">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
@@ -434,4 +414,26 @@ const PointsPopoverContent = () => (
       <span className="font-medium">+1</span>
     </div>
   </PopoverContent>
+);
+
+const AppInstall = () => (
+  <AppInstallContainer>
+    <Button
+      className="text-xs w-full h-fit flex flex-row gap-4 rounded-xl py-2"
+      event={{ type: "DOWNLOAD_APP" }}
+      variant="outline"
+    >
+      <Image
+        src={"/apple-touch-icon.png"}
+        className="h-14 w-14"
+        alt={"App Icon"}
+        width={512}
+        height={512}
+      />
+      <div className="flex flex-col gap-1 items-center">
+        <span className="opacity-80 text-md">Download</span>
+        <span className="text-lg font-medium">KitchenCraft App</span>
+      </div>
+    </Button>
+  </AppInstallContainer>
 );

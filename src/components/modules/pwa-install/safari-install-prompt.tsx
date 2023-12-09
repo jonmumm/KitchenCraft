@@ -29,7 +29,11 @@ export const SafariInstallPrompt = () => {
   return (
     installPromptOpen && (
       <Sheet open={true} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="flex flex-col gap-2 p-4">
+        <SheetContent
+          side="bottom"
+          className="flex flex-col gap-2 p-4"
+          style={{ zIndex: 100 }}
+        >
           <h2 className="font-medium text-2xl">Add KitchenCraft App</h2>
           <div className="flex flex-row items-center gap-2">
             1. Press{" "}
@@ -83,7 +87,7 @@ export const SafariInstallPrompt = () => {
           <div className="h-24"></div>
           <PWAInstallViaA2HSAttentionPulse />
         </SheetContent>
-        <SheetOverlay />
+        <SheetOverlay style={{ zIndex: 90 }} />
       </Sheet>
     )
   );
