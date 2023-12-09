@@ -70,34 +70,14 @@ export async function MainMenu({ className }: { className?: string }) {
     activeSubscription$ = of(undefined);
   }
 
-  const quotaLimit$ = of(undefined);
-  const quotaUsage$ = of("1");
+  const quotaLimit$ = of(20);
+  const usage$ = of(1);
   const memberCount$ = activeSubscription$.pipe(
     switchMap((s) => from(getMembersBySubscriptionId(db, s?.id!))),
     map((members) => members.length),
     take(1)
   );
   const memberCountLimit$ = of(5);
-
-  const RecipeQuotaUsage = () => {
-    return (
-      <AsyncRenderFirstValue
-        render={(value) => <>{value}</>}
-        observable={quotaUsage$}
-        fallback={<Skeleton className="w-full h-4" />}
-      />
-    );
-  };
-
-  const RecipeQuotaLimit = () => {
-    return (
-      <AsyncRenderFirstValue
-        render={(value) => <>{!value ? "Unlimited" : <>{value}</>}</>}
-        observable={quotaLimit$}
-        fallback={<Skeleton className="w-full h-4" />}
-      />
-    );
-  };
 
   const SubscriptionMemberCountCurrent = () => {
     return (
@@ -191,7 +171,7 @@ export async function MainMenu({ className }: { className?: string }) {
                   </PopoverTrigger>
                   <PointsPopoverContent />
                 </Popover>
-                <Label className="uppercase text-xs font-bold text-accent-foreground">
+                <Label className="uppercase text-xs font-semibold text-accent-foreground opacity-50">
                   30 Days
                 </Label>
               </div>
@@ -219,7 +199,7 @@ export async function MainMenu({ className }: { className?: string }) {
                   </PopoverTrigger>
                   <PointsPopoverContent />
                 </Popover>
-                <Label className="uppercase text-xs font-bold text-accent-foreground">
+                <Label className="uppercase text-xs font-semibold text-accent-foreground opacity-50">
                   Lifetime
                 </Label>
               </div>
@@ -315,18 +295,41 @@ export async function MainMenu({ className }: { className?: string }) {
               }}
             />
           </Suspense>
-          <div className="flex flex-row gap-3 items-center justify-between">
-            <Label className="uppercase text-xs font-bold text-accent-foreground">
-              Quota
-            </Label>
-            <div className="flex flex-col gap-2 flex-1 items-end">
-              <Progress value={100} className="w-2/3" />
-              <div className="text-muted-foreground text-xs">
-                <RecipeQuotaUsage />/
-                <RecipeQuotaLimit />
-              </div>
-            </div>
-          </div>
+          <AsyncRenderFirstValue
+            observable={combineLatest([usage$, quotaLimit$])}
+            render={([quotaUsage, quotaLimit]) => {
+              return quotaLimit ? (
+                <>
+                  <div className="flex flex-row gap-3 items-center justify-between">
+                    <Label className="uppercase text-xs font-bold text-accent-foreground">
+                      Quota
+                    </Label>
+                    <div className="flex flex-col gap-2 flex-1 items-end">
+                      <Progress
+                        value={(100 * quotaUsage) / quotaLimit}
+                        className="w-2/3"
+                      />
+                      <div className="flex flex-row justify-between items-center w-2/3">
+                        <div className="text-muted-foreground text-xs">
+                          Last 30D
+                        </div>
+
+                        <Link href="/history">
+                          <div className="text-muted-foreground text-xs underline">
+                            {quotaUsage}/{quotaLimit} Recipes
+                          </div>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              ) : (
+                <></>
+              );
+            }}
+            fallback={<Skeleton className="h-12 w-full" />}
+          />
           <div className="flex flex-row gap-3 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
               Notifications
