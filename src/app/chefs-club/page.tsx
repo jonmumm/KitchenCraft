@@ -50,18 +50,21 @@ export default async function Page() {
           <>
             <div className="max-w-xl mx-auto w-full px-4">
               <Card className="w-full">
-                <div className="relative w-full h-72 overflow-hidden">
+                <div className="relative">
+                  <div className="w-full z-20 text-white bottom-4 sm:bottom-16 absolute text-center">
+                    <h1 className="font-semibold text-xl">Join the Club</h1>
+                    <p className="text-sm">
+                      The fastest way to make and share recipes.
+                    </p>
+                  </div>
                   <Image
                     src="/chefsclub.png"
-                    className="rounded-t-lg absolute inset-0"
+                    className="rounded-t-lg border-b-2 border-solid border-primary-foreground"
                     width={1536}
                     height={768}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="100vw"
                     alt="Chef's Club"
                   />
-                  <h1 className="font-semibold text-2xl absolute bottom-8 left-8 text-white">
-                    Enter the Chef&apos;s Club
-                  </h1>
                 </div>
                 <div className="px-4 py-2">
                   <Label className="text-muted-foreground">
@@ -69,7 +72,7 @@ export default async function Page() {
                   </Label>
                   <ul className="list-disc pl-6 flex flex-col gap-2 my-4">
                     <li>Unlimited recipes</li>
-                    <li>No ads</li>
+                    <li>Ad-free access</li>
                     <li>
                       Reserved username{" "}
                       <span className="italic">

@@ -40,7 +40,10 @@ import {
 } from "rxjs";
 import { AppInstallContainer } from "./app-install-container";
 import { Switch } from "@/components/input/switch";
-import { NotificationsSwitch } from "./notifications-switch";
+import {
+  NotificationsSetting,
+  NotificationsSwitch,
+} from "./notifications-switch";
 
 export async function MainMenu({ className }: { className?: string }) {
   const session = await getSession();
@@ -296,9 +299,13 @@ export async function MainMenu({ className }: { className?: string }) {
             />
           </Suspense>
           <AsyncRenderFirstValue
-            observable={combineLatest([usage$, quotaLimit$])}
-            render={([quotaUsage, quotaLimit]) => {
-              return quotaLimit ? (
+            observable={combineLatest([
+              usage$,
+              quotaLimit$,
+              activeSubscription$,
+            ])}
+            render={([quotaUsage, quotaLimit, activeSub]) => {
+              return !activeSub ? (
                 <>
                   <div className="flex flex-row gap-3 items-center justify-between">
                     <Label className="uppercase text-xs font-bold text-accent-foreground">
@@ -330,15 +337,17 @@ export async function MainMenu({ className }: { className?: string }) {
             }}
             fallback={<Skeleton className="h-12 w-full" />}
           />
-          <div className="flex flex-row gap-3 items-center justify-between">
-            <Label className="uppercase text-xs font-bold text-accent-foreground">
-              Notifications
-            </Label>
-            <div>
-              <NotificationsSwitch />
+          <NotificationsSetting>
+            <div className="flex flex-row gap-3 items-center justify-between">
+              <Label className="uppercase text-xs font-bold text-accent-foreground">
+                Notifications
+              </Label>
+              <div>
+                <NotificationsSwitch />
+              </div>
             </div>
-          </div>
-          <Separator />
+            <Separator />
+          </NotificationsSetting>
         </>
       )}
       <div className="flex flex-row gap-1 items-center justify-between">

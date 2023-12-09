@@ -10,11 +10,15 @@ import { SubscriptionMembersTable, UsersTable, db } from "@/db";
 import {
   findUserById,
   getMembersBySubscriptionId,
+  getProfileByUserId,
   getSubscriptionByUserId,
   getUserByEmail,
   updateMemberStatusInSubscription,
 } from "@/db/queries";
 import { getSession } from "@/lib/auth/session";
+import { getOrigin } from "@/lib/headers";
+import { resend } from "@/lib/resend";
+import { assert } from "@/lib/utils";
 import { randomUUID } from "crypto";
 import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -35,7 +39,11 @@ export default async function Page() {
   }
   const members = await getMembersBySubscriptionId(db, subscription.id);
 
-  const addMember = async (subscriptionId: number, formData: FormData) => {
+  const addMember = async (
+    subscriptionId: number,
+    invitingUserId: string,
+    formData: FormData
+  ) => {
     "use server";
 
     const email = z.string().email().parse(formData.get("email"));
@@ -81,6 +89,56 @@ export default async function Page() {
     });
 
     revalidatePath("/chefs-club/manage");
+
+    // send email
+    (async () => {
+      const invitingUserProfile = await getProfileByUserId(invitingUserId);
+      assert(invitingUserProfile, "expected profile");
+
+      const origin = getOrigin();
+      const result = await resend.emails.send({
+        from: "KitchenCraft Chefs Club <chefsclub@mail.kitchencraft.ai>",
+        to: email,
+        subject: `${invitingUserProfile.profileSlug} gave you a Chef's Club membership!`,
+        text: `Hello,
+
+          You've been invited to join KitchenCraft's Chef's Club by ${invitingUserProfile.profileSlug}. As a member, you can enjoy:
+          
+          1) Unlimited recipe generations with our crafting tools.
+          2) An ad-free experience.
+          3) Your reserved chef username and recipe page.
+          
+          Get started by clicking the link and signing in with your email: 
+          [Link: ${origin}/?guestEmail=${email}&subscriptionId=${subscriptionId}]
+          
+          Welcome to KitchenCraft.
+          
+          Best,
+          The KitchenCraft Chefs Club Team
+          `,
+        html: `<html>
+          <body>
+              <p>Hello,</p>
+              <p>You've been invited to join KitchenCraft's Chef's Club by <strong>${invitingUserProfile.profileSlug}</strong>. As a member, you can enjoy:</p>
+              <ul>
+                  <li>Unlimited recipe generations with our crafting tools.</li>
+                  <li>An ad-free experience.</li>
+                  <li>Your reserved chef username and recipe page.</li>
+              </ul>
+              <p>Get started by clicking the link and signing in with your email:</p>
+              <p><a href="${origin}/?guestEmail=${email}&subscriptionId=${subscriptionId}">Join Now</a></p>
+              <p>Welcome to KitchenCraft.</p>
+              <p>Best,</p>
+              <p><strong>The KitchenCraft Chefs Club Team</strong></p>
+          </body>
+      </html>`, // todo
+      });
+      if (result.error) {
+        console.error("failed sending email");
+        console.error(result.error);
+      }
+    })();
+
     redirect("/chefs-club/manage?added=1");
   };
 
@@ -95,7 +153,7 @@ export default async function Page() {
         </p>
       </div>
       <form
-        action={addMember.bind(null, subscription.id)}
+        action={addMember.bind(null, subscription.id).bind(null, userId)}
         className="flex flex-col gap-1"
       >
         <Label htmlFor="email">Email to Invite</Label>
@@ -110,6 +168,8 @@ export default async function Page() {
       {members.length ? (
         members.map((member) => {
           const Content = async () => {
+            console.log({ member });
+            console.log(member.userId);
             const user = await findUserById(db, member.userId);
 
             const remove = async (userId: string) => {

@@ -5,9 +5,7 @@ import { eq } from "drizzle-orm";
 import { NextAuthOptions } from "next-auth";
 import Email from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import { Resend } from "resend";
-
-const resend = new Resend(privateEnv.RESEND_API_KEY);
+import { resend } from "../resend";
 
 function generateLoginCode(): string {
   const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // Avoid confusing characters

@@ -8,12 +8,12 @@ import { redirect } from "next/navigation";
 
 export default async function Checkout() {
   const headersList = headers();
-    const host = headersList.get("host");
-    const protocol =
-      host?.startsWith("localhost") || host?.startsWith("127.0.0.1")
-        ? `http://`
-        : `https://`;
-    const origin = `${protocol}${host}`;
+  const host = headersList.get("host");
+  const protocol =
+    host?.startsWith("localhost") || host?.startsWith("127.0.0.1")
+      ? `http://`
+      : `https://`;
+  const origin = `${protocol}${host}`;
   const session = await getSession();
   const userId = session?.user.id;
   const email = session?.user.email;

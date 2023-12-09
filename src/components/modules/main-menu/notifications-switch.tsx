@@ -1,7 +1,21 @@
 "use client";
 
 import { Switch } from "@/components/input/switch";
-import { useCallback, useState } from "react";
+import { getFeatures } from "@/lib/device";
+import { ReactNode, useCallback, useEffect, useState } from "react";
+
+export const NotificationsSetting = ({ children }: { children: ReactNode }) => {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const { hasPush } = getFeatures(navigator.userAgent);
+    if (hasPush) {
+      setShow(true);
+    }
+  }, [setShow]);
+
+  return !show ? <>{children}</> : <></>;
+};
 
 export const NotificationsSwitch = () => {
   const [checked, setChecked] = useState(false);

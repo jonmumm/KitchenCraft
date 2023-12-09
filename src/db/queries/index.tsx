@@ -900,7 +900,7 @@ export const findUserById = async (
     .execute();
 
   if (user.length === 0) {
-    throw new Error("No user found with the specified email.");
+    throw new Error("No user found with the specified id.");
   }
 
   return user[0]!;
