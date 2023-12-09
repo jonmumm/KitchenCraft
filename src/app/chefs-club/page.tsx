@@ -52,7 +52,9 @@ export default async function Page() {
               <Card className="w-full">
                 <div className="relative">
                   <div className="w-full z-20 text-white bottom-4 sm:bottom-16 absolute text-center">
-                    <h1 className="font-semibold text-xl">Join the Club</h1>
+                    <h1 className="font-semibold text-xl">
+                      Join the Chef&apos;s Club
+                    </h1>
                     <p className="text-sm">
                       The fastest way to make and share recipes.
                     </p>
