@@ -12,7 +12,7 @@ import {
   db,
 } from "@/db";
 import { getErrorMessage } from "@/lib/error";
-import { and, count, desc, eq, inArray, max, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, max, ne, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
@@ -97,10 +97,7 @@ export const getRecipe = async (slug: string) => {
       createdAt: RecipesTable.createdAt,
     })
     .from(RecipesTable)
-    .innerJoin(
-      ProfileTable,
-      eq(RecipesTable.createdBy, ProfileTable.userId)
-    )
+    .innerJoin(ProfileTable, eq(RecipesTable.createdBy, ProfileTable.userId))
     .where(eq(RecipesTable.slug, slug))
     .execute()
     .then((res) => res[0]);
@@ -943,3 +940,26 @@ export const getCurrentVersionId = async (
   const maxVersionId = result[0]?.maxVersionId;
   return maxVersionId;
 };
+
+export const getMembersBySubscriptionId = async (
+  dbOrTransaction: DbOrTransaction,
+  subscriptionId: number
+) =>
+  await dbOrTransaction
+    .select({
+      id: SubscriptionMembersTable.id,
+      userId: SubscriptionMembersTable.userId,
+      status: SubscriptionMembersTable.status,
+    })
+    .from(SubscriptionMembersTable)
+    .leftJoin(
+      SubscriptionsTable,
+      eq(SubscriptionsTable.id, SubscriptionMembersTable.subscriptionId)
+    )
+    .where(
+      and(
+        eq(SubscriptionMembersTable.subscriptionId, subscriptionId),
+        eq(SubscriptionMembersTable.status, "active"),
+        ne(SubscriptionsTable.userId, SubscriptionMembersTable.userId)
+      )
+    );

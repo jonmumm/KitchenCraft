@@ -9,6 +9,7 @@ import { Button } from "@/components/input/button";
 import { SubscriptionMembersTable, UsersTable, db } from "@/db";
 import {
   findUserById,
+  getMembersBySubscriptionId,
   getSubscriptionByUserId,
   getUserByEmail,
   updateMemberStatusInSubscription,
@@ -32,16 +33,7 @@ export default async function Page() {
   if (!subscription) {
     return redirect("/chefs-club");
   }
-  const members = await db
-    .select()
-    .from(SubscriptionMembersTable)
-    .where(
-      and(
-        eq(SubscriptionMembersTable.subscriptionId, subscription.id),
-        eq(SubscriptionMembersTable.status, "active"),
-        ne(SubscriptionMembersTable.userId, userId)
-      )
-    );
+  const members = await getMembersBySubscriptionId(db, subscription.id);
 
   const addMember = async (subscriptionId: number, formData: FormData) => {
     "use server";

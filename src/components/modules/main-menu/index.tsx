@@ -5,16 +5,19 @@ import { Separator } from "@/components/display/separator";
 import { Progress } from "@/components/feedback/progress";
 import Image from "next/image";
 
+import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/layout/popover";
+import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { RenderFirstValue } from "@/components/util/render-first-value";
 import { db } from "@/db";
 import {
   getActiveSubscriptionForUserId,
+  getMembersBySubscriptionId,
   getProfileByUserId,
   getUserLifetimePoints,
   getUserPointsLast30Days,
@@ -25,7 +28,16 @@ import { ChefHatIcon, GithubIcon, LoaderIcon, YoutubeIcon } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Observable, combineLatest, from, of, shareReplay } from "rxjs";
+import {
+  Observable,
+  combineLatest,
+  from,
+  map,
+  of,
+  shareReplay,
+  switchMap,
+  take,
+} from "rxjs";
 import { AppInstallContainer } from "./app-install-container";
 
 export async function MainMenu({ className }: { className?: string }) {
@@ -55,6 +67,59 @@ export async function MainMenu({ className }: { className?: string }) {
     // stripeCustomerId$ = of(undefined);
     activeSubscription$ = of(undefined);
   }
+
+  const quotaLimit$ = of(undefined);
+  const quotaUsage$ = of("1");
+  const memberCount$ = activeSubscription$.pipe(
+    switchMap((s) => from(getMembersBySubscriptionId(db, s?.id!))),
+    map((members) => members.length),
+    take(1)
+  );
+  const memberCountLimit$ = of(5);
+
+  const RecipeQuotaUsage = () => {
+    return (
+      <AsyncRenderFirstValue
+        render={(value) => <>{value}</>}
+        observable={quotaUsage$}
+        fallback={<Skeleton className="w-full h-4" />}
+      />
+    );
+  };
+
+  const RecipeQuotaLimit = () => {
+    return (
+      <AsyncRenderFirstValue
+        render={(value) => <>{!value ? "Unlimited" : <>{value}</>}</>}
+        observable={quotaLimit$}
+        fallback={<Skeleton className="w-full h-4" />}
+      />
+    );
+  };
+
+  const SubscriptionMemberCountCurrent = () => {
+    return (
+      <AsyncRenderFirstValue
+        observable={memberCount$}
+        render={(memberCount) => {
+          return <>{memberCount}</>;
+        }}
+        fallback={<Skeleton className="w-4 h-4" />}
+      />
+    );
+  };
+
+  const SubscriptionMemberCountLimit = () => {
+    return (
+      <AsyncRenderFirstValue
+        observable={memberCountLimit$}
+        render={(limit) => {
+          return <>{limit}</>;
+        }}
+        fallback={<Skeleton className="w-4 h-4" />}
+      />
+    );
+  };
 
   return (
     <>
@@ -203,8 +268,35 @@ export async function MainMenu({ className }: { className?: string }) {
                     return sub ? (
                       <Link
                         href={isManager ? "/chefs-club/manage" : "/chefs-club"}
+                        className="flex flex-col items-end gap-2"
                       >
                         <Badge variant="secondary">Friends & Family</Badge>
+                        {isManager && (
+                          <div className="flex flex-col gap-2 w-full">
+                            <AsyncRenderFirstValue
+                              render={([count, limit]) => {
+                                return (
+                                  <Progress
+                                    value={(100 * count) / limit}
+                                    className="w-full"
+                                  />
+                                );
+                              }}
+                              observable={combineLatest(
+                                memberCount$,
+                                memberCountLimit$
+                              )}
+                              fallback={
+                                <Progress value={0} className="w-full" />
+                              }
+                            />
+
+                            <div className="text-muted-foreground text-xs text-right">
+                              <SubscriptionMemberCountCurrent />/
+                              <SubscriptionMemberCountLimit /> Members
+                            </div>
+                          </div>
+                        )}
                       </Link>
                     ) : (
                       <Link href="/chefs-club">
@@ -246,8 +338,11 @@ export async function MainMenu({ className }: { className?: string }) {
               Quota
             </Label>
             <div className="flex flex-col gap-2 flex-1 items-end">
-              <Progress value={20} className="w-2/3" />
-              <div className="text-muted-foreground text-xs">1/15</div>
+              <Progress value={100} className="w-2/3" />
+              <div className="text-muted-foreground text-xs">
+                <RecipeQuotaUsage />/
+                <RecipeQuotaLimit />
+              </div>
             </div>
           </div>
           <Separator />
@@ -316,14 +411,6 @@ export async function MainMenu({ className }: { className?: string }) {
     </>
   );
 }
-
-// const AnimatedLogo = () => {
-//   const headerActor = useContext(HeaderContext);
-//   const isLogoOffScreen = useSelector(headerActor, (state) => {
-//     return state.matches("Logo.OffScreen");
-//   });
-//   return <TypeLogo className="h-16" />;
-// };
 
 const PointsPopoverContent = () => (
   <PopoverContent className="px-3 py-2 text-sm flex flex-col gap-2">
