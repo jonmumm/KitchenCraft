@@ -54,15 +54,15 @@ export const getHotRecipes = async (userId?: string) => {
       createdBySlug: ProfileTable.profileSlug, // Include user profile slug
     })
     .from(RecipesTable)
-    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .leftJoin(
+    .innerJoin(
       maxVersionSubquery,
       and(
         eq(RecipesTable.id, maxVersionSubquery.recipeId),
         eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
       )
     )
+    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
     .leftJoin(UsersTable, eq(RecipesTable.createdBy, UsersTable.id)) // Join UsersTable
     .leftJoin(ProfileTable, eq(UsersTable.id, ProfileTable.userId)) // Join ProfileTable
     .groupBy(
@@ -213,15 +213,15 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
     })
     .from(RecipesTable)
     .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
-    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .leftJoin(
+    .innerJoin(
       maxVersionSubquery,
       and(
         eq(RecipesTable.id, maxVersionSubquery.recipeId),
         eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
       )
     )
+    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
     .where(eq(ProfileTable.profileSlug, profileSlug))
     .groupBy(
       RecipesTable.id,
@@ -376,15 +376,15 @@ export const getBestRecipes = async (
       createdBySlug: ProfileTable.profileSlug, // Include user profile slug
     })
     .from(RecipesTable)
-    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .leftJoin(
+    .innerJoin(
       maxVersionSubquery,
       and(
         eq(RecipesTable.id, maxVersionSubquery.recipeId),
         eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
       )
     )
+    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
     .leftJoin(UsersTable, eq(RecipesTable.createdBy, UsersTable.id)) // Join UsersTable
     .leftJoin(ProfileTable, eq(UsersTable.id, ProfileTable.userId)) // Join ProfileTable
     .where(timeCondition)
