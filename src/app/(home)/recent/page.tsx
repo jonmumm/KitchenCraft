@@ -2,7 +2,6 @@ import { RecipeListItem } from "@/app/recipe/components";
 import { getRecentRecipes } from "@/db/queries";
 import { getSession } from "@/lib/auth/session";
 
-// export const dynamic = "force-dynamic";
 export default async function Page() {
   const items = new Array(30).fill(0);
   const session = await getSession();
@@ -10,7 +9,7 @@ export default async function Page() {
   const recipes = await getRecentRecipes();
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
       {items.map((_, index) => {
         const recipe = recipes[index];
 

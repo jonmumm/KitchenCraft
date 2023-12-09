@@ -335,7 +335,8 @@ export const getRecentRecipes = async () => {
       RecipesTable.tags,
       RecipesTable.totalTime,
       RecipesTable.createdBy,
-      RecipesTable.createdAt
+      RecipesTable.createdAt,
+      ProfileTable.profileSlug
     )
     .orderBy(desc(RecipesTable.createdAt))
     .limit(30) // Adjust the limit as needed
@@ -396,7 +397,8 @@ export const getBestRecipes = async (
       RecipesTable.tags,
       RecipesTable.totalTime,
       RecipesTable.createdBy,
-      RecipesTable.createdAt
+      RecipesTable.createdAt,
+      ProfileTable.profileSlug
     )
     .orderBy(desc(sql<number>`COUNT(${UpvotesTable.userId})`)) // Adjust as needed for your 'best' criteria
     .limit(30)

@@ -18,7 +18,7 @@ export default async function Page({
   const recipes = await getBestRecipes(timeParam);
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
       {items.map((_, index) => {
         const recipe = recipes[index];
 
