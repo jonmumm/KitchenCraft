@@ -975,3 +975,44 @@ export const getMembersBySubscriptionId = async (
         ne(SubscriptionsTable.userId, SubscriptionMembersTable.userId)
       )
     );
+
+export const findLatestRecipeVersion = async (slug: string) => {
+  // Subquery to get the id of the recipe with the given slug
+  const subQuery = db
+    .select({ id: RecipesTable.id })
+    .from(RecipesTable)
+    .where(eq(RecipesTable.slug, slug))
+    .as("subQuery");
+
+  // Main query to find the maximum versionId for the recipe id obtained from the subquery
+  const results = await db
+    .select({
+      versionId: max(RecipesTable.versionId).mapWith(Number),
+    })
+    .from(RecipesTable)
+    .innerJoin(subQuery, eq(RecipesTable.id, subQuery.id))
+    .groupBy(RecipesTable.id)
+    .execute();
+
+  return results[0];
+};
+
+export const findSlugForRecipeVersion = async (
+  id: string,
+  versionId: number
+) => {
+  // Main query to find the maximum versionId for the recipe id obtained from the subquery
+  const results = await db
+    .select({
+      slug: RecipesTable.slug,
+    })
+    .from(RecipesTable)
+    .where(and(eq(RecipesTable.id, id), eq(RecipesTable.versionId, versionId)))
+    .execute();
+
+  if (!results[0]) {
+    throw new Error("couldnt find recipe");
+  }
+
+  return results[0].slug;
+};

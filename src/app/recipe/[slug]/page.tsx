@@ -13,6 +13,8 @@ import { CommandItem } from "@/components/input/command";
 import { LastValue } from "@/components/util/last-value";
 import { RecipeSchema, RecipesTable, db } from "@/db";
 import {
+  findLatestRecipeVersion,
+  findSlugForRecipeVersion,
   getFirstMediaForRecipe,
   getRecipe,
   getSortedMediaForRecipe,
@@ -83,12 +85,12 @@ type Props = {
 export default async function Page(props: Props) {
   const { slug } = props.params;
 
-  const [session, recipe, mediaList] = await Promise.all([
+  const [session, recipe, mediaList, latestVersion] = await Promise.all([
     getSession(),
     getRecipe(slug),
     getSortedMediaForRecipe(slug),
+    findLatestRecipeVersion(slug),
   ]);
-  console.log({ slug, recipe });
 
   const userId = session?.user.id;
 
@@ -145,6 +147,13 @@ export default async function Page(props: Props) {
       }
     }
   } else {
+    if (latestVersion && recipe.versionId !== latestVersion.versionId) {
+      const slug = await findSlugForRecipeVersion(
+        recipe.id,
+        latestVersion.versionId
+      );
+      return redirect(`/recipe/${slug}`);
+    }
     ({ name, description } = recipe);
     recipeUserId = recipe.createdBy;
   }
@@ -185,7 +194,6 @@ export default async function Page(props: Props) {
   const recipe$: Observable<Partial<Recipe>> = recipe
     ? of(recipe)
     : generatorSubject;
-  console.log(recipe);
 
   const {
     ingredients$,
