@@ -253,9 +253,21 @@ export const getProfileBySlug = async (profileSlug: string) => {
 };
 
 export const getRecipesByTag = async (tag: string) => {
+  // Subquery to get the maximum versionId for each recipe
+  const maxVersionSubquery = db
+    .select({
+      recipeId: RecipesTable.id,
+      maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
+    })
+    .from(RecipesTable)
+    .groupBy(RecipesTable.id)
+    .as("maxVersionSubquery"); // Naming the subquery
+
+  // Main query
   return await db
     .select({
       id: RecipesTable.id,
+      versionId: RecipesTable.versionId, // Include versionId in the selection
       slug: RecipesTable.slug,
       name: RecipesTable.name,
       description: RecipesTable.description,
@@ -267,6 +279,13 @@ export const getRecipesByTag = async (tag: string) => {
       mediaCount,
     })
     .from(RecipesTable)
+    .innerJoin(
+      maxVersionSubquery,
+      and(
+        eq(RecipesTable.id, maxVersionSubquery.recipeId),
+        eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+      )
+    )
     .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
     .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
     .where(
@@ -274,6 +293,7 @@ export const getRecipesByTag = async (tag: string) => {
     )
     .groupBy(
       RecipesTable.id,
+      RecipesTable.versionId, // Include versionId in groupBy
       RecipesTable.slug,
       RecipesTable.name,
       RecipesTable.description,
