@@ -158,9 +158,21 @@ export const getFirstMediaForRecipe = async (recipeSlug: string) => {
 };
 
 export const getRecentRecipesByUser = async (userId: string) => {
+  // Subquery to get the maximum versionId for each recipe
+  const maxVersionSubquery = db
+    .select({
+      recipeId: RecipesTable.id,
+      maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
+    })
+    .from(RecipesTable)
+    .groupBy(RecipesTable.id)
+    .as("maxVersionSubquery"); // Naming the subquery
+
+  // Main query
   return await db
     .select({
       id: RecipesTable.id,
+      versionId: RecipesTable.versionId, // Include versionId in the selection
       slug: RecipesTable.slug,
       name: RecipesTable.name,
       description: RecipesTable.description,
@@ -171,11 +183,19 @@ export const getRecentRecipesByUser = async (userId: string) => {
       mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`, // Counts the number of unique media items per recipe
     })
     .from(RecipesTable)
+    .innerJoin(
+      maxVersionSubquery,
+      and(
+        eq(RecipesTable.id, maxVersionSubquery.recipeId),
+        eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+      )
+    )
     .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
     .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId)) // LEFT JOIN to include media count
     .where(eq(RecipesTable.createdBy, userId))
     .groupBy(
       RecipesTable.id,
+      RecipesTable.versionId, // Include versionId in groupBy
       RecipesTable.slug,
       RecipesTable.name,
       RecipesTable.description,
