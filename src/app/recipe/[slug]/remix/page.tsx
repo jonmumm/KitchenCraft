@@ -38,13 +38,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { BehaviorSubject, Subject } from "rxjs";
 import { z } from "zod";
-import {
-  CraftingDetails,
-  Ingredients,
-  Instructions,
-  Tags,
-  Times,
-} from "../components";
+import { Ingredients, Instructions, Tags, Times } from "../components";
 import { getObservables } from "../observables";
 import { RemixGenerator } from "./components";
 
@@ -186,24 +180,28 @@ export default async function Page(props: Props) {
 
   const SaveButtons = ({
     newRecipe,
+    isOwner,
   }: {
     newRecipe: Omit<NewRecipe, "id" | "slug">;
+    isOwner: boolean;
   }) => {
     return (
       <div className="flex flex-row gap-2">
-        <form
-          action={saveRecipe
-            .bind(null, newRecipe)
-            .bind(null, baseRecipeId)
-            .bind(null, userId)}
-        >
-          <Button type="submit" size="lg">
-            Save (Over)
-          </Button>
-        </form>
+        {isOwner && (
+          <form
+            action={saveRecipe
+              .bind(null, newRecipe)
+              .bind(null, baseRecipeId)
+              .bind(null, userId)}
+          >
+            <Button type="submit" size="lg">
+              Save (Over)
+            </Button>
+          </form>
+        )}
         <form action={saveAsNewRecipe.bind(null, newRecipe).bind(null, userId)}>
           <Button type="submit" size="lg">
-            Save New
+            Save {!isOwner && <>New</>}
           </Button>
         </form>
       </div>
@@ -230,7 +228,12 @@ export default async function Page(props: Props) {
             <RenderFirstValue
               observable={newRecipe$}
               render={(newRecipe) => {
-                return <SaveButtons newRecipe={newRecipe} />;
+                return (
+                  <SaveButtons
+                    newRecipe={newRecipe}
+                    isOwner={recipe.createdBy === newRecipe.createdBy}
+                  />
+                );
               }}
             />
           </Suspense>
@@ -264,17 +267,6 @@ export default async function Page(props: Props) {
           </div>
         </div>
         <Separator />
-        <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
-          <div className="flex flex-col gap-2 items-center">
-            <Suspense fallback={<Skeleton className="w-full h-20" />}>
-              <CraftingDetails
-                createdAt={new Date().toDateString()}
-                createdBy={recipe.createdBy}
-              />
-            </Suspense>
-          </div>
-        </div>
-        <Separator className="hidden-print" />
         <Times
           totalTime$={totalTime$}
           activeTime$={activeTime$}
