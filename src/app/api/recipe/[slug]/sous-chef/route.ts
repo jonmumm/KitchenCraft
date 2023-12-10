@@ -1,8 +1,7 @@
+import { getRecipe } from "@/db/queries";
 import { StreamingTextResponse, writeChunk } from "@/lib/streams";
-import { getObjectHash, noop } from "@/lib/utils";
-import { CompletedRecipeSchema } from "@/schema";
+import { assert, getObjectHash, noop } from "@/lib/utils";
 import { SousChefPredictionInput } from "@/types";
-import { kv } from "@vercel/kv";
 import { z } from "zod";
 import { SousChefTokenStream } from "./stream";
 
@@ -18,8 +17,9 @@ export async function GET(
 
   const prompt = z.string().min(1).parse(searchParams.get("prompt"));
 
-  const recipeKey = `recipe:${params.slug}`;
-  const recipe = CompletedRecipeSchema.parse(await kv.hgetall(recipeKey));
+  const recipe = await getRecipe(params.slug);
+  assert(recipe, "expected recipe");
+  // const recipe = CompletedRecipeSchema.parse(await kv.hgetall(recipeKey));
 
   const input = {
     recipe,
