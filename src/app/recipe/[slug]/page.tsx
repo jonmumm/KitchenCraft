@@ -11,7 +11,7 @@ import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { CommandItem } from "@/components/input/command";
 import { LastValue } from "@/components/util/last-value";
-import { RecipeSchema, RecipesTable, db } from "@/db";
+import { RecipesTable, db } from "@/db";
 import {
   findLatestRecipeVersion,
   findSlugForRecipeVersion,
@@ -25,11 +25,12 @@ import { getSession } from "@/lib/auth/session";
 import { getResult } from "@/lib/db";
 import { noop } from "@/lib/utils";
 import {
+  FAQsPredictionInputSchema,
   QuestionsPredictionOutputSchema,
   SuggestionPredictionInputSchema,
   TempRecipeSchema,
 } from "@/schema";
-import { RecipePredictionInput } from "@/types";
+import { RecipePredictionInput, TempRecipe } from "@/types";
 import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
 import {
@@ -50,6 +51,7 @@ import {
   BehaviorSubject,
   Observable,
   defaultIfEmpty,
+  firstValueFrom,
   lastValueFrom,
   map,
   of,
@@ -99,18 +101,14 @@ export default async function Page(props: Props) {
   let input: RecipePredictionInput | undefined;
   let name: string;
   let description: string;
-  let recipeUserId: string;
+  let recipeUserId: string | undefined;
+  let tempRecipe: TempRecipe | undefined;
 
   if (!recipe) {
-    if (!userId) {
-      redirect("/auth/signin");
-    }
-
     const recipeKey = `recipe:${slug}`;
     const data = await kv.hgetall(recipeKey);
-    const tempRecipe = TempRecipeSchema.parse(data);
+    tempRecipe = TempRecipeSchema.parse(data);
     const { runStatus, fromResult, fromPrompt } = tempRecipe;
-    recipeUserId = userId;
     ({ name, description } = tempRecipe);
 
     const isDone = runStatus === "done";
@@ -182,17 +180,17 @@ export default async function Page(props: Props) {
     );
   }
 
-  if (!recipe && !userId) {
-    console.error("must be logged in to create a recipe"); // hacky
-    return redirect(`/login?next=${encodeURIComponent(`/recipe/${slug}`)}`);
-  }
-
   const generatorSubject = new BehaviorSubject<Partial<Recipe>>(
     recipe ? recipe : {}
   );
 
   const recipe$: Observable<Partial<Recipe>> = recipe
     ? of(recipe)
+    : tempRecipe?.runStatus === "done"
+    ? of({
+        ...tempRecipe,
+        createdAt: new Date(tempRecipe.createdAt),
+      })
     : generatorSubject;
 
   const {
@@ -215,9 +213,14 @@ export default async function Page(props: Props) {
 
     const FAQGenerator = async () => {
       const recipeTokenStream = new FAQsTokenStream();
-      const input = {
-        recipe: RecipeSchema.parse(generatorSubject.value),
-      };
+      // const recipe = await lastValueFrom(recipe$);
+
+      const recipe =
+        tempRecipe?.runStatus === "done" ? tempRecipe : generatorSubject.value;
+
+      const input = FAQsPredictionInputSchema.parse({
+        recipe,
+      });
       const stream = await recipeTokenStream.getStream(input);
 
       return (
@@ -323,7 +326,7 @@ export default async function Page(props: Props) {
   const CurrentRecipeGenerator = () => {
     return (
       <>
-        {userId && input && generatorSubject && (
+        {input && generatorSubject && (
           <Suspense fallback={<></>}>
             <RecipeGenerator
               input={input}
@@ -334,13 +337,11 @@ export default async function Page(props: Props) {
                 }).then(noop);
               }}
               onProgress={(output) => {
-                // console.log("progress", output);
                 if (output.recipe) {
                   generatorSubject.next(output.recipe);
                 }
               }}
               onError={(error, outputRaw) => {
-                console.log("error", error);
                 kv.hset(`recipe:${slug}`, {
                   runStatus: "error",
                   error,
@@ -348,12 +349,35 @@ export default async function Page(props: Props) {
                 }).then(noop);
               }}
               onComplete={(output) => {
-                const recipe = {
-                  id: randomUUID(),
-                  slug,
-                  versionId: 0,
-                  description,
+                const createdAt = new Date();
+                if (userId) {
+                  const finalRecipe = {
+                    id: randomUUID(),
+                    slug,
+                    versionId: 0,
+                    description,
+                    name,
+                    yield: output.recipe.yield,
+                    tags: output.recipe.tags,
+                    ingredients: output.recipe.ingredients,
+                    instructions: output.recipe.instructions,
+                    cookTime: output.recipe.cookTime,
+                    activeTime: output.recipe.activeTime,
+                    totalTime: output.recipe.totalTime,
+                    createdBy: userId,
+                    createdAt,
+                  } satisfies NewRecipe;
+
+                  db.insert(RecipesTable)
+                    .values(finalRecipe)
+                    .then(() => {
+                      revalidatePath("/");
+                    });
+                }
+                kv.hset(`recipe:${slug}`, {
+                  runStatus: "done",
                   name,
+                  description,
                   yield: output.recipe.yield,
                   tags: output.recipe.tags,
                   ingredients: output.recipe.ingredients,
@@ -361,30 +385,16 @@ export default async function Page(props: Props) {
                   cookTime: output.recipe.cookTime,
                   activeTime: output.recipe.activeTime,
                   totalTime: output.recipe.totalTime,
-                  createdBy: userId,
                   createdAt: new Date(),
-                } satisfies NewRecipe;
-                generatorSubject.next(recipe);
+                }).then(noop);
 
-                db.insert(RecipesTable)
-                  .values(recipe)
-                  .then(() => {
-                    revalidatePath("/");
-                  });
-
-                kv.hset(`recipe:${slug}`, {
-                  runStatus: "done",
+                generatorSubject.next({
                   ...output.recipe,
-                }).then(() => {
-                  generatorSubject.complete();
+                  name,
+                  description,
+                  createdAt: new Date(),
                 });
-
-                // kv.zadd(`recipes:new`, {
-                //   score: Date.now(),
-                //   member: slug,
-                // }).then(() => {
-                //   revalidatePath("/");
-                // });
+                generatorSubject.complete();
               }}
             />
           </Suspense>
@@ -534,17 +544,21 @@ export default async function Page(props: Props) {
               </div>
             </div>
             <Separator />
-            <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
-              <div className="flex flex-col gap-2 items-center">
-                <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                  <CraftingDetails
-                    createdAt={new Date().toDateString()}
-                    createdBy={recipeUserId}
-                  />
-                </Suspense>
-              </div>
-            </div>
-            <Separator className="hidden-print" />
+            {recipeUserId && (
+              <>
+                <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
+                  <div className="flex flex-col gap-2 items-center">
+                    <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                      <CraftingDetails
+                        createdAt={new Date().toDateString()}
+                        createdBy={recipeUserId}
+                      />
+                    </Suspense>
+                  </div>
+                </div>
+                <Separator className="hidden-print" />
+              </>
+            )}
             <Times
               totalTime$={totalTime$}
               activeTime$={activeTime$}

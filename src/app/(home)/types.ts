@@ -1,4 +1,4 @@
-import { Recipe } from "@/types";
+import { TempRecipe } from "@/types";
 import { MapStore } from "nanostores";
 import { z } from "zod";
 import { TabSchema, TimeParamSchema } from "./schema";
@@ -6,7 +6,7 @@ import { TabSchema, TimeParamSchema } from "./schema";
 export type RecipeStore = MapStore<{
   error: undefined | string;
   loading: boolean;
-  data: Recipe[];
+  data: TempRecipe[];
 }>;
 
 export type Tab = z.infer<typeof TabSchema>;

@@ -688,7 +688,13 @@ export const RemixIdeasPredictionInputSchema = z.object({
   recipe: CompletedRecipeSchema,
 });
 export const FAQsPredictionInputSchema = z.object({
-  recipe: RecipeSchema,
+  recipe: RecipeSchema.pick({
+    name: true,
+    description: true,
+    ingredients: true,
+    instructions: true,
+    tags: true,
+  }),
 });
 export const InstantRecipeMetadataPredictionInputSchema = z.object({
   prompt: z.string(),
