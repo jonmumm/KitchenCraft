@@ -1,9 +1,7 @@
-import { Tabs, TabsContent } from "@/components/navigation/tabs";
-import { LeaderboardItems, LeaderboardTabsList } from "./components";
 import { Card } from "@/components/display/card";
-import Link from "next/link";
-import { Badge } from "@/components/display/badge";
-import { ChefHatIcon } from "lucide-react";
+import { Tabs, TabsContent } from "@/components/navigation/tabs";
+import { Metadata } from "next";
+import { LeaderboardItems, LeaderboardTabsList } from "./components";
 
 // Function to generate random usernames
 function generateRandomUsername() {
@@ -46,4 +44,15 @@ export default async function Page() {
       </TabsContent>
     </Tabs>
   );
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const title = "Seasonal Leaderboard | KitchenCraft";
+  return {
+    title,
+    openGraph: {
+      title,
+      description: `The most popular chefs on KitchenCraft`,
+    },
+  };
 }
