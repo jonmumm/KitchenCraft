@@ -51,11 +51,16 @@ import {
   BehaviorSubject,
   Observable,
   defaultIfEmpty,
+  filter,
+  firstValueFrom,
   last,
   lastValueFrom,
   map,
   of,
   shareReplay,
+  switchMap,
+  take,
+  takeUntil,
   takeWhile,
 } from "rxjs";
 import { z } from "zod";
@@ -235,9 +240,19 @@ export default async function Page(props: Props) {
     const faq$ = new BehaviorSubject<string[]>([]);
 
     const FAQGenerator = async () => {
-      const recipeTokenStream = new FAQsTokenStream();
-      // const recipe = await lastValueFrom(recipe$);
+      const existingQuestionsResult =
+        QuestionsPredictionOutputSchema.shape.questions.safeParse(
+          await kv.get(`recipe:${slug}:questions`)
+        );
+      if (existingQuestionsResult.success) {
+        faq$.next(existingQuestionsResult.data);
+        faq$.complete();
+        return null;
+      } else {
+        console.error(existingQuestionsResult.error);
+      }
 
+      const recipeTokenStream = new FAQsTokenStream();
       const recipe =
         tempRecipe?.runStatus === "done" ? tempRecipe : generatorSubject.value;
 
@@ -258,13 +273,15 @@ export default async function Page(props: Props) {
           }}
           onComplete={({ questions }) => {
             faq$.next(questions);
+            kv.set(`recipe:${slug}:questions`, questions);
             faq$.complete();
           }}
         />
       );
     };
 
-    const items = new Array(6).fill(0);
+    const NUM_FAQ_SUGGESTIONS = 6;
+    const items = new Array(NUM_FAQ_SUGGESTIONS).fill(0);
 
     const SousChefFAQSuggestionCommandItem = async ({
       index,
