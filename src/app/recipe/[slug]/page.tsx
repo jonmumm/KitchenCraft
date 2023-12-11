@@ -613,13 +613,13 @@ export default async function Page(props: Props) {
               </div>
             </div>
             <Separator />
-            {recipeUserId && (
+            {recipeUserId && recipe?.createdAt && (
               <>
                 <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
                   <div className="flex flex-col gap-2 items-center">
                     <Suspense fallback={<Skeleton className="w-full h-20" />}>
                       <CraftingDetails
-                        createdAt={new Date().toDateString()}
+                        createdAt={recipe.createdAt.toISOString()}
                         createdBy={recipeUserId}
                       />
                     </Suspense>
