@@ -20,6 +20,7 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/input/command";
+import { Dialog, DialogContent } from "@/components/layout/dialog";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/layout/sheet";
 import ScrollLockComponent from "@/components/scroll-lock";
 import { useActor } from "@/hooks/useActor";
@@ -91,7 +92,6 @@ import {
   selectPromptEmpty,
   selectShowOverlay,
 } from "./selectors";
-import { Dialog, DialogContent } from "@/components/layout/dialog";
 
 export const CraftContextProvider = ({
   searchParams,
@@ -342,16 +342,6 @@ const InstantRecipeAction = () => {
     send({ type: "INSTANT_RECIPE" });
   }, [send]);
 
-  const actor = useContext(CraftContext);
-  const name = useSelector(
-    actor,
-    (state) => state.context.instantRecipeMetadata?.name
-  );
-  const description = useSelector(
-    actor,
-    (state) => state.context.instantRecipeMetadata?.description
-  );
-
   return (
     <CommandItem variant="card" onSelect={handleSelect}>
       <div className="w-full flex flex-row gap-3 items-center py-2">
@@ -363,18 +353,7 @@ const InstantRecipeAction = () => {
             Instantly create a recipe
           </span>
           <div className="w-full">
-            {name ? (
-              <>
-                <h3 className="font-semibold text-sm">{name}</h3>
-                {description && <p>{description}</p>}
-              </>
-            ) : (
-              <div className="flex flex-col gap-1">
-                <Skeleton className="w-full h-5" />
-                <Skeleton className="w-full h-5" />
-                <Skeleton className="w-full h-5" />
-              </div>
-            )}
+            <InstantRecipeNameAndDescription />
           </div>
           <div className="flex flex-row gap-1 flex-wrap">
             {tags &&
@@ -391,11 +370,7 @@ const InstantRecipeAction = () => {
               ))}
           </div>
         </div>
-        {name ? (
-          <Badge className="uppercase">Craft</Badge>
-        ) : (
-          <LoaderIcon className="animate-spin" />
-        )}
+        <InstantRecipeBadge />
       </div>
     </CommandItem>
   );
@@ -1339,5 +1314,45 @@ const ScaleActionsGroup = () => {
         );
       })}
     </CommandGroup>
+  );
+};
+
+const InstantRecipeNameAndDescription = () => {
+  const actor = useContext(CraftContext);
+  const description = useSelector(
+    actor,
+    (state) => state.context.instantRecipeMetadata?.description
+  );
+  const name = useSelector(
+    actor,
+    (state) => state.context.instantRecipeMetadata?.name
+  );
+  return name ? (
+    <>
+      <h3 className="font-semibold text-sm">{name}</h3>
+      <div className="h-16">
+        {description && <p className="line-clamp-3">{description}</p>}
+      </div>
+    </>
+  ) : (
+    <div className="flex flex-col gap-1">
+      <Skeleton className="w-full h-5" />
+      <Skeleton className="w-full h-5" />
+      <Skeleton className="w-full h-5" />
+    </div>
+  );
+};
+
+const InstantRecipeBadge = () => {
+  const actor = useContext(CraftContext);
+  const name = useSelector(
+    actor,
+    (state) => state.context.instantRecipeMetadata?.name
+  );
+
+  return name ? (
+    <Badge className="uppercase">Craft</Badge>
+  ) : (
+    <LoaderIcon className="animate-spin" />
   );
 };
