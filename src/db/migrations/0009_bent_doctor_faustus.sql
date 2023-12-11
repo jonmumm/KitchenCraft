@@ -1,0 +1,1 @@
+ALTER TABLE "amazon_affiliate_product" DROP CONSTRAINT "amazon_affiliate_product_recipe_slug_recipe_slug_fk";

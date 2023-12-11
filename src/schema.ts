@@ -37,6 +37,8 @@ export const SecretsEnvironmentSchema = z.object({
   RESEND_API_KEY: z.string(),
   STRIPE_SECRET_KEY: z.string(),
   STRIPE_WEBHOOK_SECRET: z.string(),
+  GOOGLE_CUSTOM_SEARCH_API_KEY: z.string(),
+  GOOGLE_CUSTOM_SEARCH_ENGINE_ID: z.string(),
 });
 
 export const PublicEnvironmentSchema = z.object({
@@ -696,6 +698,27 @@ export const FAQsPredictionInputSchema = z.object({
     tags: true,
   }),
 });
+export const RecipeProductsPredictionInputSchema = z.object({
+  recipe: RecipeSchema.pick({
+    name: true,
+    description: true,
+    ingredients: true,
+    instructions: true,
+    tags: true,
+  }),
+});
+
+export const AmazonProductsPredictionInputSchema = z.object({
+  recipe: RecipeSchema.pick({
+    name: true,
+    description: true,
+    ingredients: true,
+    instructions: true,
+    tags: true,
+  }),
+  googleSearchText: z.string(),
+});
+
 export const InstantRecipeMetadataPredictionInputSchema = z.object({
   prompt: z.string(),
 });
@@ -733,6 +756,26 @@ export const EquipmentAdaptationsPredictionInputSchema = z.object({
 
 export const SubstitutionsPredictionOutputSchema = z.object({
   substitutions: z.array(z.string().min(1)),
+});
+
+export const RecipeProductsPredictionOutputSchema = z.object({
+  products: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+    })
+  ),
+});
+
+export const AmazonProductsPredictionOutputSchema = z.object({
+  products: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+      asin: z.string(),
+      type: z.enum(["ingredient", "book", "equipment"]),
+    })
+  ),
 });
 
 export const SubstitutionsPredictionPartialOutputSchema =
@@ -788,4 +831,19 @@ export const SizeStringSchema = z
     const height = Number(heightStr);
 
     return { width, height, extension: "png" };
+  });
+
+export const AmazonProductPageUrlSchema = z
+  .string()
+  .regex(
+    /amazon\.com.*\/([a-zA-Z0-9]{10})(?:[\/\?]|$)/,
+    "URL must be an Amazon product page URL containing a valid ASIN (10-character alphanumeric identifier)"
+  )
+  .transform((url) => {
+    const asinMatch = url.match(/amazon\.com.*\/([a-zA-Z0-9]{10})(?:[\/\?]|$)/);
+    if (!asinMatch || asinMatch.length < 2) {
+      throw new Error("No valid ASIN found in Amazon URL");
+    }
+
+    return asinMatch[1];
   });

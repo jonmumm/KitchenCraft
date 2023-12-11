@@ -31,6 +31,8 @@ import {
   ModifyRecipeScalePredictionInputSchema,
   NewInstantRecipePredictionInputSchema,
   NewRecipeFromSuggestionsPredictionInputSchema,
+  RecipeProductsPredictionInputSchema,
+  RecipeProductsPredictionOutputSchema,
   ProfileSlugSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
@@ -67,7 +69,13 @@ import {
   TipsPredictionPartialOutputSchema,
   UpvoteEventSchema,
   UserMessageSchema,
+  AmazonProductsPredictionInputSchema,
 } from "./schema";
+import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
+import {
+  AmazonAffiliateProductSchema,
+  NewAmazonAffiliateProductSchema,
+} from "./db";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 
@@ -158,6 +166,12 @@ export type TipsPredictionPartialOutput = z.infer<
 export type Modification = z.infer<typeof ModificationSchema>;
 
 export type IdeasPredictionOutput = z.infer<typeof IdeasPredictionOutputSchema>;
+export type RecipeProductsPredictionInput = z.infer<
+  typeof RecipeProductsPredictionInputSchema
+>;
+export type RecipeProductsPredictionOutput = z.infer<
+  typeof RecipeProductsPredictionOutputSchema
+>;
 
 export type SubstitutionsPredictionInput = z.infer<
   typeof SubstitutionsPredictionInputSchema
@@ -183,6 +197,9 @@ export type DietaryAlternativesPredictionInputSchema = z.infer<
 >;
 export type EquipmentAdaptationsPredictionInput = z.infer<
   typeof EquipmentAdaptationsPredictionInputSchema
+>;
+export type AmazonProductsPredictionInput = z.infer<
+  typeof AmazonProductsPredictionInputSchema
 >;
 export type SubstituteRecipePredictionInput = z.infer<
   typeof ModifyRecipeIngredientsPredictionInputSchema
@@ -236,3 +253,13 @@ export type UpvoteEvent = z.infer<typeof UpvoteEventSchema>;
 export type RemixEvent = z.infer<typeof RemixEventSchema>;
 
 export type ProfileSlug = z.infer<typeof ProfileSlugSchema>;
+
+export type GoogleCustomSearchResponse = z.infer<
+  typeof GoogleCustomSearchResponseSchema
+>;
+export type AmazonAffiliateProduct = z.infer<
+  typeof AmazonAffiliateProductSchema
+>;
+export type NewAmazonAffiliateProduct = z.infer<
+  typeof NewAmazonAffiliateProductSchema
+>;

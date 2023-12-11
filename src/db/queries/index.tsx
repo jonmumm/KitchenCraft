@@ -221,7 +221,7 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
   return await db
     .select({
       id: RecipesTable.id,
-      verrsionId: RecipesTable.versionId,
+      versionId: RecipesTable.versionId,
       slug: RecipesTable.slug,
       name: RecipesTable.name,
       description: RecipesTable.description,
@@ -1056,3 +1056,4 @@ export const findSlugForRecipeVersion = async (
 
   return results[0].slug;
 };
+
