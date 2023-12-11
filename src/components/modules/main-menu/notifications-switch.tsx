@@ -14,7 +14,7 @@ export const NotificationsSetting = ({ children }: { children: ReactNode }) => {
     }
   }, [setShow]);
 
-  return !show ? <>{children}</> : <></>;
+  return show ? <>{children}</> : <></>;
 };
 
 export const NotificationsSwitch = () => {

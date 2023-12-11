@@ -42,7 +42,7 @@ export default async function Page() {
         <Card className="w-full mb-8">
           <div className="p-6 flex flex-col gap-3">
             <div className="flex flex-row justify-between">
-              <Label>Daily Recipe Quota</Label>
+              <Label>Recipe Quota</Label>
               <AsyncRenderFirstValue
                 observable={combineLatest([quotaLimit$, usage$])}
                 render={([limit, usage]) => {

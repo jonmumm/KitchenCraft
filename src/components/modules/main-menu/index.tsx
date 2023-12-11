@@ -231,7 +231,7 @@ export async function MainMenu({ className }: { className?: string }) {
                 <>
                   <div className="flex flex-row gap-3 items-center justify-between">
                     <Label className="uppercase text-xs font-bold text-accent-foreground">
-                      Daily
+                      Recipe
                       <br />
                       Quota
                     </Label>
@@ -242,7 +242,7 @@ export async function MainMenu({ className }: { className?: string }) {
                       />
                       <div className="flex flex-row justify-between items-center w-2/3">
                         <div className="text-muted-foreground text-xs">
-                          {quotaUsage}/{quotaLimit} Recipes
+                          {quotaUsage}/{quotaLimit} per day
                         </div>
 
                         <Link href="/history">
