@@ -38,7 +38,6 @@ export class TokenParser<TSchema extends z.ZodObject<any>> {
       this.counts.successes++;
       return outputParse.data;
     } else {
-      console.error(outputParse.error);
       this.counts.schemaFailures++;
       return undefined;
     }
