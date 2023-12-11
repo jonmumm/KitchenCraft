@@ -75,7 +75,7 @@ export default async function Page() {
                   <ul className="list-disc pl-6 flex flex-col gap-2 my-4">
                     <li>Unlimited recipes</li>
                     <li>No daily quotas</li>
-                    <li>No advertisements</li>
+                    <li>Ad-free experience</li>
                     <li>
                       Reserved username{" "}
                       <span className="italic">

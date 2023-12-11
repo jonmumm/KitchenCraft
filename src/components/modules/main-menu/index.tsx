@@ -110,7 +110,7 @@ export async function MainMenu({ className }: { className?: string }) {
     <>
       {!userId && (
         <>
-          <AppInstall />
+          {canInstallPWA && <AppInstall />}
           <Link href="/auth/signin">
             <Button size="lg" className="w-full">
               Sign In / Sign Up

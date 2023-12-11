@@ -38,7 +38,13 @@ import Bowser from "bowser";
 import { AppInstallContainer } from "./components.client";
 import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
 import { MainMenu } from "@/components/modules/main-menu";
-import { Sheet, SheetContent, SheetOverlay, SheetTrigger } from "@/components/layout/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetOverlay,
+  SheetTrigger,
+} from "@/components/layout/sheet";
+import { getFeatures } from "@/lib/device";
 
 export async function Header({ className }: { className?: string }) {
   const session = await getSession();
@@ -89,7 +95,7 @@ export async function Header({ className }: { className?: string }) {
               />
             </Button>
           </SheetTrigger>
-          <SheetOverlay  />
+          <SheetOverlay />
           <SheetContent side="left" className="w-80 flex flex-col gap-4 p-3">
             <MainMenu />
           </SheetContent>

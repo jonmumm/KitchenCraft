@@ -164,7 +164,7 @@ export default function CraftCommand() {
 
   return (
     <>
-      <Command shouldFilter={false}>
+      <Command shouldFilter={false} className="mb-6">
         <CraftHeader />
         <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
           <NewRecipeActionsGroup />
