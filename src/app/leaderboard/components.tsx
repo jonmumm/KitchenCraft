@@ -50,7 +50,7 @@ export const LeaderboardItems = (props: {
           </Badge>
         </div>
       </Link>
-      <span>{item.points}</span>
+      <span>{item.points} 🧪</span>
     </li>
   ));
 };
