@@ -21,10 +21,10 @@ export const LeaderboardTabsList = ({}: {}) => {
         <Link href="/leaderboard/month">Month</Link>
       </TabsTrigger>
       <TabsTrigger value="year" asChild>
-        <Link href="/leaderboard/year">year</Link>
+        <Link href="/leaderboard/year">Year</Link>
       </TabsTrigger>
       <TabsTrigger value="all" asChild>
-        <Link href="/leaderboard/all">all</Link>
+        <Link href="/leaderboard/all">All</Link>
       </TabsTrigger>
     </TabsList>
   );
