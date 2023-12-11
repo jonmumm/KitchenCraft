@@ -38,6 +38,7 @@ import {
   from,
   lastValueFrom,
   map,
+  mergeMap,
   reduce,
   scan,
   shareReplay,
@@ -619,7 +620,7 @@ export const ProductsCarousel = ({
             .subscribe((result) => {
               from(result)
                 .pipe(
-                  concatMap(async (product) => {
+                  mergeMap(async (product) => {
                     const imgResponse = await fetch(product.imageUrl);
                     if (!imgResponse.ok) {
                       console.log("Bad image");
