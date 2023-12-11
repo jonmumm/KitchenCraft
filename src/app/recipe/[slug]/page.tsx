@@ -1,6 +1,6 @@
 import { Header } from "@/app/header";
 import { Card } from "@/components/display/card";
-import { Skeleton } from "@/components/display/skeleton";
+import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import Image from "next/image";
 import { Recipe as RecipeJSONLDSchema, WithContext } from "schema-dts";
 
@@ -11,7 +11,7 @@ import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { CommandItem } from "@/components/input/command";
 import { LastValue } from "@/components/util/last-value";
-import { RecipesTable, db } from "@/db";
+import { RecipeSchema, RecipesTable, db } from "@/db";
 import {
   findLatestRecipeVersion,
   findSlugForRecipeVersion,
@@ -51,17 +51,20 @@ import {
   BehaviorSubject,
   Observable,
   defaultIfEmpty,
-  firstValueFrom,
+  last,
   lastValueFrom,
   map,
   of,
+  shareReplay,
   takeWhile,
 } from "rxjs";
+import { z } from "zod";
 import { ShareButton } from "../components.client";
 import {
   CraftingDetails,
   Ingredients,
   Instructions,
+  ProductsCarousel,
   Tags,
   Times,
 } from "./components";
@@ -203,8 +206,28 @@ export default async function Page(props: Props) {
     totalTime$,
   } = getObservables(recipe$);
 
+  const finalRecipeSchema = RecipeSchema.pick({
+    name: true,
+    description: true,
+    tags: true,
+    ingredients: true,
+    instructions: true,
+  });
+  let finalRecipe$: Observable<z.infer<typeof finalRecipeSchema>>;
+  if (recipe) {
+    finalRecipe$ = of(recipe).pipe(shareReplay(1));
+  } else if (tempRecipe && tempRecipe.runStatus === "done") {
+    finalRecipe$ = of(finalRecipeSchema.parse(tempRecipe)).pipe(shareReplay(1));
+  } else {
+    finalRecipe$ = recipe$.pipe(
+      last(),
+      map((recipe) => finalRecipeSchema.parse(recipe)),
+      shareReplay(1)
+    );
+  }
+
   const WaitForRecipe = async ({ children }: { children: ReactNode }) => {
-    await lastValueFrom(recipe$);
+    await lastValueFrom(finalRecipe$);
     return <>{children}</>;
   };
 
@@ -304,7 +327,35 @@ export default async function Page(props: Props) {
             defaultValue={undefined}
             heading="FAQ"
           >
-            <Suspense fallback={<Skeleton className={"w-full h-20 my-4"} />}>
+            <Suspense
+              fallback={
+                <>
+                  {items.map((_, index) => {
+                    return (
+                      <SousChefCommandItem
+                        disabled={true}
+                        key={index}
+                        className="flex flex-row gap-2"
+                      >
+                        <Button size="icon" variant="secondary">
+                          <HelpCircle className="opacity-40" />
+                        </Button>
+                        <div className="flex-1">
+                          <SkeletonSentence
+                            className="h-4"
+                            numWords={[5, 7, 10]}
+                            widths={[12, 16, 20]}
+                          />
+                        </div>
+                        <Badge className="opacity-50" variant="secondary">
+                          Ask
+                        </Badge>
+                      </SousChefCommandItem>
+                    );
+                  })}
+                </>
+              }
+            >
               <WaitForRecipe>
                 {items.map((_, index) => {
                   return (
@@ -601,8 +652,24 @@ export default async function Page(props: Props) {
               </div>
             </div>
           </Card>
-          <Card id="assistant" className="mx-3 mb-3">
+          <Card id="assistant" className="mx-3">
             <AssistantContent />
+          </Card>
+          <Card id="products" className="mx-3 mb-3">
+            <h3 className="uppercase text-xs font-bold text-accent-foreground p-4">
+              Products
+            </h3>
+            <p className="text-muted-foreground text-xs px-4">
+              Amazon products to go with this recipe
+            </p>
+            <div className="h-80 relative mt-4">
+              <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20">
+                <ProductsCarousel
+                  slug={slug}
+                  input$={finalRecipe$.pipe(map((recipe) => ({ recipe })))}
+                />
+              </div>
+            </div>
           </Card>
         </div>
       </div>

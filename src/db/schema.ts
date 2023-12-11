@@ -340,3 +340,38 @@ export const FAQTable = pgTable(
 
 export const FAQSchema = createSelectSchema(FAQTable);
 export const NewFAQSchema = createInsertSchema(FAQTable);
+
+export const productTypeEnum = pgEnum("type", [
+  "ingredient",
+  "book",
+  "equipment",
+]);
+
+// Amazon Affiliate Product Table
+export const AmazonAffiliateProductTable = pgTable(
+  "amazon_affiliate_product",
+  {
+    name: text("name").notNull(),
+    description: text("description"),
+    imageUrl: text("image_url").notNull(),
+    blurDataUrl: text("blur_data_url"),
+    imageWidth: integer("image_width").notNull(),
+    imageHeight: integer("image_height").notNull(),
+    asin: text("asin").notNull(),
+    type: productTypeEnum("type"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    recipeSlug: text("recipe_slug")
+      .notNull()
+      .references(() => RecipesTable.slug),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.recipeSlug, table.asin] }),
+  })
+);
+
+export const AmazonAffiliateProductSchema = createSelectSchema(
+  AmazonAffiliateProductTable
+);
+export const NewAmazonAffiliateProductSchema = createInsertSchema(
+  AmazonAffiliateProductTable
+);

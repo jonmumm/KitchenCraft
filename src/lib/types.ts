@@ -13,3 +13,5 @@ export type DeepPartial<T> = {
 export type FirstArgument<T> = T extends (arg1: infer U, ...args: any[]) => any ? U : never;
 
 export type WithProperty<T, K extends keyof any> = T extends Record<K, any> ? Pick<T, K> & Partial<T> : never;
+
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;

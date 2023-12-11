@@ -1,27 +1,53 @@
 import { Skeleton } from "@/components/display/skeleton";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
+import { eq } from "drizzle-orm";
 import { ClockIcon, TagIcon } from "lucide-react";
 import { Suspense } from "react";
 
+import Generator from "@/components/ai/generator";
 import { Badge } from "@/components/display/badge";
+import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { RenderFirstValue } from "@/components/util/render-first-value";
+import { AmazonAffiliateProductTable, db } from "@/db";
 import { getProfileByUserId, getUserLifetimePoints } from "@/db/queries";
+import { privateEnv } from "@/env.secrets";
+import { getAffiliatelink } from "@/lib/amazon";
 import { getObservableAtIndex, getTokenObservableAtIndex } from "@/lib/rxjs";
+import { TokenParser } from "@/lib/token-parser";
 import { notUndefined } from "@/lib/type-guards";
+import {
+  AmazonProductPageUrlSchema,
+  AmazonProductsPredictionOutputSchema,
+  RecipeProductsPredictionOutputSchema,
+} from "@/schema";
+import {
+  AmazonAffiliateProduct,
+  GoogleCustomSearchResponse,
+  RecipeProductsPredictionInput,
+} from "@/types";
 import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 import {
   Observable,
+  Subject,
+  concatMap,
   defaultIfEmpty,
   filter,
   firstValueFrom,
   from,
   lastValueFrom,
   map,
+  reduce,
+  scan,
   shareReplay,
+  switchMap,
   take,
 } from "rxjs";
+import sharp from "sharp";
+import { AmazonProductsTokenStream } from "./products/amazon-products-stream";
+import { RecipeProductsTokenStream } from "./products/recipe-products-stream";
+import { GoogleCustomSearchResponseSchema } from "./products/schema";
 
 export function CraftingDetails({
   createdAt,
@@ -179,118 +205,6 @@ export const Tags = ({ tags$ }: { tags$: Observable<string[]> }) => {
     </div>
   );
 };
-
-// export const IngredientList = async ({
-//   ingredients$,
-// }: {
-//   ingredients$: Observable<string[]>;
-// }) => {
-//   // await waitForStoreValue(store, (state) => state.recipe.ingredients?.length);
-//   const MAX_NUM_LINES = 30;
-//   const NUM_LINE_PLACEHOLDERS = 5;
-//   const items = new Array(MAX_NUM_LINES).fill(0);
-
-//   const Token = async ({
-//     index,
-//     itemIndex,
-//   }: {
-//     index: number;
-//     itemIndex: number;
-//   }) => {
-//     ingredients$.pipe(
-//       takeWhile((ingredients) => {
-//         const tokens = ingredients[itemIndex]?.split(" ")
-//         const nextTokenExists = !!tokens?.[index + 1];
-//         const nextItemExists = !!ingredients[itemIndex + 1];
-//         return nextTokenExists || nextItemExists;
-//       }, true),
-//       filter((ingredients) => {
-//         const tokens = ingredients[itemIndex]?.split(" ")
-//         return !!tokens?.[index];
-//       })
-//     )
-
-//     // const token = await waitForStoreValue(store, (state) => {
-//       // todo add is loading logic here...
-//       // const { ingredients, instructions } = state.recipe;
-//       // if (!ingredients) {
-//       //   return;
-//       // }
-
-//       const tokens = ingredients[itemIndex]?.split(" ");
-//       const token = tokens[index];
-//       const nextTokenExists = !!tokens[index + 1];
-//       const nextItemExists = !!ingredients[itemIndex + 1];
-//       const nextSectionExists = instructions?.length;
-
-//       const doneLoading =
-//         nextSectionExists ||
-//         nextItemExists ||
-//         nextTokenExists ||
-//         !state.loading;
-//       if (doneLoading) {
-//         return token ? token : null;
-//       }
-//     });
-
-//     return token ? <>{token} </> : null;
-//   };
-
-//   const Item = async ({ index }: { index: number }) => {
-//     const renderItem = await waitForStoreValue(store, ({ recipe, loading }) => {
-//       if (recipe.ingredients && recipe.ingredients[index]) {
-//         return true;
-//       }
-
-//       if (recipe.instructions || !loading) {
-//         return false;
-//       }
-//     });
-//     const MAX_NUM_TOKENS_PER_ROW = 40;
-//     const NUM_PLACEHOLDERS_TOKENS = 5;
-//     const tokens = new Array(MAX_NUM_TOKENS_PER_ROW).fill(0);
-
-//     return renderItem ? (
-//       <li>
-//         <span className="flex flex-row gap-1 flex-wrap">
-//           {tokens.map((_, tokenIndex) => {
-//             return (
-//               <Suspense
-//                 fallback={
-//                   tokenIndex < NUM_PLACEHOLDERS_TOKENS ? (
-//                     <Skeleton className="w-6 h-4" />
-//                   ) : null
-//                 }
-//                 key={tokenIndex}
-//               >
-//                 <Token index={tokenIndex} itemIndex={index} />
-//               </Suspense>
-//             );
-//           })}
-//         </span>
-//       </li>
-//     ) : null;
-//   };
-
-//   return (
-//     <>
-//       {items.map((_, index) => {
-//         return (
-//           <Suspense
-//             key={index}
-//             fallback={
-//               index < NUM_LINE_PLACEHOLDERS ? (
-//                 <Skeleton className="w-full h-5" />
-//               ) : null
-//             }
-//           >
-//             <Item index={index} />
-//           </Suspense>
-//         );
-//       })}
-//     </>
-//   );
-// };
 
 export async function Ingredients({
   ingredients$,
@@ -516,3 +430,287 @@ export async function Instructions({
     </>
   );
 }
+
+export const ProductsCarousel = ({
+  input$,
+  slug,
+}: {
+  input$: Observable<RecipeProductsPredictionInput>;
+  slug: string;
+}) => {
+  const newProduct$ = new Subject<AmazonAffiliateProduct>();
+  const products$ = newProduct$.pipe(
+    scan(
+      (acc: AmazonAffiliateProduct[], event: AmazonAffiliateProduct) => [
+        ...acc,
+        event,
+      ],
+      [] as AmazonAffiliateProduct[]
+    )
+  );
+  const Product = async ({ index }: { index: number }) => {
+    const product = await firstValueFrom(
+      products$.pipe(
+        filter((products) => !!products[index]),
+        map((products) => products[index]),
+        take(1),
+        defaultIfEmpty(undefined)
+      )
+    );
+    if (!product) {
+      return <></>;
+    }
+
+    const link = getAffiliatelink(product.asin);
+
+    return (
+      <Link href={getAffiliatelink(product.asin)} target="_blank">
+        <Card className="w-48 h-80 bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+          <img
+            className="w-full h-56 object-contain p-4"
+            src={product.imageUrl}
+            alt={product.name}
+          />
+          <div className="p-4 bg-slate-50 text-slate-900 flex-1 flex items-center justify-center text-sm">
+            <h4 className="font-semibold text-md mb-2 line-clamp-3">
+              {product.name}
+            </h4>
+          </div>
+        </Card>
+      </Link>
+    );
+  };
+
+  const ProductsGenerator = async () => {
+    const products = await db
+      .select()
+      .from(AmazonAffiliateProductTable)
+      .where(eq(AmazonAffiliateProductTable.recipeSlug, slug));
+    if (products.length) {
+      for (const product of products) {
+        newProduct$.next(product);
+      }
+      newProduct$.complete();
+      return null;
+    }
+
+    const tokenStream = new RecipeProductsTokenStream();
+    const input = await firstValueFrom(input$);
+    const recipe = input.recipe;
+    const stream = await tokenStream.getStream(input);
+
+    const getGoogleResultsForAffiliateProducts = async (product: {
+      name: string;
+      description: string;
+    }) => {
+      const googleSearchResponse = await fetch(
+        `https://www.googleapis.com/customsearch/v1?key=${
+          privateEnv.GOOGLE_CUSTOM_SEARCH_API_KEY
+        }&cx=${
+          privateEnv.GOOGLE_CUSTOM_SEARCH_ENGINE_ID
+        }&q=${encodeURIComponent(product.name)}`
+      );
+
+      const result = await googleSearchResponse.json();
+      return result;
+    };
+
+    return (
+      <Generator
+        stream={stream}
+        schema={RecipeProductsPredictionOutputSchema}
+        onError={(error, outputRaw) => {
+          console.error(error, outputRaw);
+        }}
+        onComplete={(output) => {
+          from(output.products)
+            .pipe(
+              concatMap((product) =>
+                getGoogleResultsForAffiliateProducts(product)
+                  .then((googleSearchJSON) => ({
+                    googleSearchJSON,
+                    product,
+                  }))
+                  .catch((error) => {
+                    console.error(
+                      "Error in getGoogleResultsForAffiliateProducts:",
+                      error
+                    );
+                    return undefined; // Return null or some sentinel value to indicate an error
+                  })
+              ),
+              filter(notUndefined),
+              map(({ googleSearchJSON }) => {
+                const parseResult =
+                  GoogleCustomSearchResponseSchema.safeParse(googleSearchJSON);
+                if (!parseResult.success) {
+                  console.log(parseResult.error);
+                  return undefined;
+                }
+
+                return parseResult.data.items;
+              }),
+              filter(notUndefined),
+              reduce(
+                (acc: GoogleCustomSearchResponse["items"], items) => {
+                  // Ensure that 'acc' is not undefined
+                  if (!acc) {
+                    acc = [];
+                  }
+
+                  return acc.concat(items);
+                },
+                [] as GoogleCustomSearchResponse["items"]
+              ),
+              filter(notUndefined),
+              switchMap(async (items) => {
+                const imagesUrlByASIN = new Map<string, string>();
+
+                const filteredItems = items
+                  .map((item) => {
+                    const parseASIN = AmazonProductPageUrlSchema.safeParse(
+                      item.link
+                    );
+                    if (!parseASIN.success || !parseASIN.data) {
+                      return undefined;
+                    }
+                    const asin = parseASIN.data;
+
+                    const imageUrl = item.pagemap?.scraped?.["0"]?.image_link;
+                    if (!imageUrl) {
+                      return undefined;
+                    }
+
+                    imagesUrlByASIN.set(asin, imageUrl);
+
+                    return {
+                      asin,
+                      name: item.title,
+                      description: item.snippet,
+                    };
+                  })
+                  .filter(notUndefined);
+                const googleSearchText = JSON.stringify(filteredItems);
+                const tokenStream = new AmazonProductsTokenStream();
+
+                const stream = await tokenStream.getStream({
+                  googleSearchText,
+                  recipe,
+                });
+                const charArray: string[] = [];
+                for await (const chunk of stream) {
+                  for (const char of chunk) {
+                    charArray.push(char);
+                  }
+                }
+                const outputRaw = charArray.join("");
+                const parser = new TokenParser(
+                  AmazonProductsPredictionOutputSchema
+                );
+                const result = parser.parse(outputRaw);
+                return result.products.map((product) => ({
+                  ...product,
+                  imageUrl: imagesUrlByASIN.get(product.asin)!,
+                }));
+              }),
+              take(1)
+            )
+
+            .subscribe((result) => {
+              from(result)
+                .pipe(
+                  concatMap(async (product) => {
+                    const imgResponse = await fetch(product.imageUrl);
+                    if (!imgResponse.ok) {
+                      console.log("Bad image");
+                      // only use products with working images
+                      return undefined;
+                    }
+                    const blobData = await imgResponse.blob();
+                    const buffer = Buffer.from(await blobData.arrayBuffer());
+
+                    let processedImage: Buffer;
+                    try {
+                      processedImage = await sharp(buffer)
+                        .resize(10, 10) // Resize to a very small image
+                        .blur() // Optional: add a blur effect
+                        .toBuffer();
+                    } catch (ex) {
+                      console.error(ex);
+                      throw ex;
+                    }
+                    const blurDataUrl = processedImage.toString("base64");
+
+                    const imageWidth = 20;
+                    const imageHeight = 20;
+
+                    return {
+                      product,
+                      blurDataUrl,
+                      imageWidth,
+                      imageHeight,
+                    };
+                  }),
+                  filter(notUndefined),
+                  switchMap(
+                    async ({
+                      product,
+                      blurDataUrl,
+                      imageWidth,
+                      imageHeight,
+                    }) => {
+                      try {
+                        const newProduct = {
+                          name: product.name,
+                          description: product.description,
+                          asin: product.asin,
+                          type: product.type,
+                          imageUrl: product.imageUrl,
+                          blurDataUrl,
+                          imageHeight,
+                          imageWidth,
+                          recipeSlug: slug,
+                          createdAt: new Date(),
+                        };
+
+                        await db
+                          .insert(AmazonAffiliateProductTable)
+                          .values(newProduct);
+                        newProduct$.next(newProduct);
+                      } catch (ex) {
+                        console.error(ex);
+                      }
+                    }
+                  )
+                )
+                .subscribe(() => {
+                  try {
+                    console.log("COMPLETE!");
+                    newProduct$.complete();
+                  } catch (ex) {
+                    console.error("ERROR!", ex);
+                  }
+                });
+            });
+        }}
+      />
+    );
+  };
+
+  const items = new Array(5).fill(0);
+
+  return (
+    <div className="h-96 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-4 pr-4 sm:p-0 md:justify-center">
+      <Suspense fallback={null}>
+        <ProductsGenerator />
+      </Suspense>
+      {items.map((_, index) => (
+        <div key={index} className="carousel-item">
+          <Suspense fallback={<Skeleton className="w-48 h-80" />}>
+            <Product index={index} />
+          </Suspense>
+        </div>
+      ))}
+    </div>
+  );
+};
