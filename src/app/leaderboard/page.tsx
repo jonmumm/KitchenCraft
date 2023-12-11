@@ -2,6 +2,7 @@ import { Card } from "@/components/display/card";
 import { Tabs, TabsContent } from "@/components/navigation/tabs";
 import { Metadata } from "next";
 import { LeaderboardItems, LeaderboardTabsList } from "./components";
+import { slugToSentence } from "@/lib/utils";
 
 // Function to generate random usernames
 function generateRandomUsername() {
@@ -31,8 +32,10 @@ export default async function Page() {
     <Tabs value="season">
       <LeaderboardTabsList />
       <TabsContent value="season" className="p-4">
-        <Card>
-          <h2 className="text-2xl font-semibold mb-4 p-4">Leaderboard</h2>
+        <Card className="max-w-2xl mx-auto w-full">
+          <h2 className="text-2xl font-semibold mb-4 p-4">
+            Winter &apos;23, Top Chefs
+          </h2>
           <ul className="mb-4">
             <li className="flex justify-between items-center border-b border-gray-300 py-2 font-semibold p-4">
               <span>Chef</span>

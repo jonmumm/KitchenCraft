@@ -2,6 +2,7 @@ import { Card } from "@/components/display/card";
 import { Tabs, TabsContent } from "@/components/navigation/tabs";
 import { LeaderboardItems, LeaderboardTabsList } from "../components";
 import { LeaderboardTabNameSchema } from "../schema";
+import { slugToSentence } from "@/lib/utils";
 
 function generateRandomUsername() {
   const adjectives = [
@@ -35,8 +36,10 @@ export default async function Page({
       <LeaderboardTabsList />
 
       <TabsContent value={tab}>
-        <Card>
-          <h2 className="text-2xl font-semibold mb-4 p-4">Leaderboard</h2>
+        <Card className="max-w-2xl mx-auto w-full">
+          <h2 className="text-2xl font-semibold mb-4 p-4">
+            {slugToSentence(tab)}, Top Chefs
+          </h2>
           <ul className="mb-4">
             <li className="flex justify-between items-center border-b border-gray-300 py-2 font-semibold p-4">
               <span>Chef</span>
