@@ -88,7 +88,7 @@ function AwardCarousel() {
                   </Badge>
                 </div>
                 <div className="font-semibold text-xl flex items-center justify-center">
-                  +2700 🧪
+                  <Badge className="text-xl">+2700 🧪</Badge>
                 </div>
               </div>
             </Card>

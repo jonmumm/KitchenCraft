@@ -60,8 +60,8 @@ function AwardCarousel() {
                 <ChefHatIcon size={16} /> <span>inspectorT</span>
               </Badge>
             </div>
-            <div className="font-semibold text-xl flex items-center justify-center">
-              +2700 🧪
+            <div className="font-semibold flex items-center justify-center">
+              <Badge className="text-xl">+2700 🧪</Badge>
             </div>
           </div>
         </Card>
