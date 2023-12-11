@@ -684,12 +684,7 @@ export const ProductsCarousel = ({
                   )
                 )
                 .subscribe(() => {
-                  try {
-                    console.log("COMPLETE!");
-                    newProduct$.complete();
-                  } catch (ex) {
-                    console.error("ERROR!", ex);
-                  }
+                  newProduct$.complete();
                 });
             });
         }}

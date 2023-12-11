@@ -360,9 +360,7 @@ export const AmazonAffiliateProductTable = pgTable(
     asin: text("asin").notNull(),
     type: productTypeEnum("type"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-    recipeSlug: text("recipe_slug")
-      .notNull()
-      .references(() => RecipesTable.slug),
+    recipeSlug: text("recipe_slug").notNull(),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.recipeSlug, table.asin] }),
