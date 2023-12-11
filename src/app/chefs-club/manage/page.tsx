@@ -1,4 +1,5 @@
 import { Header } from "@/app/header";
+import Image from "next/image";
 import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
@@ -143,67 +144,87 @@ export default async function Page() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-4">
-      <Header />
-      <div>
-        <h1 className="text-xl">Manage Family & Friends</h1>
-        <p className="text-muted-foreground textmd">
-          Invite family and friends to enjoy the benefits of your Chef&apos;s
-          Club Subscription
-        </p>
+    <>
+      <div className="relative">
+        <div className="max-w-2xl mx-auto flex flex-col gap-4">
+          <Header />
+        </div>
+        <div className="w-full z-20 text-white bottom-10 sm:bottom-16 absolute text-center">
+          <h1 className="font-semibold text-xl">Manage Family & Friends</h1>
+          <p className="text-sm">
+            Invite family and friends to enjoy the benefits of your Chef&apos;s
+            Club Subscription
+          </p>
+        </div>
+        <Image
+          src="/chefsclub.png"
+          className="rounded-t-lg"
+          width={1536}
+          height={768}
+          sizes="100vw"
+          alt="Chef's Club"
+        />
       </div>
-      <form
-        action={addMember.bind(null, subscription.id).bind(null, userId)}
-        className="flex flex-col gap-1"
-      >
-        <Label htmlFor="email">Email to Invite</Label>
-        <Input name="email" type="email" autoComplete="off" />
-        <Button className="w-full" size="lg" type="submit">
-          Invite
-        </Button>
-      </form>
+      <div className="max-w-2xl mx-auto flex flex-col gap-4 p-4">
+        <form
+          action={addMember.bind(null, subscription.id).bind(null, userId)}
+          className="flex flex-col gap-2"
+        >
+          <Label htmlFor="email">Email to Invite</Label>
+          <Input name="email" type="email" autoComplete="off" />
+          <Button className="w-full" size="lg" type="submit">
+            Invite
+          </Button>
+        </form>
+      </div>
       <Separator />
-      <Progress value={(members.length / 5) * 100} />
-      <Label>Existing Members ({members.length} / 5)</Label>
-      {members.length ? (
-        members.map((member) => {
-          const Content = async () => {
-            console.log({ member });
-            console.log(member.userId);
-            const user = await findUserById(db, member.userId);
+      <div className="max-w-2xl mx-auto flex flex-col gap-4 p-4">
+        <Progress value={(members.length / 5) * 100} />
+        <Label>Existing Members ({members.length} / 5)</Label>
+        {members.length ? (
+          members.map((member) => {
+            const Content = async () => {
+              console.log({ member });
+              console.log(member.userId);
+              const user = await findUserById(db, member.userId);
 
-            const remove = async (userId: string) => {
-              "use server";
-              await updateMemberStatusInSubscription(db, member.id, "removed");
+              const remove = async (userId: string) => {
+                "use server";
+                await updateMemberStatusInSubscription(
+                  db,
+                  member.id,
+                  "removed"
+                );
 
-              revalidatePath("/chefs-club/manage");
-              redirect("/chefs-club/manage?removed=1");
+                revalidatePath("/chefs-club/manage");
+                redirect("/chefs-club/manage?removed=1");
+              };
+
+              return (
+                <form
+                  className="flex flex-row justify-between items-center"
+                  action={remove.bind(null, user.id)}
+                >
+                  <p>{user.email}</p>
+                  <Button type="submit" variant="ghost">
+                    Remove
+                  </Button>
+                </form>
+              );
             };
 
             return (
-              <form
-                className="flex flex-row justify-between items-center"
-                action={remove.bind(null, user.id)}
-              >
-                <p>{user.email}</p>
-                <Button type="submit" variant="ghost">
-                  Remove
-                </Button>
-              </form>
+              <Card className="px-4 py-2" key={member.id}>
+                <Suspense fallback={<Skeleton className="w-full h-14" />}>
+                  <Content />
+                </Suspense>
+              </Card>
             );
-          };
-
-          return (
-            <Card className="px-4 py-2" key={member.id}>
-              <Suspense fallback={<Skeleton className="w-full h-14" />}>
-                <Content />
-              </Suspense>
-            </Card>
-          );
-        })
-      ) : (
-        <p className="text-muted-foreground text-xs">No members added yet.</p>
-      )}
-    </div>
+          })
+        ) : (
+          <p className="text-muted-foreground text-xs">No members added yet.</p>
+        )}
+      </div>
+    </>
   );
 }

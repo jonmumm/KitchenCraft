@@ -20,7 +20,14 @@ export const NotificationsSetting = ({ children }: { children: ReactNode }) => {
 export const NotificationsSwitch = () => {
   const [checked, setChecked] = useState(false);
   const handleCheckedChange = useCallback(() => {
-    setChecked(!checked);
+    const next = !checked;
+    setChecked(next);
+
+    if (next) {
+      // prompt for permissions from OS
+
+    }
+
   }, [checked, setChecked]);
 
   return <Switch checked={checked} onCheckedChange={handleCheckedChange} />;
