@@ -155,6 +155,7 @@ export default async function Page(props: Props) {
   } else {
     if (latestVersion && recipe.versionId !== latestVersion.versionId) {
       const slug = await findSlugForRecipeVersion(
+        db,
         recipe.id,
         latestVersion.versionId
       );

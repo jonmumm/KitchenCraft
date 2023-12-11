@@ -1,5 +1,6 @@
 import { TimeParamSchema } from "@/app/(home)/schema";
 import {
+  FAQTable,
   MediaTable,
   ProfileTable,
   RecipeMediaTable,
@@ -1038,11 +1039,12 @@ export const findLatestRecipeVersion = async (slug: string) => {
 };
 
 export const findSlugForRecipeVersion = async (
+  dbOrTransaction: DbOrTransaction,
   id: string,
   versionId: number
 ) => {
   // Main query to find the maximum versionId for the recipe id obtained from the subquery
-  const results = await db
+  const results = await dbOrTransaction
     .select({
       slug: RecipesTable.slug,
     })
@@ -1056,4 +1058,3 @@ export const findSlugForRecipeVersion = async (
 
   return results[0].slug;
 };
-

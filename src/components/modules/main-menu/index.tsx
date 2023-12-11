@@ -73,7 +73,7 @@ export async function MainMenu({ className }: { className?: string }) {
     activeSubscription$ = of(undefined);
   }
 
-  const quotaLimit$ = of(20);
+  const quotaLimit$ = of(3);
   const usage$ = of(1);
   const memberCount$ = activeSubscription$.pipe(
     switchMap((s) => from(getMembersBySubscriptionId(db, s?.id!))),
@@ -220,6 +220,47 @@ export async function MainMenu({ className }: { className?: string }) {
           </div>
 
           <Separator />
+          <AsyncRenderFirstValue
+            observable={combineLatest([
+              usage$,
+              quotaLimit$,
+              activeSubscription$,
+            ])}
+            render={([quotaUsage, quotaLimit, activeSub]) => {
+              return !activeSub ? (
+                <>
+                  <div className="flex flex-row gap-3 items-center justify-between">
+                    <Label className="uppercase text-xs font-bold text-accent-foreground">
+                      Daily
+                      <br />
+                      Quota
+                    </Label>
+                    <div className="flex flex-col gap-2 flex-1 items-end">
+                      <Progress
+                        value={(100 * quotaUsage) / quotaLimit}
+                        className="w-2/3"
+                      />
+                      <div className="flex flex-row justify-between items-center w-2/3">
+                        <div className="text-muted-foreground text-xs">
+                          {quotaUsage}/{quotaLimit} Recipes
+                        </div>
+
+                        <Link href="/history">
+                          <div className="text-muted-foreground text-xs underline">
+                            History
+                          </div>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              ) : (
+                <></>
+              );
+            }}
+            fallback={<Skeleton className="h-12 w-full" />}
+          />
           <div className="flex flex-row gap-3 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
               Subscription
@@ -298,45 +339,6 @@ export async function MainMenu({ className }: { className?: string }) {
               }}
             />
           </Suspense>
-          <AsyncRenderFirstValue
-            observable={combineLatest([
-              usage$,
-              quotaLimit$,
-              activeSubscription$,
-            ])}
-            render={([quotaUsage, quotaLimit, activeSub]) => {
-              return !activeSub ? (
-                <>
-                  <div className="flex flex-row gap-3 items-center justify-between">
-                    <Label className="uppercase text-xs font-bold text-accent-foreground">
-                      Quota
-                    </Label>
-                    <div className="flex flex-col gap-2 flex-1 items-end">
-                      <Progress
-                        value={(100 * quotaUsage) / quotaLimit}
-                        className="w-2/3"
-                      />
-                      <div className="flex flex-row justify-between items-center w-2/3">
-                        <div className="text-muted-foreground text-xs">
-                          Last 30D
-                        </div>
-
-                        <Link href="/history">
-                          <div className="text-muted-foreground text-xs underline">
-                            {quotaUsage}/{quotaLimit} Recipes
-                          </div>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                  <Separator />
-                </>
-              ) : (
-                <></>
-              );
-            }}
-            fallback={<Skeleton className="h-12 w-full" />}
-          />
           <NotificationsSetting>
             <div className="flex flex-row gap-3 items-center justify-between">
               <Label className="uppercase text-xs font-bold text-accent-foreground">

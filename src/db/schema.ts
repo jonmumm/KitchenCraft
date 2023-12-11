@@ -266,77 +266,19 @@ export const UserFeatureUsageSchema = createSelectSchema(UserFeatureUsageTable);
 export const NewUserFeatureUsageSchema = createInsertSchema(
   UserFeatureUsageTable
 );
-// Affiliate Links Table
-export const AffiliateLinksTable = pgTable(
-  "affiliate_link",
-  {
-    id: uuid("id").notNull().defaultRandom().primaryKey(),
-    recipeId: uuid("recipe_id").notNull(),
-    versionId: integer("version_id").notNull(),
-    affiliateSlug: text("affiliate_slug").notNull(),
-    link: text("link").notNull(),
-    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-  },
-  (table) => {
-    return {
-      recipeForeignKey: foreignKey({
-        columns: [table.recipeId, table.versionId],
-        foreignColumns: [RecipesTable.id, RecipesTable.versionId],
-        name: "recipe_fk",
-      }),
-    };
-  }
-);
-
-export const AffiliateLinkSchema = createSelectSchema(AffiliateLinksTable);
-export const NewAffiliateLinkSchema = createInsertSchema(AffiliateLinksTable);
-
-// Affiliate Link Metadata Table
-export const AffiliateLinkMetadataTable = pgTable("affiliate_link_metadata", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  affiliateLinkId: uuid("affiliate_link_id")
-    .notNull()
-    .references(() => AffiliateLinksTable.id),
-  productName: text("product_name").notNull(),
-  productDescription: text("product_description"),
-  productUrl: text("product_url").notNull(),
-  productImage: text("product_image"),
-  productPrice: numeric("product_price"),
-  currency: text("currency"),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-});
-
-export const AffiliateLinkMetadataSchema = createSelectSchema(
-  AffiliateLinkMetadataTable
-);
-export const NewAffiliateLinkMetadataSchema = createInsertSchema(
-  AffiliateLinkMetadataTable
-);
 
 // FAQ Table
-export const FAQTable = pgTable(
-  "faq",
-  {
-    id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
-    recipeId: uuid("recipe_id").notNull(),
-    versionId: integer("version_id").notNull(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => UsersTable.id),
-    question: text("question").notNull(),
-    answer: text("answer"),
-    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
-  },
-  (table) => {
-    return {
-      recipeForeignKey: foreignKey({
-        columns: [table.recipeId, table.versionId],
-        foreignColumns: [RecipesTable.id, RecipesTable.versionId],
-        name: "recipe_fk",
-      }),
-    };
-  }
-);
+export const FAQTable = pgTable("faq", {
+  id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
+  recipeSlug: text("recipe_slug").notNull(),
+  versionId: integer("version_id").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => UsersTable.id),
+  question: text("question").notNull(),
+  answer: text("answer"),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
 
 export const FAQSchema = createSelectSchema(FAQTable);
 export const NewFAQSchema = createInsertSchema(FAQTable);

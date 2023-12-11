@@ -71,6 +71,20 @@
       "when": 1702273392403,
       "tag": "0009_bent_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1702299252756,
+      "tag": "0010_orange_slipstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1702300462136,
+      "tag": "0011_parallel_mindworm",
+      "breakpoints": true
     }
   ]
 }
