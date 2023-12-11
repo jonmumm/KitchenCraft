@@ -1,5 +1,6 @@
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
+import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
@@ -19,9 +20,8 @@ import {
   getSortedMediaForRecipe,
 } from "../../db/queries";
 import { upvoteById } from "../recipe/actions";
-import { ShareButton, UpvoteButton } from "./components.client";
 import { RecipePropsProvider } from "./context";
-import { Separator } from "@/components/display/separator";
+import { UpvoteButton } from "./upvote-button/component";
 
 type Recipes =
   | Awaited<ReturnType<typeof getHotRecipes>>[0]
@@ -31,14 +31,12 @@ interface RecipeListItemProps {
   recipe: Recipes; // Define RecipeType according to your data structure
   index: number;
   userId?: string;
-  upvoted?: boolean;
 }
 
 export const RecipeListItem = ({
   recipe,
   userId,
   index,
-  upvoted,
 }: RecipeListItemProps) => {
   const href = `/recipe/${recipe.slug}`;
   const requireLogin = async () => {
@@ -91,19 +89,7 @@ export const RecipeListItem = ({
                 )}
               </div>
             </div>
-            {/* <ShareButton
-              slug={recipe.slug}
-              name={recipe.name}
-              description={recipe.description}
-            /> */}
-            <Suspense>
-              <UpvoteButton
-                count={recipe.points}
-                alreadyVoted={upvoted || false}
-              />
-              {/* {props.upvoted& ? <FirstValue
-              <UpvoteButtonContainer /> */}
-            </Suspense>
+            <UpvoteButton userId={userId} slug={recipe.slug} />
           </div>
         </div>
         {recipe.mediaCount > 0 ? (

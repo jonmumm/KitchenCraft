@@ -1,6 +1,5 @@
 import { TimeParamSchema } from "@/app/(home)/schema";
 import {
-  FAQTable,
   MediaTable,
   ProfileTable,
   RecipeMediaTable,
@@ -1057,4 +1056,42 @@ export const findSlugForRecipeVersion = async (
   }
 
   return results[0].slug;
+};
+
+export const hasUserVotedOnRecipe = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string,
+  recipeSlug: string
+) => {
+  const result = await dbOrTransaction
+    .select({ hasVoted: count() })
+    .from(UpvotesTable)
+    .innerJoin(RecipesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+    .where(
+      and(eq(UpvotesTable.userId, userId), eq(RecipesTable.slug, recipeSlug))
+    )
+    .execute();
+
+  if (result[0]) {
+    return result[0].hasVoted > 0;
+  }
+  return false;
+};
+
+export const getRecipePoints = async (
+  dbOrTransaction: DbOrTransaction,
+  recipeSlug: string
+) => {
+  const points = sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`;
+
+  const result = await dbOrTransaction
+    .select({ points })
+    .from(RecipesTable)
+    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
+    .where(eq(RecipesTable.slug, recipeSlug))
+    .groupBy(RecipesTable.id) // Grouping by the recipe ID
+    .execute();
+
+  return result[0]?.points || 0;
 };

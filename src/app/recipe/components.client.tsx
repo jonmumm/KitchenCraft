@@ -7,54 +7,8 @@ import {
   PopoverTrigger,
 } from "@/components/layout/popover";
 import { useSend } from "@/hooks/useSend";
-import { useStore } from "@nanostores/react";
-import { ArrowBigUpDashIcon, ShareIcon } from "lucide-react";
-import { atom } from "nanostores";
-import {
-  MouseEventHandler,
-  useCallback,
-  useContext,
-  useState,
-  useTransition,
-} from "react";
-import { RecipeContext } from "./context";
-
-export const UpvoteButton = (props: {
-  count: number;
-  alreadyVoted: boolean;
-}) => {
-  const { upvote } = useContext(RecipeContext);
-  const [disabled, setDisabled] = useState(props.alreadyVoted);
-  const [count$] = useState(atom(props.count));
-  const count = useStore(count$);
-  const [_, startTransition] = useTransition();
-
-  const handleClick: MouseEventHandler = useCallback(
-    (event) => {
-      setDisabled(true);
-      event.preventDefault();
-      count$.set(count$.get() + 1);
-      startTransition(() => upvote().then());
-    },
-    [count$, upvote, setDisabled]
-  );
-
-  return (
-    <form action={upvote}>
-      <Button
-        disabled={disabled}
-        onClick={handleClick}
-        variant="outline"
-        className="flex flex-row gap-1"
-        aria-label="Upvote"
-        type="submit"
-      >
-        <ArrowBigUpDashIcon />
-        <span className="font-bold">{count}</span>
-      </Button>
-    </form>
-  );
-};
+import { ShareIcon } from "lucide-react";
+import { useCallback, useState } from "react";
 
 export const ShareButton = ({
   slug,
@@ -99,7 +53,11 @@ export const ShareButton = ({
     <div>
       <Popover open={showCopied} onOpenChange={handlePressCopy}>
         <PopoverTrigger asChild>
-          <Button variant="outline" event={{ type: "SHARE", slug }}>
+          <Button
+            variant="outline"
+            event={{ type: "SHARE", slug }}
+            className="w-full"
+          >
             <ShareIcon />
           </Button>
         </PopoverTrigger>

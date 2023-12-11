@@ -10,6 +10,7 @@ import { Badge } from "@/components/display/badge";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { CommandItem } from "@/components/input/command";
+import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { LastValue } from "@/components/util/last-value";
 import { RecipeSchema, RecipesTable, db } from "@/db";
 import {
@@ -17,7 +18,9 @@ import {
   findSlugForRecipeVersion,
   getFirstMediaForRecipe,
   getRecipe,
+  getRecipePoints,
   getSortedMediaForRecipe,
+  hasUserVotedOnRecipe,
 } from "@/db/queries";
 import { NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
@@ -50,21 +53,20 @@ import { ComponentProps, ReactNode, Suspense } from "react";
 import {
   BehaviorSubject,
   Observable,
+  combineLatest,
   defaultIfEmpty,
-  filter,
-  firstValueFrom,
+  from,
   last,
   lastValueFrom,
   map,
   of,
   shareReplay,
-  switchMap,
-  take,
-  takeUntil,
   takeWhile,
 } from "rxjs";
 import { z } from "zod";
 import { ShareButton } from "../components.client";
+import { UpvoteButtonClient } from "../upvote-button/components.client";
+import { UpvoteButtonLoading } from "../upvote-button/loading";
 import {
   CraftingDetails,
   Ingredients,
@@ -84,6 +86,7 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
+import { UpvoteButton } from "../upvote-button/component";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -590,6 +593,19 @@ export default async function Page(props: Props) {
               </div>
 
               <div className="flex flex-col gap-1 hidden-print">
+                <UpvoteButton userId={userId} slug={slug} />
+                {/* {userId && (
+                  <AsyncRenderFirstValue
+                    render={([hasVoted, points]) => (
+                      <UpvoteButtonClient count={points} alreadyVoted={hasVoted} />
+                    )}
+                    fallback={<UpvoteButtonLoading />}
+                    observable={combineLatest([
+                      from(hasUserVotedOnRecipe(db, userId, slug)),
+                      from(getRecipePoints(db, slug)),
+                    ])}
+                  />
+                )} */}
                 <UploadMediaButton slug={slug}>
                   <CameraIcon />
                 </UploadMediaButton>
@@ -601,7 +617,11 @@ export default async function Page(props: Props) {
                   <ShuffleIcon />
                 </Button>
                 <Link href={`/recipe/${slug}/edit`}>
-                  <Button variant="outline" aria-label="Remix">
+                  <Button
+                    variant="outline"
+                    aria-label="Remix"
+                    className="w-full"
+                  >
                     <EditIcon />
                   </Button>
                 </Link>
