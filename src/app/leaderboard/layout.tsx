@@ -2,53 +2,42 @@ import { Avatar, AvatarFallback } from "@/components/display/avatar";
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
-import { getSession } from "@/lib/auth/session";
 import { slugToSentence } from "@/lib/utils";
 import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import awardList from "../../data/awards.json";
-import { getProfileByUserId } from "../../db/queries";
 import { Header } from "../header";
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  const userId = (await getSession())?.user.id;
-  let username: string | undefined;
-  if (userId) {
-    const result = await getProfileByUserId(userId);
-    username = result?.profileSlug;
-  }
-
   return (
     <>
       <div className="max-w-2xl mx-auto">
         <Header />
       </div>
       <div className="flex flex-col gap-3">
-        {userId && (
-          <div className="flex flex-col gap-1 w-full p-4">
-            <Card className="flex flex-col pb-1 w-full max-w-2xl mx-auto">
-              <div className="flex flex-row gap-2 items-center w-full px-6">
-                <div className="flex flex-col gap-2 my-6 flex-1">
-                  <Label className="uppercase font-semibold text-accent-foreground opacity-70 text-xs">
-                    Awards
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Chefs who&apos;ve scored the most points over the past week.
-                  </p>
-                </div>
-                <Link href={`/awards`}>
-                  <Badge variant="outline">View All ⇨</Badge>
-                </Link>
+        <div className="flex flex-col gap-1 w-full p-4">
+          <Card className="flex flex-col pb-1 w-full max-w-2xl mx-auto">
+            <div className="flex flex-row gap-2 items-center w-full px-6">
+              <div className="flex flex-col gap-2 my-6 flex-1">
+                <Label className="uppercase font-semibold text-accent-foreground opacity-70 text-xs">
+                  Awards
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Chefs who&apos;ve scored the most points over the past week.
+                </p>
               </div>
-              <div className="relative h-60">
-                <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-60 flex justify-center z-20">
-                  <AwardCarousel />
-                </div>
+              <Link href={`/awards`}>
+                <Badge variant="outline">View All ⇨</Badge>
+              </Link>
+            </div>
+            <div className="relative h-60">
+              <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-60 flex justify-center z-20">
+                <AwardCarousel />
               </div>
-            </Card>
-          </div>
-        )}
+            </div>
+          </Card>
+        </div>
         {children}
       </div>
     </>
