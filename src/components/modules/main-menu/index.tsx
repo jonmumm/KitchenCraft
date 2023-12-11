@@ -39,7 +39,6 @@ import {
   take,
 } from "rxjs";
 import { AppInstallContainer } from "./app-install-container";
-import { Switch } from "@/components/input/switch";
 import {
   NotificationsSetting,
   NotificationsSwitch,
@@ -151,57 +150,51 @@ export async function MainMenu({ className }: { className?: string }) {
           <div className="flex flex-row gap-8 items-center justify-around">
             <div className="flex flex-row justify-around gap-8">
               <div className="flex flex-col gap-1 items-center">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Badge variant="outline">
-                      <div className="flex flex-row gap-2 items-center justify-center">
-                        <span className="font-bold">
-                          +
-                          <Suspense
-                            fallback={<LoaderIcon className="animate-spin" />}
-                          >
-                            <RenderFirstValue
-                              observable={from(
-                                getUserPointsLast30Days(userId)
-                              ).pipe(shareReplay(1))}
-                              render={(value) => <>{value}</>}
-                            />
-                          </Suspense>
-                          🧪
-                        </span>
-                      </div>
-                    </Badge>
-                  </PopoverTrigger>
-                  <PointsPopoverContent />
-                </Popover>
+                <Link href="/leaderboard">
+                  <Badge variant="outline">
+                    <div className="flex flex-row gap-2 items-center justify-center">
+                      <span className="font-bold">
+                        +
+                        <Suspense
+                          fallback={<LoaderIcon className="animate-spin" />}
+                        >
+                          <RenderFirstValue
+                            observable={from(
+                              getUserPointsLast30Days(userId)
+                            ).pipe(shareReplay(1))}
+                            render={(value) => <>{value}</>}
+                          />
+                        </Suspense>
+                        🧪
+                      </span>
+                    </div>
+                  </Badge>
+                </Link>
                 <Label className="uppercase text-xs font-semibold text-accent-foreground opacity-50">
                   30 Days
                 </Label>
               </div>
               <div className="flex flex-col gap-1 items-center">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Badge variant="outline">
-                      <div className="flex flex-row gap-2 items-center justify-center">
-                        <span className="font-bold">
-                          +
-                          <Suspense
-                            fallback={<LoaderIcon className="animate-spin" />}
-                          >
-                            <RenderFirstValue
-                              observable={from(
-                                getUserLifetimePoints(userId)
-                              ).pipe(shareReplay(1))}
-                              render={(value) => <>{value}</>}
-                            />
-                          </Suspense>
-                          🧪
-                        </span>
-                      </div>
-                    </Badge>
-                  </PopoverTrigger>
-                  <PointsPopoverContent />
-                </Popover>
+                <Link href="/leaderboard">
+                  <Badge variant="outline">
+                    <div className="flex flex-row gap-2 items-center justify-center">
+                      <span className="font-bold">
+                        +
+                        <Suspense
+                          fallback={<LoaderIcon className="animate-spin" />}
+                        >
+                          <RenderFirstValue
+                            observable={from(
+                              getUserLifetimePoints(userId)
+                            ).pipe(shareReplay(1))}
+                            render={(value) => <>{value}</>}
+                          />
+                        </Suspense>
+                        🧪
+                      </span>
+                    </div>
+                  </Badge>
+                </Link>
                 <Label className="uppercase text-xs font-semibold text-accent-foreground opacity-50">
                   Lifetime
                 </Label>

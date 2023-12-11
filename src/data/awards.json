@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Star Baker",
+    "description": "Most upvoted bakery recipe",
+    "emoji": "🌟",
+    "tags": ["baked", "cake"]
+  },
+  {
+    "name": "Global Gourmet",
+    "description": "International cuisine expert",
+    "emoji": "🌎",
+    "tags": ["international"]
+  },
+  {
+    "name": "Health Hero",
+    "description": "Healthy and nutritious recipes",
+    "emoji": "💪",
+    "tags": ["healthy", "nutritious"]
+  },
+  {
+    "name": "Seasonal Sensation",
+    "description": "Recipes using seasonal ingredients",
+    "emoji": "🍂",
+    "tags": ["seasonal"]
+  },
+  {
+    "name": "Quick Fix Chef",
+    "description": "Quick and easy recipe expert",
+    "emoji": "⏱️",
+    "tags": ["quick", "easy"]
+  },
+  {
+    "name": "Vegan Virtuoso",
+    "description": "Top-rated vegan recipe creator",
+    "emoji": "🌱",
+    "tags": ["vegan"]
+  },
+  {
+    "name": "Sustainable Cook",
+    "description": "Sustainable ingredients advocate",
+    "emoji": "♻️",
+    "tags": ["sustainable"]
+  },
+  {
+    "name": "Culinary Innovator",
+    "description": "Unique and creative recipes",
+    "emoji": "🧙‍♂️",
+    "tags": ["creative", "unique"]
+  },
+  {
+    "name": "Family Favorite",
+    "description": "Perfect for family meals",
+    "emoji": "👨‍👩‍👦‍👦",
+    "tags": ["family"]
+  },
+  {
+    "name": "Sweet Tooth Master",
+    "description": "Best dessert and sweet recipes",
+    "emoji": "🍬",
+    "tags": ["desserts", "sweets"]
+  },
+  {
+    "name": "Spice King Queen",
+    "description": "Masterful use of spices in recipes",
+    "emoji": "🌶️",
+    "tags": ["spices"]
+  },
+  {
+    "name": "Grill Guru",
+    "description": "Best BBQ and grilled recipes",
+    "emoji": "🍔",
+    "tags": ["bbq", "grilled"]
+  },
+  {
+    "name": "Seafood Specialist",
+    "description": "Outstanding seafood dish creator",
+    "emoji": "🦐",
+    "tags": ["seafood"]
+  },
+  {
+    "name": "Budget Friendly Banquet",
+    "description": "Delicious and affordable recipes",
+    "emoji": "💰",
+    "tags": ["affordable", "delicious"]
+  },
+  {
+    "name": "Plant Based Pioneer",
+    "description": "Inventive vegetarian/vegan recipes",
+    "emoji": "🌿",
+    "tags": ["vegetarian", "vegan", "inventive"]
+  },
+  {
+    "name": "Fusion Fanatic",
+    "description": "Blending culinary traditions with fusion recipes",
+    "emoji": "🌮",
+    "tags": ["fusion", "culinary", "blending"]
+  },
+  {
+    "name": "Comfort Food Connoisseur",
+    "description": "Heartwarming and comforting recipes",
+    "emoji": "🍲",
+    "tags": ["comfort", "heartwarming"]
+  },
+  {
+    "name": "Breakfast Boss",
+    "description": "Best breakfast recipe creator",
+    "emoji": "🍳",
+    "tags": ["breakfast"]
+  },
+  {
+    "name": "Snack Savant",
+    "description": "Creative and tasty snack recipes",
+    "emoji": "🍿",
+    "tags": ["snacks", "creative"]
+  },
+  {
+    "name": "Soup Sorcerer",
+    "description": "Exceptional soup and stew recipes",
+    "emoji": "🥣",
+    "tags": ["soup", "stew", "exceptional"]
+  }
+]

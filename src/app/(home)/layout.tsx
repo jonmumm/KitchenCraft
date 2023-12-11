@@ -99,7 +99,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
     );
   };
 
-  const Content = async () => {
+  const RecipeList = async () => {
     const recipes = await getRecentRecipesByUser(userId);
     const slugs = recipes.map((recipe) => recipe.slug);
     const quotes = shuffle(quoteList);
@@ -197,7 +197,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
   return (
     <div className="carousel carousel-center space-x-2 px-4">
       <Suspense fallback={<Loader />}>
-        <Content />
+        <RecipeList />
       </Suspense>
     </div>
   );
