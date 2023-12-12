@@ -1,3 +1,9 @@
+import { HeaderLoading } from "../header";
+
 export default function Loading() {
-  return <div>LOading instant recipe</div>;
+  return (
+    <div className="max-w-2xl mx-auto w-full">
+      <HeaderLoading />
+    </div>
+  );
 }

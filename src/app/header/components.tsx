@@ -1,50 +1,25 @@
-import { ModeToggle } from "@/components/dark-mode-toggle";
-import { Badge } from "@/components/display/badge";
-import { Label } from "@/components/display/label";
-import { Separator } from "@/components/display/separator";
-import { Progress } from "@/components/feedback/progress";
-import Image from "next/image";
-
 import { Button } from "@/components/input/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/layout/popover";
-import { TypeLogo } from "@/components/logo";
-import { RenderFirstValue } from "@/components/util/render-first-value";
-import { db } from "@/db";
-import {
-  getActiveSubscriptionForUserId,
-  getProfileByUserId,
-  getUserLifetimePoints,
-  getUserPointsLast30Days,
-} from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
-import { cn } from "@/lib/utils";
-import {
-  AxeIcon,
-  ChefHatIcon,
-  GithubIcon,
-  GripVerticalIcon,
-  LoaderIcon,
-  YoutubeIcon,
-} from "lucide-react";
-import Link from "next/link";
-import { Suspense } from "react";
-import { Observable, combineLatest, from, map, of, shareReplay } from "rxjs";
-import { headers } from "next/headers";
-import Bowser from "bowser";
-import { AppInstallContainer } from "./components.client";
-import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
-import { MainMenu } from "@/components/modules/main-menu";
 import {
   Sheet,
   SheetContent,
   SheetOverlay,
   SheetTrigger,
 } from "@/components/layout/sheet";
-import { getFeatures } from "@/lib/device";
+import { TypeLogo } from "@/components/logo";
+import { MainMenu } from "@/components/modules/main-menu";
+import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
+import { db } from "@/db";
+import {
+  getActiveSubscriptionForUserId,
+  getProfileByUserId,
+} from "@/db/queries";
+import { getSession } from "@/lib/auth/session";
+import { cn } from "@/lib/utils";
+import Bowser from "bowser";
+import { AxeIcon, GripVerticalIcon } from "lucide-react";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { Observable, from, map, of, shareReplay } from "rxjs";
 
 export async function Header({ className }: { className?: string }) {
   const session = await getSession();
@@ -117,10 +92,35 @@ export async function Header({ className }: { className?: string }) {
   );
 }
 
-// const AnimatedLogo = () => {
-//   const headerActor = useContext(HeaderContext);
-//   const isLogoOffScreen = useSelector(headerActor, (state) => {
-//     return state.matches("Logo.OffScreen");
-//   });
-//   return <TypeLogo className="h-16" />;
-// };
+export async function HeaderLoading({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        `w-full flex items-start justify-between p-4 gap-4 hidden-print `,
+        className
+      )}
+    >
+      <div>
+        <Button variant="ghost" className="animate-spin">
+          <GripVerticalIcon />
+        </Button>
+      </div>
+
+      <div className="flex-1 flex justify-center">
+        <Link href="/">
+          <TypeLogo className="h-16 animate-bounce" />
+        </Link>
+      </div>
+
+      <div>
+        <Button
+          className="animate-spin"
+          variant="outline"
+          event={{ type: "NEW_RECIPE" }}
+        >
+          <AxeIcon />
+        </Button>
+      </div>
+    </div>
+  );
+}
