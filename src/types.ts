@@ -263,3 +263,5 @@ export type AmazonAffiliateProduct = z.infer<
 export type NewAmazonAffiliateProduct = z.infer<
   typeof NewAmazonAffiliateProductSchema
 >;
+
+export type ProductType = AmazonAffiliateProduct["type"];

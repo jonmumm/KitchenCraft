@@ -10,7 +10,6 @@ import { Badge } from "@/components/display/badge";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { CommandItem } from "@/components/input/command";
-import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { LastValue } from "@/components/util/last-value";
 import { RecipeSchema, RecipesTable, db } from "@/db";
 import {
@@ -18,9 +17,7 @@ import {
   findSlugForRecipeVersion,
   getFirstMediaForRecipe,
   getRecipe,
-  getRecipePoints,
   getSortedMediaForRecipe,
-  hasUserVotedOnRecipe,
 } from "@/db/queries";
 import { NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
@@ -41,11 +38,8 @@ import {
   CameraIcon,
   ChefHatIcon,
   EditIcon,
-  ExternalLink,
-  ExternalLinkIcon,
   HelpCircle,
   LibraryIcon,
-  PocketKnifeIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   ShuffleIcon,
@@ -59,9 +53,7 @@ import { ComponentProps, ReactNode, Suspense } from "react";
 import {
   BehaviorSubject,
   Observable,
-  combineLatest,
   defaultIfEmpty,
-  from,
   last,
   lastValueFrom,
   map,
@@ -71,8 +63,7 @@ import {
 } from "rxjs";
 import { z } from "zod";
 import { ShareButton } from "../components.client";
-import { UpvoteButtonClient } from "../upvote-button/components.client";
-import { UpvoteButtonLoading } from "../upvote-button/loading";
+import { UpvoteButton } from "../upvote-button/component";
 import {
   CraftingDetails,
   Ingredients,
@@ -81,6 +72,7 @@ import {
   Times,
 } from "./components";
 import { getObservables } from "./observables";
+import { ProductsCarousel } from "./products/components";
 import RecipeGenerator from "./recipe-generator";
 import {
   SousChefCommand,
@@ -91,8 +83,6 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
-import { UpvoteButton } from "../upvote-button/component";
-import { ProductsCarousel } from "./products/components";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -728,7 +718,7 @@ export default async function Page(props: Props) {
               <UtensilsCrossedIcon />
             </div>
             <p className="text-muted-foreground text-xs px-4">
-              To help you along the way
+              To help you along the way.
             </p>
             <div className="relative h-96">
               <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
@@ -749,7 +739,7 @@ export default async function Page(props: Props) {
               <LibraryIcon />
             </div>
             <p className="text-muted-foreground text-xs px-4">
-              Dive deeper on texts related to this recipe
+              Dive deeper on texts related to this recipe.
             </p>
             <div className="relative h-96">
               <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">

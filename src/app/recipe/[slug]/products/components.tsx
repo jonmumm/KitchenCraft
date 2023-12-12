@@ -17,6 +17,7 @@ import {
 import {
   AmazonAffiliateProduct,
   GoogleCustomSearchResponse,
+  ProductType,
   RecipeProductsPredictionInput,
 } from "@/types";
 import Link from "next/link";
@@ -34,6 +35,7 @@ import {
   scan,
   switchMap,
   take,
+  tap,
 } from "rxjs";
 import sharp from "sharp";
 import { AmazonProductsTokenStream } from "./amazon-products-stream";
@@ -119,7 +121,19 @@ export const ProductsCarousel = ({
     const recipe = input.recipe;
     const stream = await tokenStream.getStream(input);
 
-    const getGoogleResultsForAffiliateProducts = async (query: string) => {
+    const getGoogleResultsForAffiliateProducts = async (keyword: string) => {
+      let query: string;
+      switch (type) {
+        case "book":
+          query = `book ${keyword}`;
+          break;
+        case "equipment":
+          query = `kitchen ${keyword}`;
+          break;
+        default:
+          query = keyword;
+      }
+
       const googleSearchResponse = await fetch(
         `https://www.googleapis.com/customsearch/v1?key=${
           privateEnv.GOOGLE_CUSTOM_SEARCH_API_KEY
@@ -204,6 +218,7 @@ export const ProductsCarousel = ({
                   recipe,
                 });
                 const charArray: string[] = [];
+                // console.log("starting stream for", type);
                 for await (const chunk of stream) {
                   for (const char of chunk) {
                     charArray.push(char);
@@ -225,19 +240,26 @@ export const ProductsCarousel = ({
             .subscribe((result) => {
               from(result)
                 .pipe(
-                  mergeMap(async (product) => {
-                    const imageUrl = getAmazonImageUrl(product.asin);
-                    const imgResponse = await fetch(imageUrl, {
-                      redirect: "follow",
-                    });
-                    if (!imgResponse.ok) {
-                      // only use products with working images
-                      return undefined;
-                    }
-                    const blobData = await imgResponse.blob();
-                    const buffer = Buffer.from(await blobData.arrayBuffer());
-                    if (!buffer.length) {
-                      // error fetching this image, skip product
+                  // tap((product) => console.log("processing", product.name)),
+                  concatMap(async (product) => {
+                    let imageUrl = getAmazonImageUrl(product.asin);
+                    let buffer: Buffer;
+                    try {
+                      const imgResponse = await fetch(imageUrl, {
+                        redirect: "follow",
+                      });
+                      if (!imgResponse.ok) {
+                        // only use products with working images
+                        return undefined;
+                      }
+                      imageUrl = imgResponse.url; // grab the redirected url
+                      const blobData = await imgResponse.blob();
+                      buffer = Buffer.from(await blobData.arrayBuffer());
+
+                      if (!buffer.length) {
+                        return undefined;
+                      }
+                    } catch (ex) {
                       return undefined;
                     }
 
@@ -248,8 +270,7 @@ export const ProductsCarousel = ({
                         .blur() // Optional: add a blur effect
                         .toBuffer();
                     } catch (ex) {
-                      console.error(ex);
-                      throw ex;
+                      return undefined;
                     }
                     const blurDataUrl = processedImage.toString("base64");
 
@@ -259,13 +280,13 @@ export const ProductsCarousel = ({
                     return {
                       product,
                       blurDataUrl,
-                      imageUrl: imgResponse.url,
+                      imageUrl,
                       imageWidth,
                       imageHeight,
                     };
                   }),
                   filter(notUndefined),
-                  switchMap(
+                  mergeMap(
                     async ({
                       product,
                       blurDataUrl,
@@ -292,11 +313,11 @@ export const ProductsCarousel = ({
                           .values(newProduct);
                         newProduct$.next(newProduct);
                       } catch (ex) {
+                        // this is okay, but should be pretty rare
                         console.error(ex);
                       }
                     }
-                  ),
-                  take(1)
+                  )
                 )
                 .subscribe(() => {
                   newProduct$.complete();
@@ -307,7 +328,7 @@ export const ProductsCarousel = ({
     );
   };
 
-  const items = new Array(8).fill(0);
+  const items = new Array(10).fill(0);
 
   return (
     <div className="h-96 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-1 pr-4 sm:p-0 md:justify-center">

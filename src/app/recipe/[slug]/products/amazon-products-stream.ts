@@ -34,7 +34,6 @@ export class AmazonProductsTokenStream extends TokenStream<AmazonProductsPredict
     } else if (input.type === "ingredient") {
       template = ingredientTemplate;
     }
-    console.log(template);
 
     return template;
   }
@@ -55,9 +54,13 @@ recipe:
 \`\`\`
 `);
 
-const bookTemplate = `The user has provided a recipe and a list of Amazon product pages. Select 8 books from Amazon list that are relevant to this recipe sorting by how relevant to this particular recipe.
+const bookTemplate = `The user has provided a recipe and a list of Amazon product pages. Select 10 books from Amazon list that are relevant to this recipe sorting by how relevant to this particular recipe.
 
 Format the response in a yaml block with "products" as the root level key for the list, with each book having a name and ASIN (Amazon Standard Identificaiton Number)
+
+Ensure titles have quotes around them so yaml parsing will not fail. Do not include ... or Amazon in the name string.
+
+Ensure no duplicate ASINs.
 
 Here is an example response for a Tomato Soup Recipe:
 
@@ -83,9 +86,13 @@ products:
 
 Results should be varied. Use the name provided by the user in the json, but fix spelling mixtakes and clean up any extra irrelevant characters any important details a buyer might want in the name. Parse the ASIN from the url. Do not include any books from the yaml example (those names and ASINs are made up).`;
 
-const equipmentTemplate = `The user has provided a recipe and a list of Amazon product pages. Select 8 kitchen tools, equipment, gear, or gadgets from that Amazon list that are relavant to this recipe, sorting by the most relevant to this specific recipe.
+const equipmentTemplate = `The user has provided a recipe and a list of Amazon product pages. Select 10 kitchen tools, equipment, gear, or gadgets from that Amazon list that are relavant to this recipe, sorting by the most relevant to this specific recipe.
 
 Format the response in a yaml block with "products" as the root level key for the list, with each item having a name and the ASIN (Amazon Standard Identification Number).
+
+Ensure titles have quotes around them so yaml parsing will not fail.
+
+Ensure no duplicate ASINs.
 
 Here is an example response for a Tomato Soup Recipe:
 
@@ -111,9 +118,15 @@ products:
 
 Results should be varied. Use the name provided by the user in the json, but fix spelling mistakes and clean up any extra irrelevant characters any important details a buyer might want in the name. Parse the ASIN from the url. Do not include any products from the yaml example (thoes product names and ASINs are made up for illustration purposes).`;
 
-const ingredientTemplate = `The user has provided a JSON list of search results for Amazon products. From that list, select a subset of the 8 most applicable ingredients, sort them by the likelihood of purchasing.
+const ingredientTemplate = `The user has provided a JSON list of google search results for Amazon products. From that list, select a subset 8 products relevant to the recipe.
 
 Format the response in a yaml block with "products" as the root level key for the list, with each item having a name and the ASIN (Amazon Standard Identification Number).
+
+Ensure titles have quotes around them so yaml parsing will not fail.
+
+Ensure no duplicate ASINs.
+
+Include variety, do not have all of the same ingredient even if it's the most important ingredient.
 
 Here is an example response for a Tomato Soup Recipe:
 
@@ -140,21 +153,3 @@ products:
 Results should be varied (do not include two very similar results, i.e. 2 variations of the same brand of yeast). Only include ingredients and "consumable things", not equipment or tools (e.g. pans, blenders).
 
 Use the name provided by the user in the json, but fix spelling mistakes and clean up any extra irrelevant characters any important details a buyer might want in the name. Parse the ASIN from the url. Do not include any products from the yaml example (thoes ASINs are made up).`;
-
-// onst TEMPLATE = `The user will provide with a recipe and a list of Amazon.com search results for products they sell.
-
-// Parse the search results and select back the 5 best products that might be appealing to a home cook who is making the provided recipe,
-
-// Offer a varied mix of different products (i.e. do not suggest 5 blenders or 5 different salt shakers).
-
-// Each product should be one of type: book, ingredient, or equipment.
-
-// Clean up each product name and description, removing mentions of Amazon or other text not-related to the product itself.
-
-// Format the response in a valid yaml block with "products" as the root level key for the list. Each product should have a name, description, type (possible values are: 'ingredient', 'equipment', or 'book'), and a ASIN (Amazon Standard Identification Number).
-
-// Strings (like name, description) with characters that might break YAML parsing should be in quotes.
-
-// Here is an example output:
-
-// If the product is not a book, ignredient or piece of equipment, do not return it.
