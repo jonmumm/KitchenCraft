@@ -294,7 +294,6 @@ export const AmazonAffiliateProductTable = pgTable(
   "amazon_affiliate_product",
   {
     name: text("name").notNull(),
-    description: text("description"),
     imageUrl: text("image_url").notNull(),
     blurDataUrl: text("blur_data_url"),
     imageWidth: integer("image_width").notNull(),

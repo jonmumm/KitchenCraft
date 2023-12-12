@@ -297,7 +297,6 @@ export const ProductsCarousel = ({
                       try {
                         const newProduct = {
                           name: product.name,
-                          description: "",
                           asin: product.asin,
                           type: type,
                           imageUrl: imageUrl,
