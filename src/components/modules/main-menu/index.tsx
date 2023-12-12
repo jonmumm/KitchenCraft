@@ -208,7 +208,7 @@ export async function MainMenu({ className }: { className?: string }) {
               Email
             </Label>
             <div className="flex-1 min-w-0 truncate">
-              <span className="truncate">jonathanrmumm+neww@gmail.com</span>
+              <span className="truncate">{email}</span>
             </div>
           </div>
 

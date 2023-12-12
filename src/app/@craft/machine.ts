@@ -611,30 +611,6 @@ export const createCraftMachine = (
                     },
                     SET_INPUT: {
                       target: ["Inputting"],
-                      // actions: assign({
-                      //   instantRecipeMetadata: undefined,
-                      //   instantRecipeMetadataGeneratorId: ({
-                      //     spawn,
-                      //     context,
-                      //   }) => {
-                      //     if (context.instantRecipeMetadataGeneratorId) {
-                      //       stop(context.instantRecipeMetadataGeneratorId);
-                      //     }
-
-                      //     if (context.prompt?.length) {
-                      //       const id = nanoid();
-                      //       spawn("instantRecipeMetadataGenerator", {
-                      //         id,
-                      //         input: {
-                      //           prompt: context.prompt!,
-                      //         },
-                      //       });
-                      //       return id;
-                      //     } else {
-                      //       return undefined;
-                      //     }
-                      //   },
-                      // }),
                     },
                     INSTANT_RECIPE: {
                       target: ["Navigating"],

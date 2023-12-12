@@ -52,6 +52,7 @@ async function GET(req: NextRequest) {
     assert(name, "expected name");
     assert(description, "expected description");
   }
+  console.log(name, description);
 
   const slug = getSlug({ id, name });
   await createRecipe({

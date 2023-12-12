@@ -697,7 +697,7 @@ export default async function Page(props: Props) {
               <BackpackIcon />
             </div>
             <p className="text-muted-foreground text-xs px-4">
-              Pantry items, ingredients, and other things you may need.
+              Things you may need.
             </p>
             <div className="relative h-96">
               <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
@@ -718,7 +718,7 @@ export default async function Page(props: Props) {
               <UtensilsCrossedIcon />
             </div>
             <p className="text-muted-foreground text-xs px-4">
-              To help you along the way.
+              For help along the way.
             </p>
             <div className="relative h-96">
               <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
@@ -739,7 +739,7 @@ export default async function Page(props: Props) {
               <LibraryIcon />
             </div>
             <p className="text-muted-foreground text-xs px-4">
-              Dive deeper from authors related to this recipe.
+              Dive deeper with experts.
             </p>
             <div className="relative h-96">
               <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">

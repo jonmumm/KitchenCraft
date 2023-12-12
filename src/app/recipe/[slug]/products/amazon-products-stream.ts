@@ -122,7 +122,7 @@ const ingredientTemplate = `The user has provided a JSON list of google search r
 
 Format the response in a yaml block with "products" as the root level key for the list, with each item having a name and the ASIN (Amazon Standard Identification Number).
 
-Ensure titles have quotes around them so yaml parsing will not fail. Do not include ... or Amazon in the name string.
+Ensure names have quotes around them so yaml parsing will not fail. Do not include ... or Amazon in the name string.
 
 Important: ensure the returned list has unique ASINs. Do not return the same product ASIN twice.
 
@@ -132,24 +132,28 @@ Here is an example response for a Tomato Soup Recipe:
 
 \`\`\`yaml
 products:
-  - name: "Hunt's Canned Tomatoes"
+  - name: "Hunter's Garden Fresh Tomatoes"
     asin: "ABC123XYZ"
-  - name: "McCormick Onions and Garlic"
+  - name: "SpiceMaster's Aromatic Onion and Garlic Mix"
     asin: "DEF456UVW"
-  - name: "Muir Glen Fire Roasted San Marzano Tomatoes"
+  - name: "Green Valley Sun-Kissed Fire Roasted Tomatoes"
     asin: "GHI789STU"
-  - name: "Swanson Chicken or Vegetable Broth"
+  - name: "Nature's Essence Chicken or Vegetable Broth"
     asin: "JKL012VWX"
-  - name: "McCormick Basil and Oregano"
+  - name: "Herb Haven Basil and Oregano Blend"
     asin: "MNO345YZ"
-  - name: "Kraft Parmesan Cheese"
+  - name: "CheeseCrafters Classic Parmesan"
     asin: "PQR678ABC"
-  - name: "Barilla Pasta"
+  - name: "Golden Wheat Premium Pasta"
     asin: "STU901DEF"
-  - name: "Heinz Ketchup"
+  - name: "TomatoTwist Gourmet Ketchup"
     asin: "VWX234GHI"
 \`\`\`
 
-Results should be varied (do not include two very similar results, i.e. 2 variations of the same brand of yeast). Only include ingredients and "consumable things", not equipment or tools (e.g. pans, blenders).
+Results should be varied (do not include two very similar results, i.e. 2 variations of the same brand of yeast). Only include consumable products like ingredients, not books, equipment or tools (e.g. pans, blenders).
 
-Use the name provided by the user in the json, but fix spelling mistakes and clean up any extra irrelevant characters any important details a buyer might want in the name. Parse the ASIN from the url. Do not include any products from the yaml example (thoes ASINs are made up).`;
+Use the name provided by the user in the json, but fix spelling mistakes and clean up irrelevant characters. 
+
+Parse the ASIN from the url.
+
+Do not include any products from the yaml example (those names and ASINs are just for illustration).`;
