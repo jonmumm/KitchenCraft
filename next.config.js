@@ -18,4 +18,9 @@ const nextConfig = withPWA({
   },
 });
 
-module.exports = nextConfig;
+module.exports = {
+  ...nextConfig,
+  experimental: {
+    instrumentationHook: true,
+  },
+};
