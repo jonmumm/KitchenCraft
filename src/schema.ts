@@ -7,7 +7,7 @@ import {
   DISH_TYPES,
   TECHNIQUES,
 } from "./constants";
-import { RecipeSchema } from "./db";
+import { AmazonAffiliateProductSchema, RecipeSchema } from "./db";
 
 export const PlanSchema = z
   .enum(["quarterly", "monthly", "annual"])
@@ -699,6 +699,7 @@ export const FAQsPredictionInputSchema = z.object({
   }),
 });
 export const RecipeProductsPredictionInputSchema = z.object({
+  type: AmazonAffiliateProductSchema.shape.type,
   recipe: RecipeSchema.pick({
     name: true,
     description: true,
@@ -709,6 +710,7 @@ export const RecipeProductsPredictionInputSchema = z.object({
 });
 
 export const AmazonProductsPredictionInputSchema = z.object({
+  type: AmazonAffiliateProductSchema.shape.type,
   recipe: RecipeSchema.pick({
     name: true,
     description: true,
@@ -759,21 +761,14 @@ export const SubstitutionsPredictionOutputSchema = z.object({
 });
 
 export const RecipeProductsPredictionOutputSchema = z.object({
-  products: z.array(
-    z.object({
-      name: z.string(),
-      description: z.string(),
-    })
-  ),
+  queries: z.array(z.string()),
 });
 
 export const AmazonProductsPredictionOutputSchema = z.object({
   products: z.array(
     z.object({
       name: z.string(),
-      description: z.string(),
       asin: z.string(),
-      type: z.enum(["ingredient", "book", "equipment"]),
     })
   ),
 });

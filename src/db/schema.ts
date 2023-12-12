@@ -300,7 +300,7 @@ export const AmazonAffiliateProductTable = pgTable(
     imageWidth: integer("image_width").notNull(),
     imageHeight: integer("image_height").notNull(),
     asin: text("asin").notNull(),
-    type: productTypeEnum("type"),
+    type: productTypeEnum("type").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
     recipeSlug: text("recipe_slug").notNull(),
   },

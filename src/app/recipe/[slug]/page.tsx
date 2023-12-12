@@ -37,13 +37,19 @@ import { RecipePredictionInput, TempRecipe } from "@/types";
 import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
 import {
+  BackpackIcon,
   CameraIcon,
   ChefHatIcon,
   EditIcon,
+  ExternalLink,
+  ExternalLinkIcon,
   HelpCircle,
+  LibraryIcon,
+  PocketKnifeIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   ShuffleIcon,
+  UtensilsCrossedIcon,
 } from "lucide-react";
 import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
@@ -71,7 +77,6 @@ import {
   CraftingDetails,
   Ingredients,
   Instructions,
-  ProductsCarousel,
   Tags,
   Times,
 } from "./components";
@@ -87,6 +92,7 @@ import {
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
 import { UpvoteButton } from "../upvote-button/component";
+import { ProductsCarousel } from "./products/components";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -694,17 +700,64 @@ export default async function Page(props: Props) {
             <AssistantContent />
           </Card>
           <Card id="products" className="mx-3 mb-3">
-            <h3 className="uppercase text-xs font-bold text-accent-foreground p-4">
-              Products
-            </h3>
+            <div className="flex flex-row justify-between p-4">
+              <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                Consumables
+              </h3>
+              <BackpackIcon />
+            </div>
             <p className="text-muted-foreground text-xs px-4">
-              Amazon products to go with this recipe
+              Pantry items, ingredients, and other things you may need.
             </p>
-            <div className="h-80 relative mt-4">
-              <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20">
+            <div className="relative h-96">
+              <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
                 <ProductsCarousel
                   slug={slug}
-                  input$={finalRecipe$.pipe(map((recipe) => ({ recipe })))}
+                  input$={finalRecipe$.pipe(
+                    map((recipe) => ({ recipe, type: "ingredient" }))
+                  )}
+                />
+              </div>
+            </div>
+          </Card>
+          <Card id="products" className="mx-3 mb-3">
+            <div className="flex flex-row justify-between p-4">
+              <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                Tools & Equipment
+              </h3>
+              <UtensilsCrossedIcon />
+            </div>
+            <p className="text-muted-foreground text-xs px-4">
+              To help you along the way
+            </p>
+            <div className="relative h-96">
+              <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
+                <ProductsCarousel
+                  slug={slug}
+                  input$={finalRecipe$.pipe(
+                    map((recipe) => ({ recipe, type: "equipment" }))
+                  )}
+                />
+              </div>
+            </div>
+          </Card>
+          <Card id="products" className="mx-3 mb-3">
+            <div className="flex flex-row justify-between p-4">
+              <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                Books
+              </h3>
+              <LibraryIcon />
+            </div>
+            <p className="text-muted-foreground text-xs px-4">
+              Dive deeper on texts related to this recipe
+            </p>
+            <div className="relative h-96">
+              <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
+                <ProductsCarousel
+                  slug={slug}
+                  input$={finalRecipe$.pipe(
+                    map((recipe) => ({ recipe, type: "book" }))
+                  )}
                 />
               </div>
             </div>
