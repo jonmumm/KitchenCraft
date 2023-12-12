@@ -261,6 +261,22 @@ export const ProductsCarousel = ({
                   mergeMap(async (product) => {
                     let imageUrl = getAmazonImageUrl(product.asin);
                     let buffer: Buffer;
+
+                    try {
+                      const pageResponse = await fetch(
+                        getAffiliatelink(product.asin),
+                        {
+                          redirect: "follow",
+                        }
+                      );
+
+                      if (!pageResponse.ok) {
+                        return undefined;
+                      }
+                    } catch (ex) {
+                      return undefined;
+                    }
+
                     try {
                       const imgResponse = await fetch(imageUrl, {
                         redirect: "follow",
