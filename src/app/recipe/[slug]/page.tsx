@@ -713,7 +713,7 @@ export default async function Page(props: Props) {
           <Card id="products" className="mx-3 mb-3">
             <div className="flex flex-row justify-between p-4">
               <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Tools & Equipment
+                Gear
               </h3>
               <UtensilsCrossedIcon />
             </div>
@@ -739,7 +739,7 @@ export default async function Page(props: Props) {
               <LibraryIcon />
             </div>
             <p className="text-muted-foreground text-xs px-4">
-              Dive deeper on texts related to this recipe.
+              Dive deeper from authors related to this recipe.
             </p>
             <div className="relative h-96">
               <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">

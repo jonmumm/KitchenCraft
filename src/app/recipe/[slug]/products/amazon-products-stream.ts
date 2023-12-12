@@ -60,7 +60,7 @@ Format the response in a yaml block with "products" as the root level key for th
 
 Ensure titles have quotes around them so yaml parsing will not fail. Do not include ... or Amazon in the name string.
 
-Ensure no duplicate ASINs.
+Important: ensure the returned list has unique ASINs. Do not return the same product ASIN twice.
 
 Here is an example response for a Tomato Soup Recipe:
 
@@ -90,9 +90,9 @@ const equipmentTemplate = `The user has provided a recipe and a list of Amazon p
 
 Format the response in a yaml block with "products" as the root level key for the list, with each item having a name and the ASIN (Amazon Standard Identification Number).
 
-Ensure titles have quotes around them so yaml parsing will not fail.
+Ensure titles have quotes around them so yaml parsing will not fail. Do not include ... or Amazon in the name string.
 
-Ensure no duplicate ASINs.
+Important: ensure the returned list has unique ASINs. Do not return the same product ASIN twice.
 
 Here is an example response for a Tomato Soup Recipe:
 
@@ -118,13 +118,13 @@ products:
 
 Results should be varied. Use the name provided by the user in the json, but fix spelling mistakes and clean up any extra irrelevant characters any important details a buyer might want in the name. Parse the ASIN from the url. Do not include any products from the yaml example (thoes product names and ASINs are made up for illustration purposes).`;
 
-const ingredientTemplate = `The user has provided a JSON list of google search results for Amazon products. From that list, select a subset 8 products relevant to the recipe.
+const ingredientTemplate = `The user has provided a JSON list of google search results for Amazon products. From that list, select a subset 10 products relevant to the recipe.
 
 Format the response in a yaml block with "products" as the root level key for the list, with each item having a name and the ASIN (Amazon Standard Identification Number).
 
-Ensure titles have quotes around them so yaml parsing will not fail.
+Ensure titles have quotes around them so yaml parsing will not fail. Do not include ... or Amazon in the name string.
 
-Ensure no duplicate ASINs.
+Important: ensure the returned list has unique ASINs. Do not return the same product ASIN twice.
 
 Include variety, do not have all of the same ingredient even if it's the most important ingredient.
 

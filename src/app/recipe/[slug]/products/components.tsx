@@ -17,9 +17,9 @@ import {
 import {
   AmazonAffiliateProduct,
   GoogleCustomSearchResponse,
-  ProductType,
   RecipeProductsPredictionInput,
 } from "@/types";
+import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import {
   Observable,
@@ -27,21 +27,22 @@ import {
   concatMap,
   defaultIfEmpty,
   filter,
+  finalize,
   firstValueFrom,
   from,
   map,
+  merge,
   mergeMap,
   reduce,
   scan,
   switchMap,
   take,
-  tap,
+  takeUntil,
 } from "rxjs";
 import sharp from "sharp";
 import { AmazonProductsTokenStream } from "./amazon-products-stream";
 import { RecipeProductsTokenStream } from "./recipe-products-stream";
 import { GoogleCustomSearchResponseSchema } from "./schema";
-import { ExternalLinkIcon } from "lucide-react";
 
 export const ProductsCarousel = ({
   input$,
@@ -50,6 +51,8 @@ export const ProductsCarousel = ({
   input$: Observable<RecipeProductsPredictionInput>;
   slug: string;
 }) => {
+  const itemCount = 10;
+
   const newProduct$ = new Subject<AmazonAffiliateProduct>();
   const products$ = newProduct$.pipe(
     scan(
@@ -60,13 +63,29 @@ export const ProductsCarousel = ({
       [] as AmazonAffiliateProduct[]
     )
   );
+
   const Product = async ({ index }: { index: number }) => {
     const product = await firstValueFrom(
       products$.pipe(
-        filter((products) => !!products[index]),
-        map((products) => products[index]),
-        take(1),
-        defaultIfEmpty(undefined)
+        filter((array) => {
+          // Check if the array is defined and if the value at the targetIndex is not undefined
+          return array && array.length > index && array[index] !== undefined;
+        }),
+        takeUntil(
+          merge(
+            products$.pipe(
+              filter((array) => {
+                // Check if products$ completes without any non-undefined values at the target index
+                return (
+                  array && array.length > index && array[index] === undefined
+                );
+              }),
+              take(1)
+            )
+          )
+        ),
+        map((array) => array[index]),
+        defaultIfEmpty(undefined) // Extract the value at the target index
       )
     );
     if (!product) {
@@ -218,7 +237,6 @@ export const ProductsCarousel = ({
                   recipe,
                 });
                 const charArray: string[] = [];
-                // console.log("starting stream for", type);
                 for await (const chunk of stream) {
                   for (const char of chunk) {
                     charArray.push(char);
@@ -240,8 +258,7 @@ export const ProductsCarousel = ({
             .subscribe((result) => {
               from(result)
                 .pipe(
-                  // tap((product) => console.log("processing", product.name)),
-                  concatMap(async (product) => {
+                  mergeMap(async (product) => {
                     let imageUrl = getAmazonImageUrl(product.asin);
                     let buffer: Buffer;
                     try {
@@ -297,6 +314,7 @@ export const ProductsCarousel = ({
                       try {
                         const newProduct = {
                           name: product.name,
+                          description: "",
                           asin: product.asin,
                           type: type,
                           imageUrl: imageUrl,
@@ -316,10 +334,13 @@ export const ProductsCarousel = ({
                         console.error(ex);
                       }
                     }
-                  )
+                  ),
+                  finalize(() => {
+                    newProduct$.complete();
+                  })
                 )
                 .subscribe(() => {
-                  newProduct$.complete();
+                  // console.log("added");
                 });
             });
         }}
@@ -327,7 +348,7 @@ export const ProductsCarousel = ({
     );
   };
 
-  const items = new Array(10).fill(0);
+  const items = new Array(itemCount).fill(0);
 
   return (
     <div className="h-96 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-1 pr-4 sm:p-0 md:justify-center">
