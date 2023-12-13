@@ -24,6 +24,7 @@ const NUM_PLACEHOLDER_RECIPES = 30;
 export default async function Page(props: { params: { slug: string } }) {
   const session = await getSession();
   const slug = decodeURIComponent(props.params.slug);
+
   const profileParse = ProfileSlugSchema.safeParse(slug);
   if (!profileParse.success) {
     return <>Error parsing URL for slug</>;

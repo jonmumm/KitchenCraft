@@ -75,7 +75,7 @@ export const RecipeListItem = ({
               <div>
                 {"createdBySlug" in recipe && recipe.createdBySlug && (
                   <Link
-                    href={`/${recipe.createdBySlug}`}
+                    href={`/@${recipe.createdBySlug}`}
                     className="inline-block"
                   >
                     <Badge
