@@ -7,7 +7,6 @@ import {
   SubscriptionMembersTable,
   SubscriptionsTable,
   UpvotesTable,
-  UserFeatureUsageTable,
   UsersTable,
   db,
 } from "@/db";
@@ -350,47 +349,53 @@ export const getRecentRecipes = async () => {
     .as("maxVersionSubquery"); // Naming the subquery
 
   // Main query
-  return await db
-    .select({
-      id: RecipesTable.id,
-      versionId: RecipesTable.versionId, // Include versionId in the selection
-      slug: RecipesTable.slug,
-      name: RecipesTable.name,
-      description: RecipesTable.description,
-      tags: RecipesTable.tags,
-      totalTime: RecipesTable.totalTime,
-      createdBy: RecipesTable.createdBy,
-      createdAt: RecipesTable.createdAt,
-      points,
-      mediaCount,
-      userProfileSlug: ProfileTable.profileSlug, // Include user profile slug
-    })
-    .from(RecipesTable)
-    .innerJoin(
-      maxVersionSubquery,
-      and(
-        eq(RecipesTable.id, maxVersionSubquery.recipeId),
-        eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+  return await withDatabaseSpan(
+    db
+      .select({
+        id: RecipesTable.id,
+        versionId: RecipesTable.versionId, // Include versionId in the selection
+        slug: RecipesTable.slug,
+        name: RecipesTable.name,
+        description: RecipesTable.description,
+        tags: RecipesTable.tags,
+        totalTime: RecipesTable.totalTime,
+        createdBy: RecipesTable.createdBy,
+        createdAt: RecipesTable.createdAt,
+        points,
+        mediaCount,
+        userProfileSlug: ProfileTable.profileSlug, // Include user profile slug
+      })
+      .from(RecipesTable)
+      .innerJoin(
+        maxVersionSubquery,
+        and(
+          eq(RecipesTable.id, maxVersionSubquery.recipeId),
+          eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+        )
       )
-    )
-    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .leftJoin(UsersTable, eq(RecipesTable.createdBy, UsersTable.id)) // Join UsersTable
-    .leftJoin(ProfileTable, eq(UsersTable.id, ProfileTable.userId)) // Join ProfileTable
-    .groupBy(
-      RecipesTable.id,
-      RecipesTable.versionId, // Include versionId in groupBy
-      RecipesTable.slug,
-      RecipesTable.name,
-      RecipesTable.description,
-      RecipesTable.tags,
-      RecipesTable.totalTime,
-      RecipesTable.createdBy,
-      RecipesTable.createdAt,
-      ProfileTable.profileSlug
-    )
-    .orderBy(desc(RecipesTable.createdAt))
-    .limit(30) // Adjust the limit as needed
+      .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+      .leftJoin(
+        RecipeMediaTable,
+        eq(RecipesTable.id, RecipeMediaTable.recipeId)
+      )
+      .leftJoin(UsersTable, eq(RecipesTable.createdBy, UsersTable.id)) // Join UsersTable
+      .leftJoin(ProfileTable, eq(UsersTable.id, ProfileTable.userId)) // Join ProfileTable
+      .groupBy(
+        RecipesTable.id,
+        RecipesTable.versionId, // Include versionId in groupBy
+        RecipesTable.slug,
+        RecipesTable.name,
+        RecipesTable.description,
+        RecipesTable.tags,
+        RecipesTable.totalTime,
+        RecipesTable.createdBy,
+        RecipesTable.createdAt,
+        ProfileTable.profileSlug
+      )
+      .orderBy(desc(RecipesTable.createdAt))
+      .limit(30),
+    "getRecentRecipes"
+  ) // Adjust the limit as needed
     .execute();
 };
 
@@ -411,49 +416,54 @@ export const getBestRecipes = async (
     .as("maxVersionSubquery"); // Naming the subquery
 
   // Main query
-  return await db
-    .select({
-      id: RecipesTable.id,
-      versionId: RecipesTable.versionId, // Include versionId in the selection
-      slug: RecipesTable.slug,
-      name: RecipesTable.name,
-      description: RecipesTable.description,
-      tags: RecipesTable.tags,
-      totalTime: RecipesTable.totalTime,
-      createdBy: RecipesTable.createdBy,
-      createdAt: RecipesTable.createdAt,
-      points,
-      mediaCount,
-      createdBySlug: ProfileTable.profileSlug, // Include user profile slug
-    })
-    .from(RecipesTable)
-    .innerJoin(
-      maxVersionSubquery,
-      and(
-        eq(RecipesTable.id, maxVersionSubquery.recipeId),
-        eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+  return await withDatabaseSpan(
+    db
+      .select({
+        id: RecipesTable.id,
+        versionId: RecipesTable.versionId, // Include versionId in the selection
+        slug: RecipesTable.slug,
+        name: RecipesTable.name,
+        description: RecipesTable.description,
+        tags: RecipesTable.tags,
+        totalTime: RecipesTable.totalTime,
+        createdBy: RecipesTable.createdBy,
+        createdAt: RecipesTable.createdAt,
+        points,
+        mediaCount,
+        createdBySlug: ProfileTable.profileSlug, // Include user profile slug
+      })
+      .from(RecipesTable)
+      .innerJoin(
+        maxVersionSubquery,
+        and(
+          eq(RecipesTable.id, maxVersionSubquery.recipeId),
+          eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+        )
       )
-    )
-    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .leftJoin(UsersTable, eq(RecipesTable.createdBy, UsersTable.id)) // Join UsersTable
-    .leftJoin(ProfileTable, eq(UsersTable.id, ProfileTable.userId)) // Join ProfileTable
-    .where(timeCondition)
-    .groupBy(
-      RecipesTable.id,
-      RecipesTable.versionId, // Include versionId in groupBy
-      RecipesTable.slug,
-      RecipesTable.name,
-      RecipesTable.description,
-      RecipesTable.tags,
-      RecipesTable.totalTime,
-      RecipesTable.createdBy,
-      RecipesTable.createdAt,
-      ProfileTable.profileSlug
-    )
-    .orderBy(desc(sql<number>`COUNT(${UpvotesTable.userId})`)) // Adjust as needed for your 'best' criteria
-    .limit(30)
-    .execute();
+      .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+      .leftJoin(
+        RecipeMediaTable,
+        eq(RecipesTable.id, RecipeMediaTable.recipeId)
+      )
+      .leftJoin(UsersTable, eq(RecipesTable.createdBy, UsersTable.id)) // Join UsersTable
+      .leftJoin(ProfileTable, eq(UsersTable.id, ProfileTable.userId)) // Join ProfileTable
+      .where(timeCondition)
+      .groupBy(
+        RecipesTable.id,
+        RecipesTable.versionId, // Include versionId in groupBy
+        RecipesTable.slug,
+        RecipesTable.name,
+        RecipesTable.description,
+        RecipesTable.tags,
+        RecipesTable.totalTime,
+        RecipesTable.createdBy,
+        RecipesTable.createdAt,
+        ProfileTable.profileSlug
+      )
+      .orderBy(desc(sql<number>`COUNT(${UpvotesTable.userId})`)) // Adjust as needed for your 'best' criteria
+      .limit(30),
+    "getBestRecipes"
+  ).execute();
 };
 
 const getTimeCondition = (timeFrame: string) => {
@@ -487,22 +497,24 @@ interface MediaItem {
 export const getSortedMediaForMultipleRecipes = async (
   recipeSlugs: string[]
 ): Promise<{ [slug: string]: MediaItem[] }> => {
-  const mediaItems = (await db
-    .select({
-      id: MediaTable.id,
-      url: MediaTable.url,
-      width: MediaTable.width,
-      height: MediaTable.height,
-      mediaType: MediaTable.mediaType,
-      blobDataURL: MediaTable.blurDataURL,
-      recipeSlug: RecipesTable.slug,
-    })
-    .from(RecipeMediaTable)
-    .innerJoin(MediaTable, eq(MediaTable.id, RecipeMediaTable.mediaId))
-    .innerJoin(RecipesTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .where(inArray(RecipesTable.slug, recipeSlugs))
-    .orderBy(RecipeMediaTable.sortOrder)
-    .execute()) as MediaItem[];
+  const mediaItems = (await withDatabaseSpan(
+    db
+      .select({
+        id: MediaTable.id,
+        url: MediaTable.url,
+        width: MediaTable.width,
+        height: MediaTable.height,
+        mediaType: MediaTable.mediaType,
+        blobDataURL: MediaTable.blurDataURL,
+        recipeSlug: RecipesTable.slug,
+      })
+      .from(RecipeMediaTable)
+      .innerJoin(MediaTable, eq(MediaTable.id, RecipeMediaTable.mediaId))
+      .innerJoin(RecipesTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
+      .where(inArray(RecipesTable.slug, recipeSlugs))
+      .orderBy(RecipeMediaTable.sortOrder),
+    "getSortedMediaForMultipleRecipes"
+  ).execute()) as MediaItem[];
 
   // Group media items by their recipe slug
   let mediaBySlug: { [slug: string]: MediaItem[] } = {};
@@ -526,20 +538,22 @@ export const getUpvoteStatusForMultipleRecipes = async (
   recipeSlugs: string[],
   userId: string
 ): Promise<{ [slug: string]: boolean }> => {
-  const upvoteItems = (await db
-    .select({
-      slug: UpvotesTable.recipeId,
-      userId: UpvotesTable.userId,
-    })
-    .from(UpvotesTable)
-    .innerJoin(RecipesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .where(
-      and(
-        inArray(RecipesTable.slug, recipeSlugs),
-        eq(UpvotesTable.userId, userId)
-      )
-    )
-    .execute()) as { slug: string; userId: string }[];
+  const upvoteItems = (await withDatabaseSpan(
+    db
+      .select({
+        slug: UpvotesTable.recipeId,
+        userId: UpvotesTable.userId,
+      })
+      .from(UpvotesTable)
+      .innerJoin(RecipesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+      .where(
+        and(
+          inArray(RecipesTable.slug, recipeSlugs),
+          eq(UpvotesTable.userId, userId)
+        )
+      ),
+    "getUpvoteStatusForMultipelRecipes"
+  ).execute()) as { slug: string; userId: string }[];
 
   // Initialize a dictionary to hold the upvote status for each recipe
   let upvoteStatusBySlug: { [slug: string]: boolean } = {};
@@ -560,90 +574,117 @@ export const getUpvoteStatusForMultipleRecipes = async (
 };
 
 export const getProfileByUserId = async (userId: string) => {
-  return await db
-    .select({
-      profileSlug: ProfileTable.profileSlug,
-      activated: ProfileTable.activated,
-      mediaId: ProfileTable.mediaId,
-      userId: ProfileTable.userId,
-      createdAt: ProfileTable.createdAt,
-    })
-    .from(ProfileTable)
-    .where(eq(ProfileTable.userId, userId)) // Filter by the given userId
+  return await withDatabaseSpan(
+    db
+      .select({
+        profileSlug: ProfileTable.profileSlug,
+        activated: ProfileTable.activated,
+        mediaId: ProfileTable.mediaId,
+        userId: ProfileTable.userId,
+        createdAt: ProfileTable.createdAt,
+      })
+      .from(ProfileTable)
+      .where(eq(ProfileTable.userId, userId)),
+    "getProfileByUserId"
+  ) // Filter by the given userId
     .execute()
     .then((res) => res[0]); // Return the first (and expectedly only) result
 };
 
 export const getUserPointsLast30Days = async (userId: string) => {
   const thirtyDaysInSeconds = 30 * 24 * 3600; // Seconds in 30 days
-  return await db
-    .select({
-      userId: RecipesTable.createdBy,
-      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
-    })
-    .from(RecipesTable)
-    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .where(
-      and(
-        eq(RecipesTable.createdBy, userId),
-        sql`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) <= ${thirtyDaysInSeconds}`
+  return await withDatabaseSpan(
+    db
+      .select({
+        userId: RecipesTable.createdBy,
+        points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
+      })
+      .from(RecipesTable)
+      .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+      .leftJoin(
+        RecipeMediaTable,
+        eq(RecipesTable.id, RecipeMediaTable.recipeId)
       )
-    )
-    .groupBy(RecipesTable.createdBy)
+      .where(
+        and(
+          eq(RecipesTable.createdBy, userId),
+          sql`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) <= ${thirtyDaysInSeconds}`
+        )
+      )
+      .groupBy(RecipesTable.createdBy),
+    "getUserPointsLast30Days"
+  )
     .execute()
     .then((res) => res[0]?.points || 0);
 };
 
 export const getUserLifetimePoints = async (userId: string) => {
-  return await db
-    .select({
-      userId: RecipesTable.createdBy,
-      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
-    })
-    .from(RecipesTable)
-    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .where(eq(RecipesTable.createdBy, userId))
-    .groupBy(RecipesTable.createdBy)
+  return await withDatabaseSpan(
+    db
+      .select({
+        userId: RecipesTable.createdBy,
+        points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
+      })
+      .from(RecipesTable)
+      .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+      .leftJoin(
+        RecipeMediaTable,
+        eq(RecipesTable.id, RecipeMediaTable.recipeId)
+      )
+      .where(eq(RecipesTable.createdBy, userId))
+      .groupBy(RecipesTable.createdBy),
+    "getUserLifetimePoints"
+  )
     .execute()
     .then((res) => res[0]?.points || 0);
 };
 
 export const getProfileLifetimePoints = async (profileSlug: string) => {
-  return await db
-    .select({
-      profileSlug: ProfileTable.profileSlug,
-      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
-    })
-    .from(RecipesTable)
-    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
-    .where(eq(ProfileTable.profileSlug, profileSlug))
-    .groupBy(ProfileTable.profileSlug)
+  return await withDatabaseSpan(
+    db
+      .select({
+        profileSlug: ProfileTable.profileSlug,
+        points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
+      })
+      .from(RecipesTable)
+      .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+      .leftJoin(
+        RecipeMediaTable,
+        eq(RecipesTable.id, RecipeMediaTable.recipeId)
+      )
+      .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
+      .where(eq(ProfileTable.profileSlug, profileSlug))
+      .groupBy(ProfileTable.profileSlug),
+    "getProfileLifetimePoints"
+  )
     .execute()
     .then((res) => res[0]?.points || 0);
 };
 
 export const getProfilePointsLast30Days = async (profileSlug: string) => {
   const thirtyDaysInSeconds = 30 * 24 * 3600; // Seconds in 30 days
-  return await db
-    .select({
-      profileSlug: ProfileTable.profileSlug,
-      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
-    })
-    .from(RecipesTable)
-    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
-    .where(
-      and(
-        eq(ProfileTable.profileSlug, profileSlug),
-        sql`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) <= ${thirtyDaysInSeconds}`
+  return await withDatabaseSpan(
+    db
+      .select({
+        profileSlug: ProfileTable.profileSlug,
+        points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
+      })
+      .from(RecipesTable)
+      .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+      .leftJoin(
+        RecipeMediaTable,
+        eq(RecipesTable.id, RecipeMediaTable.recipeId)
       )
-    )
-    .groupBy(ProfileTable.profileSlug)
+      .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
+      .where(
+        and(
+          eq(ProfileTable.profileSlug, profileSlug),
+          sql`EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) <= ${thirtyDaysInSeconds}`
+        )
+      )
+      .groupBy(ProfileTable.profileSlug),
+    "getProfilePointsLast30Days"
+  )
     .execute()
     .then((res) => res[0]?.points || 0);
 };
@@ -661,12 +702,15 @@ export const createRecipeMedia = async (
       dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
     // Fetch the recipe ID using the slug
-    const recipe = await queryRunner
-      .select({
-        id: RecipesTable.id,
-      })
-      .from(RecipesTable)
-      .where(eq(RecipesTable.slug, slug))
+    const recipe = await withDatabaseSpan(
+      queryRunner
+        .select({
+          id: RecipesTable.id,
+        })
+        .from(RecipesTable)
+        .where(eq(RecipesTable.slug, slug)),
+      "createRecipeMedia"
+    )
       .execute()
       .then((res) => res[0]);
 
@@ -688,29 +732,6 @@ export const createRecipeMedia = async (
   }
 };
 
-export const createSubscription = async (
-  dbOrTransaction: DbOrTransaction,
-  userId: string,
-  stripeSubscriptionId: string,
-  plan: string
-) => {
-  try {
-    const queryRunner =
-      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
-
-    await queryRunner.insert(SubscriptionsTable).values({
-      userId,
-      stripeSubscriptionId,
-      plan,
-      status: "active", // Assuming the default status is 'active'
-    });
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error) };
-  }
-};
-
 export const getSubscriptionByUserId = async (
   dbOrTransaction: DbOrTransaction,
   userId: string
@@ -718,120 +739,23 @@ export const getSubscriptionByUserId = async (
   const queryRunner =
     dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
-  const subscription = await queryRunner
-    .select({
-      id: SubscriptionsTable.id,
-      stripeSubscriptionId: SubscriptionsTable.stripeSubscriptionId,
-      plan: SubscriptionsTable.plan,
-      status: SubscriptionsTable.status,
-      createdAt: SubscriptionsTable.createdAt,
-    })
-    .from(SubscriptionsTable)
-    .where(eq(SubscriptionsTable.userId, userId))
+  const subscription = await withDatabaseSpan(
+    queryRunner
+      .select({
+        id: SubscriptionsTable.id,
+        stripeSubscriptionId: SubscriptionsTable.stripeSubscriptionId,
+        plan: SubscriptionsTable.plan,
+        status: SubscriptionsTable.status,
+        createdAt: SubscriptionsTable.createdAt,
+      })
+      .from(SubscriptionsTable)
+      .where(eq(SubscriptionsTable.userId, userId)),
+    "getSubscriptionByUserId"
+  )
     .execute()
     .then((res) => res[0]);
 
   return subscription;
-};
-
-export const updateSubscriptionStatus = async (
-  dbOrTransaction: DbOrTransaction,
-  subscriptionId: number, // Assuming the subscription ID is a number
-  newStatus: string
-) => {
-  try {
-    const queryRunner =
-      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
-
-    const updateResult = await queryRunner
-      .update(SubscriptionsTable)
-      .set({ status: newStatus })
-      .where(eq(SubscriptionsTable.id, subscriptionId))
-      .execute();
-
-    if (updateResult.count === 0) {
-      throw new Error(
-        "No subscription found or status already set to the new value."
-      );
-    }
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error) };
-  }
-};
-
-export const trackFeatureUsage = async (
-  dbOrTransaction: DbOrTransaction,
-  userId: string,
-  featureId: number, // Assuming the feature ID is a number
-  usageCount: number = 1 // Default usage count is 1
-) => {
-  try {
-    const queryRunner =
-      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
-
-    await queryRunner.insert(UserFeatureUsageTable).values({
-      userId,
-      featureId,
-      timestamp: new Date(), // Records the time of usage
-      usageCount,
-    });
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error) };
-  }
-};
-
-export const getFeatureUsage = async (
-  dbOrTransaction: DbOrTransaction,
-  userId: string,
-  featureId: number // Assuming the feature ID is a number
-) => {
-  try {
-    const queryRunner =
-      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
-
-    const featureUsage = await queryRunner
-      .select({
-        usageCount: UserFeatureUsageTable.usageCount,
-      })
-      .from(UserFeatureUsageTable)
-      .where(
-        and(
-          eq(UserFeatureUsageTable.userId, userId),
-          eq(UserFeatureUsageTable.featureId, featureId)
-        )
-      )
-      .execute();
-
-    return { success: true, featureUsage };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error) };
-  }
-};
-
-export const addMemberToSubscription = async (
-  dbOrTransaction: DbOrTransaction,
-  subscriptionId: number, // Assuming the subscription ID is a number
-  userId: string
-) => {
-  try {
-    const queryRunner =
-      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
-
-    await queryRunner.insert(SubscriptionMembersTable).values({
-      subscriptionId,
-      userId,
-      addedAt: new Date(),
-      status: "active",
-    });
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error) };
-  }
 };
 
 export const updateMemberStatusInSubscription = async (
@@ -843,11 +767,13 @@ export const updateMemberStatusInSubscription = async (
     const queryRunner =
       dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
-    const updateResult = await queryRunner
-      .update(SubscriptionMembersTable)
-      .set({ status: newStatus })
-      .where(eq(SubscriptionMembersTable.id, memberId))
-      .execute();
+    const updateResult = await withDatabaseSpan(
+      queryRunner
+        .update(SubscriptionMembersTable)
+        .set({ status: newStatus })
+        .where(eq(SubscriptionMembersTable.id, memberId)),
+      "updateMemberStatusInSubscription"
+    ).execute();
 
     if (updateResult.count === 0) {
       throw new Error(
@@ -870,11 +796,13 @@ export const updateStripeCustomerIdByEmail = async (
     const queryRunner =
       dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
-    const updateResult = await queryRunner
-      .update(UsersTable)
-      .set({ stripeCustomerId: newStripeCustomerId })
-      .where(eq(UsersTable.email, userEmail)) // Use email to locate the user
-      .execute();
+    const updateResult = await withDatabaseSpan(
+      queryRunner
+        .update(UsersTable)
+        .set({ stripeCustomerId: newStripeCustomerId })
+        .where(eq(UsersTable.email, userEmail)), // Use email to locate the user
+      "updateStripeCustomerIdByEmail"
+    ).execute();
 
     if (updateResult.count === 0) {
       throw new Error(
@@ -895,11 +823,13 @@ export const getStripeCustomerId = async (
   const queryRunner =
     dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
-  const result = await queryRunner
-    .select({ stripeCustomerId: UsersTable.stripeCustomerId })
-    .from(UsersTable)
-    .where(eq(UsersTable.id, userId))
-    .execute();
+  const result = await withDatabaseSpan(
+    queryRunner
+      .select({ stripeCustomerId: UsersTable.stripeCustomerId })
+      .from(UsersTable)
+      .where(eq(UsersTable.id, userId)),
+    "getStripeCustomerId"
+  ).execute();
 
   if (result.length === 0) {
     throw new Error("No user found with the given ID.");
@@ -926,11 +856,13 @@ export const findUserByEmail = async (
   const queryRunner =
     dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
-  const user = await queryRunner
-    .select() // or specify the columns you need
-    .from(UsersTable)
-    .where(eq(UsersTable.email, userEmail))
-    .execute();
+  const user = await withDatabaseSpan(
+    queryRunner
+      .select() // or specify the columns you need
+      .from(UsersTable)
+      .where(eq(UsersTable.email, userEmail)),
+    "findUserByEmail"
+  ).execute();
 
   if (user.length === 0) {
     throw new Error("No user found with the specified email.");
@@ -946,11 +878,13 @@ export const findUserById = async (
   const queryRunner =
     dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
-  const user = await queryRunner
-    .select() // or specify the columns you need
-    .from(UsersTable)
-    .where(eq(UsersTable.id, userId))
-    .execute();
+  const user = await withDatabaseSpan(
+    queryRunner
+      .select() // or specify the columns you need
+      .from(UsersTable)
+      .where(eq(UsersTable.id, userId)),
+    "findUserById"
+  ).execute();
 
   if (user.length === 0) {
     throw new Error("No user found with the specified id.");
@@ -966,24 +900,26 @@ export const getActiveSubscriptionForUserId = async (
   const queryRunner =
     dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
-  const result = await queryRunner
-    .select({
-      id: SubscriptionsTable.id,
-      managingUserId: SubscriptionsTable.userId,
-    })
-    .from(SubscriptionMembersTable)
-    .innerJoin(
-      SubscriptionsTable,
-      eq(SubscriptionMembersTable.subscriptionId, SubscriptionsTable.id)
-    )
-    .where(
-      and(
-        eq(SubscriptionMembersTable.userId, userId),
-        eq(SubscriptionMembersTable.status, "active"), // Checking if the user's subscription member status is active
-        eq(SubscriptionsTable.status, "active") // Checking if the subscription itself is active
+  const result = await withDatabaseSpan(
+    queryRunner
+      .select({
+        id: SubscriptionsTable.id,
+        managingUserId: SubscriptionsTable.userId,
+      })
+      .from(SubscriptionMembersTable)
+      .innerJoin(
+        SubscriptionsTable,
+        eq(SubscriptionMembersTable.subscriptionId, SubscriptionsTable.id)
       )
-    )
-    .execute();
+      .where(
+        and(
+          eq(SubscriptionMembersTable.userId, userId),
+          eq(SubscriptionMembersTable.status, "active"), // Checking if the user's subscription member status is active
+          eq(SubscriptionsTable.status, "active") // Checking if the subscription itself is active
+        )
+      ),
+    "getActiveSubscriptionForUserId"
+  ).execute();
 
   return result[0]; // Return the first active subscription details
 };
@@ -992,14 +928,16 @@ export const getCurrentVersionId = async (
   dbOrTransaction: DbOrTransaction,
   recipeId: string
 ) => {
-  const result = await dbOrTransaction
-    .select({
-      maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
-    })
-    .from(RecipesTable)
-    .where(eq(RecipesTable.id, recipeId))
-    .groupBy(RecipesTable.id)
-    .execute();
+  const result = await withDatabaseSpan(
+    dbOrTransaction
+      .select({
+        maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
+      })
+      .from(RecipesTable)
+      .where(eq(RecipesTable.id, recipeId))
+      .groupBy(RecipesTable.id),
+    "getCurrentVersionId"
+  ).execute();
   const maxVersionId = result[0]?.maxVersionId;
   return maxVersionId;
 };
@@ -1008,24 +946,27 @@ export const getMembersBySubscriptionId = async (
   dbOrTransaction: DbOrTransaction,
   subscriptionId: number
 ) =>
-  await dbOrTransaction
-    .select({
-      id: SubscriptionMembersTable.id,
-      userId: SubscriptionMembersTable.userId,
-      status: SubscriptionMembersTable.status,
-    })
-    .from(SubscriptionMembersTable)
-    .leftJoin(
-      SubscriptionsTable,
-      eq(SubscriptionsTable.id, SubscriptionMembersTable.subscriptionId)
-    )
-    .where(
-      and(
-        eq(SubscriptionMembersTable.subscriptionId, subscriptionId),
-        eq(SubscriptionMembersTable.status, "active"),
-        ne(SubscriptionsTable.userId, SubscriptionMembersTable.userId)
+  await withDatabaseSpan(
+    dbOrTransaction
+      .select({
+        id: SubscriptionMembersTable.id,
+        userId: SubscriptionMembersTable.userId,
+        status: SubscriptionMembersTable.status,
+      })
+      .from(SubscriptionMembersTable)
+      .leftJoin(
+        SubscriptionsTable,
+        eq(SubscriptionsTable.id, SubscriptionMembersTable.subscriptionId)
       )
-    );
+      .where(
+        and(
+          eq(SubscriptionMembersTable.subscriptionId, subscriptionId),
+          eq(SubscriptionMembersTable.status, "active"),
+          ne(SubscriptionsTable.userId, SubscriptionMembersTable.userId)
+        )
+      ),
+    "getMembersBySubscriptionId"
+  );
 
 export const findLatestRecipeVersion = async (slug: string) => {
   // Subquery to get the id of the recipe with the given slug
@@ -1054,13 +995,17 @@ export const findSlugForRecipeVersion = async (
   versionId: number
 ) => {
   // Main query to find the maximum versionId for the recipe id obtained from the subquery
-  const results = await dbOrTransaction
-    .select({
-      slug: RecipesTable.slug,
-    })
-    .from(RecipesTable)
-    .where(and(eq(RecipesTable.id, id), eq(RecipesTable.versionId, versionId)))
-    .execute();
+  const results = await withDatabaseSpan(
+    dbOrTransaction
+      .select({
+        slug: RecipesTable.slug,
+      })
+      .from(RecipesTable)
+      .where(
+        and(eq(RecipesTable.id, id), eq(RecipesTable.versionId, versionId))
+      ),
+    "findSlugForRecipeVersion"
+  ).execute();
 
   if (!results[0]) {
     throw new Error("couldnt find recipe");
@@ -1074,14 +1019,16 @@ export const hasUserVotedOnRecipe = async (
   userId: string,
   recipeSlug: string
 ) => {
-  const result = await dbOrTransaction
-    .select({ hasVoted: count() })
-    .from(UpvotesTable)
-    .innerJoin(RecipesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .where(
-      and(eq(UpvotesTable.userId, userId), eq(RecipesTable.slug, recipeSlug))
-    )
-    .execute();
+  const result = await withDatabaseSpan(
+    dbOrTransaction
+      .select({ hasVoted: count() })
+      .from(UpvotesTable)
+      .innerJoin(RecipesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+      .where(
+        and(eq(UpvotesTable.userId, userId), eq(RecipesTable.slug, recipeSlug))
+      ),
+    "hasUserVotedOnRecipe"
+  ).execute();
 
   if (result[0]) {
     return result[0].hasVoted > 0;
