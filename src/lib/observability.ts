@@ -47,23 +47,29 @@ export function withDatabaseSpan<T extends Query>(
 export function withStreamSpan<T>(
   stream: AsyncIterable<T>,
   spanName: string,
-  attributes?: Attributes // Adjusted type for attributes
+  attributes?: Attributes
 ): AsyncIterable<T> {
   const tracer = trace.getTracer("default");
   const span = tracer.startSpan(spanName, {
     attributes: attributes,
   });
 
+  // Initialize an array to accumulate the stream output
+  const accumulatedOutput: T[] = [];
+
   return {
     async *[Symbol.asyncIterator]() {
       try {
         for await (const item of stream) {
+          accumulatedOutput.push(item);
           yield item;
         }
       } catch (error) {
         span.recordException(getErrorMessage(error));
         throw error;
       } finally {
+        // Report the accumulated output as an attribute before ending the span
+        span.setAttribute("kc.result", JSON.stringify(accumulatedOutput));
         span.end();
       }
     },
