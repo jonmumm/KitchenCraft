@@ -12,6 +12,7 @@ import {
   db,
 } from "@/db";
 import { getErrorMessage } from "@/lib/error";
+import { withDatabaseSpan } from "@/lib/observability";
 import { and, count, desc, eq, inArray, max, ne, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { z } from "zod";
@@ -26,7 +27,7 @@ const points = sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTI
 const mediaCount = sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`;
 const scoreExpression = sql<number>`(${points} - 1) / POW((EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} + 2), ${gravity})`;
 
-export const getHotRecipes = async (userId?: string) => {
+const getHotRecipesQuery = async (userId?: string) => {
   // Subquery to get the maximum versionId for each recipe
   const maxVersionSubquery = db
     .select({
@@ -80,6 +81,12 @@ export const getHotRecipes = async (userId?: string) => {
     .limit(30)
     .execute();
 };
+
+export const getHotRecipes = withDatabaseSpan(
+  getHotRecipesQuery,
+  "GetHotRecipes",
+  { "db.table": "RecipesTable" }
+);
 
 export const getRecipe = async (slug: string) => {
   return await db
