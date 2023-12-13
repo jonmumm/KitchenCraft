@@ -165,7 +165,7 @@ body {
 }
 
 html {
-  height: 100vh;
+  height: 100dvh;
 }
 
 /* explore using when focus on PWA */

@@ -89,7 +89,7 @@ export function PasscodeForm() {
     }
 
     return (
-      <Link href="googlegmail://">
+      <Link href="googlegmail://" className="mt-3">
         <Button type="button" variant="secondary" className="w-full" size="lg">
           Open Gmail App
         </Button>
