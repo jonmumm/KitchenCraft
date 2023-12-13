@@ -1,4 +1,4 @@
-import { Span, SpanKind, context, trace } from "@opentelemetry/api";
+import { Attributes, Span, SpanKind, context, trace } from "@opentelemetry/api";
 import { getErrorMessage } from "./error";
 
 interface SQLResult {
@@ -42,4 +42,30 @@ export function withDatabaseSpan<T extends Query>(
   };
 
   return query;
+}
+
+export function withStreamSpan<T>(
+  stream: AsyncIterable<T>,
+  spanName: string,
+  attributes?: Attributes // Adjusted type for attributes
+): AsyncIterable<T> {
+  const tracer = trace.getTracer("default");
+  const span = tracer.startSpan(spanName, {
+    attributes: attributes,
+  });
+
+  return {
+    async *[Symbol.asyncIterator]() {
+      try {
+        for await (const item of stream) {
+          yield item;
+        }
+      } catch (error) {
+        span.recordException(getErrorMessage(error));
+        throw error;
+      } finally {
+        span.end();
+      }
+    },
+  };
 }

@@ -1,9 +1,12 @@
 import { eventSourceToAsyncIterable } from "@/lib/event-source";
+import { trace } from "@opentelemetry/api";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { Ollama } from "langchain/llms/ollama";
 import { PromptTemplate } from "langchain/prompts";
 import { StringOutputParser } from "langchain/schema/output_parser";
 import Replicate from "replicate";
+import { getErrorMessage } from "./error";
+import { withStreamSpan } from "./observability";
 
 // Define an abstract class that requires implementers to provide a method for getting a stream
 export abstract class TokenStream<T> {
@@ -37,7 +40,6 @@ export abstract class TokenStream<T> {
     tokens: number
   ): Promise<AsyncIterable<string>> {
     const outputParser = new StringOutputParser();
-
     const chat = new ChatOpenAI({
       temperature: 1,
       maxTokens: tokens,
@@ -45,13 +47,30 @@ export abstract class TokenStream<T> {
     });
     const userMessage = await this.getUserMessage(input);
     const systemMessage = await this.getSystemMessage(input);
-    // console.log({ systemMessage, userMessage });
 
-    const stream = await chat.pipe(outputParser).stream([
-      ["system", systemMessage],
-      ["user", userMessage],
-    ]);
-    return stream as AsyncIterable<string>;
+    // Start a new span for the stream
+    const streamSpan = trace.getTracer("default").startSpan("OpenAIStream");
+
+    try {
+      const rawStream = await chat.pipe(outputParser).stream([
+        ["system", systemMessage],
+        ["user", userMessage],
+      ]);
+
+      return withStreamSpan(
+        rawStream as AsyncIterable<string>,
+        "OpenAIStream",
+        {
+          "kc.systemMessage": systemMessage,
+          "kc.userMessage": userMessage,
+        }
+      );
+    } catch (error) {
+      // Record the error in the span and end it
+      streamSpan.recordException(getErrorMessage(error));
+      streamSpan.end();
+      throw error;
+    }
   }
 
   // Common logic for handling different environments' stream sources
