@@ -15,7 +15,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
-import ClientOnly from "@/components/util/client-only";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -118,6 +117,25 @@ export function PasscodeForm(props: { showGmailLink: boolean; email: string }) {
     [form]
   );
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const inputElement = document.querySelector(
+          "#code"
+        ) as HTMLInputElement | null;
+        if (inputElement) {
+          inputElement.focus();
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -129,11 +147,12 @@ export function PasscodeForm(props: { showGmailLink: boolean; email: string }) {
               <FormLabel>Token</FormLabel>
               <FormControl>
                 <Input
+                  id="code"
                   autoFocus={!showGMailLink}
                   disabled={disabled}
                   onPaste={handleOnPaste}
                   type="text"
-                  placeholder="Enter your 5-digit token"
+                  placeholder="Enter your 5-digit code"
                   {...field}
                   onChange={handleInputChange} // Use the custom onChange handler
                 />
