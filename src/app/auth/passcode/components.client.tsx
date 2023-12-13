@@ -15,8 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
-import { getPlatformInfo } from "@/lib/device";
-import { assert } from "@/lib/utils";
+import ClientOnly from "@/components/util/client-only";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -26,14 +25,13 @@ import {
   useEffect,
   useState,
 } from "react";
-import ClientOnly from "@/components/util/client-only";
 
 // Update the schema to validate a 5-character token
 const formSchema = z.object({
   token: z.string().length(5, { message: "Passcode must be 5 characters" }),
 });
 
-export function PasscodeForm() {
+export function PasscodeForm(props: { showGmailLink: boolean; email: string }) {
   // const router = useRouter();
   const [disabled, setDisabled] = useState(false);
   const params = useSearchParams();
@@ -43,14 +41,14 @@ export function PasscodeForm() {
       token: "",
     },
   });
-  const email = params.get("email");
-  assert(email, "expected email");
+
+  const [showGMailLink, setShowGMailLink] = useState(props.showGmailLink);
 
   const submit = useCallback(
     (token: string) => {
       setDisabled(true);
       const emailCallbackParams = new URLSearchParams({
-        email,
+        email: props.email,
         token: token,
       });
 
@@ -64,16 +62,10 @@ export function PasscodeForm() {
       const url = `/api/auth/callback/email?${emailCallbackParams.toString()}`;
       window.location.href = url;
     },
-    [setDisabled, params, email]
+    [setDisabled, params, props.email]
   );
 
   const GmailLink = () => {
-    const platformInfo = getPlatformInfo(navigator.userAgent);
-    const isGmail = email.endsWith("gmail.com");
-    const showGMailLinkInitially = platformInfo.isIOSSafari && isGmail;
-
-    const [showGMailLink, setShowGMailLink] = useState(showGMailLinkInitially);
-
     useEffect(() => {
       const handleTabBlur = () => setShowGMailLink(false);
       window.addEventListener("blur", handleTabBlur);
@@ -82,14 +74,14 @@ export function PasscodeForm() {
       return () => {
         window.removeEventListener("blur", handleTabBlur);
       };
-    }, [setShowGMailLink]);
+    }, []);
 
     if (!showGMailLink) {
       return null;
     }
 
     return (
-      <Link href="googlegmail://" className="mt-3">
+      <Link href="googlegmail://">
         <Button type="button" variant="secondary" className="w-full" size="lg">
           Open Gmail App
         </Button>
@@ -137,7 +129,7 @@ export function PasscodeForm() {
               <FormLabel>Token</FormLabel>
               <FormControl>
                 <Input
-                  autoFocus
+                  autoFocus={!showGMailLink}
                   disabled={disabled}
                   onPaste={handleOnPaste}
                   type="text"
@@ -156,12 +148,17 @@ export function PasscodeForm() {
             </FormItem>
           )}
         />
-        <Button disabled={disabled} type="submit" className="w-full" size="lg">
-          Submit
-        </Button>
-        <ClientOnly>
+        <div className="flex flex-col gap-2">
+          <Button
+            disabled={disabled}
+            type="submit"
+            className="w-full"
+            size="lg"
+          >
+            Submit
+          </Button>
           <GmailLink />
-        </ClientOnly>
+        </div>
       </form>
     </Form>
   );
