@@ -27,7 +27,7 @@ const points = sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTI
 const mediaCount = sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`;
 const scoreExpression = sql<number>`(${points} - 1) / POW((EXTRACT(EPOCH FROM NOW() - ${RecipesTable.createdAt}) / ${oneHourInSeconds} + 2), ${gravity})`;
 
-const getHotRecipesQuery = async (userId?: string) => {
+export const getHotRecipes = async (userId?: string) => {
   // Subquery to get the maximum versionId for each recipe
   const maxVersionSubquery = db
     .select({
@@ -39,7 +39,7 @@ const getHotRecipesQuery = async (userId?: string) => {
     .as("maxVersionSubquery"); // Naming the subquery
 
   // Main query
-  return await db
+  const query = db
     .select({
       id: RecipesTable.id,
       versionId: RecipesTable.versionId, // Include versionId in the selection
@@ -78,18 +78,13 @@ const getHotRecipesQuery = async (userId?: string) => {
       ProfileTable.profileSlug
     )
     .orderBy(desc(scoreExpression))
-    .limit(30)
-    .execute();
+    .limit(30);
+
+  return await withDatabaseSpan(query, "getHotRecipes").execute();
 };
 
-export const getHotRecipes = withDatabaseSpan(
-  getHotRecipesQuery,
-  "GetHotRecipes",
-  { "db.table": "RecipesTable" }
-);
-
 export const getRecipe = async (slug: string) => {
-  return await db
+  const query = db
     .select({
       id: RecipesTable.id,
       versionId: RecipesTable.versionId,
@@ -109,13 +104,15 @@ export const getRecipe = async (slug: string) => {
     })
     .from(RecipesTable)
     .innerJoin(ProfileTable, eq(RecipesTable.createdBy, ProfileTable.userId))
-    .where(eq(RecipesTable.slug, slug))
+    .where(eq(RecipesTable.slug, slug));
+
+  return await withDatabaseSpan(query, "getRecipe")
     .execute()
     .then((res) => res[0]);
 };
 
 export const getSortedMediaForRecipe = async (recipeSlug: string) => {
-  return await db
+  const query = db
     .select({
       id: MediaTable.id,
       url: MediaTable.url,
@@ -129,23 +126,27 @@ export const getSortedMediaForRecipe = async (recipeSlug: string) => {
     .innerJoin(RecipesTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
     .where(eq(RecipesTable.slug, recipeSlug))
     .orderBy(RecipeMediaTable.sortOrder)
-    .limit(10) // Limit the number of media items
-    .execute();
+    .limit(10);
+
+  return await withDatabaseSpan(query, "getSortedMediaForRecipe").execute();
 };
 
 export const getMediaCountForRecipe = async (slug: string) => {
-  const result = await db
+  const query = db
     .select({ value: count() }) // Using count() to count the number of rows
     .from(RecipeMediaTable)
     .innerJoin(RecipesTable, eq(RecipesTable.slug, slug))
-    .where(eq(RecipeMediaTable.recipeId, slug)) // Filtering by recipeSlug
-    .execute();
+    .where(eq(RecipeMediaTable.recipeId, slug)); // Filtering by recipeSlug
 
+  const result = await withDatabaseSpan(
+    query,
+    "getMediaCountForRecipe"
+  ).execute();
   return result[0]?.value;
 };
 
 export const getFirstMediaForRecipe = async (recipeSlug: string) => {
-  return await db
+  const query = db
     .select({
       id: MediaTable.id,
       url: MediaTable.url,
@@ -159,7 +160,9 @@ export const getFirstMediaForRecipe = async (recipeSlug: string) => {
     .innerJoin(RecipesTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
     .where(eq(RecipesTable.slug, recipeSlug))
     .orderBy(RecipeMediaTable.sortOrder)
-    .limit(1) // Limit to the first media item
+    .limit(1); // Limit to the first media item
+
+  return await withDatabaseSpan(query, "getFirstMediaForRecipe")
     .execute()
     .then((res) => res[0]); // Return the first result
 };
@@ -175,8 +178,7 @@ export const getRecentRecipesByUser = async (userId: string) => {
     .groupBy(RecipesTable.id)
     .as("maxVersionSubquery"); // Naming the subquery
 
-  // Main query
-  return await db
+  const query = db
     .select({
       id: RecipesTable.id,
       versionId: RecipesTable.versionId, // Include versionId in the selection
@@ -211,8 +213,9 @@ export const getRecentRecipesByUser = async (userId: string) => {
       RecipesTable.createdAt
     )
     .orderBy(desc(RecipesTable.createdAt))
-    .limit(30)
-    .execute();
+    .limit(30);
+
+  return await withDatabaseSpan(query, "getRecentRecipesByUser").execute();
 };
 
 export const getRecentRecipesByProfile = async (profileSlug: string) => {
@@ -225,7 +228,7 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
     .groupBy(RecipesTable.id)
     .as("maxVersionSubquery"); // Naming the subquery
 
-  return await db
+  const query = db
     .select({
       id: RecipesTable.id,
       versionId: RecipesTable.versionId,
@@ -261,11 +264,11 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
       RecipesTable.totalTime
     )
     .orderBy(desc(RecipesTable.createdAt)) // Order by most recent
-    .limit(30) // Limit the number of results
-    .execute();
+    .limit(30); // Limit the number of results
+  return await withDatabaseSpan(query, "getRecentRecipesByProfile").execute();
 };
 export const getProfileBySlug = async (profileSlug: string) => {
-  return await db
+  const query = db
     .select({
       profileSlug: ProfileTable.profileSlug,
       activated: ProfileTable.activated,
@@ -274,7 +277,8 @@ export const getProfileBySlug = async (profileSlug: string) => {
       createdAt: ProfileTable.createdAt,
     })
     .from(ProfileTable)
-    .where(eq(ProfileTable.profileSlug, profileSlug)) // Filter by the given profile slug
+    .where(eq(ProfileTable.profileSlug, profileSlug)); // Filter by the given profile slug
+  return await withDatabaseSpan(query, "getProfileBySlug")
     .execute()
     .then((res) => res[0]); // Return the first (and expectedly only) result
 };
@@ -291,7 +295,7 @@ export const getRecipesByTag = async (tag: string) => {
     .as("maxVersionSubquery"); // Naming the subquery
 
   // Main query
-  return await db
+  const query = db
     .select({
       id: RecipesTable.id,
       versionId: RecipesTable.versionId, // Include versionId in the selection
@@ -330,8 +334,8 @@ export const getRecipesByTag = async (tag: string) => {
       RecipesTable.createdBy
     )
     .orderBy(desc(RecipesTable.createdAt)) // Or any other order you prefer
-    .limit(30)
-    .execute();
+    .limit(30);
+  return await withDatabaseSpan(query, "getRecipesByTag").execute();
 };
 
 export const getRecentRecipes = async () => {
@@ -1091,14 +1095,14 @@ export const getRecipePoints = async (
 ) => {
   const points = sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`;
 
-  const result = await dbOrTransaction
+  const query = dbOrTransaction
     .select({ points })
     .from(RecipesTable)
     .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
     .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
     .where(eq(RecipesTable.slug, recipeSlug))
-    .groupBy(RecipesTable.id) // Grouping by the recipe ID
-    .execute();
+    .groupBy(RecipesTable.id); // Grouping by the recipe ID
 
+  const result = await withDatabaseSpan(query, "getRecipePoints").execute();
   return result[0]?.points || 0;
 };

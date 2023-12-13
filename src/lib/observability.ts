@@ -1,32 +1,38 @@
 import { Span, SpanKind, context, trace } from "@opentelemetry/api";
 import { getErrorMessage } from "./error";
 
-// This function wraps a database query function with an OpenTelemetry span
-export function withDatabaseSpan<T extends (...args: any[]) => Promise<any>>(
-  queryFunction: T, // The database query function to wrap
-  spanName: string, // Name of the span
-  attributes: Record<string, any> = {} // Additional attributes to set on the span
-): (...funcArgs: Parameters<T>) => Promise<ReturnType<T>> {
-  const tracer = trace.getTracer("default");
+interface SQLResult {
+  sql: string;
+  params: unknown[];
+}
 
-  return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
+interface Query {
+  execute: () => Promise<any>;
+  toSQL: () => SQLResult;
+}
+
+export function withDatabaseSpan<T extends Query>(
+  query: T,
+  spanName: string
+): T {
+  const tracer = trace.getTracer("default");
+  const originalExecute = query.execute;
+
+  query.execute = async () => {
     const span: Span = tracer.startSpan(spanName, {
       attributes: {
         "db.system": "postgres",
-        ...attributes,
+        "db.statement": query.toSQL().sql,
       },
       kind: SpanKind.CLIENT,
     });
-
     try {
-      // Execute the original database function within the context of the span
       const result = await context.with(
         trace.setSpan(context.active(), span),
-        () => queryFunction(...args)
+        () => originalExecute()
       );
       return result;
     } catch (error) {
-      // Record the error in the span if the query fails
       span.recordException(getErrorMessage(error));
       throw error;
     } finally {
@@ -34,14 +40,6 @@ export function withDatabaseSpan<T extends (...args: any[]) => Promise<any>>(
       span.end();
     }
   };
+
+  return query;
 }
-
-// Example usage
-// const tracer = trace.getTracer('your-service-name');
-
-// const getMembersBySubscriptionIdTraced = withDatabaseSpan(
-//   tracer,
-//   getMembersBySubscriptionId,
-//   'GetMembersBySubscriptionId',
-//   { 'db.table': 'SubscriptionMembersTable' }
-// );
