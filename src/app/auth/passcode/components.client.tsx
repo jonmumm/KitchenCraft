@@ -15,14 +15,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
+import { getPlatformInfo } from "@/lib/device";
 import { assert } from "@/lib/utils";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   ChangeEventHandler,
   ClipboardEventHandler,
   useCallback,
+  useEffect,
   useState,
 } from "react";
+import ClientOnly from "@/components/util/client-only";
 
 // Update the schema to validate a 5-character token
 const formSchema = z.object({
@@ -62,6 +66,36 @@ export function PasscodeForm() {
     },
     [setDisabled, params, email]
   );
+
+  const GmailLink = () => {
+    const platformInfo = getPlatformInfo(navigator.userAgent);
+    const isGmail = email.endsWith("gmail.com");
+    const showGMailLinkInitially = platformInfo.isIOSSafari && isGmail;
+
+    const [showGMailLink, setShowGMailLink] = useState(showGMailLinkInitially);
+
+    useEffect(() => {
+      const handleTabBlur = () => setShowGMailLink(false);
+      window.addEventListener("blur", handleTabBlur);
+
+      // Clean up the event listeners
+      return () => {
+        window.removeEventListener("blur", handleTabBlur);
+      };
+    }, [setShowGMailLink]);
+
+    if (!showGMailLink) {
+      return null;
+    }
+
+    return (
+      <Link href="googlegmail://">
+        <Button type="button" variant="secondary" className="w-full" size="lg">
+          Open Gmail App
+        </Button>
+      </Link>
+    );
+  };
 
   const handleOnPaste: ClipboardEventHandler<HTMLInputElement> = useCallback(
     (event) => {
@@ -125,6 +159,9 @@ export function PasscodeForm() {
         <Button disabled={disabled} type="submit" className="w-full" size="lg">
           Submit
         </Button>
+        <ClientOnly>
+          <GmailLink />
+        </ClientOnly>
       </form>
     </Form>
   );
