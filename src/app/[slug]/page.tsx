@@ -18,12 +18,23 @@ import { combineLatest, from, map, shareReplay } from "rxjs";
 import { Header } from "../header";
 import { RecipeListItem } from "../recipe/components";
 import { getSession } from "@/lib/auth/session";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogOverlay,
+  ResponsiveDialogTrigger,
+} from "@/components/layout/responsive-dialog";
+import { getUserAgent } from "@/lib/headers";
+import Bowser from "bowser";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
 
 export default async function Page(props: { params: { slug: string } }) {
   const session = await getSession();
   const slug = decodeURIComponent(props.params.slug);
+  const userAgent = getUserAgent();
+  const browser = Bowser.getParser(userAgent);
+  const isMobile = browser.getPlatformType() === "mobile";
 
   const profileParse = ProfileSlugSchema.safeParse(slug);
   if (!profileParse.success) {
@@ -96,8 +107,8 @@ export default async function Page(props: { params: { slug: string } }) {
 
       <div className="w-full max-w-2xl mx-auto p-4 gap-2 flex flex-col mb-8">
         <Card className="py-4">
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-row gap-4 items-center px-4">
+          <div className="flex flex-col sm:flex-row gap-2 px-4">
+            <div className="flex flex-row gap-4 items-center flex-1">
               <Avatar>
                 {/* <AvatarImage src="https://github.com/shadcn.png" /> */}
                 <AvatarFallback>
@@ -105,16 +116,30 @@ export default async function Page(props: { params: { slug: string } }) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col gap-1 flex-1">
-                <h1 className="underline font-bold text-xl">{profileSlug}</h1>
-                <div className="flex flex-row justify-between">
-                  <span className="font-medium text-sm">
-                    +<Points /> 🧪
-                  </span>
+                <div className="flex flex-row gap-1 items-center">
+                  <h1 className="underline font-bold text-xl">{profileSlug}</h1>
+                  <div className="flex flex-row justify-between">
+                    <span className="font-medium text-xl">
+                      (+
+                      <Points /> 🧪)
+                    </span>
+                  </div>
+                </div>
+                <div>
                   <Badge variant="outline">
                     <ClaimDate />
                   </Badge>
                 </div>
               </div>
+            </div>
+            <div className="min-w-0">
+              <ResponsiveDialog isMobile={isMobile}>
+                <ResponsiveDialogTrigger asChild>
+                  <Button className="h-full w-full">Activate Chef Page</Button>
+                </ResponsiveDialogTrigger>
+                <ResponsiveDialogOverlay />
+                <ResponsiveDialogContent>Hello</ResponsiveDialogContent>
+              </ResponsiveDialog>
             </div>
           </div>
         </Card>
