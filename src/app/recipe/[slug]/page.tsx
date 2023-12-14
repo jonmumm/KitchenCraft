@@ -518,7 +518,7 @@ export default async function Page(props: Props) {
             className="w-full relative rounded-b-xl"
             style={{ height: `calc(50vh + 6rem)` }}
           >
-            <Header className="absolute left-0 right-0 top-0 z-20" />
+            <Header showBack={true} className="absolute left-0 right-0 top-0 z-20" />
             <div className="absolute top-24 w-screen left-1/2 transform -translate-x-1/2 flex z-10 justify-center">
               <div className="carousel space-x-2 absolute pr-8">
                 <div className="w-2 h-full carousel-item" />
@@ -570,7 +570,7 @@ export default async function Page(props: Props) {
             </div>
           </div>
         ) : (
-          <Header />
+          <Header showBack={true} />
         )}
         <div className="flex flex-col gap-2 max-w-xl mx-auto">
           <Card className="flex flex-col gap-2 pb-5 mx-3">

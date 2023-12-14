@@ -1,3 +1,4 @@
+import Bowser from "bowser";
 import { headers } from "next/headers";
 
 export const getOrigin = () => {
@@ -14,4 +15,16 @@ export const getOrigin = () => {
 export const getUserAgent = () => {
   const headersList = headers();
   return headersList.get("user-agent")!;
+};
+
+export const getBrowser = () => {
+  const userAgent = getUserAgent();
+  return Bowser.getParser(userAgent);
+};
+
+export const getIsMacDesktop = () => {
+  return (
+    getBrowser().getPlatformType() === "desktop" &&
+    getBrowser().getOSName() === "macOS"
+  );
 };

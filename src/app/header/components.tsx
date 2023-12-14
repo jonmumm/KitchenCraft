@@ -1,3 +1,4 @@
+import { Badge } from "@/components/display/badge";
 import { Button } from "@/components/input/button";
 import {
   Sheet,
@@ -12,12 +13,28 @@ import {
   getProfileByUserId,
 } from "@/db/queries";
 import { getSession } from "@/lib/auth/session";
+import { getIsMacDesktop, getUserAgent } from "@/lib/headers";
 import { cn } from "@/lib/utils";
-import { ChevronRightIcon, GripVerticalIcon } from "lucide-react";
+import {
+  ArrowBigLeftIcon,
+  ArrowLeftIcon,
+  ChevronRightIcon,
+  CommandIcon,
+  GripVerticalIcon,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { Observable, from, map, of, shareReplay } from "rxjs";
 
-export async function Header({ className }: { className?: string }) {
+export async function Header({
+  className,
+  showBack,
+}: {
+  className?: string;
+  showBack?: boolean;
+}) {
+
+  console.log(showBack);
   return (
     <div
       className={cn(
@@ -26,19 +43,27 @@ export async function Header({ className }: { className?: string }) {
       )}
     >
       <div>
-        <Sheet>
-          <SheetTrigger asChild>
+        {showBack ? (
+          <Link href="/">
             <Button variant="ghost">
-              <GripVerticalIcon
-              // className={isPopoverOpen ? "transform rotate-90" : ""}
-              />
+              <ArrowLeftIcon />
             </Button>
-          </SheetTrigger>
-          <SheetOverlay />
-          <SheetContent side="left" className="w-80 flex flex-col gap-4 p-3">
-            <MainMenu />
-          </SheetContent>
-        </Sheet>
+          </Link>
+        ) : (
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost">
+                <GripVerticalIcon
+                // className={isPopoverOpen ? "transform rotate-90" : ""}
+                />
+              </Button>
+            </SheetTrigger>
+            <SheetOverlay />
+            <SheetContent side="left" className="w-80 flex flex-col gap-4 p-3">
+              <MainMenu />
+            </SheetContent>
+          </Sheet>
+        )}
       </div>
 
       <Button
@@ -56,6 +81,10 @@ export async function Header({ className }: { className?: string }) {
             <span>tags</span>
           </div>
         </div>
+        {getIsMacDesktop() && <Badge variant="secondary" className="mr-12">
+          <CommandIcon size={14} />
+          <span style={{ fontSize: "14px" }}>K</span>
+        </Badge>}
         <Image
           className="absolute right-0 h-full w-auto cursor-pointer"
           alt="KitchenCraft App Icon"
