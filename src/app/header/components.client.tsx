@@ -4,6 +4,7 @@ import { Button } from "@/components/input/button";
 import { getPlatformInfo } from "@/lib/device";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
@@ -19,12 +20,17 @@ export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   return !installed ? <>{children}</> : <></>;
 };
 
-export const BrowserBackButton = ({
+// Once the client loads, we rely on browser back calls instead of
+// form action post to calculate back
+export const BackButton = ({
   handleBack,
+  hasHistory,
 }: {
   handleBack: () => Promise<void>;
+  hasHistory: boolean;
 }) => {
   const [showLink, setShowLink] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     setShowLink(false);
@@ -35,7 +41,11 @@ export const BrowserBackButton = ({
       variant="ghost"
       type="submit"
       onClick={() => {
-        !showLink && window.history.back();
+        if (hasHistory) {
+          router.back();
+        } else {
+          router.push("/");
+        }
       }}
     >
       <ArrowLeftIcon />

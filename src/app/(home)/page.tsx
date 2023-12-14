@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/auth/session";
+import { Tabs, TabsList, TabsTrigger } from "@/components/navigation/tabs";
 import { getHotRecipes } from "../../db/queries";
 import { RecipeListItem } from "../recipe/components";
 

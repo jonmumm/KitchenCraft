@@ -8,6 +8,10 @@ import {
 } from "@/components/layout/sheet";
 import { MainMenu } from "@/components/modules/main-menu";
 import { env } from "@/env.public";
+import {
+  getDeviceSessionId,
+  getDeviceSessionPayload,
+} from "@/lib/device-session";
 import { getIsMacDesktop, getReferer } from "@/lib/headers";
 import { cn } from "@/lib/utils";
 import {
@@ -18,8 +22,13 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { BrowserBackButton } from "./components.client";
 import { redirect } from "next/navigation";
+import { BackButton } from "./components.client";
+import { TypeLogo } from "@/components/logo";
+
+const getLastUrl = async (deviceSessionId: string) => {
+  return "/";
+};
 
 export async function Header({
   className,
@@ -30,6 +39,14 @@ export async function Header({
 }) {
   const referer = getReferer();
   const backPath = referer?.split(env.KITCHENCRAFT_URL)[1] || "/";
+  const hasHistory = !!backPath;
+
+  const back = (async (lastUrl: string) => {
+    "use server";
+    // todo make this smarter based on url segments nesting
+    return redirect(lastUrl);
+  }).bind(null, backPath);
+
   return (
     <div
       className={cn(
@@ -39,25 +56,16 @@ export async function Header({
     >
       <div>
         {showBack ? (
-          <>
-            {!referer ? (
-              <Link href="/">
-                <Button variant="ghost">
-                  <ArrowLeftIcon />
-                </Button>
-              </Link>
-            ) : (
-              <BrowserBackButton
-                handleBack={async () => {
-                  "use server";
-                  console.log("BACK BACK BACK");
-                  // get back URL based on history..
-
-                  redirect("/");
-                }}
-              />
-            )}
-          </>
+          <BackButton handleBack={back} hasHistory={hasHistory} />
+        ) : (
+          <div className="w-20">
+            <Link href="/">
+              <TypeLogo />
+            </Link>
+          </div>
+        )}
+        {/* {showBack ? (
+          <BackButton handleBack={back} hasHistory={hasHistory} />
         ) : (
           <Sheet>
             <SheetTrigger asChild>
@@ -72,7 +80,7 @@ export async function Header({
               <MainMenu />
             </SheetContent>
           </Sheet>
-        )}
+        )} */}
       </div>
 
       <Button
@@ -108,7 +116,13 @@ export async function Header({
   );
 }
 
-export async function HeaderLoading({ className }: { className?: string }) {
+export async function HeaderLoading({
+  className,
+  showBack,
+}: {
+  className?: string;
+  showBack?: boolean;
+}) {
   return (
     <div
       className={cn(

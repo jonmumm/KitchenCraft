@@ -1,10 +1,10 @@
 import { Toaster } from "@/components/feedback/toaster";
-import { GoogleAdSense } from "@/components/google-adsense";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { getSession } from "@/lib/auth/session";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import { ReactNode } from "react";
 import "../styles/globals.css";
 import { ApplicationProvider } from "./provider";
@@ -20,10 +20,12 @@ export default async function RootLayout({
   children,
   craft,
   remix,
+  footer,
 }: {
   children: ReactNode;
   craft: ReactNode;
   remix: ReactNode;
+  footer: ReactNode;
 }) {
   const Body = () => {
     return (
@@ -40,6 +42,7 @@ export default async function RootLayout({
           {children}
           {craft}
           {remix}
+          {footer}
         </ThemeProvider>
         <Toaster />
       </body>
@@ -73,7 +76,6 @@ export default async function RootLayout({
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
-        <GoogleAdSense />
       </head>
       <ApplicationProvider session={await getSession()}>
         <Body />
