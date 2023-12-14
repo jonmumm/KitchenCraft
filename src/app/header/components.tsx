@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { BrowserBackButton } from "./components.client";
+import { redirect } from "next/navigation";
 
 export async function Header({
   className,
@@ -27,7 +29,7 @@ export async function Header({
   showBack?: boolean;
 }) {
   const referer = getReferer();
-  const refererPath = referer?.split(env.KITCHENCRAFT_URL)[1];
+  const backPath = referer?.split(env.KITCHENCRAFT_URL)[1] || "/";
   return (
     <div
       className={cn(
@@ -37,11 +39,25 @@ export async function Header({
     >
       <div>
         {showBack ? (
-          <Link href={refererPath ? refererPath : "/"}>
-            <Button variant="ghost">
-              <ArrowLeftIcon />
-            </Button>
-          </Link>
+          <>
+            {!referer ? (
+              <Link href="/">
+                <Button variant="ghost">
+                  <ArrowLeftIcon />
+                </Button>
+              </Link>
+            ) : (
+              <BrowserBackButton
+                handleBack={async () => {
+                  "use server";
+                  console.log("BACK BACK BACK");
+                  // get back URL based on history..
+
+                  redirect("/");
+                }}
+              />
+            )}
+          </>
         ) : (
           <Sheet>
             <SheetTrigger asChild>
