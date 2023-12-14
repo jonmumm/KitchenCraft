@@ -6,25 +6,16 @@ import {
   SheetOverlay,
   SheetTrigger,
 } from "@/components/layout/sheet";
+import { TypeLogo } from "@/components/logo";
 import { MainMenu } from "@/components/modules/main-menu";
 import { env } from "@/env.public";
-import {
-  getDeviceSessionId,
-  getDeviceSessionPayload,
-} from "@/lib/device-session";
 import { getIsMacDesktop, getReferer } from "@/lib/headers";
 import { cn } from "@/lib/utils";
-import {
-  ArrowLeftIcon,
-  ChevronRightIcon,
-  CommandIcon,
-  GripVerticalIcon,
-} from "lucide-react";
+import { ChevronRightIcon, CommandIcon, GripVerticalIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BackButton } from "./components.client";
-import { TypeLogo } from "@/components/logo";
 
 const getLastUrl = async (deviceSessionId: string) => {
   return "/";
@@ -131,7 +122,7 @@ export async function HeaderLoading({
       )}
     >
       <div>
-        <Sheet>
+        {/* <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost">
               <GripVerticalIcon className="animate-spin" />
@@ -141,14 +132,19 @@ export async function HeaderLoading({
           <SheetContent side="left" className="w-80 flex flex-col gap-4 p-3">
             <MainMenu />
           </SheetContent>
-        </Sheet>
+        </Sheet> */}
+        <div className="w-20">
+          <Link href="/" className="animate-pulse">
+            <TypeLogo />
+          </Link>
+        </div>
       </div>
 
       <Button
         disabled
         size="fit"
         variant="ghost"
-        className="relative shadow-lg rounded-full flex flex-row py-2 px-6 gap-3 items-center justify-center border-solid border-2 border-muted cursor-text"
+        className="relative shadow-lg rounded-full flex flex-row py-2 px-6 gap-3 items-center justify-center border-solid border-2 border-muted cursor-text animate-pulse"
       >
         <ChevronRightIcon className="opacity-50" />
         <div className="flex flex-col flex-1 items-start">
