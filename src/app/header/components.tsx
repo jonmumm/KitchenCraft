@@ -1,4 +1,5 @@
 import { Button } from "@/components/input/button";
+import Image from "next/image";
 import {
   Sheet,
   SheetContent,
@@ -86,7 +87,7 @@ export async function Header({ className }: { className?: string }) {
         event={{ type: "NEW_RECIPE" }}
         size="fit"
         variant="ghost"
-        className="shadow-lg rounded-full flex flex-row py-2 px-6 gap-3 items-center justify-center border-solid border-2 border-muted"
+        className="relative shadow-lg rounded-full flex flex-row py-2 px-6 gap-3 items-center justify-center border-solid border-2 border-muted"
       >
         <ChevronRightIcon className="opacity-50" />
         <div className="flex flex-col flex-1 items-start">
@@ -97,6 +98,13 @@ export async function Header({ className }: { className?: string }) {
             <span>tags</span>
           </div>
         </div>
+        <Image
+          className="absolute right-0 h-full w-auto"
+          alt="KitchenCraft App Icon"
+          width={512}
+          height={512}
+          src="/apple-touch-icon.png"
+        />
       </Button>
 
       {/* <div className="flex-1 flex justify-center">
