@@ -16,7 +16,12 @@ import {
 import { getSession } from "@/lib/auth/session";
 import { cn } from "@/lib/utils";
 import Bowser from "bowser";
-import { AxeIcon, GripVerticalIcon } from "lucide-react";
+import {
+  AxeIcon,
+  ChevronRightIcon,
+  ChevronRightSquare,
+  GripVerticalIcon,
+} from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { Observable, from, map, of, shareReplay } from "rxjs";
@@ -56,7 +61,7 @@ export async function Header({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        `w-full flex items-start justify-between p-4 gap-4 hidden-print `,
+        `w-full flex justify-between p-4 gap-4 hidden-print items-center`,
         className
       )}
     >
@@ -77,7 +82,24 @@ export async function Header({ className }: { className?: string }) {
         </Sheet>
       </div>
 
-      <div className="flex-1 flex justify-center">
+      <Button
+        event={{ type: "NEW_RECIPE" }}
+        size="fit"
+        variant="ghost"
+        className="shadow-lg rounded-full flex flex-row py-2 px-6 gap-3 items-center justify-center border-solid border-2 border-muted"
+      >
+        <ChevronRightIcon className="opacity-50" />
+        <div className="flex flex-col flex-1 items-start">
+          <span className="font-semibold text-md">What to make?</span>
+          <div className="flex flex-row gap-1 text-muted-foreground text-xs">
+            <span>ingredients</span>
+            <span>•</span>
+            <span>tags</span>
+          </div>
+        </div>
+      </Button>
+
+      {/* <div className="flex-1 flex justify-center">
         <Link href="/">
           <TypeLogo className="h-16" />
         </Link>
@@ -87,7 +109,7 @@ export async function Header({ className }: { className?: string }) {
         <Button variant="outline" event={{ type: "NEW_RECIPE" }}>
           <AxeIcon />
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }
