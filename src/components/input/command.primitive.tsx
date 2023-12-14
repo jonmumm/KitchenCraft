@@ -313,9 +313,9 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
           };
         },
         filter: () => {
-          return propsRef.current.shouldFilter;
+          return propsRef.current.shouldFilter || false;
         },
-        label: label || props["aria-label"],
+        label: label || props["aria-label"] || "",
         commandRef: ref,
         listId,
         inputId,
