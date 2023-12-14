@@ -13,10 +13,13 @@ export default function LayoutClient(props: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const segment = pathname.split("/")[1];
+  const parseResult = TabSchema.safeParse(segment);
+  const tab = parseResult.success ? parseResult.data : "hot";
+  console.log("LAYOUT CLIENT", segment);
 
   const [store] = useState<HomeStore>(
     map({
-      tab: TabSchema.parse(segment || "hot"),
+      tab,
       timeParam: searchParams.get("t"),
     })
   );
