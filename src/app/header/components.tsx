@@ -122,17 +122,6 @@ export async function HeaderLoading({
       )}
     >
       <div>
-        {/* <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost">
-              <GripVerticalIcon className="animate-spin" />
-            </Button>
-          </SheetTrigger>
-          <SheetOverlay />
-          <SheetContent side="left" className="w-80 flex flex-col gap-4 p-3">
-            <MainMenu />
-          </SheetContent>
-        </Sheet> */}
         <div className="w-20">
           <Link href="/" className="animate-pulse">
             <TypeLogo />

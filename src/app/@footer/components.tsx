@@ -6,7 +6,12 @@ import {
   SheetTrigger,
 } from "@/components/layout/sheet";
 import { MainMenu } from "@/components/modules/main-menu";
-import { ChefHatIcon, GripVerticalIcon, SearchIcon } from "lucide-react";
+import {
+  ChefHatIcon,
+  GripVerticalIcon,
+  SearchIcon,
+  TrophyIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { ReactiveFooter } from "./components.client";
@@ -20,13 +25,13 @@ import { LinkFromFirstValue } from "@/components/util/link-from-first-value";
 export async function Footer({
   currentTab,
 }: {
-  currentTab: "profile" | "explore" | "menu" | null;
+  currentTab: "profile" | "explore" | "menu" | "leaderboard" | null;
 }) {
   const userId = await getUserId();
 
   const profileSlug$ = userId
     ? from(getProfileByUserId(userId)).pipe(
-        map((profile) => profile?.profileSlug)
+        map((profile) => `@${profile?.profileSlug}`)
       )
     : of(undefined);
 
@@ -73,12 +78,20 @@ export async function Footer({
                 fallback={<Skeleton className="w-20 h-6" />}
                 observable={profileSlug$}
                 render={(slug) => {
-                  return <>{slug ? `@${slug}` : "Me"}</>;
+                  return <>{slug ? slug : "Me"}</>;
                 }}
               />
             </FooterTabTitle>
           </Card>
         </LinkFromFirstValue>
+        <Link href="/leaderboard" className="basis-32">
+          <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
+            <TrophyIcon />
+            <FooterTabTitle isActive={currentTab === "leaderboard"}>
+              Leaderboard
+            </FooterTabTitle>
+          </Card>
+        </Link>
         <Sheet>
           <SheetTrigger asChild>
             <Card className="flex flex-col items-center justify-center border-none basis-32 py-2 gap-1 min-w-0">
