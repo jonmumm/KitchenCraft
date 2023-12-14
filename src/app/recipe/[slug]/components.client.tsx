@@ -13,7 +13,7 @@ import { useEventHandler } from "@/hooks/useEventHandler";
 import { assert } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { useStore } from "@nanostores/react";
-import { useCommandState } from "cmdk";
+import { useCommandState } from "@/components/input/command.primitive";
 import { PlusIcon, ShuffleIcon } from "lucide-react";
 import { map } from "nanostores";
 import { useRouter } from "next/navigation";

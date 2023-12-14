@@ -28,7 +28,7 @@ import useDebounce from "@/hooks/useDebounce";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useStore } from "@nanostores/react";
-import { useCommandState } from "cmdk";
+import { useCommandState } from "@/components/input/command.primitive";
 import {
   ArrowLeftRightIcon,
   AxeIcon,
@@ -92,6 +92,7 @@ import {
   selectPromptEmpty,
   selectShowOverlay,
 } from "./selectors";
+import { Textarea } from "@/components/input/textarea";
 
 export const CraftContextProvider = ({
   searchParams,
@@ -164,23 +165,23 @@ export default function CraftCommand() {
 
   return (
     <>
-      <Command shouldFilter={false} className="mb-6">
+      <Command shouldFilter={false}>
         <CraftHeader />
+        <AddedIngredientsSection />
+        <AddedTagsSection />
+        <CraftInput />
+        <Separator />
         <ScrollLockComponent ref={scrollViewRef} active={lockScroll}>
           <NewRecipeActionsGroup />
           <SuggestionsGroup />
 
-          <SubstitutionsGroup />
+          {/* <SubstitutionsGroup />
           <DietaryAlternativesGroup />
           <ScaleActionsGroup />
-          <EquipmentAdaptationsGroup />
+          <EquipmentAdaptationsGroup /> */}
           {/* <IngredientsGroup />
               <TagsGroup /> */}
         </ScrollLockComponent>
-        <Separator />
-        <CraftInput />
-        <AddedIngredientsSection />
-        <AddedTagsSection />
       </Command>
     </>
   );
@@ -621,12 +622,15 @@ const NewRecipeInputtingHeader = () => {
         className="w-12 aspect-square"
         src="/apple-touch-icon.png"
         alt="KitchenCraft Logo"
-        width={44}
-        height={44}
+        width={512}
+        height={512}
       />
-      <div className="flex flex-col gap-1">
-        <CardDescription>
-          Enter ingredients, cooking techniques, descriptions.
+      <div className="flex flex-col gap-2">
+        <div>
+          <Badge variant="outline">Craft Recipe</Badge>
+        </div>
+        <CardDescription className="text-xs">
+          Add ingredients, tags, cooking techniques, descriptions.
         </CardDescription>
       </div>
     </div>

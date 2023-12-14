@@ -18,7 +18,7 @@ import { useEventHandler } from "@/hooks/useEventHandler";
 import { assert } from "@/lib/utils";
 import { AppEvent, RemixEvent } from "@/types";
 import { useStore } from "@nanostores/react";
-import { useCommandState } from "cmdk";
+import { useCommandState } from "@/components/input/command.primitive";
 import {
   ArrowLeftRightIcon,
   MicrowaveIcon,

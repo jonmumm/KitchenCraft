@@ -14,7 +14,7 @@ import {
 } from "@/components/input/command";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useStore } from "@nanostores/react";
-import { useCommandState } from "cmdk";
+import { useCommandState } from "@/components/input/command.primitive";
 import { HelpCircle, ThumbsDown, ThumbsUpIcon } from "lucide-react";
 import { listenKeys } from "nanostores";
 import { usePathname } from "next/navigation";

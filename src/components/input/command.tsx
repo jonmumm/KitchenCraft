@@ -1,7 +1,7 @@
 "use client";
 
 import { DialogProps } from "@radix-ui/react-dialog";
-import { Command as CommandPrimitive, useCommandState } from "cmdk";
+import { Command as CommandPrimitive, useCommandState } from "./command.primitive";
 import {
   ChevronRight,
   Loader2Icon,

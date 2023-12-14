@@ -1,7 +1,6 @@
 // import { useSelector } from "@/hooks/useSelector";
 // import { useSend } from "@/hooks/useSend";
 // import { useChat } from "ai/react";
-// import { CommandLoading } from "cmdk";
 // import { ChevronRightIcon, RefreshCcwIcon } from "lucide-react";
 // import { useCallback, useContext, useEffect, useState } from "react";
 // import { RecipeChatContext } from "./recipe-chat";

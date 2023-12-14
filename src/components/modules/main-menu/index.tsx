@@ -4,7 +4,7 @@ import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Progress } from "@/components/feedback/progress";
 import Image from "next/image";
-
+import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import {
@@ -43,6 +43,7 @@ import {
   NotificationsSetting,
   NotificationsSwitch,
 } from "./notifications-switch";
+import { TypeLogo } from "@/components/logo";
 
 export async function MainMenu({ className }: { className?: string }) {
   const session = await getSession();
@@ -107,6 +108,7 @@ export async function MainMenu({ className }: { className?: string }) {
 
   return (
     <>
+      {canInstallPWA && <SafariInstallPrompt />}
       {!userId && (
         <>
           {canInstallPWA && <AppInstall />}
