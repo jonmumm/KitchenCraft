@@ -12,6 +12,11 @@ export const getOrigin = () => {
   return origin;
 };
 
+export const getReferer = () => {
+  const headersList = headers();
+  return headersList.get("referer");
+};
+
 export const getUserAgent = () => {
   const headersList = headers();
   return headersList.get("user-agent")!;

@@ -7,16 +7,10 @@ import {
   SheetTrigger,
 } from "@/components/layout/sheet";
 import { MainMenu } from "@/components/modules/main-menu";
-import { db } from "@/db";
-import {
-  getActiveSubscriptionForUserId,
-  getProfileByUserId,
-} from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
-import { getIsMacDesktop, getUserAgent } from "@/lib/headers";
+import { env } from "@/env.public";
+import { getIsMacDesktop, getReferer } from "@/lib/headers";
 import { cn } from "@/lib/utils";
 import {
-  ArrowBigLeftIcon,
   ArrowLeftIcon,
   ChevronRightIcon,
   CommandIcon,
@@ -24,7 +18,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Observable, from, map, of, shareReplay } from "rxjs";
 
 export async function Header({
   className,
@@ -33,8 +26,8 @@ export async function Header({
   className?: string;
   showBack?: boolean;
 }) {
-
-  console.log(showBack);
+  const referer = getReferer();
+  const refererPath = referer?.split(env.KITCHENCRAFT_URL)[1];
   return (
     <div
       className={cn(
@@ -44,7 +37,7 @@ export async function Header({
     >
       <div>
         {showBack ? (
-          <Link href="/">
+          <Link href={refererPath ? refererPath : "/"}>
             <Button variant="ghost">
               <ArrowLeftIcon />
             </Button>
@@ -81,10 +74,12 @@ export async function Header({
             <span>tags</span>
           </div>
         </div>
-        {getIsMacDesktop() && <Badge variant="secondary" className="mr-12">
-          <CommandIcon size={14} />
-          <span style={{ fontSize: "14px" }}>K</span>
-        </Badge>}
+        {getIsMacDesktop() && (
+          <Badge variant="secondary" className="mr-12">
+            <CommandIcon size={14} />
+            <span style={{ fontSize: "14px" }}>K</span>
+          </Badge>
+        )}
         <Image
           className="absolute right-0 h-full w-auto cursor-pointer"
           alt="KitchenCraft App Icon"
