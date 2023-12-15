@@ -29,13 +29,13 @@ export async function Header({
   showBack?: boolean;
 }) {
   const referer = getReferer();
-  const backPath = referer?.split(env.KITCHENCRAFT_URL)[1] || "/";
+  const backPath = referer?.split(env.KITCHENCRAFT_URL)[1];
   const hasHistory = !!backPath;
 
-  const back = (async (lastUrl: string) => {
+  const back = (async (lastUrl?: string) => {
     "use server";
     // todo make this smarter based on url segments nesting
-    return redirect(lastUrl);
+    return redirect(lastUrl || "/");
   }).bind(null, backPath);
 
   return (
