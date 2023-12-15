@@ -14,7 +14,6 @@ import { getSession } from "@/lib/auth/session";
 import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Header } from "../header";
 
 export default async function Page() {
   const session = await getSession();
@@ -42,9 +41,6 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="max-w-2xl mx-auto w-full">
-        <Header />
-      </div>
       <div className="flex flex-col gap-8">
         {!activeSubscription ? (
           <>

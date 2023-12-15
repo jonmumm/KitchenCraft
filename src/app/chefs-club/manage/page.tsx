@@ -1,4 +1,3 @@
-import { Header } from "@/app/header";
 import Image from "next/image";
 import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
@@ -146,9 +145,6 @@ export default async function Page() {
   return (
     <>
       <div className="relative">
-        <div className="max-w-2xl mx-auto flex flex-col gap-4">
-          <Header />
-        </div>
         <div className="w-full z-20 text-white bottom-10 sm:bottom-16 absolute text-center">
           <h1 className="font-semibold text-xl">Manage Family & Friends</h1>
           <p className="text-sm">

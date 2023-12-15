@@ -6,14 +6,10 @@ import { slugToSentence } from "@/lib/utils";
 import { Badge } from "@/components/display/badge";
 import { Avatar, AvatarFallback } from "@/components/display/avatar";
 import { Card } from "@/components/display/card";
-import { Header } from "../header";
 
 export default function Page() {
   return (
     <>
-      <div className="max-w-2xl mx-auto">
-        <Header />
-      </div>
       <div className="flex flex-col gap-3 max-w-2xl mx-auto justify-center">
         <Suspense fallback={<AwardListLoading itemCount={awardList.length} />}>
           <AwardCarousel />

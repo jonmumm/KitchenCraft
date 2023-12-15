@@ -7,14 +7,10 @@ import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import awardList from "../../data/awards.json";
-import { Header } from "../header";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <>
-      <div className="max-w-7xl w-full mx-auto">
-        <Header />
-      </div>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1 w-full p-4">
           <Card className="flex flex-col pb-1 w-full max-w-2xl mx-auto">

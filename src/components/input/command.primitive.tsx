@@ -1109,9 +1109,9 @@ function useValue(
       }
     })();
 
-    assert(value, "expected value");
-    context.value(id, value);
-    ref.current?.setAttribute(VALUE_ATTR, value);
+    // assert(value, "expected value");
+    context.value(id, value!);
+    ref.current?.setAttribute(VALUE_ATTR, value!);
     valueRef.current = value;
   });
 

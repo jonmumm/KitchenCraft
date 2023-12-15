@@ -34,10 +34,6 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col">
-      <div className="max-w-2xl w-full mx-auto">
-        <Header />
-      </div>
-
       <div className="max-w-2xl mx-auto w-full px-4">
         <Card className="w-full mb-8">
           <div className="p-6 flex flex-col gap-3">

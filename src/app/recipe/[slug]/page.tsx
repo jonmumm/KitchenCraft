@@ -1,4 +1,3 @@
-import { Header } from "@/app/header";
 import { Card } from "@/components/display/card";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import Image from "next/image";
@@ -516,10 +515,9 @@ export default async function Page(props: Props) {
         {mediaList.length ? (
           <div
             className="w-full relative rounded-b-xl"
-            style={{ height: `calc(50vh + 6rem)` }}
+            style={{ height: `50vh` }}
           >
-            <Header showBack={true} className="absolute left-0 right-0 top-0 z-20" />
-            <div className="absolute top-24 w-screen left-1/2 transform -translate-x-1/2 flex z-10 justify-center">
+            <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 flex z-10 justify-center">
               <div className="carousel space-x-2 absolute pr-8">
                 <div className="w-2 h-full carousel-item" />
                 {mediaList.map((media, index) => {
@@ -569,9 +567,7 @@ export default async function Page(props: Props) {
               </div>
             </div>
           </div>
-        ) : (
-          <Header showBack={true} />
-        )}
+        ) : null}
         <div className="flex flex-col gap-2 max-w-xl mx-auto">
           <Card className="flex flex-col gap-2 pb-5 mx-3">
             <div className="flex flex-row gap-3 p-5 justify-between">

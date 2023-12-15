@@ -46,9 +46,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
 
   return (
     <LayoutClient>
-      <div className="max-w-7xl mx-auto">
-        <Header />
-      </div>
       <div className="flex flex-col gap-3">
         {userId && (
           <div className="flex flex-col gap-1 w-full">

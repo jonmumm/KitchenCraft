@@ -24,13 +24,14 @@ import {
   useEffect,
   useState,
 } from "react";
+import { ExternalLinkIcon } from "lucide-react";
 
 // Update the schema to validate a 5-character token
 const formSchema = z.object({
   token: z.string().length(5, { message: "Passcode must be 5 characters" }),
 });
 
-export function PasscodeForm(props: { showGmailLink: boolean; email: string }) {
+export function PasscodeForm(props: { gmailLink?: string; email: string }) {
   // const router = useRouter();
   const [disabled, setDisabled] = useState(false);
   const params = useSearchParams();
@@ -41,7 +42,7 @@ export function PasscodeForm(props: { showGmailLink: boolean; email: string }) {
     },
   });
 
-  const [showGMailLink, setShowGMailLink] = useState(props.showGmailLink);
+  const [showGMailLink, setShowGMailLink] = useState(!!props.gmailLink);
 
   const submit = useCallback(
     (token: string) => {
@@ -75,14 +76,20 @@ export function PasscodeForm(props: { showGmailLink: boolean; email: string }) {
       };
     }, []);
 
-    if (!showGMailLink) {
+    if (!props.gmailLink || !showGMailLink) {
       return null;
     }
 
     return (
-      <Link href="googlegmail://">
-        <Button type="button" variant="secondary" className="w-full" size="lg">
-          Open Gmail App
+      <Link href={props.gmailLink} target="_blank">
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full flex flex-row items-center-justify-center gap-1"
+          size="lg"
+        >
+          <span>Open Gmail</span>
+          <ExternalLinkIcon size={14} />
         </Button>
       </Link>
     );

@@ -3,6 +3,12 @@ import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogOverlay,
+  ResponsiveDialogTrigger,
+} from "@/components/layout/responsive-dialog";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
 import {
@@ -10,22 +16,15 @@ import {
   getProfileLifetimePoints,
   getRecentRecipesByProfile,
 } from "@/db/queries";
+import { getSession } from "@/lib/auth/session";
+import { getUserAgent } from "@/lib/headers";
 import { formatJoinDateStr } from "@/lib/utils";
 import { ProfileSlugSchema } from "@/schema";
+import Bowser from "bowser";
 import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 import { combineLatest, from, map, shareReplay } from "rxjs";
-import { Header } from "../header";
 import { RecipeListItem } from "../recipe/components";
-import { getSession } from "@/lib/auth/session";
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogOverlay,
-  ResponsiveDialogTrigger,
-} from "@/components/layout/responsive-dialog";
-import { getUserAgent } from "@/lib/headers";
-import Bowser from "bowser";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
 
@@ -101,10 +100,6 @@ export default async function Page(props: { params: { slug: string } }) {
 
   return (
     <div className="flex flex-col">
-      <div className="max-w-7xl w-full mx-auto">
-        <Header />
-      </div>
-
       <div className="w-full max-w-2xl mx-auto p-4 gap-2 flex flex-col mb-8">
         <Card className="py-4">
           <div className="flex flex-col sm:flex-row gap-2 px-4">

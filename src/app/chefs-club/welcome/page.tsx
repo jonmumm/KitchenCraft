@@ -1,4 +1,3 @@
-import { Header } from "@/app/header";
 import { Label } from "@/components/display/label";
 import { Button } from "@/components/input/button";
 import { db } from "@/db";
@@ -29,9 +28,6 @@ export default async function Page() {
 
   return (
     <div>
-      <div className="max-w-2xl mx-auto w-full">
-        <Header />
-      </div>
       <div className="relative">
         <div className="w-full z-20 text-white bottom-10 sm:bottom-16 absolute text-center">
           <h1 className="font-semibold text-xl">Welcome to the club</h1>

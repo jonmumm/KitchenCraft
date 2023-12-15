@@ -21,11 +21,13 @@ export default async function RootLayout({
   craft,
   remix,
   footer,
+  header,
 }: {
   children: ReactNode;
   craft: ReactNode;
   remix: ReactNode;
   footer: ReactNode;
+  header: ReactNode;
 }) {
   const Body = () => {
     return (
@@ -39,10 +41,13 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {header}
           {children}
+          {footer}
+
+          {/* Sheets/Dialogs */}
           {craft}
           {remix}
-          {footer}
         </ThemeProvider>
         <Toaster />
       </body>

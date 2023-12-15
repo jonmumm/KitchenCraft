@@ -8,7 +8,6 @@ import {
   ChefHatIcon,
   ChevronRightIcon,
   CommandIcon,
-  GripIcon,
   GripVerticalIcon,
   TrophyIcon,
 } from "lucide-react";
@@ -16,8 +15,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BackButton } from "./components.client";
-import { Card } from "@/components/display/card";
-import { Avatar, AvatarFallback } from "@/components/display/avatar";
 
 const getLastUrl = async (deviceSessionId: string) => {
   return "/";
@@ -39,52 +36,53 @@ export async function Header({
     // todo make this smarter based on url segments nesting
     return redirect(lastUrl || "/");
   }).bind(null, backPath);
-  
 
   return (
-    <div
-      className={cn(
-        `w-full flex justify-between p-4 gap-4 hidden-print items-center`,
-        className
-      )}
-    >
-      <div>
-        {showBack ? (
-          <BackButton handleBack={back} hasHistory={hasHistory} />
-        ) : (
-          <div className="w-20">
-            <Link href="/">
-              <TypeLogo />
-            </Link>
-          </div>
+    <div className="max-w-7xl mx-auto">
+      <div
+        className={cn(
+          `w-full flex justify-between p-4 gap-4 hidden-print items-center`,
+          className
         )}
-      </div>
-      <CraftCTA />
-      <Link href="/@inspectorT" className="hidden lg:block">
-        <div className="flex flex-row gap-1 items-center">
-          <div className="flex flex-row gap-1">
-            <Badge
-              variant="outline"
-              className="text-lg font-semibold flex flex-row gap-1"
-            >
-              <ChefHatIcon />
-              <span>inspectorT</span>
-            </Badge>
-          </div>
+      >
+        <div>
+          {showBack ? (
+            <BackButton handleBack={back} hasHistory={hasHistory} />
+          ) : (
+            <div className="w-20">
+              <Link href="/">
+                <TypeLogo />
+              </Link>
+            </div>
+          )}
         </div>
-      </Link>
-      <Link href="/leaderboard" className="hidden lg:block">
-        <Button variant="ghost">
-          <TrophyIcon />
-        </Button>
-      </Link>
-      <Link href="/menu" className="hidden lg:block">
-        <Button variant="ghost" className="hidden lg:block">
-          <GripVerticalIcon />
-        </Button>
-      </Link>
-      {/* <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
+        <CraftCTA />
+        <Link href="/@inspectorT" className="hidden lg:block">
+          <div className="flex flex-row gap-1 items-center">
+            <div className="flex flex-row gap-1">
+              <Badge
+                variant="outline"
+                className="text-lg font-semibold flex flex-row gap-1"
+              >
+                <ChefHatIcon />
+                <span>inspectorT</span>
+              </Badge>
+            </div>
+          </div>
+        </Link>
+        <Link href="/leaderboard" className="hidden lg:block">
+          <Button variant="ghost">
+            <TrophyIcon />
+          </Button>
+        </Link>
+        <Link href="/menu" className="hidden lg:block">
+          <Button variant="ghost" className="hidden lg:block">
+            <GripVerticalIcon />
+          </Button>
+        </Link>
+        {/* <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
       </Card> */}
+      </div>
     </div>
   );
 }

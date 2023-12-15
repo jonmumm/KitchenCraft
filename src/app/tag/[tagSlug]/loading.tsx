@@ -1,6 +1,5 @@
 import { RecipeListItemLoading } from "@/app/recipe/components";
 
-import { Header } from "@/app/header";
 import { Card } from "@/components/display/card";
 import { slugToSentence } from "@/lib/utils";
 import { TagIcon } from "lucide-react";
@@ -10,10 +9,6 @@ export default function Loading(props: { params: { tagSlug: string } }) {
 
   return (
     <div className="flex flex-col">
-      <div className="max-w-2xl w-full mx-auto">
-        <Header />
-      </div>
-
       <div className="w-full max-w-2xl mx-auto p-4">
         <Card className="py-2">
           <div className="flex flex-col gap-2">

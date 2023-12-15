@@ -1,4 +1,3 @@
-import { Header } from "@/app/header";
 import { Card } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { ChefHatIcon } from "lucide-react";
@@ -11,7 +10,6 @@ type Props = {
 export default async function Page({ params }: Props) {
   return (
     <div className="max-w-2xl mx-auto flex flex-col items-center">
-      <Header />
 
       <div className="px-4 w-full flex flex-col gap-4">
         <Card className="py-3 w-full">
