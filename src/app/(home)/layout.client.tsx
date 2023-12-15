@@ -15,7 +15,6 @@ export default function LayoutClient(props: { children: ReactNode }) {
   const segment = pathname.split("/")[1];
   const parseResult = TabSchema.safeParse(segment);
   const tab = parseResult.success ? parseResult.data : "hot";
-  console.log("LAYOUT CLIENT", segment);
 
   const [store] = useState<HomeStore>(
     map({

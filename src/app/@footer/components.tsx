@@ -88,7 +88,7 @@ export async function Footer({
           <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
             <TrophyIcon />
             <FooterTabTitle isActive={currentTab === "leaderboard"}>
-              Leaderboard
+              Top Chefs
             </FooterTabTitle>
           </Card>
         </Link>
