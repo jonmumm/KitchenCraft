@@ -22,6 +22,7 @@ import {
   shareReplay,
   take,
 } from "rxjs";
+import { LinkFromFirstValue } from "@/components/util/link-from-first-value";
 
 export function CraftingDetails({
   createdAt,
@@ -34,6 +35,7 @@ export function CraftingDetails({
     shareReplay(1),
     filter(notUndefined)
   );
+  const profileSlug$ = profile$.pipe(map((p) => `/@${p.profileSlug}`));
   const points$ = from(getUserLifetimePoints(createdBy)).pipe(shareReplay(1));
 
   const date = new Date(createdAt);
@@ -48,7 +50,11 @@ export function CraftingDetails({
         Crafted By
       </Label>
 
-      <Link href="/@inspectorT" className="flex flex-row gap-1 items-center">
+      <LinkFromFirstValue
+        className="flex flex-row gap-1 items-center"
+        observable={profileSlug$}
+        fallbackUrl={"/"}
+      >
         <Badge variant="outline">
           <h3 className="font-bold text-xl">
             <div className="flex flex-col gap-1 items-center">
@@ -60,7 +66,7 @@ export function CraftingDetails({
                       <RenderFirstValue
                         observable={profile$}
                         render={(profile) => {
-                          return <>@{profile.profileSlug}</>;
+                          return <>{profile.profileSlug}</>;
                         }}
                       />
                     </Suspense>
@@ -78,7 +84,7 @@ export function CraftingDetails({
           />{" "}
           🧪)
         </span>
-      </Link>
+      </LinkFromFirstValue>
       <Label className="text-muted-foreground uppercase text-xs">
         {formattedDate.split(" at ").join(" @ ")}
       </Label>

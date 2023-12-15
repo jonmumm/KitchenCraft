@@ -1,33 +1,22 @@
 import { Card } from "@/components/display/card";
-import {
-  Sheet,
-  SheetContent,
-  SheetOverlay,
-  SheetTrigger,
-} from "@/components/layout/sheet";
-import { MainMenu } from "@/components/modules/main-menu";
-import {
-  ChefHatIcon,
-  GripVerticalIcon,
-  SearchIcon,
-  TrophyIcon,
-} from "lucide-react";
+import { Skeleton } from "@/components/display/skeleton";
+import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
+import { LinkFromFirstValue } from "@/components/util/link-from-first-value";
+import { getProfileByUserId } from "@/db/queries";
+import { getCurrentUserId } from "@/lib/auth/session";
+import { ChefHatIcon, SearchIcon, TrophyIcon } from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { ReactiveFooter } from "./components.client";
-import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
-import { Skeleton } from "@/components/display/skeleton";
 import { from, map, of } from "rxjs";
-import { getProfileByUserId } from "@/db/queries";
-import { getSession, getUserId } from "@/lib/auth/session";
-import { LinkFromFirstValue } from "@/components/util/link-from-first-value";
+import { ReactiveFooter } from "./components.client";
 
 export async function Footer({
   currentTab,
 }: {
   currentTab: "profile" | "explore" | "menu" | "leaderboard" | null;
 }) {
-  const userId = await getUserId();
+  console.log(currentTab);
+  const userId = await getCurrentUserId();
 
   const profileSlug$ = userId
     ? from(getProfileByUserId(userId)).pipe(
@@ -68,7 +57,7 @@ export async function Footer({
         </Link>
         <LinkFromFirstValue
           observable={profileSlug$}
-          fallbackUrl={"/sign-up"}
+          fallbackUrl={"/me"}
           className="basis-32 min-w-0"
         >
           <Card className="flex flex-col items-center justify-center border-none py-2 px-2 gap-1">
@@ -78,7 +67,7 @@ export async function Footer({
                 fallback={<Skeleton className="w-20 h-6" />}
                 observable={profileSlug$}
                 render={(slug) => {
-                  return <>{slug ? slug : "Me"}</>;
+                  return <>{slug ? slug : "My Recipes"}</>;
                 }}
               />
             </FooterTabTitle>
@@ -90,12 +79,6 @@ export async function Footer({
             <FooterTabTitle isActive={currentTab === "leaderboard"}>
               Top Chefs
             </FooterTabTitle>
-          </Card>
-        </Link>
-        <Link href="/menu" className="basis-32">
-          <Card className="flex flex-col items-center justify-center border-none basis-32 py-2 gap-1 min-w-0">
-            <GripVerticalIcon />
-            <FooterTabTitle isActive={currentTab === "menu"}>Menu</FooterTabTitle>
           </Card>
         </Link>
       </div>

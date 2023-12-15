@@ -1,4 +1,3 @@
-import { Header } from "@/app/header";
 import { RecipeListItem } from "@/app/recipe/components";
 import { Card } from "@/components/display/card";
 import { getRecipesByTag } from "@/db/queries";

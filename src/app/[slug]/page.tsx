@@ -12,24 +12,33 @@ import {
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
 import {
+  getCurrentVersionId,
   getProfileBySlug,
   getProfileLifetimePoints,
   getRecentRecipesByProfile,
 } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
+import { getCurrentUserId, getSession } from "@/lib/auth/session";
 import { getUserAgent } from "@/lib/headers";
 import { formatJoinDateStr } from "@/lib/utils";
 import { ProfileSlugSchema } from "@/schema";
 import Bowser from "bowser";
-import { ChefHatIcon } from "lucide-react";
+import { ChefHatIcon, MoreVerticalIcon } from "lucide-react";
 import Link from "next/link";
 import { combineLatest, from, map, shareReplay } from "rxjs";
 import { RecipeListItem } from "../recipe/components";
+import { redirect } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/input/dropdown-menu";
+import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
 
 export default async function Page(props: { params: { slug: string } }) {
-  const session = await getSession();
+  const currentUserId = await getCurrentUserId();
   const slug = decodeURIComponent(props.params.slug);
   const userAgent = getUserAgent();
   const browser = Bowser.getParser(userAgent);
@@ -37,7 +46,7 @@ export default async function Page(props: { params: { slug: string } }) {
 
   const profileParse = ProfileSlugSchema.safeParse(slug);
   if (!profileParse.success) {
-    return <>Error parsing URL for slug</>;
+    redirect("/");
   }
   const profileSlug = profileParse.data.slice(1);
 
@@ -49,7 +58,7 @@ export default async function Page(props: { params: { slug: string } }) {
 
   const claimDate$ = profile$.pipe(map((profile) => profile?.createdAt));
   const isOwner$ = profile$.pipe(
-    map((profile) => profile?.userId === session?.user.id)
+    map((profile) => profile?.userId === currentUserId)
   );
   // const is
 
@@ -111,14 +120,30 @@ export default async function Page(props: { params: { slug: string } }) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col gap-1 flex-1">
-                <div className="flex flex-row gap-1 items-center">
+                <div className="flex flex-row gap-1 items-center justify-between">
                   <h1 className="underline font-bold text-xl">{profileSlug}</h1>
-                  <div className="flex flex-row justify-between">
-                    <span className="font-medium text-xl">
-                      (+
-                      <Points /> 🧪)
-                    </span>
-                  </div>
+                  <AsyncRenderFirstValue
+                    observable={isOwner$}
+                    render={(isOwner) => {
+                      return isOwner ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost">
+                              <MoreVerticalIcon />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>
+                              <Link href="/api/auth/signout">
+                                Sign Out
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : null;
+                    }}
+                    fallback={undefined}
+                  />
                 </div>
                 <div>
                   <Badge variant="outline">

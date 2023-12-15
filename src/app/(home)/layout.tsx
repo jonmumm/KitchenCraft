@@ -12,7 +12,6 @@ import { ChevronRightIcon, TimerIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
-import { Header } from "../header";
 // import {
 //   RecipeDescription,
 //   RecipeLink,

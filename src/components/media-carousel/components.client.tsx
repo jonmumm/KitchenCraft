@@ -1,6 +1,5 @@
 "use client";
 
-import { Header } from "@/app/header";
 import Image from "next/image";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 

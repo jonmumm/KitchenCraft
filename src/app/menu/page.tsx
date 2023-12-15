@@ -1,4 +1,3 @@
-import { Header } from "../header";
 import { MainMenu } from "./components";
 
 export default async function Page() {

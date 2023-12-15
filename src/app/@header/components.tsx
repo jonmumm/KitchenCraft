@@ -8,13 +8,14 @@ import {
   ChefHatIcon,
   ChevronRightIcon,
   CommandIcon,
-  GripVerticalIcon,
   TrophyIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BackButton } from "./components.client";
+import { getProfileByUserId } from "@/db/queries";
+import { getCurrentUserId } from "@/lib/auth/session";
 
 const getLastUrl = async (deviceSessionId: string) => {
   return "/";
@@ -30,6 +31,8 @@ export async function Header({
   const referer = getReferer();
   const backPath = referer?.split(env.KITCHENCRAFT_URL)[1];
   const hasHistory = !!backPath;
+  const userId = await getCurrentUserId();
+  const profile = userId ? await getProfileByUserId(userId) : undefined;
 
   const back = (async (lastUrl?: string) => {
     "use server";
@@ -57,28 +60,25 @@ export async function Header({
           )}
         </div>
         <CraftCTA />
-        <Link href="/@inspectorT" className="hidden lg:block">
-          <div className="flex flex-row gap-1 items-center">
-            <div className="flex flex-row gap-1">
-              <Badge
-                variant="outline"
-                className="text-lg font-semibold flex flex-row gap-1"
-              >
-                <ChefHatIcon />
-                <span>inspectorT</span>
-              </Badge>
-            </div>
-          </div>
-        </Link>
         <Link href="/leaderboard" className="hidden lg:block">
           <Button variant="ghost">
             <TrophyIcon />
           </Button>
         </Link>
-        <Link href="/menu" className="hidden lg:block">
-          <Button variant="ghost" className="hidden lg:block">
-            <GripVerticalIcon />
-          </Button>
+        <Link href="/me" className="hidden lg:block">
+          <div className="flex flex-row gap-1 items-center">
+            <div className="flex flex-row gap-1">
+              <Badge
+                variant="outline"
+                className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
+              >
+                <ChefHatIcon />
+                <span>
+                  {profile?.profileSlug ? profile.profileSlug : "My Recipes"}
+                </span>
+              </Badge>
+            </div>
+          </div>
         </Link>
         {/* <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
       </Card> */}

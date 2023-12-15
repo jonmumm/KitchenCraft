@@ -8,7 +8,6 @@ import { AsyncRenderLastValue } from "@/components/util/async-render-last-value"
 import { getProfileLifetimePoints, getRecentRecipesByUser } from "@/db/queries";
 import { formatJoinDateStr } from "@/lib/utils";
 import { ChefHatIcon } from "lucide-react";
-import { Header } from "../header";
 import { RecipeListItem } from "../recipe/components";
 import { getSession } from "@/lib/auth/session";
 import Link from "next/link";
