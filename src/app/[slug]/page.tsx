@@ -101,7 +101,7 @@ export default async function Page(props: { params: { slug: string } }) {
 
   return (
     <div className="flex flex-col">
-      <div className="max-w-2xl w-full mx-auto">
+      <div className="max-w-7xl w-full mx-auto">
         <Header />
       </div>
 

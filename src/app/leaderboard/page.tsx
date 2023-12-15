@@ -2,7 +2,6 @@ import { Card } from "@/components/display/card";
 import { Tabs, TabsContent } from "@/components/navigation/tabs";
 import { Metadata } from "next";
 import { LeaderboardItems, LeaderboardTabsList } from "./components";
-import { slugToSentence } from "@/lib/utils";
 
 // Function to generate random usernames
 function generateRandomUsername() {

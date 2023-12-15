@@ -511,7 +511,7 @@ export default async function Page(props: Props) {
     <>
       <Schema />
 
-      <div className="flex flex-col gap-2 max-w-3xl mx-auto">
+      <div className="flex flex-col gap-2 max-w-7xl mx-auto">
         <CurrentRecipeGenerator />
         {mediaList.length ? (
           <div

@@ -164,7 +164,7 @@ export default async function Page(props: Props) {
 
   return (
     <>
-      <div className="flex flex-col gap-2 max-w-3xl mx-auto">
+      <div className="flex flex-col gap-2 max-w-7xl mx-auto">
         <StickyHeader>
           <div className="flex flex-row gap-2 justify-between items-center">
             <Link href={`/recipe/${slug}`}>

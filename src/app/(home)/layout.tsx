@@ -46,7 +46,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
 
   return (
     <LayoutClient>
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Header />
       </div>
       <div className="flex flex-col gap-3">
@@ -202,71 +202,3 @@ const MyRecipes = ({ userId }: { userId: string }) => {
     </div>
   );
 };
-
-// const MyReceiptRecipes = ({}) => {
-//   const recipes = await getRecentRecipesByUser(userId)
-//   // const recipes = await getMyRecentRecipes(kv);
-//   // const store: RecipeStore = map({
-//   //   loading: true,
-//   //   recipes: [],
-//   // });
-
-//   // getMyRecentRecipes(kv).then((recipes) => {
-//   //   store.set({
-//   //     error: undefined,
-//   //     loading: false,
-//   //     data: recipes,
-//   //   });
-//   // });
-
-//   // getMyRecentRecipes(kv).then((recipes) => {
-//   //   console.log({ recipes });
-//   // });
-
-//   // getRecentRecipes(kv).then((recipes) => {
-//   //   store.set({
-//   //     loading: false,
-//   //     recipes,
-//   //   });
-//   // });
-
-//   // getMyRecentRecipes(kv).then((recipes) => {
-//   //   store.set({
-//   //     loading: false,
-//   //     recipes,
-//   //   });
-//   // });
-
-//   const items = new Array(6).fill(0);
-
-//   return (
-//     <>
-//       {items.map((_, index) => {
-//         return (
-//           <div key={index} className="carousel-item">
-//             <Suspense fallback={<Skeleton className="w-64 h-36" />}>
-//               <RecipeLink index={index} store={store}>
-//                 <Card className="w-64 h-36 bg-secondary flex flex-col gap-1 justify-between py-2">
-//                   <div className="flex flex-row gap-1 px-3 items-center">
-//                     <h3 className="text-lg font-semibold flex-1">
-//                       <RecipeName store={store} index={index} />
-//                     </h3>
-//                     <Button size="icon" variant="outline">
-//                       <ChevronRightIcon />
-//                     </Button>
-//                   </div>
-//                   <div className="line-clamp-2 text-xs text-muted-foreground leading-5 px-3">
-//                     <RecipeDescription store={store} index={index} />
-//                   </div>
-//                   <div className="text-xs text-muted-foreground px-3">
-//                     <RecipeTimestamp store={store} index={index} />
-//                   </div>
-//                 </Card>
-//               </RecipeLink>
-//             </Suspense>
-//           </div>
-//         );
-//       })}
-//     </>
-//   );
-// };
