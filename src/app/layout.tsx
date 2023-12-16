@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import { ReactNode } from "react";
 import "../styles/globals.css";
 import { ApplicationProvider } from "./provider";
+import { Command } from "@/components/input/command";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default async function RootLayout({
   footer: ReactNode;
   header: ReactNode;
 }) {
+  console.log("ROOT LAYOUT");
   const Body = () => {
     return (
       <body
@@ -41,7 +43,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {header}
+          <Command shouldFilter={false}>{header}</Command>
           {children}
           {footer}
 

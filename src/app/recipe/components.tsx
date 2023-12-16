@@ -210,11 +210,7 @@ export const RecipeListItemLoading = ({ index }: { index: number }) => {
           </Button>
           <div className="flex flex-col gap-1 flex-1 justify-start items-start">
             <div className="flex-1">
-              <SkeletonSentence
-                className="h-6"
-                numWords={[3, 4, 5]}
-                widths={[10, 14, 16, 20]}
-              />
+              <SkeletonSentence className="h-6" numWords={[3, 4, 5]} />
             </div>
             <div>
               <Badge
@@ -262,7 +258,6 @@ export const RecipeListItemLoading = ({ index }: { index: number }) => {
           <SkeletonSentence
             className="h-4"
             numWords={12}
-            widths={[6, 10, 12, 14, 16, 20, 24]}
           />
         </div>
         <Button size="icon" variant="outline" disabled>

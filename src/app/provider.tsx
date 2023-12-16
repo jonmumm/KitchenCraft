@@ -1,5 +1,6 @@
 "use client";
 
+import { Command } from "@/components/input/command";
 import { ApplicationContext } from "@/context/application";
 import { env } from "@/env.public";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";

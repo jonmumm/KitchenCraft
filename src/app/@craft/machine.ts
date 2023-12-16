@@ -603,11 +603,25 @@ export const createCraftMachine = (
                   },
                   on: {
                     SUGGEST_RECIPES: {
-                      target: "Suggestions",
-                      actions: {
-                        type: "assignSubmittedInputHash",
-                        params: ({ context }) => ({ ...context }),
-                      },
+                      target: ["Navigating"],
+                      actions: [
+                        {
+                          type: "navigate",
+                          params: (f) => {
+                            assert(
+                              f.context.prompt?.length,
+                              "expected prompt to be not empty"
+                            );
+                            const params = new URLSearchParams();
+                            params.set("prompt", f.context.prompt);
+                            const paramString = params.toString();
+
+                            return {
+                              pathname: `/suggestions?${paramString}`,
+                            };
+                          },
+                        },
+                      ],
                     },
                     SET_INPUT: {
                       target: ["Inputting"],

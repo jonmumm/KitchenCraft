@@ -294,12 +294,10 @@ const AddIngredientAction = () => {
 const SuggestRecipesAction = () => {
   const tags = useTags();
   const ingredients = useIngredients();
-  const actor = useContext(CraftContext);
   const send = useSend();
   const handleSelect = useCallback(() => {
     send({ type: "SUGGEST_RECIPES" });
   }, [send]);
-  const filtered = useCommandState((state) => state.filtered);
 
   return (
     <CommandItem variant="card" onSelect={handleSelect}>
