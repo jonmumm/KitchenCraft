@@ -706,7 +706,7 @@ export default async function Page(props: Props) {
               </div>
             </div>
           </Card>
-          <Card id="products" className="mx-3 mb-3">
+          {/* <Card id="products" className="mx-3 mb-3">
             <div className="flex flex-row justify-between p-4">
               <h3 className="uppercase text-xs font-bold text-accent-foreground">
                 Gear
@@ -747,7 +747,7 @@ export default async function Page(props: Props) {
                 />
               </div>
             </div>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </>
