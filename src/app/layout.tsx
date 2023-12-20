@@ -42,7 +42,6 @@ export default async function RootLayout({
     createNewInstantRecipe,
     createNewRecipeFromSuggestion,
   };
-  console.log("layout");
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -108,13 +107,11 @@ async function createNewInstantRecipe(
   // todo but unlikely possible that its not done yet, output might not be here...
   // todo add wait up to 10s
   const output = await kv.hget(resultKey, "output");
-  console.log(output);
   const { name, description } =
     InstantRecipeMetadataPredictionOutputSchema.parse(output);
 
   // const
 
-  console.log(name, description);
   const id = nanoid();
   const slug = getSlug({ id, name });
   await createRecipe({

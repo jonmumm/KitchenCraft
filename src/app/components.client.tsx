@@ -39,7 +39,6 @@ export const VisibleIfCrafting = ({ children }: { children: ReactNode }) => {
 
 export const Body = ({ children }: { children: ReactNode }) => {
   const craftIsOpen = useCraftIsOpen();
-  console.log({ craftIsOpen });
 
   return (
     <body
