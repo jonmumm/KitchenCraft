@@ -83,9 +83,8 @@ import {
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
 
-export const runtime = "edge";
-export const dynamic = "force-dynamic";
 export const maxDuration = 300;
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: { slug: string };
