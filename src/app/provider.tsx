@@ -60,7 +60,7 @@ export function ApplicationProvider(props: {
           <PageLoadEventsProvider />
           <SearchParamsEventsProvider />
           <HashChangeEventsProvider />
-          {/* <PopStateEventsProvider /> */}
+          <PopStateEventsProvider />
           <AnalyticsProvider />
           {props.children}
         </CraftProvider>
