@@ -360,7 +360,6 @@ export default async function Page(props: Props) {
                           <SkeletonSentence
                             className="h-4"
                             numWords={[5, 7, 10]}
-                            widths={[12, 16, 20]}
                           />
                         </div>
                         <Badge className="opacity-50" variant="secondary">

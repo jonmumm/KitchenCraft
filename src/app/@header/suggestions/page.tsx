@@ -7,5 +7,5 @@ export default async function Page(props: {
 }) {
   const promptParse = z.string().min(1).safeParse(props.searchParams["prompt"]);
   const prompt = promptParse.success ? promptParse.data : undefined;
-  return <Header showBack={true} prompt={prompt} />;
+  return <Header />;
 }

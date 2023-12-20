@@ -1,16 +1,24 @@
 import { Toaster } from "@/components/feedback/toaster";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
-import { getSession } from "@/lib/auth/session";
+import { getCurrentUserId, getSession } from "@/lib/auth/session";
+import { getResult } from "@/lib/db";
+import { getSlug } from "@/lib/slug";
+import { TokenParser } from "@/lib/token-parser";
+import {
+  InstantRecipeMetadataPredictionOutputSchema,
+  SuggestionPredictionOutputSchema,
+} from "@/schema";
+import { kv } from "@vercel/kv";
+import { nanoid } from "ai";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { headers } from "next/headers";
 import { ReactNode } from "react";
 import "../styles/globals.css";
+import { Body } from "./components.client";
 import { ApplicationProvider } from "./provider";
-import { Command } from "@/components/input/command";
-
-const inter = Inter({ subsets: ["latin"] });
+import { createRecipe } from "./recipe/lib";
+import "./styles.css";
+import { assert } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "KitchenCraft",
@@ -30,31 +38,11 @@ export default async function RootLayout({
   footer: ReactNode;
   header: ReactNode;
 }) {
-  console.log("ROOT LAYOUT");
-  const Body = () => {
-    return (
-      <body
-        className={`${inter.className} overflow-x-hidden pb-16`}
-        // className={`bg-gray-100 ${inter.className} flex flex-col mx-auto max-w-lg xl:max-w-xl justify-center`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Command shouldFilter={false}>{header}</Command>
-          {children}
-          {footer}
-
-          {/* Sheets/Dialogs */}
-          {craft}
-          {remix}
-        </ThemeProvider>
-        <Toaster />
-      </body>
-    );
+  const actions = {
+    createNewInstantRecipe,
+    createNewRecipeFromSuggestion,
   };
+  console.log("layout");
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -83,10 +71,107 @@ export default async function RootLayout({
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
+        {/* // todo only do this if react node loaded */}
       </head>
-      <ApplicationProvider session={await getSession()}>
-        <Body />
+      <ApplicationProvider session={await getSession()} actions={actions}>
+        <Body>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div>{header}</div>
+            <div className="crafting:hidden">{children}</div>
+            <div className="hidden crafting:block">{craft}</div>
+            {footer}
+
+            {/* Sheets/Dialogs */}
+            {/* {craft} */}
+            {remix}
+          </ThemeProvider>
+          <Toaster />
+        </Body>
       </ApplicationProvider>
     </html>
   );
 }
+
+async function createNewInstantRecipe(
+  prompt: string,
+  instantRecipeResultId: string
+) {
+  "use server";
+  const userId = await getCurrentUserId();
+  const resultKey = `instant-recipe:${instantRecipeResultId}`;
+
+  // todo but unlikely possible that its not done yet, output might not be here...
+  // todo add wait up to 10s
+  const output = await kv.hget(resultKey, "output");
+  console.log(output);
+  const { name, description } =
+    InstantRecipeMetadataPredictionOutputSchema.parse(output);
+
+  // const
+
+  console.log(name, description);
+  const id = nanoid();
+  const slug = getSlug({ id, name });
+  await createRecipe({
+    slug,
+    name,
+    description,
+    createdAt: new Date().toISOString(),
+    fromPrompt: prompt,
+    runStatus: "initializing",
+    previewMediaIds: [],
+    mediaCount: 0,
+  });
+  return { success: true, data: { recipeUrl: `/recipe/${slug}` } };
+}
+
+async function createNewRecipeFromSuggestion(
+  suggestionsResultId: string,
+  index: number
+) {
+  "use server";
+  const userId = await getCurrentUserId();
+
+  const result = await getResult(kv, suggestionsResultId);
+  const parser = new TokenParser(SuggestionPredictionOutputSchema);
+  // const output = parser.parsePartial(result.outputRaw);
+
+  // const parser = new TokenParser(schema);
+  const output = parser.parsePartial(result.outputRaw);
+  if (!output?.suggestions) {
+    return { success: false as const, error: "Suggestions not found" };
+  }
+
+  const item = output.suggestions[index];
+  assert(item, "expected item");
+  const { name, description } = item;
+  if (!name || !description) {
+    return { success: false as const, error: "Missing name or description" };
+  }
+
+  const id = nanoid();
+  const slug = getSlug({ id, name });
+  await createRecipe({
+    slug,
+    name,
+    description,
+    createdAt: new Date().toISOString(),
+    fromResult: {
+      resultId: suggestionsResultId,
+      index,
+    },
+    runStatus: "initializing",
+    previewMediaIds: [],
+    mediaCount: 0,
+  });
+  return { success: true as const, data: { recipeUrl: `/recipe/${slug}` } };
+}
+
+export type CreateNewInstantRecipe = typeof createNewInstantRecipe;
+export type CreateNewRecipeFromSuggestion =
+  typeof createNewRecipeFromSuggestion;

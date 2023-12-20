@@ -1,15 +1,18 @@
 "use client";
 
-import { Command } from "@/components/input/command";
 import { ApplicationContext } from "@/context/application";
 import { env } from "@/env.public";
+import { useActor } from "@/hooks/useActor";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
 import { getSession } from "@/lib/auth/session";
 import { map } from "nanostores";
 import { SessionProvider } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
+import { CraftContext } from "./context";
+import { createCraftMachine } from "./machine";
+import usePushState from "@/hooks/usePushState";
 
 // export const ApplicationContext = createContext()
 
@@ -22,16 +25,45 @@ import { ReactNode, useEffect, useState } from "react";
 export function ApplicationProvider(props: {
   children: ReactNode;
   session: Awaited<ReturnType<typeof getSession>>;
+  actions: Parameters<typeof createCraftMachine>[0]["serverActions"];
 }) {
+  console.log("app provider");
   const [store] = useState(map<any>({})); // todo define global types here
   // useScrollRestoration(); // i dont know if this is well working or not
+
+  const CraftProvider = ({ children }: { children: ReactNode }) => {
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const router = useRouter();
+
+    // const pushState = usePushState();
+    // console.log({ pushState });
+    const actor = useActor(
+      "craft",
+      createCraftMachine({
+        searchParams: Object.fromEntries(searchParams.entries()),
+        router,
+        serverActions: props.actions,
+        initialPath: pathname,
+      })
+    );
+
+    return (
+      <CraftContext.Provider value={actor}>{children}</CraftContext.Provider>
+    );
+  };
 
   return (
     <SessionProvider session={props.session}>
       <ApplicationContext.Provider value={store}>
-        <PageLoadEventsProvider />
-        <AnalyticsProvider />
-        {props.children}
+        <CraftProvider>
+          <PageLoadEventsProvider />
+          <SearchParamsEventsProvider />
+          <HashChangeEventsProvider />
+          {/* <PopStateEventsProvider /> */}
+          <AnalyticsProvider />
+          {props.children}
+        </CraftProvider>
       </ApplicationContext.Provider>
     </SessionProvider>
   );
@@ -42,8 +74,66 @@ const AnalyticsProvider = () => {
   return null;
 };
 
+const HashChangeEventsProvider = () => {
+  const send = useSend();
+
+  useEffect(() => {
+    function onHashChange() {
+      send({ type: "HASH_CHANGE", hash: window.location.hash });
+    }
+
+    // Add the event listener for hash changes
+    window.addEventListener("hashchange", onHashChange, false);
+
+    return () => {
+      window.removeEventListener("hashchange", onHashChange);
+    };
+  }, [send]);
+
+  return null;
+};
+
+const PopStateEventsProvider = () => {
+  const send = useSend();
+
+  useEffect(() => {
+    function onPopState(event: PopStateEvent) {
+      console.log("POPSTATE", event.state);
+      setTimeout(() => {
+        console.log("POPSTATE", event.state);
+      }, 5000);
+      event.preventDefault();
+      // send({ type: "HASH_CHANGE", hash: window.location.hash });
+    }
+
+    // Add the event listener for hash changes
+    window.addEventListener("popstate", onPopState, false);
+
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [send]);
+
+  return null;
+};
+
+const SearchParamsEventsProvider = () => {
+  const searchParams = useSearchParams();
+  const send = useSend();
+
+  useEffect(() => {
+    send({
+      type: "UPDATE_SEARCH_PARAMS",
+      searchParams: Object.fromEntries(searchParams.entries()),
+    });
+  }, [send, searchParams]);
+
+  return null;
+};
+
 const PageLoadEventsProvider = () => {
   const pathname = usePathname();
+  // console.log({ pathname });
   const send = useSend();
 
   useEffect(() => {
@@ -53,11 +143,10 @@ const PageLoadEventsProvider = () => {
   return null;
 };
 
-// const HeaderProvider = (props: { children: ReactNode }) => {
-//   const headerActor = useActor("header", createHeaderMachine());
-//   return (
-//     <HeaderContext.Provider value={headerActor}>
-//       {props.children}
-//     </HeaderContext.Provider>
-//   );
-// };
+function getQueryParam(param: string): string | null {
+  // Create a URLSearchParams object from the current URL's query string
+  const queryParams = new URLSearchParams(window.location.search);
+
+  // Return the value of the specified query parameter
+  return queryParams.get(param);
+}

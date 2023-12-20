@@ -1,12 +1,18 @@
-import { cn } from "@/lib/utils";
-import { SearchCodeIcon } from "lucide-react";
+"use client";
+
+import { CraftContext } from "@/app/context";
+import { useSelector } from "@/hooks/useSelector";
+import { useSend } from "@/hooks/useSend";
+
 import React, {
-  useRef,
-  useCallback,
-  useEffect,
-  ReactNode,
-  TextareaHTMLAttributes,
   ChangeEventHandler,
+  ReactNode,
+  RefObject,
+  TextareaHTMLAttributes,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
 } from "react";
 
 type Size = "xs" | "sm" | "md" | "lg"; // Extend with more sizes as needed
@@ -16,6 +22,7 @@ interface AutoResizableTextareaProps
   className?: string;
   size?: Size;
   placeholderComponent?: ReactNode; // Prop for the custom placeholder component
+  initialValue?: string;
 }
 
 const sizeClassMap: Record<Size, { textSize: string; heightClass: string }> = {
@@ -25,17 +32,30 @@ const sizeClassMap: Record<Size, { textSize: string; heightClass: string }> = {
   lg: { textSize: "text-lg", heightClass: "h-7" },
 };
 
-const AutoResizableTextarea: React.FC<AutoResizableTextareaProps> = ({
+const AutoResizableTextarea: React.FC<
+  AutoResizableTextareaProps & { ref?: RefObject<HTMLTextAreaElement> }
+> = ({
   className,
   size = "lg",
   placeholderComponent,
   onChange,
+  initialValue,
   ...props
 }) => {
+  const send = useSend();
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (textareaRef.current) {
+      send({ type: "HYDRATE_INPUT", ref: textareaRef.current });
+    }
+  }, [send]);
+  const ref = props.ref || textareaRef;
   const resizeTextarea = useCallback(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
+
+    textarea.style.height = "28px"; // the h-7 line-height value, todo make dynamic
 
     // Resize logic
     const computedStyle = window.getComputedStyle(textarea);
@@ -44,14 +64,6 @@ const AutoResizableTextarea: React.FC<AutoResizableTextareaProps> = ({
     const requiredHeight = numberOfLines * lineHeight;
     textarea.style.height = `${requiredHeight}px`;
   }, []);
-
-  const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
-    (e) => {
-      onChange && onChange(e);
-      resizeTextarea();
-    },
-    [onChange, resizeTextarea]
-  );
 
   useEffect(() => {
     resizeTextarea();
@@ -68,46 +80,53 @@ const AutoResizableTextarea: React.FC<AutoResizableTextareaProps> = ({
   const heightClass =
     sizeClassMap[size]?.heightClass || sizeClassMap["md"].heightClass;
 
-  return (
-    <label className="relative block flex-1 items-center">
-      {/* {placeholderComponent && (
-        <div
-          className={`absolute top-0 left-0 transition-opacity opacity-100 pointer-events-none peer-focus:opacity-0`}
-        >
+  const Placeholder = () => {
+    const actor = useContext(CraftContext);
+    const hasPrompt = useSelector(
+      actor,
+      (state) => !!state.context.prompt?.length
+    );
+
+    return (
+      !hasPrompt && (
+        <div className="absolute inset-0 transition-opacity duration-75 crafting:opacity-0 pointer-events-none">
           {placeholderComponent}
         </div>
-      )} */}
+      )
+    );
+  };
+
+  const Textarea = () => {
+    const actor = useContext(CraftContext);
+    const value = useSelector(actor, (state) => state.context.prompt);
+    const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
+      (e) => {
+        onChange && onChange(e);
+        resizeTextarea();
+      },
+      []
+    );
+
+    return (
       <textarea
-        ref={textareaRef}
+        value={value}
+        ref={ref}
         className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent`}
         onChange={handleChange}
+        {...props}
         // onChange={(e) => {
         //   handleSearch(e.target.value);
         // }}
         // defaultValue={searchParams.get("query")?.toString()}
       />
-      <div className="absolute inset-0 transition-opacity duration-75 peer-focus:opacity-0">
-        {placeholderComponent}
-      </div>
-      {/* <textarea
-        ref={textareaRef}
-        className={cn(
-          `resize-none overflow-hidden ${textSizeClass} ${heightClass} peer`,
-          className
-        )}
-        placeholder=" " // Space as placeholder to ensure CSS logic works
-        {...props}
-        onFocus={() => {
-          console.log("focus");
-        }}
-        onChange={(e) => {
-          if (props.onChange) {
-            props.onChange(e);
-          }
-          resizeTextarea();
-        }}
-      /> */}
-    </label>
+    );
+  };
+
+  return (
+    <div className="relative block flex-1 items-center mr-3">
+      <Textarea />
+      <Placeholder />
+    </div>
   );
 };
 
