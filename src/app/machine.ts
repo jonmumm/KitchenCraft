@@ -679,6 +679,11 @@ export const createCraftMachine = ({
           const element =
             document.querySelector<HTMLTextAreaElement>("#prompt");
           assert(element, "exlected prompt element");
+
+          if (element.value) {
+            element.selectionStart = element.selectionEnd =
+              element.value.length;
+          }
           element.focus();
         },
       },
