@@ -1,6 +1,6 @@
 // From https://github.com/pacocoursey/cmdk/blob/main/cmdk/src/index.tsx
 // Taken because I wanted a multiline input not a single line input.
-import { assert } from "@/lib/utils";
+import { assert, isTouchDevice } from "@/lib/utils";
 import * as RadixDialog from "@radix-ui/react-dialog";
 import * as React from "react";
 
@@ -201,7 +201,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
         schedule(6, scrollSelectedIntoView);
         store.emit();
       }
-    }, [value]);
+    }, [value, state, schedule]);
 
     const store: Store = React.useMemo(() => {
       return {
@@ -486,6 +486,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
 
       // Get item at this index
       let newSelected = items[index + change];
+      console.log("updated selected", { selected, items, index, newSelected });
 
       if (propsRef.current?.loop) {
         newSelected =
@@ -523,6 +524,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
     const last = () => updateSelectedToIndex(getValidItems().length - 1);
 
     const next = (e: React.KeyboardEvent) => {
+      console.log("NEXT!");
       e.preventDefault();
 
       if (e.metaKey) {
@@ -539,6 +541,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
 
     const prev = (e: React.KeyboardEvent) => {
       e.preventDefault();
+      console.log(e.metaKey);
 
       if (e.metaKey) {
         // First item
@@ -601,7 +604,11 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
               case "Enter": {
                 // Check if IME composition is finished before triggering onSelect
                 // This prevents unwanted triggering while user is still inputting text with IME
-                if (!e.nativeEvent.isComposing) {
+                if (
+                  !isTouchDevice() &&
+                  !e.nativeEvent.isComposing &&
+                  !e.shiftKey
+                ) {
                   // Trigger item onSelect
                   e.preventDefault();
                   const item = getSelectedItem();

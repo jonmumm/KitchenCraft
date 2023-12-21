@@ -1,27 +1,37 @@
 "use client";
 
-import React, {
-  useRef,
-  useEffect,
-  useState,
-  useCallback,
-  ReactNode,
-} from "react";
 import { Card } from "@/components/display/card";
+import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
-import { useSelectedLayoutSegment, useSelectedLayoutSegments } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import React, {
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { CraftContext } from "../context";
+import { useCraftIsOpen } from "@/hooks/useCraftIsOpen";
 
-export const FooterTabTitle = ({ children }: { children: ReactNode }) => {
-  const segments = useSelectedLayoutSegments();
-  console.log({ segments });
-  const isActive = false;
+export const FooterTabTitle = ({
+  children,
+  isActive,
+}: {
+  children: ReactNode;
+  isActive: boolean;
+}) => {
+  const craftIsOpen = useCraftIsOpen();
+
   return (
     <span
       className={`text-xs ${
-        isActive
+        !craftIsOpen && isActive
           ? `text-blue-700 font-semibold`
           : `text-muted-foreground font-medium`
-      }`}
+      } truncate w-full text-center`}
     >
       {children}
     </span>
@@ -63,14 +73,51 @@ export const ReactiveFooter = ({
   }, [handleScroll]);
 
   return (
-    <Card
+    <div
       className={cn(
-        "fixed z-50 bottom-0 left-0 right-0 shadow-inner flex rounded-b-none transition-transform duration-300",
+        "fixed z-50 bottom-0 left-0 right-0 flex rounded-b-none transition-transform duration-300",
         isVisible ? "translate-y-0" : "translate-y-full",
         className
       )}
     >
       {children}
-    </Card>
+    </div>
+  );
+};
+
+export const CraftTabLink = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => {
+  const pathname = usePathname();
+  return (
+    <Link
+      href={`${pathname}?crafting=1`}
+      shallow
+      className={cn("basis-32", className)}
+    >
+      {children}
+    </Link>
+  );
+};
+
+export const CraftTabTitle = () => {
+  const actor = useContext(CraftContext);
+  const isOpen = useSelector(actor, (state) => {
+    return state.matches("Open.True");
+  });
+  return (
+    <span
+      className={`text-xs ${
+        isOpen
+          ? `text-blue-700 font-semibold`
+          : `text-muted-foreground font-medium`
+      } truncate w-full text-center`}
+    >
+      Craft
+    </span>
   );
 };

@@ -1,10 +1,8 @@
 import { getObjectHash } from "@/lib/utils";
-import { Context, CraftSnapshot } from "./types";
+import { CraftSnapshot } from "../machine";
 
 export const selectIsInputting = (state: CraftSnapshot) =>
   state.matches("Mode.New.Inputting");
-
-export const selectSlug = (state: CraftSnapshot) => state.context.slug;
 
 export const selectLockScroll = (state: CraftSnapshot) =>
   !!(state.context.prompt?.length && state.context.prompt.length > 0);

@@ -176,3 +176,26 @@ html {
       env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 } */
+
+/* Custom class to hide scrollbar */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* for Internet Explorer, Edge */
+  scrollbar-width: none; /* for Firefox */
+}
+
+/* Tailwind CSS */
+.group-placeholder {
+  /* Initial styles for the placeholderComponent */
+  opacity: 100;
+  transition-opacity: 0.2s;
+}
+
+.group-focus:group-placeholder {
+  /* Styles to hide the placeholderComponent when the group has focus */
+  opacity: 0;
+  pointer-events: none;
+}

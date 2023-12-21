@@ -1,7 +1,7 @@
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useContext, useEffect, useMemo } from "react";
-import { CraftContext } from "./context";
+import { CraftContext } from "../context";
 
 export const useCraftContext = () => {
   return useContext(CraftContext);

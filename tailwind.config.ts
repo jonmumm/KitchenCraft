@@ -1,3 +1,4 @@
+import plugin from "tailwindcss/plugin";
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -77,6 +78,9 @@ const config: Config = {
     },
   },
   plugins: [
+    plugin(({ addVariant }) => {
+      addVariant("crafting", `.crafting &`);
+    }),
     require("daisyui"),
     require("tailwindcss-animate"),
     require("@tailwindcss/typography"),

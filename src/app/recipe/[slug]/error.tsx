@@ -1,6 +1,5 @@
 "use client";
 
-import { Header } from "@/app/header";
 import { Button } from "@/components/input/button";
 
 export default function Error({

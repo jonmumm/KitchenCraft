@@ -83,8 +83,8 @@ import {
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
 
-export const dynamic = "force-dynamic";
 export const maxDuration = 300;
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: { slug: string };
@@ -360,7 +360,6 @@ export default async function Page(props: Props) {
                           <SkeletonSentence
                             className="h-4"
                             numWords={[5, 7, 10]}
-                            widths={[12, 16, 20]}
                           />
                         </div>
                         <Badge className="opacity-50" variant="secondary">

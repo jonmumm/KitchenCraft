@@ -8,6 +8,7 @@ import {
   TECHNIQUES,
 } from "./constants";
 import { AmazonAffiliateProductSchema, RecipeSchema } from "./db";
+import { RefObject } from "react";
 
 export const PlanSchema = z
   .enum(["quarterly", "monthly", "annual"])
@@ -46,6 +47,7 @@ export const PublicEnvironmentSchema = z.object({
   ADSENSE_PUBLISHER_ID: z.string(),
   POSTHOG_CLIENT_KEY: z.string(),
   STRIPE_PUBLIC_KEY: z.string(),
+  LOG_LEVEL: z.enum(["info", "debug", "verbose"]),
 });
 
 const FreeTextLiteral = z.literal("free_text");
@@ -423,6 +425,16 @@ const PageLoadedEventSchema = z.object({
   pathname: z.string(),
 });
 
+const SearchParamsEventSchema = z.object({
+  type: z.literal("UPDATE_SEARCH_PARAMS"),
+  searchParams: z.record(z.string(), z.string()),
+});
+
+const HashChangeEventSchema = z.object({
+  type: z.literal("HASH_CHANGE"),
+  hash: z.string(),
+});
+
 const SignInEventSchema = z.object({
   type: z.literal("SIGN_IN"),
 });
@@ -460,10 +472,17 @@ const DownloadAppEventShema = z.object({
   type: z.literal("DOWNLOAD_APP"),
 });
 
+const HydratInputEventSchema = z.object({
+  type: z.literal("HYDRATE_INPUT"),
+  ref: z.custom<HTMLTextAreaElement>(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   DownloadAppEventShema,
   RemixEventSchema,
   PageLoadedEventSchema,
+  SearchParamsEventSchema,
+  HashChangeEventSchema,
   ShareEventSchema,
   ShareCompleteEventSchema,
   ShareCancelEventSchema,
@@ -503,6 +522,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   AddTagEventSchema,
   AddIngredientEventSchema,
   SousChefFeedbackEventSchema,
+  HydratInputEventSchema,
 ]);
 
 // TypeScript Type Literals

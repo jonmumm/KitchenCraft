@@ -75,7 +75,9 @@ export function SignInForm() {
                   {...field}
                 />
               </FormControl>
-              <FormDescription>Enter your email to send a login code.</FormDescription>
+              <FormDescription>
+                Enter your email to send a login code.
+              </FormDescription>
               {fieldState.error && (
                 <FormMessage>{fieldState.error.message}</FormMessage>
               )}

@@ -5,9 +5,12 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { filter, skip } from "rxjs";
 import { useEvents } from "./useEvents";
 
-// List of event types that we will not fire off
-const BLACK_LIST = new Set(["SET_INPUT"]);
-const isNotInBlackList = (event: AppEvent) => !BLACK_LIST.has(event.type);
+const EVENTS_LOG_LEVEL_DEBUG = new Set([
+  "SET_INPUT",
+  "HYDRATE_INPUT", // blacklisted becuase it cant serialize this because it passes a ref, figure out hwo to handle
+]);
+const isEventDebugLogLevel = (event: AppEvent) =>
+  !EVENTS_LOG_LEVEL_DEBUG.has(event.type);
 
 export const usePosthogAnalytics = (posthogClientKey: string) => {
   const didSendInitialRef = useRef(false);
@@ -37,7 +40,10 @@ export const usePosthogAnalytics = (posthogClientKey: string) => {
 
     // We expect 2 events initially
     const sub = event$
-      .pipe(skip(!didSendInitialRef.current ? 0 : 2), filter(isNotInBlackList))
+      .pipe(
+        skip(!didSendInitialRef.current ? 0 : 2),
+        filter(isEventDebugLogLevel)
+      )
       .subscribe((event) => {
         didSendInitialRef.current = true;
         if (process.env.NODE_ENV !== "production") {

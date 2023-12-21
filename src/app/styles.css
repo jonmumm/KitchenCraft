@@ -1,0 +1,7 @@
+#prompt:focus + div .hidden-on-prompt-focus {
+  display: none;
+}
+
+/* #prompt:focus + div .flex-on-prompt-focus {
+  display: "flex";
+} */

@@ -2,12 +2,12 @@ import { getErrorMessage } from "@/lib/error";
 import { StreamingTextResponse, writeChunk } from "@/lib/streams";
 import { TokenParser } from "@/lib/token-parser";
 import { assert, noop } from "@/lib/utils";
-import { SuggestionPredictionOutputSchema } from "@/schema";
+import { InstantRecipeMetadataPredictionOutputSchema } from "@/schema";
 import { kv } from "@vercel/kv";
+import { nanoid } from "ai";
 import { parseAsString } from "next-usequerystate";
 import { NextRequest } from "next/server";
 import { InstantRecipeMetadataStream } from "./stream";
-import { nanoid } from "ai";
 
 export const runtime = "edge";
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
   const tokenStream = new InstantRecipeMetadataStream();
   const stream = await tokenStream.getStream(input);
-  const parser = new TokenParser(SuggestionPredictionOutputSchema);
+  const parser = new TokenParser(InstantRecipeMetadataPredictionOutputSchema);
   const charArray: string[] = [];
 
   const process = async (stream: AsyncIterable<string>) => {
@@ -37,23 +37,17 @@ export async function GET(req: NextRequest) {
         charArray.push(char);
       }
       await writeChunk(writer, chunk);
-      const outputRaw = charArray.join("");
-      const output = parser.parsePartial(outputRaw);
-
-      // only write the output if it's parseable
-      // if (output) {
-      //   kv.hset(resultKey, { outputRaw }).then(noop);
-      // }
     }
 
     const outputRaw = charArray.join("");
     // kv.hset(resultKey, { outputRaw }).then(noop);
+    const resultKey = `instant-recipe:${resultId}`;
 
     try {
-      parser.parse(outputRaw);
-      // kv.hset(resultKey, { status: "done", outputRaw });
+      const output = parser.parse(outputRaw);
+      kv.hset(resultKey, { status: "done", outputRaw, output });
     } catch (ex) {
-      // kv.hset(resultKey, { status: "error", error: getErrorMessage(ex) });
+      kv.hset(resultKey, { status: "error", error: getErrorMessage(ex) });
     }
     writer.close();
   };

@@ -31,41 +31,86 @@ function Skeleton({ className, animation, ...props }: SkeletonProps) {
   );
 }
 
+
+type TailwindWidth =
+  | "w-1"
+  | "w-2"
+  | "w-3"
+  | "w-4"
+  | "w-5"
+  | "w-6"
+  | "w-8"
+  | "w-10"
+  | "w-12"
+  | "w-16"
+  | "w-20"
+  | "w-24"
+  | "w-32"
+  | "w-40"
+  | "w-48"
+  | "w-56"
+  | "w-64";
+
 export function SkeletonSentence({
   className,
   numWords,
   animation,
-  widths,
+  medianWidth = "w-12",
   containerClassName,
   ...props
 }: SkeletonProps & {
   numWords: number | number[];
-  widths: number[];
   containerClassName?: string;
+  medianWidth?: TailwindWidth;
 }) {
   let wordCount;
   if (Array.isArray(numWords)) {
-    const randomIndex = Math.floor(Math.random() * widths.length);
+    const randomIndex = Math.floor(Math.random() * numWords.length);
     wordCount = numWords[randomIndex];
   } else {
     wordCount = numWords;
   }
 
+  const tailwindWidths: TailwindWidth[] = [
+    "w-1",
+    "w-2",
+    "w-3",
+    "w-4",
+    "w-5",
+    "w-6",
+    "w-8",
+    "w-10",
+    "w-12",
+    "w-16",
+    "w-20",
+    "w-24",
+    "w-32",
+    "w-40",
+    "w-48",
+    "w-56",
+    "w-64",
+  ];
+
+  function getRandomWidthClass() {
+    const medianIndex = tailwindWidths.indexOf(medianWidth);
+    let rand = 0;
+    for (let i = 0; i < 6; i += 1) {
+      rand += Math.random();
+    }
+    rand = rand - 3; // Standardize
+
+    let index = Math.round(medianIndex + rand);
+    index = Math.max(0, Math.min(index, tailwindWidths.length - 1));
+
+    return tailwindWidths[index];
+  }
+
   return (
     <div className={cn(containerClassName, `flex flex-row gap-1 flex-wrap`)}>
       {new Array(wordCount).fill(0).map((_, index) => {
-        const randomIndex = Math.floor(Math.random() * widths.length);
-        const width = widths[randomIndex];
+        const widthClass = getRandomWidthClass();
         return (
-          <div
-            key={index}
-            className={cn(
-              skeletonVariants({ animation }),
-              className,
-              `w-${width}`
-            )}
-            {...props}
-          />
+          <Skeleton key={index} className={cn(className, widthClass)} {...props} />
         );
       })}
     </div>

@@ -51,6 +51,11 @@ export function eventSourceToGenerator<
   let resultId: string | undefined;
 
   source.onmessage = (event) => {
+    if (!subject.observed) {
+      source.close();
+      return;
+    }
+
     try {
       const data = z.string().parse(JSON.parse(event.data));
       if (!resultId) {
@@ -92,6 +97,8 @@ export function eventSourceToGenerator<
     try {
       const outputJSON = jsYaml.load(outputYaml);
       const outputParse = schema.safeParse(outputJSON);
+      console.log("is my subject closed", subject.closed);
+
       if (outputParse.success) {
         subject.next({
           type: `${eventType}_COMPLETE`,
