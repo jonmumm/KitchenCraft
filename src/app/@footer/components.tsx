@@ -53,7 +53,7 @@ export async function Footer({
     <ReactiveFooter className="fixed z-50 bottom-0 left-0 right-0 flex rounded-b-none lg:hidden p-4">
       <div className="bg-card w-full border-muted shadow-2xl border-2 border-solid p-2 rounded-full">
         <div className="flex flex-row gap-2 justify-center w-full">
-          <Link href="/" className="basis-32 min-w-0">
+          <Link href="/" className="basis-36 min-w-0">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1">
               <SearchIcon />
               <FooterTabTitle isActive={currentTab === "explore"}>
@@ -61,10 +61,9 @@ export async function Footer({
               </FooterTabTitle>
             </Card>
           </Link>
-          <LinkFromFirstValue
-            observable={profileSlug$}
-            fallbackUrl={"/me"}
-            className="basis-32 min-w-0"
+          <Link
+            href={"/me"}
+            className="basis-36 min-w-0"
           >
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 px-2 gap-1">
               <ChefHatIcon />
@@ -78,16 +77,16 @@ export async function Footer({
                 />
               </FooterTabTitle>
             </Card>
-          </LinkFromFirstValue>
-          <Link href="/leaderboard" className="basis-32">
+          </Link>
+          {/* <Link href="/leaderboard" className="basis-36">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 min-w-0">
               <TrophyIcon />
               <FooterTabTitle isActive={currentTab === "leaderboard"}>
                 Top Chefs
               </FooterTabTitle>
             </Card>
-          </Link>
-          <CraftTabLink className="basis-32">
+          </Link> */}
+          <CraftTabLink className="basis-36">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 min-w-0">
               <AxeIcon />
               <CraftTabTitle />

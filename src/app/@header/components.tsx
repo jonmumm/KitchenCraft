@@ -84,11 +84,11 @@ export async function Header({
               </div>
             </div>
           </Link>
-          <Link href="/leaderboard" className="hidden lg:block crafting:hidden">
+          {/* <Link href="/leaderboard" className="hidden lg:block crafting:hidden">
             <Button variant="ghost">
               <TrophyIcon />
             </Button>
-          </Link>
+          </Link> */}
           <div className="crafting:hidden">
             <MenuSheet>
               <SheetTrigger asChild>

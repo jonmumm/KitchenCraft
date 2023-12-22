@@ -35,10 +35,10 @@ export default async function Page() {
 
   let createdBy;
   if (currentUserId) {
-    const currentProfile = await getProfileByUserId(currentUserId);
-    if (currentProfile?.activated) {
-      redirect(`/@${currentProfile?.profileSlug}`);
-    }
+    // const currentProfile = await getProfileByUserId(currentUserId);
+    // if (currentProfile?.activated) {
+    //   redirect(`/@${currentProfile?.profileSlug}`);
+    // }
     createdBy = currentUserId;
   } else {
     createdBy = guestId;
