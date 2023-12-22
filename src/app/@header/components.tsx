@@ -23,6 +23,7 @@ import {
 } from "@/components/layout/sheet";
 import { MainMenu } from "@/components/modules/main-menu";
 import { ReactNode } from "react";
+import { MenuSheet } from "@/components/modules/main-menu/menu-sheet";
 
 export async function Header({
   className,
@@ -57,7 +58,7 @@ export async function Header({
             {backUrl ? (
               <BackButton handleBack={back} hasHistory={hasHistory} />
             ) : (
-              <div className="w-20 mt-3">
+              <div className="mt-3 mr-2 w-20">
                 <Link href="/">
                   <TypeLogo />
                 </Link>
@@ -89,7 +90,7 @@ export async function Header({
             </Button>
           </Link>
           <div className="crafting:hidden">
-            <Sheet>
+            <MenuSheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <GripVerticalIcon />
@@ -101,7 +102,7 @@ export async function Header({
                   <MainMenu />
                 </div>
               </SheetContent>
-            </Sheet>
+            </MenuSheet>
           </div>
           {/* <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
       </Card> */}
