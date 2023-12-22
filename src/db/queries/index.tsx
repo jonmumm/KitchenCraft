@@ -103,7 +103,7 @@ export const getRecipe = async (slug: string) => {
       createdAt: RecipesTable.createdAt,
     })
     .from(RecipesTable)
-    .innerJoin(ProfileTable, eq(RecipesTable.createdBy, ProfileTable.userId))
+    .leftJoin(ProfileTable, eq(RecipesTable.createdBy, ProfileTable.userId))
     .where(eq(RecipesTable.slug, slug));
 
   return await withDatabaseSpan(query, "getRecipe")
@@ -218,6 +218,71 @@ export const getRecentRecipesByUser = async (userId: string) => {
   return await withDatabaseSpan(query, "getRecentRecipesByUser").execute();
 };
 
+export const getRecentRecipesByCreator = async (createdBy: string) => {
+  const maxVersionSubquery = db
+    .select({
+      recipeId: RecipesTable.id,
+      maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
+    })
+    .from(RecipesTable)
+    .groupBy(RecipesTable.id)
+    .as("maxVersionSubquery"); // Naming the subquery
+
+  const query = db
+    .select({
+      id: RecipesTable.id,
+      versionId: RecipesTable.versionId,
+      slug: RecipesTable.slug,
+      name: RecipesTable.name,
+      description: RecipesTable.description,
+      totalTime: RecipesTable.totalTime,
+      createdBy: RecipesTable.createdBy,
+      createdAt: RecipesTable.createdAt,
+      points,
+      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`,
+    })
+    .from(RecipesTable)
+    .innerJoin(
+      maxVersionSubquery,
+      and(
+        eq(RecipesTable.id, maxVersionSubquery.recipeId),
+        eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+      )
+    )
+    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
+    .where(eq(RecipesTable.createdBy, createdBy))
+    .groupBy(
+      RecipesTable.id,
+      RecipesTable.versionId,
+      RecipesTable.slug,
+      RecipesTable.name,
+      RecipesTable.description,
+      RecipesTable.createdBy,
+      RecipesTable.createdAt,
+      RecipesTable.totalTime
+    )
+    .orderBy(desc(RecipesTable.createdAt)) // Order by most recent
+    .limit(30); // Limit the number of results
+  return await withDatabaseSpan(query, "getRecentRecipesByCreator").execute();
+};
+
+export const getProfileBySlug = async (profileSlug: string) => {
+  const query = db
+    .select({
+      profileSlug: ProfileTable.profileSlug,
+      activated: ProfileTable.activated,
+      mediaId: ProfileTable.mediaId,
+      userId: ProfileTable.userId,
+      createdAt: ProfileTable.createdAt,
+    })
+    .from(ProfileTable)
+    .where(eq(ProfileTable.profileSlug, profileSlug)); // Filter by the given profile slug
+  return await withDatabaseSpan(query, "getProfileBySlug")
+    .execute()
+    .then((res) => res[0]); // Return the first (and expectedly only) result
+};
+
 export const getRecentRecipesByProfile = async (profileSlug: string) => {
   const maxVersionSubquery = db
     .select({
@@ -266,21 +331,6 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
     .orderBy(desc(RecipesTable.createdAt)) // Order by most recent
     .limit(30); // Limit the number of results
   return await withDatabaseSpan(query, "getRecentRecipesByProfile").execute();
-};
-export const getProfileBySlug = async (profileSlug: string) => {
-  const query = db
-    .select({
-      profileSlug: ProfileTable.profileSlug,
-      activated: ProfileTable.activated,
-      mediaId: ProfileTable.mediaId,
-      userId: ProfileTable.userId,
-      createdAt: ProfileTable.createdAt,
-    })
-    .from(ProfileTable)
-    .where(eq(ProfileTable.profileSlug, profileSlug)); // Filter by the given profile slug
-  return await withDatabaseSpan(query, "getProfileBySlug")
-    .execute()
-    .then((res) => res[0]); // Return the first (and expectedly only) result
 };
 
 export const getRecipesByTag = async (tag: string) => {
@@ -1083,6 +1133,19 @@ export const getRecipesBySlugs = async (
   return recipesBySlug;
 };
 
-// Usage example:
-// const slugs = ['slug1', 'slug2', 'slug3'];
-// const recipes = await getAllRecipesBySlugs(db, slugs);
+export const updateRecipeCreator = async (
+  dbOrTransaction: DbOrTransaction,
+  guestId: string,
+  userId: string
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  await withDatabaseSpan(
+    queryRunner
+      .update(RecipesTable)
+      .set({ createdBy: userId })
+      .where(eq(RecipesTable.createdBy, guestId)),
+    "updateRecipeCreator"
+  ).execute();
+};

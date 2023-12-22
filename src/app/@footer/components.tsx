@@ -54,7 +54,7 @@ export async function Footer({
       <div className="bg-card w-full border-muted shadow-2xl border-2 border-solid p-2 rounded-full">
         <div className="flex flex-row gap-2 justify-center w-full">
           <Link href="/" className="basis-32 min-w-0">
-            <Card className="flex flex-col items-center justify-center border-none py-2 gap-1">
+            <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1">
               <SearchIcon />
               <FooterTabTitle isActive={currentTab === "explore"}>
                 Explore
@@ -66,7 +66,7 @@ export async function Footer({
             fallbackUrl={"/me"}
             className="basis-32 min-w-0"
           >
-            <Card className="flex flex-col items-center justify-center border-none py-2 px-2 gap-1">
+            <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 px-2 gap-1">
               <ChefHatIcon />
               <FooterTabTitle isActive={currentTab === "profile"}>
                 <AsyncRenderFirstValue
@@ -80,7 +80,7 @@ export async function Footer({
             </Card>
           </LinkFromFirstValue>
           <Link href="/leaderboard" className="basis-32">
-            <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
+            <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 min-w-0">
               <TrophyIcon />
               <FooterTabTitle isActive={currentTab === "leaderboard"}>
                 Top Chefs
@@ -88,7 +88,7 @@ export async function Footer({
             </Card>
           </Link>
           <CraftTabLink className="basis-32">
-            <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
+            <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 min-w-0">
               <AxeIcon />
               <CraftTabTitle />
             </Card>

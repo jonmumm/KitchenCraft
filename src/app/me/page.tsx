@@ -1,26 +1,70 @@
-import { Card } from "@/components/display/card";
-import { SignInForm } from "@/components/forms/sign-in/components.client";
-import { getProfileByUserId } from "@/db/queries";
+import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
+import { db } from "@/db";
+import {
+  getProfileByUserId,
+  getRecentRecipesByCreator,
+  updateRecipeCreator,
+} from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
-import { getBrowserSessionId } from "@/lib/browser-session";
-import { kv } from "@vercel/kv";
+import { getGuestId } from "@/lib/browser-session";
 import { redirect } from "next/navigation";
+import { from, shareReplay } from "rxjs";
+import { RecipeListItem } from "../recipe/components";
 
 export default async function Page() {
-  const currentUserId = await getCurrentUserId();
+  const [currentUserId, guestId] = await Promise.all([
+    getCurrentUserId(),
+    getGuestId(),
+  ]);
+
+  if (currentUserId && guestId) {
+    // todo only do this sometimes...
+    await updateRecipeCreator(db, guestId, currentUserId);
+  }
+
+  let createdBy;
   if (currentUserId) {
     const currentProfile = await getProfileByUserId(currentUserId);
-    redirect(`/@${currentProfile?.profileSlug}`);
+    if (currentProfile?.activated) {
+      redirect(`/@${currentProfile?.profileSlug}`);
+    }
+    createdBy = currentUserId;
+  } else {
+    createdBy = guestId;
   }
-  const browserSessionId = await getBrowserSessionId();
+  console.log({ currentUserId, guestId, createdBy });
 
-  const recipeSlugs = await kv.zrange(`session:${browserSessionId}:recipes`, 0, -1, {rev: true});
+  const [recipes$] = [
+    from(getRecentRecipesByCreator(createdBy)).pipe(shareReplay(1)),
+  ];
+  // const browserSessionId = await getGuestId();
 
   return (
     <div className="flex flex-col max-w-2xl mx-auto px-4">
       <section>
-        <SignInForm />
+        <div className="flex flex-col gap-12">
+          {new Array(NUM_PLACEHOLDER_RECIPES).fill(0).map((_, index) => (
+            <AsyncRenderLastValue
+              key={index}
+              fallback={null}
+              observable={
+                recipes$
+                // recipesByIndex$[index]?.pipe(defaultIfEmpty(undefined))!
+              }
+              render={(recipes) => {
+                const recipe = recipes[index];
+                return recipe ? (
+                  <RecipeListItem recipe={recipe} index={index} />
+                ) : (
+                  <></>
+                );
+              }}
+            />
+          ))}
+        </div>
       </section>
     </div>
   );
 }
+
+const NUM_PLACEHOLDER_RECIPES = 30;

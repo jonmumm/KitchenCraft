@@ -1,10 +1,9 @@
 import { getSession } from "@/lib/auth/session";
-import { redirect } from "next/navigation";
-import { PasscodeForm } from "./components.client";
-import { getBrowser, getIsMacDesktop, getUserAgent } from "@/lib/headers";
-import { getPlatformInfo } from "@/lib/device";
+import { getBrowser, getUserAgent } from "@/lib/headers";
 import { assert } from "@/lib/utils";
 import Bowser from "bowser";
+import { redirect } from "next/navigation";
+import { PasscodeForm } from "./components.client";
 
 export default async function Page({
   searchParams,
@@ -17,6 +16,7 @@ export default async function Page({
   }
 
   const email = searchParams["email"];
+  const callbackUrl = searchParams["callbackUrl"];
   assert(email, "expected email");
   const isGmail = email.endsWith("gmail.com");
   const userAgent = getUserAgent();
@@ -31,11 +31,40 @@ export default async function Page({
       : "googlegmail://"
     : undefined;
 
+  const handleSubmit = async (
+    email: string,
+    callbackUrl: string | undefined,
+    formData: FormData
+  ) => {
+    "use server";
+    const token = formData.get("token")?.toString();
+    console.log(token, formData.get("token"));
+    assert(token, "expected token in form body");
+
+    const emailCallbackParams = new URLSearchParams({
+      email: email,
+      token,
+    });
+
+    if (callbackUrl) {
+      emailCallbackParams.set("callbackUrl", callbackUrl);
+    } else {
+      emailCallbackParams.set("callbackUrl", "/me");
+    }
+    console.log(emailCallbackParams.toString());
+
+    redirect(`/api/auth/callback/email?${emailCallbackParams.toString()}`);
+  };
+
   return (
     <div className="flex flex-col max-w-2xl mx-auto px-4">
       <section>
         <h1 className="font-semibold text-xl">Check Your Email</h1>
-        <PasscodeForm email={email} gmailLink={gmailLink} />
+        <PasscodeForm
+          submit={handleSubmit.bind(null, email).bind(null, callbackUrl)}
+          email={email}
+          gmailLink={gmailLink}
+        />
       </section>
     </div>
   );

@@ -1,11 +1,9 @@
 import { privateEnv } from "@/env.secrets";
 import { serialize } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
-import { nanoid } from "nanoid";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { assert } from "./utils";
-import { getCurrentUserId } from "./auth/session";
 
 export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
 
@@ -14,6 +12,7 @@ interface UserJwtPayload {
   iat: number;
 }
 
+// todo find something better that works on edge functions
 function uuidv4() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     var r = (Math.random() * 16) | 0,
@@ -27,25 +26,25 @@ export class AuthError extends Error {}
 export const ensureGuestId = async (res: NextResponse) => {
   // const currentUsrId = await getCurrentUserId();
   const cookieStore = cookies();
-  let deviceSessionToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
+  let guestToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
 
-  if (!deviceSessionToken) {
-    deviceSessionToken = await new SignJWT({})
+  if (!guestToken) {
+    guestToken = await new SignJWT({})
       .setProtectedHeader({ alg: "HS256" })
       .setJti(uuidv4())
       .setIssuedAt()
       .setExpirationTime("30d")
       .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
 
-    const deviceSessionTokenStr = serialize(
-      GUEST_TOKEN_COOKIE_KEY,
-      deviceSessionToken
-    );
-    res.headers.append("set-cookie", deviceSessionTokenStr);
+    const guestTokenStr = serialize(GUEST_TOKEN_COOKIE_KEY, guestToken, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 60, // 60 days
+    });
+    res.headers.append("set-cookie", guestTokenStr);
   }
 };
 
-export const getBrowserSessionPayload = async () => {
+export const getGuestToken = async () => {
   const cookieStore = cookies();
   const deviceSessionToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
   assert(
@@ -66,8 +65,8 @@ export const getBrowserSessionPayload = async () => {
   }
 };
 
-export const getBrowserSessionId = async () => {
-  return (await getBrowserSessionPayload()).jti;
+export const getGuestId = async () => {
+  return (await getGuestToken()).jti;
 };
 
 /**

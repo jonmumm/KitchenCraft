@@ -41,10 +41,7 @@ export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
 
 // Once the client loads, we rely on browser back calls instead of
 // form action post to calculate back
-export const BackButton = ({
-  handleBack,
-  hasHistory,
-}: {
+export const BackButton = (props: {
   handleBack: () => Promise<void>;
   hasHistory: boolean;
 }) => {
@@ -59,12 +56,14 @@ export const BackButton = ({
     <Button
       variant="ghost"
       type="submit"
-      onClick={() => {
-        if (hasHistory) {
+      onClick={(event) => {
+        console.log(history.length);
+        if (history.length > 3) {
           router.back();
         } else {
           router.push("/");
         }
+        event.preventDefault();
       }}
     >
       <ArrowLeftIcon />
@@ -72,7 +71,7 @@ export const BackButton = ({
   );
 
   return showLink ? (
-    <form action={handleBack}>
+    <form action={props.handleBack}>
       <Content />
     </form>
   ) : (

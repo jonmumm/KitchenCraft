@@ -15,6 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
+import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -24,14 +25,17 @@ import {
   useEffect,
   useState,
 } from "react";
-import { ExternalLinkIcon } from "lucide-react";
 
 // Update the schema to validate a 5-character token
 const formSchema = z.object({
   token: z.string().length(5, { message: "Passcode must be 5 characters" }),
 });
 
-export function PasscodeForm(props: { gmailLink?: string; email: string }) {
+export function PasscodeForm(props: {
+  gmailLink?: string;
+  email: string;
+  submit: (formData: FormData) => Promise<never>;
+}) {
   // const router = useRouter();
   const [disabled, setDisabled] = useState(false);
   const params = useSearchParams();
@@ -44,26 +48,26 @@ export function PasscodeForm(props: { gmailLink?: string; email: string }) {
 
   const [showGMailLink, setShowGMailLink] = useState(!!props.gmailLink);
 
-  const submit = useCallback(
-    (token: string) => {
-      setDisabled(true);
-      const emailCallbackParams = new URLSearchParams({
-        email: props.email,
-        token: token,
-      });
+  // const submit = useCallback(
+  //   (token: string) => {
+  //     setDisabled(true);
+  //     const emailCallbackParams = new URLSearchParams({
+  //       email: props.email,
+  //       token: token,
+  //     });
 
-      const callbackUrl = params.get("callbackUrl");
-      if (callbackUrl) {
-        emailCallbackParams.set("callbackUrl", callbackUrl);
-      } else {
-        emailCallbackParams.set("callbackUrl", "/");
-      }
+  //     const callbackUrl = params.get("callbackUrl");
+  //     if (callbackUrl) {
+  //       emailCallbackParams.set("callbackUrl", callbackUrl);
+  //     } else {
+  //       emailCallbackParams.set("callbackUrl", "/");
+  //     }
 
-      const url = `/api/auth/callback/email?${emailCallbackParams.toString()}`;
-      window.location.href = url;
-    },
-    [setDisabled, params, props.email]
-  );
+  //     const url = `/api/auth/callback/email?${emailCallbackParams.toString()}`;
+  //     window.location.href = url;
+  //   },
+  //   [setDisabled, params, props.email]
+  // );
 
   const GmailLink = () => {
     useEffect(() => {
@@ -102,17 +106,21 @@ export function PasscodeForm(props: { gmailLink?: string; email: string }) {
         token: event.clipboardData.getData("text"),
       });
       if (result.success) {
-        submit(result.data.token);
+        const data = new FormData();
+        data.set("token", result.data.token);
+        props.submit(data);
       }
     },
-    [submit]
+    [props.submit]
   );
 
   const onSubmit = useCallback(
     (data: z.infer<typeof formSchema>) => {
-      submit(data.token);
+      const form = new FormData();
+      form.set("token", data.token);
+      props.submit(form);
     },
-    [submit]
+    [props.submit]
   );
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -145,7 +153,11 @@ export function PasscodeForm(props: { gmailLink?: string; email: string }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        action={props.submit}
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-8"
+      >
         <FormField
           control={form.control}
           name="token"

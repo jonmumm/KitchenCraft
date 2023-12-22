@@ -21,7 +21,7 @@ import {
 import { NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
 import { getSession } from "@/lib/auth/session";
-import { getBrowserSessionId } from "@/lib/browser-session";
+import { getGuestId } from "@/lib/browser-session";
 import { getResult } from "@/lib/db";
 import { assert, noop } from "@/lib/utils";
 import {
@@ -94,12 +94,14 @@ type Props = {
 export default async function Page(props: Props) {
   const { slug } = props.params;
 
-  const [session, recipe, mediaList, latestVersion] = await Promise.all([
-    getSession(),
-    getRecipe(slug),
-    getSortedMediaForRecipe(slug),
-    findLatestRecipeVersion(slug),
-  ]);
+  const [session, guestId, recipe, mediaList, latestVersion] =
+    await Promise.all([
+      getSession(),
+      getGuestId(),
+      getRecipe(slug),
+      getSortedMediaForRecipe(slug),
+      findLatestRecipeVersion(slug),
+    ]);
 
   const userId = session?.user.id;
 
@@ -417,8 +419,8 @@ export default async function Page(props: Props) {
               }}
               onComplete={(output) => {
                 const createdAt = new Date();
-                const createdBy = userId || getGuestId();
-                assert(createdBy, `neither userId or guestId defined`)
+                const createdBy = userId || guestId;
+                assert(createdBy, `neither userId or guestId defined`);
 
                 const finalRecipe = {
                   id: randomUUID(),
@@ -433,7 +435,7 @@ export default async function Page(props: Props) {
                   cookTime: output.recipe.cookTime,
                   activeTime: output.recipe.activeTime,
                   totalTime: output.recipe.totalTime,
-                  createdBy: userId,
+                  createdBy,
                   createdAt,
                 } satisfies NewRecipe;
 
@@ -443,16 +445,6 @@ export default async function Page(props: Props) {
                     kv.hset(`recipe:${slug}`, {
                       runStatus: "done",
                     }).then(noop);
-
-                    getBrowserSessionId().then((browserSessionId) => {
-                      console.log(brow)
-
-                      kv.zadd(`session:${browserSessionId}:recipes`, {
-                        score: createdAt.getTime(),
-                        member: finalRecipe.slug,
-                      }).then(noop);
-                    });
-
                     revalidatePath("/");
                   });
 
@@ -626,7 +618,7 @@ export default async function Page(props: Props) {
               </div>
             </div>
             <Separator />
-            {recipeUserId && recipe?.createdAt && (
+            {/* {recipeUserId && recipe?.createdAt && (
               <>
                 <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
                   <div className="flex flex-col gap-2 items-center">
@@ -640,7 +632,7 @@ export default async function Page(props: Props) {
                 </div>
                 <Separator className="hidden-print" />
               </>
-            )}
+            )} */}
             <Times
               totalTime$={totalTime$}
               activeTime$={activeTime$}

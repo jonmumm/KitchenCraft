@@ -43,6 +43,7 @@ const AutoResizableTextarea: React.FC<
   ...props
 }) => {
   const send = useSend();
+  const actor = useContext(CraftContext);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -60,7 +61,10 @@ const AutoResizableTextarea: React.FC<
     // Resize logic
     const computedStyle = window.getComputedStyle(textarea);
     const lineHeight = parseInt(computedStyle.lineHeight, 10);
-    const numberOfLines = Math.floor(textarea.scrollHeight / lineHeight);
+    const isCrafting = document.body.classList.contains("crafting");
+    const numberOfLines = isCrafting
+      ? Math.floor(textarea.scrollHeight / lineHeight)
+      : 1;
     const requiredHeight = numberOfLines * lineHeight;
     textarea.style.height = `${requiredHeight}px`;
   }, []);
@@ -111,7 +115,7 @@ const AutoResizableTextarea: React.FC<
       <textarea
         value={value}
         ref={ref}
-        className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent`}
+        className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden`}
         onChange={handleChange}
         {...props}
         // onChange={(e) => {

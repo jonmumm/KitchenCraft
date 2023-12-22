@@ -12,7 +12,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { CraftContext } from "./context";
 import { createCraftMachine } from "./machine";
-import usePushState from "@/hooks/usePushState";
 
 // export const ApplicationContext = createContext()
 
@@ -27,7 +26,6 @@ export function ApplicationProvider(props: {
   session: Awaited<ReturnType<typeof getSession>>;
   actions: Parameters<typeof createCraftMachine>[0]["serverActions"];
 }) {
-  console.log("app provider");
   const [store] = useState(map<any>({})); // todo define global types here
   // useScrollRestoration(); // i dont know if this is well working or not
 
@@ -98,10 +96,10 @@ const PopStateEventsProvider = () => {
 
   useEffect(() => {
     function onPopState(event: PopStateEvent) {
-      console.log("POPSTATE", event.state);
-      setTimeout(() => {
-        console.log("POPSTATE", event.state);
-      }, 5000);
+      // console.log("POPSTATE", event.state);
+      // setTimeout(() => {
+      //   console.log("POPSTATE", event.state);
+      // }, 5000);
       event.preventDefault();
       // send({ type: "HASH_CHANGE", hash: window.location.hash });
     }
