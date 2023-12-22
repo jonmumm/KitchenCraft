@@ -599,6 +599,9 @@ export const createCraftMachine = ({
                 FOCUS_PROMPT: {
                   target: "True",
                 },
+                NEW_RECIPE: {
+                  target: "True",
+                },
                 HYDRATE_INPUT: {
                   target: "True",
                   guard: "isInputFocused",

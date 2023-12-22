@@ -446,6 +446,7 @@ export default async function Page(props: Props) {
                       runStatus: "done",
                     }).then(noop);
                     revalidatePath("/");
+                    revalidatePath("/me");
                   });
 
                 generatorSubject.next({

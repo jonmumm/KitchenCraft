@@ -44,17 +44,17 @@ export const ensureGuestId = async (res: NextResponse) => {
   }
 };
 
-export const getGuestToken = async () => {
+const getGuestToken = async () => {
   const cookieStore = cookies();
-  const deviceSessionToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
-  assert(
-    deviceSessionToken,
-    "expected deviceSessionToken. ensureSessionStorageKey must not have been called in middlware"
-  );
+  const guestToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
+
+  if (!guestToken) {
+    return undefined;
+  }
 
   try {
     const verified = await jwtVerify(
-      deviceSessionToken,
+      guestToken,
       new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
     );
     return verified.payload as UserJwtPayload;
@@ -66,7 +66,7 @@ export const getGuestToken = async () => {
 };
 
 export const getGuestId = async () => {
-  return (await getGuestToken()).jti;
+  return (await getGuestToken())?.jti;
 };
 
 /**

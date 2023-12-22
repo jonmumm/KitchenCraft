@@ -1,3 +1,5 @@
+import { Footer } from "../../components";
+
 export default async function Page(props: { params: { slug: string } }) {
-  return null;
+  return <Footer currentTab={null} />;
 }
