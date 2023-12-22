@@ -4,11 +4,9 @@ import {
   bigint,
   bigserial,
   boolean,
-  foreignKey,
   index,
   integer,
   jsonb,
-  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -91,15 +89,13 @@ export const RecipesTable = pgTable(
     name: text("name").notNull(),
     description: text("description").notNull(),
     yield: text("yield").notNull(),
-    createdBy: text("createdBy")
-      .notNull()
-      .references(() => UsersTable.id, { onDelete: "cascade" }),
     tags: jsonb("tags").$type<string[]>().notNull(), // Using jsonb to store tags
     activeTime: text("activeTime").notNull(),
     cookTime: text("cookTime").notNull(),
     totalTime: text("totalTime").notNull(),
     ingredients: jsonb("ingredients").$type<string[]>().notNull(), // Using jsonb to store ingredients
     instructions: jsonb("instructions").$type<string[]>().notNull(), // Using jsonb to store ingredients
+    createdBy: text("createdBy").notNull(), // no fk because if might references users that doesnt exist yet
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
   (table) => {

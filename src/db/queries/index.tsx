@@ -15,6 +15,7 @@ import { withDatabaseSpan } from "@/lib/observability";
 import { and, count, desc, eq, inArray, max, ne, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { z } from "zod";
+import { Recipe } from "../types";
 
 // constants
 const gravity = 1.8;
@@ -1053,3 +1054,35 @@ export const getRecipePoints = async (
   const result = await withDatabaseSpan(query, "getRecipePoints").execute();
   return result[0]?.points || 0;
 };
+
+export const getRecipesBySlugs = async (
+  dbOrTransaction: DbOrTransaction,
+  recipeSlugs: string[]
+): Promise<{ [slug: string]: Recipe[] }> => {
+  if (!recipeSlugs.length) {
+    return {}; // Return an empty object if there are no slugs
+  }
+
+  const recipes = await withDatabaseSpan(
+    dbOrTransaction
+      .select()
+      .from(RecipesTable)
+      .where(inArray(RecipesTable.slug, recipeSlugs)),
+    "getRecipesBySlugs"
+  ).execute();
+
+  // Group recipes by their slug
+  let recipesBySlug: { [slug: string]: Recipe[] } = {};
+  recipes.forEach((recipe) => {
+    if (!recipesBySlug[recipe.slug]) {
+      recipesBySlug[recipe.slug] = [];
+    }
+    recipesBySlug[recipe.slug]?.push(recipe);
+  });
+
+  return recipesBySlug;
+};
+
+// Usage example:
+// const slugs = ['slug1', 'slug2', 'slug3'];
+// const recipes = await getAllRecipesBySlugs(db, slugs);

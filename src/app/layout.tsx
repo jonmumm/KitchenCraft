@@ -5,6 +5,7 @@ import { getCurrentUserId, getSession } from "@/lib/auth/session";
 import { getResult } from "@/lib/db";
 import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
+import { assert } from "@/lib/utils";
 import {
   InstantRecipeMetadataPredictionOutputSchema,
   SuggestionPredictionOutputSchema,
@@ -18,7 +19,6 @@ import { Body } from "./components.client";
 import { ApplicationProvider } from "./provider";
 import { createRecipe } from "./recipe/lib";
 import "./styles.css";
-import { assert } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "KitchenCraft",

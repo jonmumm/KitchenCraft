@@ -64,7 +64,6 @@ export const authOptions: NextAuthOptions = {
 
     // e.g. getSession(), useSession(), /api/auth/session
     async session(params) {
-      // console.log("session", params);
       const { token, session } = params;
       if (session.user && token) {
         session.user.id = token.id;
@@ -79,7 +78,6 @@ export const authOptions: NextAuthOptions = {
 
     // this data can become available to the browser
     async jwt(params) {
-      // console.log("jwt", params);
       const { token, user } = params;
       const [dbUser] = await db
         .select()

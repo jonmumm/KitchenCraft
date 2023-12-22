@@ -27,7 +27,7 @@ import Bowser from "bowser";
 import { ChefHatIcon, GithubIcon, LoaderIcon, YoutubeIcon } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { Suspense } from "react";
+import { ReactNode, Suspense } from "react";
 import {
   Observable,
   combineLatest,
@@ -44,6 +44,7 @@ import {
   NotificationsSwitch,
 } from "./notifications-switch";
 import { TypeLogo } from "@/components/logo";
+import { cn } from "@/lib/utils";
 
 export async function MainMenu({ className }: { className?: string }) {
   const session = await getSession();
@@ -111,12 +112,18 @@ export async function MainMenu({ className }: { className?: string }) {
       {canInstallPWA && <SafariInstallPrompt />}
       {!userId && (
         <>
-          {canInstallPWA && <AppInstall />}
-          <Link href="/auth/signin">
-            <Button size="lg" className="w-full">
-              Sign In / Sign Up
-            </Button>
-          </Link>
+          {canInstallPWA && (
+            <MenuItem>
+              <AppInstall />
+            </MenuItem>
+          )}
+          <MenuItem>
+            <Link href="/auth/signin">
+              <Button size="lg" className="w-full">
+                Sign In / Sign Up
+              </Button>
+            </Link>
+          </MenuItem>
           <Separator />
         </>
       )}
@@ -203,16 +210,22 @@ export async function MainMenu({ className }: { className?: string }) {
               </div>
             </div>
           </div>
-          {canInstallPWA && <AppInstall />}
+          {canInstallPWA && (
+            <MenuItem>
+              <AppInstall />
+            </MenuItem>
+          )}
           <Separator />
-          <div className="flex flex-row items-center justify-between max-w-full gap-3">
-            <Label className="uppercase text-xs font-bold text-accent-foreground">
-              Email
-            </Label>
-            <div className="flex-1 min-w-0 truncate">
-              <span className="truncate">{email}</span>
+          <MenuItem>
+            <div className="flex flex-row items-center justify-between max-w-full gap-3">
+              <Label className="uppercase text-xs font-bold text-accent-foreground">
+                Email
+              </Label>
+              <div className="flex-1 min-w-0 truncate text-right">
+                <span className="truncate">{email}</span>
+              </div>
             </div>
-          </div>
+          </MenuItem>
 
           <Separator />
           <AsyncRenderFirstValue
@@ -224,30 +237,32 @@ export async function MainMenu({ className }: { className?: string }) {
             render={([quotaUsage, quotaLimit, activeSub]) => {
               return !activeSub ? (
                 <>
-                  <div className="flex flex-row gap-3 items-center justify-between">
-                    <Label className="uppercase text-xs font-bold text-accent-foreground">
-                      Recipe
-                      <br />
-                      Quota
-                    </Label>
-                    <div className="flex flex-col gap-2 flex-1 items-end">
-                      <Progress
-                        value={(100 * quotaUsage) / quotaLimit}
-                        className="w-2/3"
-                      />
-                      <div className="flex flex-row justify-between items-center w-2/3">
-                        <div className="text-muted-foreground text-xs">
-                          {quotaUsage}/{quotaLimit} per day
-                        </div>
-
-                        <Link href="/history">
-                          <div className="text-muted-foreground text-xs underline">
-                            History
+                  <MenuItem>
+                    <div className="flex flex-row gap-3 items-center justify-between">
+                      <Label className="uppercase text-xs font-bold text-accent-foreground">
+                        Recipe
+                        <br />
+                        Quota
+                      </Label>
+                      <div className="flex flex-col gap-2 flex-1 items-end">
+                        <Progress
+                          value={(100 * quotaUsage) / quotaLimit}
+                          className="w-2/3"
+                        />
+                        <div className="flex flex-row justify-between items-center w-2/3">
+                          <div className="text-muted-foreground text-xs">
+                            {quotaUsage}/{quotaLimit} per day
                           </div>
-                        </Link>
+
+                          <Link href="/history">
+                            <div className="text-muted-foreground text-xs underline">
+                              History
+                            </div>
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </MenuItem>
                   <Separator />
                 </>
               ) : (
@@ -256,7 +271,7 @@ export async function MainMenu({ className }: { className?: string }) {
             }}
             fallback={<Skeleton className="h-12 w-full" />}
           />
-          <div className="flex flex-row gap-3 items-center justify-between">
+          <MenuItem className="flex flex-row gap-3 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
               Subscription
             </Label>
@@ -308,7 +323,7 @@ export async function MainMenu({ className }: { className?: string }) {
                 />
               </Suspense>
             </div>
-          </div>
+          </MenuItem>
           <Separator />
           <Suspense fallback={null}>
             <RenderFirstValue
@@ -316,7 +331,7 @@ export async function MainMenu({ className }: { className?: string }) {
               render={(sub) => {
                 return sub ? (
                   <>
-                    <div className="flex flex-row gap-3 items-center justify-between">
+                    <MenuItem className="flex flex-row gap-3 items-center justify-between">
                       <Label className="uppercase text-xs font-bold text-accent-foreground">
                         Billing
                       </Label>
@@ -325,7 +340,7 @@ export async function MainMenu({ className }: { className?: string }) {
                           <Badge variant="secondary">Manage</Badge>
                         </Link>
                       </div>
-                    </div>
+                    </MenuItem>
                     <Separator />
                   </>
                 ) : (
@@ -335,28 +350,28 @@ export async function MainMenu({ className }: { className?: string }) {
             />
           </Suspense>
           <NotificationsSetting>
-            <div className="flex flex-row gap-3 items-center justify-between">
+            <MenuItem className="flex flex-row gap-3 items-center justify-between">
               <Label className="uppercase text-xs font-bold text-accent-foreground">
                 Notifications
               </Label>
               <div>
                 <NotificationsSwitch />
               </div>
-            </div>
+            </MenuItem>
             <Separator />
           </NotificationsSetting>
         </>
       )}
-      <div className="flex flex-row gap-1 items-center justify-between">
+      <MenuItem className="flex flex-row gap-1 items-center justify-between">
         <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
           Theme
         </Label>
         <ModeToggle />
-      </div>
+      </MenuItem>
       {userId && (
         <>
           <Separator />
-          <div className="flex justify-center">
+          <MenuItem className="flex justify-center">
             <form method="POST" action="/api/auth/signout">
               <Button
                 type="submit"
@@ -366,7 +381,7 @@ export async function MainMenu({ className }: { className?: string }) {
                 Sign Out
               </Button>
             </form>
-          </div>
+          </MenuItem>
         </>
       )}
       <Separator />
@@ -393,7 +408,7 @@ export async function MainMenu({ className }: { className?: string }) {
           Terms
         </Link>
       </div>
-      <div className="flex flex-row gap-1 justify-between">
+      <MenuItem className="flex flex-row gap-1 justify-between">
         <p className="text-xs text-center flex-1">
           © 2023 Open Game Collective, LLC. All rights reserved. This software
           is distributed under the{" "}
@@ -406,7 +421,7 @@ export async function MainMenu({ className }: { className?: string }) {
           </Link>
           .
         </p>
-      </div>
+      </MenuItem>
     </>
   );
 }
@@ -456,3 +471,13 @@ const AppInstall = () => (
     </Button>
   </AppInstallContainer>
 );
+
+const MenuItem = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => {
+  return <div className={cn("px-2", className)}>{children}</div>;
+};

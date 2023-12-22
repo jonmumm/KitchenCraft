@@ -21,8 +21,9 @@ import {
 import { NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
 import { getSession } from "@/lib/auth/session";
+import { getBrowserSessionId } from "@/lib/browser-session";
 import { getResult } from "@/lib/db";
-import { noop } from "@/lib/utils";
+import { assert, noop } from "@/lib/utils";
 import {
   FAQsPredictionInputSchema,
   QuestionsPredictionOutputSchema,
@@ -107,7 +108,7 @@ export default async function Page(props: Props) {
   let input: RecipePredictionInput | undefined;
   let name: string;
   let description: string;
-  let recipeUserId: string | undefined;
+  let recipeUserId: string | undefined | null;
   let tempRecipe: TempRecipe | undefined;
 
   if (!recipe) {
@@ -416,34 +417,15 @@ export default async function Page(props: Props) {
               }}
               onComplete={(output) => {
                 const createdAt = new Date();
-                if (userId) {
-                  const finalRecipe = {
-                    id: randomUUID(),
-                    slug,
-                    versionId: 0,
-                    description,
-                    name,
-                    yield: output.recipe.yield,
-                    tags: output.recipe.tags,
-                    ingredients: output.recipe.ingredients,
-                    instructions: output.recipe.instructions,
-                    cookTime: output.recipe.cookTime,
-                    activeTime: output.recipe.activeTime,
-                    totalTime: output.recipe.totalTime,
-                    createdBy: userId,
-                    createdAt,
-                  } satisfies NewRecipe;
+                const createdBy = userId || getGuestId();
+                assert(createdBy, `neither userId or guestId defined`)
 
-                  db.insert(RecipesTable)
-                    .values(finalRecipe)
-                    .then(() => {
-                      revalidatePath("/");
-                    });
-                }
-                kv.hset(`recipe:${slug}`, {
-                  runStatus: "done",
-                  name,
+                const finalRecipe = {
+                  id: randomUUID(),
+                  slug,
+                  versionId: 0,
                   description,
+                  name,
                   yield: output.recipe.yield,
                   tags: output.recipe.tags,
                   ingredients: output.recipe.ingredients,
@@ -451,14 +433,34 @@ export default async function Page(props: Props) {
                   cookTime: output.recipe.cookTime,
                   activeTime: output.recipe.activeTime,
                   totalTime: output.recipe.totalTime,
-                  createdAt: new Date(),
-                }).then(noop);
+                  createdBy: userId,
+                  createdAt,
+                } satisfies NewRecipe;
+
+                db.insert(RecipesTable)
+                  .values(finalRecipe)
+                  .then(() => {
+                    kv.hset(`recipe:${slug}`, {
+                      runStatus: "done",
+                    }).then(noop);
+
+                    getBrowserSessionId().then((browserSessionId) => {
+                      console.log(brow)
+
+                      kv.zadd(`session:${browserSessionId}:recipes`, {
+                        score: createdAt.getTime(),
+                        member: finalRecipe.slug,
+                      }).then(noop);
+                    });
+
+                    revalidatePath("/");
+                  });
 
                 generatorSubject.next({
                   ...output.recipe,
                   name,
                   description,
-                  createdAt: new Date(),
+                  createdAt,
                 });
                 generatorSubject.complete();
               }}

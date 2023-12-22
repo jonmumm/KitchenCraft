@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ensureDeviceSession } from "./lib/device-session";
+import { ensureGuestId } from "./lib/browser-session";
 
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next({
     request,
   });
-  await ensureDeviceSession(res);
+  await ensureGuestId(res);
   return res;
 }

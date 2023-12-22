@@ -1,47 +1,53 @@
 import { privateEnv } from "@/env.secrets";
+import { serialize } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
 import { nanoid } from "nanoid";
 import { cookies } from "next/headers";
-import { assert } from "./utils";
-import { serialize } from "cookie";
 import { NextResponse } from "next/server";
+import { assert } from "./utils";
+import { getCurrentUserId } from "./auth/session";
 
-export const DEVICE_SESSION_TOKEN = "device-session";
+export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
 
 interface UserJwtPayload {
   jti: string;
   iat: number;
 }
 
+function uuidv4() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0,
+      v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export class AuthError extends Error {}
 
-export const ensureDeviceSession = async (res: NextResponse) => {
+export const ensureGuestId = async (res: NextResponse) => {
+  // const currentUsrId = await getCurrentUserId();
   const cookieStore = cookies();
-  let deviceSessionToken = cookieStore.get(DEVICE_SESSION_TOKEN)?.value;
+  let deviceSessionToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
 
   if (!deviceSessionToken) {
     deviceSessionToken = await new SignJWT({})
       .setProtectedHeader({ alg: "HS256" })
-      .setJti(nanoid())
+      .setJti(uuidv4())
       .setIssuedAt()
       .setExpirationTime("30d")
       .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
 
     const deviceSessionTokenStr = serialize(
-      DEVICE_SESSION_TOKEN,
+      GUEST_TOKEN_COOKIE_KEY,
       deviceSessionToken
     );
     res.headers.append("set-cookie", deviceSessionTokenStr);
   }
 };
 
-// export const getDeviceSessionToken = async () => {
-//   return cookies().get(DEVICE_SESSION_TOKEN)?.value;
-// };
-
-export const getDeviceSessionPayload = async () => {
+export const getBrowserSessionPayload = async () => {
   const cookieStore = cookies();
-  const deviceSessionToken = cookieStore.get(DEVICE_SESSION_TOKEN)?.value;
+  const deviceSessionToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
   assert(
     deviceSessionToken,
     "expected deviceSessionToken. ensureSessionStorageKey must not have been called in middlware"
@@ -60,8 +66,8 @@ export const getDeviceSessionPayload = async () => {
   }
 };
 
-export const getDeviceSessionId = async () => {
-  return (await getDeviceSessionPayload()).jti;
+export const getBrowserSessionId = async () => {
+  return (await getBrowserSessionPayload()).jti;
 };
 
 /**

@@ -15,6 +15,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BackButton, CraftInput, KeyboardToggle } from "./components.client";
+import {
+  Sheet,
+  SheetContent,
+  SheetOverlay,
+  SheetTrigger,
+} from "@/components/layout/sheet";
+import { MainMenu } from "@/components/modules/main-menu";
+import { ReactNode } from "react";
 
 export async function Header({
   className,
@@ -60,16 +68,6 @@ export async function Header({
             {/* <CraftHeading /> */}
             <CraftCTA />
           </div>
-          <div className="crafting:hidden">
-            <Button variant="ghost" size="icon">
-              <GripVerticalIcon />
-            </Button>
-          </div>
-          <Link href="/leaderboard" className="hidden lg:block crafting:hidden">
-            <Button variant="ghost">
-              <TrophyIcon />
-            </Button>
-          </Link>
           <Link href="/me" className="hidden lg:block crafting:hidden">
             <div className="flex flex-row gap-1 items-center">
               <div className="flex flex-row gap-1">
@@ -85,6 +83,26 @@ export async function Header({
               </div>
             </div>
           </Link>
+          <Link href="/leaderboard" className="hidden lg:block crafting:hidden">
+            <Button variant="ghost">
+              <TrophyIcon />
+            </Button>
+          </Link>
+          <div className="crafting:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <GripVerticalIcon />
+                </Button>
+              </SheetTrigger>
+              <SheetOverlay />
+              <SheetContent side="right">
+                <div className="flex flex-col gap-2 py-4">
+                  <MainMenu />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
           {/* <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
       </Card> */}
         </div>
