@@ -51,7 +51,6 @@ export default async function Page({
     } else {
       emailCallbackParams.set("callbackUrl", "/me");
     }
-    console.log(emailCallbackParams.toString());
 
     redirect(`/api/auth/callback/email?${emailCallbackParams.toString()}`);
   };

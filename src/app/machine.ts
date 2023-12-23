@@ -191,6 +191,86 @@ export const createCraftMachine = ({
       },
       type: "parallel",
       states: {
+        Creating: {
+          initial: "False",
+          on: {
+            INSTANT_RECIPE: {
+              target: ".InstantRecipe",
+              guard: ({ context }) => !!context.instantRecipeMetadata,
+            },
+            SELECT_RESULT: {
+              target: ".SuggestionRecipe",
+              actions: assign({
+                currentItemIndex: ({ event }) => event.index,
+              }),
+            },
+            SET_INPUT: ".False",
+          },
+          states: {
+            InstantRecipe: {
+              invoke: {
+                src: "createNewInstantRecipe",
+                onDone: {
+                  // target: "#Closed",
+                  actions: [
+                    ({ context, event }) => {
+                      // helps in dev?
+                      // https://github.com/vercel/next.js/issues/43548#issuecomment-1758745511
+                      router.prefetch(
+                        `${event.output.data.recipeUrl}?prompt=${context.prompt}`
+                      );
+                      router.push(
+                        `${event.output.data.recipeUrl}?prompt=${context.prompt}`
+                      );
+                    },
+                    raise({ type: "CLOSE" }),
+                  ],
+                },
+                input: ({ context }) => {
+                  const { instantRecipeResultId, prompt } = context;
+                  assert(
+                    instantRecipeResultId,
+                    "expected instantRecipeResultId"
+                  );
+                  assert(prompt, "expected prompt");
+                  return { instantRecipeResultId, prompt };
+                },
+              },
+            },
+            SuggestionRecipe: {
+              invoke: {
+                src: "createNewRecipeFromSuggestion",
+                onDone: {
+                  actions: [
+                    ({ event, context }) => {
+                      if (event.output.success) {
+                        router.prefetch(
+                          `${event.output.data.recipeUrl}?prompt=${context.prompt}`
+                        );
+                        router.push(
+                          `${event.output.data.recipeUrl}?prompt=${context.prompt}`
+                        );
+                        // router.refresh();
+                      }
+                    },
+
+                    raise({ type: "CLOSE" }),
+                  ],
+                },
+                input: ({ context }) => {
+                  const { suggestionsResultId, currentItemIndex } = context;
+                  assert(suggestionsResultId, "expected suggestionResultId");
+                  assert(
+                    typeof currentItemIndex !== "undefined",
+                    "expected currentItemIndex"
+                  );
+                  return { suggestionsResultId, index: currentItemIndex };
+                },
+              },
+            },
+            False: {},
+          },
+        },
         InstantRecipe: {
           initial: "Idle",
           on: {
@@ -201,10 +281,6 @@ export const createCraftMachine = ({
           states: {
             Idle: {
               on: {
-                INSTANT_RECIPE: {
-                  target: "Creating",
-                  guard: ({ context }) => !!context.instantRecipeMetadata,
-                },
                 SET_INPUT: {
                   target: "Holding",
                   guard: ({ context }) => !!context.prompt?.length,
@@ -293,39 +369,6 @@ export const createCraftMachine = ({
                 },
               },
             },
-            Creating: {
-              invoke: {
-                src: "createNewInstantRecipe",
-                onDone: {
-                  // target: "#Closed",
-                  actions: [
-                    ({ context, event }) => {
-                      // helps in dev?
-                      // https://github.com/vercel/next.js/issues/43548#issuecomment-1758745511
-                      router.prefetch(
-                        `${event.output.data.recipeUrl}?prompt=${context.prompt}`
-                      );
-                      router.push(
-                        `${event.output.data.recipeUrl}?prompt=${context.prompt}`
-                      );
-                    },
-                    raise({ type: "CLOSE" }),
-                  ],
-                },
-                input: ({ context }) => {
-                  const { instantRecipeResultId, prompt } = context;
-                  assert(
-                    instantRecipeResultId,
-                    "expected instantRecipeResultId"
-                  );
-                  assert(prompt, "expected prompt");
-                  return { instantRecipeResultId, prompt };
-                },
-              },
-              on: {
-                SET_INPUT: "Holding",
-              },
-            },
           },
         },
         Suggestions: {
@@ -333,14 +376,6 @@ export const createCraftMachine = ({
           on: {
             CLOSE: {
               target: ".Idle",
-            },
-            SELECT_RESULT: {
-              target: ".Creating",
-              actions: assign({
-                currentItemIndex: ({ event }) => {
-                  return event.index;
-                },
-              }),
             },
           },
           states: {
@@ -440,46 +475,6 @@ export const createCraftMachine = ({
                     },
                   ],
                 },
-              },
-            },
-            Creating: {
-              invoke: {
-                src: "createNewRecipeFromSuggestion",
-                onDone: {
-                  actions: [
-                    ({ event, context }) => {
-                      if (event.output.success) {
-                        router.prefetch(
-                          `${event.output.data.recipeUrl}?prompt=${context.prompt}`
-                        );
-                        router.push(
-                          `${event.output.data.recipeUrl}?prompt=${context.prompt}`
-                        );
-                        // router.refresh();
-                      }
-                    },
-
-                    raise({ type: "CLOSE" }),
-                  ],
-                },
-                input: ({ context }) => {
-                  const { suggestionsResultId, currentItemIndex } = context;
-                  assert(suggestionsResultId, "expected suggestionResultId");
-                  assert(
-                    typeof currentItemIndex !== "undefined",
-                    "expected currentItemIndex"
-                  );
-                  return { suggestionsResultId, index: currentItemIndex };
-                },
-              },
-              on: {
-                SELECT_RESULT: {
-                  target: "Creating",
-                  actions: assign({
-                    currentItemIndex: ({ event }) => event.index,
-                  }),
-                },
-                SET_INPUT: "Holding",
               },
             },
           },

@@ -20,7 +20,6 @@ export async function Footer({
 }: {
   currentTab: "profile" | "explore" | "menu" | "leaderboard" | null;
 }) {
-  console.log(currentTab);
   const userId = await getCurrentUserId();
 
   const profileSlug$ = userId
@@ -61,10 +60,7 @@ export async function Footer({
               </FooterTabTitle>
             </Card>
           </Link>
-          <Link
-            href={"/me"}
-            className="basis-36 min-w-0"
-          >
+          <Link href={"/me"} className="basis-36 min-w-0">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 px-2 gap-1">
               <ChefHatIcon />
               <FooterTabTitle isActive={currentTab === "profile"}>

@@ -79,7 +79,7 @@ export const SuggestionItem = ({ index }: { index: number }) => {
   return (
     <Card
       event={{ type: "SELECT_RESULT", index }}
-      className="w-full flex flex-row gap-2 items-center px-3 cursor hover:bg-slate-800"
+      className="w-full flex flex-row gap-2 items-center px-3 cursor-pointer hover:bg-slate-800"
     >
       {/* <Avatar className="opacity-20">
         <AvatarFallback>{index + 1}.</AvatarFallback>
