@@ -146,7 +146,7 @@ const CraftCTA = () => {
   // hide the empty state on click
 
   return (
-    <div className="w-full relative shadow-xl rounded-3xl flex flex-row border-2 border-muted py-2">
+    <div className="w-full relative shadow-xl rounded-3xl flex flex-row border-2 border-muted py-2 focus-within:border-blue-500">
       <CraftInput
         // autoFocus={autoFocus}
         commandBadge={getIsMacDesktop()}

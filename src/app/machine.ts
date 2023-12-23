@@ -570,6 +570,12 @@ export const createCraftMachine = ({
               entry: [
                 () => {
                   document.body.classList.remove("crafting");
+                  const prompt = document.querySelector(
+                    "#prompt"
+                  ) as HTMLTextAreaElement | null;
+                  if (prompt) {
+                    prompt.blur();
+                  }
                 },
                 {
                   type: "replaceQueryParameters",
@@ -679,10 +685,11 @@ export const createCraftMachine = ({
             document.querySelector<HTMLTextAreaElement>("#prompt");
           assert(element, "exlected prompt element");
 
-          if (element.value) {
+          if (element.value.length) {
             element.selectionStart = element.selectionEnd =
               element.value.length;
           }
+          console.log("FOCUSIN!");
           element.focus();
         },
       },

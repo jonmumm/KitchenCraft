@@ -74,10 +74,11 @@ export const RecipeListItem = ({
               </Link>
               <div>
                 {"createdBySlug" in recipe && recipe.createdBySlug && (
-                  <Link
-                    href={`/@${recipe.createdBySlug}`}
-                    className="inline-block"
-                  >
+                  // <Link
+                  //   href={`/@${recipe.createdBySlug}`}
+                  //   className="inline-block"
+                  // >
+                  <div className="inline-block">
                     <Badge
                       className="flex flex-row gap-1 items-center"
                       variant="outline"
@@ -85,7 +86,8 @@ export const RecipeListItem = ({
                       <ChefHatIcon size={16} />
                       {recipe.createdBySlug}
                     </Badge>
-                  </Link>
+                  </div>
+                  // </Link>
                 )}
               </div>
             </div>
@@ -255,10 +257,7 @@ export const RecipeListItemLoading = ({ index }: { index: number }) => {
       ) : null} */}
       <div className="px-5 flex flex-row gap-4 items-center">
         <div className="flex-1">
-          <SkeletonSentence
-            className="h-4"
-            numWords={12}
-          />
+          <SkeletonSentence className="h-4" numWords={12} />
         </div>
         <Button size="icon" variant="outline" disabled>
           <ChevronRightIcon />
