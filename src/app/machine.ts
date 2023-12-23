@@ -216,9 +216,6 @@ export const createCraftMachine = ({
                     ({ context, event }) => {
                       // helps in dev?
                       // https://github.com/vercel/next.js/issues/43548#issuecomment-1758745511
-                      router.prefetch(
-                        `${event.output.data.recipeUrl}?prompt=${context.prompt}`
-                      );
                       router.push(
                         `${event.output.data.recipeUrl}?prompt=${context.prompt}`
                       );
@@ -244,9 +241,6 @@ export const createCraftMachine = ({
                   actions: [
                     ({ event, context }) => {
                       if (event.output.success) {
-                        router.prefetch(
-                          `${event.output.data.recipeUrl}?prompt=${context.prompt}`
-                        );
                         router.push(
                           `${event.output.data.recipeUrl}?prompt=${context.prompt}`
                         );
