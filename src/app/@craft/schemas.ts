@@ -14,6 +14,12 @@ export const ContextSchema = z.object({
   prompt: z.string().optional(),
   ingredients: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
+  selection: z
+    .object({
+      name: z.string(),
+      description: z.string(),
+    })
+    .optional(),
   // slug: z.string().nullable(),
   suggestions:
     SuggestionPredictionPartialOutputSchema.shape.suggestions.nullable(),

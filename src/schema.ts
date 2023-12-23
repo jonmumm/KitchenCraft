@@ -477,8 +477,14 @@ const HydratInputEventSchema = z.object({
   ref: z.custom<HTMLTextAreaElement>(),
 });
 
+const KeyDownEventSchema = z.object({
+  type: z.literal("KEY_DOWN"),
+  keyboardEvent: z.custom<React.KeyboardEvent<HTMLTextAreaElement>>(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   DownloadAppEventShema,
+  KeyDownEventSchema,
   RemixEventSchema,
   PageLoadedEventSchema,
   SearchParamsEventSchema,

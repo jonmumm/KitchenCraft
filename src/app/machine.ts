@@ -128,6 +128,7 @@ export const createCraftMachine = ({
       dietaryAlternatives: undefined,
       equipmentAdaptations: undefined,
       submittedInputHash: undefined,
+      currentItemIndex: undefined,
     } satisfies Context;
   })();
   const initialOpen = searchParams["crafting"] === "1" ? "True" : "False";
@@ -197,11 +198,31 @@ export const createCraftMachine = ({
             INSTANT_RECIPE: {
               target: ".InstantRecipe",
               guard: ({ context }) => !!context.instantRecipeMetadata,
+              actions: assign({
+                selection: ({ context }) => {
+                  const metadata = context.instantRecipeMetadata;
+                  assert(metadata?.name, "expected name");
+                  assert(metadata?.description, "expected description");
+                  return {
+                    name: metadata.name,
+                    description: metadata.description,
+                  };
+                },
+              }),
             },
             SELECT_RESULT: {
               target: ".SuggestionRecipe",
               actions: assign({
                 currentItemIndex: ({ event }) => event.index,
+                selection: ({ event, context }) => {
+                  const metadata = context.suggestions?.[event.index];
+                  assert(metadata?.name, "expected name");
+                  assert(metadata?.description, "expected description");
+                  return {
+                    name: metadata.name,
+                    description: metadata.description,
+                  };
+                },
               }),
             },
             SET_INPUT: ".False",
@@ -265,6 +286,7 @@ export const createCraftMachine = ({
             Navigating: {
               on: {
                 PAGE_LOADED: {
+                  target: "False",
                   actions: [raise({ type: "CLOSE" })],
                 },
               },
@@ -564,6 +586,100 @@ export const createCraftMachine = ({
                     },
                   ],
                 },
+                KEY_DOWN: [
+                  {
+                    guard: ({ context, event }) => {
+                      const didPressEnter = event.keyboardEvent.key === "Enter";
+                      const hasSelection =
+                        typeof context.currentItemIndex !== "undefined";
+                      return didPressEnter && hasSelection;
+                    },
+                    actions: raise(({ context, event }) => {
+                      event.keyboardEvent.preventDefault();
+                      assert(
+                        typeof context.currentItemIndex !== "undefined",
+                        "expected currentItemIndex"
+                      );
+                      if (context.currentItemIndex === 0) {
+                        return {
+                          type: "INSTANT_RECIPE" as const,
+                        };
+                      } else {
+                        return {
+                          type: "SELECT_RESULT" as const,
+                          index: context.currentItemIndex - 1,
+                        };
+                      }
+                    }),
+                  },
+                  {
+                    actions: [
+                      assign({
+                        currentItemIndex: ({ context, event }) => {
+                          const { key, ctrlKey, shiftKey } =
+                            event.keyboardEvent;
+                          const { currentItemIndex } = context;
+                          const latestDescriptionLength =
+                            context.suggestions?.[context.suggestions.length]
+                              ?.description?.length || 0;
+
+                          const maxItemIndex = !context.instantRecipeMetadata
+                            ? 0
+                            : context.suggestions?.length
+                            ? latestDescriptionLength > 10
+                              ? context.suggestions.length + 1
+                              : context.suggestions?.length
+                              ? context.suggestions.length
+                              : 1
+                            : 0;
+
+                          let nextItemIndex =
+                            typeof currentItemIndex !== "undefined"
+                              ? currentItemIndex
+                              : -1;
+
+                          switch (key) {
+                            case "n":
+                            case "j": {
+                              // vim keybind down
+                              if (ctrlKey) {
+                                nextItemIndex = nextItemIndex + 1;
+                              }
+                              break;
+                            }
+                            case "ArrowDown": {
+                              nextItemIndex = nextItemIndex + 1;
+                              break;
+                            }
+                            case "p":
+                            case "k": {
+                              // vim keybind up
+                              if (ctrlKey) {
+                                nextItemIndex = nextItemIndex - 1;
+                              }
+                              break;
+                            }
+                            case "ArrowUp": {
+                              nextItemIndex = nextItemIndex - 1;
+                              break;
+                            }
+                          }
+
+                          if (nextItemIndex < 0) {
+                            return undefined;
+                          }
+
+                          if (nextItemIndex > maxItemIndex) {
+                            nextItemIndex = maxItemIndex;
+                          }
+                          console.log(nextItemIndex);
+
+                          return nextItemIndex;
+                        },
+                      }),
+                    ],
+                  },
+                ],
               },
             },
             False: {
@@ -587,6 +703,11 @@ export const createCraftMachine = ({
                     };
                   },
                 },
+                assign({
+                  currentItemIndex: () => {
+                    return undefined;
+                  },
+                }),
               ],
               on: {
                 UPDATE_SEARCH_PARAMS: {

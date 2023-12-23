@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { useSelector } from "@/hooks/useSelector";
 import { ChevronRightIcon, LoaderIcon, MoreHorizontalIcon } from "lucide-react";
-import { useContext } from "react";
+import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
 
 export const CraftItemIcon = () => {
@@ -35,11 +35,7 @@ export const InstantRecipeItem = () => {
     (state) => state.context.instantRecipeMetadata?.name
   );
   return (
-    <Card
-      event={{ type: "INSTANT_RECIPE" }}
-      className="w-full flex flex-row gap-4 items-center px-3 cursor-pointer"
-      tabIndex={0}
-    >
+    <ResultCard index={0} event={{ type: "INSTANT_RECIPE" }}>
       {/* <Avatar className="opacity-20">
         <AvatarFallback>{index + 1}.</AvatarFallback>
       </Avatar> */}
@@ -63,6 +59,33 @@ export const InstantRecipeItem = () => {
         </Button>
       </div>
       {/* <Badge className="opacity-20">Craft</Badge> */}
+    </ResultCard>
+  );
+};
+
+const ResultCard = ({
+  index,
+  children,
+  ...props
+}: {
+  index: number;
+} & ComponentProps<typeof Card>) => {
+  const actor = useContext(CraftContext);
+  const isFocused = useSelector(
+    actor,
+    (state) => state.context.currentItemIndex === index
+  );
+
+  return (
+    <Card
+      id={`result-${index}`}
+      variant="interactive"
+      className={`w-full flex flex-row gap-4 items-center px-3 cursor-pointer ${
+        isFocused ? `outline-blue-500 outline outline-2` : ``
+      }`}
+      {...props}
+    >
+      {children}
     </Card>
   );
 };
@@ -78,11 +101,7 @@ export const SuggestionItem = ({ index }: { index: number }) => {
     (state) => state.context.suggestions?.[index]?.description
   );
   return (
-    <Card
-      event={{ type: "SELECT_RESULT", index }}
-      className="w-full flex flex-row gap-4 items-center px-3 cursor-pointer"
-      tabIndex={index + 1}
-    >
+    <ResultCard event={{ type: "SELECT_RESULT", index }} index={index + 1}>
       {/* <Avatar className="opacity-20">
         <AvatarFallback>{index + 1}.</AvatarFallback>
       </Avatar> */}
@@ -106,7 +125,7 @@ export const SuggestionItem = ({ index }: { index: number }) => {
         </Button>
       </div>
       {/* <Badge className="opacity-20">Craft</Badge> */}
-    </Card>
+    </ResultCard>
   );
 };
 
@@ -142,5 +161,27 @@ const InstantRecipeIcon = () => {
     <LoaderIcon className="animate-spin" />
   ) : (
     <ChevronRightIcon className="dark:text-slate-700 text-slate-300" />
+  );
+};
+
+export const Creating = () => {
+  const actor = useContext(CraftContext);
+  const selection = useSelector(actor, (state) => state.context.selection);
+
+  return (
+    selection && (
+      <div>
+        <Card className="flex flex-col gap-2 pb-5 mx-3">
+          <div className="flex flex-row gap-3 p-5 justify-between">
+            <div className="flex flex-col gap-2">
+              <h1 className="text-2xl font-semibold">{selection.name}</h1>
+              <p className="text-lg text-muted-foreground">
+                {selection.description}
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    )
   );
 };

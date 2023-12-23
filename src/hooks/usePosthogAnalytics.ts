@@ -8,6 +8,7 @@ import { useEvents } from "./useEvents";
 const EVENTS_LOG_LEVEL_DEBUG = new Set([
   "SET_INPUT",
   "HYDRATE_INPUT", // blacklisted becuase it cant serialize this because it passes a ref, figure out hwo to handle
+  "KEY_DOWN",
 ]);
 const isEventDebugLogLevel = (event: AppEvent) =>
   !EVENTS_LOG_LEVEL_DEBUG.has(event.type);

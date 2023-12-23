@@ -3,7 +3,11 @@
 import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { useSelector } from "@/hooks/useSelector";
-import { InstantRecipeItem, SuggestionItem } from "./components.client";
+import {
+  Creating,
+  InstantRecipeItem,
+  SuggestionItem,
+} from "./components.client";
 import { useCraftContext } from "./hooks";
 
 export default function Page({
@@ -33,12 +37,6 @@ export default function Page({
       })}
     </div>
   ) : (
-    <div>
-      <Card>
-        <div>Crafting.....</div>
-        <h2>Name Example</h2>
-        <p>Description</p>
-      </Card>
-    </div>
+    <Creating />
   );
 }

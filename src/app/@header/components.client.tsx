@@ -18,6 +18,7 @@ import { ArrowLeftIcon, ChevronRight, CommandIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChangeEventHandler,
+  KeyboardEventHandler,
   ReactNode,
   useCallback,
   useContext,
@@ -112,6 +113,13 @@ export const CraftInput = ({
     [send]
   );
 
+  const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = useCallback(
+    (keyboardEvent) => {
+      send({ type: "KEY_DOWN", keyboardEvent });
+    },
+    [send]
+  );
+
   const handleFocus = useCallback(() => {
     send({ type: "FOCUS_PROMPT" });
   }, [send]);
@@ -131,6 +139,7 @@ export const CraftInput = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
         placeholderComponent={
           <div className="flex flex-row w-full h-full relative justify-end items-center">
             <div className="flex flex-col flex-1 items-start">

@@ -5,11 +5,31 @@ import * as React from "react";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
+import { cva } from "class-variance-authority";
+
+const cardVariants = cva(
+  "rounded-lg shadow-sm transition-colors focus-within:outline-none bg-card text-card-foreground",
+  {
+    variants: {
+      variant: {
+        default: "border",
+        interactive:
+          "border active:bg-slate-200 hover:bg-slate-100 dark:active:bg-slate-800 dark:hover:bg-slate-900 focus-within:outline focus-within:outline-2 focus-within:outline-blue-500",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+);
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { event?: AppEvent }
->(({ className, event, ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & {
+    event?: AppEvent;
+    variant?: "interactive" | "default";
+  }
+>(({ className, event, variant = "default", ...props }, ref) => {
   const send = useSend();
 
   const handleClick = React.useMemo(() => {
@@ -28,10 +48,7 @@ const Card = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm active:bg-slate-200 hover:bg-slate-100 dark:active:bg-slate-800 dark:hover:bg-slate-900 focus-within:outline focus-within:outline-2 focus-within:outline-blue-500",
-        className
-      )}
+      className={cn(cardVariants({ variant }), className)}
       onClick={handleClick}
       {...props}
     />

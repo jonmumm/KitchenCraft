@@ -36,6 +36,7 @@ import {
   usePrompt,
 } from "./hooks";
 import { store } from "./store";
+import MarkdownRenderer from "@/components/display/markdown";
 
 const getSousChefEventSource = (slug: string, prompt: string) => {
   const eventSourceUrl = `/api/recipe/${slug}/sous-chef?prompt=${prompt}`;
@@ -146,7 +147,7 @@ export const SousChefCommandItem = ({
 
 const SousChefResultData = () => {
   const answer = useCurrentAnswer();
-  return <>{answer}</>;
+  return answer ? <MarkdownRenderer markdownText={answer} /> : <></>;
 };
 
 export const SousChefOutput = () => {
