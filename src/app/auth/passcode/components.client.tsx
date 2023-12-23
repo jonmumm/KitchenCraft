@@ -106,21 +106,23 @@ export function PasscodeForm(props: {
         token: event.clipboardData.getData("text"),
       });
       if (result.success) {
+        setDisabled(true);
         const data = new FormData();
         data.set("token", result.data.token);
         props.submit(data);
       }
     },
-    [props.submit]
+    [props.submit, setDisabled]
   );
 
   const onSubmit = useCallback(
     (data: z.infer<typeof formSchema>) => {
+      setDisabled(true);
       const form = new FormData();
       form.set("token", data.token);
       props.submit(form);
     },
-    [props.submit]
+    [props.submit, setDisabled]
   );
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
