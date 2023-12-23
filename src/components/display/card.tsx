@@ -2,8 +2,8 @@
 
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { useSend } from "@/hooks/useSend";
+import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 
 const Card = React.forwardRef<
@@ -29,7 +29,7 @@ const Card = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm",
+        "rounded-lg border bg-card text-card-foreground shadow-sm active:bg-slate-200 hover:bg-slate-100 dark:active:bg-slate-800 dark:hover:bg-slate-900 focus-within:outline focus-within:outline-2 focus-within:outline-blue-500",
         className
       )}
       onClick={handleClick}

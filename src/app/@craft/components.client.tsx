@@ -37,13 +37,14 @@ export const InstantRecipeItem = () => {
   return (
     <Card
       event={{ type: "INSTANT_RECIPE" }}
-      className="w-full flex flex-row gap-2 items-center px-3"
+      className="w-full flex flex-row gap-4 items-center px-3 cursor-pointer"
+      tabIndex={0}
     >
       {/* <Avatar className="opacity-20">
         <AvatarFallback>{index + 1}.</AvatarFallback>
       </Avatar> */}
       <div className="flex flex-col gap-2 px-2 py-4 w-full sm:flex-row">
-        <div className="sm:basis-96 font-semibold">
+        <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
           {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
         </div>
         {description ? (
@@ -79,13 +80,14 @@ export const SuggestionItem = ({ index }: { index: number }) => {
   return (
     <Card
       event={{ type: "SELECT_RESULT", index }}
-      className="w-full flex flex-row gap-2 items-center px-3 cursor-pointer hover:bg-slate-800"
+      className="w-full flex flex-row gap-4 items-center px-3 cursor-pointer"
+      tabIndex={index + 1}
     >
       {/* <Avatar className="opacity-20">
         <AvatarFallback>{index + 1}.</AvatarFallback>
       </Avatar> */}
       <div className="flex flex-col gap-2 px-2 py-4 w-full sm:flex-row">
-        <div className="sm:basis-96 font-semibold">
+        <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
           {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
         </div>
         {description ? (
@@ -140,13 +142,5 @@ const InstantRecipeIcon = () => {
     <LoaderIcon className="animate-spin" />
   ) : (
     <ChevronRightIcon className="dark:text-slate-700 text-slate-300" />
-  );
-};
-
-const InstantRecipeButton = () => {
-  return (
-    <Button variant="ghost" size="icon">
-      <InstantRecipeIcon />
-    </Button>
   );
 };

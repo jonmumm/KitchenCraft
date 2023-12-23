@@ -211,16 +211,13 @@ export const createCraftMachine = ({
               invoke: {
                 src: "createNewInstantRecipe",
                 onDone: {
-                  // target: "#Closed",
+                  target: "Navigating",
                   actions: [
                     ({ context, event }) => {
-                      // helps in dev?
-                      // https://github.com/vercel/next.js/issues/43548#issuecomment-1758745511
                       router.push(
                         `${event.output.data.recipeUrl}?prompt=${context.prompt}`
                       );
                     },
-                    raise({ type: "CLOSE" }),
                   ],
                 },
                 input: ({ context }) => {
@@ -238,6 +235,7 @@ export const createCraftMachine = ({
               invoke: {
                 src: "createNewRecipeFromSuggestion",
                 onDone: {
+                  target: "Navigating",
                   actions: [
                     ({ event, context }) => {
                       if (event.output.success) {
@@ -245,10 +243,12 @@ export const createCraftMachine = ({
                           `${event.output.data.recipeUrl}?prompt=${context.prompt}`
                         );
                         // router.refresh();
+                      } else {
+                        // todo show notif
+                        console.error("error creating recipe");
                       }
                     },
-
-                    raise({ type: "CLOSE" }),
+                    // raise({ type: "CLOSE" }),
                   ],
                 },
                 input: ({ context }) => {
@@ -259,6 +259,13 @@ export const createCraftMachine = ({
                     "expected currentItemIndex"
                   );
                   return { suggestionsResultId, index: currentItemIndex };
+                },
+              },
+            },
+            Navigating: {
+              on: {
+                PAGE_LOADED: {
+                  actions: [raise({ type: "CLOSE" })],
                 },
               },
             },

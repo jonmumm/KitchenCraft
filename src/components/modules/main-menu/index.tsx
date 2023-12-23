@@ -148,15 +148,15 @@ export async function MainMenu({ className }: { className?: string }) {
                   </h3>
                 </Badge>{" "}
               </Link>
-              <Link
+              {/* <Link
                 href={`/@${profileSlug}`}
                 className="text-muted-foreground text-xs"
               >
                 <span>Inactive</span>
-              </Link>
+              </Link> */}
             </div>
           </div>
-          <div className="flex flex-row gap-8 items-center justify-around">
+          {/* <div className="flex flex-row gap-8 items-center justify-around">
             <div className="flex flex-row justify-around gap-8">
               <div className="flex flex-col gap-1 items-center">
                 <Link href="/leaderboard">
@@ -209,7 +209,7 @@ export async function MainMenu({ className }: { className?: string }) {
                 </Label>
               </div>
             </div>
-          </div>
+          </div> */}
           {canInstallPWA && (
             <MenuItem>
               <AppInstall />
@@ -228,7 +228,7 @@ export async function MainMenu({ className }: { className?: string }) {
           </MenuItem>
 
           <Separator />
-          <AsyncRenderFirstValue
+          {/* <AsyncRenderFirstValue
             observable={combineLatest([
               usage$,
               quotaLimit$,
@@ -270,8 +270,8 @@ export async function MainMenu({ className }: { className?: string }) {
               );
             }}
             fallback={<Skeleton className="h-12 w-full" />}
-          />
-          <MenuItem className="flex flex-row gap-3 items-center justify-between">
+          /> */}
+          {/* <MenuItem className="flex flex-row gap-3 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
               Subscription
             </Label>
@@ -324,8 +324,8 @@ export async function MainMenu({ className }: { className?: string }) {
               </Suspense>
             </div>
           </MenuItem>
-          <Separator />
-          <Suspense fallback={null}>
+          <Separator /> */}
+          {/* <Suspense fallback={null}>
             <RenderFirstValue
               observable={activeSubscription$}
               render={(sub) => {
@@ -348,8 +348,8 @@ export async function MainMenu({ className }: { className?: string }) {
                 );
               }}
             />
-          </Suspense>
-          <NotificationsSetting>
+          </Suspense> */}
+          {/* <NotificationsSetting>
             <MenuItem className="flex flex-row gap-3 items-center justify-between">
               <Label className="uppercase text-xs font-bold text-accent-foreground">
                 Notifications
@@ -359,7 +359,7 @@ export async function MainMenu({ className }: { className?: string }) {
               </div>
             </MenuItem>
             <Separator />
-          </NotificationsSetting>
+          </NotificationsSetting> */}
         </>
       )}
       <MenuItem className="flex flex-row gap-1 items-center justify-between">
