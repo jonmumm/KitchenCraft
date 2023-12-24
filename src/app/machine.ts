@@ -304,7 +304,9 @@ export const createCraftMachine = ({
             },
             Navigating: {
               entry: ({ context }) => {
-                router.push(`${context.currentRecipeUrl}?prompt=${context.prompt}`);
+                router.push(
+                  `${context.currentRecipeUrl}?prompt=${context.prompt}`
+                );
               },
               on: {
                 PAGE_LOADED: {
@@ -731,6 +733,10 @@ export const createCraftMachine = ({
                     ],
                   },
                 ],
+                UPDATE_SEARCH_PARAMS: {
+                  guard: ({ event }) => event.searchParams["crafting"] !== "1",
+                  target: "False",
+                },
               },
             },
             False: {

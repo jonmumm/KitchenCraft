@@ -1,8 +1,14 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+// In your specific TypeScript file
+declare global {
+  interface Window {
+    removeCraftListener?: () => {}; // Optional property to handle cases where it might not be set
+  }
+}
+
+import { useSend } from "@/hooks/useSend";
+import { assert, cn } from "@/lib/utils";
 import React, {
   ReactNode,
   useCallback,
@@ -85,17 +91,28 @@ export const CraftTabLink = ({
   children: ReactNode;
   className?: string;
 }) => {
-  const pathname = usePathname();
+  const send = useSend();
+
+  useEffect(() => {
+    assert(
+      window.removeCraftListener,
+      "expected removeCraftListener to be set when rendered"
+    );
+    window.removeCraftListener();
+  }, []);
+
+  const handleClick = useCallback(() => {
+    send({ type: "NEW_RECIPE" });
+  }, [send]);
   return (
     <>
-      <Link
+      <div
+        onClick={handleClick}
         id="craft-link"
-        href={`${pathname}?crafting=1`}
-        shallow
-        className={cn("basis-32", className)}
+        className={cn("basis-32 cursor-pointer", className)}
       >
         {children}
-      </Link>
+      </div>
       <script
         dangerouslySetInnerHTML={{
           __html: `
@@ -115,9 +132,13 @@ export const CraftTabLink = ({
               } else {
                 console.warn("couldn't find #craft-link element")
               }
+
+              return function() {
+                linkEl.removeEventListener('click', handleClick);
+              }
             }
 
-            setupListeners();
+            var removeCraftListener = setupListeners();
           `,
         }}
       ></script>
