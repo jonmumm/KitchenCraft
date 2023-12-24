@@ -11,6 +11,7 @@ import { z } from "zod";
 
 export const ContextSchema = z.object({
   currentItemIndex: z.number().optional(),
+  currentRecipeUrl: z.string().optional(),
   prompt: z.string().optional(),
   ingredients: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),

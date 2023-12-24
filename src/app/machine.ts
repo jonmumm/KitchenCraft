@@ -147,6 +147,7 @@ export const createCraftMachine = ({
       equipmentAdaptations: undefined,
       submittedInputHash: undefined,
       currentItemIndex: undefined,
+      currentRecipeUrl: undefined,
     } satisfies Context;
   })();
   // const initialOpen = initialPath.startsWith("/?craft") ? "True" : "False";
@@ -251,11 +252,15 @@ export const createCraftMachine = ({
                 onDone: {
                   target: "Navigating",
                   actions: [
-                    ({ context, event }) => {
-                      router.push(
-                        `${event.output.data.recipeUrl}?prompt=${context.prompt}`
-                      );
-                    },
+                    assign({
+                      currentRecipeUrl: ({ event }) => {
+                        assert(
+                          event.output.success,
+                          "expected to receive recipeUrl"
+                        );
+                        return event.output.data.recipeUrl;
+                      },
+                    }),
                   ],
                 },
                 input: ({ context }) => {
@@ -275,18 +280,15 @@ export const createCraftMachine = ({
                 onDone: {
                   target: "Navigating",
                   actions: [
-                    ({ event, context }) => {
-                      if (event.output.success) {
-                        router.push(
-                          `${event.output.data.recipeUrl}?prompt=${context.prompt}`
+                    assign({
+                      currentRecipeUrl: ({ event }) => {
+                        assert(
+                          event.output.success,
+                          "expected to receive recipeUrl"
                         );
-                        // router.refresh();
-                      } else {
-                        // todo show notif
-                        console.error("error creating recipe");
-                      }
-                    },
-                    // raise({ type: "CLOSE" }),
+                        return event.output.data.recipeUrl;
+                      },
+                    }),
                   ],
                 },
                 input: ({ context }) => {
@@ -301,6 +303,9 @@ export const createCraftMachine = ({
               },
             },
             Navigating: {
+              entry: ({ context }) => {
+                router.push(`${context.currentRecipeUrl}?prompt=${prompt}`);
+              },
               on: {
                 PAGE_LOADED: {
                   target: "False",
