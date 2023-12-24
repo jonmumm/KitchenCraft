@@ -304,7 +304,7 @@ export const createCraftMachine = ({
             },
             Navigating: {
               entry: ({ context }) => {
-                router.push(`${context.currentRecipeUrl}?prompt=${prompt}`);
+                router.push(`${context.currentRecipeUrl}?prompt=${context.prompt}`);
               },
               on: {
                 PAGE_LOADED: {
