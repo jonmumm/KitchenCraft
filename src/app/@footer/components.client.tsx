@@ -1,7 +1,5 @@
 "use client";
 
-import { Card } from "@/components/display/card";
-import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -89,13 +87,41 @@ export const CraftTabLink = ({
 }) => {
   const pathname = usePathname();
   return (
-    <Link
-      href={`${pathname}?crafting=1`}
-      shallow
-      className={cn("basis-32", className)}
-    >
-      {children}
-    </Link>
+    <>
+      <Link
+        id="craft-link"
+        href={`${pathname}?crafting=1`}
+        shallow
+        className={cn("basis-32", className)}
+      >
+        {children}
+      </Link>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            const linkEl = document.getElementById('craft-link');
+
+            function handleClick(event) {
+              const promptEl = document.getElementById('prompt');
+              if (promptEl) {
+                promptEl.focus();
+                event.preventDefault();
+              }
+            }
+
+            function setupListeners() {
+              if (linkEl) {
+                linkEl.addEventListener('click', handleClick);
+              } else {
+                console.warn("couldn't find #craft-link element")
+              }
+            }
+
+            setupListeners();
+          `,
+        }}
+      ></script>
+    </>
   );
 };
 

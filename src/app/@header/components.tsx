@@ -1,29 +1,22 @@
 import { Badge } from "@/components/display/badge";
 import { Button } from "@/components/input/button";
-import { TypeLogo } from "@/components/logo";
-import { getProfileByUserId } from "@/db/queries";
-import { getCurrentUserId } from "@/lib/auth/session";
-import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
-import { cn } from "@/lib/utils";
 import {
-  ChefHatIcon,
-  ChevronRightIcon,
-  GripVerticalIcon,
-  TrophyIcon,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { BackButton, CraftInput, KeyboardToggle } from "./components.client";
-import {
-  Sheet,
   SheetContent,
   SheetOverlay,
   SheetTrigger,
 } from "@/components/layout/sheet";
+import { TypeLogo } from "@/components/logo";
 import { MainMenu } from "@/components/modules/main-menu";
-import { ReactNode } from "react";
 import { MenuSheet } from "@/components/modules/main-menu/menu-sheet";
+import { getProfileByUserId } from "@/db/queries";
+import { getCurrentUserId } from "@/lib/auth/session";
+import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
+import { cn } from "@/lib/utils";
+import { ChefHatIcon, ChevronRightIcon, GripVerticalIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { BackButton, CraftInput, KeyboardToggle } from "./components.client";
 
 export async function Header({
   className,
