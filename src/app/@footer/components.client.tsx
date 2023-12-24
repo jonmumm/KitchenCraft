@@ -14,7 +14,6 @@ import React, {
   useState,
 } from "react";
 import { CraftContext } from "../context";
-import { useCraftIsOpen } from "@/hooks/useCraftIsOpen";
 
 export const FooterTabTitle = ({
   children,
@@ -23,15 +22,11 @@ export const FooterTabTitle = ({
   children: ReactNode;
   isActive: boolean;
 }) => {
-  const craftIsOpen = useCraftIsOpen();
-
   return (
     <span
       className={`text-xs ${
-        !craftIsOpen && isActive
-          ? `text-blue-700 font-semibold`
-          : `text-muted-foreground font-medium`
-      } truncate w-full text-center`}
+        isActive ? `text-blue-700  font-semibold` : ``
+      } crafting:text-muted-foreground crafting:font-medium truncate w-full text-center`}
     >
       {children}
     </span>
@@ -106,16 +101,10 @@ export const CraftTabLink = ({
 
 export const CraftTabTitle = () => {
   const actor = useContext(CraftContext);
-  const isOpen = useSelector(actor, (state) => {
-    return state.matches("Open.True");
-  });
   return (
     <span
-      className={`text-xs ${
-        isOpen
-          ? `text-blue-700 font-semibold`
-          : `text-muted-foreground font-medium`
-      } truncate w-full text-center`}
+      suppressHydrationWarning
+      className="text-xs text-muted-foreground font-medium crafting:text-blue-700 crafting:font-semibold truncate w-full text-center"
     >
       Craft
     </span>

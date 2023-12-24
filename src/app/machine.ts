@@ -111,8 +111,26 @@ export const createCraftMachine = ({
     return new EventSource(eventSourceUrl);
   };
 
+  const initialOpen =
+    searchParams["crafting"] === "1" ||
+    (typeof document !== "undefined" &&
+      document.body.classList.contains("crafting"))
+      ? "True"
+      : "False";
+
   const initialContext = (() => {
-    const prompt = parseAsString.parseServerSide(searchParams["prompt"]);
+    let prompt = parseAsString.parseServerSide(searchParams["prompt"]);
+
+    // Overr-ride the prompt with whatever is in the input box if the prompt is open
+    if (initialOpen && typeof document !== "undefined") {
+      const promptEl = document.body.querySelector("#prompt") as
+        | HTMLTextAreaElement
+        | undefined;
+      const value = promptEl?.value;
+      if (value) {
+        prompt = value;
+      }
+    }
     const ingredients =
       searchParams["ingredients"] &&
       ingredientsParser.parseServerSide(searchParams["ingredients"]);
@@ -131,7 +149,6 @@ export const createCraftMachine = ({
       currentItemIndex: undefined,
     } satisfies Context;
   })();
-  const initialOpen = searchParams["crafting"] === "1" ? "True" : "False";
   // const initialOpen = initialPath.startsWith("/?craft") ? "True" : "False";
   // if (!initialOpen) router.prefetch("/craft");
 
@@ -535,10 +552,14 @@ export const createCraftMachine = ({
                 },
                 {
                   type: "replaceQueryParameters",
-                  params() {
+                  params({ context }) {
+                    const prompt = context.prompt
+                      ? { prompt: context.prompt }
+                      : {};
                     return {
                       paramSet: {
                         crafting: "1",
+                        ...prompt,
                       },
                     };
                   },
@@ -568,6 +589,13 @@ export const createCraftMachine = ({
                 CLOSE: "False",
                 SET_INPUT: {
                   actions: [
+                    ({ event }) => {
+                      if (event.value.length > 0) {
+                        document.body.classList.add("prompt-dirty");
+                      } else {
+                        document.body.classList.remove("prompt-dirty");
+                      }
+                    },
                     {
                       type: "assignPrompt",
                       params: ({ event }) => ({
@@ -672,7 +700,25 @@ export const createCraftMachine = ({
                           if (nextItemIndex > maxItemIndex) {
                             nextItemIndex = maxItemIndex;
                           }
-                          console.log(nextItemIndex);
+
+                          const el = document.querySelector(
+                            `#result-${nextItemIndex}`
+                          );
+                          assert(el, "expected result element");
+
+                          // Scroll the element into view
+                          el.scrollIntoView();
+
+                          // Wait for the next repaint to ensure the scrolling has finished
+                          requestAnimationFrame(() => {
+                            const elementRect = el.getBoundingClientRect();
+                            const absoluteElementTop =
+                              elementRect.top + window.pageYOffset;
+                            const middle =
+                              absoluteElementTop - window.innerHeight / 2;
+                            window.scrollTo(0, middle);
+                          });
+                          console.log(el);
 
                           return nextItemIndex;
                         },
@@ -810,7 +856,6 @@ export const createCraftMachine = ({
             element.selectionStart = element.selectionEnd =
               element.value.length;
           }
-          console.log("FOCUSIN!");
           element.focus();
         },
       },
@@ -828,7 +873,6 @@ export const createCraftMachine = ({
           return !context.prompt || !context.prompt.length;
         },
         isInputFocused: ({ event, ...props }) => {
-          console.log("hydrate", props);
           assert(
             event.type === "HYDRATE_INPUT",
             "expected HYDRATE_INPUT event"

@@ -6,3 +6,8 @@ export const useCraftIsOpen = () => {
   const actor = useContext(CraftContext);
   return useSelector(actor, (state) => state.matches("Open.True"));
 };
+
+export const usePromptIsDirty = () => {
+  const actor = useContext(CraftContext);
+  return useSelector(actor, (state) => !!state.context.prompt?.length);
+};

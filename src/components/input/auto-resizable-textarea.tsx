@@ -86,17 +86,11 @@ const AutoResizableTextarea: React.FC<
 
   const Placeholder = () => {
     const actor = useContext(CraftContext);
-    const hasPrompt = useSelector(
-      actor,
-      (state) => !!state.context.prompt?.length
-    );
 
     return (
-      !hasPrompt && (
-        <div className="absolute inset-0 transition-opacity duration-75 crafting:opacity-0 pointer-events-none">
-          {placeholderComponent}
-        </div>
-      )
+      <div className="absolute inset-0 transition-opacity duration-75 crafting:opacity-0 pointer-events-none crafting:hidden prompt-dirty:hidden">
+        {placeholderComponent}
+      </div>
     );
   };
 
@@ -113,6 +107,7 @@ const AutoResizableTextarea: React.FC<
 
     return (
       <textarea
+        suppressHydrationWarning
         value={value}
         ref={ref}
         className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden`}

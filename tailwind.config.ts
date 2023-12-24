@@ -80,6 +80,7 @@ const config: Config = {
   plugins: [
     plugin(({ addVariant }) => {
       addVariant("crafting", `.crafting &`);
+      addVariant("prompt-dirty", `.prompt-dirty &`);
     }),
     require("daisyui"),
     require("tailwindcss-animate"),

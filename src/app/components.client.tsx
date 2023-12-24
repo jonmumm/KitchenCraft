@@ -1,6 +1,6 @@
 "use client";
 
-import { useCraftIsOpen } from "@/hooks/useCraftIsOpen";
+import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
 import { Inter } from "next/font/google";
@@ -39,12 +39,18 @@ export const VisibleIfCrafting = ({ children }: { children: ReactNode }) => {
 
 export const Body = ({ children }: { children: ReactNode }) => {
   const craftIsOpen = useCraftIsOpen();
+  const promptIsDirty = usePromptIsDirty();
 
   return (
     <body
       className={`${inter.className} overflow-x-hidden pb-16 ${
         craftIsOpen ? `crafting` : ``
-      }`}
+      }
+
+      ${promptIsDirty ? `prompt-dirty` : ``}
+      
+      `}
+      suppressHydrationWarning
     >
       {children}
     </body>

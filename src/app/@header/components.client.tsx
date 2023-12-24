@@ -169,21 +169,39 @@ export const CraftInput = ({
       <script
         dangerouslySetInnerHTML={{
           __html: `
-        
+            const promptElement = document.getElementById('prompt');
+
             function handleFocus() {
               document.body.classList.add('crafting');
             }
 
+            function handleBlur() {
+              if (promptElement.value.length === 0) {
+                document.body.classList.remove('crafting');
+              }
+            }
+
+            function handleInput(event) {
+              if (promptElement.value.length > 0) {
+                document.body.classList.add('prompt-dirty');
+              } else {
+                document.body.classList.remove('prompt-dirty');
+              }
+            }
+
             function setupPromptListener() {
-                var promptElement = document.getElementById('prompt');
                 if (promptElement) {
                   promptElement.addEventListener('focus', handleFocus);
+                  promptElement.addEventListener('blur', handleBlur);
+                  promptElement.addEventListener('input', handleInput);
                 } else {
                   console.warn("couldn't find #prompt element")
                 }
 
                 return function() {
                   promptElement.removeEventListener('focus', handleFocus);
+                  promptElement.removeEventListener('blur', handleBlur);
+                  promptElement.removeEventListener('input', handleInput);
                 }
             }
             // todo remove the listener react loads

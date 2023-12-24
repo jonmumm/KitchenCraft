@@ -1,5 +1,4 @@
 import { ApplicationContext } from "@/context/application";
-import { useStore } from "@nanostores/react";
 import { useContext, useLayoutEffect, useState } from "react";
 import {
   ActorOptions,
@@ -11,19 +10,18 @@ import { useEvents } from "./useEvents";
 
 export const useActor = <TMachine extends AnyStateMachine>(
   key: string,
-  machine: TMachine,
+  machine: () => TMachine,
   opts?: ActorOptions<TMachine>
 ) => {
   const appStore = useContext(ApplicationContext);
   const event$ = useEvents();
-  const appState = useStore(appStore, { keys: [key] });
-  const existingActor = appState[key] as
+  const existingActor = appStore.get()[key] as
     | ActorRefFrom<typeof machine>
     | undefined;
 
-  const [actor] = useState(existingActor || createActor(machine, opts));
+  const [actor] = useState(existingActor || createActor(machine(), opts));
   useLayoutEffect(() => {
-    // let unsubscribe: () => void;
+    let unsubscribe: () => void;
     if (actor !== appStore.get()[key]) {
       appStore.setKey(key, actor);
       actor.start();

@@ -34,10 +34,7 @@ export function ApplicationProvider(props: {
     const pathname = usePathname();
     const router = useRouter();
 
-    // const pushState = usePushState();
-    // console.log({ pushState });
-    const actor = useActor(
-      "craft",
+    const actor = useActor("craft", () =>
       createCraftMachine({
         searchParams: Object.fromEntries(searchParams.entries()),
         router,
