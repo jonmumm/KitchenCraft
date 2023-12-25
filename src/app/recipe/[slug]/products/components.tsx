@@ -22,7 +22,7 @@ import {
   RecipeProductsPredictionInput,
 } from "@/types";
 import { PromptTemplate } from "langchain/prompts";
-import { ExternalLinkIcon } from "lucide-react";
+import { ExternalLinkIcon, SparklesIcon } from "lucide-react";
 import Link from "next/link";
 import {
   Observable,
@@ -579,8 +579,13 @@ export const MediaCarouselFallback = () => {
   const MediaItem = ({ index }: { index: number }) => {
     return (
       <div className="w-80 h-80 bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
-        <div className="relative">
-          <Skeleton className="w-full h-full" />
+        <div className="relative flex flex-col justify-center items-center gap-8 h-full">
+          <h5 className="animate-pulse flex flex-row gap-2">
+            <span>Genearting Image #{index + 1}</span> <SparklesIcon />
+          </h5>
+          <span className="text-xs text-foreground-muted animate-ping">
+            Check back soon
+          </span>
         </div>
       </div>
     );

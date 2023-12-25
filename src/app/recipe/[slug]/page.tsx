@@ -1049,7 +1049,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const mediaPromptTemplate = PromptTemplate.fromTemplate(`
-An realistic photo of the final output of the following recipe:
+A clear photo to feature on a blog for the following recipe:
 
 {name}
 {description}
