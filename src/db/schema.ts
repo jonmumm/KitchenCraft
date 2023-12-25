@@ -132,15 +132,15 @@ export const UpvoteSchema = createSelectSchema(UpvotesTable);
 export const NewUpvoteSchema = createInsertSchema(UpvotesTable);
 
 export const mediaTypeEnum = pgEnum("mediaType", ["IMAGE", "VIDEO"]);
+export const sourceTypeEnum = pgEnum("sourceType", ["GENERATED", "UPLOAD"]);
 
 // Consolidated MediaUploads Table
 export const MediaTable = pgTable("media", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => UsersTable.id),
+  createdBy: text("created_by"),
   mediaType: mediaTypeEnum("media_type").notNull(),
   contentType: text("content_type").notNull(),
+  sourceType: sourceTypeEnum("source_type").notNull(),
   width: integer("width").notNull(),
   height: integer("height").notNull(),
   filename: text("filename"),
@@ -309,4 +309,22 @@ export const AmazonAffiliateProductSchema = createSelectSchema(
 );
 export const NewAmazonAffiliateProductSchema = createInsertSchema(
   AmazonAffiliateProductTable
+);
+
+export const GeneratedMediaTable = pgTable(
+  "generated_media",
+  {
+    recipeSlug: text("recipe_slug")
+      .notNull()
+      .references(() => RecipesTable.slug),
+    mediaId: uuid("media_id")
+      .notNull()
+      .references(() => MediaTable.id),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.recipeSlug, table.mediaId] }),
+    };
+  }
 );

@@ -9,16 +9,24 @@ import { Badge } from "@/components/display/badge";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { CommandItem } from "@/components/input/command";
+import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { LastValue } from "@/components/util/last-value";
-import { RecipeSchema, RecipesTable, db } from "@/db";
+import {
+  GeneratedMediaTable,
+  MediaTable,
+  RecipeSchema,
+  RecipesTable,
+  db,
+} from "@/db";
 import {
   findLatestRecipeVersion,
   findSlugForRecipeVersion,
   getFirstMediaForRecipe,
+  getGeneratedMediaForRecipeSlug,
   getRecipe,
   getSortedMediaForRecipe,
 } from "@/db/queries";
-import { NewRecipe, Recipe } from "@/db/types";
+import { Media, NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
 import { getSession } from "@/lib/auth/session";
 import { getGuestId } from "@/lib/browser-session";
@@ -33,6 +41,7 @@ import {
 import { RecipePredictionInput, TempRecipe } from "@/types";
 import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
+import { PromptTemplate } from "langchain/prompts";
 import {
   BackpackIcon,
   CameraIcon,
@@ -50,6 +59,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ComponentProps, ReactNode, Suspense } from "react";
+import Replicate from "replicate";
 import {
   BehaviorSubject,
   Observable,
@@ -59,20 +69,20 @@ import {
   map,
   of,
   shareReplay,
+  switchMap,
   takeWhile,
 } from "rxjs";
+import sharp from "sharp";
 import { z } from "zod";
 import { ShareButton } from "../components.client";
 import { UpvoteButton } from "../upvote-button/component";
-import {
-  CraftingDetails,
-  Ingredients,
-  Instructions,
-  Tags,
-  Times,
-} from "./components";
+import { Ingredients, Instructions, Tags, Times } from "./components";
 import { getObservables } from "./observables";
-import { ProductsCarousel } from "./products/components";
+import {
+  MediaCarousel,
+  MediaCarouselFallback,
+  ProductsCarousel,
+} from "./products/components";
 import RecipeGenerator from "./recipe-generator";
 import {
   SousChefCommand,
@@ -215,7 +225,9 @@ export default async function Page(props: Props) {
 
   const finalRecipeSchema = RecipeSchema.pick({
     name: true,
+    slug: true,
     description: true,
+    yield: true,
     tags: true,
     ingredients: true,
     instructions: true,
@@ -233,9 +245,244 @@ export default async function Page(props: Props) {
     );
   }
 
+  const getGeneratedMedia$ = () => {
+    const obs = finalRecipe$.pipe(
+      switchMap(async (recipe) => {
+        const existingMedia = await getGeneratedMediaForRecipeSlug(
+          db,
+          recipe.slug
+        );
+
+        if (existingMedia.length) {
+          return existingMedia;
+        }
+
+        const replicate = new Replicate();
+
+        const prompt = await mediaPromptTemplate.format({
+          name: recipe.name,
+          yield: recipe.yield,
+          description: recipe.description,
+          tags: Array.isArray(recipe.tags) ? recipe.tags.join("\n") : "",
+          ingredients: Array.isArray(recipe.ingredients)
+            ? recipe.ingredients.join("\n")
+            : "",
+          instructions: Array.isArray(recipe.instructions)
+            ? recipe.instructions.join("\n")
+            : "",
+        });
+
+        const output = await replicate.run(
+          "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
+          {
+            input: {
+              width: 768,
+              height: 768,
+              prompt,
+              refine: "expert_ensemble_refiner",
+              scheduler: "K_EULER",
+              lora_scale: 0.6,
+              num_outputs: 4,
+              guidance_scale: 7.5,
+              apply_watermark: false,
+              high_noise_frac: 0.8,
+              negative_prompt: "",
+              prompt_strength: 0.8,
+              num_inference_steps: 25,
+            },
+          }
+        );
+        assert(Array.isArray(output), "expected array output");
+        const promises = output.map(async (imageUrl: string) => {
+          const imgResponse = await fetch(imageUrl);
+          if (!imgResponse.ok) {
+            throw new Error(
+              `Failed to fetch ${imageUrl}: ${imgResponse.statusText}`
+            );
+          }
+          const blobData = await imgResponse.blob();
+          const buffer = Buffer.from(await blobData.arrayBuffer());
+
+          let processedImage: Buffer;
+          try {
+            processedImage = await sharp(buffer)
+              .resize(10, 10) // Resize to a very small image
+              .blur() // Optional: add a blur effect
+              .toBuffer();
+          } catch (ex) {
+            console.error(ex);
+            throw ex;
+          }
+          const base64Image = processedImage.toString("base64");
+
+          const mediaId = randomUUID();
+          const media = {
+            id: mediaId,
+            mediaType: "IMAGE",
+            contentType: "image/png",
+            sourceType: "GENERATED",
+            height: 768,
+            url: imageUrl,
+            width: 768,
+            blurDataURL: base64Image,
+            filename: "generated-1.png",
+            createdBy: null,
+            createdAt: new Date(),
+            duration: null,
+          } satisfies Media;
+
+          (async () => {
+            try {
+              await db.insert(MediaTable).values(media);
+              await db.insert(GeneratedMediaTable).values({
+                recipeSlug: recipe.slug,
+                mediaId,
+              });
+            } catch (ex) {
+              console.error(ex);
+            }
+          })();
+
+          return media;
+        });
+        return await Promise.all(promises);
+      }),
+      shareReplay(1)
+    );
+    return obs;
+  };
+  const generatedMedia$ = getGeneratedMedia$();
+
+  //   const recipe = await firstValueFrom(recipe$);
+  //   const replicate = new Replicate();
+
+  //   const prompt = await mediaPromptTemplate.format({
+  //     name: recipe.name,
+  //     yield: recipe.yield,
+  //     description: recipe.description,
+  //     tags: Array.isArray(recipe.tags) ? recipe.tags.join("\n") : "",
+  //     ingredients: Array.isArray(recipe.ingredients)
+  //       ? recipe.ingredients.join("\n")
+  //       : "",
+  //     instructions: Array.isArray(recipe.instructions)
+  //       ? recipe.instructions.join("\n")
+  //       : "",
+  //   });
+  //   console.log("genearting");
+
+  //   const output = await replicate.run(
+  //     "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
+  //     {
+  //       input: {
+  //         width: 768,
+  //         height: 768,
+  //         prompt,
+  //         refine: "expert_ensemble_refiner",
+  //         scheduler: "K_EULER",
+  //         lora_scale: 0.6,
+  //         num_outputs: 4,
+  //         guidance_scale: 7.5,
+  //         apply_watermark: false,
+  //         high_noise_frac: 0.8,
+  //         negative_prompt: "",
+  //         prompt_strength: 0.8,
+  //         num_inference_steps: 25,
+  //       },
+  //     }
+  //   );
+  //   console.log(output);
+
+  //   assert(Array.isArray(output), "expected array output");
+
+  //   const promises = output.map(async (imageUrl: string) => {
+  //     const imgResponse = await fetch(imageUrl);
+  //     if (!imgResponse.ok) {
+  //       throw new Error(
+  //         `Failed to fetch ${imageUrl}: ${imgResponse.statusText}`
+  //       );
+  //     }
+  //     const blobData = await imgResponse.blob();
+  //     const buffer = Buffer.from(await blobData.arrayBuffer());
+
+  //     let processedImage: Buffer;
+  //     try {
+  //       processedImage = await sharp(buffer)
+  //         .resize(10, 10) // Resize to a very small image
+  //         .blur() // Optional: add a blur effect
+  //         .toBuffer();
+  //     } catch (ex) {
+  //       console.error(ex);
+  //       throw ex;
+  //     }
+  //     const base64Image = processedImage.toString("base64");
+
+  //     const mediaId = randomUUID();
+  //     const media = {
+  //       id: mediaId,
+  //       mediaType: "IMAGE",
+  //       contentType: "image/png",
+  //       sourceType: "GENERATED",
+  //       height: 768,
+  //       url: imageUrl,
+  //       width: 768,
+  //       blurDataURL: base64Image,
+  //       filename: "generated-1.png",
+  //       createdBy: null,
+  //       createdAt: new Date(),
+  //       duration: null,
+  //     } satisfies Media;
+
+  //     (async () => {
+  //       try {
+  //         console.log("Inserting ", media);
+  //         await db.insert(MediaTable).values(media);
+  //         console.log("inserting assocation");
+  //         await db.insert(GeneratedMediaTable).values({
+  //           recipeSlug: recipe.slug,
+  //           mediaId,
+  //         });
+  //       } catch (ex) {
+  //         console.error(ex);
+  //       }
+  //     })();
+
+  //     return media;
+  //   });
+  //   const results = await Promise.all(promises);
+  //   return results;
+  // };
+
   const WaitForRecipe = async ({ children }: { children: ReactNode }) => {
     await lastValueFrom(finalRecipe$);
     return <>{children}</>;
+  };
+
+  const GeneratedImages = () => {
+    const items = new Array(6).fill(0);
+    return (
+      <>
+        <div className="flex flex-row justify-between p-4">
+          <h3 className="uppercase text-xs font-bold text-accent-foreground">
+            Imagine
+          </h3>
+          <CameraIcon />
+        </div>
+        <p className="text-muted-foreground text-xs px-4">
+          Generated photos to guide and inspire you
+        </p>
+        <div className="relative h-96">
+          <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
+            <AsyncRenderFirstValue
+              observable={generatedMedia$}
+              render={(media) => {
+                return <MediaCarousel media={media} />;
+              }}
+              fallback={<MediaCarouselFallback />}
+            />
+          </div>
+        </div>
+      </>
+    );
   };
 
   const AssistantContent = () => {
@@ -451,6 +698,7 @@ export default async function Page(props: Props) {
 
                 generatorSubject.next({
                   ...output.recipe,
+                  slug,
                   name,
                   description,
                   createdAt,
@@ -679,6 +927,9 @@ export default async function Page(props: Props) {
           <Card id="assistant" className="mx-3">
             <AssistantContent />
           </Card>
+          <Card id="generated-images" className="mx-3">
+            <GeneratedImages />
+          </Card>
           <Card id="products" className="mx-3 mb-3">
             <div className="flex flex-row justify-between p-4">
               <h3 className="uppercase text-xs font-bold text-accent-foreground">
@@ -796,3 +1047,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
+
+const mediaPromptTemplate = PromptTemplate.fromTemplate(`
+An realistic photo of the final output of the following recipe:
+
+{name}
+{description}
+{yield}
+{tags}
+
+ingredients: {ingredients}
+
+instructions: {instructions}
+`);

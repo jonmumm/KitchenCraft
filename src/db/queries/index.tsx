@@ -1,5 +1,6 @@
 import { TimeParamSchema } from "@/app/(home)/schema";
 import {
+  GeneratedMediaTable,
   MediaTable,
   ProfileTable,
   RecipeMediaTable,
@@ -1148,4 +1149,23 @@ export const updateRecipeCreator = async (
       .where(eq(RecipesTable.createdBy, guestId)),
     "updateRecipeCreator"
   ).execute();
+};
+
+export const getGeneratedMediaForRecipeSlug = async (
+  dbOrTransaction: DbOrTransaction,
+  slug: string
+) => {
+  return (
+    await withDatabaseSpan(
+      dbOrTransaction
+        .select()
+        .from(MediaTable)
+        .innerJoin(
+          GeneratedMediaTable,
+          eq(GeneratedMediaTable.mediaId, MediaTable.id)
+        )
+        .where(and(eq(GeneratedMediaTable.recipeSlug, slug))),
+      "getGeneratedMediaForSlug"
+    )
+  ).map((result) => result.media);
 };

@@ -1,10 +1,12 @@
 import { Skeleton } from "@/components/display/skeleton";
 import { and, eq } from "drizzle-orm";
+import Image from "next/image";
 import { Suspense } from "react";
 
 import Generator from "@/components/ai/generator";
 import { Card } from "@/components/display/card";
-import { AmazonAffiliateProductTable, db } from "@/db";
+import { AmazonAffiliateProductTable, RecipeSchema, db } from "@/db";
+import { Media } from "@/db/types";
 import { privateEnv } from "@/env.secrets";
 import { getAffiliatelink, getAmazonImageUrl } from "@/lib/amazon";
 import { TokenParser } from "@/lib/token-parser";
@@ -19,6 +21,7 @@ import {
   GoogleCustomSearchResponse,
   RecipeProductsPredictionInput,
 } from "@/types";
+import { PromptTemplate } from "langchain/prompts";
 import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import {
@@ -381,3 +384,230 @@ export const ProductsCarousel = ({
     </div>
   );
 };
+
+const finalRecipeSchema = RecipeSchema.pick({
+  name: true,
+  description: true,
+  yield: true,
+  slug: true,
+  tags: true,
+  ingredients: true,
+  instructions: true,
+});
+
+export const MediaCarousel = ({ media }: { media: Media[] }) => {
+  const itemCount = 4;
+
+  // const getGeneratedMedia = async () => {
+  //   const recipe = await firstValueFrom(recipe$);
+  //   const replicate = new Replicate();
+
+  //   const prompt = await mediaPromptTemplate.format({
+  //     name: recipe.name,
+  //     yield: recipe.yield,
+  //     description: recipe.description,
+  //     tags: Array.isArray(recipe.tags) ? recipe.tags.join("\n") : "",
+  //     ingredients: Array.isArray(recipe.ingredients)
+  //       ? recipe.ingredients.join("\n")
+  //       : "",
+  //     instructions: Array.isArray(recipe.instructions)
+  //       ? recipe.instructions.join("\n")
+  //       : "",
+  //   });
+  //   console.log("genearting");
+
+  //   const output = await replicate.run(
+  //     "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
+  //     {
+  //       input: {
+  //         width: 768,
+  //         height: 768,
+  //         prompt,
+  //         refine: "expert_ensemble_refiner",
+  //         scheduler: "K_EULER",
+  //         lora_scale: 0.6,
+  //         num_outputs: 4,
+  //         guidance_scale: 7.5,
+  //         apply_watermark: false,
+  //         high_noise_frac: 0.8,
+  //         negative_prompt: "",
+  //         prompt_strength: 0.8,
+  //         num_inference_steps: 25,
+  //       },
+  //     }
+  //   );
+  //   console.log(output);
+
+  //   assert(Array.isArray(output), "expected array output");
+
+  //   const promises = output.map(async (imageUrl: string) => {
+  //     const imgResponse = await fetch(imageUrl);
+  //     if (!imgResponse.ok) {
+  //       throw new Error(
+  //         `Failed to fetch ${imageUrl}: ${imgResponse.statusText}`
+  //       );
+  //     }
+  //     const blobData = await imgResponse.blob();
+  //     const buffer = Buffer.from(await blobData.arrayBuffer());
+
+  //     let processedImage: Buffer;
+  //     try {
+  //       processedImage = await sharp(buffer)
+  //         .resize(10, 10) // Resize to a very small image
+  //         .blur() // Optional: add a blur effect
+  //         .toBuffer();
+  //     } catch (ex) {
+  //       console.error(ex);
+  //       throw ex;
+  //     }
+  //     const base64Image = processedImage.toString("base64");
+
+  //     const mediaId = randomUUID();
+  //     const media = {
+  //       id: mediaId,
+  //       mediaType: "IMAGE",
+  //       contentType: "image/png",
+  //       sourceType: "GENERATED",
+  //       height: 768,
+  //       url: imageUrl,
+  //       width: 768,
+  //       blurDataURL: base64Image,
+  //       filename: "generated-1.png",
+  //       createdBy: null,
+  //       createdAt: new Date(),
+  //       duration: null,
+  //     } satisfies Media;
+
+  //     (async () => {
+  //       try {
+  //         console.log("Inserting ", media);
+  //         await db.insert(MediaTable).values(media);
+  //         console.log("inserting assocation");
+  //         await db.insert(GeneratedMediaTable).values({
+  //           recipeSlug: recipe.slug,
+  //           mediaId,
+  //         });
+  //       } catch (ex) {
+  //         console.error(ex);
+  //       }
+  //     })();
+
+  //     return media;
+  //   });
+  //   const results = await Promise.all(promises);
+  //   return results;
+  // };
+
+  // const media$ = from(recipe$).pipe(
+  //   first(),
+  //   tap(console.log),
+  //   switchMap(async (recipe) => {
+  //     const mediaList = await getGeneratedMediaForRecipeSlug(db, recipe.slug);
+  //     console.log(mediaList);
+
+  //     if (mediaList.length > 0) {
+  //       return mediaList;
+  //     } else {
+  //       return await getGeneratedMedia();
+  //     }
+  //   })
+  // );
+
+  const MediaItem = ({ index }: { index: number }) => {
+    // const media = await firstValueFrom(
+    //   media$.pipe(
+    //     filter((array) => {
+    //       // Check if the array is defined and if the value at the targetIndex is not undefined
+    //       return array && array.length > index && array[index] !== undefined;
+    //     }),
+    //     takeUntil(
+    //       merge(
+    //         media$.pipe(
+    //           filter((array) => {
+    //             // Check if products$ completes without any non-undefined values at the target index
+    //             return (
+    //               array && array.length > index && array[index] === undefined
+    //             );
+    //           }),
+    //           take(1)
+    //         )
+    //       )
+    //     ),
+    //     map((array) => array[index]),
+    //     defaultIfEmpty(undefined) // Extract the value at the target index
+    //   )
+    // );
+    // if (!media) {
+    //   return <></>;
+    // }
+    const item = media[index];
+    if (!item) {
+      return <></>;
+    }
+
+    return (
+      <div className="w-80 h-80 bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+        <div className="relative">
+          <Image
+            className="w-auto h-auto object-contain"
+            src={item.url}
+            alt={`Generated Image #${index + 1}`}
+            width={item.width}
+            height={item.height}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const items = new Array(itemCount).fill(0);
+
+  return (
+    <div className="h-96 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-1 pr-4 sm:p-0 md:justify-center">
+      {items.map((_, index) => (
+        <div key={index} className="carousel-item">
+          <MediaItem index={index} />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export const MediaCarouselFallback = () => {
+  const itemCount = 4;
+
+  const MediaItem = ({ index }: { index: number }) => {
+    return (
+      <div className="w-80 h-80 bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+        <div className="relative">
+          <Skeleton className="w-full h-full" />
+        </div>
+      </div>
+    );
+  };
+
+  const items = new Array(itemCount).fill(0);
+
+  return (
+    <div className="h-96 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-1 pr-4 sm:p-0 md:justify-center">
+      {items.map((_, index) => (
+        <div key={index} className="carousel-item">
+          <MediaItem index={index} />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const mediaPromptTemplate = PromptTemplate.fromTemplate(`
+An realistic photo of the final output of the following recipe:
+
+{name}
+{description}
+{yield}
+{tags}
+
+ingredients: {ingredients}
+
+instructions: {instructions}
+`);

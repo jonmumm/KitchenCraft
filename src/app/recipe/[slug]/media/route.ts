@@ -84,11 +84,13 @@ export async function POST(
         await db.transaction(async (transaction) => {
           const newMediaId = randomUUID();
           try {
+            const sourceType = "UPLOAD";
             await transaction.insert(MediaTable).values({
               id: newMediaId,
-              userId: media.userId,
+              createdBy: media.userId,
               mediaType: media.metadata.type,
               contentType: blob.contentType,
+              sourceType,
               height: media.metadata.height,
               url: blob.url,
               width: media.metadata.width,
