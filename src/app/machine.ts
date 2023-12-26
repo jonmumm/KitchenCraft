@@ -725,7 +725,6 @@ export const createCraftMachine = ({
                               absoluteElementTop - window.innerHeight / 2;
                             window.scrollTo(0, middle);
                           });
-                          console.log(el);
 
                           return nextItemIndex;
                         },

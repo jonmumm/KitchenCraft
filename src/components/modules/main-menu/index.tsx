@@ -1,4 +1,5 @@
 import { ModeToggle } from "@/components/dark-mode-toggle";
+import { FaDiscord } from "react-icons/fa";
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
@@ -387,6 +388,11 @@ export async function MainMenu({ className }: { className?: string }) {
       <Separator />
       <div className="flex flex-row gap-2 justify-center">
         <div className="flex flex-row justify-center gap-2">
+          <Link target="_blank" href="https://discord.gg/z2yaxZhzpP">
+            <Button size="icon" variant="outline">
+              <FaDiscord />
+            </Button>
+          </Link>
           <Link target="_blank" href="https://github.com/jonmumm/kitchencraft">
             <Button size="icon" variant="outline">
               <GithubIcon />

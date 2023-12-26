@@ -19,7 +19,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
     renderMarkdown();
   }, [markdownText]);
-  console.log(htmlContent);
 
   return (
     <div

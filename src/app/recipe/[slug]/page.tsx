@@ -47,7 +47,9 @@ import {
   CameraIcon,
   ChefHatIcon,
   EditIcon,
+  GitCompareIcon,
   HelpCircle,
+  HistoryIcon,
   LibraryIcon,
   ScrollIcon,
   ShoppingBasketIcon,
@@ -856,6 +858,15 @@ export default async function Page(props: Props) {
                     className="w-full"
                   >
                     <EditIcon />
+                  </Button>
+                </Link>
+                <Link href={`/recipe/${slug}/history`}>
+                  <Button
+                    variant="outline"
+                    aria-label="History"
+                    className="w-full"
+                  >
+                    <GitCompareIcon />
                   </Button>
                 </Link>
                 <ShareButton
