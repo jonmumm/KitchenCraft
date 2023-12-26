@@ -46,6 +46,7 @@ import sharp from "sharp";
 import { AmazonProductsTokenStream } from "./amazon-products-stream";
 import { RecipeProductsTokenStream } from "./recipe-products-stream";
 import { GoogleCustomSearchResponseSchema } from "./schema";
+import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 
 export const ProductsCarousel = ({
   input$,
@@ -66,6 +67,22 @@ export const ProductsCarousel = ({
       [] as AmazonAffiliateProduct[]
     )
   );
+
+  const ProductSkeleton = async ({ index }: { index: number }) => {
+    return (
+      <Card className="w-48 h-80 bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+        <div className="relative h-56 flex items-center justify-center">
+          <Skeleton className="w-36 h-36 p-4" />
+        </div>
+        <div className="p-4 bg-slate-50 text-slate-900 flex-1 flex flex-col items-center justify-center text-sm animate-pulse">
+          <h4 className="font-medium text-md text-muted-foreground text-center">
+            Finding products
+          </h4>
+          <EllipsisAnimation />
+        </div>
+      </Card>
+    );
+  };
 
   const Product = async ({ index }: { index: number }) => {
     const product = await firstValueFrom(
@@ -376,7 +393,7 @@ export const ProductsCarousel = ({
       </Suspense>
       {items.map((_, index) => (
         <div key={index} className="carousel-item">
-          <Suspense fallback={<Skeleton className="w-48 h-80" />}>
+          <Suspense fallback={<ProductSkeleton index={index} />}>
             <Product index={index} />
           </Suspense>
         </div>

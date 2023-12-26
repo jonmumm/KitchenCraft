@@ -8,7 +8,6 @@ import {
   TECHNIQUES,
 } from "./constants";
 import { AmazonAffiliateProductSchema, RecipeSchema } from "./db";
-import { RefObject } from "react";
 
 export const PlanSchema = z
   .enum(["quarterly", "monthly", "annual"])
@@ -683,10 +682,13 @@ export const ModifyRecipeEquipmentPredictionInputSchema = z.object({
   prompt: z.string(),
 });
 
-export const RecipePredictionInputSchema = z.discriminatedUnion("type", [
-  NewInstantRecipePredictionInputSchema,
-  NewRecipeFromSuggestionsPredictionInputSchema,
-]);
+export const RecipePredictionInputSchema = z.object({
+  recipe: z.object({
+    name: z.string(),
+    description: z.string(),
+  }),
+  prompt: z.string(),
+});
 
 export const RemixPredictionInputSchema = z.discriminatedUnion("type", [
   ModifyRecipeScalePredictionInputSchema,

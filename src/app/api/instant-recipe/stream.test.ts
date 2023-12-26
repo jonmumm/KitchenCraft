@@ -18,9 +18,9 @@ describe("InstantRecipeMetdataTokenStream", () => {
     const tokenStream = new InstantRecipeMetadataStream();
     const stream = await tokenStream.getStream(input);
     const outputRaw = await processStream(stream);
-    console.log(outputRaw);
     const outputSanitized = sanitizeOutput(outputRaw);
     const outputJSON = jsYaml.load(outputSanitized);
+    console.log(outputRaw);
 
     const result =
       InstantRecipeMetadataPredictionOutputSchema.safeParse(outputJSON);

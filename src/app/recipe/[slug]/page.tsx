@@ -140,18 +140,17 @@ export default async function Page(props: Props) {
         const suggestionsInput = SuggestionPredictionInputSchema.parse(
           result.input
         );
+        assert(suggestionsInput.prompt, "expected prompt");
 
         input = {
-          type: "NEW_RECIPE_FROM_SUGGESTIONS",
           recipe: {
             name,
             description,
           },
-          suggestionsInput,
+          prompt: suggestionsInput.prompt,
         } satisfies RecipePredictionInput;
       } else if (fromPrompt) {
         input = {
-          type: "NEW_INSTANT_RECIPE",
           recipe: {
             name,
             description,

@@ -15,6 +15,11 @@ export abstract class TokenStream<T> {
     return 512;
   }
 
+  protected getTemperature(): number {
+    // Set a sensible default, or implement logic to determine this dynamically
+    return 1;
+  }
+
   public async getStream(input: T): Promise<AsyncIterable<string>> {
     const template = await this.getSystemMessage(input);
     // The default tokens number, this should be set as per your requirements or dynamically if needed
@@ -41,7 +46,7 @@ export abstract class TokenStream<T> {
   ): Promise<AsyncIterable<string>> {
     const outputParser = new StringOutputParser();
     const chat = new ChatOpenAI({
-      temperature: 1,
+      temperature: this.getTemperature(),
       maxTokens: tokens,
       modelName: "gpt-3.5-turbo-1106",
     });

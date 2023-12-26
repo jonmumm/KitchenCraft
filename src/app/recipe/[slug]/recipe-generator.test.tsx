@@ -2,361 +2,262 @@ import { renderServerComponent } from "@/test/utils";
 import { test } from "vitest";
 import RecipeGenerator from "./recipe-generator";
 
-const testRecipes = [
+const testInputs = [
   {
-    name: "Chocolate Milkshake",
-    description:
-      "A rich and creamy beverage made with chocolate ice cream, milk, and chocolate syrup, often topped with whipped cream.",
-    suggestionsInput: {
-      prompt: "Sweet Beverages",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Caesar Salad",
+      description:
+        "A classic salad with romaine lettuce, croutons, parmesan cheese, and Caesar dressing.",
     },
-    suggestionsOutputRaw: `- name: Chocolate Milkshake
-        description: A rich and creamy beverage made with chocolate ice cream...
-      - name: Vanilla Milkshake
-        description: Smooth blend of vanilla ice cream and milk, topped with whipped cream.
-      - name: Strawberry Milkshake
-        description: Sweet and fruity shake made with strawberry ice cream and fresh strawberries.
-      - name: Banana Smoothie
-        description: A healthy and refreshing drink made with bananas, yogurt, and honey.
-      - name: Mocha Frappuccino
-        description: A coffee-flavored frozen drink with chocolate and whipped cream.`,
+    prompt: "Salad Recipes",
   },
   {
-    name: "Tiramisu",
-    description:
-      "A classic Italian dessert made with layers of coffee-soaked ladyfingers and rich mascarpone cheese.",
-    suggestionsInput: {
-      prompt: "Italian Desserts",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Beef Stroganoff",
+      description:
+        "A Russian dish of sautéed pieces of beef served in a sauce with smetana (sour cream).",
     },
-    suggestionsOutputRaw: `- name: Tiramisu
-      description: A classic Italian dessert...
-    - name: Cannoli
-      description: Crispy pastry tubes filled with sweet ricotta cheese.
-    - name: Panna Cotta
-      description: Silky, creamy dessert often topped with berry sauce or caramel.
-    - name: Gelato
-      description: Rich and creamy Italian ice cream with various flavors.
-    - name: Zabaglione
-      description: A light custard made with egg yolks, sugar, and Marsala wine.`,
+    prompt: "Russian Main Courses",
   },
   {
-    name: "Butter Chicken",
-    description:
-      "A creamy tomato-based curry with tender pieces of chicken, flavored with Indian spices.",
-    suggestionsInput: {
-      prompt: "Indian Curries",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Falafel Wrap",
+      description:
+        "Middle Eastern falafel balls wrapped in a flatbread with vegetables and tahini sauce.",
     },
-    suggestionsOutputRaw: `- name: Butter Chicken
-      description: A creamy tomato-based curry...
-    - name: Rogan Josh
-      description: A flavorful lamb curry with a mix of aromatic spices.
-    - name: Saag Paneer
-      description: Soft paneer cubes in a spinach-based gravy.
-    - name: Chicken Tikka Masala
-      description: Grilled chicken pieces in a creamy tomato sauce.
-    - name: Chana Masala
-      description: Spiced chickpea curry, great with rice or bread.`,
+    prompt: "Middle Eastern Street Food",
   },
   {
-    name: "Goulash",
-    description:
-      "A Hungarian stew of meat and vegetables, seasoned with paprika and other spices.",
-    suggestionsInput: {
-      prompt: "Hungarian Dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Pad Thai",
+      description:
+        "A stir-fried Thai noodle dish with shrimp, peanuts, scrambled egg, and bean sprouts.",
     },
-    suggestionsOutputRaw: `- name: Goulash
-      description: A Hungarian stew of meat...
-    - name: Chimney Cake
-      description: Sweet spiral-shaped pastry baked over an open fire.
-    - name: Pörkölt
-      description: A meat stew similar to goulash but without vegetables.
-    - name: Meggyleves
-      description: Chilled sour cherry soup, often served as a starter.
-    - name: Hortobágyi Pancakes
-      description: Crepes filled with meat and served with paprika sauce.`,
+    prompt: "Thai Noodle Dishes",
   },
   {
-    name: "Fish Tacos",
-    description:
-      "Grilled or fried fish served in a tortilla, often with slaw, salsa, and a creamy sauce.",
-    suggestionsInput: {
-      prompt: "Mexian dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Ratatouille",
+      description:
+        "A French Provençal stewed vegetable dish, originating in Nice, and sometimes referred to as ratatouille niçoise.",
     },
-    suggestionsOutputRaw: `- name: Fish Tacos
-      description: Grilled or fried fish served in a tortilla...
-    - name: Enchiladas
-      description: Tortillas rolled around a filling, covered with chili pepper sauce.
-    - name: Chiles Rellenos
-      description: Poblano peppers stuffed with cheese or meat.
-    - name: Tamales
-      description: Steamed dough filled with meats, cheeses, fruits, or chilies.
-    - name: Guacamole
-      description: A dip made from mashed avocado mixed with tomatoes, onions, and lime.`,
+    prompt: "French Vegetarian Dishes",
   },
   {
-    name: "Spring Rolls",
-    description:
-      "Crispy rolls filled with vegetables and sometimes shrimp or pork, served with dipping sauce.",
-    suggestionsInput: {
-      prompt: "Chinese appetizers",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Chicken Tikka Masala",
+      description:
+        "Chunks of grilled chicken in a creamy tomato sauce, a dish of Indian origin.",
     },
-    suggestionsOutputRaw: `- name: Spring Rolls
-      description: Crispy rolls filled with vegetables...
-    - name: Dumplings
-      description: Dough pockets filled with meat, seafood, or vegetables.
-    - name: Peking Duck
-      description: Roasted duck with crispy skin, served with pancakes.
-    - name: Baozi
-      description: Steamed buns filled with various ingredients.
-    - name: Hot and Sour Soup
-      description: A tangy and spicy soup with tofu, wood ear mushrooms, and bamboo shoots.`,
+    prompt: "Popular Indian Dishes",
   },
   {
-    name: "Creamy Avocado Pasta",
-    description:
-      "Rich avocado sauce with al dente noodles; vegan comfort food.",
-    suggestionsInput: {
-      prompt: "Recipes with Avocados",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Quiche Lorraine",
+      description:
+        "A French tart consisting of pastry crust filled with smoked bacon, cheese, and egg custard.",
     },
-    suggestionsOutputRaw: `- name: Creamy Avocado Pasta
-      description: Rich avocado sauce with al dente noodles; vegan comfort food.
-    - name: Avocado Chocolate Mousse
-      description: Silky, rich dessert; avocados' natural creaminess meets cocoa delight.
-    - name: Avocado Breakfast Toast
-      description: Crispy bread topped with mashed avocado, sprinkled with seeds.
-    - name: Chilled Avocado Soup
-      description: Refreshing, smooth soup, perfect for summer; hint of lime.
-    - name: Stuffed Avocado Boats
-      description: Avocado halves filled with tuna or chicken salad mix.
-    - name: Avocado Ice Cream
-      description: Creamy, dairy-free treat with a touch of natural sweetness.`,
+    prompt: "French Brunch Recipes",
   },
   {
-    name: "Sushi",
-    description:
-      "A Japanese dish of prepared vinegared rice, usually with some sugar and salt, accompanying a variety of ingredients, such as seafood, vegetables, and occasionally tropical fruits.",
-    suggestionsInput: {
-      prompt: "Japanese Dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Miso Soup",
+      description:
+        "A traditional Japanese soup consisting of a stock called dashi into which softened miso paste is mixed.",
     },
-    suggestionsOutputRaw: `- name: Sushi
-      description: A Japanese dish of prepared vinegared rice...
-    - name: Tempura
-      description: Lightly battered and deep-fried seafood and vegetables.
-    ...`, // and so on
+    prompt: "Japanese Soup Recipes",
   },
   {
-    name: "Croissant",
-    description: "A buttery, flaky pastry; perfect for breakfast with coffee.",
-    suggestionsInput: {
-      prompt: "French Breakfast Items",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Moussaka",
+      description:
+        "A Greek eggplant or potato-based dish, often including ground meat, layered with eggplant or potatoes and topped with a béchamel sauce.",
     },
-    suggestionsOutputRaw: `- name: Croissant
-      description: A buttery, flaky pastry...
-    - name: Quiche
-      description: Savory tart filled with eggs, cream, and cheese.
-    ...`, // and so on
+    prompt: "Greek Casserole Dishes",
   },
   {
-    name: "Empanada",
-    description:
-      "A baked or fried turnover consisting of pastry and filling, common in Latin American and Filipino cultures.",
-    suggestionsInput: {
-      prompt: "Chilean dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Feijoada",
+      description:
+        "A Brazilian stew of black beans with beef and pork, a typical dish in Brazil.",
     },
-    suggestionsOutputRaw: `- name: Empanada
-      description: A baked or fried turnover...
-    - name: Cazuela
-      description: A hearty stew with meat and vegetables.
-    ...`, // and so on
+    prompt: "Brazilian Traditional Dishes",
   },
   {
-    name: "Pancakes",
-    description: "Fluffy, round cakes prepared from a starch-based batter.",
-    suggestionsInput: {
-      prompt: "Breakfast dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Chocolate Milkshake",
+      description:
+        "A rich and creamy beverage made with chocolate ice cream, milk, and chocolate syrup, often topped with whipped cream.",
     },
-    suggestionsOutputRaw: `- name: Pancakes
-      description: Fluffy, round cakes...
-    - name: Waffles
-      description: Grid patterned cakes cooked between two hot plates.
-    ...`, // and so on
+    prompt: "Sweet Beverages",
   },
   {
-    name: "Chili Con Carne",
-    description:
-      "A spicy stew containing chili peppers, meat, and often tomatoes and beans.",
-    suggestionsInput: {
-      prompt: "Tex-mex dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Tiramisu",
+      description:
+        "A classic Italian dessert made with layers of coffee-soaked ladyfingers and rich mascarpone cheese.",
     },
-    suggestionsOutputRaw: `- name: Chili Con Carne
-      description: A spicy stew containing chili peppers...
-    - name: Tacos
-      description: Folded or rolled tortilla filled with various mixtures, such as seasoned meat, beans, and cheese.
-    - name: Quesadilla
-      description: Tortilla filled with cheese and heated.
-    - name: Enchiladas
-      description: Corn tortillas rolled around a filling and covered with chili pepper sauce.
-    - name: Burritos
-      description: Large flour tortilla filled with meat, beans, and cheese, then rolled up.`,
+    prompt: "Italian Desserts",
   },
   {
-    name: "Pizza Margherita",
-    description:
-      "A type of pizza made with tomatoes, mozzarella cheese, fresh basil, salt, and extra-virgin olive oil.",
-    suggestionsInput: {
-      prompt: "Italian dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Butter Chicken",
+      description:
+        "A creamy tomato-based curry with tender pieces of chicken, flavored with Indian spices.",
     },
-    suggestionsOutputRaw: `- name: Pizza Margherita
-      description: A type of pizza made with tomatoes...
-    - name: Spaghetti Carbonara
-      description: Pasta dish with eggs, cheese (Pecorino Romano), pancetta, and black pepper.
-    - name: Risotto
-      description: Creamy rice dish cooked with broth and flavored with parmesan cheese and other ingredients.
-    - name: Lasagna
-      description: Layered pasta dish with meat, cheese, and tomato sauce.
-    - name: Tiramisu
-      description: Coffee-flavored Italian dessert made of ladyfingers dipped in coffee, layered with mascarpone cheese, and flavored with cocoa.`,
+    prompt: "Indian Curries",
   },
   {
-    name: "Baklava",
-    description:
-      "A rich, sweet dessert pastry made of layers of filo filled with chopped nuts, sweetened and held together with syrup or honey.",
-    suggestionsInput: {
-      prompt: "Middle Eastern desserts",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Goulash",
+      description:
+        "A Hungarian stew of meat and vegetables, seasoned with paprika and other spices.",
     },
-    suggestionsOutputRaw: `- name: Baklava
-      description: A rich, sweet dessert pastry...
-    - name: Kunafa
-      description: A dessert made with thin noodle-like pastry soaked in syrup.
-    - name: Halva
-      description: A sweet, dense confection made from tahini or semolina.
-    - name: Ma'amoul
-      description: Shortbread pastry filled with dates or nuts.
-    - name: Umm Ali
-      description: Egyptian bread pudding with nuts and sweetened milk.`,
+    prompt: "Hungarian Dishes",
   },
   {
-    name: "Lobster Bisque",
-    description:
-      "A smooth, creamy, highly seasoned soup based on lobster broth.",
-    suggestionsInput: {
-      prompt: "Seafood dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Fish Tacos",
+      description:
+        "Grilled or fried fish served in a tortilla, often with slaw, salsa, and a creamy sauce.",
     },
-    suggestionsOutputRaw: `- name: Lobster Bisque
-      description: A smooth, creamy soup...
-    - name: Paella
-      description: A Spanish rice dish with various types of seafood.
-    - name: Fish and Chips
-      description: Fried fish fillet served with crispy fries.
-    - name: Clam Chowder
-      description: A rich soup containing clams, onions, and potatoes.
-    - name: Grilled Calamari
-      description: Grilled squid rings, often served with a lemon wedge.`,
+    prompt: "Mexican Dishes",
   },
   {
-    name: "Bobotie",
-    description:
-      "A South African dish consisting of spiced minced meat baked with an egg-based topping.",
-    suggestionsInput: {
-      prompt: "South African dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Spring Rolls",
+      description:
+        "Crispy rolls filled with vegetables and sometimes shrimp or pork, served with dipping sauce.",
     },
-    suggestionsOutputRaw: `- name: Bobotie
-      description: A South African dish with spiced minced meat...
-    - name: Biltong
-      description: Cured and dried meat, similar to jerky.
-    - name: Bunny Chow
-      description: A hollowed-out loaf of bread filled with curry.
-    - name: Melktert
-      description: A custard pie with a cinnamon-infused crust.
-    - name: Koeksister
-      description: A sweet, braided pastry deep-fried and soaked in syrup.`,
+    prompt: "Chinese Appetizers",
   },
   {
-    name: "Borscht",
-    description:
-      "A sour soup commonly consumed in Eastern Europe, made with beetroot as the main ingredient.",
-    suggestionsInput: {
-      prompt: "Eastern European dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Creamy Avocado Pasta",
+      description:
+        "Rich avocado sauce with al dente noodles; vegan comfort food.",
     },
-    suggestionsOutputRaw: `- name: Borscht
-      description: A sour soup made with beetroot...
-    - name: Pierogi
-      description: Dumplings filled with a variety of ingredients such as potato, cheese, or meat.
-    - name: Kielbasa
-      description: Polish smoked sausage made from seasoned pork.
-    - name: Holubtsi
-      description: Ukrainian stuffed cabbage rolls with meat and rice.
-    - name: Pelmeni
-      description: Russian meat-filled dumplings.`,
+    prompt: "Recipes with Avocados",
   },
   {
-    name: "Tom Yum Soup",
-    description: "A hot and sour Thai soup, usually cooked with shrimp.",
-    suggestionsInput: {
-      prompt: "Thai dishes",
-      tags: [],
-      ingredients: [],
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Sushi",
+      description:
+        "A Japanese dish of prepared vinegared rice, usually with some sugar and salt, accompanying a variety of ingredients, such as seafood, vegetables, and occasionally tropical fruits.",
     },
-    suggestionsOutputRaw: `- name: Tom Yum Soup
-      description: A hot and sour Thai soup...
-    - name: Pad Thai
-      description: Stir-fried rice noodle dish with shrimp, tofu, or chicken.
-    - name: Green Curry
-      description: A creamy, aromatic curry with meat, eggplants, and basil.
-    - name: Som Tum
-      description: Green papaya salad with chilies, lime, and dried shrimp.
-    - name: Mango Sticky Rice
-      description: Sweet glutinous rice served with fresh mango slices and coconut milk.`,
+    prompt: "Japanese Dishes",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Croissant",
+      description:
+        "A buttery, flaky pastry; perfect for breakfast with coffee.",
+    },
+    prompt: "French Breakfast Items",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Empanada",
+      description:
+        "A baked or fried turnover consisting of pastry and filling, common in Latin American and Filipino cultures.",
+    },
+    prompt: "Latin American Dishes",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Pancakes",
+      description: "Fluffy, round cakes prepared from a starch-based batter.",
+    },
+    prompt: "Breakfast Dishes",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Chili Con Carne",
+      description:
+        "A spicy stew containing chili peppers, meat, and often tomatoes and beans.",
+    },
+    prompt: "Tex-Mex Dishes",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Pizza Margherita",
+      description:
+        "A type of pizza made with tomatoes, mozzarella cheese, fresh basil, salt, and extra-virgin olive oil.",
+    },
+    prompt: "Italian Dishes",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Baklava",
+      description:
+        "A rich, sweet dessert pastry made of layers of filo filled with chopped nuts, sweetened and held together with syrup or honey.",
+    },
+    prompt: "Middle Eastern Desserts",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Lobster Bisque",
+      description:
+        "A smooth, creamy, highly seasoned soup based on lobster broth.",
+    },
+    prompt: "Seafood Dishes",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Bobotie",
+      description:
+        "A South African dish consisting of spiced minced meat baked with an egg-based topping.",
+    },
+    prompt: "South African Dishes",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Borscht",
+      description:
+        "A sour soup commonly consumed in Eastern Europe, made with beetroot as the main ingredient.",
+    },
+    prompt: "Eastern European Dishes",
+  },
+  {
+    type: "NEW_INSTANT_RECIPE",
+    recipe: {
+      name: "Tom Yum Soup",
+      description: "A hot and sour Thai soup, usually cooked with shrimp.",
+    },
+    prompt: "Thai Dishes",
   },
 ];
 
-for (const recipe of testRecipes) {
-  test(`RecipeGenerator: ${recipe.name}`, async () => {
+for (const input of testInputs) {
+  test(`RecipeGenerator: ${input.recipe.name}`, async () => {
     const testPromise = new Promise<void>(async (resolve, reject) => {
-      const input = {
-        type: "NEW_RECIPE" as const,
-        recipe: {
-          name: recipe.name,
-          description: recipe.description,
-        },
-        suggestionsInput: recipe.suggestionsInput,
-        suggestionsOutputRaw: recipe.suggestionsOutputRaw,
-      };
-
       const jsx = await RecipeGenerator({
         input,
         onError(error, outputRaw) {

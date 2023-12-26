@@ -7,9 +7,9 @@ import { Button } from "@/components/input/button";
 import { Textarea } from "@/components/input/textarea";
 import StickyHeader from "@/components/layout/sticky-header";
 import {
-    getFirstMediaForRecipe,
-    getRecipe,
-    getSortedMediaForRecipe,
+  getFirstMediaForRecipe,
+  getRecipe,
+  getSortedMediaForRecipe,
 } from "@/db/queries";
 import { Recipe } from "@/db/types";
 import { env } from "@/env.public";
@@ -27,6 +27,7 @@ import { BehaviorSubject, Observable, firstValueFrom, of } from "rxjs";
 import { Ingredients, Instructions, Tags, Times } from "../components";
 import { getObservables } from "../observables";
 import { EditName } from "./components.client";
+import { assert } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -70,18 +71,17 @@ export default async function Page(props: Props) {
         const suggestionsInput = SuggestionPredictionInputSchema.parse(
           result.input
         );
+        assert(suggestionsInput.prompt, "expected prompt");
 
         input = {
-          type: "NEW_RECIPE_FROM_SUGGESTIONS",
           recipe: {
             name,
             description,
           },
-          suggestionsInput,
+          prompt: suggestionsInput.prompt,
         } satisfies RecipePredictionInput;
       } else if (fromPrompt) {
         input = {
-          type: "NEW_INSTANT_RECIPE",
           recipe: {
             name,
             description,
