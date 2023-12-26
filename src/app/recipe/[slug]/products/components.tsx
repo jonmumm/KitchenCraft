@@ -563,7 +563,7 @@ export const MediaCarousel = ({ media }: { media: Media[] }) => {
     }
 
     return (
-      <div className="w-80 h-80 bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+      <div className="w-80 h-80 bg-slate-200 dark:bg-slate-800 shadow-lg rounded-lg overflow-hidden flex flex-col">
         <div className="relative">
           <Image
             className="w-auto h-auto object-contain"

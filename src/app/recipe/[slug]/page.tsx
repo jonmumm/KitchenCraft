@@ -866,7 +866,7 @@ export default async function Page(props: Props) {
                     aria-label="History"
                     className="w-full"
                   >
-                    <GitCompareIcon />
+                    <HistoryIcon />
                   </Button>
                 </Link>
                 <ShareButton
