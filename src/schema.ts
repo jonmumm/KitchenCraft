@@ -481,7 +481,13 @@ const KeyDownEventSchema = z.object({
   keyboardEvent: z.custom<React.KeyboardEvent<HTMLTextAreaElement>>(),
 });
 
+const ErrorEventSchema = z.object({
+  type: z.literal("ERROR"),
+  error: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ErrorEventSchema,
   DownloadAppEventShema,
   KeyDownEventSchema,
   RemixEventSchema,

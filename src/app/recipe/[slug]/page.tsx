@@ -31,7 +31,7 @@ import { env } from "@/env.public";
 import { getSession } from "@/lib/auth/session";
 import { getGuestId } from "@/lib/browser-session";
 import { getResult } from "@/lib/db";
-import { posthog } from "@/lib/posthog";
+import { withSpan } from "@/lib/observability";
 import { assert, noop } from "@/lib/utils";
 import {
   FAQsPredictionInputSchema,
@@ -106,24 +106,16 @@ type Props = {
 export default async function Page(props: Props) {
   const { slug } = props.params;
 
-  const [session, guestId, recipe, mediaList, latestVersion] =
-    await Promise.all([
+  const [session, guestId, recipe, mediaList, latestVersion] = await withSpan(
+    Promise.all([
       getSession(),
       getGuestId(),
       getRecipe(slug),
       getSortedMediaForRecipe(slug),
       findLatestRecipeVersion(slug),
-    ]);
-
-  // const distinctId = session?.user.id || guestId;
-  // assert(distinctId, "exepected distinctId");
-  // const isImageGenEnabled = await posthog.isFeatureEnabled(
-  //   "image_gen",
-  //   distinctId,
-  //   {
-  //     personProperties: { is_authorized: !!session?.user ? "1" : "0" },
-  //   }
-  // );
+    ]),
+    "pageData"
+  );
 
   const userId = session?.user.id;
 
@@ -137,8 +129,24 @@ export default async function Page(props: Props) {
 
   if (!recipe) {
     const recipeKey = `recipe:${slug}`;
-    const data = await kv.hgetall(recipeKey);
-    tempRecipe = TempRecipeSchema.parse(data);
+    let data;
+    try {
+      data = await kv.hgetall(recipeKey);
+    } catch (ex) {
+      console.error(ex);
+      throw new Error("Failed to fetch temp recipe data for key " + recipeKey);
+    }
+
+    // get data stored in redis when originially created from craf
+    try {
+      tempRecipe = TempRecipeSchema.parse(data);
+    } catch (ex) {
+      console.error(ex);
+      throw new Error(
+        "Failed to parse stored temp recipe data:" + JSON.stringify(data)
+      );
+    }
+
     const { runStatus, fromResult, fromPrompt } = tempRecipe;
     ({ name, description } = tempRecipe);
 

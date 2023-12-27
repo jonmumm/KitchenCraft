@@ -75,3 +75,60 @@ export function withStreamSpan<T>(
     },
   };
 }
+
+export function withSpan<T>(
+  operation: () => Promise<T>,
+  spanName: string,
+  attributes?: Attributes
+): () => Promise<T>;
+
+// Overload for a single Promise object
+export function withSpan<T>(
+  operation: Promise<T>,
+  spanName: string,
+  attributes?: Attributes
+): Promise<T>;
+
+// Overload for an array of promises
+export function withSpan<T>(
+  operation: Promise<T>[],
+  spanName: string,
+  attributes?: Attributes
+): Promise<T>[];
+
+// Implementation of withSpan
+export function withSpan<T>(
+  operation: (() => Promise<T>) | Promise<T> | Promise<T>[],
+  spanName: string,
+  attributes?: Attributes
+): (() => Promise<T>) | Promise<T> | Promise<T>[] {
+  const tracer = trace.getTracer("default");
+
+  const handlePromise = async (promise: Promise<T>) => {
+    const span: Span = tracer.startSpan(spanName, {
+      attributes: attributes,
+      kind: SpanKind.INTERNAL,
+    });
+
+    try {
+      const result = await promise;
+      return result;
+    } catch (error) {
+      span.recordException(getErrorMessage(error));
+      throw error;
+    } finally {
+      span.end();
+    }
+  };
+
+  if (typeof operation === 'function') {
+    // Single promise-returning function
+    return () => handlePromise(operation());
+  } else if (Array.isArray(operation)) {
+    // Array of promises
+    return operation.map(p => handlePromise(p));
+  } else {
+    // Single promise
+    return handlePromise(operation);
+  }
+}

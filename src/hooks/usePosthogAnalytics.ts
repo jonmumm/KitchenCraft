@@ -61,4 +61,6 @@ export const usePosthogAnalytics = (posthogClientKey: string) => {
       }
     };
   }, [event$, client, didSendInitialRef]);
+
+  return client;
 };

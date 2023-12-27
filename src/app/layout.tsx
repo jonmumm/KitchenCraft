@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/feedback/toaster";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
-import { getCurrentUserId, getSession } from "@/lib/auth/session";
+import { getSession } from "@/lib/auth/session";
 import { getResult } from "@/lib/db";
 import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
@@ -101,7 +101,6 @@ async function createNewInstantRecipe(
   instantRecipeResultId: string
 ) {
   "use server";
-  const userId = await getCurrentUserId();
   const resultKey = `instant-recipe:${instantRecipeResultId}`;
 
   // todo but unlikely possible that its not done yet, output might not be here...
@@ -132,8 +131,6 @@ async function createNewRecipeFromSuggestion(
   index: number
 ) {
   "use server";
-  const userId = await getCurrentUserId();
-
   const result = await getResult(kv, suggestionsResultId);
   const parser = new TokenParser(SuggestionPredictionOutputSchema);
   // const output = parser.parsePartial(result.outputRaw);
