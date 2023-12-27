@@ -181,7 +181,7 @@ export const ClearResultsItem = () => {
 
   return (
     <ResultCard
-      className="w-full p-4 flex flex-row justify-center prompt-pristine:hidden"
+      className="w-full p-4 flex-row justify-center hidden prompt-dirty:flex"
       index={7}
       event={{ type: "CLEAR" }}
     >
