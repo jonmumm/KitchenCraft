@@ -117,6 +117,7 @@ export const createCraftMachine = ({
       document.body.classList.contains("crafting"))
       ? "True"
       : "False";
+
   // if (typeof window !== "undefined" && initialOpen) {
   //   const queryParams = new URLSearchParams(window.location.search);
   //   queryParams.set("crafting", "1");
@@ -163,8 +164,10 @@ export const createCraftMachine = ({
       currentRecipeUrl: undefined,
     } satisfies Context;
   })();
-  // const initialOpen = initialPath.startsWith("/?craft") ? "True" : "False";
-  // if (!initialOpen) router.prefetch("/craft");
+
+  const initialPromptState = initialContext.prompt?.length
+    ? "Dirty"
+    : "Pristine";
 
   return createMachine(
     {
@@ -221,35 +224,7 @@ export const createCraftMachine = ({
               type: "focusInput";
             },
       },
-      on: {
-        CLEAR: {
-          target: [".Suggestions.Holding", ".InstantRecipe.Holding"],
-          actions: [
-            assign({
-              prompt: undefined,
-            }),
-            () => {
-              const promptEl = document.body.querySelector("#prompt") as
-                | HTMLTextAreaElement
-                | undefined;
-              if (promptEl) {
-                promptEl.value = "";
-              }
-              promptEl?.focus();
-            },
-            {
-              type: "replaceQueryParameters",
-              params({ context, event }) {
-                return {
-                  paramSet: {
-                    prompt: undefined,
-                  },
-                };
-              },
-            },
-          ],
-        },
-      },
+      on: {},
       type: "parallel",
       states: {
         Creating: {
@@ -367,6 +342,9 @@ export const createCraftMachine = ({
         InstantRecipe: {
           initial: "Idle",
           on: {
+            CLEAR: {
+              target: ".Holding",
+            },
             CLOSE: {
               target: ".Idle",
             },
@@ -445,6 +423,9 @@ export const createCraftMachine = ({
         Suggestions: {
           initial: "Idle",
           on: {
+            CLEAR: {
+              target: ".Holding",
+            },
             CLOSE: {
               target: ".Idle",
             },
@@ -553,6 +534,61 @@ export const createCraftMachine = ({
             },
           },
         },
+        Prompt: {
+          initial: initialPromptState,
+          on: {
+            SET_INPUT: [
+              {
+                target: [".Pristine"],
+                guard: ({ event }) => event.value.length === 0,
+              },
+              {
+                target: [".Dirty"],
+              },
+            ],
+            CLEAR: {
+              target: [".Pristine"],
+              actions: [
+                assign({
+                  prompt: undefined,
+                }),
+                () => {
+                  const promptEl = document.body.querySelector("#prompt") as
+                    | HTMLTextAreaElement
+                    | undefined;
+                  if (promptEl) {
+                    promptEl.value = "";
+                  }
+                  promptEl?.focus();
+                },
+                {
+                  type: "replaceQueryParameters",
+                  params({ context, event }) {
+                    return {
+                      paramSet: {
+                        prompt: undefined,
+                      },
+                    };
+                  },
+                },
+              ],
+            },
+          },
+          states: {
+            Dirty: {
+              entry: () => {
+                document.body.classList.add("prompt-dirty");
+                document.body.classList.remove("prompt-pristine");
+              },
+            },
+            Pristine: {
+              entry: () => {
+                document.body.classList.remove("prompt-dirty");
+                document.body.classList.add("prompt-pristine");
+              },
+            },
+          },
+        },
         Open: {
           initial: initialOpen,
           states: {
@@ -600,15 +636,6 @@ export const createCraftMachine = ({
                 CLOSE: "False",
                 SET_INPUT: {
                   actions: [
-                    ({ event }) => {
-                      if (event.value.length > 0) {
-                        document.body.classList.add("prompt-dirty");
-                        document.body.classList.remove("prompt-pristine");
-                      } else {
-                        document.body.classList.remove("prompt-dirty");
-                        document.body.classList.add("prompt-pristine");
-                      }
-                    },
                     {
                       type: "assignPrompt",
                       params: ({ event }) => ({
