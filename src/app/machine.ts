@@ -546,6 +546,7 @@ export const createCraftMachine = ({
               actions: [
                 assign({
                   prompt: undefined,
+                  currentItemIndex: -1,
                 }),
                 () => {
                   const promptEl = document.body.querySelector("#prompt") as
