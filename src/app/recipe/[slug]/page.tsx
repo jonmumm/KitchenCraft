@@ -40,7 +40,6 @@ import {
   TempRecipeSchema,
 } from "@/schema";
 import { RecipePredictionInput, TempRecipe } from "@/types";
-import { kv } from "@vercel/kv";
 import { randomUUID } from "crypto";
 import { PromptTemplate } from "langchain/prompts";
 import {
@@ -95,6 +94,7 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
+import { kv } from "@/lib/kv";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
