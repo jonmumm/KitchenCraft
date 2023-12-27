@@ -4,6 +4,7 @@ import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { useSelector } from "@/hooks/useSelector";
 import {
+  ClearResultsItem,
   Creating,
   InstantRecipeItem,
   SuggestionItem,
@@ -35,6 +36,7 @@ export default function Page({
       {items.map((_, index) => {
         return <SuggestionItem key={index} index={index} />;
       })}
+      <ClearResultsItem />
     </div>
   ) : (
     <Creating />

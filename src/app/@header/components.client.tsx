@@ -177,7 +177,7 @@ export const CraftInput = ({
       />
       <XCircleIcon
         onClick={handleClear}
-        className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 hidden prompt-dirty:block prompt-pristine:hidden active:opacity-30"
+        className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 hidden prompt-dirty:block prompt-pristine:hidden active:opacity-30 cursor-pointer"
       />
       <script
         dangerouslySetInnerHTML={{

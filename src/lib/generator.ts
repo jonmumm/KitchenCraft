@@ -97,7 +97,6 @@ export function eventSourceToGenerator<
     try {
       const outputJSON = jsYaml.load(outputYaml);
       const outputParse = schema.safeParse(outputJSON);
-      console.log("is my subject closed", subject.closed);
 
       if (outputParse.success) {
         subject.next({

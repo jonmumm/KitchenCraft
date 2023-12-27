@@ -247,6 +247,11 @@ export const createCraftMachine = ({
             },
             SELECT_RESULT: {
               target: ".SuggestionRecipe",
+              guard: ({ event, context }) => {
+                {
+                  return !!context.suggestions?.[event.index];
+                }
+              },
               actions: assign({
                 currentItemIndex: ({ event }) => event.index,
                 selection: ({ event, context }) => {
@@ -483,16 +488,6 @@ export const createCraftMachine = ({
                     assign({
                       suggestionsResultId: ({ event }) => event.resultId,
                     }),
-                    {
-                      type: "replaceQueryParameters",
-                      params({ event }) {
-                        return {
-                          paramSet: {
-                            suggestionsResultId: event.resultId,
-                          },
-                        };
-                      },
-                    },
                   ],
                 },
                 SUGGESTION_PROGRESS: {
@@ -560,6 +555,9 @@ export const createCraftMachine = ({
                     promptEl.value = "";
                   }
                   promptEl?.focus();
+                  requestAnimationFrame(() => {
+                    window.scrollTo(0, 0);
+                  });
                 },
                 {
                   type: "replaceQueryParameters",
@@ -672,6 +670,20 @@ export const createCraftMachine = ({
                         return {
                           type: "INSTANT_RECIPE" as const,
                         };
+                      } else if (
+                        context.currentItemIndex === 7 &&
+                        context.prompt?.length
+                      ) {
+                        return {
+                          type: "CLEAR" as const,
+                        };
+                      } else if (
+                        context.currentItemIndex === 7 &&
+                        (!context.prompt || context.prompt.length === 0)
+                      ) {
+                        return {
+                          type: "CLOSE" as const,
+                        };
                       } else {
                         return {
                           type: "SELECT_RESULT" as const,
@@ -691,15 +703,17 @@ export const createCraftMachine = ({
                             context.suggestions?.[context.suggestions.length]
                               ?.description?.length || 0;
 
-                          const maxItemIndex = !context.instantRecipeMetadata
-                            ? 0
-                            : context.suggestions?.length
-                            ? latestDescriptionLength > 10
-                              ? context.suggestions.length + 1
-                              : context.suggestions?.length
-                              ? context.suggestions.length
-                              : 1
-                            : 0;
+                          const maxItemIndex = 7;
+
+                          // const maxItemIndex = !context.instantRecipeMetadata
+                          //   ? 0
+                          //   : context.suggestions?.length
+                          //   ? latestDescriptionLength > 10
+                          //     ? context.suggestions.length + 1
+                          //     : context.suggestions?.length
+                          //     ? context.suggestions.length
+                          //     : 1
+                          //   : 0;
 
                           let nextItemIndex =
                             typeof currentItemIndex !== "undefined"

@@ -2,9 +2,10 @@
 
 import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
-import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { Button } from "@/components/input/button";
+import { RecipeCraftingPlaceholder } from "@/components/modules/recipe/crafting-placeholder";
 import { useSelector } from "@/hooks/useSelector";
+import { cn } from "@/lib/utils";
 import { ChevronRightIcon, LoaderIcon, MoreHorizontalIcon } from "lucide-react";
 import { ComponentProps, useContext } from "react";
 import { CraftContext } from "../context";
@@ -81,10 +82,13 @@ const ResultCard = ({
     <Card
       id={`result-${index}`}
       variant="interactive"
-      className={`w-full flex flex-row gap-4 items-center px-3 cursor-pointer ${
-        isFocused ? `outline-blue-500 outline outline-2` : ``
-      }`}
       {...props}
+      className={cn(
+        `w-full flex flex-row gap-4 items-center px-3 cursor-pointer ${
+          isFocused ? `outline-blue-500 outline outline-2` : ``
+        }`,
+        props.className
+      )}
     >
       {children}
     </Card>
@@ -169,24 +173,19 @@ export const Creating = () => {
   const actor = useContext(CraftContext);
   const selection = useSelector(actor, (state) => state.context.selection);
 
+  return selection && <RecipeCraftingPlaceholder />;
+};
+
+export const ClearResultsItem = () => {
+  const actor = useContext(CraftContext);
+
   return (
-    selection && (
-      <div className="flex flex-col gap-2 max-w-xl mx-auto">
-        <Card className="flex flex-col gap-2 pb-5 mx-3">
-          <div className="flex flex-row gap-3 p-5 justify-between">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl font-semibold">{selection.name}</h1>
-              <p className="text-lg text-muted-foreground">
-                {selection.description}
-              </p>
-            </div>
-          </div>
-        </Card>
-        <div className="flex flex-col gap-1 items-center w-full mt-8">
-          <p className="animate-pulse">Crafting</p>
-          <EllipsisAnimation />
-        </div>
-      </div>
-    )
+    <ResultCard
+      className="w-full p-4 flex flex-row justify-center prompt-pristine:hidden"
+      index={7}
+      event={{ type: "CLEAR" }}
+    >
+      <Button variant="ghost">Clear</Button>
+    </ResultCard>
   );
 };
