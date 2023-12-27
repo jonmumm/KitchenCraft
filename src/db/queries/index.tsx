@@ -15,6 +15,7 @@ import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { and, count, desc, eq, inArray, max, ne, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
+import { cache } from "react";
 import { z } from "zod";
 import { Recipe } from "../types";
 
@@ -625,23 +626,22 @@ export const getUpvoteStatusForMultipleRecipes = async (
   return upvoteStatusBySlug;
 };
 
-export const getProfileByUserId = async (userId: string) => {
-  return await withDatabaseSpan(
-    db
-      .select({
-        profileSlug: ProfileTable.profileSlug,
-        activated: ProfileTable.activated,
-        mediaId: ProfileTable.mediaId,
-        userId: ProfileTable.userId,
-        createdAt: ProfileTable.createdAt,
-      })
-      .from(ProfileTable)
-      .where(eq(ProfileTable.userId, userId)),
-    "getProfileByUserId"
-  ) // Filter by the given userId
+export const getProfileByUserId = cache(async (userId: string) => {
+  const query = db
+    .select({
+      profileSlug: ProfileTable.profileSlug,
+      activated: ProfileTable.activated,
+      mediaId: ProfileTable.mediaId,
+      userId: ProfileTable.userId,
+      createdAt: ProfileTable.createdAt,
+    })
+    .from(ProfileTable)
+    .where(eq(ProfileTable.userId, userId));
+
+  return await withDatabaseSpan(query, "getProfileByUserId") // Filter by the given userId
     .execute()
     .then((res) => res[0]); // Return the first (and expectedly only) result
-};
+});
 
 export const getUserPointsLast30Days = async (userId: string) => {
   const thirtyDaysInSeconds = 30 * 24 * 3600; // Seconds in 30 days
@@ -1155,6 +1155,7 @@ export const getGeneratedMediaForRecipeSlug = async (
   dbOrTransaction: DbOrTransaction,
   slug: string
 ) => {
+  console.log(slug);
   return (
     await withDatabaseSpan(
       dbOrTransaction
