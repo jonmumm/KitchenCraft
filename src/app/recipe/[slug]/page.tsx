@@ -937,9 +937,9 @@ export default async function Page(props: Props) {
           <Card id="assistant" className="mx-3">
             <AssistantContent />
           </Card>
-          <Card id="generated-images" className="mx-3">
+          {/* <Card id="generated-images" className="mx-3">
             <GeneratedImages />
-          </Card>
+          </Card> */}
           <Card id="products" className="mx-3 mb-3">
             <div className="flex flex-row justify-between p-4">
               <h3 className="uppercase text-xs font-bold text-accent-foreground">

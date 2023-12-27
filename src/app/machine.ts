@@ -117,6 +117,18 @@ export const createCraftMachine = ({
       document.body.classList.contains("crafting"))
       ? "True"
       : "False";
+  // if (typeof window !== "undefined" && initialOpen) {
+  //   const queryParams = new URLSearchParams(window.location.search);
+  //   queryParams.set("crafting", "1");
+  //   const paramString = queryParams.toString();
+
+  //   // Construct the new URL
+  //   const newUrl =
+  //     paramString !== ""
+  //       ? window.location.pathname + "?" + paramString
+  //       : window.location.pathname;
+  //   router.replace(newUrl);
+  // }
 
   const initialContext = (() => {
     let prompt = parseAsString.parseServerSide(searchParams["prompt"]);
@@ -131,6 +143,7 @@ export const createCraftMachine = ({
         prompt = value;
       }
     }
+
     const ingredients =
       searchParams["ingredients"] &&
       ingredientsParser.parseServerSide(searchParams["ingredients"]);
@@ -732,10 +745,10 @@ export const createCraftMachine = ({
                     ],
                   },
                 ],
-                UPDATE_SEARCH_PARAMS: {
-                  guard: ({ event }) => event.searchParams["crafting"] !== "1",
-                  target: "False",
-                },
+                // UPDATE_SEARCH_PARAMS: {
+                //   guard: ({ event }) => event.searchParams["crafting"] !== "1",
+                //   target: "False",
+                // },
               },
             },
             False: {
