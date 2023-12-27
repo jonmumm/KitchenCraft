@@ -2,10 +2,11 @@
 
 import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
+import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { Button } from "@/components/input/button";
 import { useSelector } from "@/hooks/useSelector";
 import { ChevronRightIcon, LoaderIcon, MoreHorizontalIcon } from "lucide-react";
-import { ComponentProps, ReactNode, useContext } from "react";
+import { ComponentProps, useContext } from "react";
 import { CraftContext } from "../context";
 
 export const CraftItemIcon = () => {
@@ -170,7 +171,7 @@ export const Creating = () => {
 
   return (
     selection && (
-      <div>
+      <div className="flex flex-col gap-2 max-w-xl mx-auto">
         <Card className="flex flex-col gap-2 pb-5 mx-3">
           <div className="flex flex-row gap-3 p-5 justify-between">
             <div className="flex flex-col gap-2">
@@ -181,6 +182,10 @@ export const Creating = () => {
             </div>
           </div>
         </Card>
+        <div className="flex flex-col gap-1 items-center w-full mt-8">
+          <p className="animate-pulse">Crafting</p>
+          <EllipsisAnimation />
+        </div>
       </div>
     )
   );

@@ -173,7 +173,7 @@ export const createCraftMachine = ({
       types: {
         context: {} as Context,
         events: {} as AppEvent | GeneratorEvent,
-        guards: {} as  //   } //     type: "didCompleteEquipmentAdaptations"; // | { //   } //     type: "didCompleteDietaryAlternatives"; // | { //   } //     type: "didCompleteSubstitutions"; // | { //   } //     }; //       pathname: string; //     params: { //     type: "didNavigateToRecipe"; // | {
+        guards: {} as
           | {
               type: "isInputFocused";
             }
@@ -220,6 +220,35 @@ export const createCraftMachine = ({
           | {
               type: "focusInput";
             },
+      },
+      on: {
+        CLEAR: {
+          target: [".Suggestions.Holding", ".InstantRecipe.Holding"],
+          actions: [
+            assign({
+              prompt: undefined,
+            }),
+            () => {
+              const promptEl = document.body.querySelector("#prompt") as
+                | HTMLTextAreaElement
+                | undefined;
+              if (promptEl) {
+                promptEl.value = "";
+              }
+              promptEl?.focus();
+            },
+            {
+              type: "replaceQueryParameters",
+              params({ context, event }) {
+                return {
+                  paramSet: {
+                    prompt: undefined,
+                  },
+                };
+              },
+            },
+          ],
+        },
       },
       type: "parallel",
       states: {
@@ -321,6 +350,9 @@ export const createCraftMachine = ({
                   `${context.currentRecipeUrl}?prompt=${context.prompt}`
                 );
               },
+              after: {
+                10000: "TimedOut",
+              },
               on: {
                 PAGE_LOADED: {
                   target: "False",
@@ -328,6 +360,7 @@ export const createCraftMachine = ({
                 },
               },
             },
+            TimedOut: {},
             False: {},
           },
         },
@@ -353,16 +386,6 @@ export const createCraftMachine = ({
                   instantRecipeMetadata: undefined,
                   instantRecipeResultId: undefined,
                 }),
-                {
-                  type: "replaceQueryParameters",
-                  params() {
-                    return {
-                      paramSet: {
-                        instantRecipeResultId: undefined,
-                      },
-                    };
-                  },
-                },
               ],
               on: {
                 SET_INPUT: [
@@ -413,18 +436,6 @@ export const createCraftMachine = ({
                     assign({
                       instantRecipeMetadata: ({ event }) => event.data,
                     }),
-
-                    {
-                      type: "replaceQueryParameters",
-                      params({ context }) {
-                        return {
-                          paramSet: {
-                            instantRecipeResultId:
-                              context.instantRecipeResultId,
-                          },
-                        };
-                      },
-                    },
                   ],
                 },
               },
@@ -453,16 +464,6 @@ export const createCraftMachine = ({
                   suggestions: undefined,
                   suggestionsResultId: undefined,
                 }),
-                {
-                  type: "replaceQueryParameters",
-                  params({ context, event }) {
-                    return {
-                      paramSet: {
-                        suggestionsResultId: undefined,
-                      },
-                    };
-                  },
-                },
               ],
               on: {
                 SET_INPUT: [
@@ -523,16 +524,6 @@ export const createCraftMachine = ({
                     assign({
                       suggestions: ({ event }) => event.data.suggestions,
                     }),
-                    {
-                      type: "replaceQueryParameters",
-                      params({ context }) {
-                        return {
-                          paramSet: {
-                            suggestionsResultId: context.suggestionsResultId,
-                          },
-                        };
-                      },
-                    },
                   ],
                 },
               },
@@ -612,8 +603,10 @@ export const createCraftMachine = ({
                     ({ event }) => {
                       if (event.value.length > 0) {
                         document.body.classList.add("prompt-dirty");
+                        document.body.classList.remove("prompt-pristine");
                       } else {
                         document.body.classList.remove("prompt-dirty");
+                        document.body.classList.add("prompt-pristine");
                       }
                     },
                     {

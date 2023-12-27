@@ -14,7 +14,12 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
 import { assert, cn } from "@/lib/utils";
-import { ArrowLeftIcon, ChevronRight, CommandIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ChevronRight,
+  CommandIcon,
+  XCircleIcon,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChangeEventHandler,
@@ -120,6 +125,10 @@ export const CraftInput = ({
     [send]
   );
 
+  const handleClear = useCallback(() => {
+    send({ type: "CLEAR" });
+  }, [send]);
+
   const handleFocus = useCallback(() => {
     send({ type: "FOCUS_PROMPT" });
   }, [send]);
@@ -166,6 +175,10 @@ export const CraftInput = ({
           </div>
         }
       />
+      <XCircleIcon
+        onClick={handleClear}
+        className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 hidden prompt-dirty:block prompt-pristine:hidden active:opacity-30"
+      />
       <script
         dangerouslySetInnerHTML={{
           __html: `
@@ -184,8 +197,10 @@ export const CraftInput = ({
             function handleInput(event) {
               if (promptElement.value.length > 0) {
                 document.body.classList.add('prompt-dirty');
+                document.body.classList.remove('prompt-pristine');
               } else {
                 document.body.classList.remove('prompt-dirty');
+                document.body.classList.add('prompt-pristine');
               }
             }
 

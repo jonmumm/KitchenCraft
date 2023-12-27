@@ -155,9 +155,6 @@ export default async function Page(props: Props) {
   const saveRecipe = async () => {
     "use server";
 
-    // console.log(newRecipe);
-    // const newRecipe = await firstValueFrom(remix$);
-
     // todo
     console.log("SAVE!");
   };
