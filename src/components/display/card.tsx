@@ -35,7 +35,6 @@ const Card = React.forwardRef<
   const handleClick = React.useMemo(() => {
     if (event && !props.onClick) {
       const handler: React.MouseEventHandler<HTMLDivElement> = (e) => {
-        console.log("Hello");
         send(event);
         e.preventDefault();
       };
