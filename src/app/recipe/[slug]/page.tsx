@@ -508,16 +508,17 @@ export default async function Page(props: Props) {
     const faq$ = new BehaviorSubject<string[]>([]);
 
     const FAQGenerator = async () => {
-      const existingQuestionsResult =
-        QuestionsPredictionOutputSchema.shape.questions.safeParse(
-          await kv.get(`recipe:${slug}:questions`)
-        );
-      if (existingQuestionsResult.success) {
-        faq$.next(existingQuestionsResult.data);
-        faq$.complete();
-        return null;
-      } else {
-        console.error(existingQuestionsResult.error);
+      const data = await kv.get(`recipe:${slug}:questions`);
+      if (data) {
+        const existingQuestionsResult =
+          QuestionsPredictionOutputSchema.shape.questions.safeParse(data);
+        if (existingQuestionsResult.success) {
+          faq$.next(existingQuestionsResult.data);
+          faq$.complete();
+          return null;
+        } else {
+          console.error(existingQuestionsResult.error);
+        }
       }
 
       const recipeTokenStream = new FAQsTokenStream();

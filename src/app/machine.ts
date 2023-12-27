@@ -759,7 +759,11 @@ export const createCraftMachine = ({
                           const el = document.querySelector(
                             `#result-${nextItemIndex}`
                           );
-                          assert(el, "expected result element");
+
+                          if (!el) {
+                            // element must have unmounted, no longer selectable
+                            return undefined;
+                          }
 
                           // Scroll the element into view
                           el.scrollIntoView();
