@@ -160,7 +160,7 @@ export const CraftInput = ({
               </div>
             </div>
             {commandBadge && (
-          <Badge variant="secondary" className="mr-4">
+              <Badge variant="secondary" className="mr-4">
                 <CommandIcon size={14} />
                 <span style={{ fontSize: "14px" }}>K</span>
               </Badge>
