@@ -31,6 +31,7 @@ import { env } from "@/env.public";
 import { getSession } from "@/lib/auth/session";
 import { getGuestId } from "@/lib/browser-session";
 import { getResult } from "@/lib/db";
+import { posthog } from "@/lib/posthog";
 import { assert, noop } from "@/lib/utils";
 import {
   FAQsPredictionInputSchema,
@@ -47,7 +48,6 @@ import {
   CameraIcon,
   ChefHatIcon,
   EditIcon,
-  GitCompareIcon,
   HelpCircle,
   HistoryIcon,
   LibraryIcon,
@@ -114,6 +114,16 @@ export default async function Page(props: Props) {
       getSortedMediaForRecipe(slug),
       findLatestRecipeVersion(slug),
     ]);
+
+  // const distinctId = session?.user.id || guestId;
+  // assert(distinctId, "exepected distinctId");
+  // const isImageGenEnabled = await posthog.isFeatureEnabled(
+  //   "image_gen",
+  //   distinctId,
+  //   {
+  //     personProperties: { is_authorized: !!session?.user ? "1" : "0" },
+  //   }
+  // );
 
   const userId = session?.user.id;
 
@@ -937,9 +947,11 @@ export default async function Page(props: Props) {
           <Card id="assistant" className="mx-3">
             <AssistantContent />
           </Card>
-          {/* <Card id="generated-images" className="mx-3">
-            <GeneratedImages />
-          </Card> */}
+          {/* {isImageGenEnabled && (
+            <Card id="generated-images" className="mx-3">
+              <GeneratedImages />
+            </Card>
+          )} */}
           <Card id="products" className="mx-3 mb-3">
             <div className="flex flex-row justify-between p-4">
               <h3 className="uppercase text-xs font-bold text-accent-foreground">
