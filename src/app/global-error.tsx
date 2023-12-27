@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/input/button";
 import { TypeLogo } from "@/components/logo";
 
