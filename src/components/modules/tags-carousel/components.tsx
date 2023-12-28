@@ -9,6 +9,7 @@ import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 import { filter, from, map, shareReplay, take } from "rxjs";
 import { Separator } from "@/components/display/separator";
+import { Badge } from "@/components/display/badge";
 
 const DEFAULT_NUM_ITEMS = 30;
 
@@ -27,10 +28,12 @@ export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
         return currentTag !== "All" && !isPopularTag ? (
           <>
             <TagItemCard className={selectedClass}>
-              <ChefHatIcon />
-              <span className="text-muted-foreground text-xs truncate w-full">
+              <Badge
+                className="text-muted-foreground text-xs truncate w-full"
+                variant="outline"
+              >
                 {currentTag}
-              </span>
+              </Badge>
             </TagItemCard>
             <Separator orientation="vertical" />
           </>
@@ -48,11 +51,8 @@ export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
           <TagItemCard
             className={cn(currentTag === "All" ? selectedClass : `border-none`)}
           >
-            <Link href="/" className="flex flex-col gap-2 justify-between items-center">
-              <ChefHatIcon />
-              <span className="text-muted-foreground text-xs truncate w-full">
-                All
-              </span>
+            <Link href="/" className="justify-between items-center">
+              <Badge variant="outline">All</Badge>
             </Link>
           </TagItemCard>
         );
@@ -64,7 +64,7 @@ export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
 
   return (
     <div className="flex w-full">
-      <div className="carousel carousel-center space-x-2 px-4">
+      <div className="carousel carousel-center px-2">
         <CurrentCard />
         <AllCard />
         {arr.map((_, index) => {
@@ -81,16 +81,14 @@ export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
               key={index}
               observable={observable}
               render={(tag) => {
+                const isSelected = currentTag === tag;
                 return (
-                  <TagItemCard>
+                  <TagItemCard className={isSelected ? selectedClass : ``}>
                     <Link
                       href={`/tag/${sentenceToSlug(tag)}`}
                       className="flex flex-col gap-2 items-center justify-between"
                     >
-                      <ChefHatIcon />
-                      <span className="text-muted-foreground text-xs truncate w-full">
-                        {tag}
-                      </span>
+                      <Badge variant="outline">{tag}</Badge>
                     </Link>
                   </TagItemCard>
                 );
@@ -107,20 +105,27 @@ export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
 export const TagsCarouselPlaceholder = () => {
   const arr = new Array(DEFAULT_NUM_ITEMS).fill(0);
 
-  return arr.map((_, index) => {
-    return <TagItemPlaceholder key={index} />;
-  });
+  return (
+    <div className="flex w-full">
+      <div className="carousel carousel-center px-2">
+        {arr.map((_, index) => {
+          return <TagItemPlaceholder key={index} />;
+        })}
+      </div>
+    </div>
+  );
 };
 
 export const TagItemCard = twc(
   Card
-)`carousel-item py-2 px-4 shadow-none text-center flex flex-col gap-1 items-center justify-between rounded-none border-0`;
+)`carousel-item py-2 px-2 shadow-none text-center flex flex-col gap-1 items-center justify-between rounded-none border-0`;
 
 const TagItemPlaceholder = () => {
   return (
     <TagItemCard>
-      <Skeleton className="w-8 h-7" />
-      <Skeleton className="w-12 h-2" />
+      <Badge variant="outline">
+        <Skeleton className="w-12 h-2" />
+      </Badge>
     </TagItemCard>
   );
 };

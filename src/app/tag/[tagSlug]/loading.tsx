@@ -8,7 +8,6 @@ import { TagsCarouselPlaceholder } from "@/components/modules/tags-carousel";
 import { Separator } from "@/components/display/separator";
 
 export default function Loading(props: { params: { tagSlug: string } }) {
-
   return (
     <div className="flex flex-col">
       <TagsCarouselPlaceholder />

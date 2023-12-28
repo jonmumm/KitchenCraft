@@ -12,7 +12,7 @@ export default async function Page(props: { params: { tagSlug: string } }) {
     <div className="flex flex-col">
       <Separator />
       <TagsCarousel currentTag={slugToSentence(tag)} />
-      <Separator />
+      <Separator className="mb-8 sm:mb-12" />
       <div className="w-full flex flex-col gap-4">
         {recipes.length ? (
           <div className="flex flex-col gap-12">
