@@ -148,10 +148,12 @@ export const Times = ({
   );
 };
 export const Tags = ({ tags$ }: { tags$: Observable<string[]> }) => {
-  const items = new Array(3).fill(0);
+  const items = new Array(10).fill(0);
 
   const Tag = async ({ index }: { index: number }) => {
-    const tag = await lastValueFrom(getObservableAtIndex(index, tags$));
+    const tag = await lastValueFrom(
+      getObservableAtIndex(index, tags$).pipe(defaultIfEmpty(undefined))
+    );
     return (
       <>
         {tag ? (
@@ -175,7 +177,7 @@ export const Tags = ({ tags$ }: { tags$: Observable<string[]> }) => {
         return (
           <Suspense
             key={`tag-${index}`}
-            fallback={<Skeleton className="w-14 h-4" />}
+            fallback={index < 3 ? <Skeleton className="w-14 h-4" /> : null}
           >
             <Tag index={index} />
           </Suspense>
