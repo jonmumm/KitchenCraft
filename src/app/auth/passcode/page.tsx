@@ -38,7 +38,6 @@ export default async function Page({
   ) => {
     "use server";
     const token = formData.get("token")?.toString();
-    console.log(token, formData.get("token"));
     assert(token, "expected token in form body");
 
     const emailCallbackParams = new URLSearchParams({
