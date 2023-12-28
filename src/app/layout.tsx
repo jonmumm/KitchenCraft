@@ -106,10 +106,7 @@ async function createNewInstantRecipe(
 
   // todo but unlikely possible that its not done yet, output might not be here...
   // todo add wait up to 10s
-  const output = await waitForConditionWithBackoff(
-    () => kv.hget(resultKey, "output"), // Fetching promise
-    (data: unknown) => !!data
-  );
+  const output = await kv.hget(resultKey, "output"); // Fetching promise
   const { name, description } =
     InstantRecipeMetadataPredictionOutputSchema.parse(output);
 
@@ -133,10 +130,7 @@ async function createNewRecipeFromSuggestion(
   index: number
 ) {
   "use server";
-  const result = await waitForConditionWithBackoff(
-    () => getResult(kv, suggestionsResultId),
-    (data: unknown) => !!data
-  );
+  const result = await getResult(kv, suggestionsResultId);
   // const result = await getResult(kv, suggestionsResultId);
   const parser = new TokenParser(SuggestionPredictionOutputSchema);
   // const output = parser.parsePartial(result.outputRaw);
