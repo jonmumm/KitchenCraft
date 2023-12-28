@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { ChevronRightIcon, LoaderIcon, MoreHorizontalIcon } from "lucide-react";
 import { ComponentProps, useContext } from "react";
 import { CraftContext } from "../context";
+import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 
 export const CraftItemIcon = () => {
   const actor = useContext(CraftContext);
@@ -145,7 +146,7 @@ const SuggestionIcon = ({ index }: { index: number }) => {
   );
 
   return isTyping ? (
-    <MoreHorizontalIcon className="animate-pulse" />
+    <EllipsisAnimation />
   ) : isLoading ? (
     <LoaderIcon className="animate-spin" />
   ) : (
@@ -161,7 +162,7 @@ const InstantRecipeIcon = () => {
   );
 
   return isTyping ? (
-    <MoreHorizontalIcon className="animate-pulse" />
+    <EllipsisAnimation />
   ) : isLoading ? (
     <LoaderIcon className="animate-spin" />
   ) : (
