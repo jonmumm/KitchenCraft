@@ -45,9 +45,9 @@ export async function GET(req: NextRequest) {
 
     try {
       const output = parser.parse(outputRaw);
-      kv.hset(resultKey, { status: "done", outputRaw, output });
+      await kv.hset(resultKey, { status: "done", outputRaw, output });
     } catch (ex) {
-      kv.hset(resultKey, { status: "error", error: getErrorMessage(ex) });
+      await kv.hset(resultKey, { status: "error", error: getErrorMessage(ex) });
     }
     writer.close();
   };

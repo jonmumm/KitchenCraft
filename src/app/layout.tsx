@@ -110,7 +110,6 @@ async function createNewInstantRecipe(
     () => kv.hget(resultKey, "output"), // Fetching promise
     (data: unknown) => !!data
   );
-  console.log("INSTANT RECIPE RESPONSE");
   const { name, description } =
     InstantRecipeMetadataPredictionOutputSchema.parse(output);
 
@@ -138,7 +137,6 @@ async function createNewRecipeFromSuggestion(
     () => getResult(kv, suggestionsResultId),
     (data: unknown) => !!data
   );
-  console.log("SUGGEST RECIPE RESPONSE");
   // const result = await getResult(kv, suggestionsResultId);
   const parser = new TokenParser(SuggestionPredictionOutputSchema);
   // const output = parser.parsePartial(result.outputRaw);
