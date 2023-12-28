@@ -1,7 +1,7 @@
 import { Label } from "@/components/display/label";
 import { getRecentRecipeSlugs, getRecipe } from "@/lib/db";
 import { RecipeSlug } from "@/types";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import Link from "next/link";
 import { Card } from "@/components/display/card";
 import { ArrowBigUpIcon, ChevronRightIcon, ScrollTextIcon } from "lucide-react";

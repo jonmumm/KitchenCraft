@@ -2,7 +2,7 @@ import { Label } from "@/components/display/label";
 
 import { getRecentRecipes } from "@/lib/db";
 import { RecipeSlug } from "@/types";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import { ArrowBigUpIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";

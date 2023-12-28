@@ -4,7 +4,7 @@ import { StreamingTextResponse, writeChunk } from "@/lib/streams";
 import { TokenParser } from "@/lib/token-parser";
 import { getObjectHash, noop } from "@/lib/utils";
 import { SuggestionPredictionOutputSchema } from "@/schema";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import { parseAsString } from "next-usequerystate";
 import { NextRequest } from "next/server";
 import { SuggestionTokenStream } from "./stream";

@@ -3,7 +3,7 @@ import { createRecipeMedia } from "@/db/queries";
 import { getSession } from "@/lib/auth/session";
 import { assert } from "@/lib/utils";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";

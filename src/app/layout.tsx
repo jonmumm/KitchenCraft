@@ -10,7 +10,7 @@ import {
   InstantRecipeMetadataPredictionOutputSchema,
   SuggestionPredictionOutputSchema,
 } from "@/schema";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import { nanoid } from "ai";
 import type { Metadata } from "next";
 import { ReactNode } from "react";

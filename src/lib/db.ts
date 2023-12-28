@@ -9,7 +9,7 @@ import {
   SuggestionSchema,
 } from "@/schema";
 import { LLMMessageSetId, RecipeSlug } from "@/types";
-import { kv as _kv } from "@vercel/kv";
+import { kv as _kv } from "@/lib/kv";
 import { z } from "zod";
 
 type KV = typeof _kv;

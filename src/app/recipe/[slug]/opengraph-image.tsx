@@ -2,7 +2,7 @@ import { ImageResponse } from "@vercel/og";
 import { getRecipe } from "./utils";
 import { UploadedMedia } from "./media/types";
 import { UploadedMediaSchema } from "./media/schema";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import { getFirstMediaForRecipe } from "@/db/queries";
 
 // Image metadata

@@ -7,7 +7,7 @@ import {
   SuggestionPredictionOutputSchema,
 } from "@/schema";
 import { SubstitutionsPredictionInput } from "@/types";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import { NextRequest } from "next/server";
 import { SubstitutionsTokenStream } from "./stream";
 import { z } from "zod";

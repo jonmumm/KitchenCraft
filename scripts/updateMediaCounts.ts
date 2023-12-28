@@ -1,4 +1,4 @@
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 
 // Function to update mediaCount
 async function updateMediaCounts() {

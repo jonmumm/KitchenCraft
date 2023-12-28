@@ -4,7 +4,7 @@ import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
 import { assert } from "@/lib/utils";
 import { outputSchemaByType } from "@/schema";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import { nanoid } from "ai";
 import { redirect } from "next/navigation";
 import { z } from "zod";

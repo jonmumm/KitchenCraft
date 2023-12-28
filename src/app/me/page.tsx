@@ -43,8 +43,6 @@ export default async function Page() {
   } else {
     createdBy = guestId;
   }
-  console.log({ currentUserId, guestId, createdBy });
-  // const cookieStore = cookies();
 
   const [recipes$] = [
     createdBy

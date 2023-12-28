@@ -17,7 +17,7 @@ import { getSession } from "@/lib/auth/session";
 import { getResult } from "@/lib/db";
 import { SuggestionPredictionInputSchema, TempRecipeSchema } from "@/schema";
 import { RecipePredictionInput } from "@/types";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import { ArrowLeftIcon, ScrollIcon, ShoppingBasketIcon } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";

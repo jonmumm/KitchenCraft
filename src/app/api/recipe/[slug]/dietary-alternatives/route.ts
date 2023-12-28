@@ -6,7 +6,7 @@ import {
   SuggestionPredictionOutputSchema,
 } from "@/schema";
 import { DietaryAlternativesPredictionInput } from "@/types";
-import { kv } from "@vercel/kv";
+import { kv } from "@/lib/kv";
 import { NextRequest } from "next/server";
 import { DietaryAlternativesTokenStream } from "./stream";
 
