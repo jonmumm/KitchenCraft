@@ -29,7 +29,7 @@ export const FooterTabTitle = ({
   return (
     <span
       className={`text-xs ${
-        isActive ? `text-blue-700  font-semibold` : ``
+        isActive ? `text-blue-600 dark:text-blue-400  font-semibold` : ``
       } crafting:text-muted-foreground crafting:font-medium truncate w-full text-center`}
     >
       {children}
@@ -147,11 +147,10 @@ export const CraftTabLink = ({
 };
 
 export const CraftTabTitle = () => {
-  const actor = useContext(CraftContext);
   return (
     <span
       suppressHydrationWarning
-      className="text-xs text-muted-foreground font-medium crafting:text-blue-700 crafting:font-semibold truncate w-full text-center"
+      className="text-xs font-medium crafting:text-blue-600 dark:crafting:text-blue-400 crafting:font-semibold truncate w-full text-center"
     >
       Craft
     </span>

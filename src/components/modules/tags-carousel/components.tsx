@@ -51,7 +51,7 @@ export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
           <TagItemCard
             className={cn(currentTag === "All" ? selectedClass : `border-none`)}
           >
-            <Link href="/" className="justify-between items-center">
+            <Link href="/" className="flex flex-col justify-between items-center">
               <Badge variant="outline">All</Badge>
             </Link>
           </TagItemCard>
