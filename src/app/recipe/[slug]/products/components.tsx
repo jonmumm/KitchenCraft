@@ -367,7 +367,7 @@ export const ProductsCarousel = ({
                         newProduct$.next(newProduct);
                       } catch (ex) {
                         // this is okay, but should be pretty rare
-                        console.error(ex);
+                        // console.error(ex);
                       }
                     }
                   ),

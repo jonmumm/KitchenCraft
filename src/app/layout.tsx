@@ -3,6 +3,7 @@ import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { getSession } from "@/lib/auth/session";
 import { getResult } from "@/lib/db";
+import { kv } from "@/lib/kv";
 import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
 import { assert } from "@/lib/utils";
@@ -10,7 +11,6 @@ import {
   InstantRecipeMetadataPredictionOutputSchema,
   SuggestionPredictionOutputSchema,
 } from "@/schema";
-import { kv } from "@/lib/kv";
 import { nanoid } from "ai";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
@@ -19,6 +19,7 @@ import { Body } from "./components.client";
 import { ApplicationProvider } from "./provider";
 import { createRecipe } from "./recipe/lib";
 import "./styles.css";
+import { waitForConditionWithBackoff } from "@/lib/async";
 
 export const metadata: Metadata = {
   title: "KitchenCraft",
@@ -105,11 +106,13 @@ async function createNewInstantRecipe(
 
   // todo but unlikely possible that its not done yet, output might not be here...
   // todo add wait up to 10s
-  const output = await kv.hget(resultKey, "output");
+  const output = await waitForConditionWithBackoff(
+    () => kv.hget(resultKey, "output"), // Fetching promise
+    (data: unknown) => !!data
+  );
+  console.log("INSTANT RECIPE RESPONSE");
   const { name, description } =
     InstantRecipeMetadataPredictionOutputSchema.parse(output);
-
-  // const
 
   const id = nanoid();
   const slug = getSlug({ id, name });
@@ -131,7 +134,12 @@ async function createNewRecipeFromSuggestion(
   index: number
 ) {
   "use server";
-  const result = await getResult(kv, suggestionsResultId);
+  const result = await waitForConditionWithBackoff(
+    () => getResult(kv, suggestionsResultId),
+    (data: unknown) => !!data
+  );
+  console.log("SUGGEST RECIPE RESPONSE");
+  // const result = await getResult(kv, suggestionsResultId);
   const parser = new TokenParser(SuggestionPredictionOutputSchema);
   // const output = parser.parsePartial(result.outputRaw);
 
