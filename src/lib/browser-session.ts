@@ -1,11 +1,9 @@
 import { privateEnv } from "@/env.secrets";
 import { serialize } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { assert } from "./utils";
-
-export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
 
 interface UserJwtPayload {
   jti: string;
@@ -23,28 +21,39 @@ function uuidv4() {
 
 export class AuthError extends Error {}
 
-export const ensureGuestId = async (res: NextResponse) => {
-  // const currentUsrId = await getCurrentUserId();
-  const cookieStore = cookies();
-  let guestToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
+export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
 
-  if (!guestToken) {
-    guestToken = await new SignJWT({})
-      .setProtectedHeader({ alg: "HS256" })
-      .setJti(uuidv4())
-      .setIssuedAt()
-      .setExpirationTime("30d")
-      .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
-
-    const guestTokenStr = serialize(GUEST_TOKEN_COOKIE_KEY, guestToken, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 60, // 60 days
-    });
-    res.headers.append("set-cookie", guestTokenStr);
-  }
+export const createGuestToken = async () => {
+  const id = uuidv4();
+  const token = await new SignJWT({})
+    .setProtectedHeader({ alg: "HS256" })
+    .setJti(id)
+    .setIssuedAt()
+    .setExpirationTime("30d")
+    .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
+  return { token, id };
 };
 
-const getGuestToken = async () => {
+export const setGuestTokenCookie = async (
+  res: NextResponse,
+  guestToken: string
+) => {
+  const guestTokenStr = serialize(GUEST_TOKEN_COOKIE_KEY, guestToken, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 60, // 60 days
+  });
+  res.headers.append("set-cookie", guestTokenStr);
+};
+
+export const verifyToken = async (token: string) => {
+  const verified = await jwtVerify(
+    token,
+    new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
+  );
+  return verified.payload as UserJwtPayload;
+};
+
+export const getGuestToken = async () => {
   const cookieStore = cookies();
   const guestToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
 
@@ -66,7 +75,10 @@ const getGuestToken = async () => {
 };
 
 export const getGuestId = async () => {
-  return (await getGuestToken())?.jti;
+  const headerList = headers();
+  const guestId = headerList.get("x-guest-id");
+  assert(guestId, "expected guestId");
+  return guestId;
 };
 
 /**

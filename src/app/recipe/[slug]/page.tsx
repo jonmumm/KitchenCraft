@@ -28,7 +28,7 @@ import {
 } from "@/db/queries";
 import { Media, NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
-import { getSession } from "@/lib/auth/session";
+import { getCurrentUserId, getSession } from "@/lib/auth/session";
 import { getGuestId } from "@/lib/browser-session";
 import { getResult } from "@/lib/db";
 import { withSpan } from "@/lib/observability";
@@ -59,7 +59,7 @@ import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ComponentProps, ReactNode, Suspense } from "react";
+import { ComponentProps, ReactNode, Suspense, cache } from "react";
 import Replicate from "replicate";
 import {
   BehaviorSubject,
@@ -95,6 +95,8 @@ import {
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
 import { kv } from "@/lib/kv";
+import { posthog } from "@/lib/posthog";
+import { evaluateFeatureFlag } from "@/lib/feature-flag";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -106,18 +108,23 @@ type Props = {
 export default async function Page(props: Props) {
   const { slug } = props.params;
 
-  const [session, guestId, recipe, mediaList, latestVersion] = await withSpan(
+  const [session, guestId, distinctId] = await Promise.all([
+    getSession(),
+    getGuestId(),
+    getDistinctId(),
+  ]);
+  const userId = session?.user.id;
+  const [recipe, mediaList, latestVersion, isImageGenEnabled] = await withSpan(
     Promise.all([
-      getSession(),
-      getGuestId(),
       getRecipe(slug),
       getSortedMediaForRecipe(slug),
       findLatestRecipeVersion(slug),
+      evaluateFeatureFlag("image_gen", distinctId, {
+        personProperties: { is_authorized: "true" },
+      }),
     ]),
     "pageData"
   );
-
-  const userId = session?.user.id;
 
   let loading = false;
   let isError = false;
@@ -956,11 +963,11 @@ export default async function Page(props: Props) {
           <Card id="assistant" className="mx-3">
             <AssistantContent />
           </Card>
-          {/* {isImageGenEnabled && (
+          {isImageGenEnabled && (
             <Card id="generated-images" className="mx-3">
               <GeneratedImages />
             </Card>
-          )} */}
+          )}
           <Card id="products" className="mx-3 mb-3">
             <div className="flex flex-row justify-between p-4">
               <h3 className="uppercase text-xs font-bold text-accent-foreground">
@@ -1091,3 +1098,12 @@ ingredients: {ingredients}
 
 instructions: {instructions}
 `);
+
+const getDistinctId = withSpan(
+  cache(async () => {
+    const userId = await getCurrentUserId();
+    const guestId = await getGuestId();
+    return userId || guestId;
+  }),
+  "getDistinctId"
+);
