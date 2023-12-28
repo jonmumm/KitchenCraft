@@ -5,6 +5,7 @@ import { Suspense } from "react";
 
 import Generator from "@/components/ai/generator";
 import { Card } from "@/components/display/card";
+import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { AmazonAffiliateProductTable, RecipeSchema, db } from "@/db";
 import { Media } from "@/db/types";
 import { privateEnv } from "@/env.secrets";
@@ -46,7 +47,6 @@ import sharp from "sharp";
 import { AmazonProductsTokenStream } from "./amazon-products-stream";
 import { RecipeProductsTokenStream } from "./recipe-products-stream";
 import { GoogleCustomSearchResponseSchema } from "./schema";
-import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 
 export const ProductsCarousel = ({
   input$,
@@ -595,7 +595,7 @@ export const MediaCarouselFallback = () => {
 
   const MediaItem = ({ index }: { index: number }) => {
     return (
-      <div className="w-80 h-80 bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+      <div className="w-80 h-80 bg-slate-50 dark:bg-slate-950 shadow-lg rounded-lg overflow-hidden flex flex-col">
         <div className="relative flex flex-col justify-center items-center gap-8 h-full">
           <h5 className="animate-pulse flex flex-row gap-2">
             <span>Genearting Image #{index + 1}</span> <SparklesIcon />

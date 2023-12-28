@@ -1,8 +1,8 @@
 import { RecipeListItem } from "@/app/recipe/components";
-import { Card } from "@/components/display/card";
+import { Separator } from "@/components/display/separator";
+import { TagsCarousel } from "@/components/modules/tags-carousel";
 import { getRecipesByTag } from "@/db/queries";
 import { slugToSentence } from "@/lib/utils";
-import { TagIcon } from "lucide-react";
 
 export default async function Page(props: { params: { tagSlug: string } }) {
   const tag = slugToSentence(props.params.tagSlug);
@@ -10,20 +10,9 @@ export default async function Page(props: { params: { tagSlug: string } }) {
 
   return (
     <div className="flex flex-col">
-      <div className="w-full max-w-2xl mx-auto p-4">
-        <Card className="py-2">
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-row gap-1 items-center px-2">
-              <div className="px-4">
-                <TagIcon />
-              </div>
-              <div className="flex flex-col gap-1">
-                <h1 className="underline font-bold text-xl">{tag}</h1>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
+      <Separator />
+      <TagsCarousel currentTag={slugToSentence(tag)} />
+      <Separator />
       <div className="w-full flex flex-col gap-4">
         {recipes.length ? (
           <div className="flex flex-col gap-12">

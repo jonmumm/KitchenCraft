@@ -19,6 +19,9 @@ import { ReactNode, Suspense } from "react";
 //   RecipeTimestamp,
 // } from "./components";
 import { Badge } from "@/components/display/badge";
+import { Separator } from "@/components/display/separator";
+import { EventButton } from "@/components/event-button";
+import { TagsCarousel } from "@/components/modules/tags-carousel";
 import { getSession } from "@/lib/auth/session";
 import { formatDuration, shuffle, timeAgo } from "@/lib/utils";
 import {
@@ -28,7 +31,7 @@ import {
 } from "../../db/queries";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
-import { EventButton } from "@/components/event-button";
+// import { db } from "@vercel/postgres";
 
 export default async function Layout({ children }: { children: ReactNode }) {
   const userId = (await getSession())?.user.id;
@@ -45,7 +48,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
 
   return (
     <LayoutClient>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col">
         {userId && (
           <div className="flex flex-col gap-1 w-full">
             <div className="flex flex-row justify-between items-end px-4 pb-1 w-full max-w-2xl mx-auto">
@@ -59,6 +62,8 @@ export default async function Layout({ children }: { children: ReactNode }) {
             <MyRecipes userId={userId} />
           </div>
         )}
+        <Separator className="mb-1" />
+        <TagsCarousel currentTag={"All"} />
         <HomeTabs>
           <TabsList className="w-full">
             <TabsTrigger value="hot" asChild>

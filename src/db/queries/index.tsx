@@ -1170,3 +1170,16 @@ export const getGeneratedMediaForRecipeSlug = async (
     )
   ).map((result) => result.media);
 };
+
+export const getPopularTags = async (dbOrTransaction: DbOrTransaction) => {
+  const query = dbOrTransaction
+    .select({
+      tag: sql<string>`tag`, // Assuming 'tag' is a column in your materialized view
+      count: sql<number>`tag_count`, // Assuming 'tag_count' is a column representing the count of each tag
+    })
+    .from(sql`popular_tags`) // Replace 'popular_tags' with the actual name of your materialized view
+    .orderBy(desc(sql`tag_count`)) // Order by count in descending order
+    .limit(30); // Limit to top 30 tags
+
+  return await withDatabaseSpan(query, "getPopularTags").execute();
+};

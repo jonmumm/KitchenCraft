@@ -8,6 +8,7 @@ import {
   integer,
   jsonb,
   pgEnum,
+  pgMaterializedView,
   pgTable,
   primaryKey,
   serial,
@@ -327,4 +328,16 @@ export const GeneratedMediaTable = pgTable(
       pk: primaryKey({ columns: [table.recipeSlug, table.mediaId] }),
     };
   }
+);
+
+export const PopularTagsView = pgMaterializedView("popular_tags").as((qb) =>
+  qb
+    .select({
+      tag: sql`jsonb_array_elements_text(${RecipesTable.tags})`.as("tag"),
+      tagCount: sql<number>`count(*)`.mapWith(Number).as("tag_count"),
+    })
+    .from(RecipesTable)
+    .groupBy(sql`jsonb_array_elements_text(${RecipesTable.tags})`)
+    .orderBy(sql`count(*)`)
+    .limit(30)
 );
