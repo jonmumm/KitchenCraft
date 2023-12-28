@@ -133,7 +133,6 @@ const AutoResizableTextarea: React.FC<
 
         const typeText = () => {
           const sentence = sentences[currentSentenceIndex];
-          console.log(sentence);
           assert(sentence, "expected sentence");
           if (typing) {
             if (currentText.length < sentence.length) {
