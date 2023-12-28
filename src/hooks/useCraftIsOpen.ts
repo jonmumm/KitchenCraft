@@ -11,3 +11,8 @@ export const usePromptIsDirty = () => {
   const actor = useContext(CraftContext);
   return useSelector(actor, (state) => !!state.context.prompt?.length);
 };
+
+export const usePromptIsPristine = () => {
+  const actor = useContext(CraftContext);
+  return useSelector(actor, (state) => state.matches("Prompt.Pristine"));
+};

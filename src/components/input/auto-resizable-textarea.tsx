@@ -1,8 +1,10 @@
 "use client";
 
 import { CraftContext } from "@/app/context";
+import { useCraftIsOpen, usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
+import { assert, shuffle } from "@/lib/utils";
 
 import React, {
   ChangeEventHandler,
@@ -13,6 +15,7 @@ import React, {
   useContext,
   useEffect,
   useRef,
+  useState,
 } from "react";
 
 type Size = "xs" | "sm" | "md" | "lg"; // Extend with more sizes as needed
@@ -96,6 +99,8 @@ const AutoResizableTextarea: React.FC<
 
   const Textarea = () => {
     const actor = useContext(CraftContext);
+    const isOpen = useCraftIsOpen();
+    const isPristine = usePromptIsPristine();
     const value = useSelector(actor, (state) => state.context.prompt);
     const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
       (e) => {
@@ -105,19 +110,89 @@ const AutoResizableTextarea: React.FC<
       []
     );
 
+    const PlaceholderAnimation = () => {
+      const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+      const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+      const [sentences] = useState(shuffle(placeholderSentences));
+
+      const animatePlaceholder = useCallback(() => {
+        let currentSentenceIndex = 0;
+        let typing = true;
+        let currentText = "";
+
+        const clearTimers = () => {
+          if (intervalIdRef.current) {
+            clearInterval(intervalIdRef.current);
+            intervalIdRef.current = null;
+          }
+          if (timeoutIdRef.current) {
+            clearTimeout(timeoutIdRef.current);
+            timeoutIdRef.current = null;
+          }
+        };
+
+        const typeText = () => {
+          const sentence = sentences[currentSentenceIndex];
+          console.log(sentence);
+          assert(sentence, "expected sentence");
+          if (typing) {
+            if (currentText.length < sentence.length) {
+              currentText = sentence.slice(0, currentText.length + 1);
+            } else {
+              if (!timeoutIdRef.current) {
+                timeoutIdRef.current = setTimeout(() => {
+                  typing = false;
+                  timeoutIdRef.current = null;
+                  typeText(); // Immediately proceed to deletion
+                }, 1000);
+              }
+            }
+          } else {
+            if (currentText.length > 0) {
+              currentText = currentText.slice(0, -1);
+            } else {
+              typing = true;
+              currentSentenceIndex =
+                (currentSentenceIndex + 1) % sentences.length;
+              typeText(); // Reset typing immediately for the next sentence
+            }
+          }
+
+          if (ref.current) {
+            ref.current.placeholder = currentText;
+          }
+        };
+
+        clearTimers();
+        intervalIdRef.current = setInterval(typeText, 100);
+
+        return clearTimers;
+      }, [ref, sentences]);
+
+      useEffect(() => {
+        const cleanup = animatePlaceholder();
+        return cleanup;
+      }, [animatePlaceholder]);
+
+      return null;
+    };
+
     return (
-      <textarea
-        suppressHydrationWarning
-        value={value}
-        ref={ref}
-        className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden`}
-        onChange={handleChange}
-        {...props}
-        // onChange={(e) => {
-        //   handleSearch(e.target.value);
-        // }}
-        // defaultValue={searchParams.get("query")?.toString()}
-      />
+      <>
+        {isOpen && isPristine && <PlaceholderAnimation />}
+        <textarea
+          suppressHydrationWarning
+          value={value}
+          ref={ref}
+          className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden placeholder-transparent crafting:placeholder-slate-500`}
+          onChange={handleChange}
+          {...props}
+          // onChange={(e) => {
+          //   handleSearch(e.target.value);
+          // }}
+          // defaultValue={searchParams.get("query")?.toString()}
+        />
+      </>
     );
   };
 
@@ -130,3 +205,26 @@ const AutoResizableTextarea: React.FC<
 };
 
 export default AutoResizableTextarea;
+
+const placeholderSentences = [
+  "feta, egg, leftover pizza",
+  "avocado, chocolate, chia seeds",
+  "spinach, blueberries, almonds",
+  "sweet potato, black beans, lime",
+  "bacon, maple syrup, pecans",
+  "quinoa, beets, goat cheese",
+  "apple, cinnamon, honey",
+  "salmon, soy sauce, ginger",
+  "chicken, peanut butter, sriracha",
+  "tomato, basil, mozzarella",
+  "pumpkin, coconut milk, curry powder",
+  "mushrooms, garlic, thyme",
+  "kale, avocado, lemon",
+  "shrimp, coconut, pineapple",
+  "lemon, raspberry, vanilla",
+  "zucchini, carrot, feta cheese",
+  "oats, banana, peanut butter",
+  "fig, balsamic vinegar, arugula",
+  "eggplant, tomato, ricotta",
+  "cucumber, dill, yogurt",
+];
