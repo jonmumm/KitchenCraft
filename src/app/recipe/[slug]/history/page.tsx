@@ -80,7 +80,7 @@ export default async function Page(props: Props) {
             </li> */}
             {versions.map((version, index) => {
               return (
-                <li>
+                <li key={index}>
                   {index !== 0 && <hr />}
                   <div className="timeline-start flex flex-col gap-1">
                     <span className="text-muted-foreground text-xs">
