@@ -57,6 +57,7 @@ export default async function Page() {
     <div className="flex flex-col">
       <Separator />
       <TagsCarousel
+      showCount
         currentTag={"All"}
         root="/me"
         query={getTagCountsForUserCreatedRecipes(db, createdBy)}

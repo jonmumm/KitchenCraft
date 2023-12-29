@@ -25,6 +25,7 @@ export default async function Page(props: { params: { tagSlug: string } }) {
       <Separator />
       <TagsCarousel
         currentTag={slugToSentence(tag)}
+        showCount
         root="/me"
         query={getTagCountsForUserCreatedRecipes(db, distinctId)}
       />
