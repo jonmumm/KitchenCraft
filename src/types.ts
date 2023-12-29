@@ -75,7 +75,9 @@ import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/s
 import {
   AmazonAffiliateProductSchema,
   NewAmazonAffiliateProductSchema,
+  db,
 } from "./db";
+import { PgTransaction } from "drizzle-orm/pg-core";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 
@@ -265,3 +267,5 @@ export type NewAmazonAffiliateProduct = z.infer<
 >;
 
 export type ProductType = AmazonAffiliateProduct["type"];
+
+export type DbOrTransaction = typeof db | PgTransaction<any, any, any>; // Adjust the types accordingly

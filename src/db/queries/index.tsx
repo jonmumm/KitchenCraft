@@ -18,6 +18,7 @@ import { PgTransaction } from "drizzle-orm/pg-core";
 import { cache } from "react";
 import { z } from "zod";
 import { Recipe } from "../types";
+import { DbOrTransaction } from "@/types";
 
 // constants
 const gravity = 1.8;
@@ -740,8 +741,6 @@ export const getProfilePointsLast30Days = async (profileSlug: string) => {
     .execute()
     .then((res) => res[0]?.points || 0);
 };
-
-type DbOrTransaction = typeof db | PgTransaction<any, any, any>; // Adjust the types accordingly
 
 export const createRecipeMedia = async (
   dbOrTransaction: DbOrTransaction,
