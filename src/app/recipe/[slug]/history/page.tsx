@@ -104,9 +104,9 @@ export default async function Page(props: Props) {
                       />
                     </svg>
                   </div>
-                  <div className="timeline-end pb-12">
+                  <div className="timeline-end pb-16">
                     <div>
-                      <h3 className="text-sm font-medium timeline-box inline-block">
+                      <h3 className="text-sm font-medium inline-block">
                         {recipe.name}
                       </h3>
                     </div>

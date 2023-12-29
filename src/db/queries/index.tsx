@@ -2,6 +2,7 @@ import { TimeParamSchema } from "@/app/(home)/schema";
 import {
   GeneratedMediaTable,
   MediaTable,
+  PopularTagsView,
   ProfileTable,
   RecipeMediaTable,
   RecipesTable,
@@ -13,12 +14,12 @@ import {
 } from "@/db";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
+import { DbOrTransaction } from "@/types";
 import { and, count, desc, eq, inArray, max, ne, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { cache } from "react";
 import { z } from "zod";
 import { Recipe } from "../types";
-import { DbOrTransaction } from "@/types";
 
 // constants
 const gravity = 1.8;
@@ -389,6 +390,67 @@ export const getRecipesByTag = async (tag: string) => {
     .orderBy(desc(RecipesTable.createdAt)) // Or any other order you prefer
     .limit(30);
   return await withDatabaseSpan(query, "getRecipesByTag").execute();
+};
+
+export const getRecipesByTagAndCreator = async (
+  tag: string,
+  createdBy: string
+) => {
+  // Subquery to get the maximum versionId for each recipe
+  const maxVersionSubquery = db
+    .select({
+      recipeId: RecipesTable.id,
+      maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
+    })
+    .from(RecipesTable)
+    .groupBy(RecipesTable.id)
+    .as("maxVersionSubquery"); // Naming the subquery
+
+  // Main query
+  const query = db
+    .select({
+      id: RecipesTable.id,
+      versionId: RecipesTable.versionId, // Include versionId in the selection
+      slug: RecipesTable.slug,
+      name: RecipesTable.name,
+      description: RecipesTable.description,
+      tags: RecipesTable.tags,
+      totalTime: RecipesTable.totalTime,
+      createdBy: RecipesTable.createdBy,
+      createdAt: RecipesTable.createdAt,
+      points,
+      mediaCount,
+    })
+    .from(RecipesTable)
+    .innerJoin(
+      maxVersionSubquery,
+      and(
+        eq(RecipesTable.id, maxVersionSubquery.recipeId),
+        eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+      )
+    )
+    .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
+    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
+    .where(
+      and(
+        sql`LOWER(${tag}) = ANY (SELECT LOWER(jsonb_array_elements_text(${RecipesTable.tags})))`,
+        eq(RecipesTable.createdBy, createdBy)
+      )
+    )
+    .groupBy(
+      RecipesTable.id,
+      RecipesTable.versionId, // Include versionId in groupBy
+      RecipesTable.slug,
+      RecipesTable.name,
+      RecipesTable.description,
+      RecipesTable.tags,
+      RecipesTable.totalTime,
+      RecipesTable.createdAt,
+      RecipesTable.createdBy
+    )
+    .orderBy(desc(RecipesTable.createdAt)) // Or any other order you prefer
+    .limit(30);
+  return await withDatabaseSpan(query, "getRecipesByTagAndCreator").execute();
 };
 
 export const getRecentRecipes = async () => {
@@ -1176,9 +1238,33 @@ export const getPopularTags = async (dbOrTransaction: DbOrTransaction) => {
       tag: sql<string>`tag`, // Assuming 'tag' is a column in your materialized view
       count: sql<number>`tag_count`, // Assuming 'tag_count' is a column representing the count of each tag
     })
-    .from(sql`popular_tags`) // Replace 'popular_tags' with the actual name of your materialized view
+    .from(PopularTagsView) // Replace 'popular_tags' with the actual name of your materialized view
     .orderBy(desc(sql`tag_count`)) // Order by count in descending order
     .limit(30); // Limit to top 30 tags
 
   return await withDatabaseSpan(query, "getPopularTags").execute();
+};
+
+export const getTagCountsForUserCreatedRecipes = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string
+) => {
+  // Determine if using a transaction or db instance
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  return await withDatabaseSpan(
+    queryRunner
+      .select({
+        tag: sql`jsonb_array_elements_text(${RecipesTable.tags})`
+          .mapWith(String)
+          .as("tag"),
+        count: sql<number>`COUNT(*)`.mapWith(Number).as("count"),
+      })
+      .from(RecipesTable)
+      .where(eq(RecipesTable.createdBy, userId))
+      .groupBy(sql`jsonb_array_elements_text(${RecipesTable.tags})`)
+      .orderBy(desc(sql<number>`count`)),
+    "getTagCountsForUserCreatedRecipes"
+  ).execute();
 };

@@ -1,21 +1,27 @@
+import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
-import { twc } from "react-twc";
+import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { db } from "@/db";
 import { getPopularTags } from "@/db/queries";
 import { cn, sentenceToSlug } from "@/lib/utils";
-import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
-import { filter, from, map, shareReplay, take } from "rxjs";
-import { Separator } from "@/components/display/separator";
-import { Badge } from "@/components/display/badge";
+import { twc } from "react-twc";
+import { defaultIfEmpty, filter, from, map, shareReplay, take } from "rxjs";
 
 const DEFAULT_NUM_ITEMS = 30;
 
-export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
-  const tags$ = from(getPopularTags(db)).pipe(shareReplay(1));
-
+export const TagsCarousel = ({
+  currentTag,
+  root = "",
+  query = getPopularTags(db),
+}: {
+  currentTag: string;
+  root?: string;
+  query?: Promise<{ tag: string; count: number }[]>;
+}) => {
+  const tags$ = from(query).pipe(shareReplay(1));
   const arr = new Array(DEFAULT_NUM_ITEMS).fill(0);
 
   const selectedClass = `border-0 border-b-4 border-b-solid border-b-blue-500`;
@@ -51,7 +57,10 @@ export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
           <TagItemCard
             className={cn(currentTag === "All" ? selectedClass : `border-none`)}
           >
-            <Link href="/" className="flex flex-col justify-between items-center">
+            <Link
+              href={root + "/"}
+              className="flex flex-col justify-between items-center"
+            >
               <Badge variant="outline">All</Badge>
             </Link>
           </TagItemCard>
@@ -73,7 +82,8 @@ export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
               return !!items[index];
             }),
             map((items) => items[index]?.tag!),
-            take(1)
+            take(1),
+            defaultIfEmpty(undefined)
           );
 
           return (
@@ -81,11 +91,23 @@ export const TagsCarousel = ({ currentTag }: { currentTag: string }) => {
               key={index}
               observable={observable}
               render={(tag) => {
+                if (!tag) {
+                  return (
+                    <TagItemCard>
+                      <div className="flex flex-col justify-center">
+                        <Badge variant="outline">
+                          <Skeleton animation="none" className="w-12 h-4" />
+                        </Badge>
+                      </div>
+                    </TagItemCard>
+                  );
+                }
+
                 const isSelected = currentTag === tag;
                 return (
                   <TagItemCard className={isSelected ? selectedClass : ``}>
                     <Link
-                      href={`/tag/${sentenceToSlug(tag)}`}
+                      href={root + `/tag/${sentenceToSlug(tag)}`}
                       className="flex flex-col gap-2 items-center justify-between"
                     >
                       <Badge variant="outline">{tag}</Badge>
