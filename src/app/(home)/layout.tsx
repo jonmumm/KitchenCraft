@@ -78,6 +78,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
             </TabsTrigger>
           </TabsList>
           <TagsCarousel currentTag={"All"} />
+          <Separator className="mb-8" />
           <TabsContent value="hot">{children}</TabsContent>
           <TabsContent value="recent">{children}</TabsContent>
           <TabsContent value="best">{children}</TabsContent>
