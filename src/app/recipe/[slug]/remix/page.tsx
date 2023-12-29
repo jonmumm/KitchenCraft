@@ -163,6 +163,7 @@ export default async function Page(props: Props) {
             yield: output.recipe.yield,
             tags: output.recipe.tags,
             ingredients: output.recipe.ingredients,
+            prompt,
             instructions: output.recipe.instructions,
             cookTime: output.recipe.cookTime,
             activeTime: output.recipe.activeTime,
@@ -189,6 +190,7 @@ export default async function Page(props: Props) {
           <form
             action={saveRecipe
               .bind(null, newRecipe)
+              .bind(null, prompt)
               .bind(null, baseRecipeId)
               .bind(null, distinctId)}
           >
@@ -198,7 +200,10 @@ export default async function Page(props: Props) {
           </form>
         )}
         <form
-          action={saveAsNewRecipe.bind(null, newRecipe).bind(null, distinctId)}
+          action={saveAsNewRecipe
+            .bind(null, newRecipe)
+            .bind(null, prompt)
+            .bind(null, distinctId)}
         >
           <Button type="submit" size="lg">
             Save {!isOwner && <>New</>}
@@ -311,6 +316,7 @@ export default async function Page(props: Props) {
 
 const saveRecipe = async (
   newRecipe: Omit<NewRecipe, "id" | "slug">,
+  prompt: string,
   baseRecipeId: string,
   createdBy: string
 ) => {
@@ -355,6 +361,7 @@ const saveRecipe = async (
       cookTime: newRecipe.cookTime,
       activeTime: newRecipe.activeTime,
       totalTime: newRecipe.totalTime,
+      prompt,
       createdBy,
       createdAt: new Date(),
     } satisfies NewRecipe);
@@ -367,6 +374,7 @@ const saveRecipe = async (
 
 const saveAsNewRecipe = async (
   newRecipe: Omit<NewRecipe, "id" | "slug">,
+  prompt: string,
   createdBy: string
 ) => {
   "use server";
@@ -397,6 +405,7 @@ const saveAsNewRecipe = async (
           typeof item == "string" ? item : ""
         )
       : [],
+    prompt,
     cookTime: newRecipe.cookTime,
     activeTime: newRecipe.activeTime,
     totalTime: newRecipe.totalTime,

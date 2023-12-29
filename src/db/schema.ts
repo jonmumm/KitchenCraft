@@ -92,6 +92,7 @@ export const RecipesTable = pgTable(
     yield: text("yield").notNull(),
     tags: jsonb("tags").$type<string[]>().notNull(), // Using jsonb to store tags
     activeTime: text("activeTime").notNull(),
+    prompt: text("prompt").notNull(),
     cookTime: text("cookTime").notNull(),
     totalTime: text("totalTime").notNull(),
     ingredients: jsonb("ingredients").$type<string[]>().notNull(), // Using jsonb to store ingredients

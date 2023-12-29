@@ -709,6 +709,7 @@ export default async function Page(props: Props) {
                   cookTime: output.recipe.cookTime,
                   activeTime: output.recipe.activeTime,
                   totalTime: output.recipe.totalTime,
+                  prompt: input?.prompt!,
                   createdBy,
                   createdAt,
                 } satisfies NewRecipe;
