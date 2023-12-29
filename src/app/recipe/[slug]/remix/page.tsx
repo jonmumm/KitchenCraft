@@ -8,7 +8,7 @@ import { RenderFirstValue } from "@/components/util/render-first-value";
 import { RecipesTable, db } from "@/db";
 import { getCurrentVersionId, getRecipe } from "@/db/queries";
 import { NewRecipe, Recipe } from "@/db/types";
-import { getSession } from "@/lib/auth/session";
+import { getDistinctId, getSession } from "@/lib/auth/session";
 import { getSlug } from "@/lib/slug";
 import { assert } from "@/lib/utils";
 import {
@@ -53,9 +53,7 @@ type Props = {
  * @returns
  */
 export default async function Page(props: Props) {
-  const session = await getSession();
-  const userId = session?.user.id;
-  assert(userId, "expected userId");
+  const distinctId = await getDistinctId();
   const baseSlug = props.params.slug;
 
   let prompt: string;
@@ -169,7 +167,7 @@ export default async function Page(props: Props) {
             cookTime: output.recipe.cookTime,
             activeTime: output.recipe.activeTime,
             totalTime: output.recipe.totalTime,
-            createdBy: userId,
+            createdBy: distinctId,
             createdAt: new Date(),
           });
           newRecipe$.complete();
@@ -192,14 +190,16 @@ export default async function Page(props: Props) {
             action={saveRecipe
               .bind(null, newRecipe)
               .bind(null, baseRecipeId)
-              .bind(null, userId)}
+              .bind(null, distinctId)}
           >
             <Button type="submit" size="lg">
               Save (Over)
             </Button>
           </form>
         )}
-        <form action={saveAsNewRecipe.bind(null, newRecipe).bind(null, userId)}>
+        <form
+          action={saveAsNewRecipe.bind(null, newRecipe).bind(null, distinctId)}
+        >
           <Button type="submit" size="lg">
             Save {!isOwner && <>New</>}
           </Button>
@@ -312,7 +312,7 @@ export default async function Page(props: Props) {
 const saveRecipe = async (
   newRecipe: Omit<NewRecipe, "id" | "slug">,
   baseRecipeId: string,
-  userId: string
+  createdBy: string
 ) => {
   "use server";
   if (!newRecipe) {
@@ -355,7 +355,7 @@ const saveRecipe = async (
       cookTime: newRecipe.cookTime,
       activeTime: newRecipe.activeTime,
       totalTime: newRecipe.totalTime,
-      createdBy: userId,
+      createdBy,
       createdAt: new Date(),
     } satisfies NewRecipe);
 
@@ -367,7 +367,7 @@ const saveRecipe = async (
 
 const saveAsNewRecipe = async (
   newRecipe: Omit<NewRecipe, "id" | "slug">,
-  userId: string
+  createdBy: string
 ) => {
   "use server";
 
@@ -400,7 +400,7 @@ const saveAsNewRecipe = async (
     cookTime: newRecipe.cookTime,
     activeTime: newRecipe.activeTime,
     totalTime: newRecipe.totalTime,
-    createdBy: userId,
+    createdBy,
     createdAt: new Date(),
   } satisfies NewRecipe);
 

@@ -94,7 +94,7 @@ const FREE_TEXT_RECIPE_TEMPLATE = (
   input: ModifyRecipeFreeTextPredictionInput
 ) => `The user will provide a instructions for how they would like to modify the recipe below.
 
-Please give back the yaml for the updated recipe, applying the modifications instructions as specified by the user.
+Please give back the yaml for the updated recipe, applying the modifications instructions as specified by the user. Update the name and description to properly reflect any modifications.
 
 \`\`\`yaml
 recipe:

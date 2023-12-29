@@ -1,7 +1,8 @@
-import { cache } from "react";
 import { getServerSession } from "next-auth";
-import { authOptions } from "./options";
+import { cache } from "react";
+import { getGuestId } from "../browser-session";
 import { withSpan } from "../observability";
+import { authOptions } from "./options";
 
 export const getSession = withSpan(
   cache(async () => {
@@ -16,4 +17,13 @@ export const getCurrentUserId = withSpan(
     return session?.user.id;
   }),
   "getCurrentUserId"
+);
+
+export const getDistinctId = withSpan(
+  cache(async () => {
+    const userId = await getCurrentUserId();
+    const guestId = await getGuestId();
+    return userId || guestId;
+  }),
+  "getDistinctId"
 );

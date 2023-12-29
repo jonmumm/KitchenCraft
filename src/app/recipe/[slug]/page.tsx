@@ -28,7 +28,7 @@ import {
 } from "@/db/queries";
 import { Media, NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
-import { getCurrentUserId, getSession } from "@/lib/auth/session";
+import { getSession, getDistinctId } from "@/lib/auth/session";
 import { getGuestId } from "@/lib/browser-session";
 import { getResult } from "@/lib/db";
 import { withSpan } from "@/lib/observability";
@@ -1098,12 +1098,3 @@ ingredients: {ingredients}
 
 instructions: {instructions}
 `);
-
-const getDistinctId = withSpan(
-  cache(async () => {
-    const userId = await getCurrentUserId();
-    const guestId = await getGuestId();
-    return userId || guestId;
-  }),
-  "getDistinctId"
-);
