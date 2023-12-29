@@ -47,8 +47,6 @@ export default async function Page({
 
     if (callbackUrl) {
       emailCallbackParams.set("callbackUrl", callbackUrl);
-    } else {
-      emailCallbackParams.set("callbackUrl", "/me");
     }
 
     redirect(`/api/auth/callback/email?${emailCallbackParams.toString()}`);

@@ -17,7 +17,7 @@ import {
 } from "@/components/input/form";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
