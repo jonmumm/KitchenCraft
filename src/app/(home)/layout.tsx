@@ -50,7 +50,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
     <LayoutClient>
       <div className="flex flex-col">
         {userId && (
-          <div className="flex flex-col gap-1 w-full mb-1">
+          <div className="flex flex-col gap-1 w-full mb-2">
             <div className="flex flex-row justify-between items-end px-4 pb-1 w-full max-w-2xl mx-auto">
               <Label className="uppercase font-semibold text-accent-foreground opacity-70 text-xs">
                 {username}&apos;s Crafts
@@ -62,8 +62,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
             <MyRecipes userId={userId} />
           </div>
         )}
-        <Separator className="mb-1" />
-        <TagsCarousel currentTag={"All"} />
         <HomeTabs>
           <TabsList className="w-full">
             <TabsTrigger value="hot" asChild>
@@ -79,6 +77,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
               </Link>
             </TabsTrigger>
           </TabsList>
+          <TagsCarousel currentTag={"All"} />
           <TabsContent value="hot">{children}</TabsContent>
           <TabsContent value="recent">{children}</TabsContent>
           <TabsContent value="best">{children}</TabsContent>
@@ -150,7 +149,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
               <Link key={recipe.slug} href={`/recipe/${recipe.slug}`}>
                 <Card className="w-64 h-36 bg-secondary flex flex-col gap-1 justify-between py-2">
                   <div className="flex flex-row gap-2 px-3 items-start">
-                    <h3 className="text-lg font-semibold flex-1">
+                    <h3 className="text-lg font-semibold flex-1 line-clamp-2">
                       {recipe.name}
                     </h3>
                     {!media ? (
