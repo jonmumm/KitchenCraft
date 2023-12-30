@@ -20,7 +20,6 @@ const CarouselScroller: React.FC<CarouselScrollerProps> = ({
       const targetElement = carouselEl.querySelector(
         `[data-tag="${currentTag}"]`
       );
-      console.log(targetElement);
       if (targetElement) {
         targetElement.scrollIntoView({
           behavior: "smooth",

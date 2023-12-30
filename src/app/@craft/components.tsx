@@ -1,3 +1,153 @@
+import { Badge } from "@/components/display/badge";
+import { Label } from "@/components/display/label";
+import { db } from "@/db";
+import { getMostUsedTagsLastWeek } from "@/db/queries";
+import { PlusIcon } from "lucide-react";
+
+export const TrendingIngredients = () => {
+  const arr = new Array(30).fill(0);
+
+  return (
+    <div>
+      <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
+        Trending Ingredients
+      </Label>
+      <div className="flex flex-row gap-2 flex-wrap">
+        {arr.map((_, index) => {
+          return (
+            <div>
+              <Badge
+                key={index}
+                variant="secondary"
+                className="flex flex-row gap-1"
+              >
+                {index}
+                <PlusIcon size={14} />
+              </Badge>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export const TrendingTags = () => {
+  console.log("TRENDING TAGS!");
+  const arr = new Array(20).fill(0);
+
+  try {
+    getMostUsedTagsLastWeek(db).then(console.log);
+  } catch (ex) {
+    console.error(ex);
+  }
+  //   const tags$ = from(getMostUsedTagsLastWeek(db)).pipe(shareReplay(1));
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
+        Trending
+      </Label>
+      <div className="flex flex-row gap-2 flex-wrap">
+        {arr.map((_, index) => {
+          return null;
+          //   return (
+          //     <AsyncRenderFirstValue
+          //       key={index}
+          //       observable={tags$}
+          //       fallback={
+          //         <div>
+          //           <Badge variant="secondary">
+          //             <Skeleton className="w-8 h-4" />
+          //           </Badge>
+          //         </div>
+          //       }
+          //       render={(tags) => {
+          //         // console.log(tags);
+          //         return (
+          //           <div>
+          //             <Badge variant="secondary" className="flex flex-row gap-1">
+          //               {index}
+          //               <PlusIcon size={14} />
+          //             </Badge>
+          //           </div>
+          //         );
+          //       }}
+          //     ></AsyncRenderFirstValue>
+          //   );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export const Ideas = () => {
+  const arr = new Array(20).fill(0);
+
+  try {
+    getMostUsedTagsLastWeek(db).then(console.log);
+  } catch (ex) {
+    console.error(ex);
+  }
+  //   const tags$ = from(getMostUsedTagsLastWeek(db)).pipe(shareReplay(1));
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
+        Trending
+      </Label>
+      <div className="flex flex-row gap-2 flex-wrap">
+        {arr.map((_, index) => {
+          return null;
+          //   return (
+          //     <AsyncRenderFirstValue
+          //       key={index}
+          //       observable={tags$}
+          //       fallback={
+          //         <div>
+          //           <Badge variant="secondary">
+          //             <Skeleton className="w-8 h-4" />
+          //           </Badge>
+          //         </div>
+          //       }
+          //       render={(tags) => {
+          //         // console.log(tags);
+          //         return (
+          //           <div>
+          //             <Badge variant="secondary" className="flex flex-row gap-1">
+          //               {index}
+          //               <PlusIcon size={14} />
+          //             </Badge>
+          //           </div>
+          //         );
+          //       }}
+          //     ></AsyncRenderFirstValue>
+          //   );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export const Selections = () => {
+  const arr = new Array(30).fill(0);
+
+  return <></>;
+  //   return (
+  //     <div className="carousel space-x-4">
+  //       {arr.map((_, index) => {
+  //         return (
+  //           <div className="carousel-item">
+  //             <Badge key={index} variant="secondary">
+  //               {index}
+  //             </Badge>
+  //           </div>
+  //         );
+  //       })}
+  //     </div>
+  //   );
+};
+
 // "use client";
 
 // import scaleList from "@/data/serving-scalings.json";

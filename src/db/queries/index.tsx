@@ -15,7 +15,7 @@ import {
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { DbOrTransaction } from "@/types";
-import { and, count, desc, eq, inArray, max, ne, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, max, ne, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { cache } from "react";
 import { z } from "zod";
@@ -1266,5 +1266,27 @@ export const getTagCountsForUserCreatedRecipes = async (
       .groupBy(sql`jsonb_array_elements_text(${RecipesTable.tags})`)
       .orderBy(desc(sql<number>`count`)),
     "getTagCountsForUserCreatedRecipes"
+  ).execute();
+};
+
+export const getMostUsedTagsLastWeek = async (
+  dbOrTransaction: DbOrTransaction
+) => {
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  return await withDatabaseSpan(
+    dbOrTransaction
+      .select({
+        tag: sql`jsonb_array_elements_text(${RecipesTable.tags})`
+          .mapWith(String)
+          .as("tag"),
+        count: sql<number>`COUNT(*)`.mapWith(Number).as("count"),
+      })
+      .from(RecipesTable)
+      .where(gte(RecipesTable.createdAt, oneWeekAgo))
+      .groupBy(sql`jsonb_array_elements_text(${RecipesTable.tags})`)
+      .orderBy(desc(sql<number>`count`)),
+    "getMostUsedTagsLastWeek"
   ).execute();
 };

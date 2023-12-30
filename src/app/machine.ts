@@ -380,7 +380,7 @@ export const createCraftMachine = ({
                 ],
               },
               after: {
-                1250: {
+                1000: {
                   target: "InProgress",
                   guard: ({ context }) => !!context.prompt?.length,
                 },
@@ -461,7 +461,7 @@ export const createCraftMachine = ({
                 ],
               },
               after: {
-                3000: {
+                2500: {
                   target: "InProgress",
                   guard: ({ context }) => !!context.prompt?.length,
                 },
@@ -516,7 +516,7 @@ export const createCraftMachine = ({
             },
             True: {
               after: {
-                2000: {
+                500: {
                   target: "False",
                 },
               },

@@ -1,31 +1,57 @@
 "use client";
 
+import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
+import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { Button } from "@/components/input/button";
 import { RecipeCraftingPlaceholder } from "@/components/modules/recipe/crafting-placeholder";
 import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
 import { ChevronRightIcon, LoaderIcon, MoreHorizontalIcon } from "lucide-react";
-import { ComponentProps, useContext } from "react";
+import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
-import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
+import {
+  selectIsCreating,
+  selectIsInstantRecipeLoading,
+  selectIsTyping,
+  selectPromptLength,
+} from "./selectors";
 
-export const CraftItemIcon = () => {
+export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
-  const isTyping = useSelector(actor, (state) => state.matches("Typing.True"));
-  const isLoading = useSelector(actor, (state) =>
-    state.matches("InstantRecipe.InProgress")
-  );
-  console.log({ isTyping });
-  return isTyping ? (
-    <MoreHorizontalIcon className="animate-pulse" />
-  ) : isLoading ? (
-    <LoaderIcon className="animate-spin" />
-  ) : (
-    <ChevronRightIcon className="dark:text-slate-700 text-slate-300" />
-  );
+  const promptLength = useSelector(actor, selectPromptLength);
+
+  return promptLength === 0 ? <>{children}</> : null;
 };
+export const CraftCreating = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const isCreating = useSelector(actor, selectIsCreating);
+  return isCreating ? <>{children}</> : null;
+};
+export const CraftSearching = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  // const isTyping = useSelector(actor, selectIsTyping);
+  // const promptLength = useSelector(actor, selectPromptLength);
+  const isCreating = useSelector(actor, selectIsCreating);
+
+  return !isCreating ? <>{children}</> : null;
+  // return !isCreating && (isTyping || promptLength) ? <>{children}</> : null;
+};
+
+// export const CraftItemIcon = () => {
+//   const actor = useContext(CraftContext);
+//   const isTyping = useSelector(actor, selectIsTyping);
+//   const isLoading = useSelector(actor, selectIsInstantRecipeLoading);
+
+//   return isTyping ? (
+//     <MoreHorizontalIcon className="animate-pulse" />
+//   ) : isLoading ? (
+//     <LoaderIcon className="animate-spin" />
+//   ) : (
+//     <Badge variant="outline">Craft</Badge>
+//   );
+// };
 
 export const InstantRecipeItem = () => {
   const actor = useContext(CraftContext);
@@ -42,7 +68,7 @@ export const InstantRecipeItem = () => {
       {/* <Avatar className="opacity-20">
         <AvatarFallback>{index + 1}.</AvatarFallback>
       </Avatar> */}
-      <div className="flex flex-col gap-2 px-2 py-4 w-full sm:flex-row">
+      <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
         <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
           {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
         </div>
@@ -56,10 +82,10 @@ export const InstantRecipeItem = () => {
           </div>
         )}
       </div>
-      <div>
-        <Button event={{ type: "INSTANT_RECIPE" }} variant="ghost" size="icon">
-          <InstantRecipeIcon />
-        </Button>
+      <div className="w-24 flex flex-row justify-center">
+        {/* <Button event={{ type: "INSTANT_RECIPE" }} variant="ghost" size="icon"> */}
+        <InstantRecipeIcon />
+        {/* </Button> */}
       </div>
       {/* <Badge className="opacity-20">Craft</Badge> */}
     </ResultCard>
@@ -85,7 +111,7 @@ const ResultCard = ({
       variant="interactive"
       {...props}
       className={cn(
-        `w-full flex flex-row gap-4 items-center px-3 cursor-pointer ${
+        `w-full flex flex-row justify-between items-center cursor-pointer ${
           isFocused ? `outline-blue-500 outline outline-2` : ``
         }`,
         props.className
@@ -111,7 +137,7 @@ export const SuggestionItem = ({ index }: { index: number }) => {
       {/* <Avatar className="opacity-20">
         <AvatarFallback>{index + 1}.</AvatarFallback>
       </Avatar> */}
-      <div className="flex flex-col gap-2 px-2 py-4 w-full sm:flex-row">
+      <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
         <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
           {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
         </div>
@@ -125,10 +151,8 @@ export const SuggestionItem = ({ index }: { index: number }) => {
           </div>
         )}
       </div>
-      <div>
-        <Button variant="ghost" size="icon">
-          <SuggestionIcon index={index} />
-        </Button>
+      <div className="w-24 flex flex-row justify-center">
+        <SuggestionIcon index={index} />
       </div>
       {/* <Badge className="opacity-20">Craft</Badge> */}
     </ResultCard>
@@ -144,19 +168,32 @@ const SuggestionIcon = ({ index }: { index: number }) => {
       state.matches("Suggestions.InProgress") &&
       !state.context.suggestions?.[index + 1]
   );
+  const hasSuggestion = useSelector(
+    actor,
+    (state) => !!state.context.suggestions?.[index]
+  );
 
   return isTyping ? (
     <EllipsisAnimation />
   ) : isLoading ? (
     <LoaderIcon className="animate-spin" />
+  ) : hasSuggestion ? (
+    <Badge variant="outline">Craft</Badge>
   ) : (
-    <ChevronRightIcon className="dark:text-slate-700 text-slate-300" />
+    <Badge variant="outline">
+      <Skeleton className="w-8 h-4" />
+    </Badge>
   );
 };
 
 const InstantRecipeIcon = () => {
   const actor = useContext(CraftContext);
   const isTyping = useSelector(actor, (state) => state.matches("Typing.True"));
+  const promptLength = useSelector(actor, selectPromptLength);
+  const hasInstantRecipe = useSelector(
+    actor,
+    (state) => !!state.context.instantRecipeMetadata
+  );
   const isLoading = useSelector(actor, (state) =>
     state.matches("InstantRecipe.InProgress")
   );
@@ -165,12 +202,16 @@ const InstantRecipeIcon = () => {
     <EllipsisAnimation />
   ) : isLoading ? (
     <LoaderIcon className="animate-spin" />
+  ) : hasInstantRecipe ? (
+    <Badge variant="outline">Craft</Badge>
   ) : (
-    <ChevronRightIcon className="dark:text-slate-700 text-slate-300" />
+    <Badge variant="outline">
+      <Skeleton className="w-8 h-4" />
+    </Badge>
   );
 };
 
-export const Creating = () => {
+export const CraftingPlacholder = () => {
   const actor = useContext(CraftContext);
   const selection = useSelector(actor, (state) => state.context.selection);
 

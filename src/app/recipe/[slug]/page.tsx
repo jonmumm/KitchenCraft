@@ -28,9 +28,11 @@ import {
 } from "@/db/queries";
 import { Media, NewRecipe, Recipe } from "@/db/types";
 import { env } from "@/env.public";
-import { getSession, getDistinctId } from "@/lib/auth/session";
+import { getDistinctId, getSession } from "@/lib/auth/session";
 import { getGuestId } from "@/lib/browser-session";
 import { getResult } from "@/lib/db";
+import { evaluateFeatureFlag } from "@/lib/feature-flag";
+import { kv } from "@/lib/kv";
 import { withSpan } from "@/lib/observability";
 import { assert, noop } from "@/lib/utils";
 import {
@@ -49,7 +51,6 @@ import {
   EditIcon,
   GitForkIcon,
   HelpCircle,
-  HistoryIcon,
   LibraryIcon,
   ScrollIcon,
   ShoppingBasketIcon,
@@ -60,7 +61,7 @@ import { Metadata } from "next";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ComponentProps, ReactNode, Suspense, cache } from "react";
+import { ComponentProps, ReactNode, Suspense } from "react";
 import Replicate from "replicate";
 import {
   BehaviorSubject,
@@ -95,9 +96,6 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
-import { kv } from "@/lib/kv";
-import { posthog } from "@/lib/posthog";
-import { evaluateFeatureFlag } from "@/lib/feature-flag";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";

@@ -1,15 +1,16 @@
-"use client";
-
-import { Card } from "@/components/display/card";
+import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
-import { useSelector } from "@/hooks/useSelector";
+import { Ideas, Selections, TrendingTags } from "./components";
 import {
   ClearResultsItem,
-  Creating,
+  CraftCreating,
+  CraftEmpty,
+  CraftSearching,
+  CraftingPlacholder,
   InstantRecipeItem,
   SuggestionItem,
 } from "./components.client";
-import { useCraftContext } from "./hooks";
+import { twc } from "react-twc";
 
 export default function Page({
   searchParams,
@@ -17,17 +18,21 @@ export default function Page({
   searchParams: Record<string, string>;
 }) {
   const items = new Array(6).fill(0);
-  const actor = useCraftContext();
 
-  const isCreating = useSelector(
-    actor,
-    (state) => !state.matches("Creating.False")
+  const Container = twc.div`flex flex-col gap-2 px-4 h-full max-w-3xl mx-auto w-full`;
+
+  const EmptyStateView = () => (
+    <Container>
+      <TrendingTags />
+      {/* <Ideas /> */}
+    </Container>
   );
 
-  return !isCreating ? (
-    <div className="max-w-3xl w-full mx-auto flex flex-col gap-2 px-4 h-full">
+  const ResultsView = () => (
+    <Container>
+      {/* <Selections /> */}
       <Label className="text-xs text-muted-foreground uppercase font-semibold">
-        Top Hit
+        Top Recipe
       </Label>
       <InstantRecipeItem />
       <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
@@ -37,8 +42,61 @@ export default function Page({
         return <SuggestionItem key={index} index={index} />;
       })}
       <ClearResultsItem />
-    </div>
-  ) : (
-    <Creating />
+    </Container>
   );
+
+  const CreatingView = () => <CraftingPlacholder />;
+
+  return (
+    <>
+      {/* <CraftEmpty>
+        <EmptyStateView />
+      </CraftEmpty> */}
+      <CraftCreating>
+        <CreatingView />
+      </CraftCreating>
+      <CraftSearching>
+        <ResultsView />
+      </CraftSearching>
+    </>
+  );
+
+  // return !isCreating ? (
+  //   <div className="flex flex-col gap-2 px-4 h-full max-w-3xl mx-auto w-full">
+  //     <Selections />
+  //     {showResults ? (
+  //       <>
+  //         <div className="flex flex-row gap-2 flex-wrap mb-2">
+  //           <div>
+  //             <Badge variant="outline">Instant Pot</Badge>
+  //           </div>
+  //           <div>
+  //             <Badge variant="outline">Slow Cookier</Badge>
+  //           </div>
+  //         </div>
+  //         <Label className="text-xs text-muted-foreground uppercase font-semibold">
+  //           Top Hit
+  //         </Label>
+  //         <InstantRecipeItem />
+  //         <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
+  //           Suggestions
+  //         </Label>
+  //         {items.map((_, index) => {
+  //           return <SuggestionItem key={index} index={index} />;
+  //         })}
+  //         <ClearResultsItem />
+  //       </>
+  //     ) : (
+  //       <>
+  //         <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
+  //           Trending
+  //         </Label>
+  //         <TrendingTags />
+  //         {/* <TrendingIngredients /> */}
+  //       </>
+  //     )}
+  //   </div>
+  // ) : (
+  //   <CraftingPlacholder />
+  // );
 }
