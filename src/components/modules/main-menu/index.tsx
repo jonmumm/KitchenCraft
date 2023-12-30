@@ -372,6 +372,15 @@ export async function MainMenu({ className }: { className?: string }) {
       {userId && (
         <>
           <Separator />
+          <MenuItem className="flex flex-row gap-1 items-center justify-between">
+            <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
+              Account
+            </Label>
+            <Link className="text-sm underline text-center py-4" href="/account">
+              Settings
+            </Link>
+          </MenuItem>
+          <Separator />
           <MenuItem className="flex justify-center">
             <form method="POST" action="/api/auth/signout">
               <Button

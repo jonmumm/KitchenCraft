@@ -76,7 +76,7 @@ export const TagsCarousel = ({
     />
   );
   return (
-    <div className="flex w-full">
+    <div className="flex w-full mt-1">
       <CarouselScroller currentTag={currentTag} />
       <div id="tag-carousel" className="carousel carousel-center px-2">
         <CurrentCard />

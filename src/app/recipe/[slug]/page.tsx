@@ -47,6 +47,7 @@ import {
   CameraIcon,
   ChefHatIcon,
   EditIcon,
+  GitForkIcon,
   HelpCircle,
   HistoryIcon,
   LibraryIcon,
@@ -893,7 +894,7 @@ export default async function Page(props: Props) {
                     aria-label="History"
                     className="w-full"
                   >
-                    <HistoryIcon />
+                    <GitForkIcon />
                   </Button>
                 </Link>
                 <ShareButton

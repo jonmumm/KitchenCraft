@@ -1,14 +1,17 @@
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
+import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
 import { EventButton } from "@/components/event-button";
 import { SignInForm } from "@/components/forms/sign-in/components.client";
+import { Button } from "@/components/input/button";
+import { TagsCarousel } from "@/components/modules/tags-carousel";
+import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
 import quoteList from "@/data/quotes.json";
 import { db } from "@/db";
 import {
-  getProfileByUserId,
   getRecentRecipesByCreator,
   getTagCountsForUserCreatedRecipes,
   updateRecipeCreator,
@@ -17,12 +20,9 @@ import { getCurrentUserId } from "@/lib/auth/session";
 import { getGuestId } from "@/lib/browser-session";
 import { assert, shuffle } from "@/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 import { from, of, shareReplay } from "rxjs";
 import { RecipeListItem } from "../recipe/components";
-import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
-import { ReactNode } from "react";
-import { TagsCarousel } from "@/components/modules/tags-carousel";
 
 export default async function Page() {
   const [currentUserId, guestId] = await Promise.all([
@@ -55,14 +55,13 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col">
-      <Separator />
       <TagsCarousel
-      showCount
+        showCount
         currentTag={"All"}
         root="/me"
         query={getTagCountsForUserCreatedRecipes(db, createdBy)}
       />
-      <Separator className="mb-8 sm:mb-12" />
+      <Separator />
 
       <div className="flex flex-col max-w-2xl mx-auto px-4 gap-8">
         <section>
@@ -99,7 +98,7 @@ export default async function Page() {
           />
         </section>
         <section>
-          <div className="flex flex-col gap-12">
+          <div className="flex flex-col gap-4 sm:gap-8 md:gap-12">
             {new Array(NUM_PLACEHOLDER_RECIPES).fill(0).map((_, index) => (
               <AsyncRenderLastValue
                 key={index}
