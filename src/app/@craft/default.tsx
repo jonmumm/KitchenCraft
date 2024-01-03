@@ -107,45 +107,45 @@ export default function Page({
 
   const CreatingView = () => <CraftingPlacholder />;
 
-  const RemixSuggestionsView = () => (
-    <>
-      <Container>
-        <Label className="text-xs text-muted-foreground uppercase font-semibold">
-          Remixing
-        </Label>
-        <ResultCard index={0} event={{ type: "INSTANT_RECIPE" }}>
-          {/* <Avatar className="opacity-20">
-        <AvatarFallback>{index + 1}.</AvatarFallback>
-      </Avatar> */}
-          <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
-            <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
-              <Suspense fallback={<Skeleton className="w-8 h-8" />}>
-                <FirstValue observable={recipe$} />
-              </Suspense>
-              {/* {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />} */}
-            </div>
-            {/* {description ? (
-          <p className="line-clamp-4">{description}</p>
-        ) : (
-          <div className="flex flex-col gap-1 w-full">
-            <Skeleton className="w-full h-5" />
-            <Skeleton className="w-full h-5" />
-            <Skeleton className="w-full h-5" />
-          </div>
-        )} */}
-          </div>
-          {/* <div className="w-24 flex flex-row justify-center"> */}
-          {/* <Button event={{ type: "INSTANT_RECIPE" }} variant="ghost" size="icon"> */}
-          {/* <InstantRecipeIcon /> */}
-          {/* </Button> */}
-          {/* </div> */}
-          {/* <Badge className="opacity-20">Craft</Badge> */}
-        </ResultCard>
-      </Container>
-    </>
-  );
+  // const RemixSuggestionsView = () => (
+  //   <>
+  //     <Container>
+  //       <Label className="text-xs text-muted-foreground uppercase font-semibold">
+  //         Remixing
+  //       </Label>
+  //       <ResultCard index={0} event={{ type: "INSTANT_RECIPE" }}>
+  //         {/* <Avatar className="opacity-20">
+  //       <AvatarFallback>{index + 1}.</AvatarFallback>
+  //     </Avatar> */}
+  //         <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
+  //           <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
+  //             <Suspense fallback={<Skeleton className="w-8 h-8" />}>
+  //               <FirstValue observable={recipe$} />
+  //             </Suspense>
+  //             {/* {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />} */}
+  //           </div>
+  //           {/* {description ? (
+  //         <p className="line-clamp-4">{description}</p>
+  //       ) : (
+  //         <div className="flex flex-col gap-1 w-full">
+  //           <Skeleton className="w-full h-5" />
+  //           <Skeleton className="w-full h-5" />
+  //           <Skeleton className="w-full h-5" />
+  //         </div>
+  //       )} */}
+  //         </div>
+  //         {/* <div className="w-24 flex flex-row justify-center"> */}
+  //         {/* <Button event={{ type: "INSTANT_RECIPE" }} variant="ghost" size="icon"> */}
+  //         {/* <InstantRecipeIcon /> */}
+  //         {/* </Button> */}
+  //         {/* </div> */}
+  //         {/* <Badge className="opacity-20">Craft</Badge> */}
+  //       </ResultCard>
+  //     </Container>
+  //   </>
+  // );
 
-  const RemixPreviewResultView = () => <>Preview Result</>;
+  // const RemixPreviewResultView = () => <>Preview Result</>;
 
   return (
     <>

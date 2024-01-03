@@ -15,7 +15,7 @@ export const TrendingIngredients = () => {
       <div className="flex flex-row gap-2 flex-wrap">
         {arr.map((_, index) => {
           return (
-            <div>
+            <div key={index}>
               <Badge
                 key={index}
                 variant="secondary"
