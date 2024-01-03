@@ -1,6 +1,10 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+"use client";
 
+import { AppEvent } from "@/types";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
+
+import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
@@ -27,9 +31,31 @@ export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({
+  className,
+  variant,
+  event,
+  ...props
+}: BadgeProps & { event?: AppEvent }) {
+  const send = useSend();
+  const handleClick = React.useMemo(() => {
+    if (event) {
+      const handler: React.MouseEventHandler<HTMLDivElement> = (e) => {
+        send(event);
+        e.preventDefault();
+      };
+      return handler;
+    } else {
+      return props.onClick;
+    }
+  }, [event, props, send]);
+
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <div
+      className={cn(badgeVariants({ variant }), className)}
+      {...props}
+      onClick={handleClick}
+    />
   );
 }
 

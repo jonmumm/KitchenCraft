@@ -68,6 +68,9 @@ export const selectShowOverlay = (state: CraftSnapshot) => {
 export const selectIsCreating = (state: CraftSnapshot) =>
   !state.matches("Creating.False");
 
+export const selectIsRemixing = (state: CraftSnapshot) =>
+  state.matches("Mode.Remix");
+
 export const selectIsTyping = (state: CraftSnapshot) =>
   state.matches("Typing.True");
 
@@ -75,4 +78,4 @@ export const selectPromptLength = (state: CraftSnapshot) =>
   state.context.prompt?.length || 0;
 
 export const selectIsInstantRecipeLoading = (state: CraftSnapshot) =>
-  state.matches("InstantRecipe.InProgress");
+  state.matches("Mode.New.InstantRecipe.InProgress");

@@ -1,13 +1,15 @@
 import { Badge } from "@/components/display/badge";
+import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import KeyboardAvoidingView from "@/components/layout/keyboard-avoiding-view";
-import { FirstValue } from "@/components/util/first-value";
 import { ChevronLeft, ChevronRightIcon, XIcon } from "lucide-react";
+import { getRecipeStream$ } from "@/app/recipe/[slug]/observables";
 import { ReactNode, Suspense } from "react";
 import { twc } from "react-twc";
-import { TrendingTags } from "./components";
+import { z } from "zod";
+import { TrendingTags } from "../../components";
 import {
   CraftEmpty,
   CraftInputting,
@@ -17,16 +19,25 @@ import {
   RecipeCreating,
   RemixEmpty,
   RemixInputting,
-  ResultCard,
   SuggestionItem,
-} from "./components.client";
+} from "../../components.client";
+import { FirstValue } from "@/components/util/first-value";
+import { map } from "rxjs";
 
-export default function Page({
+type Props = {
+  params: { slug: string };
+};
+
+export default async function Page({
+  params,
   searchParams,
 }: {
+  params: Record<string, string>;
   searchParams: Record<string, string>;
 }) {
   const items = new Array(6).fill(0);
+  const slug = z.string().parse(params["slug"]);
+  const recipeData$ = await getRecipeStream$(slug);
 
   const Container = twc.div`flex flex-col gap-2 px-4 h-full max-w-3xl mx-auto w-full`;
 
@@ -107,23 +118,46 @@ export default function Page({
 
   const CreatingView = () => <CraftingPlacholder />;
 
+  // const recipe$ = from(getRecipe(slug)).pipe(shareReplay(1));
+
   const RemixSuggestionsView = () => (
     <>
       <Container>
         <Label className="text-xs text-muted-foreground uppercase font-semibold">
           Remixing
         </Label>
-        <ResultCard index={0} event={{ type: "INSTANT_RECIPE" }}>
+        <Card>
           {/* <Avatar className="opacity-20">
         <AvatarFallback>{index + 1}.</AvatarFallback>
       </Avatar> */}
           <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
             <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
               <Suspense fallback={<Skeleton className="w-8 h-8" />}>
-                <FirstValue observable={recipe$} />
+                <FirstValue
+                  observable={recipeData$.pipe(
+                    map((recipe) => recipe?.name || "...")
+                  )}
+                />
               </Suspense>
               {/* {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />} */}
             </div>
+            <Suspense
+              fallback={
+                <div className="flex flex-col gap-1 w-full">
+                  <Skeleton className="w-full h-5" />
+                  <Skeleton className="w-full h-5" />
+                  <Skeleton className="w-full h-5" />
+                </div>
+              }
+            >
+              <p className="line-clamp-4">
+                <FirstValue
+                  observable={recipeData$.pipe(
+                    map((recipe) => recipe?.description || "...")
+                  )}
+                />
+              </p>
+            </Suspense>
             {/* {description ? (
           <p className="line-clamp-4">{description}</p>
         ) : (
@@ -140,7 +174,7 @@ export default function Page({
           {/* </Button> */}
           {/* </div> */}
           {/* <Badge className="opacity-20">Craft</Badge> */}
-        </ResultCard>
+        </Card>
       </Container>
     </>
   );
@@ -157,12 +191,12 @@ export default function Page({
         <CreatingView />
       </RecipeCreating>
 
-      {/* <RemixEmpty>
+      <RemixEmpty>
         <RemixSuggestionsView />
       </RemixEmpty>
       <RemixInputting>
         <RemixPreviewResultView />
-      </RemixInputting> */}
+      </RemixInputting>
     </>
   );
 

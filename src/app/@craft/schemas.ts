@@ -12,6 +12,7 @@ import { z } from "zod";
 export const ContextSchema = z.object({
   currentItemIndex: z.number().optional(),
   currentRecipeUrl: z.string().optional(),
+  currentRemixSlug: z.string().optional(),
   prompt: z.string().optional(),
   ingredients: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
@@ -23,6 +24,8 @@ export const ContextSchema = z.object({
     .optional(),
   // slug: z.string().nullable(),
   suggestions:
+    SuggestionPredictionPartialOutputSchema.shape.suggestions.nullable(),
+  remixSuggestions:
     SuggestionPredictionPartialOutputSchema.shape.suggestions.nullable(),
   substitutions: SubstitutionsPredictionPartialOutputSchema.shape.substitutions,
   equipmentAdaptations: IdeasPredictionPartialOutputSchema.shape.ideas,

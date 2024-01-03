@@ -8,13 +8,13 @@ import { Button } from "@/components/input/button";
 import { RecipeCraftingPlaceholder } from "@/components/modules/recipe/crafting-placeholder";
 import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
-import { ChevronRightIcon, LoaderIcon, MoreHorizontalIcon } from "lucide-react";
+import { LoaderIcon } from "lucide-react";
 import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
 import {
   selectIsCreating,
   selectIsInstantRecipeLoading,
-  selectIsTyping,
+  selectIsRemixing,
   selectPromptLength,
 } from "./selectors";
 
@@ -24,19 +24,42 @@ export const CraftEmpty = ({ children }: { children: ReactNode }) => {
 
   return promptLength === 0 ? <>{children}</> : null;
 };
-export const CraftCreating = ({ children }: { children: ReactNode }) => {
+export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const promptLength = useSelector(actor, selectPromptLength);
+
+  return promptLength !== 0 ? <>{children}</> : null;
+};
+export const RecipeCreating = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const isCreating = useSelector(actor, selectIsCreating);
   return isCreating ? <>{children}</> : null;
 };
-export const CraftSearching = ({ children }: { children: ReactNode }) => {
+export const CraftInputting = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   // const isTyping = useSelector(actor, selectIsTyping);
   // const promptLength = useSelector(actor, selectPromptLength);
   const isCreating = useSelector(actor, selectIsCreating);
+  const isRemixing = useSelector(actor, selectIsRemixing);
 
-  return !isCreating ? <>{children}</> : null;
+  return !isRemixing && !isCreating ? <>{children}</> : null;
   // return !isCreating && (isTyping || promptLength) ? <>{children}</> : null;
+};
+
+export const RemixEmpty = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const isCreating = useSelector(actor, selectIsCreating);
+  const isRemixing = useSelector(actor, selectIsRemixing);
+  const promptLength = useSelector(actor, selectPromptLength);
+  return !promptLength && isRemixing && !isCreating ? <>{children}</> : null;
+};
+
+export const RemixInputting = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const isCreating = useSelector(actor, selectIsCreating);
+  const isRemixing = useSelector(actor, selectIsRemixing);
+  const promptLength = useSelector(actor, selectPromptLength);
+  return promptLength && isRemixing && !isCreating ? <>{children}</> : null;
 };
 
 // export const CraftItemIcon = () => {
@@ -92,7 +115,7 @@ export const InstantRecipeItem = () => {
   );
 };
 
-const ResultCard = ({
+export const ResultCard = ({
   index,
   children,
   ...props
@@ -194,9 +217,7 @@ const InstantRecipeIcon = () => {
     actor,
     (state) => !!state.context.instantRecipeMetadata
   );
-  const isLoading = useSelector(actor, (state) =>
-    state.matches("InstantRecipe.InProgress")
-  );
+  const isLoading = useSelector(actor, selectIsInstantRecipeLoading);
 
   return isTyping ? (
     <EllipsisAnimation />

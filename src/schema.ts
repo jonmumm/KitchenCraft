@@ -67,6 +67,15 @@ export const RunStatusSchema = z
   .enum(["initializing", "starting", "started", "receiving", "done", "error"])
   .nullable();
 
+export const RecipeBaseSchema = z.object({
+  name: z.string(),
+  slug: z.string(),
+  description: z.string(),
+  runStatus: RunStatusSchema,
+  createdBy: z.string(),
+  outputRaw: z.string().optional(),
+});
+
 export const RecipeRequiredPropsSchema = z.object({
   name: z.string(),
   slug: z.string(),
@@ -732,6 +741,19 @@ export const FAQsPredictionInputSchema = z.object({
     tags: true,
   }),
 });
+
+export const RemixSuggestionsPredictionInputSchema = z.object({
+  recipe: RecipeSchema.pick({
+    name: true,
+    description: true,
+    ingredients: true,
+    instructions: true,
+    tags: true,
+    cookTime: true,
+    yield: true,
+  }),
+});
+
 export const RecipeProductsPredictionInputSchema = z.object({
   type: AmazonAffiliateProductSchema.shape.type,
   recipe: RecipeSchema.pick({

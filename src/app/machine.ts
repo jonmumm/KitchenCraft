@@ -27,10 +27,6 @@ import {
 } from "xstate";
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
-import type {
-  CreateNewInstantRecipe,
-  CreateNewRecipeFromSuggestion,
-} from "./layout";
 import { ingredientsParser, tagsParser } from "./parsers";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
@@ -41,6 +37,19 @@ const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
   return new EventSource(eventSourceUrl);
 };
 
+type CreateRecipeResponse = Promise<
+  | {
+      success: true;
+      data: {
+        recipeUrl: string;
+      };
+    }
+  | {
+      success: false;
+      error: string;
+    }
+>;
+
 export const createCraftMachine = ({
   searchParams,
   router,
@@ -50,8 +59,14 @@ export const createCraftMachine = ({
   searchParams: Record<string, string>;
   router: AppRouterInstance;
   serverActions: {
-    createNewInstantRecipe: CreateNewInstantRecipe;
-    createNewRecipeFromSuggestion: CreateNewRecipeFromSuggestion;
+    createNewInstantRecipe: (
+      prompt: string,
+      instantRecipeResultId: string
+    ) => CreateRecipeResponse;
+    createNewRecipeFromSuggestion: (
+      suggestionsResultId: string,
+      index: number
+    ) => CreateRecipeResponse;
   };
   initialPath: string;
 }) => {
@@ -71,6 +86,17 @@ export const createCraftMachine = ({
       return eventSourceToGenerator(
         source,
         "SUGGESTION",
+        SuggestionPredictionOutputSchema
+      );
+    }
+  );
+
+  const remixSuggestionsGenerator = fromEventObservable(
+    ({ input }: { input: { slug: string } }) => {
+      const source = getRemixSuggestionsEventSource(input);
+      return eventSourceToGenerator(
+        source,
+        "REMIX_SUGGESTIONS",
         SuggestionPredictionOutputSchema
       );
     }
@@ -108,6 +134,13 @@ export const createCraftMachine = ({
     if (input.tags) params.set("tags", tagsParser.serialize(input.tags));
 
     const eventSourceUrl = `/api/suggestions?${params.toString()}`;
+    return new EventSource(eventSourceUrl);
+  };
+
+  const getRemixSuggestionsEventSource = (input: { slug: string }) => {
+    const params = new URLSearchParams();
+
+    const eventSourceUrl = `/api/recipe/${input.slug}/remix-suggestions`;
     return new EventSource(eventSourceUrl);
   };
 
@@ -190,6 +223,10 @@ export const createCraftMachine = ({
           | {
               src: "instantRecipeMetadataGenerator";
               logic: typeof instantRecipeMetadataGenerator;
+            }
+          | {
+              src: "remixSuggestionsGenerator";
+              logic: typeof remixSuggestionsGenerator;
             }
           | {
               src: "suggestionsGenerator";
@@ -344,163 +381,249 @@ export const createCraftMachine = ({
             False: {},
           },
         },
-        InstantRecipe: {
-          initial: "Idle",
-          on: {
-            CLEAR: {
-              target: ".Holding",
-            },
-            CLOSE: {
-              target: ".Idle",
-            },
-          },
+        Mode: {
+          initial: "New",
           states: {
-            Idle: {
+            New: {
               on: {
-                SET_INPUT: {
-                  target: "Holding",
-                  guard: ({ context }) => !!context.prompt?.length,
+                REMIX: {
+                  target: "Remix",
+                  actions: assign({
+                    currentRemixSlug: ({ event }) => event.slug,
+                    prompt: undefined,
+                  }),
                 },
               },
-            },
-            Holding: {
-              entry: [
-                assign({
-                  instantRecipeMetadata: undefined,
-                  instantRecipeResultId: undefined,
-                }),
-              ],
-              on: {
-                SET_INPUT: [
-                  {
-                    target: "Holding",
-                    guard: ({ context }) => !!context.prompt?.length,
+              description: "Creating a new recipe",
+              type: "parallel",
+              states: {
+                InstantRecipe: {
+                  initial: "Idle",
+                  on: {
+                    CLEAR: {
+                      target: ".Holding",
+                    },
+                    CLOSE: {
+                      target: ".Idle",
+                    },
                   },
-                  { target: "Idle" },
-                ],
-              },
-              after: {
-                1000: {
-                  target: "InProgress",
-                  guard: ({ context }) => !!context.prompt?.length,
-                },
-              },
-            },
-            InProgress: {
-              invoke: {
-                src: "instantRecipeMetadataGenerator",
-                input: ({ context }) => {
-                  assert(context.prompt, "expected prompt");
-                  return { prompt: context.prompt };
-                },
-                onDone: "Idle",
-              },
-              on: {
-                SET_INPUT: {
-                  target: "Holding",
-                  actions: assign({
-                    instantRecipeMetadata: undefined,
-                  }),
-                },
-                INSTANT_RECIPE_METADATA_START: {
-                  actions: [
-                    assign({
-                      instantRecipeResultId: ({ event }) => event.resultId,
-                    }),
-                  ],
-                },
-                INSTANT_RECIPE_METADATA_PROGRESS: {
-                  actions: assign({
-                    instantRecipeMetadata: ({ event }) => event.data,
-                  }),
-                },
-                INSTANT_RECIPE_METADATA_COMPLETE: {
-                  actions: [
-                    assign({
-                      instantRecipeMetadata: ({ event }) => event.data,
-                    }),
-                  ],
-                },
-              },
-            },
-          },
-        },
-        Suggestions: {
-          initial: "Idle",
-          on: {
-            CLEAR: {
-              target: ".Holding",
-            },
-            CLOSE: {
-              target: ".Idle",
-            },
-          },
-          states: {
-            Idle: {
-              on: {
-                SET_INPUT: {
-                  target: "Holding",
-                  guard: ({ context }) => !!context.prompt?.length,
-                },
-              },
-            },
-            Holding: {
-              entry: [
-                assign({
-                  suggestions: undefined,
-                  suggestionsResultId: undefined,
-                }),
-              ],
-              on: {
-                SET_INPUT: [
-                  {
-                    target: "Holding",
-                    guard: ({ context }) => !!context.prompt?.length,
+                  states: {
+                    Idle: {
+                      on: {
+                        SET_INPUT: {
+                          target: "Holding",
+                          guard: ({ context }) => !!context.prompt?.length,
+                        },
+                      },
+                    },
+                    Holding: {
+                      entry: [
+                        assign({
+                          instantRecipeMetadata: undefined,
+                          instantRecipeResultId: undefined,
+                        }),
+                      ],
+                      on: {
+                        SET_INPUT: [
+                          {
+                            target: "Holding",
+                            guard: ({ context }) => !!context.prompt?.length,
+                          },
+                          { target: "Idle" },
+                        ],
+                      },
+                      after: {
+                        1000: {
+                          target: "InProgress",
+                          guard: ({ context }) => !!context.prompt?.length,
+                        },
+                      },
+                    },
+                    InProgress: {
+                      invoke: {
+                        src: "instantRecipeMetadataGenerator",
+                        input: ({ context }) => {
+                          assert(context.prompt, "expected prompt");
+                          return { prompt: context.prompt };
+                        },
+                        onDone: "Idle",
+                      },
+                      on: {
+                        SET_INPUT: {
+                          target: "Holding",
+                          actions: assign({
+                            instantRecipeMetadata: undefined,
+                          }),
+                        },
+                        INSTANT_RECIPE_METADATA_START: {
+                          actions: [
+                            assign({
+                              instantRecipeResultId: ({ event }) =>
+                                event.resultId,
+                            }),
+                          ],
+                        },
+                        INSTANT_RECIPE_METADATA_PROGRESS: {
+                          actions: assign({
+                            instantRecipeMetadata: ({ event }) => event.data,
+                          }),
+                        },
+                        INSTANT_RECIPE_METADATA_COMPLETE: {
+                          actions: [
+                            assign({
+                              instantRecipeMetadata: ({ event }) => event.data,
+                            }),
+                          ],
+                        },
+                      },
+                    },
                   },
-                  { target: "Idle" },
-                ],
-              },
-              after: {
-                2500: {
-                  target: "InProgress",
-                  guard: ({ context }) => !!context.prompt?.length,
+                },
+                Suggestions: {
+                  initial: "Idle",
+                  on: {
+                    CLEAR: {
+                      target: ".Holding",
+                    },
+                    CLOSE: {
+                      target: ".Idle",
+                    },
+                  },
+                  states: {
+                    Idle: {
+                      on: {
+                        SET_INPUT: {
+                          target: "Holding",
+                          guard: ({ context }) => !!context.prompt?.length,
+                        },
+                      },
+                    },
+                    Holding: {
+                      entry: [
+                        assign({
+                          suggestions: undefined,
+                          suggestionsResultId: undefined,
+                        }),
+                      ],
+                      on: {
+                        SET_INPUT: [
+                          {
+                            target: "Holding",
+                            guard: ({ context }) => !!context.prompt?.length,
+                          },
+                          { target: "Idle" },
+                        ],
+                      },
+                      after: {
+                        2500: {
+                          target: "InProgress",
+                          guard: ({ context }) => !!context.prompt?.length,
+                        },
+                      },
+                    },
+                    InProgress: {
+                      invoke: {
+                        src: "suggestionsGenerator",
+                        input: ({ context }) => {
+                          assert(context.prompt, "expected prompt");
+                          return { prompt: context.prompt };
+                        },
+                        onDone: "Idle",
+                      },
+                      on: {
+                        SET_INPUT: {
+                          target: "Holding",
+                          actions: assign({
+                            suggestions: undefined,
+                          }),
+                        },
+                        SUGGESTION_START: {
+                          actions: [
+                            assign({
+                              suggestionsResultId: ({ event }) =>
+                                event.resultId,
+                            }),
+                          ],
+                        },
+                        SUGGESTION_PROGRESS: {
+                          actions: assign({
+                            suggestions: ({ event }) => event.data.suggestions,
+                          }),
+                        },
+                        SUGGESTION_COMPLETE: {
+                          actions: [
+                            assign({
+                              suggestions: ({ event }) =>
+                                event.data.suggestions,
+                            }),
+                          ],
+                        },
+                      },
+                    },
+                  },
                 },
               },
             },
-            InProgress: {
-              invoke: {
-                src: "suggestionsGenerator",
-                input: ({ context }) => {
-                  assert(context.prompt, "expected prompt");
-                  return { prompt: context.prompt };
-                },
-                onDone: "Idle",
-              },
+            Remix: {
               on: {
-                SET_INPUT: {
-                  target: "Holding",
-                  actions: assign({
-                    suggestions: undefined,
-                  }),
+                PAGE_LOADED: {
+                  target: "New",
                 },
-                SUGGESTION_START: {
-                  actions: [
-                    assign({
-                      suggestionsResultId: ({ event }) => event.resultId,
-                    }),
-                  ],
-                },
-                SUGGESTION_PROGRESS: {
-                  actions: assign({
-                    suggestions: ({ event }) => event.data.suggestions,
-                  }),
-                },
-                SUGGESTION_COMPLETE: {
-                  actions: [
-                    assign({
-                      suggestions: ({ event }) => event.data.suggestions,
-                    }),
-                  ],
+              },
+              description: "Making changes to an existing recipe",
+              type: "parallel",
+              states: {
+                Suggestions: {
+                  initial: "Initializing",
+                  states: {
+                    Initializing: {
+                      always: [
+                        {
+                          target: "Idle",
+                          guard: ({ context }) => !!context.remixSuggestions,
+                        },
+                        { target: "InProgress" },
+                      ],
+                    },
+                    Idle: {},
+                    InProgress: {
+                      onDone: "Idle",
+                      invoke: {
+                        src: "remixSuggestionsGenerator",
+                        input: ({ context }) => {
+                          assert(
+                            context.currentRemixSlug,
+                            "expected currentRemixSlug to be set"
+                          );
+                          return { slug: context.currentRemixSlug };
+                        },
+                        onDone: "Idle",
+                      },
+                      on: {
+                        REMIX_SUGGESTIONS_START: {
+                          actions: [
+                            assign({
+                              suggestionsResultId: ({ event }) =>
+                                event.resultId,
+                            }),
+                          ],
+                        },
+                        REMIX_SUGGESTIONS_PROGRESS: {
+                          actions: assign({
+                            suggestions: ({ event }) => event.data.suggestions,
+                          }),
+                        },
+                        REMIX_SUGGESTIONS_COMPLETE: {
+                          actions: [
+                            assign({
+                              suggestions: ({ event }) =>
+                                event.data.suggestions,
+                            }),
+                          ],
+                        },
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -830,6 +953,9 @@ export const createCraftMachine = ({
                 FOCUS_PROMPT: {
                   target: "True",
                 },
+                REMIX: {
+                  target: "True",
+                },
                 NEW_RECIPE: {
                   target: "True",
                 },
@@ -924,6 +1050,7 @@ export const createCraftMachine = ({
       actors: {
         instantRecipeMetadataGenerator,
         suggestionsGenerator,
+        remixSuggestionsGenerator,
         createNewInstantRecipe,
         createNewRecipeFromSuggestion,
       },
@@ -953,6 +1080,7 @@ type Context = z.infer<typeof ContextSchema>;
 
 type GeneratorEvent =
   | GeneratorObervableEvent<"SUGGESTION", SuggestionPredictionOutput>
+  | GeneratorObervableEvent<"REMIX_SUGGESTIONS", SuggestionPredictionOutput>
   | GeneratorObervableEvent<
       "INSTANT_RECIPE_METADATA",
       InstantRecipeMetadataPredictionOutput

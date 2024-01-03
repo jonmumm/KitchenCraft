@@ -26,6 +26,7 @@ const nextConfig = withPWA({
 
 module.exports = {
   ...nextConfig,
+  reactStrictMode: false,
   experimental: {
     instrumentationHook: true,
   },

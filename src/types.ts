@@ -1,6 +1,14 @@
+import { PgTransaction } from "drizzle-orm/pg-core";
 import type { z } from "zod";
+import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
 import ingredients from "./data/ingredients.json";
 import {
+  AmazonAffiliateProductSchema,
+  NewAmazonAffiliateProductSchema,
+  db,
+} from "./db";
+import {
+  AmazonProductsPredictionInputSchema,
   AppEventSchema,
   AssistantMessageSchema,
   CookingTimeSchema,
@@ -31,15 +39,16 @@ import {
   ModifyRecipeScalePredictionInputSchema,
   NewInstantRecipePredictionInputSchema,
   NewRecipeFromSuggestionsPredictionInputSchema,
-  RecipeProductsPredictionInputSchema,
-  RecipeProductsPredictionOutputSchema,
   ProfileSlugSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
+  RecipeBaseSchema,
   RecipeChatInputSchema,
   RecipePredictionInputSchema,
   RecipePredictionOutputSchema,
   RecipePredictionPartialOutputSchema,
+  RecipeProductsPredictionInputSchema,
+  RecipeProductsPredictionOutputSchema,
   RecipeRequiredPropsSchema,
   RemixEventSchema,
   RemixIdeasPredictionInputSchema,
@@ -49,6 +58,7 @@ import {
   RemixPredictionOutputSchema,
   RemixPredictionPartialOutputSchema,
   RemixRecipeMetadataPredictionInputSchema,
+  RemixSuggestionsPredictionInputSchema,
   RoleSchema,
   SlugSchema,
   SousChefPredictionInputSchema,
@@ -69,15 +79,8 @@ import {
   TipsPredictionPartialOutputSchema,
   UpvoteEventSchema,
   UserMessageSchema,
-  AmazonProductsPredictionInputSchema,
 } from "./schema";
-import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
-import {
-  AmazonAffiliateProductSchema,
-  NewAmazonAffiliateProductSchema,
-  db,
-} from "./db";
-import { PgTransaction } from "drizzle-orm/pg-core";
+import { Observable } from "rxjs";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 
@@ -143,6 +146,9 @@ export type RemixIdeasPredictionInput = z.infer<
   typeof RemixIdeasPredictionInputSchema
 >;
 export type FAQsPredictionInput = z.infer<typeof FAQsPredictionInputSchema>;
+export type RemixSuggestionsPredictionInput = z.infer<
+  typeof RemixSuggestionsPredictionInputSchema
+>;
 export type InstantRecipeMetadataPredictionInput = z.infer<
   typeof InstantRecipeMetadataPredictionInputSchema
 >;
@@ -269,3 +275,7 @@ export type NewAmazonAffiliateProduct = z.infer<
 export type ProductType = AmazonAffiliateProduct["type"];
 
 export type DbOrTransaction = typeof db | PgTransaction<any, any, any>; // Adjust the types accordingly
+
+export type ObservableType<T> = T extends Observable<infer U> ? U : never;
+
+export type RecipeBase = z.infer<typeof RecipeBaseSchema>;
