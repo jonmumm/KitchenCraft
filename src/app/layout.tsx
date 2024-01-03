@@ -146,7 +146,6 @@ export default async function RootLayout({
       name,
       description,
       runStatus: "initializing",
-      createdBy,
     } satisfies RecipeBase);
 
     return { success: true as const, data: { recipeUrl: `/recipe/${slug}` } };
@@ -261,7 +260,6 @@ export default async function RootLayout({
       name,
       description,
       runStatus: "initializing",
-      createdBy,
     } satisfies RecipeBase);
 
     return { success: true as const, data: { recipeUrl: `/recipe/${slug}` } };

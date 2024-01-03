@@ -72,7 +72,6 @@ export const RecipeBaseSchema = z.object({
   slug: z.string(),
   description: z.string(),
   runStatus: RunStatusSchema,
-  createdBy: z.string(),
   outputRaw: z.string().optional(),
 });
 
