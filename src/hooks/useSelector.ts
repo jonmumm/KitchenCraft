@@ -10,7 +10,6 @@ function defaultCompare<T>(a: T, b: T) {
 export function useSelector<TActor extends ActorRef<any, any>, T>(
   actor: TActor,
   selector: (emitted: SnapshotFrom<TActor>) => T,
-  compare: (a: T, b: T) => boolean = defaultCompare
 ): T {
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
@@ -27,7 +26,7 @@ export function useSelector<TActor extends ActorRef<any, any>, T>(
     boundGetSnapshot,
     boundGetSnapshot,
     selector,
-    compare
+    defaultCompare
   );
 
   return selectedSnapshot;

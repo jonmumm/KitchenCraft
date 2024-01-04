@@ -1,8 +1,18 @@
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
+import { Button } from "@/components/input/button";
+import KeyboardAvoidingView from "@/components/layout/keyboard-avoiding-view";
 import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
-import { PlusIcon } from "lucide-react";
+import { ChevronLeft, ChevronRightIcon, PlusIcon, XIcon } from "lucide-react";
+import { ReactNode } from "react";
+import { twc } from "react-twc";
+import {
+  CraftEmpty,
+  CraftNotEmpty,
+  InstantRecipeItem,
+  SuggestionItem,
+} from "./components.client";
 
 export const TrendingIngredients = () => {
   const arr = new Array(30).fill(0);
@@ -78,6 +88,38 @@ export const TrendingTags = () => {
         })}
       </div>
     </div>
+  );
+};
+
+const Container = twc.div`flex flex-col gap-2 px-4 h-full max-w-3xl mx-auto w-full`;
+
+export const NewRecipeResultsView = () => {
+  const items = new Array(6).fill(0);
+
+  return (
+    <>
+      <Container>
+        {/* <Selections /> */}
+        <Label className="text-xs text-muted-foreground uppercase font-semibold">
+          Instant Recipe
+        </Label>
+        <InstantRecipeItem />
+        <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
+          Suggestions
+        </Label>
+        {items.map((_, index) => {
+          return <SuggestionItem key={index} index={index} />;
+        })}
+      </Container>
+      <Footer>
+        <CraftEmpty>
+          <BackButton />
+        </CraftEmpty>
+        <CraftNotEmpty>
+          <ClearButton />
+        </CraftNotEmpty>
+      </Footer>
+    </>
   );
 };
 
@@ -1508,3 +1550,47 @@ export const Selections = () => {
 //     <LoaderIcon className="animate-spin" />
 //   );
 // };
+
+const EmptyStateView = () => (
+  <Container>
+    <TrendingTags />
+    {/* <Ideas /> */}
+  </Container>
+);
+
+const SubmitButton = () => {
+  return (
+    <Button className="w-full" size="lg">
+      Submit <ChevronRightIcon />
+    </Button>
+  );
+};
+
+const BackButton = () => {
+  return (
+    <div className="flex flex-row justify-center pointer-events-none py-4">
+      <Badge event={{ type: "BACK" }} className="pointer-events-auto px-3 py-2">
+        <ChevronLeft size={14} />
+         Back
+      </Badge>
+    </div>
+  );
+};
+
+const ClearButton = () => {
+  return (
+    <div className="flex flex-row justify-center pointer-events-none py-4">
+      <Badge
+        event={{ type: "CLEAR" }}
+        className="pointer-events-auto px-3 py-2"
+      >
+         Clear
+        <XIcon size={14} />
+      </Badge>
+    </div>
+  );
+};
+
+const Footer = ({ children }: { children: ReactNode }) => {
+  return <KeyboardAvoidingView>{children}</KeyboardAvoidingView>;
+};

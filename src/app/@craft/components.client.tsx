@@ -46,12 +46,31 @@ export const CraftInputting = ({ children }: { children: ReactNode }) => {
   // return !isCreating && (isTyping || promptLength) ? <>{children}</> : null;
 };
 
+const VisibilityControl = ({
+  visible,
+  children,
+}: {
+  visible: boolean;
+  children: ReactNode;
+}) => {
+  const style = {
+    display: visible ? "block" : "none",
+  };
+
+  return (
+    <div suppressHydrationWarning style={style}>
+      {children}
+    </div>
+  );
+};
+
 export const RemixEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const isCreating = useSelector(actor, selectIsCreating);
   const isRemixing = useSelector(actor, selectIsRemixing);
   const promptLength = useSelector(actor, selectPromptLength);
-  return !promptLength && isRemixing && !isCreating ? <>{children}</> : null;
+  const visible = !promptLength && isRemixing && !isCreating;
+  return <VisibilityControl visible={visible}>{children}</VisibilityControl>;
 };
 
 export const RemixInputting = ({ children }: { children: ReactNode }) => {
@@ -59,22 +78,9 @@ export const RemixInputting = ({ children }: { children: ReactNode }) => {
   const isCreating = useSelector(actor, selectIsCreating);
   const isRemixing = useSelector(actor, selectIsRemixing);
   const promptLength = useSelector(actor, selectPromptLength);
-  return promptLength && isRemixing && !isCreating ? <>{children}</> : null;
+  const visible = !!promptLength && isRemixing && !isCreating;
+  return <VisibilityControl visible={visible}>{children}</VisibilityControl>;
 };
-
-// export const CraftItemIcon = () => {
-//   const actor = useContext(CraftContext);
-//   const isTyping = useSelector(actor, selectIsTyping);
-//   const isLoading = useSelector(actor, selectIsInstantRecipeLoading);
-
-//   return isTyping ? (
-//     <MoreHorizontalIcon className="animate-pulse" />
-//   ) : isLoading ? (
-//     <LoaderIcon className="animate-spin" />
-//   ) : (
-//     <Badge variant="outline">Craft</Badge>
-//   );
-// };
 
 export const InstantRecipeItem = () => {
   const actor = useContext(CraftContext);
@@ -240,8 +246,6 @@ export const CraftingPlacholder = () => {
 };
 
 export const ClearResultsItem = () => {
-  const actor = useContext(CraftContext);
-
   return (
     <ResultCard
       className="w-full p-4 flex-row justify-center hidden prompt-dirty:flex"

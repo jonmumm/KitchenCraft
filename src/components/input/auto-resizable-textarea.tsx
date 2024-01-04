@@ -1,5 +1,6 @@
 "use client";
 
+import { selectIsRemixing } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
 import { useCraftIsOpen, usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
@@ -14,8 +15,8 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
-  useState,
 } from "react";
 
 type Size = "xs" | "sm" | "md" | "lg"; // Extend with more sizes as needed
@@ -113,7 +114,13 @@ const AutoResizableTextarea: React.FC<
     const PlaceholderAnimation = () => {
       const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
       const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-      const [sentences] = useState(shuffle(placeholderSentences));
+      const isRemixing = useSelector(actor, selectIsRemixing);
+
+      const sentences = useMemo(() => {
+        return !isRemixing
+          ? shuffle(placeholderSentences)
+          : shuffle(remixPlaceholderSentences);
+      }, [isRemixing]);
 
       const animatePlaceholder = useCallback(() => {
         let currentSentenceIndex = 0;
@@ -166,7 +173,7 @@ const AutoResizableTextarea: React.FC<
         intervalIdRef.current = setInterval(typeText, 100);
 
         return clearTimers;
-      }, [ref, sentences]);
+      }, [sentences]);
 
       useEffect(() => {
         const cleanup = animatePlaceholder();
@@ -226,4 +233,24 @@ const placeholderSentences = [
   "fig, balsamic vinegar, arugula",
   "eggplant, tomato, ricotta",
   "cucumber, dill, yogurt",
+];
+
+const remixPlaceholderSentences = [
+  "Double the servings",
+  "Adapt for Instant Pot",
+  "Make it one-pan",
+  "Use an air fryer",
+  "Swap in whole grains",
+  "Make it vegetarian",
+  "Add a spicy kick",
+  "Transform into a soup",
+  "Bake instead of fry",
+  "Cook it slow and low",
+  "Turn into a casserole",
+  "Grill for extra flavor",
+  "Make it no-bake",
+  "Substitute with healthier fats",
+  "Switch to gluten-free",
+  "Incorporate a new protein",
+  "Simplify to five ingredients",
 ];
