@@ -202,10 +202,6 @@ export default async function RootLayout({
         for (const char of chunk) {
           charArray.push(char);
         }
-
-        const outputRaw = charArray.join("");
-        // todo meter this?
-        kv.hset(`recipe:${slug}`, { outputRaw }).then(noop);
       }
 
       const outputRaw = charArray.join("");

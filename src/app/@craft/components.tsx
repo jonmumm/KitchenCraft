@@ -1569,7 +1569,10 @@ const SubmitButton = () => {
 const BackButton = () => {
   return (
     <div className="flex flex-row justify-center pointer-events-none py-4">
-      <Badge event={{ type: "BACK" }} className="pointer-events-auto px-3 py-2">
+      <Badge
+        event={{ type: "BACK" }}
+        className="pointer-events-auto px-3 py-2 cursor-pointer"
+      >
         <ChevronLeft size={14} />
          Back
       </Badge>
@@ -1582,7 +1585,7 @@ const ClearButton = () => {
     <div className="flex flex-row justify-center pointer-events-none py-4">
       <Badge
         event={{ type: "CLEAR" }}
-        className="pointer-events-auto px-3 py-2"
+        className="pointer-events-auto px-3 py-2 cursor-pointer"
       >
          Clear
         <XIcon size={14} />
