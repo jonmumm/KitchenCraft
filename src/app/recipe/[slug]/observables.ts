@@ -106,10 +106,8 @@ export const getRecipeStream$ = cache(async (slug: string) => {
 
   // If the recipe exists already, just return it wrapped an observable
   if (recipe) {
-    console.log("GETTING STREAM FROM DB");
     return of(recipe);
   } else {
-    console.log("GETTING STREAM FROM REDIS");
     // Otherwise get the scream that we assume is ongoing
     // and parse its output as we get it, and send it to a
     // replay subject that can be listened to.
@@ -128,7 +126,7 @@ export const getRecipeStream$ = cache(async (slug: string) => {
         const tokenStream = new RecipeTokenStream({
           cacheKey: `recipe:${slug}`,
         });
-        const stream = await tokenStream.getStreamFromCache();
+        const stream = await tokenStream.getStream();
 
         const charArray = [];
         for await (const chunk of stream) {

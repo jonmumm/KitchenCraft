@@ -1,16 +1,16 @@
 import { Card } from "@/components/display/card";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
-import { Recipe as RecipeJSONLDSchema, WithContext } from "schema-dts";
 import Image from "next/image";
+import { Recipe as RecipeJSONLDSchema, WithContext } from "schema-dts";
 
 import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
 import Generator from "@/components/ai/generator";
 import { Badge } from "@/components/display/badge";
-import { ShareButton } from "../components.client";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { CommandItem } from "@/components/input/command";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
+import { LastValue } from "@/components/util/last-value";
 import { db } from "@/db";
 import {
   findLatestRecipeVersion,
@@ -19,7 +19,8 @@ import {
   getRecipe,
   getSortedMediaForRecipe,
 } from "@/db/queries";
-import { getCurrentUserId, getSession } from "@/lib/auth/session";
+import { env } from "@/env.public";
+import { getCurrentUserId } from "@/lib/auth/session";
 import { kv } from "@/lib/kv";
 import {
   FAQsPredictionInputSchema,
@@ -28,19 +29,17 @@ import {
 } from "@/schema";
 import { ObservableType } from "@/types";
 import {
-  BackpackIcon,
   CameraIcon,
   EditIcon,
   GitForkIcon,
   HelpCircle,
-  LibraryIcon,
   MessagesSquareIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   ShuffleIcon,
-  UtensilsCrossedIcon,
 } from "lucide-react";
 import { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ComponentProps, ReactNode, Suspense } from "react";
 import {
@@ -50,6 +49,9 @@ import {
   map,
   takeWhile,
 } from "rxjs";
+import { ShareButton } from "../components.client";
+import { UpvoteButton } from "../upvote-button/component";
+import { Ingredients, Instructions, Tags, Times } from "./components";
 import { getObservables, getRecipeStream$ } from "./observables";
 import { getBaseRecipe, getRecipeOutputRaw } from "./queries";
 import {
@@ -60,13 +62,7 @@ import {
   SousChefOutput,
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
-import { ProductsCarousel } from "./products/components";
-import { Ingredients, Instructions, Tags, Times } from "./components";
-import Link from "next/link";
-import { UpvoteButton } from "../upvote-button/component";
 import { UploadMediaButton } from "./upload-media-button";
-import { LastValue } from "@/components/util/last-value";
-import { env } from "@/env.public";
 
 export const maxDuration = 300;
 // export const dynamic = "force-dynamic";

@@ -5,9 +5,7 @@ import { StringOutputParser } from "langchain/schema/output_parser";
 import { z } from "zod";
 import { getErrorMessage } from "./error";
 import { kv } from "./kv";
-import { withStreamSpan } from "./observability";
 import { assert } from "./utils";
-import { Subject } from "rxjs";
 
 export abstract class TokenStream<T> {
   private cacheKey: string | undefined;
@@ -24,21 +22,34 @@ export abstract class TokenStream<T> {
     return 1;
   }
 
-  public async getStream(input: T): Promise<AsyncIterable<string>> {
+  public async getStream(input?: T): Promise<AsyncIterable<string>> {
     const tokens = this.getDefaultTokens();
-    return this.getOpenAIStream(input, tokens);
-  }
 
-  public async getStreamFromCache(): Promise<AsyncIterable<string>> {
-    assert(this.cacheKey, "expected cacheKey");
     const status = await this.getStatus();
-    console.log("status", status);
     if (status === "running") {
+      // todo if an input is provided, assert here that
+      // it matches the input that in the stream cache
       return this.getRunningStream();
-    } else {
+    } else if (status === "done") {
       return this.getCompletedStream();
+    } else if (input) {
+      return this.getOpenAIStream(input, tokens);
+    } else {
+      throw new Error("no input provided and stream wasnt in cache");
     }
   }
+
+  // public async getStreamFromCache(): Promise<AsyncIterable<string>> {
+  //   assert(this.cacheKey, "expected cacheKey");
+  //   const status = await this.getStatus();
+
+  //   console.log("status", status);
+  //   if (status === "running") {
+  //     return this.getRunningStream();
+  //   } else {
+  //     return this.getCompletedStream();
+  //   }
+  // }
 
   async *getRunningStream(): AsyncIterable<string> {
     if (!this.cacheKey) {
