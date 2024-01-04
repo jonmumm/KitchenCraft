@@ -1,47 +1,160 @@
-import { eventSourceToAsyncIterable } from "@/lib/event-source";
 import { trace } from "@opentelemetry/api";
 import { ChatOpenAI } from "langchain/chat_models/openai";
-import { Ollama } from "langchain/llms/ollama";
-import { PromptTemplate } from "langchain/prompts";
+import { IterableReadableStream } from "langchain/dist/util/stream";
 import { StringOutputParser } from "langchain/schema/output_parser";
-import Replicate from "replicate";
+import { z } from "zod";
 import { getErrorMessage } from "./error";
+import { kv } from "./kv";
 import { withStreamSpan } from "./observability";
+import { assert } from "./utils";
+import { Subject } from "rxjs";
 
-// Define an abstract class that requires implementers to provide a method for getting a stream
 export abstract class TokenStream<T> {
+  private cacheKey: string | undefined;
+
+  constructor(props?: { cacheKey: string | undefined }) {
+    this.cacheKey = props?.cacheKey ? `stream:${props.cacheKey}` : undefined;
+  }
+
   protected getDefaultTokens(): number {
-    // Set a sensible default, or implement logic to determine this dynamically
     return 512;
   }
 
   protected getTemperature(): number {
-    // Set a sensible default, or implement logic to determine this dynamically
     return 1;
   }
 
   public async getStream(input: T): Promise<AsyncIterable<string>> {
-    const template = await this.getSystemMessage(input);
-    // The default tokens number, this should be set as per your requirements or dynamically if needed
     const tokens = this.getDefaultTokens();
+    return this.getOpenAIStream(input, tokens);
+  }
 
-    return this.getOpenAIStream(input, template, tokens);
-    // If the NODE_ENV is production, use the Replicate stream, else use Ollama
-    // if (process.env.NODE_ENV === "production") {
-    //   return this.getReplicateStream(input, template, tokens);
-    // } else {
-    //   return this.getOllamaStream(input, template);
-    // }
+  public async getStreamFromCache(): Promise<AsyncIterable<string>> {
+    assert(this.cacheKey, "expected cacheKey");
+    const status = await this.getStatus();
+    console.log("status", status);
+    if (status === "running") {
+      return this.getRunningStream();
+    } else {
+      return this.getCompletedStream();
+    }
+  }
+
+  async *getRunningStream(): AsyncIterable<string> {
+    if (!this.cacheKey) {
+      throw new Error("Cache key is not set");
+    }
+
+    let lastIndex = 0;
+    while (true) {
+      const chunks = await kv.lrange(this.cacheKey, lastIndex, -1); // Get new chunks since last index
+      if (chunks.length === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Poll every second, adjust as needed
+        continue;
+      }
+      console.log("yielding", chunks);
+
+      for (const chunk of chunks) {
+        yield String(chunk);
+      }
+      lastIndex += chunks.length;
+
+      // Check if the stream has completed
+      const status = await kv.get(`${this.cacheKey}:status`);
+      if (status === "done") {
+        break;
+      }
+    }
+
+    const chunks = await kv.lrange(this.cacheKey, lastIndex, -1); // Get new chunks since last index
+    for (const chunk of chunks) {
+      yield String(chunk);
+    }
+  }
+
+  async *getCompletedStream() {
+    // todo return AsyncIterable<string> here which is the full length of the complete chunk list, sent all at once
+    if (!this.cacheKey) {
+      throw new Error("Cache key is not set");
+    }
+
+    const chunks = await kv.lrange(this.cacheKey, 0, -1); // Assuming `lrange` gets the entire list
+    for (const chunk of chunks) {
+      yield String(chunk);
+    }
   }
 
   protected abstract getSystemMessage(input: T): Promise<string>;
   protected abstract getUserMessage(input: T): Promise<string>;
 
-  // Common logic for processing the stream could be placed here
-  // ...
+  getStatusKey() {
+    return `${this.cacheKey}:status`;
+  }
+
+  statusSchema = z.enum(["running", "done", "uninitialized"]);
+
+  private async getStatus() {
+    return this.statusSchema.parse(
+      (await kv.get(this.getStatusKey())) || "uninitialized"
+    );
+  }
+
+  // If there is a cache key, writes the stream to redis by rpushing each
+  // chunk to a listen `stream:${cacheKey}`.
+  // This allows the stream to be ready by other requests in parallel
+  // by polling the list
+  private async handleStream(
+    rawStream: IterableReadableStream<string>
+  ): Promise<AsyncIterable<string>> {
+    const cacheKey = this.cacheKey;
+    const statusKey = this.getStatusKey();
+
+    // Shared array for batch processing
+    let batch: string[] = [];
+
+    // Flag to indicate stream completion
+    let streamEnded = false;
+
+    // Batch processing function running in its own loop
+    const processStreamInBatches = async () => {
+      assert(cacheKey, "expected cacheKey");
+      await kv.set(statusKey, "running");
+
+      while (!streamEnded || batch.length > 0) {
+        if (batch.length > 0) {
+          const batchToProcess = batch.splice(0, batch.length); // Copy and clear the batch
+          await kv.rpush(cacheKey, ...batchToProcess);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for 10 ms before checking the batch again, todo may not need this
+      }
+      await kv.set(statusKey, "done"); // Set the status to "done" when the stream and batch processing are complete
+    };
+
+    async function* writeStream() {
+      assert(cacheKey, "expected cacheKey");
+
+      for await (const chunk of rawStream) {
+        batch.push(chunk);
+        yield chunk;
+      }
+
+      streamEnded = true;
+    }
+
+    if (cacheKey) {
+      // Start the batch processing function
+      processStreamInBatches();
+
+      // Process the stream
+      return writeStream.bind(this)();
+    } else {
+      // If there's no cacheKey, return the raw stream as is
+      return rawStream as AsyncIterable<string>;
+    }
+  }
+
   protected async getOpenAIStream(
     input: T,
-    template: string,
     tokens: number
   ): Promise<AsyncIterable<string>> {
     const outputParser = new StringOutputParser();
@@ -53,7 +166,6 @@ export abstract class TokenStream<T> {
     const userMessage = await this.getUserMessage(input);
     const systemMessage = await this.getSystemMessage(input);
 
-    // Start a new span for the stream
     const streamSpan = trace.getTracer("default").startSpan("OpenAIStream");
 
     try {
@@ -62,73 +174,11 @@ export abstract class TokenStream<T> {
         ["user", userMessage],
       ]);
 
-      return withStreamSpan(
-        rawStream as AsyncIterable<string>,
-        "OpenAIStream",
-        {
-          "kc.systemMessage": systemMessage,
-          "kc.userMessage": userMessage,
-        }
-      );
+      return this.handleStream(rawStream);
     } catch (error) {
-      // Record the error in the span and end it
       streamSpan.recordException(getErrorMessage(error));
       streamSpan.end();
       throw error;
     }
-  }
-
-  // Common logic for handling different environments' stream sources
-  protected async getReplicateStream(
-    input: T,
-    template: string,
-    tokens: number
-  ): Promise<AsyncIterable<string>> {
-    // ... common logic using Replicate API
-    const replicate = new Replicate();
-    const prompt = await this.getUserMessage(input);
-
-    try {
-      const response = await replicate.predictions.create({
-        version:
-          "7afe21847d582f7811327c903433e29334c31fe861a7cf23c62882b181bacb88",
-        stream: true,
-        input: {
-          temperature: 0.2,
-          max_new_tokens: tokens,
-          prompt_template: template,
-          prompt: prompt,
-        },
-      });
-      const { stream } = response.urls;
-      // assert(stream, "expected streamUrl");
-      if (!stream) throw new Error("expected streamUrl");
-
-      return eventSourceToAsyncIterable(stream);
-    } catch (ex) {
-      console.error(ex);
-      throw ex;
-    }
-  }
-
-  protected async getOllamaStream(
-    input: T,
-    template: string
-  ): Promise<AsyncIterable<string>> {
-    // ... common logic using Ollama API
-    const llm = new Ollama({
-      baseUrl: "http://localhost:11434",
-      model: "mistral-openorca",
-    });
-
-    const promptTemplate = PromptTemplate.fromTemplate(template);
-    const chain = promptTemplate.pipe(llm);
-    const prompt = await this.getUserMessage(input);
-
-    const stream = await chain.stream({
-      prompt: prompt,
-    });
-
-    return stream as AsyncIterable<string>;
   }
 }

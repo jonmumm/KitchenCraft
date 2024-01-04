@@ -26,7 +26,6 @@ import "../styles/globals.css";
 import { Body } from "./components.client";
 import { ApplicationProvider } from "./provider";
 import { RecipeTokenStream } from "./recipe/[slug]/stream";
-import { createRecipe } from "./recipe/lib";
 import "./styles.css";
 
 export const metadata: Metadata = {
@@ -82,7 +81,9 @@ export default async function RootLayout({
     });
 
     (async () => {
-      const recipeTokenStream = new RecipeTokenStream();
+      const recipeTokenStream = new RecipeTokenStream({
+        cacheKey: `recipe:${slug}`,
+      });
       const stream = await recipeTokenStream.getStream(input);
       const parser = new TokenParser(RecipePredictionOutputSchema);
       const charArray: string[] = [];
@@ -91,10 +92,6 @@ export default async function RootLayout({
         for (const char of chunk) {
           charArray.push(char);
         }
-
-        const outputRaw = charArray.join("");
-        // todo meter this?
-        kv.hset(`recipe:${slug}`, { outputRaw }).then(noop);
       }
 
       const outputRaw = charArray.join("");

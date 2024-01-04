@@ -1,13 +1,12 @@
 import { getRecipe } from "@/db/queries";
-import { kv } from "@/lib/kv";
 import { TokenParser } from "@/lib/token-parser";
-import { assert, delay } from "@/lib/utils";
-import { RecipeBaseSchema, RecipePredictionOutputSchema } from "@/schema";
+import { RecipePredictionOutputSchema } from "@/schema";
 import { PromptTemplate } from "langchain/prompts";
 import { cache } from "react";
 import { Observable, ReplaySubject, filter, map, of, takeWhile } from "rxjs";
 import { Recipe } from "../../../db/types";
 import { getBaseRecipe } from "./queries";
+import { RecipeTokenStream } from "./stream";
 import { RecipeData } from "./types";
 
 export const getObservables = (recipe$: Observable<Partial<Recipe>>) => ({
@@ -100,31 +99,22 @@ export const getObservables = (recipe$: Observable<Partial<Recipe>>) => ({
  * @returns
  */
 export const getRecipeStream$ = cache(async (slug: string) => {
-  const subject = new ReplaySubject<Partial<RecipeData>>(1);
   const [recipe, baseRecipe] = await Promise.all([
     getRecipe(slug),
     getBaseRecipe(slug),
   ]);
 
-  const refreshRecipe = async () => {
-    const data = await kv.hmget(`recipe:${slug}`, "outputRaw", "runStatus");
-    const { runStatus, outputRaw } = RecipeBaseSchema.pick({
-      outputRaw: true,
-      runStatus: true,
-    }).parse(data);
-    return { runStatus, outputRaw: outputRaw || "" };
-  };
-
   // If the recipe exists already, just return it wrapped an observable
   if (recipe) {
     return of(recipe);
   } else {
-    // Otherwise we poll the outputRaw from the recipe in the background
-    // try to parse it, and send it to the observable
+    // Otherwise get the scream that we assume is ongoing
+    // and parse its output as we get it, and send it to a
+    // replay subject that can be listened to.
+    const subject = new ReplaySubject<Partial<RecipeData>>(1);
+
     (async () => {
       try {
-        let { runStatus, outputRaw } = baseRecipe;
-        let done = runStatus === "done";
         const parser = new TokenParser(RecipePredictionOutputSchema);
         if (baseRecipe.outputRaw) {
           let output = parser.parsePartial(baseRecipe.outputRaw);
@@ -133,20 +123,27 @@ export const getRecipeStream$ = cache(async (slug: string) => {
           }
         }
 
-        while (!done) {
-          ({ runStatus, outputRaw } = await refreshRecipe());
+        const tokenStream = new RecipeTokenStream({
+          cacheKey: `recipe:${slug}`,
+        });
+        const stream = await tokenStream.getStreamFromCache();
 
+        const charArray = [];
+        for await (const chunk of stream) {
+          if (chunk) {
+            for (const char of chunk) {
+              charArray.push(char);
+            }
+          }
+
+          const outputRaw = charArray.join("");
           const output = parser.parsePartial(outputRaw);
           if (output?.recipe) {
             subject.next(output.recipe);
           }
-          done = runStatus === "done";
-
-          if (!done) {
-            await delay(25);
-          }
         }
-        assert(outputRaw, "expected outputRaw");
+
+        const outputRaw = charArray.join("");
 
         let recipe;
         try {
@@ -160,9 +157,8 @@ export const getRecipeStream$ = cache(async (slug: string) => {
         subject.error(ex);
       }
     })();
+    return subject as Observable<RecipeData>;
   }
-
-  return subject as Observable<RecipeData>;
 });
 
 // export const getGeneratedMedia$ = async (slug: string) => {
