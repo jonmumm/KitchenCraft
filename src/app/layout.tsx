@@ -193,7 +193,9 @@ export default async function RootLayout({
     });
 
     (async () => {
-      const recipeTokenStream = new RecipeTokenStream();
+      const recipeTokenStream = new RecipeTokenStream({
+        cacheKey: `recipe:${slug}`,
+      });
       const stream = await recipeTokenStream.getStream(input);
       const parser = new TokenParser(RecipePredictionOutputSchema);
       const charArray: string[] = [];
