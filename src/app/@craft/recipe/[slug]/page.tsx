@@ -10,7 +10,14 @@ import { SuggestionPredictionOutputSchema } from "@/schema";
 import { SuggestionPredictionPartialOutput } from "@/types";
 import { Suspense } from "react";
 import { twc } from "react-twc";
-import { ReplaySubject, filter, lastValueFrom, map, takeUntil } from "rxjs";
+import {
+  ReplaySubject,
+  filter,
+  lastValueFrom,
+  map,
+  take,
+  takeUntil,
+} from "rxjs";
 import { z } from "zod";
 import { NewRecipeResultsView } from "../../components";
 import {
@@ -22,6 +29,8 @@ import {
   ResultCard,
 } from "../../components.client";
 import { RemixSuggestionsTokenStream } from "./remix-suggestions/stream";
+import { ChevronRightIcon, ShuffleIcon } from "lucide-react";
+import { Badge } from "@/components/display/badge";
 
 type Props = {
   params: { slug: string };
@@ -71,18 +80,18 @@ export default async function Page({
     return (
       <>
         <Container>
-          <Label className="text-xs text-muted-foreground uppercase font-semibold">
-            Remixing
-          </Label>
-          <Card>
+          <Card className="border-dashed">
             <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
+              <Label className="text-xs text-muted-foreground uppercase font-semibold">
+                Remixing
+              </Label>
               <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
                 {name}
               </div>
               <p className="line-clamp-4">{description}</p>
             </div>
           </Card>
-          {/* <Suspense fallback={null}>
+          <Suspense fallback={null}>
             <Generator />
           </Suspense>
           <Label className="text-xs text-muted-foreground uppercase font-semibold">
@@ -95,7 +104,8 @@ export default async function Page({
                 subject.pipe(
                   filter((output) => {
                     return !!output?.suggestions?.[index + 1];
-                  })
+                  }),
+                  take(1)
                 )
               )
             );
@@ -111,17 +121,42 @@ export default async function Page({
 
             return (
               <ResultCard key={index} index={index}>
-                <Suspense fallback={<Skeleton className="w-full h-8" />}>
+                <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
+                  <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
+                    <Suspense
+                      fallback={<Skeleton className="w-2/3 sm:w-full h-7" />}
+                    >
+                      <LastValue observable={name$} />
+                    </Suspense>
+                  </div>
+                  {description ? (
+                    <p className="line-clamp-3">{description}</p>
+                  ) : (
+                    <div className="flex flex-col gap-1 w-full">
+                      <Skeleton className="w-full h-5" />
+                      <Skeleton className="w-full h-5" />
+                      <Skeleton className="w-full h-5" />
+                    </div>
+                  )}
+                </div>
+                <div className="w-24 flex flex-row justify-center">
+                  <Badge className="flex flex-col gap-1 rounded-md px-2 py-1">
+                    <ShuffleIcon />
+                    Remix
+                  </Badge>
+                  {/* <SuggestionIcon index={index} /> */}
+                </div>
+                {/* <Suspense fallback={<Skeleton className="w-full h-8" />}>
                   <h3 className="font-semibold text-lg">
                     <LastValue observable={name$} />
                   </h3>
                 </Suspense>
                 <Suspense fallback={<Skeleton className="w-full h-8" />}>
                   <LastValue observable={desc$} />
-                </Suspense>
+                </Suspense> */}
               </ResultCard>
             );
-          })} */}
+          })}
         </Container>
       </>
     );

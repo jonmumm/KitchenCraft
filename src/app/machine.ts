@@ -388,10 +388,30 @@ export const createCraftMachine = ({
               on: {
                 REMIX: {
                   target: "Remix",
-                  actions: assign({
-                    currentRemixSlug: ({ event }) => event.slug,
-                    prompt: undefined,
-                  }),
+                  actions: [
+                    () => {
+                      const promptEl = document.body.querySelector(
+                        "#prompt"
+                      ) as HTMLTextAreaElement | undefined;
+                      if (promptEl) {
+                        promptEl.value = "";
+                      }
+                    },
+                    assign({
+                      currentRemixSlug: ({ event }) => event.slug,
+                      prompt: undefined,
+                    }),
+                    {
+                      type: "replaceQueryParameters",
+                      params({ context, event }) {
+                        return {
+                          paramSet: {
+                            prompt: undefined,
+                          },
+                        };
+                      },
+                    },
+                  ],
                 },
               },
               description: "Creating a new recipe",
