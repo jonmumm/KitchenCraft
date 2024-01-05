@@ -63,7 +63,6 @@ export abstract class TokenStream<T> {
         await new Promise((resolve) => setTimeout(resolve, 1000)); // Poll every second, adjust as needed
         continue;
       }
-      console.log("yielding", chunks);
 
       for (const chunk of chunks) {
         yield String(chunk);
