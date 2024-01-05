@@ -748,7 +748,6 @@ export const RemixSuggestionsPredictionInputSchema = z.object({
     ingredients: true,
     instructions: true,
     tags: true,
-    cookTime: true,
     yield: true,
   }),
 });

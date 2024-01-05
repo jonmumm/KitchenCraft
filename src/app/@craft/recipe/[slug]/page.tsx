@@ -1,13 +1,16 @@
+import { getRecipeStream$ } from "@/app/recipe/[slug]/observables";
 import { getBaseRecipe } from "@/app/recipe/[slug]/queries";
 import SubjectGenerator from "@/components/ai/subject-generator";
 import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
+import { Skeleton } from "@/components/display/skeleton";
+import { LastValue } from "@/components/util/last-value";
 import { getRecipe } from "@/db/queries";
-import { assert } from "@/lib/utils";
 import { SuggestionPredictionOutputSchema } from "@/schema";
 import { SuggestionPredictionPartialOutput } from "@/types";
+import { Suspense } from "react";
 import { twc } from "react-twc";
-import { ReplaySubject, filter, map, takeUntil, takeWhile } from "rxjs";
+import { ReplaySubject, filter, lastValueFrom, map, takeUntil } from "rxjs";
 import { z } from "zod";
 import { NewRecipeResultsView } from "../../components";
 import {
@@ -19,9 +22,6 @@ import {
   ResultCard,
 } from "../../components.client";
 import { RemixSuggestionsTokenStream } from "./remix-suggestions/stream";
-import { LastValue } from "@/components/util/last-value";
-import { Suspense } from "react";
-import { Skeleton } from "@/components/display/skeleton";
 
 type Props = {
   params: { slug: string };
@@ -44,14 +44,28 @@ export default async function Page({
   const CreatingView = () => <CraftingPlacholder />;
   const subject = new ReplaySubject<SuggestionPredictionPartialOutput>(1);
 
-  const tokenStream = await new RemixSuggestionsTokenStream({
-    cacheKey: `recipe:${slug}`,
-  });
-  const stream = recipe
-    ? await tokenStream.getStream({
-        recipe,
-      })
-    : await tokenStream.getStream();
+  const Generator = async () => {
+    const tokenStream = await new RemixSuggestionsTokenStream({
+      cacheKey: `remix-suggestions:${slug}`,
+    });
+
+    let stream: Awaited<ReturnType<typeof tokenStream.getStream>>;
+    if (!recipe) {
+      const recipeStream = await getRecipeStream$(slug);
+      const recipe = await lastValueFrom(recipeStream);
+      stream = await tokenStream.getStream({ recipe });
+    } else {
+      stream = await tokenStream.getStream({ recipe });
+    }
+
+    return (
+      <SubjectGenerator
+        stream={stream}
+        schema={SuggestionPredictionOutputSchema}
+        subject={subject}
+      />
+    );
+  };
 
   const RemixSuggestionsView = () => {
     return (
@@ -68,11 +82,9 @@ export default async function Page({
               <p className="line-clamp-4">{description}</p>
             </div>
           </Card>
-          <SubjectGenerator
-            stream={stream}
-            schema={SuggestionPredictionOutputSchema}
-            subject={subject}
-          />
+          {/* <Suspense fallback={null}>
+            <Generator />
+          </Suspense>
           <Label className="text-xs text-muted-foreground uppercase font-semibold">
             Ideas
           </Label>
@@ -109,15 +121,7 @@ export default async function Page({
                 </Suspense>
               </ResultCard>
             );
-          })}
-          <Card>
-            <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
-              <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
-                {name}
-              </div>
-              <p className="line-clamp-4">{description}</p>
-            </div>
-          </Card>
+          })} */}
         </Container>
       </>
     );

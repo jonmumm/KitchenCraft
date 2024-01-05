@@ -10,7 +10,6 @@ export class RemixSuggestionsTokenStream extends TokenStream<RemixSuggestionsPre
       name: input.recipe.name,
       description: input.recipe.description,
       yield: input.recipe.yield,
-      cookTime: input.recipe.cookTime,
       tags: Array.isArray(input.recipe.tags)
         ? input.recipe.tags.join("\n")
         : "",
@@ -40,7 +39,6 @@ recipe:
   name: {name}
   description: {description}
   yield: {yield}
-  cookTime: {cookTime}
   tags: {tags}
   ingredients: {ingredients}
   instructions: {instructions}
