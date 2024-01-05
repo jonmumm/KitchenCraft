@@ -534,7 +534,7 @@ export default async function Page(props: Props) {
                 >
                   <ShuffleIcon />
                 </Button>
-                <Link href={`/recipe/${slug}/edit`}>
+                {/* <Link href={`/recipe/${slug}/edit`}>
                   <Button
                     variant="outline"
                     aria-label="Remix"
@@ -542,7 +542,7 @@ export default async function Page(props: Props) {
                   >
                     <EditIcon />
                   </Button>
-                </Link>
+                </Link> */}
                 <Link href={`/recipe/${slug}/history`}>
                   <Button
                     variant="outline"
