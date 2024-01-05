@@ -421,7 +421,11 @@ export const createCraftMachine = ({
                   initial: "Idle",
                   on: {
                     CLEAR: {
-                      target: ".Holding",
+                      target: ".Idle",
+                      actions: assign({
+                        instantRecipeMetadata: undefined,
+                        instantRecipeResultId: undefined,
+                      }),
                     },
                     CLOSE: {
                       target: ".Idle",
@@ -503,7 +507,11 @@ export const createCraftMachine = ({
                   initial: "Idle",
                   on: {
                     CLEAR: {
-                      target: ".Holding",
+                      target: ".Idle",
+                      actions: assign({
+                        suggestions: undefined,
+                        suggestionsResultId: undefined,
+                      }),
                     },
                     CLOSE: {
                       target: ".Idle",
