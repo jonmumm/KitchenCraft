@@ -17,6 +17,7 @@ import {
   selectIsRemixing,
   selectPromptLength,
 } from "./selectors";
+import ClientOnly from "@/components/util/client-only";
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
@@ -113,7 +114,9 @@ export const InstantRecipeItem = () => {
       </div>
       <div className="w-24 flex flex-row justify-center">
         {/* <Button event={{ type: "INSTANT_RECIPE" }} variant="ghost" size="icon"> */}
-        <InstantRecipeIcon />
+        <ClientOnly>
+          <InstantRecipeIcon />
+        </ClientOnly>
         {/* </Button> */}
       </div>
       {/* <Badge className="opacity-20">Craft</Badge> */}
@@ -178,7 +181,9 @@ export const SuggestionItem = ({ index }: { index: number }) => {
         )}
       </div>
       <div className="w-24 flex flex-row justify-center">
-        <SuggestionIcon index={index} />
+        <ClientOnly>
+          <SuggestionIcon index={index} />
+        </ClientOnly>
       </div>
     </ResultCard>
   );
@@ -187,12 +192,14 @@ export const SuggestionItem = ({ index }: { index: number }) => {
 const SuggestionIcon = ({ index }: { index: number }) => {
   const actor = useContext(CraftContext);
   const isTyping = useSelector(actor, (state) => state.matches("Typing.True"));
-  const isLoading = useSelector(
-    actor,
-    (state) =>
-      state.matches("Suggestions.InProgress") &&
-      !state.context.suggestions?.[index + 1]
+  const isSuggestionsLoading = useSelector(actor, (state) =>
+    state.matches("Suggestions.InProgress")
   );
+
+  const isLoading =
+    useSelector(actor, (state) => !state.context.suggestions?.[index + 1]) ||
+    isSuggestionsLoading;
+
   const hasSuggestion = useSelector(
     actor,
     (state) => !!state.context.suggestions?.[index]

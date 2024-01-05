@@ -80,15 +80,12 @@ export default async function Page({
     return (
       <>
         <Container>
-          <Card className="border-dashed">
-            <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
-              <Label className="text-xs text-muted-foreground uppercase font-semibold">
-                Remixing
-              </Label>
-              <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
-                {name}
-              </div>
-              <p className="line-clamp-4">{description}</p>
+          <Card className="border-dashed flex-flex-col gap-2 p-3">
+            <Label className="text-xs text-muted-foreground uppercase font-semibold">
+              Remixing
+            </Label>
+            <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
+              {name}
             </div>
           </Card>
           {/* <Suspense fallback={null}>
