@@ -78,7 +78,8 @@ export const selectPromptLength = (state: CraftSnapshot) =>
   state.context.prompt?.length || 0;
 
 export const selectIsInstantRecipeLoading = (state: CraftSnapshot) =>
-  state.matches("Mode.New.InstantRecipe.InProgress");
+  state.matches("Mode.New.InstantRecipe.InProgress") || state.matches("Mode.New.InstantRecipe.Holding");
 
 export const selectIsSuggestionsLoading = (state: CraftSnapshot) =>
-  state.matches("Mode.New.Suggestions.InProgress");
+  state.matches("Mode.New.Suggestions.InProgress") || state.matches("Mode.New.Suggestions.Holding");
+  ;

@@ -15,6 +15,7 @@ import {
   selectIsCreating,
   selectIsInstantRecipeLoading,
   selectIsRemixing,
+  selectIsSuggestionsLoading,
   selectPromptLength,
 } from "./selectors";
 import ClientOnly from "@/components/util/client-only";
@@ -192,12 +193,10 @@ export const SuggestionItem = ({ index }: { index: number }) => {
 const SuggestionIcon = ({ index }: { index: number }) => {
   const actor = useContext(CraftContext);
   const isTyping = useSelector(actor, (state) => state.matches("Typing.True"));
-  const isSuggestionsLoading = useSelector(actor, (state) =>
-    state.matches("Suggestions.InProgress")
-  );
+  const isSuggestionsLoading = useSelector(actor, selectIsSuggestionsLoading);
 
   const isLoading =
-    useSelector(actor, (state) => !state.context.suggestions?.[index + 1]) ||
+    useSelector(actor, (state) => !state.context.suggestions?.[index + 1]) &&
     isSuggestionsLoading;
 
   const hasSuggestion = useSelector(
