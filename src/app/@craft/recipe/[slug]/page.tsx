@@ -36,7 +36,6 @@ export default async function Page({
 }) {
   const slug = z.string().parse(params["slug"]);
   const recipe = await getRecipe(slug);
-  assert(recipe, "expected recipe");
   const { name, description } = await getBaseRecipe(slug);
   // const recipeData$ = await getBase$(slug);
 
@@ -44,11 +43,15 @@ export default async function Page({
 
   const CreatingView = () => <CraftingPlacholder />;
   const subject = new ReplaySubject<SuggestionPredictionPartialOutput>(1);
-  const stream = await new RemixSuggestionsTokenStream({
+
+  const tokenStream = await new RemixSuggestionsTokenStream({
     cacheKey: `recipe:${slug}`,
-  }).getStream({
-    recipe,
   });
+  const stream = recipe
+    ? await tokenStream.getStream({
+        recipe,
+      })
+    : await tokenStream.getStream();
 
   const RemixSuggestionsView = () => {
     return (
