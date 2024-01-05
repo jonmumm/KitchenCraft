@@ -1,19 +1,16 @@
-import { ReactNode, useLayoutEffect, useState } from "react";
+"use client";
+
+// https://twitter.com/TkDodo/status/1741068994981826947/photo/2
+import { ReactNode, useSyncExternalStore } from "react";
 
 const ClientOnly = ({ children }: { children: ReactNode }) => {
-  const [isClient, setIsClient] = useState(false);
+  const value = useSyncExternalStore(
+    () => () => {},
+    () => "c",
+    () => "s"
+  );
 
-  useLayoutEffect(() => {
-    // This will run only once after the initial render
-    setIsClient(true);
-  }, []);
-
-  // Don't render on server
-  if (!isClient) {
-    return null;
-  }
-
-  return children;
+  return value === "s" ? null : <>{children}</>;
 };
 
 export default ClientOnly;

@@ -53,28 +53,28 @@ export default async function Page({
   const CreatingView = () => <CraftingPlacholder />;
   const subject = new ReplaySubject<SuggestionPredictionPartialOutput>(1);
 
-  const Generator = async () => {
-    const tokenStream = await new RemixSuggestionsTokenStream({
-      cacheKey: `remix-suggestions:${slug}`,
-    });
+  // const Generator = async () => {
+  //   const tokenStream = await new RemixSuggestionsTokenStream({
+  //     cacheKey: `remix-suggestions:${slug}`,
+  //   });
 
-    let stream: Awaited<ReturnType<typeof tokenStream.getStream>>;
-    if (!recipe) {
-      const recipeStream = await getRecipeStream$(slug);
-      const recipe = await lastValueFrom(recipeStream);
-      stream = await tokenStream.getStream({ recipe });
-    } else {
-      stream = await tokenStream.getStream({ recipe });
-    }
+  //   let stream: Awaited<ReturnType<typeof tokenStream.getStream>>;
+  //   if (!recipe) {
+  //     const recipeStream = await getRecipeStream$(slug);
+  //     const recipe = await lastValueFrom(recipeStream);
+  //     stream = await tokenStream.getStream({ recipe });
+  //   } else {
+  //     stream = await tokenStream.getStream({ recipe });
+  //   }
 
-    return (
-      <SubjectGenerator
-        stream={stream}
-        schema={SuggestionPredictionOutputSchema}
-        subject={subject}
-      />
-    );
-  };
+  //   return (
+  //     <SubjectGenerator
+  //       stream={stream}
+  //       schema={SuggestionPredictionOutputSchema}
+  //       subject={subject}
+  //     />
+  //   );
+  // };
 
   const RemixSuggestionsView = () => {
     return (
@@ -91,13 +91,13 @@ export default async function Page({
               <p className="line-clamp-4">{description}</p>
             </div>
           </Card>
-          <Suspense fallback={null}>
+          {/* <Suspense fallback={null}>
             <Generator />
-          </Suspense>
+          </Suspense> */}
           <Label className="text-xs text-muted-foreground uppercase font-semibold">
             Ideas
           </Label>
-          {new Array(6).fill(0).map((_, index) => {
+          {/* {new Array(6).fill(0).map((_, index) => {
             const suggesion$ = subject.pipe(
               map((output) => output?.suggestions?.[index]),
               takeUntil(
@@ -112,11 +112,13 @@ export default async function Page({
 
             const name$ = suggesion$.pipe(
               filter((item) => !!item?.name),
-              map((item) => item?.name!)
+              map((item) => item?.name!),
+              take(1)
             );
             const desc$ = suggesion$.pipe(
               filter((item) => !!item?.description),
-              map((item) => item?.description!)
+              map((item) => item?.description!),
+              take(1)
             );
 
             return (
@@ -129,34 +131,29 @@ export default async function Page({
                       <LastValue observable={name$} />
                     </Suspense>
                   </div>
-                  {description ? (
-                    <p className="line-clamp-3">{description}</p>
-                  ) : (
-                    <div className="flex flex-col gap-1 w-full">
-                      <Skeleton className="w-full h-5" />
-                      <Skeleton className="w-full h-5" />
-                      <Skeleton className="w-full h-5" />
-                    </div>
-                  )}
+                  <Suspense
+                    fallback={
+                      <div className="flex flex-col gap-1 w-full">
+                        <Skeleton className="w-full h-5" />
+                        <Skeleton className="w-full h-5" />
+                        <Skeleton className="w-full h-5" />
+                      </div>
+                    }
+                  >
+                    <p>
+                      <LastValue observable={desc$} />
+                    </p>
+                  </Suspense>
                 </div>
                 <div className="w-24 flex flex-row justify-center">
                   <Badge className="flex flex-col gap-1 rounded-md px-2 py-1">
                     <ShuffleIcon />
                     Remix
                   </Badge>
-                  {/* <SuggestionIcon index={index} /> */}
                 </div>
-                {/* <Suspense fallback={<Skeleton className="w-full h-8" />}>
-                  <h3 className="font-semibold text-lg">
-                    <LastValue observable={name$} />
-                  </h3>
-                </Suspense>
-                <Suspense fallback={<Skeleton className="w-full h-8" />}>
-                  <LastValue observable={desc$} />
-                </Suspense> */}
               </ResultCard>
             );
-          })}
+          })} */}
         </Container>
       </>
     );

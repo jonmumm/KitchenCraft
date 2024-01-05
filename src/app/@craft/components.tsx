@@ -13,6 +13,7 @@ import {
   InstantRecipeItem,
   SuggestionItem,
 } from "./components.client";
+import ClientOnly from "@/components/util/client-only";
 
 export const TrendingIngredients = () => {
   const arr = new Array(30).fill(0);
@@ -112,12 +113,14 @@ export const NewRecipeResultsView = () => {
         })}
       </Container>
       <Footer>
-        <CraftEmpty>
-          <BackButton />
-        </CraftEmpty>
-        <CraftNotEmpty>
-          <ClearButton />
-        </CraftNotEmpty>
+        <ClientOnly>
+          <CraftEmpty>
+            <BackButton />
+          </CraftEmpty>
+          <CraftNotEmpty>
+            <ClearButton />
+          </CraftNotEmpty>
+        </ClientOnly>
       </Footer>
     </>
   );
@@ -1572,6 +1575,7 @@ const BackButton = () => {
       <Badge
         event={{ type: "BACK" }}
         className="pointer-events-auto px-3 py-2 cursor-pointer"
+        suppressHydrationWarning
       >
         <ChevronLeft size={14} />
          Back
@@ -1586,6 +1590,7 @@ const ClearButton = () => {
       <Badge
         event={{ type: "CLEAR" }}
         className="pointer-events-auto px-3 py-2 cursor-pointer"
+        suppressHydrationWarning
       >
          Clear
         <XIcon size={14} />

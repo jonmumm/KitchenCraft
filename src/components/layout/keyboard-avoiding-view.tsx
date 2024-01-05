@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, useCallback, useEffect, useRef } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
 interface KeyboardAvoidingViewProps {
   children: ReactNode;

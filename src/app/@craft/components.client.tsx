@@ -163,9 +163,6 @@ export const SuggestionItem = ({ index }: { index: number }) => {
   );
   return (
     <ResultCard event={{ type: "SELECT_RESULT", index }} index={index + 1}>
-      {/* <Avatar className="opacity-20">
-        <AvatarFallback>{index + 1}.</AvatarFallback>
-      </Avatar> */}
       <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
         <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
           {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
@@ -183,7 +180,6 @@ export const SuggestionItem = ({ index }: { index: number }) => {
       <div className="w-24 flex flex-row justify-center">
         <SuggestionIcon index={index} />
       </div>
-      {/* <Badge className="opacity-20">Craft</Badge> */}
     </ResultCard>
   );
 };
