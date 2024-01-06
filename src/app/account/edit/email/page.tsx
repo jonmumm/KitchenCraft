@@ -1,35 +1,56 @@
+import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
+import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
+import { getCurrentEmail } from "@/lib/auth/session";
 
 export default async function Page() {
+  const email = await getCurrentEmail();
   // todo an email edit form
   return (
-    <>
-      <div className="space-y-2">
+    <Card className="max-w-3xl p-4 m-4 sm:mx-auto">
+      <div className="flex flex-col gap-3">
         <Label>Current Email</Label>
-        <p className="p-2 rounded">{email}</p>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="editEmail">New Email</Label>
         <Input
-          id="editEmail"
+          id="email"
+          defaultValue={email || ""}
+          disabled
           pattern='"[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$"'
           placeholder="m@example.com"
           required
           type="email"
         />
-        <Badge className="mt-1" variant="warning">
-          Please ensure your email is in the correct format.
-        </Badge>
+        <Label htmlFor="editEmail">New Email</Label>
+        <Input
+          id="editEmail"
+          autoFocus
+          pattern='"[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$"'
+          placeholder="m@example.com"
+          required
+          type="email"
+        />
+        {/* <div>
+          <Badge variant="warning">
+            Please ensure your email is in the correct format.
+          </Badge>
+        </div> */}
+        <Label htmlFor="editEmail">Confirm Email</Label>
+        <Input
+          id="confirmEmail"
+          pattern='"[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$"'
+          placeholder="m@example.com"
+          required
+          type="email"
+        />
+        {/* <div>
+          <Badge variant="warning">
+            Please ensure your email is in the correct format.
+          </Badge>
+        </div> */}
+        <Button className="w-full" disabled type="submit">
+          Update
+        </Button>
       </div>
-      <div className="flex justify-between">
-        <Button className="w-1/2 mr-2" disabled variant="outline">
-          Cancel
-        </Button>
-        <Button className="w-1/2 ml-2" disabled type="submit">
-          Save Changes
-        </Button>
-      </div>{" "}
-    </>
+    </Card>
   );
 }
