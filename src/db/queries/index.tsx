@@ -1093,10 +1093,11 @@ export const findLatestRecipeVersion = async (slug: string) => {
   const results = await db
     .select({
       versionId: max(RecipesTable.versionId).mapWith(Number),
+      prompt: RecipesTable.prompt,
     })
     .from(RecipesTable)
     .innerJoin(subQuery, eq(RecipesTable.id, subQuery.id))
-    .groupBy(RecipesTable.id)
+    .groupBy(RecipesTable.id, RecipesTable.prompt)
     .execute();
 
   return results[0];

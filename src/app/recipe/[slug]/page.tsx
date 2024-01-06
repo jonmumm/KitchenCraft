@@ -702,6 +702,18 @@ export default async function Page(props: Props) {
                         <span className="text-muted-foreground text-sm italic">
                           &quot;{version.prompt}.&quot;
                         </span>
+                        <Button
+                          event={{
+                            type: "REMIX",
+                            slug,
+                            prompt: version.prompt,
+                          }}
+                          variant="outline"
+                          className="flex flex-row gap-1"
+                        >
+                          <span>Remix</span>
+                          <ShuffleIcon size={16} />
+                        </Button>
                       </div>
                       <hr />
                     </li>
@@ -710,10 +722,7 @@ export default async function Page(props: Props) {
                 <li>
                   <hr />
                   <div className="timeline-middle">
-                    <Button variant="outline" className="flex flex-row gap-1">
-                      <span>Create Remix</span>
-                      <ShuffleIcon size={16} />
-                    </Button>
+                    <Badge>From Prompt</Badge>
                   </div>
                   <div className="timeline-end"></div>
                 </li>

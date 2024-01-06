@@ -41,7 +41,7 @@ import { CraftSnapshot } from "../machine";
 //   state.matches("Mode.Modify.Scale");
 
 export const selectIsOpen = (state: CraftSnapshot) => {
-  return state.matches("OpenState.Open");
+  return state.matches("Open.True");
 };
 
 export const selectShowOverlay = (state: CraftSnapshot) => {

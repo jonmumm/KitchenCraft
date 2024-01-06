@@ -1,9 +1,10 @@
 "use client";
 
-import { selectIsRemixing } from "@/app/@craft/selectors";
+import { selectIsOpen, selectIsRemixing } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
 import { useCraftIsOpen, usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
+import { useSelectorCallback } from "@/hooks/useSelectorCallback";
 import { useSend } from "@/hooks/useSend";
 import { assert, shuffle } from "@/lib/utils";
 
@@ -55,6 +56,7 @@ const AutoResizableTextarea: React.FC<
       send({ type: "HYDRATE_INPUT", ref: textareaRef.current });
     }
   }, [send]);
+
   const ref = props.ref || textareaRef;
   const resizeTextarea = useCallback(() => {
     const textarea = textareaRef.current;
@@ -72,6 +74,7 @@ const AutoResizableTextarea: React.FC<
     const requiredHeight = numberOfLines * lineHeight;
     textarea.style.height = `${requiredHeight}px`;
   }, []);
+  useSelectorCallback(actor, selectIsOpen, resizeTextarea);
 
   useEffect(() => {
     resizeTextarea();

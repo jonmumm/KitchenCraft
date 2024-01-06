@@ -389,24 +389,27 @@ export const createCraftMachine = ({
                 REMIX: {
                   target: "Remix",
                   actions: [
-                    () => {
+                    ({ event }) => {
                       const promptEl = document.body.querySelector(
                         "#prompt"
                       ) as HTMLTextAreaElement | undefined;
                       if (promptEl) {
-                        promptEl.value = "";
+                        promptEl.value = event.prompt || "";
+                        setTimeout(() => {
+                          promptEl.focus();
+                        }, 25);
                       }
                     },
                     assign({
                       currentRemixSlug: ({ event }) => event.slug,
-                      prompt: undefined,
+                      prompt: ({ event }) => event.prompt,
                     }),
                     {
                       type: "replaceQueryParameters",
                       params({ context, event }) {
                         return {
                           paramSet: {
-                            prompt: undefined,
+                            prompt: event.prompt,
                           },
                         };
                       },

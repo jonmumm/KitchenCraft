@@ -458,6 +458,7 @@ export const UpvoteEventSchema = z.object({
 export const RemixEventSchema = z.object({
   type: z.literal("REMIX"),
   slug: SlugSchema,
+  prompt: z.string().optional(),
 });
 
 export const ShareEventSchema = z.object({
