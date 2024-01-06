@@ -20,6 +20,7 @@ export const getAllVersionsOfRecipeBySlug = async (
   const query = dbOrTransaction
     .select({
       id: RecipesTable.id,
+      name: RecipesTable.name,
       prompt: RecipesTable.prompt,
       // Select other fields if necessary
     })
