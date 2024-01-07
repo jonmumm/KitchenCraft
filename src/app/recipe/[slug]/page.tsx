@@ -23,6 +23,7 @@ import {
 import { env } from "@/env.public";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { kv } from "@/lib/kv";
+import { delay } from "@/lib/utils";
 import {
   FAQsPredictionInputSchema,
   QuestionsPredictionOutputSchema,
@@ -64,9 +65,9 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
-import { delay } from "@/lib/utils";
 
 export const maxDuration = 300;
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: { slug: string };
@@ -406,8 +407,8 @@ export default async function Page(props: Props) {
       let allVersions = versions;
       if (!recipe) {
         // If we didnt have recipe initially, refetch all version
-        noStore();
         await delay(100); // timing hack
+        noStore();
         allVersions = await getAllVersionsOfRecipeBySlug(db, slug);
       }
 
