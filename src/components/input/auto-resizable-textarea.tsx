@@ -74,7 +74,11 @@ const AutoResizableTextarea: React.FC<
     const requiredHeight = numberOfLines * lineHeight;
     textarea.style.height = `${requiredHeight}px`;
   }, []);
-  useSelectorCallback(actor, selectIsOpen, resizeTextarea);
+  useSelectorCallback(actor, selectIsOpen, (value) => {
+    setTimeout(() => {
+      resizeTextarea();
+    }, 0);
+  });
 
   useEffect(() => {
     resizeTextarea();

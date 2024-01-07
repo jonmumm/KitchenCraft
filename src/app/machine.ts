@@ -433,6 +433,14 @@ export const createCraftMachine = ({
                     CLOSE: {
                       target: ".Idle",
                     },
+                    NEW_RECIPE: {
+                      target: ".Idle",
+                      guard: ({ event }) => !!event.prompt,
+                      actions: assign({
+                        instantRecipeMetadata: undefined,
+                        instantRecipeResultId: undefined,
+                      }),
+                    },
                   },
                   states: {
                     Idle: {
@@ -518,6 +526,14 @@ export const createCraftMachine = ({
                     },
                     CLOSE: {
                       target: ".Idle",
+                    },
+                    NEW_RECIPE: {
+                      target: ".Idle",
+                      guard: ({ event }) => !!event.prompt,
+                      actions: assign({
+                        suggestions: undefined,
+                        suggestionsResultId: undefined,
+                      }),
                     },
                   },
                   states: {

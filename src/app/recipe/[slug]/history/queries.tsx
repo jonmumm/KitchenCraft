@@ -7,6 +7,7 @@ export const getAllVersionsOfRecipeBySlug = async (
   dbOrTransaction: DbOrTransaction,
   slug: string
 ) => {
+  console.log("Get all versions");
   // First, fetch the id corresponding to the slug
   const subQuery = dbOrTransaction
     .select({
