@@ -75,6 +75,7 @@ type Props = {
 };
 
 export default async function Page(props: Props) {
+  noStore();
   const { slug } = props.params;
   const [
     baseRecipe,
@@ -409,7 +410,6 @@ export default async function Page(props: Props) {
       if (!recipe) {
         // If we didnt have recipe initially, refetch all version
         await delay(100); // timing hack
-        noStore();
         allVersions = await getAllVersionsOfRecipeBySlug(db, slug);
       }
 
