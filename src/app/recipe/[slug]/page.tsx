@@ -31,13 +31,11 @@ import { ObservableType } from "@/types";
 import {
   AxeIcon,
   CameraIcon,
-  ExternalLinkIcon,
   GitForkIcon,
   HelpCircle,
   MessagesSquareIcon,
   ScrollIcon,
   ShoppingBasketIcon,
-  ShuffleIcon,
 } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -45,10 +43,14 @@ import { redirect } from "next/navigation";
 import { ComponentProps, ReactNode, Suspense } from "react";
 import {
   BehaviorSubject,
+  concatMap,
   defaultIfEmpty,
+  last,
   lastValueFrom,
   map,
-  takeWhile,
+  of,
+  shareReplay,
+  takeWhile
 } from "rxjs";
 import { ShareButton } from "../components.client";
 import { UpvoteButton } from "../upvote-button/component";
@@ -67,7 +69,7 @@ import {
 import { UploadMediaButton } from "./upload-media-button";
 
 export const maxDuration = 300;
-// export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: { slug: string };
@@ -403,6 +405,19 @@ export default async function Page(props: Props) {
   // };
 
   const History = () => {
+    const versions$ = recipeData$.pipe(
+      last(),
+      concatMap((recipeData) => {
+        if (!recipe) {
+          // todo revalidate here...
+          return getAllVersionsOfRecipeBySlug(db, recipeData.slug);
+        } else {
+          return of(versions);
+        }
+      }),
+      shareReplay(1)
+    );
+
     return (
       <>
         <div className="px-5">
@@ -415,42 +430,45 @@ export default async function Page(props: Props) {
         </div>
         <div className="p-4">
           <ul className="timeline max-sm:timeline-compact timeline-vertical">
-            {versions.map((version, index) => {
-              return (
-                <li key={index}>
-                  {index !== 0 && <hr />}
-                  <div className="timeline-start flex flex-col gap-1">
-                    <span className="text-muted-foreground text-xs">
-                      Fri Dec 29 @ 10:32am
-                    </span>
-                    <div className="flex flex-row max-sm:justify-start justify-end">
-                      <Badge variant="secondary">Version {index}</Badge>
-                    </div>
-                  </div>
-                  <div className="timeline-middle">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div className="timeline-end pt-8 pb-2">
-                    <div>
-                      <h3 className="text-sm font-medium inline-block">
-                        {version.name}
-                      </h3>
-                    </div>
-                    <span className="text-muted-foreground text-sm italic">
-                      &quot;{version.prompt}.&quot;
-                    </span>
-                    {/* <Badge
+            <AsyncRenderFirstValue
+              observable={versions$}
+              render={(versions) => {
+                return versions.map((version, index) => {
+                  return (
+                    <li key={index}>
+                      {index !== 0 && <hr />}
+                      <div className="timeline-start flex flex-col gap-1">
+                        <span className="text-muted-foreground text-xs">
+                          Fri Dec 29 @ 10:32am
+                        </span>
+                        <div className="flex flex-row max-sm:justify-start justify-end">
+                          <Badge variant="secondary">Version {index}</Badge>
+                        </div>
+                      </div>
+                      <div className="timeline-middle">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          className="w-5 h-5"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <div className="timeline-end pt-8 pb-2">
+                        <div>
+                          <h3 className="text-sm font-medium inline-block">
+                            {version.name}
+                          </h3>
+                        </div>
+                        <span className="text-muted-foreground text-sm italic">
+                          &quot;{version.prompt}.&quot;
+                        </span>
+                        {/* <Badge
                           event={{
                             type: "NEW_RECIPE",
                             prompt: version.prompt,
@@ -461,11 +479,15 @@ export default async function Page(props: Props) {
                           <span>Open Prompt</span>
                           <ShuffleIcon size={16} />
                         </Badge> */}
-                  </div>
-                  <hr />
-                </li>
-              );
-            })}
+                      </div>
+                      <hr />
+                    </li>
+                  );
+                });
+              }}
+              fallback={<Skeleton className="w-full h-20" />}
+            />
+
             <li>
               <hr />
               <div className="timeline-middle">
@@ -478,7 +500,7 @@ export default async function Page(props: Props) {
                   className="flex flex-row gap-1"
                 >
                   <AxeIcon size={17} />
-                  <span>Use Prompt</span> 
+                  <span>Use Prompt</span>
                 </Button>
               </div>
               <div className="timeline-end"></div>
@@ -624,13 +646,13 @@ export default async function Page(props: Props) {
                 <UploadMediaButton slug={slug}>
                   <CameraIcon />
                 </UploadMediaButton>
-                <Button
+                {/* <Button
                   event={{ type: "REMIX", slug }}
                   variant="outline"
                   aria-label="Remix"
                 >
                   <ShuffleIcon />
-                </Button>
+                </Button> */}
                 {/* <Link href={`/recipe/${slug}/edit`}>
                   <Button
                     variant="outline"
