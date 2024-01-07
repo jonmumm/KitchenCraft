@@ -68,6 +68,7 @@ import { UploadMediaButton } from "./upload-media-button";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
+export const revalidate = 10;
 
 type Props = {
   params: { slug: string };
