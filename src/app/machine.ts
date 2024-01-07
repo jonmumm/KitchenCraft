@@ -989,6 +989,24 @@ export const createCraftMachine = ({
                 },
                 NEW_RECIPE: {
                   target: "True",
+                  actions: [
+                    {
+                      type: "assignPrompt",
+                      params({ event }) {
+                        return { prompt: event.prompt };
+                      },
+                    },
+                    {
+                      type: "replaceQueryParameters",
+                      params({ event }) {
+                        return {
+                          paramSet: {
+                            prompt: event.prompt,
+                          },
+                        };
+                      },
+                    },
+                  ],
                 },
                 HYDRATE_INPUT: {
                   target: "True",

@@ -693,7 +693,7 @@ export default async function Page(props: Props) {
                           />
                         </svg>
                       </div>
-                      <div className="timeline-end pb-16">
+                      <div className="timeline-end pt-8 pb-2">
                         <div>
                           <h3 className="text-sm font-medium inline-block">
                             {version.name}
@@ -702,18 +702,17 @@ export default async function Page(props: Props) {
                         <span className="text-muted-foreground text-sm italic">
                           &quot;{version.prompt}.&quot;
                         </span>
-                        <Button
+                        {/* <Badge
                           event={{
-                            type: "REMIX",
-                            slug,
+                            type: "NEW_RECIPE",
                             prompt: version.prompt,
                           }}
-                          variant="outline"
+                          variant="secondary"
                           className="flex flex-row gap-1"
                         >
-                          <span>Remix</span>
+                          <span>Open Prompt</span>
                           <ShuffleIcon size={16} />
-                        </Button>
+                        </Badge> */}
                       </div>
                       <hr />
                     </li>
@@ -722,7 +721,14 @@ export default async function Page(props: Props) {
                 <li>
                   <hr />
                   <div className="timeline-middle">
-                    <Badge>From Prompt</Badge>
+                    <Button
+                      event={{
+                        type: "NEW_RECIPE",
+                        prompt: latestVersion?.prompt,
+                      }}
+                    >
+                      Modify
+                    </Button>
                   </div>
                   <div className="timeline-end"></div>
                 </li>
