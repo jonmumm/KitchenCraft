@@ -61,7 +61,7 @@ export default async function Page() {
             <Input
               autoFocus
               name="name"
-              pattern="[a-z0-9_-]+"
+              pattern="[a-zA-Z0-9_-]+"
               required
               type="text"
             />
