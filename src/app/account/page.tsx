@@ -34,7 +34,7 @@ export default async function Page() {
   ]);
 
   if (!userId || !email) {
-    redirect("/auth/sign-in");
+    redirect("/auth/signin");
   }
 
   return (
