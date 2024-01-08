@@ -23,4 +23,7 @@
 .markdown li {
   @apply mb-4;
 }
+.markdown li p:first-child {
+  @apply inline;
+}
 /* Add more styles as needed */
