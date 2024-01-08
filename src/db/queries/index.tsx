@@ -1291,3 +1291,40 @@ export const getMostUsedTagsLastWeek = async (
     "getMostUsedTagsLastWeek"
   ).execute();
 };
+
+export const updateProfileName = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string,
+  newName: string
+) => {
+  try {
+    const queryRunner =
+      dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+    // Check if the new name is already taken
+    const existingUser = await queryRunner
+      .select()
+      .from(ProfileTable)
+      .where(eq(ProfileTable.profileSlug, newName))
+      .execute();
+
+    if (existingUser.length > 0) {
+      throw new Error("Profile name is already taken.");
+    }
+
+    // Update the profile name
+    const updateResult = await queryRunner
+      .update(ProfileTable)
+      .set({ profileSlug: newName })
+      .where(eq(ProfileTable.userId, userId))
+      .execute();
+
+    if (updateResult.count === 0) {
+      throw new Error("No user found with the given ID.");
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};

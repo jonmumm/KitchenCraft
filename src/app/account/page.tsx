@@ -61,12 +61,14 @@ export default async function Page() {
                 </Link>
               </div>
               <div className="flex items-center justify-between">
-                <Badge>
-                  <div className="flex flex-row gap-1 items-center">
-                    <ChefHatIcon />{" "}
-                    <span className="p-1">{profile?.profileSlug}</span>
-                  </div>
-                </Badge>
+                <Link href="/me">
+                  <Badge>
+                    <div className="flex flex-row gap-1 items-center">
+                      <ChefHatIcon />{" "}
+                      <span className="p-1">{profile?.profileSlug}</span>
+                    </div>
+                  </Badge>
+                </Link>
                 <Badge variant="successOutline">Active</Badge>
               </div>
               <div className="flex items-center justify-between">
