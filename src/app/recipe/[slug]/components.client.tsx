@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/display/badge";
 import MarkdownRenderer from "@/components/display/markdown";
-import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import {
   Command,
@@ -160,23 +159,13 @@ export const AddTagButton = () => {
   );
 };
 
-export const TipsAndTricksContent = ({
-  initialValue,
-  slug,
-}: {
-  slug: string;
-  initialValue: string | undefined;
-}) => {
-  const [text, setText] = useState(initialValue || "");
+export const TipsAndTricksContent = ({ slug }: { slug: string }) => {
+  const [text, setText] = useState("");
   useEventSource(`/api/recipe/${slug}/tips-and-tricks`, {
     onProgress(charArray, currentToken) {
       setText(charArray);
     },
   });
 
-  if (!text) {
-    return <Skeleton className="h-40 w-full" />;
-  } else {
-    return <MarkdownRenderer markdownText={text} />;
-  }
+  return <MarkdownRenderer markdownText={text} />;
 };

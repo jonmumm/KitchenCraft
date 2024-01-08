@@ -1,3 +1,5 @@
+"use client";
+
 import { marked } from "marked";
 import React, { useEffect, useState } from "react";
 import styles from "./markdown.module.css";

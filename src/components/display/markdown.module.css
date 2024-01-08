@@ -5,11 +5,17 @@
 .markdown h2 {
   @apply text-xl font-semibold mb-2;
 }
+.markdown h3 {
+  @apply text-lg font-medium mb-2;
+}
+.markdown h4 {
+  @apply text-lg font-medium mb-2;
+}
 .markdown p {
-  @apply text-base mb-2;
+  @apply text-base mb-4;
 }
 .markdown ul {
-  @apply list-disc list-inside mb-2;
+  @apply list-disc list-inside mb-4;
 }
 .markdown ol {
   @apply list-decimal list-inside mb-2;

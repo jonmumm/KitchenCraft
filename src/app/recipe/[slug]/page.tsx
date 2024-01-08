@@ -8,6 +8,7 @@ import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
 import { TipsAndTricksTokenStream } from "@/app/api/recipe/[slug]/tips-and-tricks/stream";
 import Generator from "@/components/ai/generator";
 import { Badge } from "@/components/display/badge";
+import MarkdownRenderer from "@/components/display/markdown";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { CommandItem } from "@/components/input/command";
@@ -533,9 +534,11 @@ export default async function Page(props: Props) {
           result.push(chunk);
         }
         initialValue = result.join("");
+        console.log(initialValue);
+        return <MarkdownRenderer markdownText={initialValue} />;
       }
 
-      return <TipsAndTricksContent slug={slug} initialValue={initialValue} />;
+      return <TipsAndTricksContent slug={slug} />;
     };
 
     return (
@@ -553,7 +556,6 @@ export default async function Page(props: Props) {
           <Suspense fallback={<Skeleton className="w-full h-20" />}>
             <Content />
           </Suspense>
-          {/* <MarkdownRenderer /> */}
         </div>
       </>
     );
