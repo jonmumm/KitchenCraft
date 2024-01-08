@@ -501,7 +501,7 @@ export default async function Page(props: Props) {
         </div>
         <Separator />
         <div className="p-4">
-          <ul className="timeline max-sm:timeline-compact timeline-vertical">
+          <ul className="timeline max-sm:timeline-compact timeline-vertical mb-6">
             <Suspense fallback={<Skeleton className="w-full h-20" />}>
               <WaitForRecipe>
                 <Versions />
@@ -534,9 +534,9 @@ export default async function Page(props: Props) {
           result.push(chunk);
         }
         initialValue = result.join("");
-        console.log(initialValue);
         return <MarkdownRenderer markdownText={initialValue} />;
       }
+      console.log("client tips", slug);
 
       return <TipsAndTricksContent slug={slug} />;
     };
@@ -552,7 +552,7 @@ export default async function Page(props: Props) {
           </div>
         </div>
         <Separator />
-        <div className="p-4">
+        <div className="p-6">
           <Suspense fallback={<Skeleton className="w-full h-20" />}>
             <Content />
           </Suspense>

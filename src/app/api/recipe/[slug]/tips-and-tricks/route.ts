@@ -1,8 +1,8 @@
-import { getRecipe } from "@/db/queries";
+import { getRecipeStream$ } from "@/app/recipe/[slug]/observables";
 import { StreamingTextResponse, writeChunk } from "@/lib/streams";
 import { assert, getObjectHash, noop } from "@/lib/utils";
 import { TipsAndTricksPredictionInput } from "@/types";
-import { z } from "zod";
+import { lastValueFrom } from "rxjs";
 import { TipsAndTricksTokenStream } from "./stream";
 
 // IMPORTANT! Set the runtime to edge
@@ -13,7 +13,8 @@ export async function GET(
   _: Request,
   { params }: { params: { slug: string } }
 ) {
-  const recipe = await getRecipe(params.slug);
+  const recipeStream = await getRecipeStream$(params.slug);
+  const recipe = await lastValueFrom(recipeStream);
   assert(recipe, "expected recipe");
   // const recipe = CompletedRecipeSchema.parse(await kv.hgetall(recipeKey));
 

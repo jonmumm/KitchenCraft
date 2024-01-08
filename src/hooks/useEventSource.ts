@@ -10,12 +10,21 @@ interface EventSourceCallbacks {
 function useEventSource(url: string, callbacks: EventSourceCallbacks) {
   const charArrayRef = useRef<string>("");
   const callbacksRef = useRef(callbacks);
+  const hasConnectedRef = useRef(false); // Ref to track if the effect has run
 
   // Update the ref value when callbacks change
   // This won't trigger a re-render or re-run the effect
   callbacksRef.current = callbacks;
 
   useEffect(() => {
+    console.log({ url });
+    if (hasConnectedRef.current) {
+      // If already connected, do not run the effect again
+      return;
+    }
+
+    hasConnectedRef.current = true; // Mark as connected on first run
+
     const source = new EventSource(url);
     let isStartMessageHandled = false;
 
@@ -46,10 +55,6 @@ function useEventSource(url: string, callbacks: EventSourceCallbacks) {
         );
       }
 
-      source.close();
-    };
-
-    return () => {
       source.close();
     };
   }, [url]); // Only URL in the dependency array
