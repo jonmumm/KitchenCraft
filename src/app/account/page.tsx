@@ -73,16 +73,10 @@ export default async function Page() {
               </div>
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-medium">Email</h2>
-                <Link
-                  className="text-sm text-blue-500 hover:underline"
-                  href="/account/edit/email"
-                >
-                  Edit
-                </Link>
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-gray-500 dark:text-gray-400">{email}</p>
-                <Badge variant="warning">Unverified</Badge>
+                {/* <Badge variant="warning">Unverified</Badge> */}
               </div>
             </div>
           </div>
