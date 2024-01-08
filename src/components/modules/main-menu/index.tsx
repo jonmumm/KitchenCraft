@@ -25,7 +25,14 @@ import {
 } from "@/db/queries";
 import { getSession } from "@/lib/auth/session";
 import Bowser from "bowser";
-import { ChefHatIcon, GithubIcon, LoaderIcon, YoutubeIcon } from "lucide-react";
+import {
+  ChefHatIcon,
+  ChevronRightIcon,
+  GithubIcon,
+  Loader2Icon,
+  LoaderIcon,
+  YoutubeIcon,
+} from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
@@ -46,6 +53,7 @@ import {
 } from "./notifications-switch";
 import { TypeLogo } from "@/components/logo";
 import { cn } from "@/lib/utils";
+import NavigationLink from "@/components/navigation/navigation-link";
 
 export async function MainMenu({ className }: { className?: string }) {
   const session = await getSession();
@@ -376,9 +384,27 @@ export async function MainMenu({ className }: { className?: string }) {
             <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
               Account
             </Label>
-            <Link className="text-sm underline text-center py-4" href="/account">
-              Settings
-            </Link>
+            <NavigationLink href="/account">
+              <Button size="icon" variant="ghost">
+                <ChevronRightIcon className="transitioning:hidden" />
+                <Loader2Icon className="transitioning:block hidden animate-spin" />
+              </Button>
+            </NavigationLink>
+          </MenuItem>
+          <Separator />
+          <MenuItem className="flex flex-row gap-1 items-center justify-between">
+            <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
+              Notifications
+            </Label>
+            <NavigationLink
+              className="text-sm underline text-center"
+              href="/notifications"
+            >
+              <Button size="icon" variant="ghost">
+                <ChevronRightIcon className="transitioning:hidden" />
+                <Loader2Icon className="transitioning:block hidden animate-spin" />
+              </Button>
+            </NavigationLink>
           </MenuItem>
           <Separator />
           <MenuItem className="flex justify-center">
