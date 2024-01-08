@@ -754,6 +754,17 @@ export const RemixSuggestionsPredictionInputSchema = z.object({
   }),
 });
 
+export const TipsAndTricksPredictionInputSchema = z.object({
+  recipe: RecipeSchema.pick({
+    name: true,
+    description: true,
+    ingredients: true,
+    instructions: true,
+    tags: true,
+    yield: true,
+  }),
+});
+
 export const RecipeProductsPredictionInputSchema = z.object({
   type: AmazonAffiliateProductSchema.shape.type,
   recipe: RecipeSchema.pick({

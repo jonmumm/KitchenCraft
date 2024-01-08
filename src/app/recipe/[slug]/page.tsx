@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Recipe as RecipeJSONLDSchema, WithContext } from "schema-dts";
 
 import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
+import { TipsAndTricksTokenStream } from "@/app/api/recipe/[slug]/tips-and-tricks/stream";
 import Generator from "@/components/ai/generator";
 import { Badge } from "@/components/display/badge";
 import { Separator } from "@/components/display/separator";
@@ -35,6 +36,7 @@ import {
   CameraIcon,
   GitForkIcon,
   HelpCircle,
+  LightbulbIcon,
   MessagesSquareIcon,
   ScrollIcon,
   ShoppingBasketIcon,
@@ -53,6 +55,7 @@ import {
 import { ShareButton } from "../components.client";
 import { UpvoteButton } from "../upvote-button/component";
 import { Ingredients, Instructions, Tags, Times } from "./components";
+import { TipsAndTricksContent } from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
 import { getObservables, getRecipeStream$ } from "./observables";
 import { getBaseRecipe, getRecipeOutputRaw } from "./queries";
@@ -408,7 +411,7 @@ export default async function Page(props: Props) {
       let allVersions = versions;
       if (!recipe) {
         // If we didnt have recipe initially, refetch all version
-        await delay(100); // timing hack
+        await delay(500); // timing hack
         noStore();
         allVersions = await getAllVersionsOfRecipeBySlug(db, slug);
       }
@@ -495,6 +498,7 @@ export default async function Page(props: Props) {
             <GitForkIcon />
           </div>
         </div>
+        <Separator />
         <div className="p-4">
           <ul className="timeline max-sm:timeline-compact timeline-vertical">
             <Suspense fallback={<Skeleton className="w-full h-20" />}>
@@ -503,6 +507,53 @@ export default async function Page(props: Props) {
               </WaitForRecipe>
             </Suspense>
           </ul>
+        </div>
+      </>
+    );
+  };
+
+  const TipsAndTricks = () => {
+    //   const Content = () => {
+    // const stream = await tokenStream.getStream(input);
+    //     return <></>
+    //   }
+    // TODO, call getCachedStream(), if it exists, pass as initiaValue
+
+    const Content = async () => {
+      const tokenStream = new TipsAndTricksTokenStream({
+        cacheKey: `tips-and-tricks:${slug}`,
+      });
+      const status = await tokenStream.getStatus();
+      let initialValue;
+      if (status === "done") {
+        const stream = await tokenStream.getCompletedStream();
+
+        const result = [];
+        for await (const chunk of stream) {
+          result.push(chunk);
+        }
+        initialValue = result.join("");
+      }
+
+      return <TipsAndTricksContent slug={slug} initialValue={initialValue} />;
+    };
+
+    return (
+      <>
+        <div className="px-5">
+          <div className="flex flex-row justify-between gap-1 items-center py-4">
+            <h3 className="uppercase text-xs font-bold text-accent-foreground">
+              Tips & Tricks
+            </h3>
+            <LightbulbIcon />
+          </div>
+        </div>
+        <Separator />
+        <div className="p-4">
+          <Suspense fallback={<Skeleton className="w-full h-20" />}>
+            <Content />
+          </Suspense>
+          {/* <MarkdownRenderer /> */}
         </div>
       </>
     );
@@ -766,6 +817,9 @@ export default async function Page(props: Props) {
           </Card>
           <Card id="history" className="mx-3">
             <History />
+          </Card>
+          <Card id="history" className="mx-3">
+            <TipsAndTricks />
           </Card>
           {/* <Card id="assistant" className="mx-3">
             <AssistantContent />

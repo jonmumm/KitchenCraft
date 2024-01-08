@@ -82,7 +82,7 @@ export abstract class TokenStream<T> {
     }
   }
 
-  async *getCompletedStream() {
+  public async *getCompletedStream() {
     // todo return AsyncIterable<string> here which is the full length of the complete chunk list, sent all at once
     if (!this.cacheKey) {
       throw new Error("Cache key is not set");
@@ -103,7 +103,7 @@ export abstract class TokenStream<T> {
 
   statusSchema = z.enum(["running", "done", "uninitialized"]);
 
-  private async getStatus() {
+  public async getStatus() {
     return this.statusSchema.parse(
       (await kv.get(this.getStatusKey())) || "uninitialized"
     );

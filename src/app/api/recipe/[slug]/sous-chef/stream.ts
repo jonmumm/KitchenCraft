@@ -28,7 +28,6 @@ export class SousChefTokenStream extends TokenStream<SousChefPredictionInput> {
 
 const systemMessageTemplate = PromptTemplate.fromTemplate(`
 You are a helpful kitchen assistant. Below is a recipe. The user will ask a question about it. Please give a helpful response.
-
 \`\`\`yaml
 recipe:
   name: {name}

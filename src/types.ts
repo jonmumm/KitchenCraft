@@ -74,6 +74,7 @@ import {
   SystemMessageSchema,
   TechniqueSchema,
   TempRecipeSchema,
+  TipsAndTricksPredictionInputSchema,
   TipsPredictionInputSchema,
   TipsPredictionOutputSchema,
   TipsPredictionPartialOutputSchema,
@@ -148,6 +149,9 @@ export type RemixIdeasPredictionInput = z.infer<
 export type FAQsPredictionInput = z.infer<typeof FAQsPredictionInputSchema>;
 export type RemixSuggestionsPredictionInput = z.infer<
   typeof RemixSuggestionsPredictionInputSchema
+>;
+export type TipsAndTricksPredictionInput = z.infer<
+  typeof TipsAndTricksPredictionInputSchema
 >;
 export type InstantRecipeMetadataPredictionInput = z.infer<
   typeof InstantRecipeMetadataPredictionInputSchema

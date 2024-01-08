@@ -1,6 +1,8 @@
 "use client";
 
 import { Badge } from "@/components/display/badge";
+import MarkdownRenderer from "@/components/display/markdown";
+import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import {
   Command,
@@ -9,11 +11,12 @@ import {
   CommandItem,
   CommandItemClearPrompt,
 } from "@/components/input/command";
+import { useCommandState } from "@/components/input/command.primitive";
 import { useEventHandler } from "@/hooks/useEventHandler";
+import useEventSource from "@/hooks/useEventSource";
 import { assert } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { useStore } from "@nanostores/react";
-import { useCommandState } from "@/components/input/command.primitive";
 import { PlusIcon, ShuffleIcon } from "lucide-react";
 import { map } from "nanostores";
 import { useRouter } from "next/navigation";
@@ -26,6 +29,7 @@ import {
   useCallback,
   useContext,
   useRef,
+  useState,
 } from "react";
 
 type Actions = {
@@ -154,4 +158,25 @@ export const AddTagButton = () => {
       <PlusIcon size={15} />
     </Badge>
   );
+};
+
+export const TipsAndTricksContent = ({
+  initialValue,
+  slug,
+}: {
+  slug: string;
+  initialValue: string | undefined;
+}) => {
+  const [text, setText] = useState(initialValue || "");
+  useEventSource(`/api/recipe/${slug}/tips-and-tricks`, {
+    onProgress(charArray, currentToken) {
+      setText(charArray);
+    },
+  });
+
+  if (!text) {
+    return <Skeleton className="h-40 w-full" />;
+  } else {
+    return <MarkdownRenderer markdownText={text} />;
+  }
 };
