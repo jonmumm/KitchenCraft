@@ -8,11 +8,17 @@ import {
 import { TypeLogo } from "@/components/logo";
 import { MainMenu } from "@/components/modules/main-menu";
 import { MenuSheet } from "@/components/modules/main-menu/menu-sheet";
+import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
 import { cn } from "@/lib/utils";
-import { ChefHatIcon, ChevronRightIcon, GripVerticalIcon } from "lucide-react";
+import {
+  ChefHatIcon,
+  ChevronRightIcon,
+  GripVerticalIcon,
+  Loader2Icon,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -52,9 +58,12 @@ export async function Header({
               <BackButton handleBack={back} hasHistory={hasHistory} />
             ) : (
               <div className="mt-3 mr-2 w-20">
-                <Link href="/">
-                  <TypeLogo />
-                </Link>
+                <NavigationLink href="/">
+                  <div className="transitioning:hidden">
+                    <TypeLogo />
+                  </div>
+                  <Loader2Icon className="hidden transitioning:block animate-spin" />
+                </NavigationLink>
               </div>
             )}
           </div>
@@ -62,21 +71,25 @@ export async function Header({
             {/* <CraftHeading /> */}
             <CraftCTA />
           </div>
-          <Link href="/me" className="hidden lg:block crafting:hidden">
+          <NavigationLink
+            href="/me"
+            className="hidden lg:block crafting:hidden"
+          >
             <div className="flex flex-row gap-1 items-center">
               <div className="flex flex-row gap-1">
                 <Badge
                   variant="outline"
                   className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
                 >
-                  <ChefHatIcon />
+                  <ChefHatIcon className="transitioning:hidden" />
+                  <Loader2Icon className="hidden transitioning:block animate-spin" />
                   <span>
                     {profile?.profileSlug ? profile.profileSlug : "My Recipes"}
                   </span>
                 </Badge>
               </div>
             </div>
-          </Link>
+          </NavigationLink>
           {/* <Link href="/leaderboard" className="hidden lg:block crafting:hidden">
             <Button variant="ghost">
               <TrophyIcon />

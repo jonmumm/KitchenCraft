@@ -1,5 +1,6 @@
 "use client";
 
+
 import { ApplicationContext } from "@/context/application";
 import { env } from "@/env.public";
 import { useActor } from "@/hooks/useActor";
@@ -63,6 +64,7 @@ export function ApplicationProvider(props: {
     </SessionProvider>
   );
 }
+
 
 const AnalyticsProvider = () => {
   usePosthogAnalytics(env.POSTHOG_CLIENT_KEY);

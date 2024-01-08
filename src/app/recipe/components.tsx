@@ -3,11 +3,13 @@ import { Card } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
+import NavigationLink from "@/components/navigation/navigation-link";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
 import {
   ArrowBigUpDashIcon,
   ChefHatIcon,
   ChevronRightIcon,
+  Loader2Icon,
   TimerIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -63,15 +65,21 @@ export const RecipeListItem = ({
       <Card className="flex flex-col gap-3 max-w-2xl w-full mx-auto py-4 rounded-2xl border-none shadow-none sm:border-solid sm:shadow-md sm:hover:shadow-lg">
         <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">
           <div className="flex flex-row gap-3 justify-between items-center w-full">
-            <Link href={href}>
+            <NavigationLink href={href}>
               <Button variant="ghost" size="icon">
                 {index + 1}.
               </Button>
-            </Link>
+            </NavigationLink>
             <div className="flex flex-col gap-1 flex-1 justify-start">
-              <Link href={href} className="flex-1 active:opacity-70">
-                <h2 className="font-semibold text-lg">{recipe.name}</h2>
-              </Link>
+              <NavigationLink href={href} className="flex-1 active:opacity-70">
+                <h2 className="font-semibold text-lg">
+                  {recipe.name}
+                  <Loader2Icon
+                    size={16}
+                    className="transitioning:inline-block hidden animate-spin ml-2"
+                  />
+                </h2>
+              </NavigationLink>
               <div>
                 {"createdBySlug" in recipe && recipe.createdBySlug && (
                   // <Link
@@ -83,7 +91,11 @@ export const RecipeListItem = ({
                       className="flex flex-row gap-1 items-center"
                       variant="outline"
                     >
-                      <ChefHatIcon size={16} />
+                      <ChefHatIcon size={16} className="transitioning:hidden" />
+                      <Loader2Icon
+                        size={16}
+                        className="transitioning:block hidden animate-spin"
+                      />
                       {recipe.createdBySlug}
                     </Badge>
                   </div>
@@ -102,14 +114,15 @@ export const RecipeListItem = ({
             {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
           </div>
         ) : null}
-        <Link href={href}>
+        <NavigationLink href={href}>
           <div className="px-5 flex flex-row gap-4 items-center">
             <p className="flex-1">{recipe.description}</p>
             <Button size="icon" variant="outline">
-              <ChevronRightIcon />
+              <ChevronRightIcon className="transitioning:hidden" />
+              <Loader2Icon className="transitioning:block hidden animate-spin" />
             </Button>
           </div>
-        </Link>
+        </NavigationLink>
         <div className="flex-1 flex flex-row gap-1 px-4 justify-between items-start">
           <Badge
             className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0"
@@ -121,15 +134,19 @@ export const RecipeListItem = ({
           <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
             {"tags" in recipe &&
               recipe.tags.map((tag) => (
-                <Link
+                <NavigationLink
                   href={`/tag/${sentenceToSlug(tag)}`}
                   key={tag}
                   passHref={true}
                 >
                   <Badge key={tag} variant="secondary">
                     {tag}
+                    <Loader2Icon
+                      size={14}
+                      className="transitioning:block hidden ml-2 animate-spin"
+                    />
                   </Badge>
-                </Link>
+                </NavigationLink>
               ))}
           </div>
         </div>

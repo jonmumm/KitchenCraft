@@ -1,12 +1,10 @@
 import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
+import NavigationLink from "@/components/navigation/navigation-link";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
-import { LinkFromFirstValue } from "@/components/util/link-from-first-value";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
-import { AxeIcon, ChefHatIcon, SearchIcon, TrophyIcon } from "lucide-react";
-import Link from "next/link";
-import { ReactNode } from "react";
+import { AxeIcon, ChefHatIcon, Loader2Icon, SearchIcon } from "lucide-react";
 import { from, map, of } from "rxjs";
 import {
   CraftTabLink,
@@ -52,17 +50,19 @@ export async function Footer({
     <ReactiveFooter className="fixed z-50 bottom-0 left-0 right-0 flex rounded-b-none lg:hidden p-4 crafting:hidden">
       <div className="bg-card w-full border-muted shadow-2xl border-2 border-solid p-2 rounded-full">
         <div className="flex flex-row gap-2 justify-center w-full">
-          <Link href="/" className="basis-36 min-w-0">
+          <NavigationLink href="/" className="basis-36 min-w-0">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1">
-              <SearchIcon />
+              <SearchIcon className="transitioning:hidden" />
+              <Loader2Icon className="hidden transitioning:block animate-spin" />
               <FooterTabTitle isActive={currentTab === "explore"}>
                 Explore
               </FooterTabTitle>
             </Card>
-          </Link>
-          <Link href={"/me"} className="basis-36 min-w-0">
+          </NavigationLink>
+          <NavigationLink href={"/me"} className="basis-36 min-w-0">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 px-2 gap-1">
-              <ChefHatIcon />
+              <ChefHatIcon className="transitioning:hidden" />
+              <Loader2Icon className="hidden transitioning:block animate-spin" />
               <FooterTabTitle isActive={currentTab === "profile"}>
                 <AsyncRenderFirstValue
                   fallback={<Skeleton className="w-20 h-6" />}
@@ -73,7 +73,7 @@ export async function Footer({
                 />
               </FooterTabTitle>
             </Card>
-          </Link>
+          </NavigationLink>
           {/* <Link href="/leaderboard" className="basis-36">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 min-w-0">
               <TrophyIcon />
