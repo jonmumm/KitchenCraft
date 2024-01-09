@@ -55,7 +55,10 @@ export async function Header({
         >
           <div className="crafting:hidden">
             {backUrl ? (
-              <BackButton handleBack={back} hasHistory={hasHistory} />
+              <BackButton
+                handleBack={back}
+                hasHistory={hasHistory}
+              />
             ) : (
               <div className="mt-3 mr-2 w-20">
                 <NavigationLink href="/">

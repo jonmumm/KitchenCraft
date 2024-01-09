@@ -103,7 +103,6 @@ export async function MainMenu({ className }: { className?: string }) {
 
   return (
     <>
-      {canInstallPWA && <SafariInstallPrompt />}
       {!userId && (
         <>
           {canInstallPWA && <AppInstall />}
@@ -434,7 +433,6 @@ const AppInstall = () => (
   <AppInstallContainer>
     <Button
       className="text-xs w-full h-fit flex flex-row gap-4 rounded-xl py-2"
-      event={{ type: "DOWNLOAD_APP" }}
       variant="outline"
     >
       <Image

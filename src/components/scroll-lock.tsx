@@ -1,3 +1,5 @@
+"use client";
+
 import { ReactNode, forwardRef, useEffect } from "react";
 
 const useScrollLock = (isActive: boolean) => {

@@ -4,7 +4,8 @@ import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-ins
 import { ThemeProvider } from "@/components/theme-provider";
 import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";
-import { getDistinctId, getSession } from "@/lib/auth/session";
+import { getCurrentEmail, getDistinctId, getSession } from "@/lib/auth/session";
+import { createAppInstallToken } from "@/lib/browser-session";
 import { getResult } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
 import { getCanInstallPWA } from "@/lib/headers";
@@ -33,11 +34,38 @@ import "./styles.css";
 const APP_NAME = "KitchenCraft";
 const APP_DEFAULT_TITLE = "kitchencraft.ai";
 const APP_TITLE_TEMPLATE = "%s | KitchenCraft";
-const APP_DESCRIPTION = "Craft a unique recipe, instantly.";
+const APP_DESCRIPTION = "Create unique recipes, instantly.";
 
 export const metadata: Metadata = {
   title: "KitchenCraft",
-  description: "Make something different",
+  description: APP_DESCRIPTION,
+  applicationName: APP_NAME,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_DEFAULT_TITLE,
+    // startUpImage: [],
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: APP_NAME,
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
 };
 
 export default async function RootLayout({
@@ -267,6 +295,17 @@ export default async function RootLayout({
     return { success: true as const, data: { recipeUrl: `/recipe/${slug}` } };
   }
 
+  const currentEmail = await getCurrentEmail();
+  const appInstallToken = await createAppInstallToken(
+    await getDistinctId(),
+    currentEmail
+  );
+
+  let manifestHref = `/user-app-manifest.json`;
+  if (appInstallToken) {
+    manifestHref += `?token=${appInstallToken}`;
+  }
+
   const actions = {
     createNewInstantRecipe,
     createNewRecipeFromSuggestion,
@@ -294,7 +333,7 @@ export default async function RootLayout({
           sizes="16x16"
           href="/favicon-16x16.png"
         />
-        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="manifest" href={manifestHref} />
         <IOSStartupImages />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta

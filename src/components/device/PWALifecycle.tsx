@@ -18,7 +18,7 @@ export function PWALifeCycle() {
       window.workbox
     ) {
       const wb = window.workbox;
-      wb.register();
+      // wb.register();
 
       const onInstalled = (event: WorkboxLifecycleEvent) => {
         console.log(`Event ${event.type} is triggered.`);

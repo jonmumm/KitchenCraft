@@ -1,3 +1,5 @@
+// Inspired from https://www.ramielcreations.com/nexth-auth-magic-code
+
 import { UsersTable, db } from "@/db";
 import { privateEnv } from "@/env.secrets";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
@@ -17,8 +19,37 @@ function generateLoginCode(): string {
   return code;
 }
 
+export const adapter = DrizzleAdapter(db);
+
+export const emailConfig = Email({
+  from: "KitchenCraft <signin@mail.kitchencraft.ai>",
+  maxAge: 5 * 60, // 5 minutes
+  sendVerificationRequest: async ({
+    identifier: email,
+    url,
+    token,
+    provider,
+  }) => {
+    const result = await resend.emails.send({
+      from: "KitchenCraft <signin@mail.kitchencraft.ai>",
+      to: email,
+      subject: "Your Sign-In Code",
+      text: `To sign-in to KitchenCraft, enter this code: ${token}. This code will expire in 5 minutes.`,
+      html: `<div><p>To sign-in to KitchenCraft, enter this code:</p><p>${token}</p><p>This code will expire in 5 minutes.</p></div>`,
+    });
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+  },
+  generateVerificationToken: async () => {
+    console.log("HELLO!");
+    const token = await generateLoginCode();
+    return token;
+  },
+});
+
 export const authOptions: NextAuthOptions = {
-  adapter: DrizzleAdapter(db),
+  adapter,
   session: {
     strategy: "jwt",
   },
@@ -27,31 +58,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
   },
   providers: [
-    Email({
-      from: "KitchenCraft <signin@mail.kitchencraft.ai>",
-      maxAge: 5 * 60, // 5 minutes
-      sendVerificationRequest: async ({
-        identifier: email,
-        url,
-        token,
-        provider,
-      }) => {
-        const result = await resend.emails.send({
-          from: "KitchenCraft <signin@mail.kitchencraft.ai>",
-          to: email,
-          subject: "Your Sign-In Code",
-          text: `To sign-in to KitchenCraft, enter this code: ${token}. This code will expire in 5 minutes.`,
-          html: `<div><p>To sign-in to KitchenCraft, enter this code:</p><p>${token}</p><p>This code will expire in 5 minutes.</p></div>`,
-        });
-        if (result.error) {
-          throw new Error(result.error.message);
-        }
-      },
-      generateVerificationToken: async () => {
-        const token = await generateLoginCode();
-        return token;
-      },
-    }),
+    emailConfig,
     GoogleProvider({
       clientId: privateEnv.GOOGLE_CLIENT_ID,
       clientSecret: privateEnv.GOOGLE_CLIENT_SECRET,

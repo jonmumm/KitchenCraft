@@ -23,6 +23,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChangeEventHandler,
+  ComponentProps,
   KeyboardEventHandler,
   ReactNode,
   useCallback,
@@ -50,6 +51,7 @@ export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
 export const BackButton = (props: {
   handleBack: () => Promise<void>;
   hasHistory: boolean;
+  variant?: ComponentProps<typeof Button>["variant"];
 }) => {
   const [showLink, setShowLink] = useState(true);
   const router = useRouter();
@@ -60,7 +62,7 @@ export const BackButton = (props: {
 
   const Content = () => (
     <Button
-      variant="ghost"
+      variant={props.variant || "ghost"}
       type="submit"
       onClick={(event) => {
         console.log(history.length);

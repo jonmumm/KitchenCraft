@@ -1,7 +1,7 @@
 {
   "name": "KitchenCraft",
   "short_name": "KitchenCraft",
-  "description": "The fastest way to create, save and share recipes.",
+  "description": "Create unique recipes, instantly.",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -16,7 +16,7 @@
   ],
   "background_color": "#000000",
   "theme_color": "#000000",
-  "start_url": "/",
+  "start_url": "/account",
   "display": "standalone",
   "orientation": "portrait"
 }

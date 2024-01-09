@@ -1,4 +1,6 @@
 /// <reference lib="webworker" />
+// @ts-ignore
+self.__WB_DISABLE_DEV_LOGS = true
 
 export type {};
 declare let self: ServiceWorkerGlobalScope;

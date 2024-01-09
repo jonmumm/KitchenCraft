@@ -5,7 +5,6 @@ import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
-import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { db } from "@/db";
@@ -91,7 +90,6 @@ export async function MainMenu({ className }: { className?: string }) {
 
   return (
     <>
-      {canInstallPWA && <SafariInstallPrompt />}
       {!userId && (
         <>
           {canInstallPWA && (
@@ -468,6 +466,7 @@ const AppInstall = () => (
   <AppInstallContainer>
     <Button
       className="text-xs h-fit flex flex-row gap-4 rounded-xl p-4 mx-auto shadow-xl group"
+      event={{ type: "DOWNLOAD_APP" }}
       variant="outline"
     >
       <Image
@@ -478,11 +477,7 @@ const AppInstall = () => (
         height={512}
       />
       <div className="flex flex-col gap-1 items-center">
-        <Badge
-          className="text-blue-600 dark:text-blue-400"
-          event={{ type: "DOWNLOAD_APP" }}
-          variant="secondary"
-        >
+        <Badge className="text-blue-600 dark:text-blue-400" variant="secondary">
           <span className="transitioning:hidden">Get</span>
           <Loader2Icon
             size={14}

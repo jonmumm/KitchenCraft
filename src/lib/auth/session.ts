@@ -1,9 +1,9 @@
+import { getProfileByUserId } from "@/db/queries";
 import { getServerSession } from "next-auth";
 import { cache } from "react";
 import { getGuestId } from "../browser-session";
 import { withSpan } from "../observability";
 import { authOptions } from "./options";
-import { getProfileByUserId } from "@/db/queries";
 
 export const getSession = withSpan(
   cache(async () => {
@@ -32,7 +32,7 @@ export const getDistinctId = withSpan(
 export const getCurrentEmail = withSpan(
   cache(async () => {
     const session = await getSession();
-    return session?.user.email;
+    return !!session?.user.email ? session?.user.email : undefined;
   }),
   "withCurrentEmail"
 );

@@ -536,7 +536,6 @@ export default async function Page(props: Props) {
         initialValue = result.join("");
         return <MarkdownRenderer markdownText={initialValue} />;
       }
-      console.log("client tips", slug);
 
       return <TipsAndTricksContent slug={slug} />;
     };

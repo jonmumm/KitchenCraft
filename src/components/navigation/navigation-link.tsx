@@ -21,6 +21,7 @@ const NavigationLink = (props: ComponentProps<typeof Link>) => {
 
   const handleClick: MouseEventHandler = useCallback(
     (e) => {
+      console.log(e.button);
       if (props.href !== window.location.pathname) {
         if (isDisabled) {
           e.preventDefault();

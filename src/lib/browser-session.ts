@@ -23,8 +23,8 @@ export class AuthError extends Error {}
 
 export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
 
-export const createGuestToken = async () => {
-  const id = uuidv4();
+export const createGuestToken = async (_id?: string) => {
+  const id = _id || uuidv4();
   const token = await new SignJWT({})
     .setProtectedHeader({ alg: "HS256" })
     .setJti(id)
@@ -34,7 +34,36 @@ export const createGuestToken = async () => {
   return { token, id };
 };
 
-export const setGuestTokenCookie = async (
+export const createAppInstallToken = async (
+  distinctId: string,
+  email?: string
+) => {
+  let signJWT = new SignJWT({})
+    .setProtectedHeader({ alg: "HS256" })
+    .setJti(distinctId)
+    .setIssuedAt()
+    .setExpirationTime("5m");
+  if (email) {
+    signJWT = signJWT.setSubject(email);
+  }
+
+  const token = await signJWT.sign(
+    new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
+  );
+  return token;
+};
+
+export const parseAppInstallToken = async (token: string) => {
+  const verified = await jwtVerify(
+    token,
+    new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
+  );
+  assert(verified.payload.jti, "expected JTI on appInstallToken");
+  const sub = verified.payload.sub;
+  return { email: sub, distinctId: verified.payload.jti };
+};
+
+export const setGuestTokenCookieHeader = async (
   res: NextResponse,
   guestToken: string
 ) => {
