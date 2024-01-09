@@ -50,7 +50,12 @@ export default async function Page() {
                   height={512}
                 />
                 <div className="flex flex-col gap-1 items-center">
-                  <Badge variant="secondary">Add to Phone</Badge>
+                  <Badge
+                    className="text-blue-600 dark:text-blue-400"
+                    variant="secondary"
+                  >
+                    Get
+                  </Badge>
                   <span className="text-lg font-medium">KitchenCraft App</span>
                 </div>
               </Button>

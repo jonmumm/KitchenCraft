@@ -467,7 +467,7 @@ const PointsPopoverContent = () => (
 const AppInstall = () => (
   <AppInstallContainer>
     <Button
-      className="text-xs h-fit flex flex-row gap-4 rounded-xl py-2 mx-auto shadow-xl"
+      className="text-xs h-fit flex flex-row gap-4 rounded-xl py-2 mx-auto shadow-xl group"
       event={{ type: "DOWNLOAD_APP" }}
       variant="outline"
     >
@@ -479,7 +479,9 @@ const AppInstall = () => (
         height={512}
       />
       <div className="flex flex-col gap-1 items-center">
-        <span className="opacity-80 text-md">Download</span>
+        <Badge className="text-blue-600 dark:text-blue-400" variant="secondary">
+          Get
+        </Badge>
         <span className="text-lg font-medium">KitchenCraft App</span>
       </div>
     </Button>
