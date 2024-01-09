@@ -2,7 +2,7 @@
 
 # KitchenCraft.ai
 
-The fastest way to craft, remix and share recipes.
+Create unique recipes, instantly.
 
 ## Developing
 
