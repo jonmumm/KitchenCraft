@@ -430,9 +430,6 @@ export const createCraftMachine = ({
                         instantRecipeResultId: undefined,
                       }),
                     },
-                    CLOSE: {
-                      target: ".Idle",
-                    },
                     NEW_RECIPE: {
                       target: ".Idle",
                       guard: ({ event }) => !!event.prompt,
@@ -459,6 +456,9 @@ export const createCraftMachine = ({
                         }),
                       ],
                       on: {
+                        CLOSE: {
+                          target: "Idle",
+                        },
                         SET_INPUT: [
                           {
                             target: "Holding",
@@ -524,9 +524,6 @@ export const createCraftMachine = ({
                         suggestionsResultId: undefined,
                       }),
                     },
-                    CLOSE: {
-                      target: ".Idle",
-                    },
                     NEW_RECIPE: {
                       target: ".Idle",
                       guard: ({ event }) => !!event.prompt,
@@ -553,6 +550,9 @@ export const createCraftMachine = ({
                         }),
                       ],
                       on: {
+                        CLOSE: {
+                          target: "Idle",
+                        },
                         SET_INPUT: [
                           {
                             target: "Holding",

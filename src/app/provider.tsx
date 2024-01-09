@@ -28,7 +28,12 @@ export function ApplicationProvider(props: {
   actions: Parameters<typeof createCraftMachine>[0]["serverActions"];
 }) {
   const [store] = useState(map<any>({})); // todo define global types here
+  // const [permission, setPermission] = useState(() => {
+  //   Notification.requestPermission();
+
+  // })
   // useScrollRestoration(); // i dont know if this is well working or not
+
 
   const CraftProvider = ({ children }: { children: ReactNode }) => {
     const searchParams = useSearchParams();
@@ -48,6 +53,7 @@ export function ApplicationProvider(props: {
       <CraftContext.Provider value={actor}>{children}</CraftContext.Provider>
     );
   };
+
 
   return (
     <SessionProvider session={props.session}>

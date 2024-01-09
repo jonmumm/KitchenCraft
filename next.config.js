@@ -1,11 +1,12 @@
 /** @type {import('next').NextConfig} */
 
-const withPWA = require("next-pwa")({
-  customWorkerDir: "src/serviceWorker",
-  disable: process.env.NODE_ENV === "development",
+const withPWA = require("@ducanh2912/next-pwa").default({
+  dest: "public",
+  customWorkerSrc: "src/service-worker",
+  register: false,
 });
 
-const nextConfig = withPWA({
+module.exports = withPWA({
   images: {
     remotePatterns: [
       {
@@ -22,11 +23,7 @@ const nextConfig = withPWA({
       },
     ],
   },
-});
-
-module.exports = {
-  ...nextConfig,
   experimental: {
     instrumentationHook: true,
   },
-};
+});

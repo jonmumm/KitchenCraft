@@ -30,6 +30,11 @@ import { ApplicationProvider } from "./provider";
 import { RecipeTokenStream } from "./recipe/[slug]/stream";
 import "./styles.css";
 
+const APP_NAME = "KitchenCraft";
+const APP_DEFAULT_TITLE = "kitchencraft.ai";
+const APP_TITLE_TEMPLATE = "%s | KitchenCraft";
+const APP_DESCRIPTION = "Craft a unique recipe, instantly.";
+
 export const metadata: Metadata = {
   title: "KitchenCraft",
   description: "Make something different",

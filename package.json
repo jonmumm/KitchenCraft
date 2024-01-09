@@ -17,6 +17,7 @@
     "@auth/drizzle-adapter": "^0.3.9",
     "@clerk/nextjs": "^4.25.4",
     "@ctrl/react-adsense": "^1.7.0",
+    "@ducanh2912/next-pwa": "^10.1.0",
     "@hookform/resolvers": "^3.3.2",
     "@nanostores/react": "^0.7.1",
     "@radix-ui/react-accordion": "^1.1.2",
@@ -78,7 +79,6 @@
     "nanostores": "^0.9.3",
     "next": "^14.0.4",
     "next-auth": "^4.24.5",
-    "next-pwa": "^5.6.0",
     "next-themes": "^0.2.1",
     "next-usequerystate": "^1.9.1",
     "openai": "^4.10.0",
@@ -110,6 +110,7 @@
     "use-sync-external-store": "^1.2.0",
     "uuidv7": "^0.6.3",
     "vite-tsconfig-paths": "^4.2.1",
+    "workbox-window": "^7.0.0",
     "xstate": "^5.4.1",
     "zod": "^3.22.4",
     "zod-to-json-schema": "^3.21.4"
@@ -150,6 +151,7 @@
     "supabase": "^1.115.4",
     "tailwindcss": "latest",
     "typescript": "latest",
-    "vitest": "^0.34.6"
+    "vitest": "^0.34.6",
+    "webpack": "^5.89.0"
   }
 }
