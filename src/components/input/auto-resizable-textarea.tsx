@@ -96,12 +96,14 @@ const AutoResizableTextarea: React.FC<
     sizeClassMap[size]?.heightClass || sizeClassMap["md"].heightClass;
 
   const Placeholder = () => {
-    const actor = useContext(CraftContext);
+    const isPristine = usePromptIsPristine();
 
     return (
-      <div className="absolute inset-0 transition-opacity duration-75 crafting:opacity-0 pointer-events-none crafting:hidden prompt-dirty:hidden">
-        {placeholderComponent}
-      </div>
+      isPristine && (
+        <div className="absolute inset-0 transition-opacity duration-75 crafting:opacity-0 pointer-events-none crafting:hidden prompt-dirty:hidden">
+          {placeholderComponent}
+        </div>
+      )
     );
   };
 
