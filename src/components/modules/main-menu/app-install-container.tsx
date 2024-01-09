@@ -1,17 +1,23 @@
 "use client";
 
 import { getPlatformInfo } from "@/lib/device";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useSyncExternalStore } from "react";
+
+const empty = () => {
+  return () => {};
+};
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
-  const [installed, setInstalled] = useState(false);
-
-  useEffect(() => {
-    const { isInPWA } = getPlatformInfo(navigator.userAgent);
-    if (isInPWA) {
-      setInstalled(true);
+  const installed = useSyncExternalStore(
+    empty,
+    () => {
+      const { isInPWA } = getPlatformInfo(navigator.userAgent);
+      return isInPWA;
+    },
+    () => {
+      return undefined;
     }
-  }, [setInstalled]);
+  );
 
-  return !installed ? <>{children}</> : <></>;
+  return !installed ? <>{children}</> : null;
 };

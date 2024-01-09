@@ -1,66 +1,39 @@
 import { ModeToggle } from "@/components/dark-mode-toggle";
-import { FaDiscord } from "react-icons/fa";
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
-import { Progress } from "@/components/feedback/progress";
-import Image from "next/image";
-import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/layout/popover";
+import { PopoverContent } from "@/components/layout/popover";
+import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
+import NavigationLink from "@/components/navigation/navigation-link";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
-import { RenderFirstValue } from "@/components/util/render-first-value";
 import { db } from "@/db";
 import {
   getActiveSubscriptionForUserId,
   getMembersBySubscriptionId,
   getProfileByUserId,
-  getUserLifetimePoints,
-  getUserPointsLast30Days,
 } from "@/db/queries";
 import { getSession } from "@/lib/auth/session";
-import Bowser from "bowser";
+import { getCanInstallPWA } from "@/lib/headers";
+import { cn } from "@/lib/utils";
 import {
   ChefHatIcon,
   ChevronRightIcon,
   GithubIcon,
   Loader2Icon,
-  LoaderIcon,
   YoutubeIcon,
 } from "lucide-react";
-import { headers } from "next/headers";
+import Image from "next/image";
 import Link from "next/link";
-import { ReactNode, Suspense } from "react";
-import {
-  Observable,
-  combineLatest,
-  from,
-  map,
-  of,
-  shareReplay,
-  switchMap,
-  take,
-} from "rxjs";
+import { ReactNode } from "react";
+import { FaDiscord } from "react-icons/fa";
+import { Observable, from, map, of, shareReplay, switchMap, take } from "rxjs";
 import { AppInstallContainer } from "./app-install-container";
-import {
-  NotificationsSetting,
-  NotificationsSwitch,
-} from "./notifications-switch";
-import { TypeLogo } from "@/components/logo";
-import { cn } from "@/lib/utils";
-import NavigationLink from "@/components/navigation/navigation-link";
 
 export async function MainMenu({ className }: { className?: string }) {
   const session = await getSession();
-  const headerList = headers();
-  const browser = Bowser.getParser(headerList.get("user-agent")!);
-  const canInstallPWA =
-    browser.getOSName() === "iOS" && browser.getBrowserName() === "Safari";
+  const canInstallPWA = getCanInstallPWA();
 
   const userId = session?.user.id;
   const email = session?.user.email;
@@ -220,7 +193,7 @@ export async function MainMenu({ className }: { className?: string }) {
             </div>
           </div> */}
           {canInstallPWA && (
-            <MenuItem>
+            <MenuItem className="mb-2">
               <AppInstall />
             </MenuItem>
           )}
@@ -494,7 +467,7 @@ const PointsPopoverContent = () => (
 const AppInstall = () => (
   <AppInstallContainer>
     <Button
-      className="text-xs w-full h-fit flex flex-row gap-4 rounded-xl py-2"
+      className="text-xs h-fit flex flex-row gap-4 rounded-xl py-2 mx-auto shadow-xl"
       event={{ type: "DOWNLOAD_APP" }}
       variant="outline"
     >

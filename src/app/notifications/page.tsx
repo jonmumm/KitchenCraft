@@ -1,8 +1,4 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/w6b6P8uJXM3
- */
-
+import { Badge } from "@/components/display/badge";
 import {
   Card,
   CardContent,
@@ -11,8 +7,13 @@ import {
   CardTitle,
 } from "@/components/display/card";
 import { Label } from "@/components/display/label";
+import { Separator } from "@/components/display/separator";
+import { Button } from "@/components/input/button";
 import { Switch } from "@/components/input/switch";
+import { AppInstallContainer } from "@/components/modules/main-menu/app-install-container";
 import { getCurrentUserId } from "@/lib/auth/session";
+import { getCanInstallPWA } from "@/lib/headers";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
@@ -25,13 +26,42 @@ export default async function Page() {
 
   return (
     <main className="flex flex-col items-center justify-center h-full p-4 md:p-8">
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="pb-8">
+      <Card className="w-full max-w-2xl flex flex-col">
+        <CardHeader>
           <CardTitle>Notification Settings</CardTitle>
           <CardDescription>
             Customize your notification preferences.
           </CardDescription>
         </CardHeader>
+        {getCanInstallPWA() && (
+          <AppInstallContainer>
+            <Separator />
+            <div className="p-4">
+              <Button
+                className="text-xs h-fit flex flex-row gap-4 rounded-xl py-4 mx-auto shadow-xl"
+                event={{ type: "DOWNLOAD_APP" }}
+                variant="outline"
+              >
+                <Image
+                  src={"/apple-touch-icon.png"}
+                  className="h-14 w-14"
+                  alt={"App Icon"}
+                  width={512}
+                  height={512}
+                />
+                <div className="flex flex-col gap-1 items-center">
+                  <Badge variant="secondary">Add to Phone</Badge>
+                  <span className="text-lg font-medium">KitchenCraft App</span>
+                </div>
+              </Button>
+            </div>
+            <p className="text-muted-foreground text-sm px-5 pb-4 text-center">
+              Add the KitchenCraft App to receive push notifications on your
+              device.
+            </p>
+            <Separator className="mb-8" />
+          </AppInstallContainer>
+        )}
         <CardContent className="flex flex-col gap-5">
           <NotificationItem
             title={"Recipe Digest"}
