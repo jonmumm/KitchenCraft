@@ -467,7 +467,7 @@ const PointsPopoverContent = () => (
 const AppInstall = () => (
   <AppInstallContainer>
     <Button
-      className="text-xs h-fit flex flex-row gap-4 rounded-xl py-2 mx-auto shadow-xl group"
+      className="text-xs h-fit flex flex-row gap-4 rounded-xl p-4 mx-auto shadow-xl group"
       event={{ type: "DOWNLOAD_APP" }}
       variant="outline"
     >
