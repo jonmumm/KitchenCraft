@@ -1,6 +1,6 @@
 "use client";
-import { useEffect } from "react";
-import { Workbox } from "workbox-window";
+import { useEffect, useRef } from "react";
+import { Workbox, WorkboxLifecycleEvent } from "workbox-window";
 
 declare global {
   interface Window {
@@ -9,56 +9,60 @@ declare global {
 }
 
 export function PWALifeCycle() {
-  // This hook only run once in browser after the component is rendered for the first time.
-  // It has same effect as the old componentDidMount lifecycle callback.
+  const listenersAdded = useRef(false);
+
   useEffect(() => {
     if (
-      typeof window !== "undefined" &&
+      !listenersAdded.current &&
       "serviceWorker" in navigator &&
-      window.workbox !== undefined
+      window.workbox
     ) {
       const wb = window.workbox;
-      // add event listeners to handle PWA lifecycle events
-      wb.addEventListener("installed", (event) => {
+      wb.register();
+
+      const onInstalled = (event: WorkboxLifecycleEvent) => {
         console.log(`Event ${event.type} is triggered.`);
         console.log(event);
-      });
+      };
 
-      wb.addEventListener("waiting", () => {
-        // `event.wasWaitingBeforeRegister` will be false if this is the first time the updated service worker is waiting.
-        // When `event.wasWaitingBeforeRegister` is true, a previously updated service worker is still waiting.
-        // You may want to customize the UI prompt accordingly.
-        // https://developer.chrome.com/docs/workbox/handling-service-worker-updates/#the-code-to-put-in-your-page
-        if (
-          confirm(
-            "A newer version of this web app is available, reload to update?"
-          )
-        ) {
-          // Send a message to the waiting service worker, instructing it to activate.
-          wb.messageSkipWaiting();
-          wb.addEventListener("controlling", () => {
-            window.location.reload();
-          });
-        } else {
-          console.log(
-            "User rejected to update SW, keeping the old version. New version will be automatically loaded when the app is opened next time."
-          );
-        }
-      });
+      // const onWaiting = () => {
+      //   if (
+      //     confirm(
+      //       "A newer version of this web app is available, reload to update?"
+      //     )
+      //   ) {
+      //     wb.messageSkipWaiting();
+      //     wb.addEventListener("controlling", () => {
+      //       window.location.reload();
+      //     });
+      //   } else {
+      //     console.log(
+      //       "User rejected to update SW, keeping the old version. New version will be automatically loaded when the app is opened next time."
+      //     );
+      //   }
+      // };
 
-      wb.addEventListener("controlling", (event) => {
+      const onControlling = (event: WorkboxLifecycleEvent) => {
         console.log(`Event ${event.type} is triggered.`);
         console.log(event);
-      });
+      };
 
-      wb.addEventListener("activated", (event) => {
+      const onActivated = (event: WorkboxLifecycleEvent) => {
         console.log(`Event ${event.type} is triggered.`);
         console.log(event);
-      });
+      };
 
-      // Don't forget to call register as automatic registration is disabled.
-    //   wb.register();
+      wb.addEventListener("installed", onInstalled);
+      // wb.addEventListener("waiting", onWaiting);
+      wb.addEventListener("controlling", onControlling);
+      wb.addEventListener("activated", onActivated);
+
+      console.log("Event listeners added for PWA lifecycle.");
+      listenersAdded.current = true;
+
+      // No cleanup function is needed since we want these to persist
     }
   }, []);
+
   return <></>;
 }

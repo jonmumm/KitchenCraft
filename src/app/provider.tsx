@@ -1,6 +1,5 @@
 "use client";
 
-
 import { ApplicationContext } from "@/context/application";
 import { env } from "@/env.public";
 import { useActor } from "@/hooks/useActor";
@@ -13,6 +12,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { CraftContext } from "./context";
 import { createCraftMachine } from "./machine";
+import { PWALifeCycle } from "@/components/device/PWALifecycle";
 
 // export const ApplicationContext = createContext()
 
@@ -34,7 +34,6 @@ export function ApplicationProvider(props: {
   // })
   // useScrollRestoration(); // i dont know if this is well working or not
 
-
   const CraftProvider = ({ children }: { children: ReactNode }) => {
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -54,7 +53,6 @@ export function ApplicationProvider(props: {
     );
   };
 
-
   return (
     <SessionProvider session={props.session}>
       <ApplicationContext.Provider value={store}>
@@ -64,13 +62,13 @@ export function ApplicationProvider(props: {
           <HashChangeEventsProvider />
           <PopStateEventsProvider />
           <AnalyticsProvider />
+          <PWALifeCycle />
           {props.children}
         </CraftProvider>
       </ApplicationContext.Provider>
     </SessionProvider>
   );
 }
-
 
 const AnalyticsProvider = () => {
   usePosthogAnalytics(env.POSTHOG_CLIENT_KEY);
