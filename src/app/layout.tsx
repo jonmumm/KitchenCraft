@@ -1,11 +1,13 @@
 import { Toaster } from "@/components/feedback/toaster";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
+import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";
 import { getDistinctId, getSession } from "@/lib/auth/session";
 import { getResult } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
+import { getCanInstallPWA } from "@/lib/headers";
 import { kv } from "@/lib/kv";
 import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
@@ -265,6 +267,8 @@ export default async function RootLayout({
     createNewRecipeFromSuggestion,
   };
 
+  const canInstallPWA = getCanInstallPWA();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -308,6 +312,7 @@ export default async function RootLayout({
               <div className="hidden crafting:block">{craft}</div>
             </div>
             <div className="sticky mt-4 bottom-0 z-50">{footer}</div>
+            {canInstallPWA && <SafariInstallPrompt />}
           </ThemeProvider>
           <Toaster />
           {/* <KeyboardAvoidingView>

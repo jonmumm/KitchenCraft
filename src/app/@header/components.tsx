@@ -59,10 +59,9 @@ export async function Header({
             ) : (
               <div className="mt-3 mr-2 w-20">
                 <NavigationLink href="/">
-                  <div className="transitioning:hidden">
+                  <div className="transitioning:animate-pulse">
                     <TypeLogo />
                   </div>
-                  <Loader2Icon className="hidden transitioning:block animate-spin" />
                 </NavigationLink>
               </div>
             )}
@@ -118,35 +117,6 @@ export async function Header({
     </>
   );
 }
-
-const CraftHeading = () => {
-  return (
-    <div className="hidden focus-within:flex flex-row gap-6 items-center">
-      {/* <div>
-        <Button variant="ghost">
-          <ArrowLeftIcon />
-        </Button>
-      </div> */}
-      <div className="flex flex-row gap-3 items-center w-full">
-        <div className="flex flex-col gap-1 w-full">
-          <div>
-            <Badge variant="outline">Craft Recipe</Badge>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Add ingredients, tags, cooking techniques, descriptions.
-          </p>
-        </div>
-        <Image
-          className="w-12 aspect-square"
-          src="/apple-touch-icon.png"
-          alt="KitchenCraft Logo"
-          width={512}
-          height={512}
-        />
-      </div>
-    </div>
-  );
-};
 
 const CraftCTA = () => {
   // hide the empty state on click

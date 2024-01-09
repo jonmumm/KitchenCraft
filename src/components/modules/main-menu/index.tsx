@@ -468,7 +468,6 @@ const AppInstall = () => (
   <AppInstallContainer>
     <Button
       className="text-xs h-fit flex flex-row gap-4 rounded-xl p-4 mx-auto shadow-xl group"
-      event={{ type: "DOWNLOAD_APP" }}
       variant="outline"
     >
       <Image
@@ -479,8 +478,16 @@ const AppInstall = () => (
         height={512}
       />
       <div className="flex flex-col gap-1 items-center">
-        <Badge className="text-blue-600 dark:text-blue-400" variant="secondary">
-          Get
+        <Badge
+          className="text-blue-600 dark:text-blue-400"
+          event={{ type: "DOWNLOAD_APP" }}
+          variant="secondary"
+        >
+          <span className="transitioning:hidden">Get</span>
+          <Loader2Icon
+            size={14}
+            className="hidden transitioning:block animate-spin"
+          />
         </Badge>
         <span className="text-lg font-medium">KitchenCraft App</span>
       </div>
