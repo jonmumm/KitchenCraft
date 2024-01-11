@@ -52,7 +52,7 @@ export default async function Page({
     const emailCallbackParams = new URLSearchParams({
       email: appInstall.email,
       token: publicToken,
-      callbackUrl: "/startup", // todo might e infinite loop here if auth fails
+      callbackUrl: `/startup?token=${token}`, // todo might e infinite loop here if auth fails
     });
     redirect(`/api/auth/callback/email?${emailCallbackParams.toString()}`);
   }
