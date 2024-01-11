@@ -31,6 +31,8 @@ export function PWALifeCycle() {
       wb.register().then(async (swReg) => {
         if (swReg) {
           alert("service worker set");
+          await navigator.serviceWorker.ready; // Here's the waiting
+          alert("ready");
           serviceWorker$.set(swReg);
         }
       });
