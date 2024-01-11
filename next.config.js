@@ -4,9 +4,9 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
   customWorkerSrc: "src/service-worker",
   register: false,
-  // workboxOptions: {
-  //   mode: "production",
-  // },
+  workboxOptions: {
+    mode: "production",
+  },
 });
 
 module.exports = withPWA({

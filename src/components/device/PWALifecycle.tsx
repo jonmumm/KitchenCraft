@@ -30,6 +30,7 @@ export function PWALifeCycle() {
       const wb = window.workbox;
       wb.register().then(async (swReg) => {
         if (swReg) {
+          alert("service worker set");
           serviceWorker$.set(swReg);
         }
       });
