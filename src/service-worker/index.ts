@@ -23,9 +23,9 @@ self.addEventListener("push", (event) => {
   if (!event?.data) {
     return;
   }
-  // const body = event.data.json();
-  // const { title, options } = body;
-  const send = self.registration.showNotification("Welcome in!");
+  const body = event.data.json();
+  const { title, options } = body;
+  const send = self.registration.showNotification(title);
   event.waitUntil(send);
 
   // const data = JSON.parse(event.data.text() || "{}");

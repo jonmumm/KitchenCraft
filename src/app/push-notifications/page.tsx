@@ -1,5 +1,6 @@
 import { Button } from "@/components/input/button";
 import { PushSubscriptions, db } from "@/db";
+import { getProfileByUserId } from "@/db/queries";
 import { env } from "@/env.public";
 import { privateEnv } from "@/env.secrets";
 import { getDistinctId } from "@/lib/auth/session";
@@ -57,6 +58,11 @@ export default async function Page() {
       },
     };
 
+    const profile = await getProfileByUserId(distinctId);
+    const title = profile
+      ? `Welcome in, ${profile.profileSlug}!`
+      : `Welcome in!`;
+
     await webpush.sendNotification(
       {
         endpoint,
@@ -65,7 +71,7 @@ export default async function Page() {
           p256dh,
         },
       },
-      JSON.stringify({ title: "Welcome in!" }),
+      JSON.stringify({ title }),
       options
     );
 
