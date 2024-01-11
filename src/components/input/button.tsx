@@ -48,7 +48,7 @@ export interface ButtonProps
 
 const Button = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps & { event?: AppEvent; disableOnClick: boolean }
+  ButtonProps & { event?: AppEvent; disableOnClick?: boolean }
 >(
   (
     {
