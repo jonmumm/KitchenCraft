@@ -30,9 +30,7 @@ export function PWALifeCycle() {
       const wb = window.workbox;
       wb.register().then(async (swReg) => {
         if (swReg) {
-          alert("service worker set");
           await navigator.serviceWorker.ready; // Here's the waiting
-          alert("ready");
           serviceWorker$.set(swReg);
         }
       });
@@ -61,12 +59,12 @@ export function PWALifeCycle() {
       // };
 
       const onControlling = (event: WorkboxLifecycleEvent) => {
+
         console.log(`Event ${event.type} is triggered.`);
         console.log(event);
       };
 
       const onActivated = (event: WorkboxLifecycleEvent) => {
-        alert("active!");
         console.log(`Event ${event.type} is triggered.`);
         console.log(event);
       };
