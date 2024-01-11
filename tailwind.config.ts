@@ -83,6 +83,7 @@ const config: Config = {
       addVariant("prompt-dirty", `.prompt-dirty &`);
       addVariant("transitioning", `.transitioning &`);
       addVariant("prompt-pristine", `.prompt-pristine &`);
+      addVariant("btn-loading", `.button-loading &`);
     }),
     require("daisyui"),
     require("tailwindcss-animate"),

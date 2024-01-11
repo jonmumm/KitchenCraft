@@ -48,7 +48,7 @@ export interface ButtonProps
 
 const Button = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps & { event?: AppEvent; disableOnClick?: boolean }
+  ButtonProps & { event?: AppEvent; loadingOnClick?: boolean }
 >(
   (
     {
@@ -57,7 +57,7 @@ const Button = React.forwardRef<
       size,
       event,
       disabled,
-      disableOnClick,
+      loadingOnClick,
       onClick,
       asChild = false,
       ...props
@@ -67,7 +67,7 @@ const Button = React.forwardRef<
     const Comp = asChild ? Slot : "button";
     const send = useSend();
 
-    const [_disabled, setDisabled] = useState(disabled);
+    const [loading, setLoading] = useState(false);
 
     const handleEventClick = React.useMemo(() => {
       if (event && !onClick) {
@@ -82,23 +82,26 @@ const Button = React.forwardRef<
     }, [event, onClick, send]);
 
     const handleClick = React.useMemo(() => {
-      if (disableOnClick) {
+      if (loadingOnClick) {
         const handler: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-          setDisabled(true);
+          setLoading(true);
           e.preventDefault();
           return handleEventClick && handleEventClick(e);
         };
         return handler;
       }
       return handleEventClick;
-    }, [handleEventClick, disableOnClick, setDisabled]);
+    }, [handleEventClick, loadingOnClick, setLoading]);
 
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          loading ? `button-loading` : ``
+        )}
         onClick={handleClick}
-        disabled={_disabled}
         ref={ref}
+        disabled={loading || disabled}
         {...props}
       />
     );

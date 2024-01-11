@@ -1,13 +1,13 @@
 import { Card } from "@/components/display/card";
-import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { Button } from "@/components/input/button";
 import { PushSubscriptions, db } from "@/db";
 import { getProfileByUserId } from "@/db/queries";
 import { env } from "@/env.public";
 import { privateEnv } from "@/env.secrets";
 import { getDistinctId } from "@/lib/auth/session";
+import { pushPermissionCookie } from "@/lib/coookieStore";
 import { assert } from "@/lib/utils";
-import { cookies } from "next/headers";
+import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import * as webpush from "web-push";
@@ -17,7 +17,6 @@ import {
   PushNotificationsDenied,
   PushNotificationsUnprompted,
 } from "./components.client";
-import { Loader2Icon } from "lucide-react";
 
 export default async function Page() {
   //   const cookieStore = cookies();
@@ -31,9 +30,7 @@ export default async function Page() {
     subscription: PushSubscriptionJSON
   ): Promise<void> {
     "use server";
-    const cookieStore = cookies();
-    cookieStore.set("permissionState", "granted");
-
+    pushPermissionCookie.set("granted");
     redirect("/");
   }
 
@@ -43,8 +40,7 @@ export default async function Page() {
   ): Promise<void> {
     "use server";
 
-    const cookieStore = cookies();
-    cookieStore.set("permissionState", "granted");
+    pushPermissionCookie.set("granted");
 
     const { endpoint, keys, expirationTime } = subscription;
     console.log(expirationTime);
@@ -117,16 +113,17 @@ export default async function Page() {
           <PushNotificationStateLoading>
             <Button className="w-full" disabled>
               Loading
-              <Loader2Icon size={18} className="animate-spin ml-2" />
+              <Loader2Icon size={18} className="animate-spin ml-1" />
             </Button>
           </PushNotificationStateLoading>
           <PushNotificationsUnprompted>
             <Button
               event={{ type: "ENABLE_PUSH_NOTIFICATIONS" }}
               className="w-full"
-              disableOnClick
+              loadingOnClick
             >
               Enable Push Notifications
+              <Loader2Icon className="animate-spin hidden btn-loading:inline-block ml-1" />
             </Button>
           </PushNotificationsUnprompted>
           <PushNotificationsDenied>

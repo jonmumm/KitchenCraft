@@ -1,6 +1,7 @@
 import { adapter, authOptions, emailConfig } from "@/lib/auth/options";
 import { getCurrentEmail } from "@/lib/auth/session";
 import { parseAppInstallToken } from "@/lib/browser-session";
+import { pushPermissionCookie } from "@/lib/coookieStore";
 import { createHash, randomString } from "@/lib/string";
 import { assert } from "@/lib/utils";
 import { cookies } from "next/headers";
@@ -12,8 +13,7 @@ export default async function Page({
   searchParams: Record<string, string>;
 }) {
   const [currentEmail] = await Promise.all([getCurrentEmail()]);
-  const cookieStore = cookies();
-  const permissionState = cookieStore.get("permissionState")?.value;
+  const permissionState = pushPermissionCookie.get();
   const nextPage = permissionState === "granted" ? "/" : "/push-notifications";
   // todo ensure it's not expired
 
