@@ -124,6 +124,7 @@ export default async function Page() {
             <Button
               event={{ type: "ENABLE_PUSH_NOTIFICATIONS" }}
               className="w-full"
+              disableOnClick
             >
               Enable Push Notifications
             </Button>

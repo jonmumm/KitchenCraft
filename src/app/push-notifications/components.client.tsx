@@ -41,27 +41,29 @@ export function PushNotificationProvider({
   const handler = useCallback(() => {
     // useContext
     const swReg = serviceWorker$.get();
+    // this shouldht happen since were holding the load state of the button
+    // til swReg exists
     if (!swReg) {
-      throw new Error("todo implement wait when swReg not ready yet");
-      // todo handle thi
+      const unbind = serviceWorker$.listen((swReg) => {
+        if (swReg) {
+          prompt(swReg);
+          unbind();
+        }
+      });
+    } else {
+      prompt(swReg);
     }
 
-    // const permissionState = swReg.pushManager
-    //   .permissionState({
-    //     userVisibleOnly: true,
-    //   })
-    //   .then((permissionState) => {
-    //     alert(permissionState);
-    //   });
-
-    swReg.pushManager
-      .subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: env.VAPID_PUBLIC_KEY,
-      })
-      .then((subscription) => {
-        return registerPushSubscription(subscription.toJSON());
-      });
+    function prompt(swReg: ServiceWorkerRegistration) {
+      swReg.pushManager
+        .subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: env.VAPID_PUBLIC_KEY,
+        })
+        .then((subscription) => {
+          return registerPushSubscription(subscription.toJSON());
+        });
+    }
   }, [serviceWorker$, registerPushSubscription]);
 
   useEventHandler("ENABLE_PUSH_NOTIFICATIONS", handler);
@@ -114,7 +116,9 @@ export function PushNotificationsUnprompted({
   children: ReactNode;
 }) {
   const permissionState = usePermissionState();
-  return permissionState === "prompt" ? <>{children}</> : null;
+  const serviceWorker$ = useContext(ServiceWorkerContext);
+  const serviceWorker = useStore(serviceWorker$);
+  return serviceWorker && permissionState === "prompt" ? <>{children}</> : null;
 }
 
 export function PushNotificationsDenied({ children }: { children: ReactNode }) {
@@ -122,7 +126,11 @@ export function PushNotificationsDenied({ children }: { children: ReactNode }) {
   return permissionState === "denied" ? <>{children}</> : null;
 }
 
-export function PushNotificationStateLoading({ children }: { children: ReactNode }) {
+export function PushNotificationStateLoading({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const permissionState = usePermissionState();
   return permissionState === undefined ? <>{children}</> : null;
 }

@@ -7,6 +7,7 @@ import * as React from "react";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
+import { useState } from "react";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
@@ -47,32 +48,62 @@ export interface ButtonProps
 
 const Button = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps & { event?: AppEvent }
->(({ className, variant, size, event, asChild = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : "button";
-  const send = useSend();
+  ButtonProps & { event?: AppEvent; disableOnClick: boolean }
+>(
+  (
+    {
+      className,
+      variant,
+      size,
+      event,
+      disabled,
+      disableOnClick,
+      onClick,
+      asChild = false,
+      ...props
+    },
+    ref
+  ) => {
+    const Comp = asChild ? Slot : "button";
+    const send = useSend();
 
-  const handleClick = React.useMemo(() => {
-    if (event && !props.onClick) {
-      const handler: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-        send(event);
-        e.preventDefault();
-      };
-      return handler;
-    } else {
-      return props.onClick;
-    }
-  }, [event, props.onClick, send]);
+    const [_disabled, setDisabled] = useState(disabled);
 
-  return (
-    <Comp
-      className={cn(buttonVariants({ variant, size, className }))}
-      onClick={handleClick}
-      ref={ref}
-      {...props}
-    />
-  );
-});
+    const handleEventClick = React.useMemo(() => {
+      if (event && !onClick) {
+        const handler: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+          send(event);
+          e.preventDefault();
+        };
+        return handler;
+      } else {
+        return onClick;
+      }
+    }, [event, onClick, send]);
+
+    const handleClick = React.useMemo(() => {
+      if (disableOnClick) {
+        const handler: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+          setDisabled(true);
+          e.preventDefault();
+          return handleEventClick && handleEventClick(e);
+        };
+        return handler;
+      }
+      return handleEventClick;
+    }, [handleEventClick, disableOnClick, setDisabled]);
+
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        onClick={handleClick}
+        disabled={_disabled}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
