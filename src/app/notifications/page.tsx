@@ -95,15 +95,15 @@ export default async function Page() {
             Customize your notification preferences.
           </CardDescription>
         </CardHeader>
-        {appSessionId && missingPushPermission && (
+        {/* {appSessionId && missingPushPermission && (
           <>
             <Separator />
             <div className="p-4">
               <h1 className="font-semibold text-lg text-center">
-                Push Notifications
+                Push Permissions
               </h1>
               <p className="text-muted-foreground text-sm text-center">
-                Enable KitchenCraft to send the latest
+                Enable push to receive the latest
               </p>
               <ul className="flex flex-col gap-1 m-4">
                 <li>🍳 Recipe trends</li>
@@ -113,12 +113,12 @@ export default async function Page() {
                 <li>🏆 Seasonal awards for top chefs</li>
               </ul>
               <Link href="/push-notifications">
-                <Button className="w-full">Enable</Button>
+                <Button className="w-full">Enable Push</Button>
               </Link>
             </div>
             <Separator className="mb-4" />
           </>
-        )}
+        )} */}
         {getCanInstallPWA() && (
           <AppInstallContainer>
             <Separator />

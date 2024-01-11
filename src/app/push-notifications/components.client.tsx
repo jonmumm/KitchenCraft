@@ -3,6 +3,7 @@
 import { ServiceWorkerContext } from "@/context/service-worker";
 import { env } from "@/env.public";
 import { useEventHandler } from "@/hooks/useEventHandler";
+import { getErrorMessage } from "@/lib/error";
 import { noop } from "@/lib/utils";
 import { useStore } from "@nanostores/react";
 import { atom } from "nanostores";
@@ -56,15 +57,21 @@ export function PushNotificationProvider({
     }
 
     function prompt(swReg: ServiceWorkerRegistration) {
+      alert("prompting");
       swReg.pushManager
         .subscribe({
           userVisibleOnly: true,
           applicationServerKey: env.VAPID_PUBLIC_KEY,
         })
         .then((subscription) => {
+          alert("subscribed, registering");
           return registerPushSubscription(subscription.toJSON());
         })
-        .then(noop);
+        .then(noop)
+        .catch((ex) => {
+          alert("exeception");
+          alert(getErrorMessage(ex));
+        });
     }
   }, [serviceWorker$, registerPushSubscription]);
 
