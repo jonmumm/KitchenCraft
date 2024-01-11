@@ -64,6 +64,7 @@ export function PWALifeCycle() {
       };
 
       const onActivated = (event: WorkboxLifecycleEvent) => {
+        alert("active!");
         console.log(`Event ${event.type} is triggered.`);
         console.log(event);
       };
