@@ -122,6 +122,11 @@ export function PushNotificationsDenied({ children }: { children: ReactNode }) {
   return permissionState === "denied" ? <>{children}</> : null;
 }
 
+export function PushNotificationStateLoading({ children }: { children: ReactNode }) {
+  const permissionState = usePermissionState();
+  return permissionState === undefined ? <>{children}</> : null;
+}
+
 // export function PushNotificationsGranted({
 //   children,
 // }: {

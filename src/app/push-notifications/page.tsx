@@ -1,3 +1,5 @@
+import { Card } from "@/components/display/card";
+import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { Button } from "@/components/input/button";
 import { PushSubscriptions, db } from "@/db";
 import { getProfileByUserId } from "@/db/queries";
@@ -11,9 +13,11 @@ import { redirect } from "next/navigation";
 import * as webpush from "web-push";
 import {
   PushNotificationProvider,
+  PushNotificationStateLoading,
   PushNotificationsDenied,
   PushNotificationsUnprompted,
 } from "./components.client";
+import { Loader2Icon } from "lucide-react";
 
 export default async function Page() {
   //   const cookieStore = cookies();
@@ -91,18 +95,45 @@ export default async function Page() {
       registerPushSubscription={registerPushSubscription.bind(null, distinctId)}
       refreshPushSubscription={refreshPushSubscription.bind(null, distinctId)}
     >
-      <h1>Push Notifications</h1>
-      <PushNotificationsUnprompted>
-        <Link href="/">Skip</Link>{" "}
-        {/* TODO: use referrer to say back vs skip */}
-        <Button event={{ type: "ENABLE_PUSH_NOTIFICATIONS" }}>
-          Enable Pushes
-        </Button>
-      </PushNotificationsUnprompted>
-      <PushNotificationsDenied>
-        <></>
-        <Button>Go Home</Button>
-      </PushNotificationsDenied>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Link href="/" className="absolute right-4 top-4 text-muted-foreground">
+          <Button variant="ghost">Skip</Button>
+        </Link>
+        <Card className="max-w-3-xl p-4">
+          <h1 className="font-semibold text-lg text-center">
+            Push Notifications
+          </h1>
+          <p className="text-muted-foreground text-sm text-center">
+            Enable KitchenCraft to send the latest
+          </p>
+          <ul className="flex flex-col gap-1 m-4">
+            <li>🍳 Recipe trends</li>
+            <li>🔪 Cooking tips and tricks</li>
+            <li>🛒 Bestselling tools and ingredients</li>
+            <li>🌟 Top voted recipes</li>
+            <li>🏆 Seasonal awards for top chefs</li>
+          </ul>
+
+          <PushNotificationStateLoading>
+            <Button className="w-full" disabled>
+              Loading
+              <Loader2Icon size={18} className="animate-spin ml-2" />
+            </Button>
+          </PushNotificationStateLoading>
+          <PushNotificationsUnprompted>
+            <Button
+              event={{ type: "ENABLE_PUSH_NOTIFICATIONS" }}
+              className="w-full"
+            >
+              Enable Push Notifications
+            </Button>
+          </PushNotificationsUnprompted>
+          <PushNotificationsDenied>
+            <></>
+            <Button>Go Home</Button>
+          </PushNotificationsDenied>
+        </Card>
+      </div>
     </PushNotificationProvider>
   );
 }

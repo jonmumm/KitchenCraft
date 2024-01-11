@@ -19,6 +19,13 @@ export function PWALifeCycle() {
       "serviceWorker" in navigator &&
       window.workbox
     ) {
+      // Programatically unregisters
+      //       navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      //     for(let registration of registrations) {
+      //         registration.unregister();
+      //     }
+      // });
+
       const wb = window.workbox;
       wb.register().then(async (swReg) => {
         if (swReg) {

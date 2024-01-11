@@ -13,7 +13,7 @@ import { Button } from "@/components/input/button";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
-import { assert, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   ArrowLeftIcon,
   ChevronRight,
@@ -100,11 +100,9 @@ export const CraftInput = ({
 
   // Cleanup the listener set up to add the crafting class if user clicks #prompt before react loads
   useEffect(() => {
-    assert(
-      window.removePromptListener,
-      "expected removePromptListener to be set when rendered"
-    );
-    window.removePromptListener();
+    setTimeout(() => {
+      window.removePromptListener && window.removePromptListener();
+    }, 0);
     // assert("removePromptListener";
   }, []);
 

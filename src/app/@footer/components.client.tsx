@@ -8,16 +8,14 @@ declare global {
 }
 
 import { useSend } from "@/hooks/useSend";
-import { assert, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import React, {
   ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
 } from "react";
-import { CraftContext } from "../context";
 
 export const FooterTabTitle = ({
   children,
@@ -94,11 +92,9 @@ export const CraftTabLink = ({
   const send = useSend();
 
   useEffect(() => {
-    assert(
-      window.removeCraftListener,
-      "expected removeCraftListener to be set when rendered"
-    );
-    window.removeCraftListener();
+    setTimeout(() => {
+      window.removeCraftListener && window.removeCraftListener();
+    }, 0);
   }, []);
 
   const handleClick = useCallback(() => {
