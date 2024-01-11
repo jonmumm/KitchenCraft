@@ -13,6 +13,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { CraftContext } from "./context";
 import { createCraftMachine } from "./machine";
 import { PWALifeCycle } from "@/components/device/PWALifecycle";
+import { ServiceWorkerProvider } from "@/context/service-worker";
 
 // export const ApplicationContext = createContext()
 
@@ -54,19 +55,21 @@ export function ApplicationProvider(props: {
   };
 
   return (
-    <SessionProvider session={props.session}>
-      <ApplicationContext.Provider value={store}>
-        <CraftProvider>
-          <PageLoadEventsProvider />
-          <SearchParamsEventsProvider />
-          <HashChangeEventsProvider />
-          <PopStateEventsProvider />
-          <AnalyticsProvider />
-          <PWALifeCycle />
-          {props.children}
-        </CraftProvider>
-      </ApplicationContext.Provider>
-    </SessionProvider>
+    <ServiceWorkerProvider>
+      <SessionProvider session={props.session}>
+        <ApplicationContext.Provider value={store}>
+          <CraftProvider>
+            <PageLoadEventsProvider />
+            <SearchParamsEventsProvider />
+            <HashChangeEventsProvider />
+            <PopStateEventsProvider />
+            <AnalyticsProvider />
+            <PWALifeCycle />
+            {props.children}
+          </CraftProvider>
+        </ApplicationContext.Provider>
+      </SessionProvider>
+    </ServiceWorkerProvider>
   );
 }
 

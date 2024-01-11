@@ -342,3 +342,10 @@ export const PopularTagsView = pgMaterializedView("popular_tags").as((qb) =>
     .orderBy(sql`count(*)`)
     .limit(30)
 );
+
+export const PushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").notNull().primaryKey(),
+  belongsTo: text("belongsTo").notNull(), // no fk because if might references users that doesnt exist yet
+  subscription: jsonb("subscription").$type<PushSubscriptionJSON>().notNull(), // Using jsonb to store ingredients
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});

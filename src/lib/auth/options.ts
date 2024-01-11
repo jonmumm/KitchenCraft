@@ -85,6 +85,11 @@ export const authOptions: NextAuthOptions = {
 
     // this data can become available to the browser
     async jwt(params) {
+      if (params.trigger === "signUp") {
+        // sign up hook here...
+        console.log(params.trigger);
+      }
+
       const { token, user } = params;
       const [dbUser] = await db
         .select()

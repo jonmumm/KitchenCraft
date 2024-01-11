@@ -39,6 +39,7 @@ export const SecretsEnvironmentSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string(),
   GOOGLE_CUSTOM_SEARCH_API_KEY: z.string(),
   GOOGLE_CUSTOM_SEARCH_ENGINE_ID: z.string(),
+  VAPID_PRIVATE_KEY: z.string(),
 });
 
 export const PublicEnvironmentSchema = z.object({
@@ -47,6 +48,8 @@ export const PublicEnvironmentSchema = z.object({
   POSTHOG_CLIENT_KEY: z.string(),
   STRIPE_PUBLIC_KEY: z.string(),
   LOG_LEVEL: z.enum(["info", "debug", "verbose"]),
+  VAPID_PUBLIC_KEY: z.string(),
+  // process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
 });
 
 const FreeTextLiteral = z.literal("free_text");
@@ -486,6 +489,10 @@ const HydratInputEventSchema = z.object({
   ref: z.custom<HTMLTextAreaElement>(),
 });
 
+const EnablePushNotificationsEventSchema = z.object({
+  type: z.literal("ENABLE_PUSH_NOTIFICATIONS"),
+});
+
 const KeyDownEventSchema = z.object({
   type: z.literal("KEY_DOWN"),
   keyboardEvent: z.custom<React.KeyboardEvent<HTMLTextAreaElement>>(),
@@ -497,6 +504,7 @@ const ErrorEventSchema = z.object({
 });
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+  EnablePushNotificationsEventSchema,
   ErrorEventSchema,
   DownloadAppEventShema,
   KeyDownEventSchema,

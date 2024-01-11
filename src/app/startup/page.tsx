@@ -3,6 +3,7 @@ import { getCurrentEmail } from "@/lib/auth/session";
 import { parseAppInstallToken } from "@/lib/browser-session";
 import { createHash, randomString } from "@/lib/string";
 import { assert } from "@/lib/utils";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export default async function Page({
@@ -10,10 +11,15 @@ export default async function Page({
 }: {
   searchParams: Record<string, string>;
 }) {
+  const [currentEmail] = await Promise.all([getCurrentEmail()]);
+  const cookieStore = cookies();
+  const permissionState = cookieStore.get("permissionState")?.value;
+  const nextPage = permissionState === "granted" ? "/" : "/push-notifications";
+  // todo ensure it's not expired
+
   // If logged in, go home
-  const currentEmail = await getCurrentEmail();
   if (currentEmail) {
-    redirect("/");
+    redirect(nextPage);
   }
 
   const { token } = searchParams;
@@ -22,8 +28,7 @@ export default async function Page({
   try {
     appInstall = await parseAppInstallToken(token);
   } catch (ex) {
-    // If token expired, redirect back home
-    redirect("/");
+    redirect(nextPage);
   }
 
   // If the app install had an email address and we're not currently logged in
@@ -46,10 +51,11 @@ export default async function Page({
     const emailCallbackParams = new URLSearchParams({
       email: appInstall.email,
       token: publicToken,
+      callbackUrl: nextPage,
     });
 
     redirect(`/api/auth/callback/email?${emailCallbackParams.toString()}`);
   }
 
-  redirect("/");
+  redirect(nextPage);
 }

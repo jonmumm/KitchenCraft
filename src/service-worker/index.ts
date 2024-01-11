@@ -1,6 +1,5 @@
 /// <reference lib="webworker" />
-// @ts-ignore
-self.__WB_DISABLE_DEV_LOGS = true
+// self.__WB_DISABLE_DEV_LOGS = true
 
 export type {};
 declare let self: ServiceWorkerGlobalScope;
@@ -20,16 +19,22 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("push", (event) => {
+  console.log(event);
   if (!event?.data) {
     return;
   }
-  const data = JSON.parse(event.data.text() || "{}");
-  event?.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.message,
-      icon: "/icons/android-chrome-192x192.png",
-    })
-  );
+  // const body = event.data.json();
+  // const { title, options } = body;
+  const send = self.registration.showNotification("Welcome in!");
+  event.waitUntil(send);
+
+  // const data = JSON.parse(event.data.text() || "{}");
+  // event?.waitUntil(
+  //   self.registration.showNotification(data.title, {
+  //     body: data.message,
+  //     icon: "/icons/android-chrome-192x192.png",
+  //   })
+  // );
 });
 
 self.addEventListener("notificationclick", (event) => {

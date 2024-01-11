@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { ServiceWorkerContext } from "@/context/service-worker";
+import { useContext, useEffect, useRef } from "react";
 import { Workbox, WorkboxLifecycleEvent } from "workbox-window";
 
 declare global {
@@ -10,6 +11,7 @@ declare global {
 
 export function PWALifeCycle() {
   const listenersAdded = useRef(false);
+  const serviceWorker$ = useContext(ServiceWorkerContext);
 
   useEffect(() => {
     if (
@@ -18,7 +20,11 @@ export function PWALifeCycle() {
       window.workbox
     ) {
       const wb = window.workbox;
-      // wb.register();
+      wb.register().then(async (swReg) => {
+        if (swReg) {
+          serviceWorker$.set(swReg);
+        }
+      });
 
       const onInstalled = (event: WorkboxLifecycleEvent) => {
         console.log(`Event ${event.type} is triggered.`);
