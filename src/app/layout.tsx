@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/feedback/toaster";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -27,10 +26,12 @@ import type { Metadata } from "next";
 import { revalidateTag } from "next/cache";
 import { ReactNode } from "react";
 import "../styles/globals.css";
-import { Body } from "./components.client";
+import { Body, SearchParamsToastMessage } from "./components.client";
 import { ApplicationProvider } from "./provider";
 import { RecipeTokenStream } from "./recipe/[slug]/stream";
 import "./styles.css";
+import { Toaster } from "@/components/feedback/sonner";
+import { Toaster as LegacyToaster } from "@/components/feedback/toaster";
 
 const APP_NAME = "KitchenCraft";
 const APP_DEFAULT_TITLE = "kitchencraft.ai";
@@ -364,6 +365,8 @@ export default async function RootLayout({
             {canInstallPWA && <SafariInstallPrompt />}
           </ThemeProvider>
           <Toaster />
+          <SearchParamsToastMessage />
+          <LegacyToaster />
           {/* <KeyboardAvoidingView>
             {footer}
           </KeyboardAvoidingView> */}

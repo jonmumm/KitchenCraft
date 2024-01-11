@@ -4,7 +4,9 @@ import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
 import { Inter } from "next/font/google";
-import { ReactNode, useContext } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { ReactNode, useContext, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { CraftContext } from "./context";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -61,4 +63,31 @@ export const Body = ({
       {children}
     </body>
   );
+};
+
+export const SearchParamsToastMessage = () => {
+  const consumedParamsMapRef = useRef(new Map());
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const currentPathnameRef = useRef(pathname);
+
+  useEffect(() => {
+    if (currentPathnameRef.current !== pathname) {
+      consumedParamsMapRef.current.clear();
+      currentPathnameRef.current = pathname;
+    }
+  }, [pathname, currentPathnameRef]);
+
+  useEffect(() => {
+    if (!consumedParamsMapRef.current.get("message")) {
+      consumedParamsMapRef.current.set("message", true);
+      const message = searchParams.get("message");
+      if (message) {
+        toast(message);
+      }
+    }
+  }, [searchParams, consumedParamsMapRef]);
+
+  return <></>;
 };

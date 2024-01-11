@@ -11,24 +11,26 @@ import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { Switch } from "@/components/input/switch";
 import { AppInstallContainer } from "@/components/modules/main-menu/app-install-container";
+import NavigationLink from "@/components/navigation/navigation-link";
 import { PushSubscriptions, db } from "@/db";
 import { env } from "@/env.public";
 import { privateEnv } from "@/env.secrets";
-import { getDistinctId } from "@/lib/auth/session";
+import { getCurrentEmail, getDistinctId } from "@/lib/auth/session";
 import { parseCookie, setCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA } from "@/lib/headers";
 import { assert } from "@/lib/utils";
+import { Loader2Icon } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import * as webpush from "web-push";
 
 export default async function Page() {
-  const distinctId = await getDistinctId();
+  // const distinctId = await getDistinctId();
+  const currentEmail = await getCurrentEmail();
 
   const appSessionId = parseCookie("appSessionId");
-  const missingPushPermission =
-    parseCookie("permissionState:push") !== "granted";
+  // const missingPushPermission =
+  //   parseCookie("permissionState:push") !== "granted";
 
   async function refreshPushSubscription(
     distinctId: string,
@@ -86,6 +88,49 @@ export default async function Page() {
     redirect("/");
   }
 
+  const NotificationItem = ({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }) => {
+    return (
+      <div className="flex flex-row justify-between">
+        <div className="flex flex-col gap-1">
+          <div className="font-medium">{title}</div>
+          <div className="text-sm text-gray-500">{description}</div>
+        </div>
+        <div className="flex justify-end space-x-4">
+          <div className="flex flex-col gap-1 items-center">
+            <Switch id="push-new-releases" />
+            <Label className="text-xs text-muted-foreground">Push</Label>
+          </div>
+          {currentEmail ? (
+            <div className="flex flex-col gap-1 items-center">
+              <Switch id="email-new-releases" />
+              <Label className="text-xs text-muted-foreground">Email</Label>
+            </div>
+          ) : (
+            <NavigationLink
+              href={`/auth/signin?message=${encodeURIComponent(
+                "Sign in to enable email notifications."
+              )}`}
+              className="flex flex-col gap-1 items-center"
+            >
+              <Switch
+                id="email-new-releases"
+                className="transitioning:hidden"
+              />
+              <Loader2Icon className="animate-spin transitioning:block hidden" />
+              <Label className="text-xs text-muted-foreground">Email</Label>
+            </NavigationLink>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <main className="flex flex-col items-center justify-center h-full p-4 md:p-8">
       <Card className="w-full max-w-2xl flex flex-col">
@@ -119,7 +164,7 @@ export default async function Page() {
             <Separator className="mb-4" />
           </>
         )} */}
-        {getCanInstallPWA() && (
+        {!appSessionId && getCanInstallPWA() && (
           <AppInstallContainer>
             <Separator />
             <div className="p-4">
@@ -173,30 +218,3 @@ export default async function Page() {
     </main>
   );
 }
-
-const NotificationItem = ({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) => {
-  return (
-    <div className="flex flex-row justify-between">
-      <div className="flex flex-col gap-1">
-        <div className="font-medium">{title}</div>
-        <div className="text-sm text-gray-500">{description}</div>
-      </div>
-      <div className="flex justify-end space-x-4">
-        <div className="flex flex-col gap-1 items-center">
-          <Switch id="push-new-releases" />
-          <Label className="text-xs text-muted-foreground">Push</Label>
-        </div>
-        <div className="flex flex-col gap-1 items-center">
-          <Switch id="email-new-releases" />
-          <Label className="text-xs text-muted-foreground">Email</Label>
-        </div>
-      </div>
-    </div>
-  );
-};

@@ -19,6 +19,22 @@ import {
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
+export const featureIdEnum = pgEnum("feature_id", [
+  "push:trends",
+  "push:products",
+  "push:top_recipes",
+  "push:tips_and_tricks",
+  "push:awards",
+  "email:trends",
+  "email:products",
+  "email:top_recipes",
+  "email:tips_and_tricks",
+  "craft:instant-recipe",
+  "craft:suggested-recipes",
+  "recipe:create",
+  "recipe:prompt",
+]);
+
 export const UsersTable = pgTable("user", {
   id: text("id").notNull().primaryKey(),
   name: text("name"),
@@ -247,15 +263,27 @@ export const FeaturesTable = pgTable("feature", {
 export const FeatureSchema = createSelectSchema(FeaturesTable);
 export const NewFeatureSchema = createInsertSchema(FeaturesTable);
 
+export const UserFeatureState = pgTable("user_feature_state", {
+  id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
+  userId: text("user_id"),
+  featureId: featureIdEnum("feature_id").notNull(),
+  enabled: boolean("enabled").default(true),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export const UserFeatureLog = pgTable("user_feature_log", {
+  id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
+  userId: text("user_id"),
+  featureId: featureIdEnum("feature_id").notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
+  metadata: jsonb("metadata"),
+});
+
 // User Feature Usage Table
 export const UserFeatureUsageTable = pgTable("user_feature_usage", {
   id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => UsersTable.id),
-  featureId: integer("feature_id")
-    .notNull()
-    .references(() => FeaturesTable.id),
+  userId: text("user_id"),
+  featureId: featureIdEnum("feature_id").notNull(),
   timestamp: timestamp("timestamp").defaultNow(),
   usageCount: integer("usage_count").default(1),
 });
