@@ -56,9 +56,9 @@ export function PushNotificationProvider({
       prompt(swReg);
     }
 
-    function prompt(swReg: ServiceWorkerRegistration) {
+    function prompt(_swReg: ServiceWorkerRegistration) {
       alert("prompting");
-      swReg.pushManager
+      _swReg.pushManager
         .subscribe({
           userVisibleOnly: true,
           applicationServerKey: env.VAPID_PUBLIC_KEY,
@@ -127,6 +127,7 @@ export function PushNotificationsUnprompted({
   const permissionState = usePermissionState();
   const serviceWorker$ = useContext(ServiceWorkerContext);
   const serviceWorker = useStore(serviceWorker$);
+  alert("has"+ !!serviceWorker);
   return serviceWorker && permissionState === "prompt" ? <>{children}</> : null;
 }
 
