@@ -64,6 +64,28 @@ export async function MainMenu({ className }: { className?: string }) {
   );
   const memberCountLimit$ = of(5);
 
+  const NotificationsMenuItem = () => {
+    return (
+      <>
+        <MenuItem className="flex flex-row gap-1 items-center justify-between">
+          <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
+            Notifications
+          </Label>
+          <NavigationLink
+            className="text-sm underline text-center"
+            href="/notifications"
+          >
+            <Button size="icon" variant="ghost">
+              <ChevronRightIcon className="transitioning:hidden" />
+              <Loader2Icon className="transitioning:block hidden animate-spin" />
+            </Button>
+          </NavigationLink>
+        </MenuItem>
+        <Separator />
+      </>
+    );
+  };
+
   const SubscriptionMemberCountCurrent = () => {
     return (
       <AsyncRenderFirstValue
@@ -348,9 +370,10 @@ export async function MainMenu({ className }: { className?: string }) {
         </Label>
         <ModeToggle />
       </MenuItem>
+      <NotificationsMenuItem />
       {userId && (
         <>
-          <Separator />
+          {/* <Separator />
           <MenuItem className="flex flex-row gap-1 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
               Account
@@ -362,22 +385,7 @@ export async function MainMenu({ className }: { className?: string }) {
               </Button>
             </NavigationLink>
           </MenuItem>
-          <Separator />
-          <MenuItem className="flex flex-row gap-1 items-center justify-between">
-            <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
-              Notifications
-            </Label>
-            <NavigationLink
-              className="text-sm underline text-center"
-              href="/notifications"
-            >
-              <Button size="icon" variant="ghost">
-                <ChevronRightIcon className="transitioning:hidden" />
-                <Loader2Icon className="transitioning:block hidden animate-spin" />
-              </Button>
-            </NavigationLink>
-          </MenuItem>
-          <Separator />
+          <Separator /> */}
           <MenuItem className="flex justify-center">
             <form method="POST" action="/api/auth/signout">
               <Button

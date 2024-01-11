@@ -68,12 +68,11 @@ export default async function Page() {
           <AsyncRenderFirstValue
             render={(recipes) => {
               return recipes.length && guestId && !currentUserId ? (
-                <Card className="border-solid border-2 border-t-4 border-t-green-400">
+                <Card className="border-solid border-2 border-t-4 border-t-green-400 dark:border-t-green-600 mt-8">
                   <div className="p-4">
                     <h3 className="font-semibold">Save Your Recipes</h3>
                     <p className="text-xs text-muted-foreground">
-                      These recipes will be{" "}
-                      <span className="italic">deleted</span> in{" "}
+                      These recipes will be wiped in{" "}
                       <span className="font-medium">60 days</span> unless you
                       save them to your account.
                     </p>

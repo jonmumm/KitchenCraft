@@ -11,28 +11,114 @@ import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { Switch } from "@/components/input/switch";
 import { AppInstallContainer } from "@/components/modules/main-menu/app-install-container";
-import { getCurrentUserId } from "@/lib/auth/session";
+import { PushSubscriptions, db } from "@/db";
+import { env } from "@/env.public";
+import { privateEnv } from "@/env.secrets";
+import { getDistinctId } from "@/lib/auth/session";
+import { parseCookie, setCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA } from "@/lib/headers";
+import { assert } from "@/lib/utils";
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import * as webpush from "web-push";
 
 export default async function Page() {
-  const currentUserId = await getCurrentUserId();
-  if (!currentUserId) {
-    redirect(
-      `/auth/signin?callbackUrl=${encodeURIComponent(`/notifications`)}`
+  const distinctId = await getDistinctId();
+
+  const appSessionId = parseCookie("appSessionId");
+  const missingPushPermission =
+    parseCookie("permissionState:push") !== "granted";
+
+  async function refreshPushSubscription(
+    distinctId: string,
+    subscription: PushSubscriptionJSON
+  ): Promise<void> {
+    "use server";
+    setCookie("permissionState:push", "granted");
+    redirect("/");
+  }
+
+  async function registerPushSubscription(
+    distinctId: string,
+    subscription: PushSubscriptionJSON
+  ): Promise<void> {
+    "use server";
+
+    setCookie("permissionState:push", "granted");
+
+    const { endpoint, keys, expirationTime } = subscription;
+    console.log(expirationTime);
+    assert(endpoint, "expected endpoint in push subscription payload");
+    assert(keys, "expected keys in push subscription payload");
+    assert("auth" in keys, "expetcted 'auth' in keys");
+    assert("p256dh" in keys, "expected 'p256dh' in keys");
+    const { auth, p256dh } = keys;
+
+    const options = {
+      vapidDetails: {
+        subject: "mailto:push@kitchencraft.ai",
+        publicKey: env.VAPID_PUBLIC_KEY,
+        privateKey: privateEnv.VAPID_PRIVATE_KEY,
+      },
+    };
+
+    await webpush.sendNotification(
+      {
+        endpoint,
+        keys: {
+          auth,
+          p256dh,
+        },
+      },
+      JSON.stringify({ title: "Success!" }),
+      options
     );
+
+    await db
+      .insert(PushSubscriptions)
+      .values({
+        belongsTo: distinctId,
+        subscription,
+      })
+      .execute();
+
+    redirect("/");
   }
 
   return (
     <main className="flex flex-col items-center justify-center h-full p-4 md:p-8">
       <Card className="w-full max-w-2xl flex flex-col">
         <CardHeader>
-          <CardTitle>Notification Settings</CardTitle>
+          <CardTitle>Notifications</CardTitle>
           <CardDescription>
             Customize your notification preferences.
           </CardDescription>
         </CardHeader>
+        {appSessionId && missingPushPermission && (
+          <>
+            <Separator />
+            <div className="p-4">
+              <h1 className="font-semibold text-lg text-center">
+                Push Notifications
+              </h1>
+              <p className="text-muted-foreground text-sm text-center">
+                Enable KitchenCraft to send the latest
+              </p>
+              <ul className="flex flex-col gap-1 m-4">
+                <li>🍳 Recipe trends</li>
+                <li>🔪 Cooking tips and tricks</li>
+                <li>🛒 Bestselling tools and ingredients</li>
+                <li>🌟 Top voted recipes</li>
+                <li>🏆 Seasonal awards for top chefs</li>
+              </ul>
+              <Link href="/push-notifications">
+                <Button className="w-full">Enable</Button>
+              </Link>
+            </div>
+            <Separator className="mb-4" />
+          </>
+        )}
         {getCanInstallPWA() && (
           <AppInstallContainer>
             <Separator />

@@ -6,6 +6,7 @@ import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";
 import { getCurrentEmail, getDistinctId, getSession } from "@/lib/auth/session";
 import { createAppInstallToken } from "@/lib/browser-session";
+import { parseCookie } from "@/lib/coookieStore";
 import { getResult } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
 import { getCanInstallPWA } from "@/lib/headers";
@@ -342,8 +343,12 @@ export default async function RootLayout({
         />
         {/* // todo only do this if react node loaded */}
       </head>
-      <ApplicationProvider session={await getSession()} actions={actions}>
-        <Body>
+      <ApplicationProvider
+        session={await getSession()}
+        actions={actions}
+        appSessionId={parseCookie("appSessionId")}
+      >
+        <Body isPWA={!!parseCookie("appSessionId")}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

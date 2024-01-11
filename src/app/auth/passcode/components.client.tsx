@@ -26,7 +26,6 @@ import {
   useState,
 } from "react";
 
-// Update the schema to validate a 5-character token
 const formSchema = z.object({
   token: z.string().length(5, { message: "Passcode must be 5 characters" }),
 });
@@ -34,9 +33,8 @@ const formSchema = z.object({
 export function PasscodeForm(props: {
   gmailLink?: string;
   email: string;
-  submit: (formData: FormData) => Promise<never>;
+  submit: (formData: FormData) => Promise<void>;
 }) {
-  // const router = useRouter();
   const [disabled, setDisabled] = useState(false);
   const params = useSearchParams();
   const form = useForm({
@@ -48,33 +46,11 @@ export function PasscodeForm(props: {
 
   const [showGMailLink, setShowGMailLink] = useState(!!props.gmailLink);
 
-  // const submit = useCallback(
-  //   (token: string) => {
-  //     setDisabled(true);
-  //     const emailCallbackParams = new URLSearchParams({
-  //       email: props.email,
-  //       token: token,
-  //     });
-
-  //     const callbackUrl = params.get("callbackUrl");
-  //     if (callbackUrl) {
-  //       emailCallbackParams.set("callbackUrl", callbackUrl);
-  //     } else {
-  //       emailCallbackParams.set("callbackUrl", "/");
-  //     }
-
-  //     const url = `/api/auth/callback/email?${emailCallbackParams.toString()}`;
-  //     window.location.href = url;
-  //   },
-  //   [setDisabled, params, props.email]
-  // );
-
   const GmailLink = () => {
     useEffect(() => {
       const handleTabBlur = () => setShowGMailLink(false);
       window.addEventListener("blur", handleTabBlur);
 
-      // Clean up the event listeners
       return () => {
         window.removeEventListener("blur", handleTabBlur);
       };
@@ -101,7 +77,6 @@ export function PasscodeForm(props: {
 
   const handleOnPaste: ClipboardEventHandler<HTMLInputElement> = useCallback(
     (event) => {
-      // If it's valid submit it
       const result = formSchema.safeParse({
         token: event.clipboardData.getData("text"),
       });
@@ -118,9 +93,9 @@ export function PasscodeForm(props: {
   const onSubmit = useCallback(
     (data: z.infer<typeof formSchema>) => {
       setDisabled(true);
-      const form = new FormData();
-      form.set("token", data.token);
-      props.submit(form);
+      const formData = new FormData();
+      formData.set("token", data.token);
+      props.submit(formData);
     },
     [props.submit, setDisabled]
   );
@@ -175,7 +150,7 @@ export function PasscodeForm(props: {
                   type="text"
                   placeholder="Enter your 5-digit code"
                   {...field}
-                  onChange={handleInputChange} // Use the custom onChange handler
+                  onChange={handleInputChange}
                 />
               </FormControl>
               <FormDescription>
@@ -195,7 +170,7 @@ export function PasscodeForm(props: {
             className="w-full"
             size="lg"
           >
-            Submit
+            {disabled ? "Loading..." : "Submit"}
           </Button>
           <GmailLink />
         </div>

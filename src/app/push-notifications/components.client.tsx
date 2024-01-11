@@ -3,6 +3,7 @@
 import { ServiceWorkerContext } from "@/context/service-worker";
 import { env } from "@/env.public";
 import { useEventHandler } from "@/hooks/useEventHandler";
+import { noop } from "@/lib/utils";
 import { useStore } from "@nanostores/react";
 import { atom } from "nanostores";
 import {
@@ -62,7 +63,8 @@ export function PushNotificationProvider({
         })
         .then((subscription) => {
           return registerPushSubscription(subscription.toJSON());
-        });
+        })
+        .then(noop);
     }
   }, [serviceWorker$, registerPushSubscription]);
 

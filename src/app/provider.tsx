@@ -1,6 +1,8 @@
 "use client";
 
+import { PWALifeCycle } from "@/components/device/PWALifecycle";
 import { ApplicationContext } from "@/context/application";
+import { ServiceWorkerProvider } from "@/context/service-worker";
 import { env } from "@/env.public";
 import { useActor } from "@/hooks/useActor";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
@@ -12,8 +14,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { CraftContext } from "./context";
 import { createCraftMachine } from "./machine";
-import { PWALifeCycle } from "@/components/device/PWALifecycle";
-import { ServiceWorkerProvider } from "@/context/service-worker";
 
 // export const ApplicationContext = createContext()
 
@@ -27,8 +27,13 @@ export function ApplicationProvider(props: {
   children: ReactNode;
   session: Awaited<ReturnType<typeof getSession>>;
   actions: Parameters<typeof createCraftMachine>[0]["serverActions"];
+  appSessionId: string | undefined;
 }) {
-  const [store] = useState(map<any>({})); // todo define global types here
+  const [store] = useState(
+    map<{ appSessionId: string | undefined } & unknown>({
+      appSessionId: props.appSessionId,
+    })
+  ); // todo define global types here
   // const [permission, setPermission] = useState(() => {
   //   Notification.requestPermission();
 
@@ -64,7 +69,7 @@ export function ApplicationProvider(props: {
             <HashChangeEventsProvider />
             <PopStateEventsProvider />
             <AnalyticsProvider />
-            <PWALifeCycle />
+            {props.appSessionId && <PWALifeCycle />}
             {props.children}
           </CraftProvider>
         </ApplicationContext.Provider>

@@ -1,10 +1,12 @@
+import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
+import ServerRedirect from "@/components/navigation/server-redirect";
 import { adapter, authOptions, emailConfig } from "@/lib/auth/options";
 import { getCurrentEmail } from "@/lib/auth/session";
 import { parseAppInstallToken } from "@/lib/browser-session";
-import { pushPermissionCookie } from "@/lib/coookieStore";
+import { parseCookie, setCookie } from "@/lib/coookieStore";
 import { createHash, randomString } from "@/lib/string";
 import { assert } from "@/lib/utils";
-import { cookies } from "next/headers";
+import { randomUUID } from "crypto";
 import { redirect } from "next/navigation";
 
 export default async function Page({
@@ -12,27 +14,26 @@ export default async function Page({
 }: {
   searchParams: Record<string, string>;
 }) {
-  const [currentEmail] = await Promise.all([getCurrentEmail()]);
-  const permissionState = pushPermissionCookie.get();
-  const nextPage = permissionState === "granted" ? "/" : "/push-notifications";
-  // todo ensure it's not expired
-
-  // If logged in, go home
-  if (currentEmail) {
-    redirect(nextPage);
+  // Usage example
+  const appSessionId = parseCookie("appSessionId");
+  if (appSessionId) {
+    redirect("/");
   }
 
+  const [currentEmail] = await Promise.all([getCurrentEmail()]);
   const { token } = searchParams;
   assert(token, "expected appInstallToken");
   let appInstall;
   try {
     appInstall = await parseAppInstallToken(token);
   } catch (ex) {
-    redirect(nextPage);
+    // app install token expired, just go home
+    console.warn("app install token expired", appInstall, ex);
+    redirect("/");
   }
 
   // If the app install had an email address and we're not currently logged in
-  if (appInstall.email) {
+  if (!currentEmail && appInstall.email) {
     const publicToken = randomString(32);
     const secret = emailConfig.secret || authOptions.secret;
     const hashedToken = await createHash(`${publicToken}${secret}`);
@@ -51,11 +52,24 @@ export default async function Page({
     const emailCallbackParams = new URLSearchParams({
       email: appInstall.email,
       token: publicToken,
-      callbackUrl: nextPage,
+      callbackUrl: "/startup", // todo might e infinite loop here if auth fails
     });
-
     redirect(`/api/auth/callback/email?${emailCallbackParams.toString()}`);
   }
 
-  redirect(nextPage);
+  return (
+    <>
+      <div className="absolute inset-0 flex flex-col gap-2 justify-center items-center">
+        <h1 className="font-semibold text-xl text-center">Initializing</h1>
+        <EllipsisAnimation />
+        <ServerRedirect
+          to="/push-notifications"
+          onBeforeRedirect={async function () {
+            "use server";
+            setCookie("appSessionId", randomUUID());
+          }}
+        />
+      </div>
+    </>
+  );
 }

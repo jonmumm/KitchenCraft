@@ -17,7 +17,7 @@ import {
 } from "@/components/input/form";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -35,12 +35,14 @@ export function SignInForm() {
   });
 
   const onSubmit = useCallback(
-    (data: z.infer<typeof formSchema>) => {
+    async (data: z.infer<typeof formSchema>) => {
       setDisabled(true);
-      signIn("email", {
-        email: data.email,
-        redirect: false,
-      }).then((res) => {
+      try {
+        await signIn("email", {
+          email: data.email,
+          redirect: false,
+        });
+
         const passcodeParams = new URLSearchParams({
           email: data.email,
         });
@@ -51,7 +53,10 @@ export function SignInForm() {
         }
 
         router.push(`/auth/passcode?${passcodeParams.toString()}`);
-      });
+      } catch (error) {
+        console.error("Sign in failed:", error);
+        setDisabled(false);
+      }
     },
     [router, params]
   );
@@ -75,9 +80,7 @@ export function SignInForm() {
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                Enter your email to send a login code.
-              </FormDescription>
+              <FormDescription>Email yourself a login code.</FormDescription>
               {fieldState.error && (
                 <FormMessage>{fieldState.error.message}</FormMessage>
               )}
@@ -85,7 +88,7 @@ export function SignInForm() {
           )}
         />
         <Button disabled={disabled} type="submit" className="w-full" size="lg">
-          Submit
+          {disabled ? "Loading..." : "Submit"}
         </Button>
       </form>
     </Form>

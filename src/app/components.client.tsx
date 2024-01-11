@@ -37,7 +37,13 @@ export const VisibleIfCrafting = ({ children }: { children: ReactNode }) => {
   return <div className="hidden peer-focus-within:block">{children}</div>;
 };
 
-export const Body = ({ children }: { children: ReactNode }) => {
+export const Body = ({
+  children,
+  isPWA,
+}: {
+  children: ReactNode;
+  isPWA: boolean;
+}) => {
   const craftIsOpen = useCraftIsOpen();
   const promptIsDirty = usePromptIsDirty();
 
@@ -46,9 +52,9 @@ export const Body = ({ children }: { children: ReactNode }) => {
       className={`${inter.className} overflow-x-hidden pb-16 ${
         craftIsOpen ? `crafting` : ``
       }
-
       ${promptIsDirty ? `prompt-dirty` : ``}
-      
+
+      ${isPWA ? `pwa` : ``}
       `}
       suppressHydrationWarning
     >

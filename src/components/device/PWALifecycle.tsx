@@ -1,4 +1,5 @@
 "use client";
+
 import { ServiceWorkerContext } from "@/context/service-worker";
 import { useContext, useEffect, useRef } from "react";
 import { Workbox, WorkboxLifecycleEvent } from "workbox-window";
@@ -38,7 +39,8 @@ export function PWALifeCycle() {
         console.log(event);
       };
 
-      // const onWaiting = () => {
+      // const onWaiting = (e: any) => {
+      //   console.log("waiting", e);
       //   if (
       //     confirm(
       //       "A newer version of this web app is available, reload to update?"
@@ -75,7 +77,7 @@ export function PWALifeCycle() {
 
       // No cleanup function is needed since we want these to persist
     }
-  }, []);
+  }, [serviceWorker$]);
 
   return <></>;
 }
