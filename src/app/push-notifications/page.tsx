@@ -113,7 +113,7 @@ export default async function Page() {
 
           <PushNotificationStateLoading>
             <Button className="w-full" disabled>
-              Loading
+              Initializing
               <Loader2Icon size={18} className="animate-spin ml-1" />
             </Button>
           </PushNotificationStateLoading>
