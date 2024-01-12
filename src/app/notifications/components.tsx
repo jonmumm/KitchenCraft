@@ -24,7 +24,8 @@ export const NotificationSwitch = ({
     "use server";
     const featureId = `${channel}:${notificationType}` as FeatureId;
     await upsertUserFeatureState(db, distinctId, featureId, value);
-    revalidatePath("/notifications");
+    // revalidatePath("/notifications");
+    return;
   }
 
   return (
