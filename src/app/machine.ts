@@ -749,11 +749,20 @@ export const createCraftMachine = ({
                 document.body.classList.add("prompt-dirty");
                 document.body.classList.remove("prompt-pristine");
               },
+              always: {
+                target: "Pristine",
+                guard: ({ context }) =>
+                  !context.prompt || context.prompt === "",
+              },
             },
             Pristine: {
               entry: () => {
                 document.body.classList.remove("prompt-dirty");
                 document.body.classList.add("prompt-pristine");
+              },
+              always: {
+                target: "Dirty",
+                guard: ({ context }) => !!context.prompt?.length,
               },
             },
           },

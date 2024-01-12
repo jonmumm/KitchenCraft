@@ -3,6 +3,7 @@
 import { selectIsOpen, selectIsRemixing } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
 import { useCraftIsOpen, usePromptIsPristine } from "@/hooks/useCraftIsOpen";
+import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
 import { useSelectorCallback } from "@/hooks/useSelectorCallback";
 import { useSend } from "@/hooks/useSend";
@@ -79,6 +80,7 @@ const AutoResizableTextarea: React.FC<
       resizeTextarea();
     }, 0);
   });
+  useEventHandler("CLEAR", resizeTextarea);
 
   useEffect(() => {
     resizeTextarea();
@@ -115,6 +117,20 @@ const AutoResizableTextarea: React.FC<
     const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
       (e) => {
         onChange && onChange(e);
+        resizeTextarea();
+      },
+      []
+    );
+
+    const handleBlur: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
+      (e) => {
+        resizeTextarea();
+      },
+      []
+    );
+
+    const handleFocus: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
+      (e) => {
         resizeTextarea();
       },
       []
@@ -201,6 +217,8 @@ const AutoResizableTextarea: React.FC<
           ref={ref}
           className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden placeholder-transparent crafting:placeholder-slate-500`}
           onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
           {...props}
           // onChange={(e) => {
           //   handleSearch(e.target.value);
