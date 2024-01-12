@@ -204,6 +204,27 @@
       "when": 1705011201847,
       "tag": "0028_charming_goliath",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1705018263860,
+      "tag": "0029_elite_prodigy",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1705019787583,
+      "tag": "0030_cultured_bloodscream",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1705037240159,
+      "tag": "0031_aberrant_crusher_hogan",
+      "breakpoints": true
     }
   ]
 }

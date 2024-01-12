@@ -29,6 +29,7 @@ export const featureIdEnum = pgEnum("feature_id", [
   "email:products",
   "email:top_recipes",
   "email:tips_and_tricks",
+  "email:awards",
   "craft:instant-recipe",
   "craft:suggested-recipes",
   "recipe:create",
@@ -263,13 +264,18 @@ export const FeaturesTable = pgTable("feature", {
 export const FeatureSchema = createSelectSchema(FeaturesTable);
 export const NewFeatureSchema = createInsertSchema(FeaturesTable);
 
-export const UserFeatureState = pgTable("user_feature_state", {
-  id: bigserial("id", { mode: "number" }).notNull().primaryKey(),
-  userId: text("user_id"),
-  featureId: featureIdEnum("feature_id").notNull(),
-  enabled: boolean("enabled").default(true),
-  timestamp: timestamp("timestamp").defaultNow(),
-});
+export const UserFeatureState = pgTable(
+  "user_feature_state",
+  {
+    userId: text("user_id"),
+    featureId: featureIdEnum("feature_id").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    timestamp: timestamp("timestamp").defaultNow(),
+  },
+  (table) => ({
+    compoundKey: primaryKey(table.userId, table.featureId),
+  })
+);
 
 export const UserFeatureLog = pgTable("user_feature_log", {
   id: bigserial("id", { mode: "number" }).notNull().primaryKey(),

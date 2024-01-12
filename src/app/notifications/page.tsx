@@ -13,90 +13,54 @@ import EventTrigger from "@/components/input/event-trigger";
 import { Switch } from "@/components/input/switch";
 import { AppInstallContainer } from "@/components/modules/main-menu/app-install-container";
 import NavigationLink from "@/components/navigation/navigation-link";
-import { PushSubscriptions, db } from "@/db";
-import { env } from "@/env.public";
-import { privateEnv } from "@/env.secrets";
-import { getCurrentEmail } from "@/lib/auth/session";
-import { parseCookie, setCookie } from "@/lib/coookieStore";
+import { db } from "@/db";
+import { getNotificationFeatureStates } from "@/db/queries";
+import { getCurrentEmail, getDistinctId } from "@/lib/auth/session";
+import { parseCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA } from "@/lib/headers";
-import { assert } from "@/lib/utils";
+import { FeatureId } from "@/types";
 import { Loader2Icon } from "lucide-react";
 import Image from "next/image";
-import { redirect } from "next/navigation";
-import * as webpush from "web-push";
+import { NotificationSwitch } from "./components";
+import { NotificationType } from "./constants";
 
 export default async function Page() {
-  // const distinctId = await getDistinctId();
+  const distinctId = await getDistinctId();
   const currentEmail = await getCurrentEmail();
   const canInstallPWA = getCanInstallPWA();
+  const featureStates = await getNotificationFeatureStates(db, distinctId);
+  const featureStateById = featureStates.reduce(
+    (acc, featureState) => {
+      const { featureId } = featureState;
+
+      if (!acc[featureId]) {
+        acc[featureId] = featureState.enabled;
+      }
+
+      return acc;
+    },
+    {} as Partial<Record<FeatureId, Boolean>>
+  );
 
   const appSessionId = parseCookie("appSessionId");
   const appNotInstalled = !appSessionId;
   const permissionStatePush = parseCookie("permissionState:push");
 
-  async function refreshPushSubscription(
-    distinctId: string,
-    subscription: PushSubscriptionJSON
-  ): Promise<void> {
-    "use server";
-    setCookie("permissionState:push", "granted");
-    redirect("/");
-  }
-
-  async function registerPushSubscription(
-    distinctId: string,
-    subscription: PushSubscriptionJSON
-  ): Promise<void> {
-    "use server";
-
-    setCookie("permissionState:push", "granted");
-
-    const { endpoint, keys, expirationTime } = subscription;
-    console.log(expirationTime);
-    assert(endpoint, "expected endpoint in push subscription payload");
-    assert(keys, "expected keys in push subscription payload");
-    assert("auth" in keys, "expetcted 'auth' in keys");
-    assert("p256dh" in keys, "expected 'p256dh' in keys");
-    const { auth, p256dh } = keys;
-
-    const options = {
-      vapidDetails: {
-        subject: "mailto:push@kitchencraft.ai",
-        publicKey: env.VAPID_PUBLIC_KEY,
-        privateKey: privateEnv.VAPID_PRIVATE_KEY,
-      },
-    };
-
-    await webpush.sendNotification(
-      {
-        endpoint,
-        keys: {
-          auth,
-          p256dh,
-        },
-      },
-      JSON.stringify({ title: "Success!" }),
-      options
-    );
-
-    await db
-      .insert(PushSubscriptions)
-      .values({
-        belongsTo: distinctId,
-        subscription,
-      })
-      .execute();
-
-    redirect("/");
-  }
-
   const NotificationItem = ({
     title,
     description,
+    notificationType,
   }: {
     title: string;
     description: string;
+    notificationType: NotificationType;
   }) => {
+    const emailKey =
+      `email:${notificationType}` as keyof typeof featureStateById;
+    const pushKey = `push:${notificationType}` as keyof typeof featureStateById;
+    const emailIsChecked = featureStateById[emailKey];
+    const pushIsChecked = featureStateById[pushKey];
+
     return (
       <div className="flex flex-row justify-between">
         <div className="flex flex-col gap-1">
@@ -118,18 +82,32 @@ export default async function Page() {
               className="flex flex-col gap-1 items-center"
               event={{ type: "DOWNLOAD_APP" }}
             >
-              <Switch disabled className="pointer-events-none" id="push-new-releases" />
+              <Switch disabled className="pointer-events-none" />
               <Label className="text-xs text-muted-foreground">Push</Label>
             </EventTrigger>
           ) : (
             <div className="flex flex-col gap-1 items-center">
-              <Switch id="push-new-releases" />
+              <NotificationSwitch
+                notificationType={notificationType}
+                channel={"push"}
+                distinctId={distinctId}
+                defaultChecked={
+                  typeof pushIsChecked !== "undefined" ? pushIsChecked : true
+                }
+              />
               <Label className="text-xs text-muted-foreground">Push</Label>
             </div>
           )}
           {currentEmail ? (
             <div className="flex flex-col gap-1 items-center">
-              <Switch id="email-new-releases" />
+              <NotificationSwitch
+                notificationType={notificationType}
+                channel={"email"}
+                distinctId={distinctId}
+                defaultChecked={
+                  typeof emailIsChecked !== "undefined" ? emailIsChecked : true
+                }
+              />
               <Label className="text-xs text-muted-foreground">Email</Label>
             </div>
           ) : (
@@ -139,10 +117,7 @@ export default async function Page() {
               )}&callbackUrl=${encodeURIComponent("/notifications")}`}
               className="flex flex-col gap-1 items-center"
             >
-              <Switch
-                id="email-new-releases"
-                className="transitioning:hidden"
-              />
+              <Switch className="transitioning:hidden" />
               <Loader2Icon className="animate-spin transitioning:block hidden" />
               <Label className="text-xs text-muted-foreground">Email</Label>
             </NavigationLink>
@@ -219,15 +194,32 @@ export default async function Page() {
         )}
         <CardContent className="flex flex-col gap-5">
           <NotificationItem
+            notificationType="trends"
             title={"Recipe Digest"}
-            description={"Receive updates on trending recipes"}
+            description={"Weekly digest on latest seasonal trends"}
           />
           <NotificationItem
+            notificationType="products"
             title={"Bestsellers"}
             description={"Stay informed about the most popular products"}
           />
           <NotificationItem
+            notificationType="top_recipes"
             title={"Discover Weekly"}
+            description={
+              "Weekly recommendations of new and interesting recipes"
+            }
+          />
+          <NotificationItem
+            notificationType="tips_and_tricks"
+            title={"Tips & Tricks"}
+            description={
+              "Weekly recommendations of new and interesting recipes"
+            }
+          />
+          <NotificationItem
+            notificationType="awards"
+            title={"Top Chef Awards"}
             description={
               "Weekly recommendations of new and interesting recipes"
             }

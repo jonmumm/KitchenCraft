@@ -1,0 +1,2 @@
+ALTER TABLE "user_feature_state" DROP COLUMN IF EXISTS "id";--> statement-breakpoint
+ALTER TABLE "user_feature_state" ADD CONSTRAINT "user_feature_state_user_id_feature_id_pk" PRIMARY KEY("user_id","feature_id");

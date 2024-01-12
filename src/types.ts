@@ -1,4 +1,5 @@
 import { PgTransaction } from "drizzle-orm/pg-core";
+import { Observable } from "rxjs";
 import type { z } from "zod";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
 import ingredients from "./data/ingredients.json";
@@ -6,6 +7,7 @@ import {
   AmazonAffiliateProductSchema,
   NewAmazonAffiliateProductSchema,
   db,
+  featureIdEnum,
 } from "./db";
 import {
   AmazonProductsPredictionInputSchema,
@@ -81,7 +83,6 @@ import {
   UpvoteEventSchema,
   UserMessageSchema,
 } from "./schema";
-import { Observable } from "rxjs";
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 
@@ -283,3 +284,5 @@ export type DbOrTransaction = typeof db | PgTransaction<any, any, any>; // Adjus
 export type ObservableType<T> = T extends Observable<infer U> ? U : never;
 
 export type RecipeBase = z.infer<typeof RecipeBaseSchema>;
+
+export type FeatureId = (typeof featureIdEnum.enumValues)[number];

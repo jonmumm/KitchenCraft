@@ -9,12 +9,13 @@ import {
   SubscriptionMembersTable,
   SubscriptionsTable,
   UpvotesTable,
+  UserFeatureState,
   UsersTable,
   db,
 } from "@/db";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
-import { DbOrTransaction } from "@/types";
+import { DbOrTransaction, FeatureId } from "@/types";
 import { and, count, desc, eq, gte, inArray, max, ne, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { cache } from "react";
@@ -1327,4 +1328,70 @@ export const updateProfileName = async (
   } catch (error) {
     return { success: false, error: getErrorMessage(error) };
   }
+};
+
+export const getNotificationFeatureStates = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string
+) => {
+  // Define the feature types according to the enum
+  const notificationFeatureTypes = [
+    "push:trends",
+    "push:products",
+    "push:top_recipes",
+    "push:tips_and_tricks",
+    "push:awards",
+    "email:trends",
+    "email:products",
+    "email:top_recipes",
+    "email:tips_and_tricks",
+    "email:awards",
+  ] as any; // todo figure out how to get type from pgEnum
+
+  const query = dbOrTransaction
+    .select()
+    .from(UserFeatureState)
+    .where(
+      and(
+        eq(UserFeatureState.userId, userId),
+        inArray(UserFeatureState.featureId, notificationFeatureTypes)
+      )
+    );
+
+  const result = await withDatabaseSpan(
+    query,
+    "getNotificationFeatureStates"
+  ).execute();
+  return result;
+};
+
+export const upsertUserFeatureState = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string,
+  featureId: FeatureId, // Replace with the correct enum type
+  enabled: boolean
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  const result = await withDatabaseSpan(
+    queryRunner
+      .insert(UserFeatureState)
+      .values({
+        userId: userId,
+        featureId: featureId,
+        enabled: enabled,
+        // Assuming timestamp is automatically set to now by default
+      })
+      .onConflictDoUpdate({
+        target: [UserFeatureState.userId, UserFeatureState.featureId], // Composite key conflict target
+        set: {
+          enabled: enabled,
+          timestamp: sql`NOW()`, // Update the timestamp to the current time
+        },
+      }),
+    "upsertUserFeatureState"
+  ).execute();
+
+  return result;
 };
