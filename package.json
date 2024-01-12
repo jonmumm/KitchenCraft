@@ -81,6 +81,7 @@
     "next-auth": "^4.24.5",
     "next-themes": "^0.2.1",
     "next-usequerystate": "^1.9.1",
+    "observable-hooks": "^4.2.3",
     "openai": "^4.10.0",
     "pg": "^8.11.3",
     "postgres": "^3.4.3",

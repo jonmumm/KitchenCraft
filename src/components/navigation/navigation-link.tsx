@@ -1,6 +1,7 @@
 "use client";
 
 import { useEventHandler } from "@/hooks/useEventHandler";
+import { useEvents } from "@/hooks/useEvents";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import {
@@ -13,15 +14,18 @@ import {
 const NavigationLink = (props: ComponentProps<typeof Link>) => {
   const [isDisabled, setIsDisabled] = useState(false);
 
-  const handlePageLoad = useCallback(() => {
-    setIsDisabled(false);
-  }, []);
+  const handlePageLoad = useCallback(
+    (e: any) => {
+      setIsDisabled(false);
+    },
+    [setIsDisabled]
+  );
 
   useEventHandler("PAGE_LOADED", handlePageLoad);
+  useEventHandler("UPDATE_SEARCH_PARAMS", handlePageLoad);
 
   const handleClick: MouseEventHandler = useCallback(
     (e) => {
-      console.log(e.button);
       if (props.href !== window.location.pathname) {
         if (isDisabled) {
           e.preventDefault();
@@ -30,7 +34,7 @@ const NavigationLink = (props: ComponentProps<typeof Link>) => {
         setIsDisabled(true);
       }
     },
-    [props, isDisabled]
+    [props, isDisabled, setIsDisabled]
   );
 
   return (

@@ -118,7 +118,8 @@ export const NewRecipeResultsView = () => {
             <BackButton />
           </CraftEmpty>
           <CraftNotEmpty>
-            <ClearButton />
+            <BackButton />
+            {/* <ClearButton /> */}
           </CraftNotEmpty>
         </ClientOnly>
       </Footer>

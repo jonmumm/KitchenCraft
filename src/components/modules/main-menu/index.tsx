@@ -394,9 +394,9 @@ export async function MainMenu({ className }: { className?: string }) {
               </Button>
             </form>
           </MenuItem>
+          <Separator />
         </>
       )}
-      <Separator />
       <div className="flex flex-row gap-2 justify-center">
         <div className="flex flex-row justify-center gap-2">
           <Link target="_blank" href="https://discord.gg/z2yaxZhzpP">

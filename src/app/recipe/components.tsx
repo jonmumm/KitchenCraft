@@ -7,9 +7,16 @@ import NavigationLink from "@/components/navigation/navigation-link";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
 import {
   ArrowBigUpDashIcon,
+  ArrowRightIcon,
+  ArrowUpRightIcon,
+  ArrowUpRightSquareIcon,
+  AxeIcon,
   ChefHatIcon,
+  ChevronLeftSquareIcon,
   ChevronRightIcon,
+  ChevronRightSquareIcon,
   Loader2Icon,
+  MoveUpRightIcon,
   TimerIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -113,7 +120,37 @@ export const RecipeListItem = ({
             </div>
             {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
           </div>
-        ) : null}
+        ) : (
+          <div className="flex flex-row justify-start pl-2">
+            <NavigationLink
+              shallow
+              href={`?prompt=${encodeURIComponent(
+                recipe.prompt.trim()
+              )}&crafting=1`}
+            >
+              <Button
+                className="rounded-xl max-w-xs text-xs flex flex-col gap-1 items-end p-0"
+                event={{
+                  type: "NEW_RECIPE",
+                  prompt: recipe.prompt.trim(),
+                }}
+              >
+                <p className="italic p-2 py-1 flex flex-row gap-1 items-center">
+                  <ChevronRightIcon className="opacity-50" size={16} />
+                  &apos;{recipe.prompt.trim()}&apos;
+                  <AxeIcon
+                    className="ml-2 transitioning:hidden opacity-70"
+                    size={16}
+                  />
+                  <Loader2Icon
+                    className="ml-2 transitioning:inline-block hidden animate-spin"
+                    size={16}
+                  />
+                </p>
+              </Button>
+            </NavigationLink>
+          </div>
+        )}
         <NavigationLink href={href}>
           <div className="px-5 flex flex-row gap-4 items-center">
             <p className="flex-1">{recipe.description}</p>

@@ -13,6 +13,12 @@ const cardVariants = cva(
     variants: {
       variant: {
         default: "border",
+        locontrast:
+          "dark:bg-slate-800 dark:text-slate-200 bg-slate-200 text-slate-800 text-xs flex flex-col gap-1 items-end",
+        medcontrast:
+          "dark:bg-slate-50 dark:text-slate-700 bg-slate-950 text-slate-300 text-xs flex flex-col gap-1 items-end dark:active:bg-slate-200 dark:hover:bg-slate-100",
+        hicontrast:
+          "dark:bg-slate-50 dark:text-slate-700 bg-slate-950 text-slate-300 text-xs flex flex-col gap-1 items-end dark:active:bg-slate-200 dark:hover:bg-slate-100",
         interactive:
           "border active:bg-slate-200 hover:bg-slate-100 dark:active:bg-slate-800 dark:hover:bg-slate-900 focus-within:outline focus-within:outline-2 focus-within:outline-blue-500",
       },
@@ -27,7 +33,7 @@ const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
     event?: AppEvent;
-    variant?: "interactive" | "default";
+    variant?: "interactive" | "default" | "hicontrast" | "locontrast";
   }
 >(({ className, event, variant = "default", ...props }, ref) => {
   const send = useSend();

@@ -1,5 +1,6 @@
 import { AppEvent } from "@/types";
-import { useEffect } from "react";
+import { useSubscription } from "observable-hooks";
+import { useState } from "react";
 import { skip } from "rxjs";
 import { useEvents } from "./useEvents";
 
@@ -12,17 +13,10 @@ export const useEventHandler = <TEventType extends AppEvent["type"]>(
   cb: (event: ExtractAppEvent<TEventType>) => void
 ) => {
   const event$ = useEvents();
-
-  useEffect(() => {
-    const sub = event$.pipe(skip(1)).subscribe((event) => {
-      if (event.type === type) {
-        cb(event as ExtractAppEvent<TEventType>);
-      }
-    });
-    return () => {
-      if (!sub.closed) {
-        sub.unsubscribe();
-      }
-    };
-  }, [event$, type, cb]);
+  const [sub] = useState(event$.pipe(skip(1)));
+  useSubscription(sub, (event) => {
+    if (event.type === type) {
+      cb(event as ExtractAppEvent<TEventType>);
+    }
+  });
 };

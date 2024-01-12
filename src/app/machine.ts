@@ -802,6 +802,7 @@ export const createCraftMachine = ({
                   ],
                 },
                 TOGGLE: "False",
+                BACK: "False",
                 CLOSE: "False",
                 SET_INPUT: {
                   actions: [
@@ -993,6 +994,9 @@ export const createCraftMachine = ({
                   guard: ({ event }) => {
                     return event.searchParams["crafting"] === "1";
                   },
+                  actions: assign({
+                    prompt: ({ event }) => event.searchParams["prompt"],
+                  }),
                 },
                 TOGGLE: {
                   target: "True",

@@ -74,6 +74,7 @@ const Button = React.forwardRef<
         const handler: React.MouseEventHandler<HTMLButtonElement> = (e) => {
           send(event);
           e.preventDefault();
+          e.stopPropagation();
         };
         return handler;
       } else {
