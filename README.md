@@ -2,7 +2,7 @@
 
 # KitchenCraft.ai
 
-Create unique recipes, instantly.
+Instantly inspire, refine, and create recipes.
 
 ## Developing
 
