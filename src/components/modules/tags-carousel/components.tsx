@@ -11,6 +11,8 @@ import { twc } from "react-twc";
 import { defaultIfEmpty, filter, from, map, shareReplay, take } from "rxjs";
 import CarouselScroller from "./componets.client";
 import { useRef } from "react";
+import NavigationLink from "@/components/navigation/navigation-link";
+import { Loader2Icon } from "lucide-react";
 
 const DEFAULT_NUM_ITEMS = 30;
 
@@ -62,12 +64,18 @@ export const TagsCarousel = ({
             className={cn(currentTag === "All" ? selectedClass : `border-none`)}
             data-tag="All"
           >
-            <Link
+            <NavigationLink
               href={root + "/"}
               className="flex flex-col justify-between items-center"
             >
-              <Badge variant="outline">All</Badge>
-            </Link>
+              <Badge variant="outline">
+                All
+                <Loader2Icon
+                  size={14}
+                  className="animate-spin transitioning:inline-block hidden ml-1"
+                />
+              </Badge>
+            </NavigationLink>
           </TagItemCard>
         );
       }}
@@ -115,14 +123,18 @@ export const TagsCarousel = ({
                     className={isSelected ? selectedClass : ``}
                     data-tag={tag}
                   >
-                    <Link
+                    <NavigationLink
                       href={root + `/tag/${sentenceToSlug(tag)}`}
                       className="flex flex-col gap-2 items-center justify-between"
                     >
                       <Badge variant="outline">
                         {showCount ? `${tag} (${count})` : tag}
+                        <Loader2Icon
+                          size={14}
+                          className="animate-spin transitioning:inline-block hidden ml-1"
+                        />
                       </Badge>
-                    </Link>
+                    </NavigationLink>
                   </TagItemCard>
                 );
               }}

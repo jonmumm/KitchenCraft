@@ -8,7 +8,7 @@ import {
   TabsTrigger,
 } from "@/components/navigation/tabs";
 import quoteList from "@/data/quotes.json";
-import { ChevronRightIcon, TimerIcon } from "lucide-react";
+import { ChevronRightIcon, Loader2Icon, TimerIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
@@ -31,6 +31,7 @@ import {
 } from "../../db/queries";
 import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
+import NavigationLink from "@/components/navigation/navigation-link";
 // import { db } from "@vercel/postgres";
 
 export default async function Layout({ children }: { children: ReactNode }) {
@@ -55,9 +56,12 @@ export default async function Layout({ children }: { children: ReactNode }) {
               <Label className="uppercase font-semibold text-accent-foreground opacity-70 text-xs">
                 {username}&apos;s Crafts
               </Label>
-              <Link href={`/me`}>
-                <Badge variant="outline">View All ⇨</Badge>
-              </Link>
+              <NavigationLink href={`/me`}>
+                <Badge variant="outline">
+                  View All <span className="transitioning:hidden ml-1">⇨</span>
+                  <Loader2Icon size={14} className="animate-spin transitioning:inline-block hidden ml-1" />
+                </Badge>
+              </NavigationLink>
             </div>
             <MyRecipes userId={userId} />
           </div>
