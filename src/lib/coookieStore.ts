@@ -8,12 +8,9 @@ const APP_SESSION_ID_KEY = "appSessionId";
 
 // Define a map of cookie keys to their Zod schemas
 const cookieSchemas = {
-  [PUSH_PERMISSION_STATE_KEY]: z.union([
-    z.literal("granted"),
-    z.literal("prompt"),
-    z.literal("denied"),
-    z.undefined(),
-  ]),
+  [PUSH_PERMISSION_STATE_KEY]: z
+    .enum(["granted", "prompt", "denied"])
+    .optional(),
   [APP_SESSION_ID_KEY]: z.string().optional(),
   // Add more cookies and their schemas here
 } as const;
@@ -42,7 +39,8 @@ export function parseCookie<K extends CookieKeys>(key: K) {
   }
 
   try {
-    return schema.parse(cookieValue);
+    // todo handle non-string types, parse json?
+    return schema.parse(cookieValue) as InferSchemaType<CookieSchemas[K]>;
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error(`Invalid cookie value for ${key}:`, error.issues);
@@ -74,7 +72,11 @@ export function setCookie<K extends CookieKeys>(
 
   try {
     const validatedValue = schema.parse(value);
-    cookieStore.set(key, JSON.stringify(validatedValue), cookie);
+    if (typeof validatedValue === "string") {
+      cookieStore.set(key, validatedValue, cookie);
+    } else {
+      cookieStore.set(key, JSON.stringify(validatedValue), cookie);
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error(`Invalid value provided for ${key}:`, error.issues);
