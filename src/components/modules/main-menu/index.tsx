@@ -161,6 +161,12 @@ export async function MainMenu({ className }: { className?: string }) {
               </Link> */}
             </div>
           </div>
+          <Link
+            className="text-xs text-blue-500 hover:underline text-center"
+            href="/account/edit/profile"
+          >
+            Edit
+          </Link>
           {/* <div className="flex flex-row gap-8 items-center justify-around">
             <div className="flex flex-row justify-around gap-8">
               <div className="flex flex-col gap-1 items-center">
@@ -373,6 +379,7 @@ export async function MainMenu({ className }: { className?: string }) {
         </Label>
         <ModeToggle />
       </MenuItem>
+      <Separator />
       <NotificationsMenuItem />
       {userId && (
         <>

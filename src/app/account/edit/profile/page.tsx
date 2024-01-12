@@ -44,7 +44,7 @@ export default async function Page() {
           <div>
             <h1 className="font-semibold text-lg">Edit Profile Name</h1>
             <p className="text-muted-foreground">
-              This is your profile profile name visible on your recipes.
+              This is your public chef name.
             </p>
           </div>
           <Label htmlFor="name">Current</Label>
