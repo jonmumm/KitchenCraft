@@ -161,12 +161,6 @@ export async function MainMenu({ className }: { className?: string }) {
               </Link> */}
             </div>
           </div>
-          <Link
-            className="text-xs text-blue-500 hover:underline text-center"
-            href="/account/edit/profile"
-          >
-            Edit
-          </Link>
           {/* <div className="flex flex-row gap-8 items-center justify-around">
             <div className="flex flex-row justify-around gap-8">
               <div className="flex flex-col gap-1 items-center">
@@ -221,23 +215,17 @@ export async function MainMenu({ className }: { className?: string }) {
               </div>
             </div>
           </div> */}
+          <div className="flex flex-row items-center justify-center max-w-full gap-3 text-muted-foreground text-sm">
+            <div className="flex-1 min-w-0 truncate text-center">
+              <span className="truncate">{email}</span>
+            </div>
+          </div>
+
           {canInstallPWA && (
             <MenuItem className="mb-2">
               <AppInstall />
             </MenuItem>
           )}
-          <Separator />
-          <MenuItem>
-            <div className="flex flex-row items-center justify-between max-w-full gap-3">
-              <Label className="uppercase text-xs font-bold text-accent-foreground">
-                Email
-              </Label>
-              <div className="flex-1 min-w-0 truncate text-right">
-                <span className="truncate">{email}</span>
-              </div>
-            </div>
-          </MenuItem>
-
           <Separator />
           {/* <AsyncRenderFirstValue
             observable={combineLatest([
@@ -383,19 +371,18 @@ export async function MainMenu({ className }: { className?: string }) {
       <NotificationsMenuItem />
       {userId && (
         <>
-          {/* <Separator />
           <MenuItem className="flex flex-row gap-1 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
-              Account
+              Profile
             </Label>
-            <NavigationLink href="/account">
+            <NavigationLink href="/account/edit/profile">
               <Button size="icon" variant="ghost">
                 <ChevronRightIcon className="transitioning:hidden" />
                 <Loader2Icon className="transitioning:block hidden animate-spin" />
               </Button>
             </NavigationLink>
           </MenuItem>
-          <Separator /> */}
+          <Separator />
           <MenuItem className="flex justify-center">
             <form method="POST" action="/api/auth/signout">
               <Button
