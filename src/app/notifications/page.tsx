@@ -39,7 +39,7 @@ export default async function Page() {
 
       return acc;
     },
-    {} as Partial<Record<FeatureId, Boolean>>
+    {} as Partial<Record<FeatureId, boolean>>
   );
 
   const appSessionId = parseCookie("appSessionId");
