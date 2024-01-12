@@ -37,7 +37,7 @@ export const SafariInstallPrompt = () => {
           className="w-full h-full"
           style={{ zIndex: 100 }}
         >
-          <div className="flex flex-col justify-end absolute inset-0 gap-3 bg-white">
+          <div className="flex flex-col justify-end absolute inset-0 gap-3">
             <div className="flex-1 flex justify-end p-4">
               <Button
                 variant="outline"
