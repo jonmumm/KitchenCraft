@@ -1,5 +1,4 @@
-![KitchenCraft Logo](https://github.com/jonmumm/KitchenCraft/assets/718391/7e0fd9a9-12fc-4a71-880a-a4e2c55a1b4f)
-
+![kitchencraft](https://github.com/jonmumm/KitchenCraft/assets/718391/085de972-a71b-4d9b-b5ea-ef463afee322)
 
 # KitchenCraft.ai
 
