@@ -53,6 +53,7 @@ export default async function Image(props: { params: { slug: string } }) {
           flexDirection: "column",
           position: "relative",
           backgroundColor: "#fff",
+          borderBottom: "15px solid purple",
         }}
       >
         <div
