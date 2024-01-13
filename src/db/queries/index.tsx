@@ -100,6 +100,7 @@ export const getRecipe = async (slug: string) => {
       createdBy: RecipesTable.createdBy,
       createdBySlug: ProfileTable.profileSlug,
       yield: RecipesTable.yield,
+      prompt: RecipesTable.prompt,
       tags: RecipesTable.tags,
       ingredients: RecipesTable.ingredients,
       instructions: RecipesTable.instructions,

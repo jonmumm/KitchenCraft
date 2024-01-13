@@ -1,9 +1,7 @@
+import { getFirstMediaForRecipe, getRecipe } from "@/db/queries";
+import { assert } from "@/lib/utils";
 import { ImageResponse } from "@vercel/og";
-import { getRecipe } from "./utils";
-import { UploadedMedia } from "./media/types";
-import { UploadedMediaSchema } from "./media/schema";
-import { kv } from "@/lib/kv";
-import { getFirstMediaForRecipe } from "@/db/queries";
+import { AxeIcon } from "lucide-react";
 
 // Image metadata
 // export const alt = "About Acme";
@@ -24,9 +22,9 @@ export const contentType = "image/png";
 export default async function Image(props: { params: { slug: string } }) {
   // const recipe = await getRecipe(props.params.slug);
   // Font
-  //   const interSemiBold = fetch(
-  //     new URL("./Inter-SemiBold.ttf", import.meta.url)
-  //   ).then((res) => res.arrayBuffer());
+  const interSemiBold = fetch(
+    new URL("./Inter-SemiBold.ttf", import.meta.url)
+  ).then((res) => res.arrayBuffer());
 
   // const mainMediaId = recipe.previewMediaIds[0];
   // let mainMedia: UploadedMedia | undefined;
@@ -41,6 +39,7 @@ export default async function Image(props: { params: { slug: string } }) {
     getRecipe(props.params.slug),
     getFirstMediaForRecipe(props.params.slug),
   ]);
+  assert(recipe, "expected recipe");
 
   return new ImageResponse(
     (
@@ -53,22 +52,9 @@ export default async function Image(props: { params: { slug: string } }) {
           display: "flex",
           flexDirection: "column",
           position: "relative",
+          backgroundColor: "#fff",
         }}
       >
-        {mainMedia && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            style={{
-              width: "100%",
-              position: "absolute",
-              top: "50%",
-              transform: "translateY(-50%)",
-            }}
-            src={mainMedia.url}
-            alt=""
-          />
-        )}
-
         <div
           style={{
             padding: "35px",
@@ -77,15 +63,82 @@ export default async function Image(props: { params: { slug: string } }) {
             gap: "10px",
           }}
         >
-          <h1
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                flexWrap: "wrap",
+                flex: 1,
+              }}
+            >
+              <h1
+                style={{
+                  color: "black",
+                  margin: 0,
+                  padding: 0,
+                }}
+              >
+                {recipe.name}{" "}
+              </h1>
+              <h3
+                style={{
+                  margin: 0,
+                  padding: 0,
+                  fontSize: "42px",
+                  fontWeight: "normal",
+                }}
+              >
+                {recipe.createdBySlug ? <>by @{recipe.createdBySlug}</> : <></>}
+              </h3>
+            </div>
+            {mainMedia && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                style={{
+                  maxWidth: "25%",
+                  borderRadius: "20px",
+                }}
+                src={mainMedia.url}
+                alt=""
+              />
+            )}
+          </div>
+          <div
             style={{
-              width: "100%",
-              color: "white",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: "0px 10px",
             }}
           >
-            {recipe.name}
-          </h1>
-          <p style={{ color: "white" }}>{recipe.description}</p>
+            <p
+              style={{
+                color: "black",
+                padding: "10px 30px",
+                // minWidth: 0,
+                maxWidth: "100%",
+                border: "2px solid hsl(220 8.9% 46.1%)",
+                borderRadius: "35px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                // display: "-webkit-box",
+                // "-webkit-box-orient": "vertical",
+                // -webkit-line-clamp: 3;
+                //  display: -webkit-box;
+                //  -webkit-box-orient: vertical;
+                //  -webkit-line-clamp: 3;
+              }}
+            >
+              <span style={{ padding: "0px 20px" }}>
+                &apos;
+                {recipe.prompt}
+                &apos;
+              </span>
+            </p>
+          </div>
         </div>
       </div>
     ),
@@ -94,14 +147,14 @@ export default async function Image(props: { params: { slug: string } }) {
       // For convenience, we can re-use the exported opengraph-image
       // size config to also set the ImageResponse's width and height.
       ...size,
-      //   fonts: [
-      //     {
-      //       name: "Inter",
-      //       data: await interSemiBold,
-      //       style: "normal",
-      //       weight: 400,
-      //     },
-      //   ],
+      fonts: [
+        {
+          name: "Inter",
+          data: await interSemiBold,
+          style: "normal",
+          weight: 400,
+        },
+      ],
     }
   );
 }

@@ -140,7 +140,7 @@ export function PasscodeForm(props: {
           name="token"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>Token</FormLabel>
+              <FormLabel>Code</FormLabel>
               <FormControl>
                 <Input
                   id="code"
@@ -148,13 +148,13 @@ export function PasscodeForm(props: {
                   disabled={disabled}
                   onPaste={handleOnPaste}
                   type="text"
-                  placeholder="Enter your 5-digit code"
+                  placeholder="Enter your 5-letter code"
                   {...field}
                   onChange={handleInputChange}
                 />
               </FormControl>
               <FormDescription>
-                Enter the 5-digit passcode you received at{" "}
+                Enter the 5-letter code you received at{" "}
                 <span className="italic">{params.get("email")}</span>.
               </FormDescription>
               {fieldState.error && (

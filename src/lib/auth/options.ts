@@ -42,7 +42,6 @@ export const emailConfig = Email({
     }
   },
   generateVerificationToken: async () => {
-    console.log("HELLO!");
     const token = await generateLoginCode();
     return token;
   },
@@ -87,7 +86,6 @@ export const authOptions: NextAuthOptions = {
     async jwt(params) {
       if (params.trigger === "signUp") {
         // sign up hook here...
-        console.log(params.trigger);
       }
 
       const { token, user } = params;

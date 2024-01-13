@@ -11,9 +11,10 @@ import { useEventHandler } from "@/hooks/useEventHandler";
 import { UpvoteEvent } from "@/types";
 import { useStore } from "@nanostores/react";
 import { atom } from "nanostores";
-import Link from "next/link";
 import { useCallback, useContext, useState } from "react";
 import { HomeContext } from "./context";
+import NavigationLink from "@/components/navigation/navigation-link";
+import { LoadingSpinner } from "@/components/feedback/loading-spinner";
 
 export const BestDropdown = () => {
   const store = useContext(HomeContext);
@@ -41,20 +42,35 @@ export const BestDropdown = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>
-            <Link href="/best?t=today">Today</Link>
+            <NavigationLink href="/best?t=today">
+              Today
+              <LoadingSpinner className={"ml-1"} />
+            </NavigationLink>
           </DropdownMenuItem>
-          <Link href="/best?t=week">
-            <DropdownMenuItem>This Week</DropdownMenuItem>
-          </Link>
-          <Link href="/best">
-            <DropdownMenuItem>This Month</DropdownMenuItem>
-          </Link>
-          <Link href="/best?t=year">
-            <DropdownMenuItem>This Year</DropdownMenuItem>
-          </Link>
-          <Link href="/best?t=all">
-            <DropdownMenuItem>All Time</DropdownMenuItem>
-          </Link>
+          <NavigationLink href="/best?t=week">
+            <DropdownMenuItem>
+              This Week
+              <LoadingSpinner className={"ml-1"} />
+            </DropdownMenuItem>
+          </NavigationLink>
+          <NavigationLink href="/best">
+            <DropdownMenuItem>
+              This Month
+              <LoadingSpinner className={"ml-1"} />
+            </DropdownMenuItem>
+          </NavigationLink>
+          <NavigationLink href="/best?t=year">
+            <DropdownMenuItem>
+              This Year
+              <LoadingSpinner className={"ml-1"} />
+            </DropdownMenuItem>
+          </NavigationLink>
+          <NavigationLink href="/best?t=all">
+            <DropdownMenuItem>
+              All Time
+              <LoadingSpinner className={"ml-1"} />
+            </DropdownMenuItem>
+          </NavigationLink>
         </DropdownMenuContent>
       </DropdownMenu>
     </Badge>
