@@ -246,15 +246,3 @@ export const CraftingPlacholder = () => {
 
   return selection && <RecipeCraftingPlaceholder />;
 };
-
-export const ClearResultsItem = () => {
-  return (
-    <ResultCard
-      className="w-full p-4 flex-row justify-center hidden prompt-dirty:flex"
-      index={7}
-      event={{ type: "CLEAR" }}
-    >
-      <Button variant="ghost">Clear</Button>
-    </ResultCard>
-  );
-};

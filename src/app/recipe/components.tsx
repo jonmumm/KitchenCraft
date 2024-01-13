@@ -7,16 +7,11 @@ import NavigationLink from "@/components/navigation/navigation-link";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
 import {
   ArrowBigUpDashIcon,
-  ArrowRightIcon,
-  ArrowUpRightIcon,
   ArrowUpRightSquareIcon,
   AxeIcon,
   ChefHatIcon,
-  ChevronLeftSquareIcon,
   ChevronRightIcon,
-  ChevronRightSquareIcon,
   Loader2Icon,
-  MoveUpRightIcon,
   TimerIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -87,68 +82,41 @@ export const RecipeListItem = ({
                   />
                 </h2>
               </NavigationLink>
-              <div>
-                {"createdBySlug" in recipe && recipe.createdBySlug && (
-                  // <Link
-                  //   href={`/@${recipe.createdBySlug}`}
-                  //   className="inline-block"
-                  // >
-                  <div className="inline-block">
-                    <Badge
-                      className="flex flex-row gap-1 items-center"
-                      variant="outline"
-                    >
-                      <ChefHatIcon size={16} className="transitioning:hidden" />
-                      <Loader2Icon
-                        size={16}
-                        className="transitioning:block hidden animate-spin"
-                      />
-                      {recipe.createdBySlug}
-                    </Badge>
-                  </div>
-                  // </Link>
-                )}
-              </div>
             </div>
             <UpvoteButton userId={userId} slug={recipe.slug} />
           </div>
         </div>
-        {recipe.mediaCount > 0 ? (
+        <div className="flex flex-row justify-start pl-2">
+          <Link
+            shallow
+            href={`?prompt=${encodeURIComponent(
+              recipe.prompt.trim()
+            )}&crafting=1`}
+          >
+            <Button
+              className="rounded-xl max-w-xs text-xs flex flex-row gap-2 items-center px-3 h-auto py-1 flex-nowrap"
+              variant="outline"
+              event={{
+                type: "NEW_RECIPE",
+                prompt: recipe.prompt.trim(),
+              }}
+            >
+              <AxeIcon
+                size={16}
+                className="text-slate-800 dark:text-slate-200 flex-shrink-0"
+              />
+              <p className="italic line-clamp-2 flex-1">
+              &apos;{recipe.prompt.trim()}&apos;
+              </p>
+            </Button>
+          </Link>
+        </div>
+        {recipe.mediaCount > 0 && (
           <div className="h-64 relative">
             <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20">
               <RecipeCarousel slug={recipe.slug} priority={index === 0} />
             </div>
             {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
-          </div>
-        ) : (
-          <div className="flex flex-row justify-start pl-2">
-            <NavigationLink
-              shallow
-              href={`?prompt=${encodeURIComponent(
-                recipe.prompt.trim()
-              )}&crafting=1`}
-            >
-              <Button
-                className="rounded-xl max-w-xs text-xs flex flex-col gap-1 items-end p-0"
-                event={{
-                  type: "NEW_RECIPE",
-                  prompt: recipe.prompt.trim(),
-                }}
-              >
-                <p className="italic p-2 py-1 flex flex-row gap-1 items-center">
-                  <ChevronRightIcon className="opacity-50" size={16} />
-                  &apos;{recipe.prompt.trim()}&apos;
-                  <AxeIcon
-                    className="ml-2 transitioning:hidden opacity-70"
-                    size={16}
-                  />
-                  <Loader2Icon
-                    className="ml-2 transitioning:inline-block hidden animate-spin"
-                    size={16}
-                  />
-                </p>
-              </Button>
-            </NavigationLink>
           </div>
         )}
         <NavigationLink href={href}>
@@ -168,6 +136,28 @@ export const RecipeListItem = ({
             <TimerIcon size={14} />
             <span>{formatDuration(recipe.totalTime)}</span>
           </Badge>
+          <div>
+            {"createdBySlug" in recipe && recipe.createdBySlug && (
+              // <Link
+              //   href={`/@${recipe.createdBySlug}`}
+              //   className="inline-block"
+              // >
+              <div className="inline-block">
+                <Badge
+                  className="flex flex-row gap-1 items-center"
+                  variant="outline"
+                >
+                  <ChefHatIcon size={16} className="transitioning:hidden" />
+                  <Loader2Icon
+                    size={16}
+                    className="transitioning:block hidden animate-spin"
+                  />
+                  {recipe.createdBySlug}
+                </Badge>
+              </div>
+              // </Link>
+            )}
+          </div>
           <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
             {"tags" in recipe &&
               recipe.tags.map((tag) => (
