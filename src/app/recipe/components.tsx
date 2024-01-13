@@ -153,7 +153,6 @@ export const RecipeListItem = ({
         <div className="flex-1 flex flex-row gap-1 px-4 justify-between items-start">
           <div
             className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0"
-            variant="outline"
           >
             <TimerIcon size={14} />
             <span>{formatDuration(recipe.totalTime)}</span>
