@@ -910,7 +910,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } else {
     ({ name, description } = recipe);
   }
-  const creatorSlug = ` by @${recipe?.createdBySlug}` || "";
+  const creatorSlug = recipe?.createdBySlug
+    ? ` by @${recipe?.createdBySlug}`
+    : ` by ChefAnonymous`;
   const title = `${name}${creatorSlug}`;
 
   const now = recipe?.createdAt || new Date(); // todo actually store this on the recipe
@@ -936,13 +938,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       siteName: "KitchenCraft",
       title,
-      description: `${recipe?.description} Crafted by ${creatorSlug} on ${dateStr}`,
+      description: `${recipe?.description} Crafted${creatorSlug} on ${dateStr}`,
       images,
     },
     twitter: {
       site: "@kitchenAI",
       title,
-      description: `${recipe?.description} Crafted by ${creatorSlug} on ${dateStr}`,
+      description: `${recipe?.description} Crafted${creatorSlug} on ${dateStr}`,
       images,
     },
   };
