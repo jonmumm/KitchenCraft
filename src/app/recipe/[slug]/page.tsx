@@ -928,9 +928,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: env.KITCHENCRAFT_URL + `/recipe/${params.slug}/opengraph-image`,
           secure_url:
             env.KITCHENCRAFT_URL + `/recipe/${params.slug}/opengraph-image`,
-          type: mainMedia.contentType,
-          width: mainMedia.width,
-          height: mainMedia.height,
+          width: 1200,
+          height: 630,
         },
       ]
     : undefined;
@@ -946,6 +945,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images,
     },
     twitter: {
+      site: "@kitchenAI",
       title,
       description: `${recipe?.description} Crafted by ${creatorSlug} on ${dateStr}`,
       images,
