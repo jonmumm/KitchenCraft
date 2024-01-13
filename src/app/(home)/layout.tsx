@@ -59,7 +59,10 @@ export default async function Layout({ children }: { children: ReactNode }) {
               <NavigationLink href={`/me`}>
                 <Badge variant="outline">
                   View All <span className="transitioning:hidden ml-1">⇨</span>
-                  <Loader2Icon size={14} className="animate-spin transitioning:inline-block hidden ml-1" />
+                  <Loader2Icon
+                    size={14}
+                    className="animate-spin transitioning:inline-block hidden ml-1"
+                  />
                 </Badge>
               </NavigationLink>
             </div>
@@ -69,16 +72,23 @@ export default async function Layout({ children }: { children: ReactNode }) {
         <HomeTabs>
           <TabsList className="w-full">
             <TabsTrigger value="hot" asChild>
-              <Link href="/">Hot</Link>
+              <NavigationLink href="/">
+                Hot
+                <Loader2Icon size={14} className="animate-spin hidden transitioning:inline-block ml-1" />
+              </NavigationLink>
             </TabsTrigger>
             <TabsTrigger value="recent" asChild>
-              <Link href="/recent">Recent</Link>
+              <NavigationLink href="/recent">
+                Recent
+                <Loader2Icon size={14} className="animate-spin hidden transitioning:inline-block ml-1" />
+              </NavigationLink>
             </TabsTrigger>
             <TabsTrigger value="best" asChild>
-              <Link href="/best" className="flex flex-row gap-2">
+              <NavigationLink href="/best" className="flex flex-row gap-2">
                 <span>Best</span>
+                <Loader2Icon size={14} className="animate-spin hidden transitioning:inline-block ml-1" />
                 <BestDropdown />
-              </Link>
+              </NavigationLink>
             </TabsTrigger>
           </TabsList>
           <TagsCarousel currentTag={"All"} />
@@ -151,7 +161,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
 
           return (
             <div key={index} className="carousel-item w-64 h-36">
-              <Link key={recipe.slug} href={`/recipe/${recipe.slug}`}>
+              <NavigationLink key={recipe.slug} href={`/recipe/${recipe.slug}`}>
                 <Card className="w-64 h-36 bg-secondary flex flex-col gap-1 justify-between py-2">
                   <div className="flex flex-row gap-2 px-3 items-start">
                     <h3 className="text-lg font-semibold flex-1 line-clamp-2">
@@ -159,7 +169,8 @@ const MyRecipes = ({ userId }: { userId: string }) => {
                     </h3>
                     {!media ? (
                       <Button size="icon" variant="outline">
-                        <ChevronRightIcon />
+                        <ChevronRightIcon className="transitioning:hidden" />
+                        <Loader2Icon className="transitioning:block hidden animate-spin" />
                       </Button>
                     ) : (
                       <>
@@ -191,7 +202,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
                     </div>
                   </div>
                 </Card>
-              </Link>
+              </NavigationLink>
             </div>
           );
         })}
