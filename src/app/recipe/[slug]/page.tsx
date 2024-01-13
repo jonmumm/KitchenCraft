@@ -919,20 +919,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     timeStyle: "short",
   }).format(now);
   const dateStr = formattedDate.split(" at ").join(" @ ");
-
-  const mainMedia = await getFirstMediaForRecipe(params.slug);
-
-  const images = mainMedia
-    ? [
-        {
-          url: env.KITCHENCRAFT_URL + `/recipe/${params.slug}/opengraph-image`,
-          secure_url:
-            env.KITCHENCRAFT_URL + `/recipe/${params.slug}/opengraph-image`,
-          width: 1200,
-          height: 630,
-        },
-      ]
-    : undefined;
+  const images = [
+    {
+      url: env.KITCHENCRAFT_URL + `/recipe/${params.slug}/opengraph-image`,
+      secure_url:
+        env.KITCHENCRAFT_URL + `/recipe/${params.slug}/opengraph-image`,
+      width: 1200,
+      height: 630,
+    },
+  ];
 
   // todo add updatedTime
   return {
