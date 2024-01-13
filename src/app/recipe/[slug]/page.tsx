@@ -911,7 +911,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ({ name, description } = recipe);
   }
   const creatorSlug = ` by @${recipe?.createdBySlug}` || "";
-  const title = `${name}${creatorSlug} | KitchenCraft.ai`;
+  const title = `${name}${creatorSlug}`;
 
   const now = recipe?.createdAt || new Date(); // todo actually store this on the recipe
   const formattedDate = new Intl.DateTimeFormat("en-US", {
