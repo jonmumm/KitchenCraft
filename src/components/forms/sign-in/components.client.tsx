@@ -80,7 +80,7 @@ export function SignInForm() {
                   {...field}
                 />
               </FormControl>
-              <FormDescription>Email yourself a login code.</FormDescription>
+              <FormDescription>Send yourself a login code.</FormDescription>
               {fieldState.error && (
                 <FormMessage>{fieldState.error.message}</FormMessage>
               )}
