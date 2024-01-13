@@ -101,7 +101,9 @@ export default async function Image(props: { params: { slug: string } }) {
                     </span>
                   </>
                 ) : (
-                  <></>
+                  <>
+                    <span style={{ fontWeight: "bold" }}>@ChefAnonymous</span>
+                  </>
                 )}
               </h3>
             </div>
