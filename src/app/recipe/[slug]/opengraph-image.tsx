@@ -59,7 +59,9 @@ export default async function Image(props: { params: { slug: string } }) {
           style={{
             padding: "35px",
             display: "flex",
+            height: "100%",
             flexDirection: "column",
+            justifyContent: "space-between",
             gap: "10px",
           }}
         >
@@ -84,12 +86,22 @@ export default async function Image(props: { params: { slug: string } }) {
               <h3
                 style={{
                   margin: 0,
+                  marginTop: "18px",
                   padding: 0,
-                  fontSize: "42px",
+                  fontSize: "48px",
                   fontWeight: "normal",
+                  color: "#334155", // slate 700
                 }}
               >
-                {recipe.createdBySlug ? <>by @{recipe.createdBySlug}</> : <></>}
+                {recipe.createdBySlug ? (
+                  <>
+                    <span style={{ fontWeight: "bold" }}>
+                      @{recipe.createdBySlug}
+                    </span>
+                  </>
+                ) : (
+                  <></>
+                )}
               </h3>
             </div>
             {mainMedia && (
@@ -108,7 +120,7 @@ export default async function Image(props: { params: { slug: string } }) {
             style={{
               display: "flex",
               flexDirection: "column",
-              justifyContent: "center",
+              justifyContent: "flex-end",
               alignItems: "center",
               padding: "0px 10px",
             }}
@@ -132,11 +144,9 @@ export default async function Image(props: { params: { slug: string } }) {
                 //  -webkit-line-clamp: 3;
               }}
             >
-              <span style={{ padding: "0px 20px" }}>
-                &apos;
-                {recipe.prompt}
-                &apos;
-              </span>
+              &apos;
+              {recipe.prompt}
+              &apos;
             </p>
           </div>
         </div>
