@@ -940,6 +940,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     metadataBase: new URL(env.KITCHENCRAFT_URL),
     openGraph: {
+      siteName: "KitchenCraft",
+      title,
+      description: `${recipe?.description} Crafted by ${creatorSlug} on ${dateStr}`,
+      images,
+    },
+    twitter: {
       title,
       description: `${recipe?.description} Crafted by ${creatorSlug} on ${dateStr}`,
       images,
