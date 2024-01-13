@@ -82,10 +82,40 @@ export const RecipeListItem = ({
                   />
                 </h2>
               </NavigationLink>
+              <div>
+                {"createdBySlug" in recipe && recipe.createdBySlug && (
+                  // <Link
+                  //   href={`/@${recipe.createdBySlug}`}
+                  //   className="inline-block"
+                  // >
+                  <div className="inline-block">
+                    <Badge
+                      className="flex flex-row gap-1 items-center"
+                      variant="outline"
+                    >
+                      <ChefHatIcon size={16} className="transitioning:hidden" />
+                      <Loader2Icon
+                        size={16}
+                        className="transitioning:block hidden animate-spin"
+                      />
+                      {recipe.createdBySlug}
+                    </Badge>
+                  </div>
+                  // </Link>
+                )}
+              </div>
             </div>
             <UpvoteButton userId={userId} slug={recipe.slug} />
           </div>
         </div>
+        {recipe.mediaCount > 0 && (
+          <div className="h-64 relative">
+            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20">
+              <RecipeCarousel slug={recipe.slug} priority={index === 0} />
+            </div>
+            {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
+          </div>
+        )}
         <div className="flex flex-row justify-start pl-2">
           <Link
             shallow
@@ -106,19 +136,11 @@ export const RecipeListItem = ({
                 className="text-slate-800 dark:text-slate-200 flex-shrink-0"
               />
               <p className="italic line-clamp-2 flex-1">
-              &apos;{recipe.prompt.trim()}&apos;
+                &apos;{recipe.prompt.trim()}&apos;
               </p>
             </Button>
           </Link>
         </div>
-        {recipe.mediaCount > 0 && (
-          <div className="h-64 relative">
-            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20">
-              <RecipeCarousel slug={recipe.slug} priority={index === 0} />
-            </div>
-            {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
-          </div>
-        )}
         <NavigationLink href={href}>
           <div className="px-5 flex flex-row gap-4 items-center">
             <p className="flex-1">{recipe.description}</p>
@@ -129,34 +151,12 @@ export const RecipeListItem = ({
           </div>
         </NavigationLink>
         <div className="flex-1 flex flex-row gap-1 px-4 justify-between items-start">
-          <Badge
+          <div
             className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0"
             variant="outline"
           >
             <TimerIcon size={14} />
             <span>{formatDuration(recipe.totalTime)}</span>
-          </Badge>
-          <div>
-            {"createdBySlug" in recipe && recipe.createdBySlug && (
-              // <Link
-              //   href={`/@${recipe.createdBySlug}`}
-              //   className="inline-block"
-              // >
-              <div className="inline-block">
-                <Badge
-                  className="flex flex-row gap-1 items-center"
-                  variant="outline"
-                >
-                  <ChefHatIcon size={16} className="transitioning:hidden" />
-                  <Loader2Icon
-                    size={16}
-                    className="transitioning:block hidden animate-spin"
-                  />
-                  {recipe.createdBySlug}
-                </Badge>
-              </div>
-              // </Link>
-            )}
           </div>
           <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
             {"tags" in recipe &&
@@ -211,7 +211,7 @@ const RecipeCarousel = async ({
     const mediaList = await getSortedMediaForRecipe(slug);
 
     return mediaList.length ? (
-      <div className="h-72 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-2 pr-4 sm:p-0 md:justify-center">
+      <div className="h-64 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-2 pr-4 sm:p-0 md:justify-center">
         {mediaList.map((media, mediaIndex) => {
           return (
             <Link
