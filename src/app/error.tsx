@@ -24,7 +24,7 @@ export default function Error({
       <Card className="p-4 flex flex-col gap-2 items-center">
         <h1 className="font-semibold text-xl">Oops</h1>
         <p className="text-muted-foreground">Something went wrong</p>
-        <Button onClick={() => reset()}>Reload</Button>
+        <Button onClick={() => window.location.reload()}>Reload</Button>
       </Card>
     </div>
   );

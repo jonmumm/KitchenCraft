@@ -21,7 +21,7 @@ export default function GlobalError({
         <TypeLogo />
         <h1>Oops</h1>
         <p>Something went wrong</p>
-        <Button onClick={() => reset()}>Reload</Button>
+        <Button onClick={() => window.location.reload()}>Reload</Button>
       </body>
     </html>
   );
