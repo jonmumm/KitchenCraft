@@ -427,7 +427,7 @@ export async function MainMenu({ className }: { className?: string }) {
       </div>
       <MenuItem className="flex flex-row gap-1 justify-between">
         <p className="text-xs text-center flex-1">
-          © 2023 Open Game Collective, LLC. All rights reserved. This software
+          © 2024 Open Game Collective, LLC. All rights reserved. This software
           is distributed under the{" "}
           <Link
             target="_blank"
