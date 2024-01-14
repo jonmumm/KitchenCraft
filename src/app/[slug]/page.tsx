@@ -134,9 +134,7 @@ export default async function Page(props: { params: { slug: string } }) {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             <DropdownMenuItem>
-                              <Link href="/api/auth/signout">
-                                Sign Out
-                              </Link>
+                              <Link href="/api/auth/signout">Sign Out</Link>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent } from "@/components/layout/dialog";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/layout/sheet";
+import { cn } from "@/lib/utils";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { DialogOverlay } from "@radix-ui/react-dialog";
@@ -33,11 +34,16 @@ const ResponsiveDialogContent = forwardRef<
   const isMobile = useContext(MobileContext);
 
   return isMobile ? (
-    <SheetContent side="bottom" ref={ref} {...props} className="p-0">
+    <SheetContent
+      side="bottom"
+      ref={ref}
+      {...props}
+      className={cn("p-0", props.className)}
+    >
       {children}
     </SheetContent>
   ) : (
-    <DialogContent ref={ref} {...props} className="p-0">
+    <DialogContent ref={ref} {...props} className={cn("p-0", props.className)}>
       {children}
     </DialogContent>
   );
@@ -59,15 +65,17 @@ const ResponsiveDialogTrigger: React.FC<DialogPrimitive.DialogTriggerProps> = ({
   );
 };
 
-const ResponsiveDialogOverlay: React.FC<DialogPrimitive.DialogOverlayProps> = (props) => {
+const ResponsiveDialogOverlay: React.FC<DialogPrimitive.DialogOverlayProps> = (
+  props
+) => {
   const isMobile = useContext(MobileContext);
 
-  return isMobile ? (
-    <SheetOverlay {...props} />
-  ) : (
-    <DialogOverlay {...props} />
-  );
+  return isMobile ? <SheetOverlay {...props} /> : <DialogOverlay {...props} />;
 };
 
-
-export { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogTrigger, ResponsiveDialogOverlay };
+export {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogOverlay,
+  ResponsiveDialogTrigger,
+};

@@ -1,10 +1,12 @@
 import { TimeParamSchema } from "@/app/(home)/schema";
+import { RatingValue } from "@/app/recipe/[slug]/rating/types";
 import {
   GeneratedMediaTable,
   MediaTable,
   PopularTagsView,
   ProfileTable,
   RecipeMediaTable,
+  RecipeRatingsTable,
   RecipesTable,
   SubscriptionMembersTable,
   SubscriptionsTable,
@@ -1362,7 +1364,7 @@ export const getNotificationFeatureStates = async (
     "email:top_recipes",
     "email:tips_and_tricks",
     "email:awards",
-  ] as any; // todo figure out how to get type from pgEnum
+  ] as FeatureId[];
 
   const query = dbOrTransaction
     .select()
@@ -1411,3 +1413,57 @@ export const upsertUserFeatureState = async (
 
   return result;
 };
+
+export const upsertRecipeRating = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string,
+  recipeSlug: string,
+  value: RatingValue
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  const result = await withDatabaseSpan(
+    queryRunner
+      .insert(RecipeRatingsTable)
+      .values({
+        userId: userId,
+        recipeSlug: recipeSlug,
+        value,
+        // createdAt is automatically set to now by default
+      })
+      .onConflictDoUpdate({
+        target: [RecipeRatingsTable.userId, RecipeRatingsTable.recipeSlug], // Composite key conflict target
+        set: {
+          value,
+          createdAt: sql`NOW()`, // Update the timestamp to the current time
+        },
+      }),
+    "upsertRecipeRating"
+  ).execute();
+
+  return result;
+};
+
+export const getRatingByUserIdAndSlug = cache(
+  async (userId: string, slug: string) => {
+    const query = db
+      .select({
+        userId: RecipeRatingsTable.userId,
+        recipeSlug: RecipeRatingsTable.recipeSlug,
+        value: RecipeRatingsTable.value, // Assuming 'value' is the column you want to retrieve
+        createdAt: RecipeRatingsTable.createdAt,
+      })
+      .from(RecipeRatingsTable)
+      .where(
+        and(
+          eq(RecipeRatingsTable.userId, userId),
+          eq(RecipeRatingsTable.recipeSlug, slug)
+        )
+      );
+
+    return await withDatabaseSpan(query, "getRatingByUserIdAndSlug")
+      .execute()
+      .then((res) => res[0]); // Return the first (and expectedly only) result
+  }
+);

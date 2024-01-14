@@ -11,6 +11,7 @@ import {
   pgMaterializedView,
   pgTable,
   primaryKey,
+  real,
   serial,
   text,
   timestamp,
@@ -383,3 +384,23 @@ export const PushSubscriptions = pgTable("push_subscriptions", {
   subscription: jsonb("subscription").$type<PushSubscriptionJSON>().notNull(), // Using jsonb to store ingredients
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
+
+export const RecipeRatingsTable = pgTable(
+  "recipe_rating",
+  {
+    recipeSlug: text("recipe_slug")
+      .notNull()
+      .references(() => RecipesTable.slug), // Foreign key to the Recipes table
+    userId: text("user_id")
+      .notNull()
+      .references(() => UsersTable.id), // Foreign key to the Users table
+    value: real("value").notNull(), // Rating value based on the provided Zod schema
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(), // Timestamp when the rating was created
+  },
+  (table) => ({
+    compoundKey: primaryKey(table.userId, table.recipeSlug),
+  })
+);
+
+export const RecipeRatingSchema = createSelectSchema(RecipeRatingsTable);
+export const NewRecipeRatingSchema = createInsertSchema(RecipeRatingsTable);

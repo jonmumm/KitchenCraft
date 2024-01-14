@@ -69,6 +69,7 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
+import { RatingButton } from "./rating/components";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -680,6 +681,7 @@ export default async function Page(props: Props) {
 
               <div className="flex flex-col gap-1 hidden-print">
                 <UpvoteButton userId={userId} slug={slug} />
+                <RatingButton slug={slug} />
                 {/* {userId && (
                   <AsyncRenderFirstValue
                     render={([hasVoted, points]) => (

@@ -45,3 +45,7 @@ export const getCanInstallPWA = () => {
   const browser = Bowser.getParser(headerList.get("user-agent")!);
   return browser.getOSName() === "iOS" && browser.getBrowserName() === "Safari";
 };
+export const getIsMobile = () => {
+  const browser = getBrowser();
+  return browser.getPlatformType() === "mobile";
+};

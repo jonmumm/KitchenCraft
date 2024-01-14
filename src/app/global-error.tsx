@@ -2,13 +2,14 @@
 
 import { Button } from "@/components/input/button";
 import { TypeLogo } from "@/components/logo";
+import { useEffect } from "react";
 
 export default function GlobalError({
   error,
-  reset,
+  // reset,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  // reset: () => void;
 }) {
   // TODO report an error server side here...
 
