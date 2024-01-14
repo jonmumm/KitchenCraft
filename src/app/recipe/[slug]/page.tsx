@@ -40,6 +40,7 @@ import {
   MessagesSquareIcon,
   ScrollIcon,
   ShoppingBasketIcon,
+  StarIcon,
 } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -59,7 +60,12 @@ import { TipsAndTricksContent } from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
 import { getObservables, getRecipeStream$ } from "./observables";
 import { getBaseRecipe, getRecipeOutputRaw } from "./queries";
-import { RatingButton } from "./rating/components";
+import { Rating } from "./rating/components.client";
+import {
+  getCurrentUserRatingBySlug,
+  upsertRecipeRating,
+} from "./rating/queries";
+import { RatingValue } from "./rating/types";
 import {
   SousChefCommand,
   SousChefCommandInput,
@@ -88,6 +94,7 @@ export default async function Page(props: Props) {
     latestVersion,
     recipeData$,
     versions,
+    rating,
   ] = await Promise.all([
     getBaseRecipe(slug),
     getRecipe(slug),
@@ -96,6 +103,7 @@ export default async function Page(props: Props) {
     findLatestRecipeVersion(slug),
     getRecipeStream$(slug),
     getAllVersionsOfRecipeBySlug(db, slug),
+    getCurrentUserRatingBySlug(slug),
   ]);
 
   const { runStatus } = baseRecipe;
@@ -136,6 +144,17 @@ export default async function Page(props: Props) {
     cookTime$,
     totalTime$,
   } = getObservables(recipeData$);
+
+  const submitRating = async (
+    slug: string,
+    userId: string,
+    value: RatingValue
+  ) => {
+    "use server";
+    console.log(userId, slug, value);
+
+    await upsertRecipeRating(db, userId, slug, value);
+  };
 
   // const generatedMedia$ = await getGeneratedMedia$(slug);
 
@@ -682,7 +701,6 @@ export default async function Page(props: Props) {
 
               <div className="flex flex-col gap-1 hidden-print">
                 <UpvoteButton userId={userId} slug={slug} />
-                <RatingButton slug={slug} />
                 {/* {userId && (
                   <AsyncRenderFirstValue
                     render={([hasVoted, points]) => (
@@ -817,6 +835,26 @@ export default async function Page(props: Props) {
                   </ol>
                 </Suspense>
               </div>
+            </div>
+          </Card>
+          <Card id="rating" className="mx-3">
+            <div className="flex flex-row gap-2 items-center justify-between py-4 px-5">
+              <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                Rating
+              </h3>
+              <StarIcon />
+            </div>
+            <Separator />
+            <div className="p-4 flex justify-center">
+              <Rating
+                defaultValue={(rating?.value as RatingValue) || 0}
+                lastRatedAt={rating?.createdAt}
+                submitValueChange={
+                  userId
+                    ? submitRating.bind(null, slug).bind(null, userId)
+                    : undefined
+                }
+              />
             </div>
           </Card>
           <Card id="history" className="mx-3">

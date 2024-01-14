@@ -1,7 +1,12 @@
+import { RecipeRatingsTable, db } from "@/db";
+import { getCurrentUserId } from "@/lib/auth/session";
 import { kv } from "@/lib/kv";
+import { withDatabaseSpan } from "@/lib/observability";
 import { RecipeBaseSchema, TempRecipeSchema } from "@/schema";
+import { and, eq } from "drizzle-orm";
 import { cache } from "react";
 import { z } from "zod";
+import { RatingValue } from "./rating/types";
 
 export const getTempRecipe = async (slug: string) => {
   const recipeKey = `recipe:${slug}`;
@@ -39,3 +44,4 @@ export const getRecipeOutputRaw = async (slug: string) =>
 export const getBaseRecipe = cache(async (slug: string) =>
   RecipeBaseSchema.parse(await kv.hgetall(`recipe:${slug}`))
 );
+
