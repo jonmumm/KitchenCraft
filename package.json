@@ -109,6 +109,7 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "tus-js-client": "^3.1.1",
+    "tw-to-css": "^0.0.12",
     "use-sync-external-store": "^1.2.0",
     "uuidv7": "^0.6.3",
     "vite-tsconfig-paths": "^4.2.1",

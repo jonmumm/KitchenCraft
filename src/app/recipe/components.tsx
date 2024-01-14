@@ -151,9 +151,7 @@ export const RecipeListItem = ({
           </div>
         </NavigationLink>
         <div className="flex-1 flex flex-row gap-1 px-4 justify-between items-start">
-          <div
-            className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0"
-          >
+          <div className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0">
             <TimerIcon size={14} />
             <span>{formatDuration(recipe.totalTime)}</span>
           </div>

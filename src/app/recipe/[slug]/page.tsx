@@ -18,7 +18,6 @@ import { db } from "@/db";
 import {
   findLatestRecipeVersion,
   findSlugForRecipeVersion,
-  getFirstMediaForRecipe,
   getRecipe,
   getSortedMediaForRecipe,
 } from "@/db/queries";
@@ -60,6 +59,7 @@ import { TipsAndTricksContent } from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
 import { getObservables, getRecipeStream$ } from "./observables";
 import { getBaseRecipe, getRecipeOutputRaw } from "./queries";
+import { RatingButton } from "./rating/components";
 import {
   SousChefCommand,
   SousChefCommandInput,
@@ -69,7 +69,6 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
-import { RatingButton } from "./rating/components";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -471,17 +470,19 @@ export default async function Page(props: Props) {
             <li>
               <hr />
               <div className="timeline-middle">
-                <Button
-                  variant="secondary"
-                  event={{
-                    type: "NEW_RECIPE",
-                    prompt: latestVersion?.prompt,
-                  }}
-                  className="flex flex-row gap-1"
-                >
-                  <AxeIcon size={17} />
-                  <span>Use Prompt</span>
-                </Button>
+                <Link href={`?crafting=1&prompt=${latestVersion?.prompt}`}>
+                  <Button
+                    variant="secondary"
+                    event={{
+                      type: "NEW_RECIPE",
+                      prompt: latestVersion?.prompt,
+                    }}
+                    className="flex flex-row gap-1"
+                  >
+                    <AxeIcon size={17} />
+                    <span>Open Prompt</span>
+                  </Button>
+                </Link>
               </div>
               <div className="timeline-end"></div>
             </li>
