@@ -41,6 +41,7 @@ import {
   ScrollIcon,
   ShoppingBasketIcon,
   StarIcon,
+  WrenchIcon,
 } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -463,7 +464,7 @@ export default async function Page(props: Props) {
                   />
                 </svg>
               </div>
-              <div className="timeline-end pt-8 pb-2">
+              <div className="timeline-end pt-8 pb-16">
                 <div>
                   <h3 className="text-sm font-medium inline-block">
                     {version.name}
@@ -472,17 +473,18 @@ export default async function Page(props: Props) {
                 <span className="text-muted-foreground text-sm italic">
                   &quot;{version.prompt}.&quot;
                 </span>
-                {/* <Badge
-                          event={{
-                            type: "NEW_RECIPE",
-                            prompt: version.prompt,
-                          }}
-                          variant="secondary"
-                          className="flex flex-row gap-1"
-                        >
-                          <span>Open Prompt</span>
-                          <ShuffleIcon size={16} />
-                        </Badge> */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex flex-row gap-2"
+                  event={{
+                    type: "NEW_RECIPE",
+                    prompt: version.prompt,
+                  }}
+                >
+                  <AxeIcon size={14} />
+                  Use Prompt
+                </Button>
               </div>
               <hr />
             </li>
@@ -498,8 +500,9 @@ export default async function Page(props: Props) {
                     }}
                     className="flex flex-row gap-1"
                   >
-                    <AxeIcon size={17} />
-                    <span>Open Prompt</span>
+                    {/* <AxeIcon size={17} /> */}
+                    <WrenchIcon size={17} />
+                    <span>Modify</span>
                   </Button>
                 </Link>
               </div>
