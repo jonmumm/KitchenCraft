@@ -21,7 +21,7 @@ import { ReactNode, Suspense } from "react";
 import { Badge } from "@/components/display/badge";
 import { Separator } from "@/components/display/separator";
 import { EventButton } from "@/components/event-button";
-import { TagsCarousel } from "@/components/modules/tags-carousel";
+import { TagsCarousel } from "@/modules/tags-carousel";
 import { getSession } from "@/lib/auth/session";
 import { formatDuration, shuffle, timeAgo } from "@/lib/utils";
 import {

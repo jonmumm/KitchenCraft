@@ -4,7 +4,7 @@ import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
-import { TagsCarousel } from "@/components/modules/tags-carousel";
+import { TagsCarousel } from "@/modules/tags-carousel";
 import { db } from "@/db";
 import {
   getRecipesByTag,

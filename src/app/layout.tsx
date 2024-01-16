@@ -1,5 +1,5 @@
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
-import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
+import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";

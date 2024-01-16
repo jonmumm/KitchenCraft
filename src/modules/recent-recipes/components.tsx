@@ -12,9 +12,9 @@ import { z } from "zod";
 import { UploadedMediaSchema } from "@/app/recipe/[slug]/media/schema";
 import { UploadedMedia } from "@/app/recipe/[slug]/media/types";
 import { getRecipe } from "@/app/recipe/[slug]/utils";
-import { Button } from "../../input/button";
-import { Card } from "../../display/card";
-import { Skeleton } from "../../display/skeleton";
+import { Button } from "../../components/input/button";
+import { Card } from "../../components/display/card";
+import { Skeleton } from "../../components/display/skeleton";
 import {
   RecipeCardButton,
   RecipeLink,

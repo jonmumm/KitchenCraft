@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/display/skeleton";
 import { EventButton } from "@/components/event-button";
 import { SignInForm } from "@/components/forms/sign-in/components.client";
 import { Button } from "@/components/input/button";
-import { TagsCarousel } from "@/components/modules/tags-carousel";
+import { TagsCarousel } from "@/modules/tags-carousel";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
 import quoteList from "@/data/quotes.json";
