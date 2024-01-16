@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/display/skeleton";
 import { Progress } from "@/components/feedback/progress";
 import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
-import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
+import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { RenderFirstValue } from "@/components/util/render-first-value";
 import { db } from "@/db";

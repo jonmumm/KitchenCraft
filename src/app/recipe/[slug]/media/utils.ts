@@ -1,5 +1,8 @@
 export const extractMetadata = (file: File) => {
-  return new Promise((resolve, reject) => {
+  return new Promise<
+    | { type: "IMAGE"; width: number; height: number }
+    | { type: "VIDEO"; width: number; height: number; duration: number }
+  >((resolve, reject) => {
     if (file.type.startsWith("image/")) {
       const img = new Image();
       img.onload = () =>

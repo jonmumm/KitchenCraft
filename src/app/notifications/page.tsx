@@ -11,7 +11,7 @@ import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import EventTrigger from "@/components/input/event-trigger";
 import { Switch } from "@/components/input/switch";
-import { AppInstallContainer } from "@/components/modules/main-menu/app-install-container";
+import { AppInstallContainer } from "@/modules/main-menu/app-install-container";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { db } from "@/db";
 import { getNotificationFeatureStates } from "@/db/queries";

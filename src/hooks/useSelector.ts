@@ -7,9 +7,10 @@ function defaultCompare<T>(a: T, b: T) {
   return a === b;
 }
 
-export function useSelector<TActor extends ActorRef<any, any>, T>(
+export function useSelector<TActor extends ActorRef<any, any>, T, TSSR>(
   actor: TActor,
   selector: (emitted: SnapshotFrom<TActor>) => T,
+  selectorSSR?: (emitted: SnapshotFrom<TActor>) => TSSR
 ): T {
   const subscribe = useCallback(
     (onStoreChange: () => void) => {

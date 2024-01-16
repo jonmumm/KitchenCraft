@@ -1,5 +1,5 @@
-import plugin from "tailwindcss/plugin";
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 const config: Config = {
   darkMode: "class",
@@ -70,8 +70,19 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0px" },
         },
+        spotlight: {
+          from: {
+            opacity: "0",
+            transform: "translate(-72%, -62%) scale(0.5)",
+          },
+          to: {
+            opacity: "1",
+            transform: "translate(-50%,-40%) scale(1)",
+          },
+        },
       },
       animation: {
+        spotlight: "spotlight 2s ease .75s 1 forwards",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
@@ -84,6 +95,7 @@ const config: Config = {
       addVariant("transitioning", `.transitioning &`);
       addVariant("prompt-pristine", `.prompt-pristine &`);
       addVariant("btn-loading", `.button-loading &`);
+      addVariant("expanded", `.expanded &`);
     }),
     require("daisyui"),
     require("tailwindcss-animate"),

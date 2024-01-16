@@ -3,11 +3,11 @@ import { Card } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
+import EventTrigger from "@/components/input/event-trigger";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
 import {
   ArrowBigUpDashIcon,
-  ArrowUpRightSquareIcon,
   AxeIcon,
   ChefHatIcon,
   ChevronRightIcon,
@@ -24,6 +24,7 @@ import {
   getSortedMediaForRecipe,
 } from "../../db/queries";
 import { upvoteById } from "../recipe/actions";
+import { RecipeCarousel } from "./components.client";
 import { RecipePropsProvider } from "./context";
 import { UpvoteButton } from "./upvote-button/component";
 
@@ -110,9 +111,9 @@ export const RecipeListItem = ({
         </div>
         {recipe.mediaCount > 0 && (
           <div className="h-64 relative">
-            <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20">
-              <RecipeCarousel slug={recipe.slug} priority={index === 0} />
-            </div>
+            <RecipeCarousel>
+              <RecipeMedia slug={recipe.slug} priority={index === 0} />
+            </RecipeCarousel>
             {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
           </div>
         )}
@@ -180,7 +181,7 @@ export const RecipeListItem = ({
   );
 };
 
-const RecipeCarousel = async ({
+const RecipeMedia = async ({
   slug,
   priority,
 }: {
@@ -213,22 +214,27 @@ const RecipeCarousel = async ({
           return (
             <Link
               className="carousel-item h-64"
+              href={`/?fullscreen=1&recipe=${slug}&index=${mediaIndex}`}
               key={mediaIndex}
-              href={`/recipe/${slug}?#media-${mediaIndex}`}
             >
-              <Image
-                className="rounded-box h-64 w-auto shadow-md hover:shadow-lg"
-                src={media.url}
-                priority={priority}
-                width={media.width}
-                height={media.height}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                alt="Main media"
-                placeholder="blur"
-                blurDataURL={media.blobDataURL}
-                // placeholder="empty"
-                // style={{ objectFit: "cover" }}
-              />
+              <EventTrigger
+                event={{ type: "PRESS_MEDIA_THUMB", slug, index: mediaIndex }}
+                asChild
+              >
+                <Image
+                  className="rounded-box h-64 w-auto shadow-md hover:shadow-lg"
+                  src={media.url}
+                  priority={priority}
+                  width={media.width}
+                  height={media.height}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  alt="Main media"
+                  placeholder="blur"
+                  blurDataURL={media.blobDataURL}
+                  // placeholder="empty"
+                  // style={{ objectFit: "cover" }}
+                />
+              </EventTrigger>
             </Link>
           );
         })}

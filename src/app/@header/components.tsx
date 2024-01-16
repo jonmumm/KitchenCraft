@@ -6,8 +6,8 @@ import {
   SheetTrigger,
 } from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
-import { MainMenu } from "@/components/modules/main-menu";
-import { MenuSheet } from "@/components/modules/main-menu/menu-sheet";
+import { MainMenu } from "@/modules/main-menu";
+import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";

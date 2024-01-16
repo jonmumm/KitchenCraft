@@ -2,7 +2,7 @@
 
 import { ReactNode, forwardRef, useEffect } from "react";
 
-const useScrollLock = (isActive: boolean) => {
+export const useScrollLock = (isActive: boolean) => {
   useEffect(() => {
     if (isActive) {
       document.body.style.overflow = "hidden";

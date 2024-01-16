@@ -20,6 +20,8 @@ const EventTrigger: ForwardRefRenderFunction<
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     send(event);
+    e.preventDefault();
+    e.stopPropagation();
     // Add any additional logic if needed
   }, []);
 

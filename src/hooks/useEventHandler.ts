@@ -4,9 +4,7 @@ import { useState } from "react";
 import { skip } from "rxjs";
 import { useEvents } from "./useEvents";
 
-type ExtractAppEvent<T extends AppEvent["type"]> = AppEvent extends { type: T }
-  ? AppEvent
-  : never;
+type ExtractAppEvent<T extends AppEvent["type"]> = AppEvent extends infer U ? (U extends { type: T } ? U : never) : never;
 
 export const useEventHandler = <TEventType extends AppEvent["type"]>(
   type: TEventType,

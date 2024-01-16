@@ -8,7 +8,7 @@ import {
 } from "@/components/layout/popover";
 import { useSend } from "@/hooks/useSend";
 import { ShareIcon } from "lucide-react";
-import { useCallback, useState } from "react";
+import { ReactNode, useCallback, useState } from "react";
 
 export const ShareButton = ({
   slug,
@@ -63,6 +63,14 @@ export const ShareButton = ({
         </PopoverTrigger>
         <PopoverContent className="w-fit px-2 py-1">URL Copied!</PopoverContent>
       </Popover>
+    </div>
+  );
+};
+
+export const RecipeCarousel = ({ children }: { children: ReactNode }) => {
+  return (
+    <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20 bg-white">
+      {children}
     </div>
   );
 };

@@ -1,5 +1,7 @@
+import { Toaster } from "@/components/feedback/sonner";
+import { Toaster as LegacyToaster } from "@/components/feedback/toaster";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
-import { SafariInstallPrompt } from "@/components/modules/pwa-install/safari-install-prompt";
+import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";
@@ -30,8 +32,6 @@ import { Body, SearchParamsToastMessage } from "./components.client";
 import { ApplicationProvider } from "./provider";
 import { RecipeTokenStream } from "./recipe/[slug]/stream";
 import "./styles.css";
-import { Toaster } from "@/components/feedback/sonner";
-import { Toaster as LegacyToaster } from "@/components/feedback/toaster";
 
 const APP_NAME = "KitchenCraft";
 const APP_DEFAULT_TITLE = "kitchencraft.ai";
@@ -75,11 +75,13 @@ export default async function RootLayout({
   craft,
   footer,
   header,
+  gallery,
 }: {
   children: ReactNode;
   craft: ReactNode;
   footer: ReactNode;
   header: ReactNode;
+  gallery: ReactNode;
 }) {
   async function createNewInstantRecipe(
     prompt: string,
@@ -361,7 +363,7 @@ export default async function RootLayout({
               <div className="crafting:hidden">{children}</div>
               <div className="hidden crafting:block">{craft}</div>
             </div>
-            <div className="sticky mt-4 bottom-0 z-50">{footer}</div>
+            <div className="sticky mt-4 bottom-0 z-20">{footer}</div>
             {canInstallPWA && <SafariInstallPrompt />}
           </ThemeProvider>
           <Toaster />

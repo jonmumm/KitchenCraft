@@ -1,4 +1,4 @@
-import { RecipeCraftingPlaceholder } from "@/components/modules/recipe/crafting-placeholder";
+import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 
 type Props = {
   params: { slug: string };

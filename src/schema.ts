@@ -503,7 +503,20 @@ const ErrorEventSchema = z.object({
   error: z.string(),
 });
 
+export const PressMediaThumbSchema = z.object({
+  type: z.literal("PRESS_MEDIA_THUMB"),
+  slug: SlugSchema,
+  index: z.number(),
+});
+
+const FileSelectedEventSchema = z.object({
+  type: z.literal("FILE_SELECTED"),
+  file: z.custom<File>()
+})
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  FileSelectedEventSchema,
+  PressMediaThumbSchema,
   EnablePushNotificationsEventSchema,
   ErrorEventSchema,
   DownloadAppEventShema,

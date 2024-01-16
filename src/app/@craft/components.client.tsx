@@ -5,7 +5,7 @@ import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
 import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { Button } from "@/components/input/button";
-import { RecipeCraftingPlaceholder } from "@/components/modules/recipe/crafting-placeholder";
+import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
 import { LoaderIcon } from "lucide-react";

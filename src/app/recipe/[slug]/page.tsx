@@ -1,7 +1,6 @@
 import { Card } from "@/components/display/card";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { unstable_noStore as noStore } from "next/cache";
-import Image from "next/image";
 import { Recipe as RecipeJSONLDSchema, WithContext } from "schema-dts";
 
 import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
@@ -25,6 +24,10 @@ import { env } from "@/env.public";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { kv } from "@/lib/kv";
 import { delay } from "@/lib/utils";
+import {
+  MediaGallery,
+  MediaGalleryItem,
+} from "@/modules/media-gallery/components.client";
 import {
   FAQsPredictionInputSchema,
   QuestionsPredictionOutputSchema,
@@ -629,62 +632,22 @@ export default async function Page(props: Props) {
         </WaitForRecipe>
       </Suspense>
 
-      <div className="flex flex-col gap-2 max-w-7xl mx-auto">
+      <div className="flex flex-col gap-2">
         {mediaList.length ? (
-          <div
-            className="w-full relative rounded-b-xl"
-            style={{ height: `50vh` }}
-          >
-            <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 flex z-10 justify-center">
-              <div className="carousel space-x-2 absolute pr-8">
-                <div className="w-2 h-full carousel-item" />
-                {mediaList.map((media, index) => {
-                  return (
-                    <div
-                      className="carousel-item h-[50vh]"
-                      id={`media-${index}`}
-                      key={media.id}
-                    >
-                      <Image
-                        className="h-[50vh] w-auto rounded-box"
-                        src={media.url}
-                        priority={index == 0}
-                        width={media.width}
-                        height={media.height}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        alt={`${name} - Image ${index + 1}`}
-                      />
-                      {/* {index >= 1 && (
-                        <Link
-                          href={`#media-${index - 1}`}
-                          shallow
-                          className="absolute left-4 top-[50%] z-50 hidden sm:block"
-                        >
-                          <Button size="icon" variant="outline">
-                            <ArrowLeftCircleIcon />
-                            <span className="sr-only">Next Photo</span>
-                          </Button>
-                        </Link>
-                      )} */}
-
-                      {/* {index < mediaList.length - 1 && (
-                        <Link
-                          href={`#media-${index + 1}`}
-                          shallow
-                          className="absolute right-4 top-[50%] z-50 hidden sm:block"
-                        >
-                          <Button size="icon" variant="outline">
-                            <ArrowRightCircleIcon />
-                            <span className="sr-only">Next Photo</span>
-                          </Button>
-                        </Link>
-                      )} */}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+          <MediaGallery slug={slug}>
+            {/* Empty item as a spacer, maybe better way? */}
+            <div className="w-1 h-full carousel-item" />{" "}
+            {mediaList.map((media, index) => {
+              return (
+                <MediaGalleryItem
+                  key={index}
+                  index={index}
+                  slug={slug}
+                  media={media}
+                />
+              );
+            })}
+          </MediaGallery>
         ) : null}
         <div className="flex flex-col gap-2 max-w-xl mx-auto">
           <Card className="flex flex-col gap-2 pb-5 mx-3">

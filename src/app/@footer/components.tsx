@@ -47,7 +47,7 @@ export async function Footer({
   // };
 
   return (
-    <ReactiveFooter className="fixed z-50 bottom-0 left-0 right-0 flex rounded-b-none lg:hidden p-4 crafting:hidden">
+    <ReactiveFooter className="fixed z-20 bottom-0 left-0 right-0 flex rounded-b-none lg:hidden p-4 crafting:hidden">
       <div className="bg-card w-full border-muted shadow-2xl border-2 border-solid p-2 rounded-full">
         <div className="flex flex-row gap-2 justify-center w-full">
           <NavigationLink href="/" className="basis-36 min-w-0">
@@ -96,7 +96,7 @@ export async function Footer({
 
 export async function FooterPlaceholder() {
   return (
-    <ReactiveFooter className="fixed z-50 bottom-0 left-0 right-0 flex rounded-b-none lg:hidden p-4 crafting:hidden">
+    <ReactiveFooter className="fixed z-20 bottom-0 left-0 right-0 flex rounded-b-none lg:hidden p-4 crafting:hidden">
       <div className="bg-card w-full border-muted shadow-2xl border-2 border-solid p-2 rounded-full">
         <div className="flex flex-row gap-2 justify-center w-full">
           <NavigationLink href="/" className="basis-36 min-w-0">

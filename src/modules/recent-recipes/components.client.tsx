@@ -17,16 +17,16 @@ import {
   useState,
 } from "react";
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
-import { Button } from "../../input/button";
+import { Button } from "../../components/input/button";
 
 import Image from "next/image";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "./styles.css";
-import { Badge } from "../../display/badge";
+import { Badge } from "../../components/display/badge";
 import { Pagination } from "swiper/modules";
-import { MotionImage } from "../../motion-image";
+import { MotionImage } from "../../components/motion-image";
 
 const CarouselItem = ({
   color,
