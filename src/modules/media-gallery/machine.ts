@@ -7,6 +7,7 @@ type Context = {
   slug: string;
   focusedIndex: number | undefined;
   minHeight: string;
+  numItems: number;
 };
 
 export const createMediaGalleryMachine = (props: Context) => {
@@ -18,10 +19,14 @@ export const createMediaGalleryMachine = (props: Context) => {
       types: {
         context: {} as Context,
         events: {} as AppEvent,
-        actions: {} as {
-          type: "replaceQueryParameters";
-          params: { paramSet: Record<string, string | undefined> };
-        },
+        actions: {} as
+          | {
+              type: "replaceQueryParameters";
+              params: { paramSet: Record<string, string | undefined> };
+            }
+          | {
+              type: "scrollFocusedIntoView";
+            },
       },
       type: "parallel",
       states: {
@@ -29,22 +34,46 @@ export const createMediaGalleryMachine = (props: Context) => {
           initial: "False",
           states: {
             True: {
-              entry: [
-                ({ context }) => {
-                  const elId = `media-${context.slug}-${context.focusedIndex}`;
-                  const el = document.getElementById(elId);
-                  assert(el, "couldnt find media element");
-                  setTimeout(() => {
-                    el.scrollIntoView();
-                  }, 0);
-                },
-              ],
+              entry: [{ type: "scrollFocusedIntoView" }],
               on: {
                 CLOSE: {
                   target: "False",
                 },
                 BACK: {
                   target: "False",
+                },
+                SWIPE_DOWN: {
+                  target: "False",
+                },
+                SWIPE_RIGHT: {
+                  guard: ({ context }) => {
+                    assert(
+                      typeof context.focusedIndex !== "undefined",
+                      "expected focusedIndex"
+                    );
+                    return context.focusedIndex! - 1 >= 0;
+                  },
+                  actions: [
+                    assign({
+                      focusedIndex: ({ context }) => context.focusedIndex! - 1,
+                    }),
+                    "scrollFocusedIntoView",
+                  ],
+                },
+                SWIPE_LEFT: {
+                  guard: ({ context }) => {
+                    assert(
+                      typeof context.focusedIndex !== "undefined",
+                      "expected focusedIndex"
+                    );
+                    return context.focusedIndex + 1 < context.numItems;
+                  },
+                  actions: [
+                    assign({
+                      focusedIndex: ({ context }) => context.focusedIndex! + 1,
+                    }),
+                    "scrollFocusedIntoView",
+                  ],
                 },
               },
             },
@@ -92,7 +121,19 @@ export const createMediaGalleryMachine = (props: Context) => {
         },
       },
     },
-    {}
+    {
+      actions: {
+        scrollFocusedIntoView: ({ context }) => {
+          const elId = `media-${context.slug}-${context.focusedIndex}`;
+          console.log("scrolling to", elId)
+          const el = document.getElementById(elId);
+          assert(el, `couldnt find media element #${elId}`);
+          setTimeout(() => {
+            el.scrollIntoView({ behavior: "instant" });
+          }, 0);
+        },
+      },
+    }
   );
 };
 

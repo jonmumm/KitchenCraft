@@ -200,42 +200,43 @@ export const SlugSchema = z
   .min(1)
   .max(100);
 
-export const MediaFragmentLiteralSchema = z.custom<`#media-${string}-${number}`>(
-  (val) => {
-    if (typeof val !== "string") return false;
+export const MediaFragmentLiteralSchema =
+  z.custom<`#media-${string}-${number}`>(
+    (val) => {
+      if (typeof val !== "string") return false;
 
-    const regex = /^#media-([a-z0-9_-]+)-(\d+)$/;
-    const match = val.match(regex);
+      const regex = /^#media-([a-z0-9_-]+)-(\d+)$/;
+      const match = val.match(regex);
 
-    if (!match) return false;
+      if (!match) return false;
 
-    // Extract slug and index parts
-    const [, slug, indexStr] = match;
+      // Extract slug and index parts
+      const [, slug, indexStr] = match;
 
-    if (!indexStr) {
-      return false;
-    }
-
-    try {
-      // Validate slug
-      SlugSchema.parse(slug);
-rl
-      // Validate index (ensure it's a numeric string)
-      const index = parseInt(indexStr, 10);
-      if (isNaN(index)) {
-        throw new Error("Index must be a numeric value");
+      if (!indexStr) {
+        return false;
       }
 
-      return true;
-    } catch (e) {
-      return false;
+      try {
+        // Validate slug
+        SlugSchema.parse(slug);
+        rl;
+        // Validate index (ensure it's a numeric string)
+        const index = parseInt(indexStr, 10);
+        if (isNaN(index)) {
+          throw new Error("Index must be a numeric value");
+        }
+
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+    {
+      message:
+        "Invalid media fragment format. Expected format: #media-{slug}-{index}",
     }
-  },
-  {
-    message:
-      "Invalid media fragment format. Expected format: #media-{slug}-{index}",
-  }
-);
+  );
 
 export const MediaFragmentSchema = z.preprocess(
   (val) => {
@@ -581,7 +582,31 @@ const FileSelectedEventSchema = z.object({
   file: z.custom<File>(),
 });
 
+const SwipeLeftEventSchema = z.object({
+  type: z.literal("SWIPE_LEFT"),
+  id: z.string().optional(),
+});
+
+const SwipeRightEventSchema = z.object({
+  type: z.literal("SWIPE_RIGHT"),
+  id: z.string().optional(),
+});
+
+const SwipeUpEventSchema = z.object({
+  type: z.literal("SWIPE_UP"),
+  id: z.string().optional(),
+});
+
+const SwipeDownEventSchema = z.object({
+  type: z.literal("SWIPE_DOWN"),
+  id: z.string().optional(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  SwipeUpEventSchema,
+  SwipeDownEventSchema,
+  SwipeRightEventSchema,
+  SwipeLeftEventSchema,
   FileSelectedEventSchema,
   PressMediaThumbSchema,
   EnablePushNotificationsEventSchema,

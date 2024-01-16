@@ -24,7 +24,6 @@ import { Suspense } from "react";
 import { getHotRecipes, getRecentRecipesByUser } from "../../db/queries";
 import { upvoteById } from "../recipe/actions";
 import { RecipePropsProvider } from "./context";
-import { UpvoteButton } from "./upvote-button/component";
 
 type Recipes =
   | Awaited<ReturnType<typeof getHotRecipes>>[0]
@@ -109,7 +108,11 @@ export const RecipeListItem = ({
         </div>
         {recipe.mediaCount > 0 && (
           <div className="h-[45svh] relative">
-            <MediaGallery slug={recipe.slug} minHeight={"45svh"}>
+            <MediaGallery
+              slug={recipe.slug}
+              minHeight={"45svh"}
+              numItems={recipe.mediaCount}
+            >
               <Suspense fallback={<MediaGalleryItemsPlaceholder />}>
                 <MediaGalleryItems slug={recipe.slug} />
               </Suspense>

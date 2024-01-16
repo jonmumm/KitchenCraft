@@ -1,16 +1,18 @@
 "use client";
 
 import { useActor } from "@/hooks/useActor";
+import { useDrag } from "@use-gesture/react";
 import { ChevronLeftIcon } from "lucide-react";
 import Image from "next/image";
-import { ReactNode, useContext } from "react";
+import { ReactNode, useContext, useRef } from "react";
 import { createMediaGalleryMachine } from "./machine";
 
 import { Button } from "@/components/input/button";
 import HashLink from "@/components/navigation/hash-link";
 import ScrollLockComponent from "@/components/scroll-lock";
 import { useSelector } from "@/hooks/useSelector";
-import { cn } from "@/lib/utils";
+import { useSend } from "@/hooks/useSend";
+import { assert, cn } from "@/lib/utils";
 import { MediaFragmentLiteral } from "@/types";
 import { useSearchParams } from "next/navigation";
 import { createContext } from "react";
@@ -24,10 +26,12 @@ export const MediaGallery = ({
   children,
   slug,
   minHeight, // index,
+  numItems,
 }: {
   children: ReactNode;
   slug: string;
   minHeight: string;
+  numItems: number;
   // index: number | undefined; // if no index, assumed to be the only one in the list
 }) => {
   const searchParams = useSearchParams();
@@ -36,6 +40,7 @@ export const MediaGallery = ({
     createMediaGalleryMachine({
       slug,
       minHeight,
+      numItems,
       focusedIndex: z
         .number()
         .parse(parseInt(searchParams.get("index") || "-1")),
@@ -130,13 +135,48 @@ export const MediaGalleryItem = ({
   const actor = useContext(MediaGalleryContext);
   const height = useSelector(actor, selectImageHeight);
   const fullscreen = useSelector(actor, selectIsFullscreen);
+  const send = useSend();
+  const ref = useRef<HTMLImageElement>(null);
+
+  const bind = useDrag(
+    ({ swipe: [swipeX, swipeY], event }) => {
+      event.stopPropagation();
+      const el = ref.current;
+      assert(el, "expected imageRef");
+
+      if (swipeX !== 0) {
+        if (swipeX > 0) {
+          send({ type: "SWIPE_RIGHT", id: el.id });
+        } else {
+          send({ type: "SWIPE_LEFT", id: el.id });
+        }
+      }
+
+      if (swipeY !== 0) {
+        if (swipeY > 0) {
+          send({ type: "SWIPE_DOWN", id: el.id });
+        } else {
+          send({ type: "SWIPE_UP", id: el.id });
+        }
+      }
+    },
+    {
+      eventOptions: {
+        capture: true,
+      },
+    }
+  );
+
+  const props = fullscreen ? { ...bind() } : {};
 
   return (
     <HashLink
-      className={cn("carousel-item", fullscreen ? `w-full` : ``)}
+      className={cn("carousel-item", fullscreen ? `w-full touch-none` : ``)}
       href={`#media-${slug}-${index}` satisfies MediaFragmentLiteral}
       style={{ height }}
       id={`media-${slug}-${index}`}
+      ref={ref}
+      {...props}
     >
       <Image
         className={cn(

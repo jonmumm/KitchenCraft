@@ -634,7 +634,11 @@ export default async function Page(props: Props) {
 
       <div className="flex flex-col gap-2">
         {mediaList.length ? (
-          <MediaGallery slug={slug} minHeight={"50vh"}>
+          <MediaGallery
+            slug={slug}
+            minHeight={"50vh"}
+            numItems={mediaList.length}
+          >
             <Suspense fallback={<MediaGalleryItemsPlaceholder />}>
               {/* Empty item as a spacer, maybe better way? */}
               <div className="w-1 h-full carousel-item" />{" "}
