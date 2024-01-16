@@ -22,9 +22,12 @@ const MediaGalleryContext = createContext({} as MediaGalleryActor);
 export const MediaGallery = ({
   children,
   slug,
+  minHeight, // index,
 }: {
   children: ReactNode;
   slug: string;
+  minHeight: string;
+  // index: number | undefined; // if no index, assumed to be the only one in the list
 }) => {
   const searchParams = useSearchParams();
 
@@ -32,6 +35,7 @@ export const MediaGallery = ({
     createMediaGalleryMachine({
       fullscreen: false,
       slug,
+      minHeight,
       focusedIndex: z
         .number()
         .parse(parseInt(searchParams.get("index") || "-1")),
@@ -59,6 +63,7 @@ export const MediaGallery = ({
       </div>
     );
   };
+
   const height = useSelector(actor, selectImageHeight);
 
   return (
@@ -66,7 +71,15 @@ export const MediaGallery = ({
       <div style={{ height }} className={cn(`w-full relative`)}>
         <div className={containerClasses}>
           {fullscreen && <Header />}
-          <div className="carousel space-x-2 absolute pr-8">{children}</div>
+          <div
+            className={cn(
+              "carousel absolute",
+              !fullscreen ? `space-x-2 pr-8` : ``
+            )}
+          >
+            {!fullscreen && <div className="w-1 h-full carousel-item" />}
+            {children}
+          </div>
         </div>
       </div>
     </MediaGalleryContext.Provider>
@@ -86,10 +99,11 @@ export const MediaGalleryItem = ({
 }) => {
   const actor = useContext(MediaGalleryContext);
   const height = useSelector(actor, selectImageHeight);
+  const fullscreen = useSelector(actor, selectIsFullscreen);
 
   return (
     <EventTrigger
-      className={cn("carousel-item")}
+      className={cn("carousel-item", fullscreen ? `w-full` : ``)}
       style={{ height }}
       id={`media-${index}`}
       key={media.id}
@@ -100,7 +114,10 @@ export const MediaGalleryItem = ({
       }}
     >
       <Image
-        className={"w-auto rounded-box"}
+        className={cn(
+          `rounded-box object-contain`,
+          !fullscreen ? "w-auto " : ` h-full w-full`
+        )}
         style={{ height }}
         src={media.url}
         priority={index == 0}

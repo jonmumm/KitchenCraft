@@ -5,7 +5,12 @@ export const selectIsFullscreen = (state: MediaGallerySnapshot) => {
   return state.matches("Fullscreen.True");
 };
 
+export const selectContext = (state: MediaGallerySnapshot) => {
+  return state.context;
+};
+
 export const selectImageHeight = createSelector(
   selectIsFullscreen,
-  (fullscreen) => (fullscreen ? `80svh` : `50svh`)
+  selectContext,
+  (fullscreen, context) => (fullscreen ? `80svh` : context.minHeight)
 );

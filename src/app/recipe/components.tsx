@@ -3,9 +3,13 @@ import { Card } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
-import EventTrigger from "@/components/input/event-trigger";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
+import { MediaGallery } from "@/modules/media-gallery/components.client";
+import {
+  MediaGalleryItems,
+  MediaGalleryItemsPlaceholder,
+} from "@/modules/media-gallery/components.server";
 import {
   ArrowBigUpDashIcon,
   AxeIcon,
@@ -14,17 +18,11 @@ import {
   Loader2Icon,
   TimerIcon,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import {
-  getHotRecipes,
-  getRecentRecipesByUser,
-  getSortedMediaForRecipe,
-} from "../../db/queries";
+import { getHotRecipes, getRecentRecipesByUser } from "../../db/queries";
 import { upvoteById } from "../recipe/actions";
-import { RecipeCarousel } from "./components.client";
 import { RecipePropsProvider } from "./context";
 import { UpvoteButton } from "./upvote-button/component";
 
@@ -110,10 +108,12 @@ export const RecipeListItem = ({
           </div>
         </div>
         {recipe.mediaCount > 0 && (
-          <div className="h-64 relative">
-            <RecipeCarousel>
-              <RecipeMedia slug={recipe.slug} priority={index === 0} />
-            </RecipeCarousel>
+          <div className="h-[45svh] relative">
+            <MediaGallery slug={recipe.slug} minHeight={"45svh"}>
+              <Suspense fallback={<MediaGalleryItemsPlaceholder />}>
+                <MediaGalleryItems slug={recipe.slug} />
+              </Suspense>
+            </MediaGallery>
             {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
           </div>
         )}
@@ -181,73 +181,73 @@ export const RecipeListItem = ({
   );
 };
 
-const RecipeMedia = async ({
-  slug,
-  priority,
-}: {
-  slug: string;
-  priority: boolean;
-}) => {
-  const items = new Array(10).fill(0);
+// const MediaGalleryItems = async ({
+//   slug,
+//   priority,
+// }: {
+//   slug: string;
+//   priority: boolean;
+// }) => {
+//   const items = new Array(10).fill(0);
 
-  const Loader = async () => {
-    return (
-      <>
-        {items.map((_, index) => {
-          const width = Math.random() < 0.5 ? 44 : 64;
-          return (
-            <div className="carousel-item h-64" key={index}>
-              <Skeleton className={`w-${width} h-64`} />
-            </div>
-          );
-        })}
-      </>
-    );
-  };
+//   const Loader = async () => {
+//     return (
+//       <>
+//         {items.map((_, index) => {
+//           const width = Math.random() < 0.5 ? 44 : 64;
+//           return (
+//             <div className="carousel-item h-64" key={index}>
+//               <Skeleton className={`w-${width} h-64`} />
+//             </div>
+//           );
+//         })}
+//       </>
+//     );
+//   };
 
-  const Content = async () => {
-    const mediaList = await getSortedMediaForRecipe(slug);
+//   const Content = async () => {
+//     const mediaList = await getSortedMediaForRecipe(slug);
 
-    return mediaList.length ? (
-      <div className="h-64 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-2 pr-4 sm:p-0 md:justify-center">
-        {mediaList.map((media, mediaIndex) => {
-          return (
-            <Link
-              className="carousel-item h-64"
-              href={`/?fullscreen=1&recipe=${slug}&index=${mediaIndex}`}
-              key={mediaIndex}
-            >
-              <EventTrigger
-                event={{ type: "PRESS_MEDIA_THUMB", slug, index: mediaIndex }}
-                asChild
-              >
-                <Image
-                  className="rounded-box h-64 w-auto shadow-md hover:shadow-lg"
-                  src={media.url}
-                  priority={priority}
-                  width={media.width}
-                  height={media.height}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  alt="Main media"
-                  placeholder="blur"
-                  blurDataURL={media.blobDataURL}
-                  // placeholder="empty"
-                  // style={{ objectFit: "cover" }}
-                />
-              </EventTrigger>
-            </Link>
-          );
-        })}
-      </div>
-    ) : null;
-  };
+//     return mediaList.length ? (
+//       <div className="h-64 carousel carousel-center overflow-y-hidden space-x-2 flex-1 pl-2 pr-4 sm:p-0 md:justify-center">
+//         {mediaList.map((media, mediaIndex) => {
+//           return (
+//             <Link
+//               className="carousel-item h-64"
+//               href={`/?fullscreen=1&recipe=${slug}&index=${mediaIndex}`}
+//               key={mediaIndex}
+//             >
+//               <EventTrigger
+//                 event={{ type: "PRESS_MEDIA_THUMB", slug, index: mediaIndex }}
+//                 asChild
+//               >
+//                 <Image
+//                   className="rounded-box h-64 w-auto shadow-md hover:shadow-lg"
+//                   src={media.url}
+//                   priority={priority}
+//                   width={media.width}
+//                   height={media.height}
+//                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+//                   alt="Main media"
+//                   placeholder="blur"
+//                   blurDataURL={media.blobDataURL}
+//                   // placeholder="empty"
+//                   // style={{ objectFit: "cover" }}
+//                 />
+//               </EventTrigger>
+//             </Link>
+//           );
+//         })}
+//       </div>
+//     ) : null;
+//   };
 
-  return (
-    <Suspense fallback={<Loader />}>
-      <Content />
-    </Suspense>
-  );
-};
+//   return (
+//     <Suspense fallback={<Loader />}>
+//       <Content />
+//     </Suspense>
+//   );
+// };
 
 export const RecipeListItemLoading = ({ index }: { index: number }) => {
   return (

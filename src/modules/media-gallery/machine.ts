@@ -4,20 +4,19 @@ import { ActorRefFrom, SnapshotFrom, createMachine } from "xstate";
 type Context = {
   slug: string;
   focusedIndex: number | undefined;
+  minHeight: string;
 };
 
-export const createMediaGalleryMachine = (props: {
+export const createMediaGalleryMachine = ({
+  fullscreen,
+  ...context
+}: Context & {
   fullscreen: boolean;
-  slug: string;
-  focusedIndex: number;
 }) => {
   return createMachine(
     {
       id: "MediaGalleryMachine",
-      context: {
-        slug: props.slug,
-        focusedIndex: props.focusedIndex,
-      },
+      context,
       types: {
         context: {} as Context,
         events: {} as AppEvent,
@@ -32,10 +31,13 @@ export const createMediaGalleryMachine = (props: {
       type: "parallel",
       states: {
         Fullscreen: {
-          initial: props.fullscreen ? "True" : "False",
+          initial: fullscreen ? "True" : "False",
           states: {
             True: {
               on: {
+                CLOSE: {
+                  target: "False",
+                },
                 BACK: {
                   target: "False",
                 },

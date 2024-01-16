@@ -160,25 +160,3 @@ function getQueryParam(param: string): string | null {
   return queryParams.get(param);
 }
 
-function extractSlug(url: string): string {
-  const recipePath = "/recipe/";
-  const startIndex = url.indexOf(recipePath);
-
-  if (startIndex === -1) {
-    return ""; // Return empty if '/recipe/' is not found
-  }
-
-  const slugStartIndex = startIndex + recipePath.length;
-  const slugEndIndex = url.indexOf("/", slugStartIndex);
-  let slug = "";
-
-  if (slugEndIndex === -1) {
-    // If there is no additional slash, extract till the end
-    slug = url.substring(slugStartIndex);
-  } else {
-    // Extract till the next slash
-    slug = url.substring(slugStartIndex, slugEndIndex);
-  }
-
-  return slug;
-}

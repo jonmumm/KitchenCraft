@@ -67,10 +67,10 @@ export const ShareButton = ({
   );
 };
 
-export const RecipeCarousel = ({ children }: { children: ReactNode }) => {
-  return (
-    <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20 bg-white">
-      {children}
-    </div>
-  );
-};
+// export const RecipeCarousel = ({ children }: { children: ReactNode }) => {
+//   return (
+//     <div className="absolute w-screen left-1/2 transform -translate-x-1/2 h-64 flex justify-center z-20 bg-white">
+//       {children}
+//     </div>
+//   );
+// };
