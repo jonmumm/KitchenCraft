@@ -12,11 +12,8 @@ import { map } from "nanostores";
 import { SessionProvider } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
-import { GalleryContext } from "./@gallery/context";
-import { createGalleryMachine } from "./@gallery/machine";
 import { CraftContext } from "./context";
 import { createCraftMachine } from "./machine";
-import { useEventHandler } from "@/hooks/useEventHandler";
 
 // export const ApplicationContext = createContext()
 
@@ -43,28 +40,6 @@ export function ApplicationProvider(props: {
   // })
   // useScrollRestoration(); // i dont know if this is well working or not
 
-  const GalleryProvider = ({ children }: { children: ReactNode }) => {
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
-    const router = useRouter();
-
-    // useEventHandler("")
-
-    const actor = useActor("gallery", () =>
-      createGalleryMachine({
-        open: searchParams.get("gallery") === "1",
-        currentSlug: extractSlug(pathname),
-        router,
-      })
-    );
-
-    return (
-      <GalleryContext.Provider value={actor}>
-        {children}
-      </GalleryContext.Provider>
-    );
-  };
-
   const CraftProvider = ({ children }: { children: ReactNode }) => {
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -88,17 +63,15 @@ export function ApplicationProvider(props: {
     <ServiceWorkerProvider>
       <SessionProvider session={props.session}>
         <ApplicationContext.Provider value={store}>
-          <GalleryProvider>
-            <CraftProvider>
-              <PageLoadEventsProvider />
-              <SearchParamsEventsProvider />
-              <HashChangeEventsProvider />
-              <PopStateEventsProvider />
-              <AnalyticsProvider />
-              {props.appSessionId && <PWALifeCycle />}
-              {props.children}
-            </CraftProvider>
-          </GalleryProvider>
+          <CraftProvider>
+            <PageLoadEventsProvider />
+            <SearchParamsEventsProvider />
+            <HashChangeEventsProvider />
+            <PopStateEventsProvider />
+            <AnalyticsProvider />
+            {props.appSessionId && <PWALifeCycle />}
+            {props.children}
+          </CraftProvider>
         </ApplicationContext.Provider>
       </SessionProvider>
     </ServiceWorkerProvider>
