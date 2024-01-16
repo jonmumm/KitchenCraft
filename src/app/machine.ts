@@ -387,34 +387,37 @@ export const createCraftMachine = ({
             New: {
               on: {
                 REMIX: {
-                  target: "Remix",
-                  actions: [
-                    ({ event }) => {
-                      const promptEl = document.body.querySelector(
-                        "#prompt"
-                      ) as HTMLTextAreaElement | undefined;
-                      if (promptEl) {
-                        promptEl.value = event.prompt || "";
-                        setTimeout(() => {
-                          promptEl.focus();
-                        }, 25);
-                      }
-                    },
-                    assign({
-                      currentRemixSlug: ({ event }) => event.slug,
-                      prompt: ({ event }) => event.prompt,
-                    }),
-                    {
-                      type: "replaceQueryParameters",
-                      params({ context, event }) {
-                        return {
-                          paramSet: {
-                            prompt: event.prompt,
-                          },
-                        };
-                      },
-                    },
-                  ],
+                  actions: () => {
+                    alert("Remixing not implemented yet");
+                  },
+                  // target: "Remix",
+                  // actions: [
+                  //   ({ event }) => {
+                  //     const promptEl = document.body.querySelector(
+                  //       "#prompt"
+                  //     ) as HTMLTextAreaElement | undefined;
+                  //     if (promptEl) {
+                  //       promptEl.value = event.prompt || "";
+                  //       setTimeout(() => {
+                  //         promptEl.focus();
+                  //       }, 25);
+                  //     }
+                  //   },
+                  //   assign({
+                  //     currentRemixSlug: ({ event }) => event.slug,
+                  //     prompt: ({ event }) => event.prompt,
+                  //   }),
+                  //   {
+                  //     type: "replaceQueryParameters",
+                  //     params({ context, event }) {
+                  //       return {
+                  //         paramSet: {
+                  //           prompt: event.prompt,
+                  //         },
+                  //       };
+                  //     },
+                  //   },
+                  // ],
                 },
               },
               description: "Creating a new recipe",
@@ -1084,13 +1087,17 @@ export const createCraftMachine = ({
 
           const paramString = queryParams.toString();
 
-          // Construct the new URL
+          // Include the location hash in the new URL
+          const hash = window.location.hash;
+
+          // Construct the new URL with the hash
           const newUrl =
-            paramString !== ""
-              ? window.location.pathname + "?" + paramString
-              : window.location.pathname;
+            window.location.pathname +
+            (paramString !== "" ? "?" + paramString : "") +
+            hash;
           window.history.replaceState(context, "", newUrl);
         },
+
         pushQueryParameters: ({ context }, params) => {
           // same as above but pushState
           const queryParams = new URLSearchParams(window.location.search);

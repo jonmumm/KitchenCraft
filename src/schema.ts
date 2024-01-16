@@ -22,6 +22,13 @@ export const ProfileSlugSchema = z.custom<`@${string}`>((val) => {
     : false;
 });
 
+// Schema for the index part
+const IndexSchema = z.string().regex(/^\d+$/, {
+  message: "Index must be a numeric value",
+});
+
+// Custom schema for the media fragment
+
 // // Example usage
 // try {
 //     ProfileSchema.parse("@inspectorT");  // This should pass
@@ -192,6 +199,66 @@ export const SlugSchema = z
   })
   .min(1)
   .max(100);
+
+export const MediaFragmentLiteralSchema = z.custom<`#media-${string}-${number}`>(
+  (val) => {
+    if (typeof val !== "string") return false;
+
+    const regex = /^#media-([a-z0-9_-]+)-(\d+)$/;
+    const match = val.match(regex);
+
+    if (!match) return false;
+
+    // Extract slug and index parts
+    const [, slug, indexStr] = match;
+
+    if (!indexStr) {
+      return false;
+    }
+
+    try {
+      // Validate slug
+      SlugSchema.parse(slug);
+rl
+      // Validate index (ensure it's a numeric string)
+      const index = parseInt(indexStr, 10);
+      if (isNaN(index)) {
+        throw new Error("Index must be a numeric value");
+      }
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+  {
+    message:
+      "Invalid media fragment format. Expected format: #media-{slug}-{index}",
+  }
+);
+
+export const MediaFragmentSchema = z.preprocess(
+  (val) => {
+    if (typeof val !== "string") return;
+
+    // Regular expression to match the entire pattern
+    const regex = /^#media-([a-z0-9_-]+)-(\d+)$/;
+    const match = val.match(regex);
+
+    if (match) {
+      return { slug: match[1], index: match[2] };
+    }
+  },
+  z.object({
+    slug: SlugSchema,
+    index: z
+      .string()
+      .regex(/^\d+$/, {
+        message: "Index must be a numeric value",
+      })
+      .transform(Number), // Transform to number after validation
+  })
+);
 
 export const MessageContentSchema = z.string();
 
@@ -511,8 +578,8 @@ export const PressMediaThumbSchema = z.object({
 
 const FileSelectedEventSchema = z.object({
   type: z.literal("FILE_SELECTED"),
-  file: z.custom<File>()
-})
+  file: z.custom<File>(),
+});
 
 export const AppEventSchema = z.discriminatedUnion("type", [
   FileSelectedEventSchema,

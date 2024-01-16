@@ -45,7 +45,6 @@ import {
   ScrollIcon,
   ShoppingBasketIcon,
   StarIcon,
-  WrenchIcon,
 } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -499,14 +498,14 @@ export default async function Page(props: Props) {
                   <Button
                     variant="secondary"
                     event={{
-                      type: "NEW_RECIPE",
-                      prompt: latestVersion?.prompt,
+                      type: "REMIX",
+                      slug,
                     }}
                     className="flex flex-row gap-1"
                   >
                     {/* <AxeIcon size={17} /> */}
-                    <WrenchIcon size={17} />
-                    <span>Modify</span>
+                    <span className="text-xs">🧪</span>
+                    <span>Remix</span>
                   </Button>
                 </Link>
               </div>

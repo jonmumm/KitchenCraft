@@ -31,6 +31,7 @@ import {
   InstantRecipeMetdataInputSchema,
   LLMMessageSetIdSchema,
   LLMMessageSetSchema,
+  MediaFragmentLiteralSchema,
   MessageContentSchema,
   MessageSchema,
   ModificationSchema,
@@ -286,3 +287,5 @@ export type ObservableType<T> = T extends Observable<infer U> ? U : never;
 export type RecipeBase = z.infer<typeof RecipeBaseSchema>;
 
 export type FeatureId = (typeof featureIdEnum.enumValues)[number];
+
+export type MediaFragmentLiteral = z.infer<typeof MediaFragmentLiteralSchema>;

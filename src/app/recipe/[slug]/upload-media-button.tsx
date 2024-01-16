@@ -5,6 +5,7 @@ import { useSend } from "@/hooks/useSend";
 import { upload } from "@vercel/blob/client";
 import { ChangeEventHandler, ReactNode, useCallback, useRef } from "react";
 import { extractMetadata } from "./media/utils";
+import { toast } from "@/components/feedback/use-toast";
 
 export const UploadMediaButton = ({
   children,
@@ -22,10 +23,10 @@ export const UploadMediaButton = ({
     const file = event.target.files?.[0];
     if (file) {
       send({ type: "FILE_SELECTED", file });
-      // const notif = toast({
-      //   title: "Uploading...",
-      //   description: "You upload has started",
-      // });
+      const notif = toast({
+        title: "Uploading...",
+        description: "You upload has started",
+      });
 
       // OPEN
 
@@ -36,13 +37,13 @@ export const UploadMediaButton = ({
         handleUploadUrl: `${window.location.origin}/recipe/${slug}/media`,
         clientPayload: JSON.stringify(metadata),
       });
-      // notif.update({
-      //   id: notif.id,
-      //   title: "Upload complete!",
-      //   description: "Press to refresh the page.",
-      //   open: true,
-      //   action: <ReloadAction />,
-      // });
+      notif.update({
+        id: notif.id,
+        title: "Upload complete!",
+        description: "Press to refresh the page.",
+        open: true,
+        // action: <ReloadAction />,
+      });
     }
   };
 

@@ -2,7 +2,7 @@ import { AppEvent } from "@/types";
 import { useSession } from "next-auth/react";
 import posthog from "posthog-js";
 import { useLayoutEffect, useRef, useState } from "react";
-import { filter, skip } from "rxjs";
+import { filter } from "rxjs";
 import { useEvents } from "./useEvents";
 
 const EVENTS_LOG_LEVEL_DEBUG = new Set([
@@ -39,21 +39,15 @@ export const usePosthogAnalytics = (posthogClientKey: string) => {
       return;
     }
 
-    // We expect 2 events initially
-    const sub = event$
-      .pipe(
-        skip(!didSendInitialRef.current ? 0 : 2),
-        filter(isEventDebugLogLevel)
-      )
-      .subscribe((event) => {
-        didSendInitialRef.current = true;
-        if (process.env.NODE_ENV !== "production") {
-          console.log(event);
-        }
-        // todo strip any sensistive data here
-        // keep a roster of blackedlisted event/props (i.e. password)
-        client.capture(event.type, event);
-      });
+    const sub = event$.pipe(filter(isEventDebugLogLevel)).subscribe((event) => {
+      didSendInitialRef.current = true;
+      if (process.env.NODE_ENV !== "production") {
+        console.log(event);
+      }
+      // todo strip any sensistive data here
+      // keep a roster of blackedlisted event/props (i.e. password)
+      client.capture(event.type, event);
+    });
 
     return () => {
       if (!sub.closed) {

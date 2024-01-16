@@ -1,17 +1,17 @@
 "use client";
 
 import { useEventHandler } from "@/hooks/useEventHandler";
-import { useEvents } from "@/hooks/useEvents";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import {
   ComponentProps,
   MouseEventHandler,
+  forwardRef,
   useCallback,
   useState,
 } from "react";
 
-const NavigationLink = (props: ComponentProps<typeof Link>) => {
+const NavigationLink = forwardRef((props: ComponentProps<typeof Link>, ref) => {
   const [isDisabled, setIsDisabled] = useState(false);
 
   const handlePageLoad = useCallback(
@@ -40,12 +40,13 @@ const NavigationLink = (props: ComponentProps<typeof Link>) => {
   return (
     <Link
       {...props}
+      ref={ref as any} // Add the forwarded ref here
       className={cn(props.className, isDisabled && "transitioning")}
       onClick={handleClick}
     >
       {props.children}
     </Link>
   );
-};
+});
 
 export default NavigationLink;

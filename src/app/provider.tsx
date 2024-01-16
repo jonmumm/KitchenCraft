@@ -10,8 +10,13 @@ import { useSend } from "@/hooks/useSend";
 import { getSession } from "@/lib/auth/session";
 import { map } from "nanostores";
 import { SessionProvider } from "next-auth/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { CraftContext } from "./context";
 import { createCraftMachine } from "./machine";
 
@@ -85,19 +90,20 @@ const AnalyticsProvider = () => {
 
 const HashChangeEventsProvider = () => {
   const send = useSend();
+  const params = useParams();
+  const lastHash = useRef<string>("");
 
   useEffect(() => {
-    function onHashChange() {
-      send({ type: "HASH_CHANGE", hash: window.location.hash });
+    // Note <HashLink /> component sends this event itself, because it's faster than listening
+    // to useParmas, but this works for getting it on initial load, so we keep it
+    if (lastHash.current !== window.location.hash) {
+      // Actors listening for this might not be running yet, so delay it
+      setTimeout(() => {
+        send({ type: "HASH_CHANGE", hash: window.location.hash });
+      }, 0);
+      lastHash.current = window.location.hash;
     }
-
-    // Add the event listener for hash changes
-    window.addEventListener("hashchange", onHashChange, false);
-
-    return () => {
-      window.removeEventListener("hashchange", onHashChange);
-    };
-  }, [send]);
+  }, [params]);
 
   return null;
 };
@@ -129,12 +135,15 @@ const PopStateEventsProvider = () => {
 const SearchParamsEventsProvider = () => {
   const searchParams = useSearchParams();
   const send = useSend();
+  const lastSearchParams = useRef<typeof searchParams>(searchParams);
 
   useEffect(() => {
-    send({
-      type: "UPDATE_SEARCH_PARAMS",
-      searchParams: Object.fromEntries(searchParams.entries()),
-    });
+    if (lastSearchParams.current !== searchParams) {
+      send({
+        type: "UPDATE_SEARCH_PARAMS",
+        searchParams: Object.fromEntries(searchParams.entries()),
+      });
+    }
   }, [send, searchParams]);
 
   return null;
@@ -144,9 +153,13 @@ const PageLoadEventsProvider = () => {
   const pathname = usePathname();
   // console.log({ pathname });
   const send = useSend();
+  const loaded = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    send({ type: "PAGE_LOADED", pathname });
+    if (loaded.current !== pathname) {
+      send({ type: "PAGE_LOADED", pathname });
+      loaded.current = pathname;
+    }
   }, [send, pathname]);
 
   return null;
@@ -159,4 +172,3 @@ function getQueryParam(param: string): string | null {
   // Return the value of the specified query parameter
   return queryParams.get(param);
 }
-

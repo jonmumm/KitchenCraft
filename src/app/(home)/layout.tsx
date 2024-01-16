@@ -74,19 +74,28 @@ export default async function Layout({ children }: { children: ReactNode }) {
             <TabsTrigger value="hot" asChild>
               <NavigationLink href="/">
                 Hot
-                <Loader2Icon size={14} className="animate-spin hidden transitioning:inline-block ml-1" />
+                <Loader2Icon
+                  size={14}
+                  className="animate-spin hidden transitioning:inline-block ml-1"
+                />
               </NavigationLink>
             </TabsTrigger>
             <TabsTrigger value="recent" asChild>
               <NavigationLink href="/recent">
                 Recent
-                <Loader2Icon size={14} className="animate-spin hidden transitioning:inline-block ml-1" />
+                <Loader2Icon
+                  size={14}
+                  className="animate-spin hidden transitioning:inline-block ml-1"
+                />
               </NavigationLink>
             </TabsTrigger>
             <TabsTrigger value="best" asChild>
               <NavigationLink href="/best" className="flex flex-row gap-2">
                 <span>Best</span>
-                <Loader2Icon size={14} className="animate-spin hidden transitioning:inline-block ml-1" />
+                <Loader2Icon
+                  size={14}
+                  className="animate-spin hidden transitioning:inline-block ml-1"
+                />
                 <BestDropdown />
               </NavigationLink>
             </TabsTrigger>

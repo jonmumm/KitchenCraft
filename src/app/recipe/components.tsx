@@ -104,7 +104,7 @@ export const RecipeListItem = ({
                 )}
               </div>
             </div>
-            <UpvoteButton userId={userId} slug={recipe.slug} />
+            {/* <UpvoteButton userId={userId} slug={recipe.slug} /> */}
           </div>
         </div>
         {recipe.mediaCount > 0 && (
