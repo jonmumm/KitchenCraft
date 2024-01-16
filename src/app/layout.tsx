@@ -75,13 +75,11 @@ export default async function RootLayout({
   craft,
   footer,
   header,
-  gallery,
 }: {
   children: ReactNode;
   craft: ReactNode;
   footer: ReactNode;
   header: ReactNode;
-  gallery: ReactNode;
 }) {
   async function createNewInstantRecipe(
     prompt: string,
