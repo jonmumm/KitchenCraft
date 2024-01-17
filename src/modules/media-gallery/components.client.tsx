@@ -10,7 +10,7 @@ import { AnimatedImage } from "@/components/animation/animated-image";
 import { Button } from "@/components/input/button";
 import HashLink from "@/components/navigation/hash-link";
 import ScrollLockComponent from "@/components/scroll-lock";
-import { useSelector } from "@/hooks/useSelector";
+import { useSelectorSSR } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { MediaFragmentLiteral } from "@/types";
@@ -76,7 +76,7 @@ export const MediaGallery = ({
   //   // actor.send({type: })
   // }, []);
 
-  const fullscreen = useSelector(actor, selectIsFullscreen);
+  const fullscreen = useSelectorSSR(actor, selectIsFullscreen, false);
 
   const containerClasses = fullscreen
     ? "fixed inset-0 z-30 flex justify-center items-center bg-black flex flex-col"
@@ -97,7 +97,11 @@ export const MediaGallery = ({
     );
   };
 
-  const height = useSelector(actor, selectImageHeight);
+  const height = useSelectorSSR(
+    actor,
+    selectImageHeight,
+    actor.getSnapshot().context.minHeight
+  );
 
   // const handleTouchStart: TouchEventHandler<HTMLDivElement> = useCallback(
   //   (e) => {
@@ -198,8 +202,12 @@ export const MediaGalleryItem = ({
   media: { id: string; width: number; height: number; url: string };
 }) => {
   const actor = useContext(MediaGalleryContext);
-  const height = useSelector(actor, selectImageHeight);
-  const fullscreen = useSelector(actor, selectIsFullscreen);
+  const height = useSelectorSSR(
+    actor,
+    selectImageHeight,
+    actor.getSnapshot().context.minHeight
+  );
+  const fullscreen = useSelectorSSR(actor, selectIsFullscreen, false);
   // const send = useSend();
   const ref = useRef<HTMLImageElement>(null);
 
