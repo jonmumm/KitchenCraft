@@ -7,11 +7,13 @@ export const useScrollLock = (isActive: boolean) => {
   useEffect(() => {
     if (isActive) {
       scrollTopRef.current = window.scrollY;
-      document.body.style.overflow = "auto";
+      document.body.style.overflow = "hidden";
+      // document.body.style.overscrollBehavior = "none";
       document.body.style.position = "fixed";
       document.body.style.height = "100%";
       document.body.style.width = "100%";
       return () => {
+        // document.body.style.overscrollBehavior = "";
         document.body.style.overflow = "";
         document.body.style.position = "";
         document.body.style.height = "";

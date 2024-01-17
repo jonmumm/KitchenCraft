@@ -42,6 +42,9 @@ export const createMediaGalleryMachine = (props: Context) => {
                 BACK: {
                   target: "False",
                 },
+                SWIPE_UP: {
+                  target: "False",
+                },
                 SWIPE_DOWN: {
                   target: "False",
                 },
@@ -125,7 +128,7 @@ export const createMediaGalleryMachine = (props: Context) => {
       actions: {
         scrollFocusedIntoView: ({ context }) => {
           const elId = `media-${context.slug}-${context.focusedIndex}`;
-          console.log("scrolling to", elId)
+          console.log("scrolling to", elId);
           const el = document.getElementById(elId);
           assert(el, `couldnt find media element #${elId}`);
           setTimeout(() => {
