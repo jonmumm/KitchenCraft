@@ -1,7 +1,6 @@
 "use client";
 
 import { useActor } from "@/hooks/useActor";
-import { useDrag } from "@use-gesture/react";
 import { ChevronLeftIcon } from "lucide-react";
 import Image from "next/image";
 import { ReactNode, useContext, useRef } from "react";
@@ -12,7 +11,7 @@ import HashLink from "@/components/navigation/hash-link";
 import ScrollLockComponent from "@/components/scroll-lock";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { assert, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { MediaFragmentLiteral } from "@/types";
 import { useSearchParams } from "next/navigation";
 import { createContext } from "react";
@@ -98,6 +97,98 @@ export const MediaGallery = ({
   };
 
   const height = useSelector(actor, selectImageHeight);
+  // const send = useSend();
+  // const carouselRef = useRef<HTMLDivElement>(null);
+
+  // const scrollLeftRef = useRef<number | null>(null);
+
+  // const bind = useDrag(
+  //   ({ swipe: [swipeX, swipeY], event, down, movement, delta }) => {
+  //     event.stopPropagation();
+  //     const { slug, focusedIndex } = actor.getSnapshot().context;
+  //     const [mx, my] = movement;
+  //     console.log(mx, down);
+
+  //     if (swipeY !== 0) {
+  //       const mediaEl = document.getElementById(
+  //         `media-${slug}-${focusedIndex}`
+  //       );
+
+  //       if (mediaEl) {
+  //         const imgEl = mediaEl.children[0] as HTMLImageElement | undefined;
+  //         if (imgEl) {
+  //           imgEl.style.translate = "0px";
+  //         }
+  //       }
+  //       if (swipeY > 0) {
+  //         send({ type: "SWIPE_DOWN" });
+  //       } else {
+  //         send({ type: "SWIPE_UP" });
+  //       }
+  //       return;
+  //     }
+
+  //     if (swipeX !== 0) {
+  //       // TODO how do we go to  from the current translate
+  //       // to the next item
+
+  //       if (swipeY > 0) {
+  //         send({ type: "SWIPE_LEFT" });
+  //       } else {
+  //         send({ type: "SWIPE_RIGHT" });
+  //       }
+  //       scrollLeftRef.current = null;
+  //       return;
+  //     }
+
+  //     if (mx) {
+  //       const carouselEl = carouselRef.current;
+
+  //       if (carouselEl && scrollLeftRef.current === null) {
+  //         scrollLeftRef.current = carouselEl.scrollLeft;
+  //       }
+
+  //       if (carouselEl) {
+  //         if (down) {
+  //           carouselEl.scrollLeft = -mx;
+  //         } else if (scrollLeftRef.current !== null) {
+  //           carouselEl.scrollLeft = scrollLeftRef.current; // todo
+  //           scrollLeftRef.current = null;
+  //         }
+  //       }
+  //     } else if (my) {
+  //       const mediaEl = document.getElementById(
+  //         `media-${slug}-${focusedIndex}`
+  //       );
+
+  //       if (mediaEl) {
+  //         const imgEl = mediaEl.children[0] as HTMLImageElement | undefined;
+  //         if (imgEl) {
+  //           if (down) {
+  //             imgEl.style.translate = `0px ${my}px`;
+  //           } else {
+  //             imgEl.style.translate = "0px";
+  //           }
+  //         }
+  //         // todo change the horizontaol scroll psotiionmanulaly here
+  //         // of carouselEl
+  //         // Calculate the new horizontal scroll position
+  //         // console.log(carouselEl.scrollLeft, movement);
+  //         // const newScrollPosition = carouselEl.scrollLeft + -mx;
+
+  //         // Update the carousel's scroll position
+  //       }
+  //     }
+  //   },
+  //   {
+  //     axis: "lock",
+  //     eventOptions: {
+  //       capture: true,
+  //     },
+  //   }
+  // );
+
+  // const carouselProps = fullscreen ? { ...bind() } : {};
 
   return (
     <MediaGalleryContext.Provider value={actor}>
@@ -108,8 +199,11 @@ export const MediaGallery = ({
             <div
               className={cn(
                 "carousel absolute",
-                !fullscreen ? `space-x-2 pr-8` : ``
+                !fullscreen ? `space-x-2 pr-8 carousel` : ``
               )}
+              // style={{ scrollSnapType: "none", scrollBehavior: "auto" }}
+              // ref={carouselRef}
+              // {...carouselProps}
             >
               {!fullscreen && <div className="w-1 h-full carousel-item" />}
               {children}
@@ -135,48 +229,49 @@ export const MediaGalleryItem = ({
   const actor = useContext(MediaGalleryContext);
   const height = useSelector(actor, selectImageHeight);
   const fullscreen = useSelector(actor, selectIsFullscreen);
-  const send = useSend();
+  // const send = useSend();
   const ref = useRef<HTMLImageElement>(null);
 
-  const bind = useDrag(
-    ({ swipe: [swipeX, swipeY], event }) => {
-      event.stopPropagation();
-      const el = ref.current;
-      assert(el, "expected imageRef");
+  // const bind = useDrag(
+  //   ({ swipe: [swipeX, swipeY], event }) => {
+  //     event.stopPropagation();
+  //     const el = ref.current;
+  //     assert(el, "expected imageRef");
 
-      if (swipeX !== 0) {
-        if (swipeX > 0) {
-          send({ type: "SWIPE_RIGHT", id: el.id });
-        } else {
-          send({ type: "SWIPE_LEFT", id: el.id });
-        }
-      }
+  //     if (swipeX !== 0) {
+  //       if (swipeX > 0) {
+  //         send({ type: "SWIPE_RIGHT" });
+  //       } else {
+  //         send({ type: "SWIPE_LEFT" });
+  //       }
+  //     }
 
-      if (swipeY !== 0) {
-        if (swipeY > 0) {
-          send({ type: "SWIPE_DOWN", id: el.id });
-        } else {
-          send({ type: "SWIPE_UP", id: el.id });
-        }
-      }
-    },
-    {
-      eventOptions: {
-        capture: true,
-      },
-    }
-  );
+  //     if (swipeY !== 0) {
+  //       if (swipeY > 0) {
+  //         send({ type: "SWIPE_DOWN" });
+  //       } else {
+  //         send({ type: "SWIPE_UP" });
+  //       }
+  //     }
+  //   },
+  //   {
+  //     axis: "y",
+  //     eventOptions: {
+  //       capture: true,
+  //     },
+  //   }
+  // );
 
-  const props = fullscreen ? { ...bind() } : {};
+  // const props = fullscreen ? { ...bind() } : {};
 
   return (
     <HashLink
-      className={cn("carousel-item", fullscreen ? `w-full touch-none` : ``)}
+      className={cn("carousel-item", fullscreen ? `w-full` : ``)}
       href={`#media-${slug}-${index}` satisfies MediaFragmentLiteral}
       style={{ height }}
       id={`media-${slug}-${index}`}
       ref={ref}
-      {...props}
+      // {...props}
     >
       <Image
         className={cn(

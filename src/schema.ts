@@ -220,7 +220,6 @@ export const MediaFragmentLiteralSchema =
       try {
         // Validate slug
         SlugSchema.parse(slug);
-        rl;
         // Validate index (ensure it's a numeric string)
         const index = parseInt(indexStr, 10);
         if (isNaN(index)) {
@@ -584,22 +583,18 @@ const FileSelectedEventSchema = z.object({
 
 const SwipeLeftEventSchema = z.object({
   type: z.literal("SWIPE_LEFT"),
-  id: z.string().optional(),
 });
 
 const SwipeRightEventSchema = z.object({
   type: z.literal("SWIPE_RIGHT"),
-  id: z.string().optional(),
 });
 
 const SwipeUpEventSchema = z.object({
   type: z.literal("SWIPE_UP"),
-  id: z.string().optional(),
 });
 
 const SwipeDownEventSchema = z.object({
   type: z.literal("SWIPE_DOWN"),
-  id: z.string().optional(),
 });
 
 export const AppEventSchema = z.discriminatedUnion("type", [
