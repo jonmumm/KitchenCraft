@@ -12,5 +12,5 @@ export const selectContext = (state: MediaGallerySnapshot) => {
 export const selectImageHeight = createSelector(
   selectIsFullscreen,
   selectContext,
-  (fullscreen, context) => (fullscreen ? `80svh` : context.minHeight)
+  (fullscreen, context) => (fullscreen ? `100svh` : context.minHeight)
 );

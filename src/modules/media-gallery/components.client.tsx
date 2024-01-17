@@ -2,10 +2,11 @@
 
 import { useActor } from "@/hooks/useActor";
 import { ChevronLeftIcon } from "lucide-react";
-import Image from "next/image";
 import { ReactNode, useContext, useRef } from "react";
+import { useSwipeable } from "react-swipeable";
 import { createMediaGalleryMachine } from "./machine";
 
+import { AnimatedImage } from "@/components/animation/animated-image";
 import { Button } from "@/components/input/button";
 import HashLink from "@/components/navigation/hash-link";
 import ScrollLockComponent from "@/components/scroll-lock";
@@ -78,12 +79,12 @@ export const MediaGallery = ({
   const fullscreen = useSelector(actor, selectIsFullscreen);
 
   const containerClasses = fullscreen
-    ? "fixed inset-0 z-50 flex justify-center items-center bg-black flex flex-col"
+    ? "fixed inset-0 z-30 flex justify-center items-center bg-black flex flex-col"
     : "absolute top-0 w-screen left-1/2 transform -translate-x-1/2 flex z-10 justify-center";
 
   const Header = () => {
     return (
-      <div className="flex-row max-w-7xl w-full mx-auto justify-start flex absolute top-0 p-4">
+      <div className="flex-row max-w-7xl w-full mx-auto justify-start flex absolute top-0 p-4 z-50">
         <Button
           event={{ type: "BACK" }}
           size="icon"
@@ -97,98 +98,64 @@ export const MediaGallery = ({
   };
 
   const height = useSelector(actor, selectImageHeight);
-  // const send = useSend();
-  // const carouselRef = useRef<HTMLDivElement>(null);
 
-  // const scrollLeftRef = useRef<number | null>(null);
-
-  // const bind = useDrag(
-  //   ({ swipe: [swipeX, swipeY], event, down, movement, delta }) => {
-  //     event.stopPropagation();
-  //     const { slug, focusedIndex } = actor.getSnapshot().context;
-  //     const [mx, my] = movement;
-  //     console.log(mx, down);
-
-  //     if (swipeY !== 0) {
-  //       const mediaEl = document.getElementById(
-  //         `media-${slug}-${focusedIndex}`
-  //       );
-
-  //       if (mediaEl) {
-  //         const imgEl = mediaEl.children[0] as HTMLImageElement | undefined;
-  //         if (imgEl) {
-  //           imgEl.style.translate = "0px";
-  //         }
-  //       }
-  //       if (swipeY > 0) {
-  //         send({ type: "SWIPE_DOWN" });
-  //       } else {
-  //         send({ type: "SWIPE_UP" });
-  //       }
-  //       return;
-  //     }
-
-  //     if (swipeX !== 0) {
-  //       // TODO how do we go to  from the current translate
-  //       // to the next item
-
-  //       if (swipeY > 0) {
-  //         send({ type: "SWIPE_LEFT" });
-  //       } else {
-  //         send({ type: "SWIPE_RIGHT" });
-  //       }
-  //       scrollLeftRef.current = null;
-  //       return;
-  //     }
-
-  //     if (mx) {
-  //       const carouselEl = carouselRef.current;
-
-  //       if (carouselEl && scrollLeftRef.current === null) {
-  //         scrollLeftRef.current = carouselEl.scrollLeft;
-  //       }
-
-  //       if (carouselEl) {
-  //         if (down) {
-  //           carouselEl.scrollLeft = -mx;
-  //         } else if (scrollLeftRef.current !== null) {
-  //           carouselEl.scrollLeft = scrollLeftRef.current; // todo
-  //           scrollLeftRef.current = null;
-  //         }
-  //       }
-  //     } else if (my) {
-  //       const mediaEl = document.getElementById(
-  //         `media-${slug}-${focusedIndex}`
-  //       );
-
-  //       if (mediaEl) {
-  //         const imgEl = mediaEl.children[0] as HTMLImageElement | undefined;
-  //         if (imgEl) {
-  //           if (down) {
-  //             imgEl.style.translate = `0px ${my}px`;
-  //           } else {
-  //             imgEl.style.translate = "0px";
-  //           }
-  //         }
-  //         // todo change the horizontaol scroll psotiionmanulaly here
-  //         // of carouselEl
-  //         // Calculate the new horizontal scroll position
-  //         // console.log(carouselEl.scrollLeft, movement);
-  //         // const newScrollPosition = carouselEl.scrollLeft + -mx;
-
-  //         // Update the carousel's scroll position
-  //       }
-  //     }
+  // const handleTouchStart: TouchEventHandler<HTMLDivElement> = useCallback(
+  //   (e) => {
+  //     console.log("start", e);
   //   },
-  //   {
-  //     axis: "lock",
-  //     eventOptions: {
-  //       capture: true,
-  //     },
-  //   }
+  //   []
   // );
+  // const handleTouchMove: TouchEventHandler<HTMLDivElement> = useCallback(
+  //   (e) => {
+  //     console.log("move", e);
+  //   },
+  //   []
+  // );
+  // const handleTouchEnd: TouchEventHandler<HTMLDivElement> = useCallback((e) => {
+  //   console.log("END!", e);
+  // }, []);
+  // const handlers = useSwipeable({
+  //   onSwiped: (eventData) => console.log("User Swiped!", eventData),
+  //   onTouchEndOrOnMouseUp:  () => {
+  //     console.log("start")
+  //   }
+  //   // ...config,
+  // });
 
-  // const carouselProps = fullscreen ? { ...bind() } : {};
+  const send = useSend();
+  const didSwipe = useRef(false);
+  const startDir = useRef<string | null>(null);
+  const handlers = useSwipeable({
+    onSwipedDown: () => {
+      send({ type: "SWIPE_DOWN" });
+      didSwipe.current = true;
+    },
+    onSwipedUp: () => {
+      send({ type: "SWIPE_UP" });
+      didSwipe.current = true;
+    },
+    onSwipeStart: (e) => {
+      startDir.current = e.dir;
+      didSwipe.current = false;
+    },
+    // onTouchStartOrOnMouseDown: (e) => {
+    //   // console.log("start", e);
+    // },
+    onTouchEndOrOnMouseUp: (e) => {
+      const carouselEl = e.event.target as HTMLImageElement;
+      carouselEl.style.translate = "0px 0px";
+    },
+
+    onSwiping: (e) => {
+      const carouselEl = e.event.target as HTMLImageElement;
+      const fullscreen = selectIsFullscreen(actor.getSnapshot());
+      if (fullscreen) {
+        if (startDir.current === "Up" || startDir.current === "Down") {
+          carouselEl.style.translate = `0px ${e.deltaY}px`;
+        }
+      }
+    },
+  });
 
   return (
     <MediaGalleryContext.Provider value={actor}>
@@ -197,9 +164,13 @@ export const MediaGallery = ({
           <div className={containerClasses}>
             {fullscreen && <Header />}
             <div
+              {...handlers}
+              // onTouchStart={handleTouchStart}
+              // onTouchMove={handleTouchMove}
+              // onTouchEnd={handleTouchEnd}
               className={cn(
-                "carousel absolute",
-                !fullscreen ? `space-x-2 pr-8 carousel` : ``
+                "carousel absolute z-40",
+                !fullscreen ? `space-x-2 pr-8` : ``
               )}
               // style={{ scrollSnapType: "none", scrollBehavior: "auto" }}
               // ref={carouselRef}
@@ -261,8 +232,42 @@ export const MediaGalleryItem = ({
   //     },
   //   }
   // );
+  // const send = useSend();
+  // const startDir = useRef<string | null>(null);
+  // const didSwipe = useRef<boolean>(false);
 
-  // const props = fullscreen ? { ...bind() } : {};
+  // // const props = fullscreen ? { ...bind() } : {};
+  // const handlers = useSwipeable({
+  //   onSwipedDown: () => {
+  //     send({ type: "SWIPE_DOWN" });
+  //     didSwipe.current = true;
+  //   },
+  //   onSwipedUp: () => {
+  //     send({ type: "SWIPE_UP" });
+  //     didSwipe.current = true;
+  //   },
+  //   onSwipeStart: (e) => {
+  //     startDir.current = e.dir;
+  //     didSwipe.current = false;
+  //   },
+  //   // onTouchStartOrOnMouseDown: (e) => {
+  //   //   // console.log("start", e);
+  //   // },
+  //   onTouchEndOrOnMouseUp: (e) => {
+  //     const imageEl = e.event.target as HTMLImageElement;
+  //     imageEl.style.translate = "0px 0px";
+  //   },
+
+  //   onSwiping: (e) => {
+  //     const imageEl = e.event.target as HTMLImageElement;
+  //     const fullscreen = selectIsFullscreen(actor.getSnapshot());
+  //     if (fullscreen) {
+  //       if (startDir.current === "Up" || startDir.current === "Down") {
+  //         imageEl.style.translate = `0px ${e.deltaY}px`;
+  //       }
+  //     }
+  //   },
+  // });
 
   return (
     <HashLink
@@ -273,7 +278,8 @@ export const MediaGalleryItem = ({
       ref={ref}
       // {...props}
     >
-      <Image
+      <AnimatedImage
+        // {...handlers}
         className={cn(
           `object-contain`,
           !fullscreen ? "w-auto rounded-box" : ` h-full w-full`

@@ -1,17 +1,22 @@
 "use client";
 
-import { ReactNode, forwardRef, useEffect } from "react";
+import { ReactNode, forwardRef, useEffect, useRef } from "react";
 
 export const useScrollLock = (isActive: boolean) => {
+  const scrollTopRef = useRef(0);
   useEffect(() => {
     if (isActive) {
-      document.body.style.overflow = "hidden";
-      document.body.style.maxHeight = "100svh";
-      document.body.style.pointerEvents = "none";
+      scrollTopRef.current = window.scrollY;
+      document.body.style.overflow = "auto";
+      document.body.style.position = "fixed";
+      document.body.style.height = "100%";
+      document.body.style.width = "100%";
       return () => {
         document.body.style.overflow = "";
-        document.body.style.maxHeight = "";
-        document.body.style.pointerEvents = "auto";
+        document.body.style.position = "";
+        document.body.style.height = "";
+        document.body.style.width = "";
+        window.scrollTo(0, scrollTopRef.current);
       };
     }
   }, [isActive]);

@@ -10,7 +10,6 @@ function defaultCompare<T>(a: T, b: T) {
 export function useSelector<TActor extends ActorRef<any, any>, T, TSSR>(
   actor: TActor,
   selector: (emitted: SnapshotFrom<TActor>) => T,
-  selectorSSR?: (emitted: SnapshotFrom<TActor>) => TSSR
 ): T {
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
@@ -20,12 +19,13 @@ export function useSelector<TActor extends ActorRef<any, any>, T, TSSR>(
     [actor]
   );
 
-  const boundGetSnapshot = useCallback(() => actor.getSnapshot(), [actor]);
+  const clientGetSnapshot = useCallback(() => actor.getSnapshot(), [actor]);
+  const serverGetSnapshot = useCallback(() => actor.getSnapshot(), [actor]);
 
   const selectedSnapshot = useSyncExternalStoreWithSelector(
     subscribe,
-    boundGetSnapshot,
-    boundGetSnapshot,
+    clientGetSnapshot,
+    serverGetSnapshot,
     selector,
     defaultCompare
   );
