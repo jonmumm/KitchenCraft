@@ -103,14 +103,17 @@ export const RecipeCommentItem = ({ index }: { index: number }) => {
   return (
     <div className="flex items-start space-x-4">
       <Avatar className="w-8 h-8">
-        <RobotAvatarImage alt="foo1" />
+        <RobotAvatarImage alt={item.authorSlug || "ChefAnonymous"} />
       </Avatar>
       <div className="flex-1 grid gap-1">
         <div className="flex items-center justify-between">
           <div className="text-sm font-medium">
             @{item.authorSlug || "ChefAnonymous"}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400" suppressHydrationWarning>
+          <div
+            className="text-xs text-gray-500 dark:text-gray-400"
+            suppressHydrationWarning
+          >
             {dayjs(item.createdAt).fromNow()}
           </div>
         </div>
