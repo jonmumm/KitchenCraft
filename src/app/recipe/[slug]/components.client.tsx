@@ -13,7 +13,9 @@ import {
 import { useCommandState } from "@/components/input/command.primitive";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import useEventSource from "@/hooks/useEventSource";
-import { assert } from "@/lib/utils";
+import { useSelector } from "@/hooks/useSelector";
+import { assert, cn } from "@/lib/utils";
+import { MediaGalleryContext } from "@/modules/media-gallery/components.client";
 import { AppEvent } from "@/types";
 import { useStore } from "@nanostores/react";
 import { PlusIcon, ShuffleIcon } from "lucide-react";
@@ -23,6 +25,7 @@ import { useRouter } from "next/navigation";
 import {
   ComponentProps,
   ComponentPropsWithoutRef,
+  ReactNode,
   createContext,
   forwardRef,
   useCallback,
@@ -168,4 +171,19 @@ export const TipsAndTricksContent = ({ slug }: { slug: string }) => {
   });
 
   return <MarkdownRenderer markdownText={text} />;
+};
+
+export const MediaGalleryContainer = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const actor = useContext(MediaGalleryContext);
+  const mediaCount = useSelector(actor, (state) => state.context.media.length);
+
+  return (
+    <div className={cn(mediaCount > 0 ? "h-[50vh]" : "hidden", "relative")}>
+      {children}
+    </div>
+  );
 };

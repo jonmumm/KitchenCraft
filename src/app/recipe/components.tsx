@@ -4,9 +4,12 @@ import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import NavigationLink from "@/components/navigation/navigation-link";
-import { formatDuration, sentenceToSlug } from "@/lib/utils";
+import { cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { MediaGallery } from "@/modules/media-gallery/components";
-import { MediaGalleryItems } from "@/modules/media-gallery/components.client";
+import {
+  MediaGalleryItems,
+  MediaGalleryRoot,
+} from "@/modules/media-gallery/components.client";
 import {
   ArrowBigUpDashIcon,
   AxeIcon,
@@ -103,16 +106,21 @@ export const RecipeListItem = ({
             {/* <UpvoteButton userId={userId} slug={recipe.slug} /> */}
           </div>
         </div>
-        {recipe.mediaCount > 0 && (
-          <div className="h-[45svh] relative">
-            <Suspense fallback={null}>
-              <MediaGallery slug={recipe.slug} minHeight={"45svh"}>
+        {/* TODO add space here */}
+        <Suspense fallback={null}>
+          <div
+            className={cn(
+              recipe.mediaCount > 0 ? "h-[45svh]" : "h-0",
+              "relative"
+            )}
+          >
+            <MediaGallery slug={recipe.slug} minHeight={"45svh"}>
+              <MediaGalleryRoot>
                 <MediaGalleryItems />
-              </MediaGallery>
-            </Suspense>
-            {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
+              </MediaGalleryRoot>
+            </MediaGallery>
           </div>
-        )}
+        </Suspense>
         <div className="flex flex-row justify-start pl-2">
           <Link
             shallow

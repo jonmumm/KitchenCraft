@@ -20,7 +20,7 @@ import { z } from "zod";
 import { MediaGalleryActor } from "./machine";
 import { selectImageHeight, selectIsFullscreen } from "./selectors";
 
-const MediaGalleryContext = createContext({} as MediaGalleryActor);
+export const MediaGalleryContext = createContext({} as MediaGalleryActor);
 
 export const MediaGalleryProvider = ({
   children,
@@ -71,6 +71,41 @@ export const MediaGalleryProvider = ({
     })
   );
 
+  // const handleTouchStart: TouchEventHandler<HTMLDivElement> = useCallback(
+  //   (e) => {
+  //     console.log("start", e);
+  //   },
+  //   []
+  // );
+  // const handleTouchMove: TouchEventHandler<HTMLDivElement> = useCallback(
+  //   (e) => {
+  //     console.log("move", e);
+  //   },
+  //   []
+  // );
+  // const handleTouchEnd: TouchEventHandler<HTMLDivElement> = useCallback((e) => {
+  //   console.log("END!", e);
+  // }, []);
+  // const handlers = useSwipeable({
+  //   onSwiped: (eventData) => console.log("User Swiped!", eventData),
+  //   onTouchEndOrOnMouseUp:  () => {
+  //     console.log("start")
+  //   }
+  //   // ...config,
+  // });
+
+  return (
+    <MediaGalleryContext.Provider value={actor}>
+      {children}
+    </MediaGalleryContext.Provider>
+  );
+};
+
+export const MediaGalleryRoot = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(MediaGalleryContext);
+  const send = useSend();
+  const didSwipe = useRef(false);
+  const startDir = useRef<string | null>(null);
   const fullscreen = useSelectorSSR(actor, selectIsFullscreen, false);
 
   const containerClasses = fullscreen
@@ -97,33 +132,6 @@ export const MediaGalleryProvider = ({
     selectImageHeight,
     actor.getSnapshot().context.minHeight
   );
-
-  // const handleTouchStart: TouchEventHandler<HTMLDivElement> = useCallback(
-  //   (e) => {
-  //     console.log("start", e);
-  //   },
-  //   []
-  // );
-  // const handleTouchMove: TouchEventHandler<HTMLDivElement> = useCallback(
-  //   (e) => {
-  //     console.log("move", e);
-  //   },
-  //   []
-  // );
-  // const handleTouchEnd: TouchEventHandler<HTMLDivElement> = useCallback((e) => {
-  //   console.log("END!", e);
-  // }, []);
-  // const handlers = useSwipeable({
-  //   onSwiped: (eventData) => console.log("User Swiped!", eventData),
-  //   onTouchEndOrOnMouseUp:  () => {
-  //     console.log("start")
-  //   }
-  //   // ...config,
-  // });
-
-  const send = useSend();
-  const didSwipe = useRef(false);
-  const startDir = useRef<string | null>(null);
   const handlers = useSwipeable({
     onSwipedDown: () => {
       send({ type: "SWIPE_DOWN" });
@@ -157,31 +165,29 @@ export const MediaGalleryProvider = ({
   });
 
   return (
-    <MediaGalleryContext.Provider value={actor}>
-      <ScrollLockComponent active={fullscreen}>
-        <div style={{ height }} className={cn(`w-full relative`)}>
-          <div className={containerClasses}>
-            {fullscreen && <Header />}
-            <div
-              {...handlers}
-              // onTouchStart={handleTouchStart}
-              // onTouchMove={handleTouchMove}
-              // onTouchEnd={handleTouchEnd}
-              className={cn(
-                "carousel absolute z-40",
-                !fullscreen ? `space-x-2 pr-8` : ``
-              )}
-              // style={{ scrollSnapType: "none", scrollBehavior: "auto" }}
-              // ref={carouselRef}
-              // {...carouselProps}
-            >
-              {!fullscreen && <div className="w-1 h-full carousel-item" />}
-              {children}
-            </div>
+    <ScrollLockComponent active={fullscreen}>
+      <div style={{ height }} className={cn(`w-full relative`)}>
+        <div className={containerClasses}>
+          {fullscreen && <Header />}
+          <div
+            {...handlers}
+            // onTouchStart={handleTouchStart}
+            // onTouchMove={handleTouchMove}
+            // onTouchEnd={handleTouchEnd}
+            className={cn(
+              "carousel absolute z-40",
+              !fullscreen ? `space-x-2 pr-8` : ``
+            )}
+            // style={{ scrollSnapType: "none", scrollBehavior: "auto" }}
+            // ref={carouselRef}
+            // {...carouselProps}
+          >
+            {!fullscreen && <div className="w-1 h-full carousel-item" />}
+            {children}
           </div>
         </div>
-      </ScrollLockComponent>
-    </MediaGalleryContext.Provider>
+      </div>
+    </ScrollLockComponent>
   );
 };
 
@@ -272,7 +278,7 @@ export const MediaGalleryItem = ({
   const media = useSelector(actor, (state) => state.context.media[index]);
 
   if (!media) {
-    console.warn("trying to rehder media that doesnt exist")
+    console.warn("trying to rehder media that doesnt exist");
     return null;
   }
 
@@ -303,7 +309,7 @@ export const MediaGalleryItem = ({
   );
 };
 
-export const MediaGalleryItems = async () => {
+export const MediaGalleryItems = () => {
   const actor = useContext(MediaGalleryContext);
   const mediaList = useSelector(actor, (state) => state.context.media);
 

@@ -25,7 +25,10 @@ import { getCurrentUserId } from "@/lib/auth/session";
 import { kv } from "@/lib/kv";
 import { delay } from "@/lib/utils";
 import { MediaGallery } from "@/modules/media-gallery/components";
-import { MediaGalleryItems } from "@/modules/media-gallery/components.client";
+import {
+  MediaGalleryItems,
+  MediaGalleryRoot,
+} from "@/modules/media-gallery/components.client";
 import {
   FAQsPredictionInputSchema,
   QuestionsPredictionOutputSchema,
@@ -57,7 +60,10 @@ import {
 import { ShareButton } from "../components.client";
 import { UpvoteButton } from "../upvote-button/component";
 import { Ingredients, Instructions, Tags, Times } from "./components";
-import { TipsAndTricksContent } from "./components.client";
+import {
+  MediaGalleryContainer,
+  TipsAndTricksContent,
+} from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
 import { getObservables, getRecipeStream$ } from "./observables";
 import { getBaseRecipe, getRecipeOutputRaw } from "./queries";
@@ -630,12 +636,15 @@ export default async function Page(props: Props) {
       </Suspense>
 
       <div className="flex flex-col gap-2">
-        {mediaList.length ? (
-          <MediaGallery slug={slug} minHeight={"50vh"}>
-            {/* Empty item as a spacer, maybe better way? */}
-            <div className="w-1 h-full carousel-item" /> <MediaGalleryItems />
-          </MediaGallery>
-        ) : null}
+        <MediaGallery slug={slug} minHeight={"50vh"}>
+          <MediaGalleryContainer>
+            <MediaGalleryRoot>
+              {/* Empty item as a spacer, maybe better way? */}
+              <div className="w-1 h-full carousel-item" />
+              <MediaGalleryItems />
+            </MediaGalleryRoot>
+          </MediaGalleryContainer>
+        </MediaGallery>
         <div className="flex flex-col gap-2 max-w-xl mx-auto">
           <Card className="flex flex-col gap-2 pb-5 mx-3">
             <div className="flex flex-row gap-3 p-5 justify-between">

@@ -81,7 +81,6 @@ export const createMediaGalleryMachine = (props: Context) => {
       // sendToast: ({ context }, params: { message: string }),
       scrollFocusedIntoView: ({ context }) => {
         const elId = `media-${context.slug}-${context.focusedIndex}`;
-        console.log("scrolling to", elId);
         const el = document.getElementById(elId);
         assert(el, `couldnt find media element #${elId}`);
         setTimeout(() => {
@@ -125,7 +124,9 @@ export const createMediaGalleryMachine = (props: Context) => {
             on: {
               FILE_SELECTED: {
                 target: "Loading",
-                guard: ({ context, event }) => context.slug === event.slug,
+                guard: ({ context, event }) => {
+                  return context.slug === event.slug;
+                },
                 actions: assign({
                   currentFile: ({ event }) => event.file,
                 }),
@@ -143,9 +144,22 @@ export const createMediaGalleryMachine = (props: Context) => {
               onError: "Error",
               onDone: {
                 target: "InProgress",
-                actions: assign({
-                  currentFileMediaElement: ({ event }) => event.output,
-                }),
+                actions: [
+                  assign({
+                    currentFileMediaElement: ({ event }) => event.output,
+                    media: ({ context, event }) => {
+                      const el = event.output;
+                      return [
+                        ...context.media,
+                        {
+                          url: el.src,
+                          height: el.height,
+                          width: el.width,
+                        },
+                      ];
+                    },
+                  }),
+                ],
               },
             },
           },
@@ -228,18 +242,6 @@ export const createMediaGalleryMachine = (props: Context) => {
             },
           },
           False: {
-            // entry: {
-            //   type: "replaceQueryParameters",
-            //   params({ context, event }) {
-            //     return {
-            //       paramSet: {
-            //         gallery: undefined,
-            //         index: undefined,
-            //         slug: undefined,
-            //       },
-            //     };
-            //   },
-            // },
             on: {
               HASH_CHANGE: {
                 target: "True",

@@ -14,9 +14,7 @@ export const UploadMediaButton = ({
   const inputFileRef = useRef<HTMLInputElement>(null);
   const send = useSend();
 
-  const handleFileChange: ChangeEventHandler<HTMLInputElement> = async (
-    event
-  ) => {
+  const handleFileChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     const file = event.target.files?.[0];
     if (file) {
       send({ type: "FILE_SELECTED", file, slug });
