@@ -1,6 +1,7 @@
 "use client";
 
 import { useSend } from "@/hooks/useSend";
+import { Hash } from "lucide-react";
 import Link from "next/link";
 import {
   ComponentProps,
@@ -38,5 +39,6 @@ const HashLink = forwardRef(
     );
   }
 );
+HashLink.displayName = "HashLink";
 
 export default HashLink;

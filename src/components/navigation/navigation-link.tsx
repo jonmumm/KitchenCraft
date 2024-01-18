@@ -48,5 +48,6 @@ const NavigationLink = forwardRef((props: ComponentProps<typeof Link>, ref) => {
     </Link>
   );
 });
+NavigationLink.displayName = "NavigationLink";
 
 export default NavigationLink;
