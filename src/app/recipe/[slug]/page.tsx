@@ -12,7 +12,6 @@ import MarkdownRenderer from "@/components/display/markdown";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { CommandItem } from "@/components/input/command";
-import { Textarea } from "@/components/input/textarea";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { LastValue } from "@/components/util/last-value";
 import { db } from "@/db";
@@ -30,6 +29,7 @@ import { CommentsProvider } from "@/modules/comments/components";
 import {
   RecipeCommentsContent,
   RecipeCommentsItems,
+  RecipeCommentsTexarea,
 } from "@/modules/comments/components.client";
 import { MediaGalleryProvider } from "@/modules/media-gallery/components";
 import {
@@ -849,12 +849,7 @@ export default async function Page(props: Props) {
                         </div>
                       </div>
 
-                      <Textarea
-                        sendChange
-                        name="newComment"
-                        className="w-full h-20 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
-                        placeholder="Add a comment..."
-                      />
+                      <RecipeCommentsTexarea />
                       <Button event={{ type: "SUBMIT" }} className="w-full">
                         Post Comment
                       </Button>

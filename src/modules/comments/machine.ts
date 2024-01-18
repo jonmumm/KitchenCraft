@@ -84,19 +84,36 @@ export const createRecipeCommentsMachine = (
               No: {
                 on: {
                   SUBMIT: {
-                    actions: () => {
-                      console.log("SUBMIT");
-                    },
+                    actions: assign({
+                      comments: ({ context }) => [
+                        {
+                          id: Math.random(),
+                          comment: context.newComment!,
+                          mediaIds: null,
+                          authorSlug: "You",
+                          createdAt: new Date(),
+                        },
+                        ...context.comments,
+                      ],
+                    }),
                     guard: ({ context }) => selectHasInput({ context }),
                     target: "Yes",
                   },
                 },
               },
               Yes: {
+                after: {
+                  50: {
+                    actions: [
+                      assign({
+                        newComment: () => "",
+                      }),
+                    ],
+                  },
+                },
                 invoke: {
                   src: "postComment",
-                  input: ({ context, event }) => {
-                    console.log("SUBMITITTING!");
+                  input: ({ context }) => {
                     assert(context.newComment, "expected newComment");
 
                     return {

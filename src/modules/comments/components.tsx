@@ -17,7 +17,7 @@ export const CommentsProvider = async ({
   return (
     <CommentsRoot
       slug={slug}
-      initialComments={comments}
+      initialComments={comments.reverse()}
       postComment={postComment.bind(null, slug).bind(null, distinctId)}
     >
       {children}

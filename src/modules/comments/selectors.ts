@@ -7,9 +7,14 @@ export const selectContext = (
   }
 ) => props.context;
 
-export const selectHasInput = createSelector(
+export const selectNewComment = createSelector(
   selectContext,
-  (ctx) => !!ctx.newComment?.length
+  (ctx) => ctx.newComment
+);
+
+export const selectHasInput = createSelector(
+  selectNewComment,
+  (comment) => !!comment?.length
 );
 
 // export const selectHasInput = createSelector(
@@ -26,3 +31,6 @@ export const selectHasComments = createSelector(
   selectComments,
   (comments) => !!comments?.length
 );
+
+export const createSelectCommentAtIndex = (index: number) =>
+  createSelector(selectComments, (comments) => comments[index]);

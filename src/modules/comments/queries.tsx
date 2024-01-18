@@ -1,8 +1,9 @@
 import { ProfileTable, RecipeComments, RecipesTable, db } from "@/db";
 import { withDatabaseSpan } from "@/lib/observability";
 import { eq } from "drizzle-orm";
+import { cache } from "react";
 
-export const getCommentsForRecipeSlug = async (recipeSlug: string) => {
+export const getCommentsForRecipeSlug = cache(async (recipeSlug: string) => {
   const query = db
     .select({
       id: RecipeComments.id,
@@ -28,7 +29,7 @@ export const getCommentsForRecipeSlug = async (recipeSlug: string) => {
     .limit(50); // Adjust the limit as needed
 
   return await withDatabaseSpan(query, "getCommentsForRecipe").execute();
-};
+});
 
 // export const getCommentsCountForRecipe = async (slug: string) => {
 //   const query = db

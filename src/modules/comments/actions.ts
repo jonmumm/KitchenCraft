@@ -4,7 +4,7 @@ import { ProfileTable, RecipeComments, RecipesTable, db } from "@/db";
 import { getRecipe } from "@/db/queries";
 import { withDatabaseSpan } from "@/lib/observability";
 import { assert } from "@/lib/utils";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 
 // THese represent the "binded" server actions of how clients would call it
 export type Actions = {

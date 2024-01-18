@@ -61,6 +61,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cookie": "^0.6.0",
+    "dayjs": "^1.11.10",
     "diff-match-patch": "^1.0.5",
     "dotenv": "^16.3.1",
     "drizzle-orm": "^0.29.1",

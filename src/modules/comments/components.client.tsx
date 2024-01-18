@@ -1,18 +1,23 @@
 "use client";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime"; // import plugin
+dayjs.extend(relativeTime);
 
 import { RobotAvatarImage } from "@/components/display/avatar";
+import { Textarea } from "@/components/input/textarea";
 import { useActor } from "@/hooks/useActor";
 import { useSelector } from "@/hooks/useSelector";
 import { Profile, RecipeComment } from "@/types";
 import { Avatar } from "@radix-ui/react-avatar";
-import { ReactNode, createContext, useCallback, useContext } from "react";
+import { ReactNode, createContext, useContext, useMemo } from "react";
 import { Actions } from "./actions";
+import { RecipeCommentsActor, createRecipeCommentsMachine } from "./machine";
 import {
-  RecipeCommentsActor,
-  RecipeCommentsSnapshot,
-  createRecipeCommentsMachine,
-} from "./machine";
-import { selectComments, selectHasComments } from "./selectors";
+  createSelectCommentAtIndex,
+  selectComments,
+  selectHasComments,
+  selectNewComment,
+} from "./selectors";
 
 const RecipeCommentsContext = createContext({} as RecipeCommentsActor);
 
@@ -85,10 +90,8 @@ export const RecipeCommentsItems = () => {
 
 export const RecipeCommentItem = ({ index }: { index: number }) => {
   const actor = useContext(RecipeCommentsContext);
-  const selectCommentAtIndex = useCallback(
-    (state: RecipeCommentsSnapshot) => {
-      return state.context.comments[index];
-    },
+  const selectCommentAtIndex = useMemo(
+    () => createSelectCommentAtIndex(index),
     [index]
   );
   const item = useSelector(actor, selectCommentAtIndex);
@@ -107,8 +110,8 @@ export const RecipeCommentItem = ({ index }: { index: number }) => {
           <div className="text-sm font-medium">
             @{item.authorSlug || "ChefAnonymous"}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            15 minutes ago
+          <div className="text-xs text-gray-500 dark:text-gray-400" suppressHydrationWarning>
+            {dayjs(item.createdAt).fromNow()}
           </div>
         </div>
         <p className="text-sm text-gray-800 dark:text-gray-200">
@@ -116,5 +119,19 @@ export const RecipeCommentItem = ({ index }: { index: number }) => {
         </p>
       </div>
     </div>
+  );
+};
+
+export const RecipeCommentsTexarea = () => {
+  const actor = useContext(RecipeCommentsContext);
+  const newComment = useSelector(actor, selectNewComment);
+  return (
+    <Textarea
+      sendChange
+      value={newComment}
+      name="newComment"
+      className="w-full h-20 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+      placeholder="Add a comment..."
+    />
   );
 };
