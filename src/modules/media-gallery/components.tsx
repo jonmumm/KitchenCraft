@@ -1,8 +1,8 @@
 import { getSortedMediaForRecipe } from "@/db/queries";
 import { ReactNode } from "react";
-import { MediaGalleryItem, MediaGalleryProvider } from "./components.client";
+import { MediaGalleryRoot } from "./components.client";
 
-export const MediaGallery = async ({
+export const MediaGalleryProvider = async ({
   slug,
   minHeight,
   children,
@@ -14,12 +14,11 @@ export const MediaGallery = async ({
   const media = await getSortedMediaForRecipe(slug);
 
   return (
-    <MediaGalleryProvider slug={slug} minHeight={minHeight} media={media}>
+    <MediaGalleryRoot slug={slug} minHeight={minHeight} media={media}>
       {children}
-    </MediaGalleryProvider>
+    </MediaGalleryRoot>
   );
 };
-
 
 export const MediaGalleryItemsPlaceholder = async () => {
   return <></>;

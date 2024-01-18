@@ -24,10 +24,11 @@ import { env } from "@/env.public";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { kv } from "@/lib/kv";
 import { delay } from "@/lib/utils";
-import { MediaGallery } from "@/modules/media-gallery/components";
+import { MediaGalleryProvider } from "@/modules/media-gallery/components";
 import {
+  MediaGallery,
+  MediaGalleryContainer,
   MediaGalleryItems,
-  MediaGalleryRoot,
 } from "@/modules/media-gallery/components.client";
 import {
   FAQsPredictionInputSchema,
@@ -60,10 +61,7 @@ import {
 import { ShareButton } from "../components.client";
 import { UpvoteButton } from "../upvote-button/component";
 import { Ingredients, Instructions, Tags, Times } from "./components";
-import {
-  MediaGalleryContainer,
-  TipsAndTricksContent,
-} from "./components.client";
+import { TipsAndTricksContent } from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
 import { getObservables, getRecipeStream$ } from "./observables";
 import { getBaseRecipe, getRecipeOutputRaw } from "./queries";
@@ -635,35 +633,34 @@ export default async function Page(props: Props) {
         </WaitForRecipe>
       </Suspense>
 
-      <div className="flex flex-col gap-2">
-        <MediaGallery slug={slug} minHeight={"50vh"}>
+      <MediaGalleryProvider slug={slug} minHeight={"50vh"}>
+        <div className="flex flex-col gap-2">
           <MediaGalleryContainer>
-            <MediaGalleryRoot>
+            <MediaGallery>
               {/* Empty item as a spacer, maybe better way? */}
               <div className="w-1 h-full carousel-item" />
               <MediaGalleryItems />
-            </MediaGalleryRoot>
+            </MediaGallery>
           </MediaGalleryContainer>
-        </MediaGallery>
-        <div className="flex flex-col gap-2 max-w-xl mx-auto">
-          <Card className="flex flex-col gap-2 pb-5 mx-3">
-            <div className="flex flex-row gap-3 p-5 justify-between">
-              <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-semibold">{name}</h1>
-                <p className="text-lg text-muted-foreground">{description}</p>
-                <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
-                  <span>Yields</span>
-                  <span>
-                    <Suspense fallback={<Skeleton className="w-24 h-5" />}>
-                      <LastValue observable={yield$} />
-                    </Suspense>
-                  </span>
+          <div className="flex flex-col gap-2 max-w-xl mx-auto">
+            <Card className="flex flex-col gap-2 pb-5 mx-3">
+              <div className="flex flex-row gap-3 p-5 justify-between">
+                <div className="flex flex-col gap-2">
+                  <h1 className="text-2xl font-semibold">{name}</h1>
+                  <p className="text-lg text-muted-foreground">{description}</p>
+                  <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
+                    <span>Yields</span>
+                    <span>
+                      <Suspense fallback={<Skeleton className="w-24 h-5" />}>
+                        <LastValue observable={yield$} />
+                      </Suspense>
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-1 hidden-print">
-                <UpvoteButton userId={userId} slug={slug} />
-                {/* {userId && (
+                <div className="flex flex-col gap-1 hidden-print">
+                  <UpvoteButton userId={userId} slug={slug} />
+                  {/* {userId && (
                   <AsyncRenderFirstValue
                     render={([hasVoted, points]) => (
                       <UpvoteButtonClient count={points} alreadyVoted={hasVoted} />
@@ -675,17 +672,17 @@ export default async function Page(props: Props) {
                     ])}
                   />
                 )} */}
-                <UploadMediaButton slug={slug}>
-                  <CameraIcon />
-                </UploadMediaButton>
-                {/* <Button
+                  <UploadMediaButton slug={slug}>
+                    <CameraIcon />
+                  </UploadMediaButton>
+                  {/* <Button
                   event={{ type: "REMIX", slug }}
                   variant="outline"
                   aria-label="Remix"
                 >
                   <ShuffleIcon />
                 </Button> */}
-                {/* <Link href={`/recipe/${slug}/edit`}>
+                  {/* <Link href={`/recipe/${slug}/edit`}>
                   <Button
                     variant="outline"
                     aria-label="Remix"
@@ -694,23 +691,23 @@ export default async function Page(props: Props) {
                     <EditIcon />
                   </Button>
                 </Link> */}
-                <Link href={"#history"}>
-                  <Button
-                    variant="outline"
-                    aria-label="History"
-                    className="w-full"
-                  >
-                    <GitForkIcon />
-                  </Button>
-                </Link>
-                <ShareButton
-                  slug={slug}
-                  name={name}
-                  description={description}
-                />
+                  <Link href={"#history"}>
+                    <Button
+                      variant="outline"
+                      aria-label="History"
+                      className="w-full"
+                    >
+                      <GitForkIcon />
+                    </Button>
+                  </Link>
+                  <ShareButton
+                    slug={slug}
+                    name={name}
+                    description={description}
+                  />
+                </div>
               </div>
-            </div>
-            {/*
+              {/*
             <Separator />
             <div className="flex flex-col gap-2 justify-center items-center px-5" >
               <h2 className="font-semibold flex-1 truncate min-w-0">{name}</h2>
@@ -741,8 +738,8 @@ export default async function Page(props: Props) {
                 </DropdownMenu>
               </div>
             </div> */}
-            <Separator />
-            {/* {recipeUserId && recipe?.createdAt && (
+              <Separator />
+              {/* {recipeUserId && recipe?.createdAt && (
               <>
                 <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
                   <div className="flex flex-col gap-2 items-center">
@@ -757,83 +754,83 @@ export default async function Page(props: Props) {
                 <Separator className="hidden-print" />
               </>
             )} */}
-            <Times
-              totalTime$={totalTime$}
-              activeTime$={activeTime$}
-              cookTime$={cookTime$}
-            />
-            <Separator />
-            <Tags tags$={tags$} />
-            <Separator />
-
-            <div className="px-5">
-              <div className="flex flex-row justify-between gap-1 items-center py-4">
-                <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                  Ingredients
-                </h3>
-                <ShoppingBasketIcon />
-              </div>
-              <div className="mb-4 flex flex-col gap-2">
-                <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                  <ul className="list-disc pl-5 flex flex-col gap-2">
-                    <Ingredients ingredients$={ingredients$} />
-                  </ul>
-                </Suspense>
-              </div>
-            </div>
-            <Separator />
-
-            <div className="px-5">
-              <div className="flex flex-row justify-between gap-1 items-center py-4">
-                <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                  Instructions
-                </h3>
-                <ScrollIcon />
-              </div>
-              <div className="mb-4 flex flex-col gap-2">
-                <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                  <ol className="list-decimal pl-5 flex flex-col gap-2">
-                    <Instructions instructions$={instructions$} />
-                  </ol>
-                </Suspense>
-              </div>
-            </div>
-          </Card>
-          <Card id="rating" className="mx-3">
-            <div className="flex flex-row gap-2 items-center justify-between py-4 px-5">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Rating
-              </h3>
-              <StarIcon />
-            </div>
-            <Separator />
-            <div className="p-4 flex justify-center">
-              <Rating
-                defaultValue={(rating?.value as RatingValue) || 0}
-                lastRatedAt={rating?.createdAt}
-                submitValueChange={
-                  userId
-                    ? submitRating.bind(null, slug).bind(null, userId)
-                    : undefined
-                }
+              <Times
+                totalTime$={totalTime$}
+                activeTime$={activeTime$}
+                cookTime$={cookTime$}
               />
-            </div>
-          </Card>
-          <Card id="history" className="mx-3">
-            <History />
-          </Card>
-          <Card id="history" className="mx-3">
-            <TipsAndTricks />
-          </Card>
-          {/* <Card id="assistant" className="mx-3">
+              <Separator />
+              <Tags tags$={tags$} />
+              <Separator />
+
+              <div className="px-5">
+                <div className="flex flex-row justify-between gap-1 items-center py-4">
+                  <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                    Ingredients
+                  </h3>
+                  <ShoppingBasketIcon />
+                </div>
+                <div className="mb-4 flex flex-col gap-2">
+                  <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                    <ul className="list-disc pl-5 flex flex-col gap-2">
+                      <Ingredients ingredients$={ingredients$} />
+                    </ul>
+                  </Suspense>
+                </div>
+              </div>
+              <Separator />
+
+              <div className="px-5">
+                <div className="flex flex-row justify-between gap-1 items-center py-4">
+                  <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                    Instructions
+                  </h3>
+                  <ScrollIcon />
+                </div>
+                <div className="mb-4 flex flex-col gap-2">
+                  <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                    <ol className="list-decimal pl-5 flex flex-col gap-2">
+                      <Instructions instructions$={instructions$} />
+                    </ol>
+                  </Suspense>
+                </div>
+              </div>
+            </Card>
+            <Card id="rating" className="mx-3">
+              <div className="flex flex-row gap-2 items-center justify-between py-4 px-5">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Rating
+                </h3>
+                <StarIcon />
+              </div>
+              <Separator />
+              <div className="p-4 flex justify-center">
+                <Rating
+                  defaultValue={(rating?.value as RatingValue) || 0}
+                  lastRatedAt={rating?.createdAt}
+                  submitValueChange={
+                    userId
+                      ? submitRating.bind(null, slug).bind(null, userId)
+                      : undefined
+                  }
+                />
+              </div>
+            </Card>
+            <Card id="history" className="mx-3">
+              <History />
+            </Card>
+            <Card id="history" className="mx-3">
+              <TipsAndTricks />
+            </Card>
+            {/* <Card id="assistant" className="mx-3">
             <AssistantContent />
           </Card> */}
-          {/* {isImageGenEnabled && (
+            {/* {isImageGenEnabled && (
             <Card id="generated-images" className="mx-3">
               <GeneratedImages />
             </Card>
           )} */}
-          {/* <Card id="products" className="mx-3 mb-3">
+            {/* <Card id="products" className="mx-3 mb-3">
             <div className="flex flex-row justify-between p-4">
               <h3 className="uppercase text-xs font-bold text-accent-foreground">
                 Consumables
@@ -896,8 +893,9 @@ export default async function Page(props: Props) {
               </div>
             </div>
           </Card> */}
+          </div>
         </div>
-      </div>
+      </MediaGalleryProvider>
     </>
   );
 }

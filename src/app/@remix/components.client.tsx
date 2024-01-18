@@ -3,7 +3,6 @@
 import { Badge } from "@/components/display/badge";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
-import { EventButton } from "@/components/event-button";
 import { Button } from "@/components/input/button";
 import {
   Command,
@@ -12,13 +11,13 @@ import {
   CommandItem,
   CommandItemClearPrompt,
 } from "@/components/input/command";
+import { useCommandState } from "@/components/input/command.primitive";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/layout/sheet";
 import ClientOnly from "@/components/util/client-only";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { assert } from "@/lib/utils";
 import { AppEvent, RemixEvent } from "@/types";
 import { useStore } from "@nanostores/react";
-import { useCommandState } from "@/components/input/command.primitive";
 import {
   ArrowLeftRightIcon,
   MicrowaveIcon,
@@ -45,12 +44,9 @@ export const Remix = () => {
 
   const { open } = useStore(store, { keys: ["open"] });
 
-  const handleClose = useCallback(
-    (event: RemixEvent) => {
-      store.setKey("open", false);
-    },
-    [store]
-  );
+  const handleClose = useCallback(() => {
+    store.setKey("open", false);
+  }, [store]);
   useEventHandler("CLOSE", handleClose);
 
   const handleRemix = useCallback(

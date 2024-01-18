@@ -4,11 +4,12 @@ import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import NavigationLink from "@/components/navigation/navigation-link";
-import { cn, formatDuration, sentenceToSlug } from "@/lib/utils";
-import { MediaGallery } from "@/modules/media-gallery/components";
+import { formatDuration, sentenceToSlug } from "@/lib/utils";
+import { MediaGalleryProvider } from "@/modules/media-gallery/components";
 import {
+  MediaGallery,
+  MediaGalleryContainer,
   MediaGalleryItems,
-  MediaGalleryRoot,
 } from "@/modules/media-gallery/components.client";
 import {
   ArrowBigUpDashIcon,
@@ -62,125 +63,126 @@ export const RecipeListItem = ({
           : requireLogin
       }
     >
-      <Card className="flex flex-col gap-3 max-w-2xl w-full mx-auto py-4 rounded-2xl border-none shadow-none sm:border-solid sm:shadow-md sm:hover:shadow-lg">
-        <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">
-          <div className="flex flex-row gap-3 justify-between items-center w-full">
-            <NavigationLink href={href}>
-              <Button variant="ghost" size="icon">
-                {index + 1}.
-              </Button>
-            </NavigationLink>
-            <div className="flex flex-col gap-1 flex-1 justify-start">
-              <NavigationLink href={href} className="flex-1 active:opacity-70">
-                <h2 className="font-semibold text-lg">
-                  {recipe.name}
-                  <Loader2Icon
-                    size={16}
-                    className="transitioning:inline-block hidden animate-spin ml-2"
-                  />
-                </h2>
-              </NavigationLink>
-              <div>
-                {"createdBySlug" in recipe && recipe.createdBySlug && (
-                  // <Link
-                  //   href={`/@${recipe.createdBySlug}`}
-                  //   className="inline-block"
-                  // >
-                  <div className="inline-block">
-                    <Badge
-                      className="flex flex-row gap-1 items-center"
-                      variant="outline"
-                    >
-                      <ChefHatIcon size={16} className="transitioning:hidden" />
+      <Suspense fallback={null}>
+        <MediaGalleryProvider slug={recipe.slug} minHeight={"45svh"}>
+          <Card className="flex flex-col gap-3 max-w-2xl w-full mx-auto py-4 rounded-2xl border-none shadow-none sm:border-solid sm:shadow-md sm:hover:shadow-lg">
+            <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">
+              <div className="flex flex-row gap-3 justify-between items-center w-full">
+                <NavigationLink href={href}>
+                  <Button variant="ghost" size="icon">
+                    {index + 1}.
+                  </Button>
+                </NavigationLink>
+                <div className="flex flex-col gap-1 flex-1 justify-start">
+                  <NavigationLink
+                    href={href}
+                    className="flex-1 active:opacity-70"
+                  >
+                    <h2 className="font-semibold text-lg">
+                      {recipe.name}
                       <Loader2Icon
                         size={16}
-                        className="transitioning:block hidden animate-spin"
+                        className="transitioning:inline-block hidden animate-spin ml-2"
                       />
-                      {recipe.createdBySlug}
-                    </Badge>
+                    </h2>
+                  </NavigationLink>
+                  <div>
+                    {"createdBySlug" in recipe && recipe.createdBySlug && (
+                      // <Link
+                      //   href={`/@${recipe.createdBySlug}`}
+                      //   className="inline-block"
+                      // >
+                      <div className="inline-block">
+                        <Badge
+                          className="flex flex-row gap-1 items-center"
+                          variant="outline"
+                        >
+                          <ChefHatIcon
+                            size={16}
+                            className="transitioning:hidden"
+                          />
+                          <Loader2Icon
+                            size={16}
+                            className="transitioning:block hidden animate-spin"
+                          />
+                          {recipe.createdBySlug}
+                        </Badge>
+                      </div>
+                      // </Link>
+                    )}
                   </div>
-                  // </Link>
-                )}
+                </div>
+                {/* <UpvoteButton userId={userId} slug={recipe.slug} /> */}
               </div>
             </div>
-            {/* <UpvoteButton userId={userId} slug={recipe.slug} /> */}
-          </div>
-        </div>
-        {/* TODO add space here */}
-        <Suspense fallback={null}>
-          <div
-            className={cn(
-              recipe.mediaCount > 0 ? "h-[45svh]" : "h-0",
-              "relative"
-            )}
-          >
-            <MediaGallery slug={recipe.slug} minHeight={"45svh"}>
-              <MediaGalleryRoot>
+            {/* TODO add space here */}
+            <MediaGalleryContainer>
+              <MediaGallery>
                 <MediaGalleryItems />
-              </MediaGalleryRoot>
-            </MediaGallery>
-          </div>
-        </Suspense>
-        <div className="flex flex-row justify-start pl-2">
-          <Link
-            shallow
-            href={`?prompt=${encodeURIComponent(
-              recipe.prompt.trim()
-            )}&crafting=1`}
-          >
-            <Button
-              className="rounded-xl max-w-xs text-xs flex flex-row gap-2 items-center px-3 h-auto py-1 flex-nowrap"
-              variant="outline"
-              event={{
-                type: "NEW_RECIPE",
-                prompt: recipe.prompt.trim(),
-              }}
-            >
-              <AxeIcon
-                size={16}
-                className="text-slate-800 dark:text-slate-200 flex-shrink-0"
-              />
-              <p className="italic line-clamp-2 flex-1">
-                &apos;{recipe.prompt.trim()}&apos;
-              </p>
-            </Button>
-          </Link>
-        </div>
-        <NavigationLink href={href}>
-          <div className="px-5 flex flex-row gap-4 items-center">
-            <p className="flex-1">{recipe.description}</p>
-            <Button size="icon" variant="outline">
-              <ChevronRightIcon className="transitioning:hidden" />
-              <Loader2Icon className="transitioning:block hidden animate-spin" />
-            </Button>
-          </div>
-        </NavigationLink>
-        <div className="flex-1 flex flex-row gap-1 px-4 justify-between items-start">
-          <div className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0">
-            <TimerIcon size={14} />
-            <span>{formatDuration(recipe.totalTime)}</span>
-          </div>
-          <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
-            {"tags" in recipe &&
-              recipe.tags.map((tag) => (
-                <NavigationLink
-                  href={`/tag/${sentenceToSlug(tag)}`}
-                  key={tag}
-                  passHref={true}
+              </MediaGallery>
+            </MediaGalleryContainer>
+            <div className="flex flex-row justify-start pl-2">
+              <Link
+                shallow
+                href={`?prompt=${encodeURIComponent(
+                  recipe.prompt.trim()
+                )}&crafting=1`}
+              >
+                <Button
+                  className="rounded-xl max-w-xs text-xs flex flex-row gap-2 items-center px-3 h-auto py-1 flex-nowrap"
+                  variant="outline"
+                  event={{
+                    type: "NEW_RECIPE",
+                    prompt: recipe.prompt.trim(),
+                  }}
                 >
-                  <Badge key={tag} variant="secondary">
-                    {tag}
-                    <Loader2Icon
-                      size={14}
-                      className="transitioning:block hidden ml-2 animate-spin"
-                    />
-                  </Badge>
-                </NavigationLink>
-              ))}
-          </div>
-        </div>
-        <Separator className="mb-4 mt-4 sm:hidden" />
-      </Card>
+                  <AxeIcon
+                    size={16}
+                    className="text-slate-800 dark:text-slate-200 flex-shrink-0"
+                  />
+                  <p className="italic line-clamp-2 flex-1">
+                    &apos;{recipe.prompt.trim()}&apos;
+                  </p>
+                </Button>
+              </Link>
+            </div>
+            <NavigationLink href={href}>
+              <div className="px-5 flex flex-row gap-4 items-center">
+                <p className="flex-1">{recipe.description}</p>
+                <Button size="icon" variant="outline">
+                  <ChevronRightIcon className="transitioning:hidden" />
+                  <Loader2Icon className="transitioning:block hidden animate-spin" />
+                </Button>
+              </div>
+            </NavigationLink>
+            <div className="flex-1 flex flex-row gap-1 px-4 justify-between items-start">
+              <div className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0">
+                <TimerIcon size={14} />
+                <span>{formatDuration(recipe.totalTime)}</span>
+              </div>
+              <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
+                {"tags" in recipe &&
+                  recipe.tags.map((tag) => (
+                    <NavigationLink
+                      href={`/tag/${sentenceToSlug(tag)}`}
+                      key={tag}
+                      passHref={true}
+                    >
+                      <Badge key={tag} variant="secondary">
+                        {tag}
+                        <Loader2Icon
+                          size={14}
+                          className="transitioning:block hidden ml-2 animate-spin"
+                        />
+                      </Badge>
+                    </NavigationLink>
+                  ))}
+              </div>
+            </div>
+            <Separator className="mb-4 mt-4 sm:hidden" />
+          </Card>
+        </MediaGalleryProvider>
+      </Suspense>
     </RecipePropsProvider>
   );
 };

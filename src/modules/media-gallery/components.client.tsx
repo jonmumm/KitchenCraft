@@ -22,7 +22,7 @@ import { selectImageHeight, selectIsFullscreen } from "./selectors";
 
 export const MediaGalleryContext = createContext({} as MediaGalleryActor);
 
-export const MediaGalleryProvider = ({
+export const MediaGalleryRoot = ({
   children,
   slug,
   minHeight, // index,
@@ -101,7 +101,7 @@ export const MediaGalleryProvider = ({
   );
 };
 
-export const MediaGalleryRoot = ({ children }: { children: ReactNode }) => {
+export const MediaGallery = ({ children }: { children: ReactNode }) => {
   const actor = useContext(MediaGalleryContext);
   const send = useSend();
   const didSwipe = useRef(false);
@@ -319,5 +319,20 @@ export const MediaGalleryItems = () => {
         return <MediaGalleryItem key={index} index={index} />;
       })}
     </>
+  );
+};
+
+export const MediaGalleryContainer = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const actor = useContext(MediaGalleryContext);
+  const mediaCount = useSelector(actor, (state) => state.context.media.length);
+
+  return (
+    <div className={cn(mediaCount > 0 ? "h-[50vh]" : "hidden", "relative")}>
+      {children}
+    </div>
   );
 };
