@@ -1,7 +1,6 @@
 import { Toaster } from "@/components/feedback/sonner";
 import { Toaster as LegacyToaster } from "@/components/feedback/toaster";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
-import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";
@@ -15,6 +14,7 @@ import { kv } from "@/lib/kv";
 import { getSlug } from "@/lib/slug";
 import { TokenParser } from "@/lib/token-parser";
 import { assert, noop } from "@/lib/utils";
+import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import {
   InstantRecipeMetadataPredictionOutputSchema,
   RecipePredictionOutputSchema,
@@ -75,11 +75,13 @@ export default async function RootLayout({
   craft,
   footer,
   header,
+  remix,
 }: {
   children: ReactNode;
   craft: ReactNode;
   footer: ReactNode;
   header: ReactNode;
+  remix: ReactNode;
 }) {
   async function createNewInstantRecipe(
     prompt: string,
