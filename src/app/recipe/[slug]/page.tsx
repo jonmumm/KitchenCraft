@@ -24,11 +24,8 @@ import { env } from "@/env.public";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { kv } from "@/lib/kv";
 import { delay } from "@/lib/utils";
-import { MediaGallery } from "@/modules/media-gallery/components.client";
-import {
-  MediaGalleryItems,
-  MediaGalleryItemsPlaceholder,
-} from "@/modules/media-gallery/components.server";
+import { MediaGallery } from "@/modules/media-gallery/components";
+import { MediaGalleryItems } from "@/modules/media-gallery/components.client";
 import {
   FAQsPredictionInputSchema,
   QuestionsPredictionOutputSchema,
@@ -634,16 +631,9 @@ export default async function Page(props: Props) {
 
       <div className="flex flex-col gap-2">
         {mediaList.length ? (
-          <MediaGallery
-            slug={slug}
-            minHeight={"50vh"}
-            numItems={mediaList.length}
-          >
-            <Suspense fallback={<MediaGalleryItemsPlaceholder />}>
-              {/* Empty item as a spacer, maybe better way? */}
-              <div className="w-1 h-full carousel-item" />{" "}
-              <MediaGalleryItems slug={slug} />
-            </Suspense>
+          <MediaGallery slug={slug} minHeight={"50vh"}>
+            {/* Empty item as a spacer, maybe better way? */}
+            <div className="w-1 h-full carousel-item" /> <MediaGalleryItems />
           </MediaGallery>
         ) : null}
         <div className="flex flex-col gap-2 max-w-xl mx-auto">

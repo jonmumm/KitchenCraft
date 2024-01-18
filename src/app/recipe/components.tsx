@@ -5,11 +5,8 @@ import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
-import { MediaGallery } from "@/modules/media-gallery/components.client";
-import {
-  MediaGalleryItems,
-  MediaGalleryItemsPlaceholder,
-} from "@/modules/media-gallery/components.server";
+import { MediaGallery } from "@/modules/media-gallery/components";
+import { MediaGalleryItems } from "@/modules/media-gallery/components.client";
 import {
   ArrowBigUpDashIcon,
   AxeIcon,
@@ -108,15 +105,11 @@ export const RecipeListItem = ({
         </div>
         {recipe.mediaCount > 0 && (
           <div className="h-[45svh] relative">
-            <MediaGallery
-              slug={recipe.slug}
-              minHeight={"45svh"}
-              numItems={recipe.mediaCount}
-            >
-              <Suspense fallback={<MediaGalleryItemsPlaceholder />}>
-                <MediaGalleryItems slug={recipe.slug} />
-              </Suspense>
-            </MediaGallery>
+            <Suspense fallback={null}>
+              <MediaGallery slug={recipe.slug} minHeight={"45svh"}>
+                <MediaGalleryItems />
+              </MediaGallery>
+            </Suspense>
             {/* <div className="absolute left-[-15px] right-[-15px] bg-slate-900 h-full z-40 rounded-box" /> */}
           </div>
         )}

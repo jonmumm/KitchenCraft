@@ -10,7 +10,7 @@ import { AnimatedImage } from "@/components/animation/animated-image";
 import { Button } from "@/components/input/button";
 import HashLink from "@/components/navigation/hash-link";
 import ScrollLockComponent from "@/components/scroll-lock";
-import { useSelectorSSR } from "@/hooks/useSelector";
+import { useSelector, useSelectorSSR } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { MediaFragmentLiteral } from "@/types";
@@ -22,16 +22,16 @@ import { selectImageHeight, selectIsFullscreen } from "./selectors";
 
 const MediaGalleryContext = createContext({} as MediaGalleryActor);
 
-export const MediaGallery = ({
+export const MediaGalleryProvider = ({
   children,
   slug,
   minHeight, // index,
-  numItems,
+  media,
 }: {
   children: ReactNode;
   slug: string;
   minHeight: string;
-  numItems: number;
+  media: { url: string; width: number; height: number }[];
   // index: number | undefined; // if no index, assumed to be the only one in the list
 }) => {
   const searchParams = useSearchParams();
@@ -40,7 +40,7 @@ export const MediaGallery = ({
     createMediaGalleryMachine({
       slug,
       minHeight,
-      numItems,
+      media,
       focusedIndex: z
         .number()
         .parse(parseInt(searchParams.get("index") || "-1")),
@@ -71,15 +71,10 @@ export const MediaGallery = ({
     })
   );
 
-  // useEffect(() => {
-  //   console.log(window.location.hash);
-  //   // actor.send({type: })
-  // }, []);
-
   const fullscreen = useSelectorSSR(actor, selectIsFullscreen, false);
 
   const containerClasses = fullscreen
-    ? "fixed inset-0 z-30 flex justify-center items-center bg-black flex flex-col"
+    ? "fixed inset-0 z-30 flex justify-center items-center bg-black flex flex-col scroll-auto"
     : "absolute top-0 w-screen left-1/2 transform -translate-x-1/2 flex z-10 justify-center";
 
   const Header = () => {
@@ -192,16 +187,13 @@ export const MediaGallery = ({
 
 export const MediaGalleryItem = ({
   // children,
-  media,
-  slug,
   index,
 }: {
   // children: ReactNode;
-  slug: string;
   index: number;
-  media: { id: string; width: number; height: number; url: string };
 }) => {
   const actor = useContext(MediaGalleryContext);
+  const slug = useSelector(actor, (state) => state.context.slug);
   const height = useSelectorSSR(
     actor,
     selectImageHeight,
@@ -277,6 +269,13 @@ export const MediaGalleryItem = ({
   //   },
   // });
 
+  const media = useSelector(actor, (state) => state.context.media[index]);
+
+  if (!media) {
+    console.warn("trying to rehder media that doesnt exist")
+    return null;
+  }
+
   return (
     <HashLink
       className={cn("carousel-item", fullscreen ? `w-full` : ``)}
@@ -301,5 +300,18 @@ export const MediaGalleryItem = ({
         alt={`Recipe Image #${index + 1}`}
       />
     </HashLink>
+  );
+};
+
+export const MediaGalleryItems = async () => {
+  const actor = useContext(MediaGalleryContext);
+  const mediaList = useSelector(actor, (state) => state.context.media);
+
+  return (
+    <>
+      {mediaList.map((media, index) => {
+        return <MediaGalleryItem key={index} index={index} />;
+      })}
+    </>
   );
 };

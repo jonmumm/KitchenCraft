@@ -578,6 +578,7 @@ export const PressMediaThumbSchema = z.object({
 
 const FileSelectedEventSchema = z.object({
   type: z.literal("FILE_SELECTED"),
+  slug: SlugSchema,
   file: z.custom<File>(),
 });
 
