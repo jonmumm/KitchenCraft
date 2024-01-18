@@ -1,0 +1,1 @@
+ALTER TABLE "recipe_comments" ALTER COLUMN "recipe_id" SET DATA TYPE uuid USING gen_random_uuid();

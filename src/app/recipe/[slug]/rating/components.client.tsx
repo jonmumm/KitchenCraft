@@ -80,6 +80,7 @@ export const Rating = (props: {
   //   () => rating$.value,
   //   () => props.defaultValue
   // );
+  const { submitValueChange } = props;
 
   // Handle change event for radio buttons
   const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -93,8 +94,8 @@ export const Rating = (props: {
       if (newValue !== 0) {
         // open$.set(false);
 
-        if (props.submitValueChange) {
-          props.submitValueChange(newValue).then(noop);
+        if (submitValueChange) {
+          submitValueChange(newValue).then(noop);
         } else {
           router.push(
             `/auth/signin?message=${encodeURIComponent(
@@ -105,9 +106,8 @@ export const Rating = (props: {
       }
     },
 
-    [props.submitValueChange, setRating, router, setRatedAt]
+    [submitValueChange, setRating, router, setRatedAt]
   );
-  // const rating = useStore(rating$);
 
   // Render the component
   return (

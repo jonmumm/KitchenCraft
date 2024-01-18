@@ -404,3 +404,26 @@ export const RecipeRatingsTable = pgTable(
 
 export const RecipeRatingSchema = createSelectSchema(RecipeRatingsTable);
 export const NewRecipeRatingSchema = createInsertSchema(RecipeRatingsTable);
+
+interface EditHistoryEntry {
+  previousComment: string; // The previous version of the comment
+  editedAt: string; // ISO 8601 format timestamp of when the edit was made
+  editedBy: string; // Optional user ID of the person who made the edit
+}
+
+export const RecipeComments = pgTable("recipe_comments", {
+  id: bigserial("id", { mode: "number" }).notNull().primaryKey(), // Primary key
+  recipeId: uuid("recipe_id")
+    .notNull()
+    .references(() => RecipesTable.id), // Foreign key to the Recipes table
+  userId: text("user_id").notNull(),
+  mediaIds: jsonb("mediaIds").$type<string[]>(),
+  comment: text("comment").notNull(), // Text of the comment
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(), // Timestamp when the comment was created
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(), // Timestamp for when the comment was last updated
+  editHistory: jsonb("edit_history").$type<EditHistoryEntry[]>().notNull(), // JSONB field to store the edit history
+});
+
+// Create schemas for selection and insertion
+export const RecipeCommentSchema = createSelectSchema(RecipeComments);
+export const NewRecipeCommentSchema = createInsertSchema(RecipeComments);

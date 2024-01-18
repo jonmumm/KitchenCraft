@@ -6,6 +6,10 @@ import ingredients from "./data/ingredients.json";
 import {
   AmazonAffiliateProductSchema,
   NewAmazonAffiliateProductSchema,
+  NewProfileSchema,
+  NewRecipeCommentSchema,
+  ProfileSchema,
+  RecipeCommentSchema,
   db,
   featureIdEnum,
 } from "./db";
@@ -267,6 +271,8 @@ export type UpvoteEvent = z.infer<typeof UpvoteEventSchema>;
 export type RemixEvent = z.infer<typeof RemixEventSchema>;
 
 export type ProfileSlug = z.infer<typeof ProfileSlugSchema>;
+export type Profile = z.infer<typeof ProfileSchema>;
+export type NewProfile = z.infer<typeof NewProfileSchema>;
 
 export type GoogleCustomSearchResponse = z.infer<
   typeof GoogleCustomSearchResponseSchema
@@ -289,3 +295,5 @@ export type RecipeBase = z.infer<typeof RecipeBaseSchema>;
 export type FeatureId = (typeof featureIdEnum.enumValues)[number];
 
 export type MediaFragmentLiteral = z.infer<typeof MediaFragmentLiteralSchema>;
+export type RecipeComment = z.infer<typeof RecipeCommentSchema>;
+export type NewRecipeComment = z.infer<typeof NewRecipeCommentSchema>;

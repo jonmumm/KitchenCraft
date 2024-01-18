@@ -1,12 +1,11 @@
 import { TimeParamSchema } from "@/app/(home)/schema";
-import { RatingValue } from "@/app/recipe/[slug]/rating/types";
 import {
+  RecipeComments,
   GeneratedMediaTable,
   MediaTable,
   PopularTagsView,
   ProfileTable,
   RecipeMediaTable,
-  RecipeRatingsTable,
   RecipesTable,
   SubscriptionMembersTable,
   SubscriptionsTable,

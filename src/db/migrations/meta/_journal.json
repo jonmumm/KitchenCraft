@@ -232,6 +232,20 @@
       "when": 1705207571728,
       "tag": "0032_brown_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1705605914656,
+      "tag": "0033_ambitious_wraith",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1705606112981,
+      "tag": "0034_flashy_night_nurse",
+      "breakpoints": true
     }
   ]
 }

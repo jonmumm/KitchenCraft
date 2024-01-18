@@ -358,6 +358,12 @@ const SetUsernameEventSchema = z.object({
   value: SlugSchema,
 });
 
+const ChangeEventSchema = z.object({
+  type: z.literal("CHANGE"),
+  name: z.string(),
+  value: z.string(),
+});
+
 const SetInputEventSchema = z.object({
   type: z.literal("SET_INPUT"),
   value: z.string(),
@@ -637,6 +643,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   SelectResultEventSchema,
   SelectRelatedIdeaEventSchema,
   SetInputEventSchema,
+  ChangeEventSchema,
   SubmitEventSchema,
   SubmitPromptEventSchema,
   FocusPromptEventSchema,
