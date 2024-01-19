@@ -497,7 +497,7 @@ export default async function Page(props: Props) {
                   }}
                 >
                   <AxeIcon size={14} />
-                  Use Prompt
+                  Open Prompt
                 </Button>
               </div>
               <hr />

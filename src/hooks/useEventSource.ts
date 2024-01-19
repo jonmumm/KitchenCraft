@@ -17,7 +17,6 @@ function useEventSource(url: string, callbacks: EventSourceCallbacks) {
   callbacksRef.current = callbacks;
 
   useEffect(() => {
-    console.log({ url });
     if (hasConnectedRef.current) {
       // If already connected, do not run the effect again
       return;
