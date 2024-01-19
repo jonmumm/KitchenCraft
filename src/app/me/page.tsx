@@ -1,26 +1,18 @@
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
-import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
 import { EventButton } from "@/components/event-button";
 import { SignInForm } from "@/components/forms/sign-in/components.client";
-import { Button } from "@/components/input/button";
-import { TagsCarousel } from "@/modules/tags-carousel";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
 import quoteList from "@/data/quotes.json";
 import { db } from "@/db";
-import {
-  getRecentRecipesByCreator,
-  getTagCountsForUserCreatedRecipes,
-  updateRecipeCreator,
-} from "@/db/queries";
+import { getRecentRecipesByCreator, updateRecipeCreator } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getGuestId } from "@/lib/browser-session";
 import { assert, shuffle } from "@/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
-import Link from "next/link";
 import { from, of, shareReplay } from "rxjs";
 import { RecipeListItem } from "../recipe/components";
 
@@ -55,14 +47,6 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col">
-      <TagsCarousel
-        showCount
-        currentTag={"All"}
-        root="/me"
-        query={getTagCountsForUserCreatedRecipes(db, createdBy)}
-      />
-      <Separator />
-
       <div className="flex flex-col max-w-2xl mx-auto px-4 gap-8">
         <section>
           <AsyncRenderFirstValue

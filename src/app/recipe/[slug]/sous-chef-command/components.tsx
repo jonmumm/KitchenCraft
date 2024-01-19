@@ -245,7 +245,7 @@ export const SousChefPromptCommandGroup = () => {
         </div>
         <Badge variant="secondary">Ask</Badge>
       </SousChefCommandItem>
-      <CommandItemClearPrompt />
+      {/* <CommandItemClearPrompt /> */}
     </CommandGroup>
   ) : null;
 };

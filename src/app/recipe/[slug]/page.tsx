@@ -319,7 +319,7 @@ export default async function Page(props: Props) {
           <SousChefOutput />
           <SousChefFAQSuggestionsCommandGroup
             defaultValue={undefined}
-            heading="FAQ"
+            heading="Questions"
           >
             <Suspense
               fallback={
@@ -688,6 +688,11 @@ export default async function Page(props: Props) {
                     <UploadMediaButton slug={slug}>
                       <CameraIcon />
                     </UploadMediaButton>
+                    <Link href="#comments">
+                      <Button variant="outline" className="w-full">
+                        <MessageSquareIcon />
+                      </Button>
+                    </Link>
                     {/* <Button
                   event={{ type: "REMIX", slug }}
                   variant="outline"
@@ -704,7 +709,7 @@ export default async function Page(props: Props) {
                     <EditIcon />
                   </Button>
                 </Link> */}
-                    <Link href={"#history"}>
+                    {/* <Link href={"#history"}>
                       <Button
                         variant="outline"
                         aria-label="History"
@@ -712,7 +717,7 @@ export default async function Page(props: Props) {
                       >
                         <GitForkIcon />
                       </Button>
-                    </Link>
+                    </Link> */}
                     <ShareButton
                       slug={slug}
                       name={name}
@@ -829,7 +834,7 @@ export default async function Page(props: Props) {
                   />
                 </div>
               </Card>
-              <Card id="rating" className="mx-3">
+              <Card id="comments" className="mx-3">
                 <div className="flex flex-row gap-2 items-center justify-between py-4 px-5">
                   <h3 className="uppercase text-xs font-bold text-accent-foreground">
                     Comments
@@ -892,7 +897,10 @@ export default async function Page(props: Props) {
               <Card id="history" className="mx-3">
                 <History />
               </Card>
-              <Card id="history" className="mx-3">
+              <Card id="assistant" className="mx-3">
+                <AssistantContent />
+              </Card>
+              <Card id="tips-and-tricks" className="mx-3">
                 <TipsAndTricks />
               </Card>
               {/* <Card id="assistant" className="mx-3">

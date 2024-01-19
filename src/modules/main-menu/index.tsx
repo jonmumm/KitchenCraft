@@ -123,9 +123,7 @@ export async function MainMenu({ className }: { className?: string }) {
             <NavigationLink href="/auth/signin">
               <Button size="lg" className="w-full transitioning:opacity-70">
                 <span className="transitioning:hidden">Sign In / Sign Up</span>
-                <span className="transitioning:inline hidden">
-                  <Loader2Icon className="animate-spin" />
-                </span>
+                <span className="transitioning:inline hidden">Loading</span>
               </Button>
             </NavigationLink>
           </MenuItem>

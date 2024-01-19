@@ -3,5 +3,11 @@
     "src/app/**/*": {
       "maxDuration": 300
     }
-  }
+  },
+  "cron": [
+    {
+      "path": "/api/cron/onboarding",
+      "schedule": "* * * * *"
+    }
+  ]
 }
