@@ -26,7 +26,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { FaDiscord } from "react-icons/fa";
+import { FaDiscord, FaTwitter } from "react-icons/fa";
 import { Observable, from, map, of, shareReplay, switchMap, take } from "rxjs";
 import { AppInstallContainer } from "./app-install-container";
 
@@ -397,6 +397,11 @@ export async function MainMenu({ className }: { className?: string }) {
       )}
       <div className="flex flex-row gap-2 justify-center">
         <div className="flex flex-row justify-center gap-2">
+          <Link target="_blank" href="https://www.x.com/kitchencraftAI">
+            <Button size="icon" variant="outline">
+              <FaTwitter />
+            </Button>
+          </Link>
           <Link target="_blank" href="https://discord.gg/z2yaxZhzpP">
             <Button size="icon" variant="outline">
               <FaDiscord />
