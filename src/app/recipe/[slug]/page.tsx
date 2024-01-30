@@ -88,6 +88,7 @@ import {
   SousChefPromptCommandGroup,
 } from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
+import ErrorBoundary from "next/dist/client/components/error-boundary";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -897,9 +898,9 @@ export default async function Page(props: Props) {
               <Card id="history" className="mx-3">
                 <History />
               </Card>
-              <Card id="assistant" className="mx-3">
-                <AssistantContent />
-              </Card>
+              {/* <Card id="assistant" className="mx-3">
+                  <AssistantContent />
+              </Card> */}
               <Card id="tips-and-tricks" className="mx-3">
                 <TipsAndTricks />
               </Card>
