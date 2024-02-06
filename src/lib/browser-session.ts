@@ -97,9 +97,9 @@ export const getGuestToken = async () => {
     );
     return verified.payload as UserJwtPayload;
   } catch (err) {
-    throw new AuthError(
-      "Your token has expired. todo: Implement token refresh"
-    );
+    return undefined;
+    // A new one will be created
+    // Probably expired...
   }
 };
 
