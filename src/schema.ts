@@ -51,6 +51,7 @@ export const SecretsEnvironmentSchema = z.object({
 
 export const PublicEnvironmentSchema = z.object({
   KITCHENCRAFT_URL: z.string().url(),
+  KITCHENCRAFT_API_HOST: z.string(),
   ADSENSE_PUBLISHER_ID: z.string(),
   POSTHOG_CLIENT_KEY: z.string(),
   STRIPE_PUBLIC_KEY: z.string(),

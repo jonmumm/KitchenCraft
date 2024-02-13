@@ -4,7 +4,8 @@ import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";
-import { getCurrentEmail, getDistinctId, getSession } from "@/lib/auth/session";
+import { ServerActorRoot } from "@/lib/actor-kit/components";
+import { getCurrentEmail, getSession, getUniqueId } from "@/lib/auth/session";
 import { createAppInstallToken } from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
 import { getResult } from "@/lib/db";
@@ -26,7 +27,7 @@ import { nanoid } from "ai";
 import { randomUUID } from "crypto";
 import type { Metadata } from "next";
 import { revalidateTag } from "next/cache";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import "../styles/globals.css";
 import { Body, SearchParamsToastMessage } from "./components.client";
 import { ApplicationProvider } from "./provider";
@@ -102,7 +103,7 @@ export default async function RootLayout({
     const id = nanoid();
     const slug = getSlug({ id, name });
 
-    const createdBy = await getDistinctId();
+    const createdBy = await getUniqueId();
     const createdAt = new Date();
     const recipeKey = `recipe:${slug}`;
     const input = {
@@ -213,7 +214,7 @@ export default async function RootLayout({
 
     const id = nanoid();
     const slug = getSlug({ id, name });
-    const createdBy = await getDistinctId();
+    const createdBy = await getUniqueId();
     const createdAt = new Date();
 
     const input = {
@@ -298,12 +299,10 @@ export default async function RootLayout({
 
     return { success: true as const, data: { recipeUrl: `/recipe/${slug}` } };
   }
+  const uniqueId = await getUniqueId();
 
   const currentEmail = await getCurrentEmail();
-  const appInstallToken = await createAppInstallToken(
-    await getDistinctId(),
-    currentEmail
-  );
+  const appInstallToken = await createAppInstallToken(uniqueId, currentEmail);
 
   let manifestHref = `/user-app-manifest.json`;
   if (appInstallToken) {
@@ -316,6 +315,7 @@ export default async function RootLayout({
   };
 
   const canInstallPWA = getCanInstallPWA();
+  const session = await getSession();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -347,38 +347,43 @@ export default async function RootLayout({
         {/* // todo only do this if react node loaded */}
       </head>
       <ApplicationProvider
-        session={await getSession()}
+        session={session}
         actions={actions}
         appSessionId={parseCookie("appSessionId")}
       >
         <Body isPWA={!!parseCookie("appSessionId")}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <div className="min-h-[95dvh]">
-              <div>{header}</div>
-              <div className="crafting:hidden">{children}</div>
-              <div className="hidden crafting:block">{craft}</div>
-            </div>
-            <div className="sticky mt-4 bottom-0 z-20">{footer}</div>
-            {canInstallPWA && <SafariInstallPrompt />}
-          </ThemeProvider>
-          <Toaster />
-          <SearchParamsToastMessage />
-          <LegacyToaster />
-          {/* <KeyboardAvoidingView>
-            {footer}
-          </KeyboardAvoidingView> */}
-          {/* <Badge>Back</Badge> */}
+          <Suspense fallback={null}>
+            {/* // TODO allow server-actor to send events before rendering... */}
+            {/* Enables server to centralize logic in a machine across routes */}
+            <ServerActorRoot
+              id={uniqueId}
+              render={(snapshot) => {
+                return (
+                  <>
+                    <ThemeProvider
+                      attribute="class"
+                      defaultTheme="system"
+                      enableSystem
+                      disableTransitionOnChange
+                    >
+                      <div className="min-h-[95dvh]">
+                        <div>{header}</div>
+                        <div className="crafting:hidden">{children}</div>
+                        <div className="hidden crafting:block">{craft}</div>
+                      </div>
+                      <div className="sticky mt-4 bottom-0 z-20">{footer}</div>
+                      {canInstallPWA && <SafariInstallPrompt />}
+                    </ThemeProvider>
+                    <Toaster />
+                    <SearchParamsToastMessage />
+                    <LegacyToaster />
+                  </>
+                );
+              }}
+            />
+          </Suspense>
         </Body>
       </ApplicationProvider>
     </html>
   );
 }
-
-// export type CreateNewInstantRecipe = typeof createNewInstantRecipe;
-// export type CreateNewRecipeFromSuggestion =
-//   typeof createNewRecipeFromSuggestion;

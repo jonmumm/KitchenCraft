@@ -15,7 +15,7 @@ import { AppInstallContainer } from "@/modules/main-menu/app-install-container";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { db } from "@/db";
 import { getNotificationFeatureStates } from "@/db/queries";
-import { getCurrentEmail, getDistinctId } from "@/lib/auth/session";
+import { getCurrentEmail, getUniqueId } from "@/lib/auth/session";
 import { parseCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA } from "@/lib/headers";
 import { FeatureId } from "@/types";
@@ -25,7 +25,7 @@ import { NotificationSwitch } from "./components";
 import { NotificationType } from "./constants";
 
 export default async function Page() {
-  const distinctId = await getDistinctId();
+  const distinctId = await getUniqueId();
   const currentEmail = await getCurrentEmail();
   const canInstallPWA = getCanInstallPWA();
   const featureStates = await getNotificationFeatureStates(db, distinctId);

@@ -11,13 +11,13 @@ import {
   getRecipesByTagAndCreator,
   getTagCountsForUserCreatedRecipes,
 } from "@/db/queries";
-import { getDistinctId } from "@/lib/auth/session";
+import { getUniqueId } from "@/lib/auth/session";
 import { slugToSentence } from "@/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
 
 export default async function Page(props: { params: { tagSlug: string } }) {
   const tag = slugToSentence(props.params.tagSlug);
-  const distinctId = await getDistinctId();
+  const distinctId = await getUniqueId();
   const recipes = await getRecipesByTagAndCreator(tag, distinctId);
 
   return (

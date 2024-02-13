@@ -4,7 +4,7 @@ import { PushSubscriptions, db } from "@/db";
 import { getProfileByUserId } from "@/db/queries";
 import { env } from "@/env.public";
 import { privateEnv } from "@/env.secrets";
-import { getDistinctId } from "@/lib/auth/session";
+import { getUniqueId } from "@/lib/auth/session";
 import { setCookie } from "@/lib/coookieStore";
 import { assert } from "@/lib/utils";
 import { Loader2Icon } from "lucide-react";
@@ -22,7 +22,7 @@ export default async function Page() {
   //   const cookieStore = cookies();
   //   cookieStore.set("lastPushPrompt", new Date().toISOString());
 
-  const distinctId = await getDistinctId();
+  const distinctId = await getUniqueId();
 
   // we might not need to do this at all
   async function refreshPushSubscription(

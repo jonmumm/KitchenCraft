@@ -1,4 +1,4 @@
-import { getDistinctId } from "@/lib/auth/session";
+import { getUniqueId } from "@/lib/auth/session";
 import { ReactNode } from "react";
 import { postComment } from "./actions";
 import { CommentsRoot } from "./components.client";
@@ -12,7 +12,7 @@ export const CommentsProvider = async ({
   children: ReactNode;
 }) => {
   const comments = await getCommentsForRecipeSlug(slug);
-  const distinctId = await getDistinctId();
+  const distinctId = await getUniqueId();
 
   return (
     <CommentsRoot
