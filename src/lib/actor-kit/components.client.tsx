@@ -1,7 +1,8 @@
 "use client";
 
-import { userAppMachine } from "@/app/app-machine.def";
+import { userAppMachine } from "@/app/user-app-machine.def";
 import { env } from "@/env.public";
+import { useEventSubject } from "@/hooks/useEvents";
 import { Operation, applyPatch } from "fast-json-patch";
 import { atom } from "nanostores";
 import PartySocket from "partysocket";
@@ -18,6 +19,7 @@ export const ServerActorProvider = (props: {
 }) => {
   const { connectionId, token, id, initial } = props;
   const initializedRef = useRef(false);
+  const event$ = useEventSubject();
 
   useLayoutEffect(() => {
     if (initializedRef.current) {
@@ -35,6 +37,20 @@ export const ServerActorProvider = (props: {
       query: { token },
     });
 
+    event$.subscribe((event) => {
+      try {
+        // const event = AppEventSchema.parse(JSON.parse(event))
+        // console.log(event);
+        socket.send(JSON.stringify(event));
+      } catch (ex) {
+        // todo better handle not sending events
+        // this will fail if we send anon-serializable prop
+        // value like a dom element
+        // thats fine because server doesnt need but
+        // we should make more predictable
+      }
+    });
+
     socket.addEventListener("message", (message: MessageEvent<string>) => {
       const { operations } = z
         .object({ operations: z.array(z.custom<Operation>()) })
@@ -46,7 +62,7 @@ export const ServerActorProvider = (props: {
         ...snapshot,
       });
     });
-  }, [initializedRef, connectionId, token, id, initial]);
+  }, [initializedRef, connectionId, token, id, initial, event$]);
 
   return <>{props.children}</>;
 };

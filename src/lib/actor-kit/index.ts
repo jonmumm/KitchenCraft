@@ -1,5 +1,4 @@
 import { json, notFound, ok } from "@/lib/actor-kit/utils/response";
-import { assert } from "@/lib/utils";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import type * as Party from "partykit/server";
@@ -145,10 +144,22 @@ export const createMachineServer = <
       this.subscrptionsByConnectionId.set(connection.id, sub);
     }
 
+    async onMessage(message: string, sender: Party.Connection) {
+      try {
+        const event = eventSchema.parse(JSON.parse(message));
+        this.actor.send(event);
+        // console.log("kit", event);
+      } catch (ex) {
+        console.warn("Error parsing event from client", ex);
+      }
+    }
+
     async onClose(connection: Party.Connection) {
       const sub = this.subscrptionsByConnectionId.get(connection.id);
-      assert(sub, "expected sub on close");
-      sub.unsubscribe();
+      if (sub) {
+        sub.unsubscribe();
+      }
+      // assert(sub, "expected sub on close");
     }
   }
 

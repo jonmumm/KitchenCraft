@@ -161,7 +161,8 @@ export default async function Page({
   return (
     <>
       <CraftInputting>
-        <NewRecipeResultsView />
+        <></>
+        {/* <NewRecipeResultsView /> */}
       </CraftInputting>
 
       <RecipeCreating>

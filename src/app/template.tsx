@@ -13,6 +13,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
       initial="hidden"
       animate="enter"
       transition={{ type: "linear" }}
+      className="flex-1 flex flex-col"
     >
       {children}
     </motion.main>

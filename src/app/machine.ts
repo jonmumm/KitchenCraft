@@ -20,10 +20,10 @@ import {
   ActorRefFrom,
   SnapshotFrom,
   assign,
-  createMachine,
   fromEventObservable,
   fromPromise,
   raise,
+  setup,
 } from "xstate";
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
@@ -202,65 +202,100 @@ export const createCraftMachine = ({
     ? "Dirty"
     : "Pristine";
 
-  return createMachine(
+  return setup({
+    types: {
+      context: {} as Context,
+      events: {} as AppEvent | GeneratorEvent,
+    },
+    actions: {
+      assignPrompt: assign({
+        prompt: (_, params: { prompt: string | undefined }) => params.prompt,
+      }),
+      replaceQueryParameters: (
+        { context },
+        params: { paramSet: Record<string, string | undefined> }
+      ) => {
+        const queryParams = new URLSearchParams(window.location.search);
+
+        for (const key in params.paramSet) {
+          const value = params.paramSet[key];
+          if (!!value) {
+            queryParams.set(key, value);
+          } else {
+            queryParams.delete(key);
+          }
+        }
+
+        const paramString = queryParams.toString();
+
+        // Include the location hash in the new URL
+        const hash = window.location.hash;
+
+        // Construct the new URL with the hash
+        const newUrl =
+          window.location.pathname +
+          (paramString !== "" ? "?" + paramString : "") +
+          hash;
+        window.history.replaceState(context, "", newUrl);
+      },
+      pushQueryParameters: (
+        { context },
+        params: { paramSet: Record<string, string | undefined> }
+      ) => {
+        // same as above but pushState
+        const queryParams = new URLSearchParams(window.location.search);
+
+        for (const key in params.paramSet) {
+          const value = params.paramSet[key];
+          if (!!value) {
+            queryParams.set(key, value);
+          } else {
+            queryParams.delete(key);
+          }
+        }
+
+        const paramString = queryParams.toString();
+
+        // Construct the new URL
+        const newUrl =
+          paramString !== ""
+            ? window.location.pathname + "?" + paramString
+            : window.location.pathname;
+        router.push(newUrl);
+      },
+      focusInput: () => {
+        const element = document.querySelector<HTMLTextAreaElement>("#prompt");
+        assert(element, "exlected prompt element");
+
+        if (element.value.length) {
+          element.selectionStart = element.selectionEnd = element.value.length;
+        }
+        element.focus();
+      },
+    },
+    actors: {
+      instantRecipeMetadataGenerator,
+      suggestionsGenerator,
+      remixSuggestionsGenerator,
+      createNewInstantRecipe,
+      createNewRecipeFromSuggestion,
+    },
+    guards: {
+      hasDirtyInput: ({ context }) => {
+        return !!context.prompt?.length;
+      },
+      hasPristineInput: ({ context }) => {
+        return !context.prompt || !context.prompt.length;
+      },
+      isInputFocused: ({ event, ...props }) => {
+        assert(event.type === "HYDRATE_INPUT", "expected HYDRATE_INPUT event");
+        return event.ref === document.activeElement;
+      },
+    },
+  }).createMachine(
     {
       id: "CraftMachine",
       context: initialContext,
-      types: {
-        context: {} as Context,
-        events: {} as AppEvent | GeneratorEvent,
-        guards: {} as
-          | {
-              type: "isInputFocused";
-            }
-          | {
-              type: "hasPristineInput";
-            }
-          | {
-              type: "hasDirtyInput";
-            },
-        actors: {} as
-          | {
-              src: "instantRecipeMetadataGenerator";
-              logic: typeof instantRecipeMetadataGenerator;
-            }
-          | {
-              src: "remixSuggestionsGenerator";
-              logic: typeof remixSuggestionsGenerator;
-            }
-          | {
-              src: "suggestionsGenerator";
-              logic: typeof suggestionsGenerator;
-            }
-          | {
-              src: "createNewInstantRecipe";
-              logic: typeof createNewInstantRecipe;
-            }
-          | {
-              src: "createNewRecipeFromSuggestion";
-              logic: typeof createNewRecipeFromSuggestion;
-            },
-        //   | {
-        //       src: "suggestionsGenerator";
-        //       logic: typeof suggestionsGenerator;
-        //     }
-        actions: {} as
-          | {
-              type: "assignPrompt";
-              params: { prompt: string | undefined };
-            }
-          | {
-              type: "replaceQueryParameters";
-              params: { paramSet: Record<string, string | undefined> };
-            }
-          | {
-              type: "pushQueryParameters";
-              params: { paramSet: Record<string, string | undefined> };
-            }
-          | {
-              type: "focusInput";
-            },
-      },
       on: {},
       type: "parallel",
       states: {
@@ -1067,94 +1102,11 @@ export const createCraftMachine = ({
           },
         },
       },
-    },
-    {
-      actions: {
-        assignPrompt: assign({
-          prompt: (_, params) => params.prompt,
-        }),
-        replaceQueryParameters: ({ context }, params) => {
-          const queryParams = new URLSearchParams(window.location.search);
-
-          for (const key in params.paramSet) {
-            const value = params.paramSet[key];
-            if (!!value) {
-              queryParams.set(key, value);
-            } else {
-              queryParams.delete(key);
-            }
-          }
-
-          const paramString = queryParams.toString();
-
-          // Include the location hash in the new URL
-          const hash = window.location.hash;
-
-          // Construct the new URL with the hash
-          const newUrl =
-            window.location.pathname +
-            (paramString !== "" ? "?" + paramString : "") +
-            hash;
-          window.history.replaceState(context, "", newUrl);
-        },
-
-        pushQueryParameters: ({ context }, params) => {
-          // same as above but pushState
-          const queryParams = new URLSearchParams(window.location.search);
-
-          for (const key in params.paramSet) {
-            const value = params.paramSet[key];
-            if (!!value) {
-              queryParams.set(key, value);
-            } else {
-              queryParams.delete(key);
-            }
-          }
-
-          const paramString = queryParams.toString();
-
-          // Construct the new URL
-          const newUrl =
-            paramString !== ""
-              ? window.location.pathname + "?" + paramString
-              : window.location.pathname;
-          router.push(newUrl);
-        },
-        focusInput: () => {
-          const element =
-            document.querySelector<HTMLTextAreaElement>("#prompt");
-          assert(element, "exlected prompt element");
-
-          if (element.value.length) {
-            element.selectionStart = element.selectionEnd =
-              element.value.length;
-          }
-          element.focus();
-        },
-      },
-      actors: {
-        instantRecipeMetadataGenerator,
-        suggestionsGenerator,
-        remixSuggestionsGenerator,
-        createNewInstantRecipe,
-        createNewRecipeFromSuggestion,
-      },
-      guards: {
-        hasDirtyInput: ({ context }) => {
-          return !!context.prompt?.length;
-        },
-        hasPristineInput: ({ context }) => {
-          return !context.prompt || !context.prompt.length;
-        },
-        isInputFocused: ({ event, ...props }) => {
-          assert(
-            event.type === "HYDRATE_INPUT",
-            "expected HYDRATE_INPUT event"
-          );
-          return event.ref === document.activeElement;
-        },
-      },
     }
+    // {
+    //   actions: {
+    //   },
+    // }
   );
 };
 

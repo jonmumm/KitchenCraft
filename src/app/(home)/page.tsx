@@ -1,5 +1,4 @@
 import { getSession } from "@/lib/auth/session";
-import { OnboardingStartCard } from "@/modules/onboarding-start/components";
 import { getHotRecipes } from "../../db/queries";
 import { RecipeListItem } from "../recipe/components";
 
@@ -12,11 +11,6 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
-      {!userId && (
-        <div className="m-4">
-          <OnboardingStartCard />
-        </div>
-      )}
       {items.map((_, index) => {
         const recipe = recipes[index];
 

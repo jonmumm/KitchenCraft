@@ -1,116 +1,174 @@
 import { Badge } from "@/components/display/badge";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/display/card";
 import { Label } from "@/components/display/label";
+import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import KeyboardAvoidingView from "@/components/layout/keyboard-avoiding-view";
+import ClientOnly from "@/components/util/client-only";
 import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
-import { ChevronLeft, ChevronRightIcon, PlusIcon, XIcon } from "lucide-react";
+import { ChevronLeft, ChevronRightIcon, XIcon } from "lucide-react";
 import { ReactNode } from "react";
 import { twc } from "react-twc";
-import {
-  CraftEmpty,
-  CraftNotEmpty,
-  InstantRecipeItem,
-  SuggestionItem,
-} from "./components.client";
-import ClientOnly from "@/components/util/client-only";
+import { CraftEmpty, CraftNotEmpty } from "./components.client";
 
-export const TrendingIngredients = () => {
-  const arr = new Array(30).fill(0);
+const Container = twc.div`flex flex-col gap-2 h-full max-w-3xl mx-auto w-full`;
+const Section = twc.div`flex flex-col gap-1`;
 
+const TRENDING_INREDIENTS = [
+  "Quinoa",
+  "Avocado",
+  "Kale",
+  "Sweet Potato",
+  "Chickpeas",
+  "Almond Milk",
+  "Coconut Oil",
+  "Chia Seeds",
+  "Turmeric",
+  "Lentils",
+  "Matcha",
+  "Cauliflower",
+];
+
+const TrendingIngredientsSection = () => {
   return (
-    <div>
-      <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
-        Trending Ingredients
-      </Label>
-      <div className="flex flex-row gap-2 flex-wrap">
-        {arr.map((_, index) => {
-          return (
-            <div key={index}>
+    <CraftEmpty>
+      <Section>
+        <Label className="text-xs text-muted-foreground uppercase font-semibold px-4">
+          Ingredients
+        </Label>
+        <div className="carousel carousel-center space-x-2 pl-2 pr-2">
+          {TRENDING_INREDIENTS.map((ingredient) => {
+            return (
               <Badge
-                key={index}
                 variant="secondary"
-                className="flex flex-row gap-1"
+                className="carousel-item"
+                key={ingredient}
               >
-                {index}
-                <PlusIcon size={14} />
+                {ingredient}
               </Badge>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+            );
+          })}
+        </div>
+      </Section>
+    </CraftEmpty>
   );
 };
 
-export const TrendingTags = () => {
-  console.log("TRENDING TAGS!");
-  const arr = new Array(20).fill(0);
-
-  try {
-    getMostUsedTagsLastWeek(db).then(console.log);
-  } catch (ex) {
-    console.error(ex);
-  }
-  //   const tags$ = from(getMostUsedTagsLastWeek(db)).pipe(shareReplay(1));
-
+const SuggestedIngredientsSection = () => {
   return (
-    <div className="flex flex-col gap-2">
-      <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
-        Trending
-      </Label>
-      <div className="flex flex-row gap-2 flex-wrap">
-        {arr.map((_, index) => {
-          return null;
-          //   return (
-          //     <AsyncRenderFirstValue
-          //       key={index}
-          //       observable={tags$}
-          //       fallback={
-          //         <div>
-          //           <Badge variant="secondary">
-          //             <Skeleton className="w-8 h-4" />
-          //           </Badge>
-          //         </div>
-          //       }
-          //       render={(tags) => {
-          //         // console.log(tags);
-          //         return (
-          //           <div>
-          //             <Badge variant="secondary" className="flex flex-row gap-1">
-          //               {index}
-          //               <PlusIcon size={14} />
-          //             </Badge>
-          //           </div>
-          //         );
-          //       }}
-          //     ></AsyncRenderFirstValue>
-          //   );
-        })}
-      </div>
-    </div>
+    <CraftNotEmpty>
+      <Section>
+        <Label className="text-xs text-muted-foreground uppercase font-semibold px-4">
+          Ingredients
+        </Label>
+        <div className="carousel carousel-center space-x-2 pl-2 pr-2">
+          {TRENDING_INREDIENTS.map((ingredient) => {
+            return (
+              <Badge
+                variant="secondary"
+                className="carousel-item animate-pulse"
+                key={ingredient}
+              >
+                <Skeleton
+                  className={`w-${
+                    [8, 12, 14][Math.floor(Math.random() * 3)]
+                  } h-4`}
+                />
+              </Badge>
+            );
+          })}
+        </div>
+      </Section>
+    </CraftNotEmpty>
   );
 };
 
-const Container = twc.div`flex flex-col gap-2 px-4 h-full max-w-3xl mx-auto w-full`;
+const TRENDING_TAGS = [
+  "Instant Pot",
+  "Vegan",
+  "Gluten-Free",
+  "Under 30 Minutes",
+  "One-Pot Meals",
+  "Dairy-Free",
+  "High-Protein",
+  "Vegetarian",
+  "Sugar-Free",
+  "Spicy",
+  "Kid-Friendly",
+  "Whole30",
+];
+
+const TrendingTagsSection = () => {
+  return (
+    <CraftEmpty>
+      <Section>
+        {/* <InstantRecipeItem /> */}
+        <Label className="text-xs text-muted-foreground uppercase font-semibold px-4">
+          Tags
+        </Label>
+        <div className="carousel carousel-center space-x-2 pl-2 pr-2">
+          {TRENDING_TAGS.map((tag) => {
+            return (
+              <Badge variant="secondary" className="carousel-item" key={tag}>
+                {tag}
+              </Badge>
+            );
+          })}
+        </div>
+      </Section>
+    </CraftEmpty>
+  );
+};
+
+const SuggestedTagsSection = () => {
+  return (
+    <CraftNotEmpty>
+      <Section>
+        {/* <InstantRecipeItem /> */}
+        <Label className="text-xs text-muted-foreground uppercase font-semibold px-4">
+          Tags
+        </Label>
+        <div className="carousel carousel-center space-x-2 pl-2 pr-2">
+          {TRENDING_TAGS.map((tag) => {
+            return (
+              <Badge
+                variant="secondary"
+                className="carousel-item animate-pulse"
+                key={tag}
+              >
+                <Skeleton
+                  className={`w-${
+                    [8, 12, 14][Math.floor(Math.random() * 3)]
+                  } h-4`}
+                />
+              </Badge>
+            );
+          })}
+        </div>
+      </Section>
+    </CraftNotEmpty>
+  );
+};
 
 export const NewRecipeResultsView = () => {
   const items = new Array(6).fill(0);
 
   return (
     <>
-      <Container>
-        {/* <Selections /> */}
-        <Label className="text-xs text-muted-foreground uppercase font-semibold">
-          Instant Recipe
-        </Label>
-        <InstantRecipeItem />
-        <Label className="text-xs text-muted-foreground uppercase font-semibold mt-4">
-          Suggestions
-        </Label>
-        {items.map((_, index) => {
+      <Container className="gap-4 flex-1">
+        <TrendingIngredientsSection />
+        <TrendingTagsSection />
+        <SuggestedIngredientsSection />
+        <SuggestedTagsSection />
+        {/* {items.map((_, index) => {
           return <SuggestionItem key={index} index={index} />;
-        })}
+        })} */}
       </Container>
       <Footer>
         <ClientOnly>
@@ -118,8 +176,16 @@ export const NewRecipeResultsView = () => {
             <BackButton />
           </CraftEmpty>
           <CraftNotEmpty>
-            <BackButton />
-            {/* <ClearButton /> */}
+            <div className="px-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Chocolate Chip Cookies</CardTitle>
+                  <CardDescription>
+                    Gooey baked in tghe oven for 35 minutes. A classic recipe.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
           </CraftNotEmpty>
         </ClientOnly>
       </Footer>

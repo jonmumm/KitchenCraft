@@ -366,10 +366,12 @@ export default async function RootLayout({
                       enableSystem
                       disableTransitionOnChange
                     >
-                      <div className="min-h-[95dvh]">
+                      <div className="min-h-[95dvh] flex flex-col">
                         <div>{header}</div>
                         <div className="crafting:hidden">{children}</div>
-                        <div className="hidden crafting:block">{craft}</div>
+                        <div className="flex-1 hidden crafting:flex flex-col">
+                          {craft}
+                        </div>
                       </div>
                       <div className="sticky mt-4 bottom-0 z-20">{footer}</div>
                       {canInstallPWA && <SafariInstallPrompt />}

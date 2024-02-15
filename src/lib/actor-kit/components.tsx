@@ -1,7 +1,5 @@
-// import { ActorSnapshots } from "@/actors/types";
-// import { getUserServerActor } from "@/app/actor-client";
-import { userActorClient } from "@/app/actor-client";
-import { userAppMachine } from "@/app/app-machine.def";
+import { getUserServerActor } from "@/app/user-actor.client";
+import { userAppMachine } from "@/app/user-app-machine.def";
 import { assert } from "@/lib/utils";
 import { ReactNode } from "react";
 import { Actor, SnapshotFrom } from "xstate";
@@ -12,10 +10,9 @@ export const ServerActorRoot = async (props: {
   render: (snapshot: SnapshotFrom<Actor<typeof userAppMachine>>) => ReactNode; // todo figure out how to hoise the type here out to make generic
 }) => {
   const { id, render } = props;
-  const resp = await userActorClient.get(id);
-  const { snapshot, connectionId, token } = resp;
+  // const resp = await userActorClient.get(id);
+  const { snapshot, connectionId, token } = await getUserServerActor(id);
   assert(snapshot, "expected snapshot");
-  console.log(snapshot);
 
   return (
     <ServerActorProvider

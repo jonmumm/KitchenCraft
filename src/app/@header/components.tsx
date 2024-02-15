@@ -46,7 +46,7 @@ export async function Header({
 
   return (
     <>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto w-full">
         <div
           className={cn(
             `w-full flex justify-between p-4 gap-4 hidden-print items-center group`,
