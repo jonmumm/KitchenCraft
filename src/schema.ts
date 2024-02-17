@@ -605,7 +605,12 @@ const SwipeDownEventSchema = z.object({
   type: z.literal("SWIPE_DOWN"),
 });
 
+const SkipEventSchema = z.object({
+  type: z.literal("SKIP"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  SkipEventSchema,
   SwipeUpEventSchema,
   SwipeDownEventSchema,
   SwipeRightEventSchema,

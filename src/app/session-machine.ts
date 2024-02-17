@@ -55,8 +55,8 @@ const craftMachine = setup({
       actions: [
         sendTo("tagSuggestionsGenerator", ({ event }) => event),
         sendTo("ingredientSuggestionsGenerator", ({ event }) => event),
-        sendTo("recipeSuggestionsGenerator", ({ event }) => event)
-    ],
+        sendTo("recipeSuggestionsGenerator", ({ event }) => event),
+      ],
     },
   },
   states: {
@@ -115,7 +115,7 @@ const InputSchema = z.object({
 });
 type Input = z.infer<typeof InputSchema>;
 
-export const userAppMachine = setup({
+export const sessionMachine = setup({
   types: {
     input: {} as Input,
     context: {} as {

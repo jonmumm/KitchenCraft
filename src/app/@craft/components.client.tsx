@@ -1,14 +1,29 @@
 "use client";
 
 import { Badge } from "@/components/display/badge";
-import { Card } from "@/components/display/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/display/card";
+import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
 import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { Button } from "@/components/input/button";
-import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
+import ClientOnly from "@/components/util/client-only";
 import { useSelector } from "@/hooks/useSelector";
+import { sessionSnapshot$ } from "@/lib/actor-kit/components.client";
 import { cn } from "@/lib/utils";
-import { LoaderIcon } from "lucide-react";
+import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
+import { useStore } from "@nanostores/react";
+import {
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+  LoaderIcon,
+  TagIcon,
+} from "lucide-react";
 import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
 import {
@@ -18,7 +33,6 @@ import {
   selectIsSuggestionsLoading,
   selectPromptLength,
 } from "./selectors";
-import ClientOnly from "@/components/util/client-only";
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
@@ -192,7 +206,9 @@ export const SuggestionItem = ({ index }: { index: number }) => {
 
 const SuggestionIcon = ({ index }: { index: number }) => {
   const actor = useContext(CraftContext);
-  const isTyping = useSelector(actor, (state) => state.matches("Typing.True"));
+  const isTyping = useSelector(actor, (state) =>
+    state.matches({ Typing: "True" })
+  );
   const isSuggestionsLoading = useSelector(actor, selectIsSuggestionsLoading);
 
   const isLoading =
@@ -219,7 +235,9 @@ const SuggestionIcon = ({ index }: { index: number }) => {
 
 const InstantRecipeIcon = () => {
   const actor = useContext(CraftContext);
-  const isTyping = useSelector(actor, (state) => state.matches("Typing.True"));
+  const isTyping = useSelector(actor, (state) =>
+    state.matches({ Typing: "True" })
+  );
   const promptLength = useSelector(actor, selectPromptLength);
   const hasInstantRecipe = useSelector(
     actor,
@@ -245,4 +263,88 @@ export const CraftingPlacholder = () => {
   const selection = useSelector(actor, (state) => state.context.selection);
 
   return selection && <RecipeCraftingPlaceholder />;
+};
+
+export const SuggestedRecipeCard = ({ index }: { index: number }) => {
+  const actor = useContext(CraftContext);
+  const currentItemIndex = useSelector(
+    actor,
+    (state) => state.context.currentItemIndex
+  );
+  console.log({ currentItemIndex });
+
+  const diffToCurrent = index - currentItemIndex;
+
+  const topOffset = diffToCurrent * 4;
+  const scale = 100 - diffToCurrent * 5;
+  const z = 50 - diffToCurrent * 10;
+  const position = diffToCurrent ? "absolute" : "relative";
+
+  return (
+    <Card
+      className={`max-w-xl w-full z-${z} scale-${scale} -mt-${topOffset} inset-0 ${position} transition-all`}
+    >
+      <CardHeader className="flex flex-col gap-2">
+        <CardTitle>{index + 1}. Chocolate Chip Cookies</CardTitle>
+        <CardDescription>
+          Gooey baked in tghe oven for 35 minutes. A classic recipe.
+        </CardDescription>
+        <div className="flex flex-row gap-1 items-center">
+          <TagIcon size={16} />
+          <div className="flex flex-row gap-1">
+            <Badge variant="secondary">Baking</Badge>
+            <Badge variant="secondary">30 minutes</Badge>
+            <Badge variant="secondary">Chocolate</Badge>
+          </div>
+        </div>
+      </CardHeader>
+      <Separator className="mb-6" />
+      <CardContent className="flex justify-between">
+        <Button
+          event={{ type: "SKIP" }}
+          variant="default"
+          className="bg-slate-500"
+        >
+          <ChevronsLeftIcon /> Skip
+        </Button>
+        <Button variant="default" className="bg-purple-500">
+          Craft <ChevronsRightIcon />
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+export const SuggestedTagBadge = ({
+  key,
+  className,
+}: {
+  key: number;
+  className: string;
+}) => {
+  // const session = useStore(sessionSnapshot$);
+  // console.log({ session });
+  // useContext(CraftContext)
+  const tag = "";
+
+  if (!tag) {
+    return (
+      <Badge
+        className={cn(className, "carousel-item flex flex-row")}
+        variant="secondary"
+      >
+        <Skeleton className="w-8 h-4" />
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      className={cn(className, "carousel-item flex flex-row")}
+      variant="secondary"
+      event={{ type: "ADD_TAG", tag }}
+    >
+      {tag}
+    </Badge>
+  );
 };

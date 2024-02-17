@@ -193,7 +193,7 @@ export const createCraftMachine = ({
       dietaryAlternatives: undefined,
       equipmentAdaptations: undefined,
       submittedInputHash: undefined,
-      currentItemIndex: undefined,
+      currentItemIndex: 0,
       currentRecipeUrl: undefined,
     } satisfies Context;
   })();
@@ -201,6 +201,32 @@ export const createCraftMachine = ({
   const initialPromptState = initialContext.prompt?.length
     ? "Dirty"
     : "Pristine";
+
+  const placeholderMachine = setup({
+    types: {
+      context: {} as {
+        text: string;
+        currentIndex: number;
+      },
+      events: {} as AppEvent,
+    },
+  }).createMachine({
+    id: "PlaceholderMachine",
+    context: {
+      text: "",
+      currentIndex: 0,
+    },
+    initial: "Empty",
+    states: {
+      Empty: {
+        always: "Animating",
+      },
+      Animating: {
+        after: {},
+      },
+      Complete: {},
+    },
+  });
 
   return setup({
     types: {
@@ -274,6 +300,7 @@ export const createCraftMachine = ({
       },
     },
     actors: {
+      placeholderMachine,
       instantRecipeMetadataGenerator,
       suggestionsGenerator,
       remixSuggestionsGenerator,
@@ -296,7 +323,13 @@ export const createCraftMachine = ({
     {
       id: "CraftMachine",
       context: initialContext,
-      on: {},
+      on: {
+        SKIP: {
+          actions: assign({
+            currentItemIndex: ({ context }) => context.currentItemIndex + 1,
+          }),
+        },
+      },
       type: "parallel",
       states: {
         Creating: {
@@ -416,304 +449,6 @@ export const createCraftMachine = ({
             False: {},
           },
         },
-        Mode: {
-          initial: "New",
-          states: {
-            New: {
-              on: {
-                REMIX: {
-                  actions: () => {
-                    alert("Remixing not implemented yet");
-                  },
-                  // target: "Remix",
-                  // actions: [
-                  //   ({ event }) => {
-                  //     const promptEl = document.body.querySelector(
-                  //       "#prompt"
-                  //     ) as HTMLTextAreaElement | undefined;
-                  //     if (promptEl) {
-                  //       promptEl.value = event.prompt || "";
-                  //       setTimeout(() => {
-                  //         promptEl.focus();
-                  //       }, 25);
-                  //     }
-                  //   },
-                  //   assign({
-                  //     currentRemixSlug: ({ event }) => event.slug,
-                  //     prompt: ({ event }) => event.prompt,
-                  //   }),
-                  //   {
-                  //     type: "replaceQueryParameters",
-                  //     params({ context, event }) {
-                  //       return {
-                  //         paramSet: {
-                  //           prompt: event.prompt,
-                  //         },
-                  //       };
-                  //     },
-                  //   },
-                  // ],
-                },
-              },
-              description: "Creating a new recipe",
-              type: "parallel",
-              states: {
-                InstantRecipe: {
-                  initial: "Idle",
-                  on: {
-                    CLEAR: {
-                      target: ".Idle",
-                      actions: assign({
-                        instantRecipeMetadata: undefined,
-                        instantRecipeResultId: undefined,
-                      }),
-                    },
-                    NEW_RECIPE: {
-                      target: ".Idle",
-                      guard: ({ event }) => !!event.prompt,
-                      actions: assign({
-                        instantRecipeMetadata: undefined,
-                        instantRecipeResultId: undefined,
-                      }),
-                    },
-                  },
-                  states: {
-                    Idle: {
-                      on: {
-                        SET_INPUT: {
-                          target: "Holding",
-                          guard: ({ context }) => !!context.prompt?.length,
-                        },
-                      },
-                    },
-                    Holding: {
-                      entry: [
-                        assign({
-                          instantRecipeMetadata: undefined,
-                          instantRecipeResultId: undefined,
-                        }),
-                      ],
-                      on: {
-                        CLOSE: {
-                          target: "Idle",
-                        },
-                        SET_INPUT: [
-                          {
-                            target: "Holding",
-                            guard: ({ context }) => !!context.prompt?.length,
-                          },
-                          { target: "Idle" },
-                        ],
-                      },
-                      after: {
-                        1000: {
-                          target: "InProgress",
-                          guard: ({ context }) => !!context.prompt?.length,
-                        },
-                      },
-                    },
-                    InProgress: {
-                      invoke: {
-                        src: "instantRecipeMetadataGenerator",
-                        input: ({ context }) => {
-                          assert(context.prompt, "expected prompt");
-                          return { prompt: context.prompt };
-                        },
-                        onDone: "Idle",
-                      },
-                      on: {
-                        SET_INPUT: {
-                          target: "Holding",
-                          actions: assign({
-                            instantRecipeMetadata: undefined,
-                          }),
-                        },
-                        INSTANT_RECIPE_METADATA_START: {
-                          actions: [
-                            assign({
-                              instantRecipeResultId: ({ event }) =>
-                                event.resultId,
-                            }),
-                          ],
-                        },
-                        INSTANT_RECIPE_METADATA_PROGRESS: {
-                          actions: assign({
-                            instantRecipeMetadata: ({ event }) => event.data,
-                          }),
-                        },
-                        INSTANT_RECIPE_METADATA_COMPLETE: {
-                          actions: [
-                            assign({
-                              instantRecipeMetadata: ({ event }) => event.data,
-                            }),
-                          ],
-                        },
-                      },
-                    },
-                  },
-                },
-                Suggestions: {
-                  initial: "Idle",
-                  on: {
-                    CLEAR: {
-                      target: ".Idle",
-                      actions: assign({
-                        suggestions: undefined,
-                        suggestionsResultId: undefined,
-                      }),
-                    },
-                    NEW_RECIPE: {
-                      target: ".Idle",
-                      guard: ({ event }) => !!event.prompt,
-                      actions: assign({
-                        suggestions: undefined,
-                        suggestionsResultId: undefined,
-                      }),
-                    },
-                  },
-                  states: {
-                    Idle: {
-                      on: {
-                        SET_INPUT: {
-                          target: "Holding",
-                          guard: ({ context }) => !!context.prompt?.length,
-                        },
-                      },
-                    },
-                    Holding: {
-                      entry: [
-                        assign({
-                          suggestions: undefined,
-                          suggestionsResultId: undefined,
-                        }),
-                      ],
-                      on: {
-                        CLOSE: {
-                          target: "Idle",
-                        },
-                        SET_INPUT: [
-                          {
-                            target: "Holding",
-                            guard: ({ context }) => !!context.prompt?.length,
-                          },
-                          { target: "Idle" },
-                        ],
-                      },
-                      after: {
-                        2500: {
-                          target: "InProgress",
-                          guard: ({ context }) => !!context.prompt?.length,
-                        },
-                      },
-                    },
-                    InProgress: {
-                      invoke: {
-                        src: "suggestionsGenerator",
-                        input: ({ context }) => {
-                          assert(context.prompt, "expected prompt");
-                          return { prompt: context.prompt };
-                        },
-                        onDone: "Idle",
-                      },
-                      on: {
-                        SET_INPUT: {
-                          target: "Holding",
-                          actions: assign({
-                            suggestions: undefined,
-                          }),
-                        },
-                        SUGGESTION_START: {
-                          actions: [
-                            assign({
-                              suggestionsResultId: ({ event }) =>
-                                event.resultId,
-                            }),
-                          ],
-                        },
-                        SUGGESTION_PROGRESS: {
-                          actions: assign({
-                            suggestions: ({ event }) => event.data.suggestions,
-                          }),
-                        },
-                        SUGGESTION_COMPLETE: {
-                          actions: [
-                            assign({
-                              suggestions: ({ event }) =>
-                                event.data.suggestions,
-                            }),
-                          ],
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            Remix: {
-              on: {
-                PAGE_LOADED: {
-                  target: "New",
-                },
-              },
-              description: "Making changes to an existing recipe",
-              type: "parallel",
-              states: {
-                Suggestions: {
-                  initial: "Initializing",
-                  states: {
-                    Initializing: {
-                      always: [
-                        {
-                          target: "Idle",
-                          guard: ({ context }) => !!context.remixSuggestions,
-                        },
-                        { target: "InProgress" },
-                      ],
-                    },
-                    Idle: {},
-                    InProgress: {
-                      onDone: "Idle",
-                      invoke: {
-                        src: "remixSuggestionsGenerator",
-                        input: ({ context }) => {
-                          assert(
-                            context.currentRemixSlug,
-                            "expected currentRemixSlug to be set"
-                          );
-                          return { slug: context.currentRemixSlug };
-                        },
-                        onDone: "Idle",
-                      },
-                      on: {
-                        REMIX_SUGGESTIONS_START: {
-                          actions: [
-                            assign({
-                              suggestionsResultId: ({ event }) =>
-                                event.resultId,
-                            }),
-                          ],
-                        },
-                        REMIX_SUGGESTIONS_PROGRESS: {
-                          actions: assign({
-                            suggestions: ({ event }) => event.data.suggestions,
-                          }),
-                        },
-                        REMIX_SUGGESTIONS_COMPLETE: {
-                          actions: [
-                            assign({
-                              suggestions: ({ event }) =>
-                                event.data.suggestions,
-                            }),
-                          ],
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
         Typing: {
           initial: "False",
           states: {
@@ -737,6 +472,12 @@ export const createCraftMachine = ({
             },
           },
         },
+        Placeholder: {
+          invoke: {
+            id: "Placeholder",
+            src: "placeholderMachine",
+          },
+        },
         Prompt: {
           initial: initialPromptState,
           on: {
@@ -754,7 +495,7 @@ export const createCraftMachine = ({
               actions: [
                 assign({
                   prompt: undefined,
-                  currentItemIndex: -1,
+                  currentItemIndex: 0,
                 }),
                 () => {
                   const promptEl = document.body.querySelector("#prompt") as
@@ -832,25 +573,83 @@ export const createCraftMachine = ({
                 },
               ],
               on: {
-                BLUR_PROMPT: {
-                  target: "False",
-                  guard: ({ context }) => !(context.prompt?.length || 0),
+                // BLUR_PROMPT: {
+                //   target: "False",
+                //   guard: ({ context }) => !(context.prompt?.length || 0),
+                //   actions: [
+                //     {
+                //       type: "replaceQueryParameters",
+                //       params() {
+                //         return {
+                //           paramSet: {
+                //             crafting: undefined,
+                //           },
+                //         };
+                //       },
+                //     },
+                //   ],
+                // },
+                TOGGLE: "False",
+                BACK: "False",
+                CLOSE: "False",
+                ADD_INGREDIENT: {
                   actions: [
                     {
+                      type: "assignPrompt",
+                      params: ({ context, event }) => ({
+                        prompt: appendValueWithComma(
+                          context.prompt || "",
+                          event.ingredient
+                        ),
+                      }),
+                    },
+                    {
                       type: "replaceQueryParameters",
-                      params() {
+                      params({ context, event }) {
                         return {
                           paramSet: {
-                            crafting: undefined,
+                            prompt: appendValueWithComma(
+                              context.prompt || "",
+                              event.ingredient
+                            ),
                           },
                         };
                       },
                     },
+                    {
+                      type: "focusInput",
+                    },
                   ],
                 },
-                TOGGLE: "False",
-                BACK: "False",
-                CLOSE: "False",
+                ADD_TAG: {
+                  actions: [
+                    {
+                      type: "assignPrompt",
+                      params: ({ context, event }) => ({
+                        prompt: appendValueWithComma(
+                          context.prompt || "",
+                          event.tag
+                        ),
+                      }),
+                    },
+                    {
+                      type: "replaceQueryParameters",
+                      params({ context, event }) {
+                        return {
+                          paramSet: {
+                            prompt: appendValueWithComma(
+                              context.prompt || "",
+                              event.tag
+                            ),
+                          },
+                        };
+                      },
+                    },
+                    {
+                      type: "focusInput",
+                    },
+                  ],
+                },
                 SET_INPUT: {
                   actions: [
                     {
@@ -967,7 +766,7 @@ export const createCraftMachine = ({
                           }
 
                           if (nextItemIndex < 0) {
-                            return undefined;
+                            return 0;
                           }
 
                           if (nextItemIndex > maxItemIndex) {
@@ -980,7 +779,7 @@ export const createCraftMachine = ({
 
                           if (!el) {
                             // element must have unmounted, no longer selectable
-                            return undefined;
+                            return 0;
                           }
 
                           // Scroll the element into view
@@ -1031,7 +830,7 @@ export const createCraftMachine = ({
                 },
                 assign({
                   currentItemIndex: () => {
-                    return undefined;
+                    return 0;
                   },
                 }),
               ],
@@ -1122,3 +921,11 @@ type GeneratorEvent =
       "INSTANT_RECIPE_METADATA",
       InstantRecipeMetadataPredictionOutput
     >;
+
+const appendValueWithComma = (prompt: string, value: string): string => {
+  // Check if the current prompt ends with a comma, if not, add one
+  let separator = prompt.trim().endsWith(",") ? " " : ", ";
+  // Avoid adding a comma if the prompt is empty
+  separator = prompt.length === 0 ? "" : separator;
+  return `${prompt}${separator}${value}`;
+};

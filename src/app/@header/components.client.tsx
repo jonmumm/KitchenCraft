@@ -151,14 +151,14 @@ export const CraftInput = ({
         onKeyDown={handleKeyDown}
         placeholderComponent={
           <div className="flex flex-row w-full h-full relative justify-end items-center">
-            <div className="flex flex-col flex-1 items-start">
+            {/* <div className="flex flex-col flex-1 items-start">
               <span className="font-semibold text-sm">What to make?</span>
               <div className="flex flex-row gap-1 text-muted-foreground text-xs">
                 <span>ingredients</span>
                 <span>•</span>
                 <span>tags</span>
               </div>
-            </div>
+            </div> */}
             {commandBadge && (
               <Badge variant="secondary" className="mr-4">
                 <CommandIcon size={14} />

@@ -1,26 +1,30 @@
 import { Badge } from "@/components/display/badge";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/display/card";
 import { Label } from "@/components/display/label";
-import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import KeyboardAvoidingView from "@/components/layout/keyboard-avoiding-view";
 import ClientOnly from "@/components/util/client-only";
 import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
-import { ChevronLeft, ChevronRightIcon, XIcon } from "lucide-react";
-import { ReactNode } from "react";
+import {
+  CarrotIcon,
+  ChevronLeft,
+  ChevronRightIcon,
+  TagIcon,
+  XIcon,
+} from "lucide-react";
+import { FC, ReactNode } from "react";
 import { twc } from "react-twc";
-import { CraftEmpty, CraftNotEmpty } from "./components.client";
+import {
+  CraftEmpty,
+  CraftNotEmpty,
+  SuggestedRecipeCard,
+  SuggestedTagBadge,
+} from "./components.client";
 
 const Container = twc.div`flex flex-col gap-2 h-full max-w-3xl mx-auto w-full`;
 const Section = twc.div`flex flex-col gap-1`;
 
-const TRENDING_INREDIENTS = [
+const TRENDING_INGREDIENTS = [
   "Quinoa",
   "Avocado",
   "Kale",
@@ -33,28 +37,58 @@ const TRENDING_INREDIENTS = [
   "Lentils",
   "Matcha",
   "Cauliflower",
+  "Tempeh",
+  "Spirulina",
+  "Jackfruit",
+  "Seitan",
+  "Kimchi",
+  "Tahini",
+  "Miso",
+  "Goji Berries",
+  "Hemp Hearts",
+  "Nutritional Yeast",
+  "Acai",
+  "Edamame",
+  "Soba Noodles",
+  "Gochujang",
+  "Tofu",
+  "Pumpkin Seeds",
+  "Arugula",
+  "Mango",
+  "Artichoke",
 ];
+
+const BadgeCarousel = ({ children }: { children: ReactNode }) => {
+  return (
+    <div className="carousel sm:flex-wrap carousel-center space-x-2 space-y-1 pl-2 pr-2">
+      {children}
+    </div>
+  );
+};
+
+const IngredientsLabel = () => {
+  return <SectionLabel icon={CarrotIcon} title={"Ingredients"} />;
+};
 
 const TrendingIngredientsSection = () => {
   return (
     <CraftEmpty>
       <Section>
-        <Label className="text-xs text-muted-foreground uppercase font-semibold px-4">
-          Ingredients
-        </Label>
-        <div className="carousel carousel-center space-x-2 pl-2 pr-2">
-          {TRENDING_INREDIENTS.map((ingredient) => {
+        <IngredientsLabel />
+        <BadgeCarousel>
+          {TRENDING_INGREDIENTS.map((ingredient) => {
             return (
               <Badge
                 variant="secondary"
                 className="carousel-item"
                 key={ingredient}
+                event={{ type: "ADD_INGREDIENT", ingredient }}
               >
                 {ingredient}
               </Badge>
             );
           })}
-        </div>
+        </BadgeCarousel>
       </Section>
     </CraftEmpty>
   );
@@ -64,93 +98,176 @@ const SuggestedIngredientsSection = () => {
   return (
     <CraftNotEmpty>
       <Section>
-        <Label className="text-xs text-muted-foreground uppercase font-semibold px-4">
-          Ingredients
-        </Label>
-        <div className="carousel carousel-center space-x-2 pl-2 pr-2">
-          {TRENDING_INREDIENTS.map((ingredient) => {
+        <IngredientsLabel />
+        <BadgeCarousel>
+          {TRENDING_INGREDIENTS.map((ingredient) => {
             return (
               <Badge
-                variant="secondary"
-                className="carousel-item animate-pulse"
+                className="carousel-item"
                 key={ingredient}
+                variant="secondary"
+                event={{ type: "ADD_INGREDIENT", ingredient }}
               >
-                <Skeleton
+                {ingredient}
+                {/* <Skeleton
                   className={`w-${
                     [8, 12, 14][Math.floor(Math.random() * 3)]
                   } h-4`}
-                />
+                /> */}
               </Badge>
             );
           })}
-        </div>
+        </BadgeCarousel>
       </Section>
     </CraftNotEmpty>
   );
 };
 
 const TRENDING_TAGS = [
-  "Instant Pot",
-  "Vegan",
-  "Gluten-Free",
-  "Under 30 Minutes",
-  "One-Pot Meals",
-  "Dairy-Free",
-  "High-Protein",
-  "Vegetarian",
-  "Sugar-Free",
-  "Spicy",
-  "Kid-Friendly",
-  "Whole30",
-];
+  {
+    tag: "Korean",
+    type: "Inspiration",
+  },
+  {
+    tag: "Vegan",
+    type: "Audience",
+  },
+  {
+    tag: "Family Size",
+    type: "Servings",
+  },
+  {
+    tag: "Main Course",
+    type: "Dish",
+  },
+  {
+    tag: "Today",
+    type: "Time",
+  },
+  {
+    tag: "High Protein Diets",
+    type: "Nutrition",
+  },
+  {
+    tag: "No Gluten",
+    type: "Ingredients to Exclude",
+  },
+  {
+    tag: "Air Fryer",
+    type: "Equipment",
+  },
+  {
+    tag: "Cauliflower Rice",
+    type: "Substitutions",
+  },
+  {
+    tag: "Quick Cook",
+    type: "Cooking Time",
+  },
+  {
+    tag: "Thai",
+    type: "Inspiration",
+  },
+  {
+    tag: "Health-Conscious",
+    type: "Audience",
+  },
+  {
+    tag: "Individual Portions",
+    type: "Servings",
+  },
+  {
+    tag: "Appetizer",
+    type: "Dish",
+  },
+  {
+    tag: "Quick Prep",
+    type: "Time",
+  },
+  {
+    tag: "Keto",
+    type: "Nutrition",
+  },
+  {
+    tag: "No Dairy",
+    type: "Exclusion",
+  },
+  {
+    tag: "Slow Cooker",
+    type: "Equipment",
+  },
+  {
+    tag: "Tofu",
+    type: "Substitutions",
+  },
+  {
+    tag: "Overnight",
+    type: "Cooking Time",
+  },
+] as const;
 
 const TrendingTagsSection = () => {
   return (
     <CraftEmpty>
       <Section>
         {/* <InstantRecipeItem /> */}
-        <Label className="text-xs text-muted-foreground uppercase font-semibold px-4">
-          Tags
-        </Label>
-        <div className="carousel carousel-center space-x-2 pl-2 pr-2">
-          {TRENDING_TAGS.map((tag) => {
+        <TagsLabel />
+        <BadgeCarousel>
+          {TRENDING_TAGS.map(({ tag, type }) => {
             return (
-              <Badge variant="secondary" className="carousel-item" key={tag}>
+              <Badge
+                variant="secondary"
+                className="carousel-item"
+                key={tag}
+                event={{ type: "ADD_TAG", tag }}
+              >
                 {tag}
+                {/* <span className="text-slate-500">{type}</span>:{tag} */}
               </Badge>
             );
           })}
-        </div>
+        </BadgeCarousel>
       </Section>
     </CraftEmpty>
   );
 };
 
+interface SectionLabelProps {
+  icon: React.ElementType; // This type is used for components passed as props
+  title: string;
+}
+
+const SectionLabel: FC<SectionLabelProps> = ({ icon: Icon, title }) => {
+  return (
+    <Label className="text-xs text-muted-foreground uppercase font-semibold px-4 flex flex-row gap-1">
+      <Icon size={14} />
+      {title}
+    </Label>
+  );
+};
+
+const TagsLabel = () => {
+  return <SectionLabel icon={TagIcon} title="Tags" />;
+};
+
 const SuggestedTagsSection = () => {
+  const items = new Array(6).fill(0);
+
   return (
     <CraftNotEmpty>
       <Section>
         {/* <InstantRecipeItem /> */}
-        <Label className="text-xs text-muted-foreground uppercase font-semibold px-4">
-          Tags
-        </Label>
-        <div className="carousel carousel-center space-x-2 pl-2 pr-2">
-          {TRENDING_TAGS.map((tag) => {
+        <TagsLabel />
+        <BadgeCarousel>
+          {items.map((_, index) => {
             return (
-              <Badge
-                variant="secondary"
-                className="carousel-item animate-pulse"
-                key={tag}
-              >
-                <Skeleton
-                  className={`w-${
-                    [8, 12, 14][Math.floor(Math.random() * 3)]
-                  } h-4`}
-                />
-              </Badge>
+              <SuggestedTagBadge
+                key={index}
+                className="carousel-item flex flex-row"
+              />
             );
           })}
-        </div>
+        </BadgeCarousel>
       </Section>
     </CraftNotEmpty>
   );
@@ -162,31 +279,15 @@ export const NewRecipeResultsView = () => {
   return (
     <>
       <Container className="gap-4 flex-1">
+        <SuggestedRecipesSection />
         <TrendingIngredientsSection />
         <TrendingTagsSection />
         <SuggestedIngredientsSection />
         <SuggestedTagsSection />
-        {/* {items.map((_, index) => {
-          return <SuggestionItem key={index} index={index} />;
-        })} */}
       </Container>
       <Footer>
         <ClientOnly>
-          <CraftEmpty>
-            <BackButton />
-          </CraftEmpty>
-          <CraftNotEmpty>
-            <div className="px-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Chocolate Chip Cookies</CardTitle>
-                  <CardDescription>
-                    Gooey baked in tghe oven for 35 minutes. A classic recipe.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
-          </CraftNotEmpty>
+          <BackButton />
         </ClientOnly>
       </Footer>
     </>
@@ -1621,9 +1722,52 @@ export const Selections = () => {
 //   );
 // };
 
+const SuggestedRecipesSection = () => {
+  return (
+    <CraftNotEmpty>
+      <div className="flex flex-col items-center justify-center px-4 mt-4 mb-2">
+        <div className="relative">
+          <SuggestedRecipeCard index={0} />
+          <SuggestedRecipeCard index={1} />
+          <SuggestedRecipeCard index={2} />
+          <SuggestedRecipeCard index={3} />
+          {/* <Card className="w-full z-40 absolute inset-0 -mt-4 scale-95">
+            <CardHeader>
+              <CardTitle>Chocolate Chip Cookies</CardTitle>
+              <CardDescription>
+                Gooey baked in tghe oven for 35 minutes. A classic recipe.
+              </CardDescription>
+            </CardHeader>
+            <Separator className="mb-6" />
+            <CardContent className="flex justify-end">
+              <Button variant="secondary">
+                Continue Crafting <ChevronsRightIcon />
+              </Button>
+            </CardContent>
+          </Card>
+          <Card className="w-full z-30 absolute inset-0 -mt-8 scale-90">
+            <CardHeader>
+              <CardTitle>Chocolate Chip Cookies</CardTitle>
+              <CardDescription>
+                Gooey baked in tghe oven for 35 minutes. A classic recipe.
+              </CardDescription>
+            </CardHeader>
+            <Separator className="mb-6" />
+            <CardContent className="flex justify-end">
+              <Button variant="secondary">
+                Continue Crafting <ChevronsRightIcon />
+              </Button>
+            </CardContent>
+          </Card> */}
+        </div>
+      </div>
+    </CraftNotEmpty>
+  );
+};
+
 const EmptyStateView = () => (
   <Container>
-    <TrendingTags />
+    {/* <TrendingTags /> */}
     {/* <Ideas /> */}
   </Container>
 );

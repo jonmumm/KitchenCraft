@@ -132,54 +132,6 @@ const CraftCTA = () => {
       />
     </div>
   );
-
-  /* <div className="flex flex-col flex-1 items-start whitespace-nowrap py-2 absolute left-10 top-1 cursor-text select-none">
-        <>
-          <span className="font-semibold text-md">What to make?</span>
-          <div className="flex flex-row gap-1 text-muted-foreground text-xs">
-            <span>ingredients</span>
-            <span>•</span>
-            <span>tags</span>
-          </div>
-        </>
-      </div> */
-  // return (
-  //   <Button
-  //     event={{ type: "NEW_RECIPE" }}
-  //     size="fit"
-  //     variant="ghost"
-  //     className="relative shadow-lg rounded-full flex flex-row py-2 px-6 gap-3 items-center justify-center border-solid border-2 border-muted cursor-text"
-  //   >
-  //     <ChevronRightIcon className="opacity-50 cursor-default" />
-  //     <div className="flex flex-col flex-1 items-start whitespace-nowrap">
-  //       {!prompt ? (
-  //         <>
-  //           <span className="font-semibold text-md">What to make?</span>
-  //           <div className="flex flex-row gap-1 text-muted-foreground text-xs">
-  //             <span>ingredients</span>
-  //             <span>•</span>
-  //             <span>tags</span>
-  //           </div>
-  //         </>
-  //       ) : (
-  //         <>{prompt}</>
-  //       )}
-  //     </div>
-  //     {getIsMacDesktop() && (
-  //       <Badge variant="secondary" className="mr-12">
-  //         <CommandIcon size={14} />
-  //         <span style={{ fontSize: "14px" }}>K</span>
-  //       </Badge>
-  //     )}
-  //     <Image
-  //       className="absolute right-0 h-full w-auto cursor-pointer"
-  //       alt="KitchenCraft App Icon"
-  //       width={512}
-  //       height={512}
-  //       src="/apple-touch-icon.png"
-  //     />
-  //   </Button>
-  // );
 };
 
 export async function HeaderLoading({

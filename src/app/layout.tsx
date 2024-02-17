@@ -4,7 +4,7 @@ import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";
-import { ServerActorRoot } from "@/lib/actor-kit/components";
+import { SessionActorRoot } from "@/lib/actor-kit/components";
 import { getCurrentEmail, getSession, getUniqueId } from "@/lib/auth/session";
 import { createAppInstallToken } from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
@@ -355,7 +355,7 @@ export default async function RootLayout({
           <Suspense fallback={null}>
             {/* // TODO allow server-actor to send events before rendering... */}
             {/* Enables server to centralize logic in a machine across routes */}
-            <ServerActorRoot
+            <SessionActorRoot
               id={uniqueId}
               render={(snapshot) => {
                 return (

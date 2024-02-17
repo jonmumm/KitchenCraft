@@ -17,7 +17,6 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
 } from "react";
 
@@ -141,13 +140,10 @@ const AutoResizableTextarea: React.FC<
       const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
       const isRemixing = useSelector(actor, selectIsRemixing);
 
-      const sentences = useMemo(() => {
-        return !isRemixing
+      const animatePlaceholder = useCallback(() => {
+        const sentences = !isRemixing
           ? shuffle(placeholderSentences)
           : shuffle(remixPlaceholderSentences);
-      }, [isRemixing]);
-
-      const animatePlaceholder = useCallback(() => {
         let currentSentenceIndex = 0;
         let typing = true;
         let currentText = "";
@@ -198,7 +194,7 @@ const AutoResizableTextarea: React.FC<
         intervalIdRef.current = setInterval(typeText, 100);
 
         return clearTimers;
-      }, [sentences]);
+      }, [isRemixing]);
 
       useEffect(() => {
         const cleanup = animatePlaceholder();
@@ -210,12 +206,12 @@ const AutoResizableTextarea: React.FC<
 
     return (
       <>
-        {isOpen && isPristine && <PlaceholderAnimation />}
+        {isPristine && <PlaceholderAnimation />}
         <textarea
           suppressHydrationWarning
           value={value}
           ref={ref}
-          className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden placeholder-transparent crafting:placeholder-slate-500`}
+          className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden placeholder-slate-500`}
           onChange={handleChange}
           onBlur={handleBlur}
           onFocus={handleFocus}
@@ -240,6 +236,46 @@ const AutoResizableTextarea: React.FC<
 export default AutoResizableTextarea;
 
 const placeholderSentences = [
+  "3 eggs",
+  "1lb ground beef",
+  "2 cups flour",
+  "pad thai",
+  "curry dish",
+  "pasta meal",
+  "chicken stew",
+  "veggie mix",
+  "family meal",
+  "6 servings",
+  "party size",
+  "omelette",
+  "pancakes",
+  "salad lunch",
+  "fruit snack",
+  "steak dinner",
+  "cook tonight",
+  "quick stir-fry",
+  "protein-rich",
+  "low-cal meal",
+  "heart healthy",
+  "keto snack",
+  "no nuts",
+  "dairy-free",
+  "gluten-free",
+  "lactose-free",
+  "bake bread",
+  "slow cooker",
+  "grilled fish",
+  "smoked ribs",
+  "kid-friendly",
+  "easy recipe",
+  "superfoods",
+  "without sugar",
+  "whole grain",
+  "roast veggies",
+  "grill bbq",
+];
+
+const ingredientPlaceholderSentences = [
   "feta, egg, leftover pizza",
   "avocado, chocolate, chia seeds",
   "spinach, blueberries, almonds",

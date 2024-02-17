@@ -1,6 +1,6 @@
 "use client";
 
-import { userAppMachine } from "@/app/user-app-machine.def";
+import { sessionMachine } from "@/app/session-machine";
 import { env } from "@/env.public";
 import { useEventSubject } from "@/hooks/useEvents";
 import { Operation, applyPatch } from "fast-json-patch";
@@ -10,11 +10,14 @@ import { ReactNode, useLayoutEffect, useRef } from "react";
 import { ActorRefFrom, SnapshotFrom } from "xstate";
 import { z } from "zod";
 
+type SessionSnapshot = SnapshotFrom<ActorRefFrom<typeof sessionMachine>>; // todo make generic
+const sessionSnapshot$ = atom({} as SessionSnapshot);
+
 export const ServerActorProvider = (props: {
   id: string;
   connectionId: string;
   token: string;
-  initial: SnapshotFrom<ActorRefFrom<typeof userAppMachine>>; // todo make generic
+  initial: SessionSnapshot;
   children: ReactNode;
 }) => {
   const { connectionId, token, id, initial } = props;
@@ -27,11 +30,9 @@ export const ServerActorProvider = (props: {
     }
     initializedRef.current = true;
 
-    const snapshotStore = atom(initial);
-
     const socket = new PartySocket({
       host: env.KITCHENCRAFT_API_HOST,
-      party: "actor",
+      party: "session",
       room: id,
       id: connectionId,
       query: { token },
@@ -39,8 +40,6 @@ export const ServerActorProvider = (props: {
 
     event$.subscribe((event) => {
       try {
-        // const event = AppEventSchema.parse(JSON.parse(event))
-        // console.log(event);
         socket.send(JSON.stringify(event));
       } catch (ex) {
         // todo better handle not sending events
@@ -55,10 +54,10 @@ export const ServerActorProvider = (props: {
       const { operations } = z
         .object({ operations: z.array(z.custom<Operation>()) })
         .parse(JSON.parse(message.data));
-      const snapshot = snapshotStore.get();
+      const snapshot = sessionSnapshot$.get();
 
       applyPatch(snapshot, operations);
-      snapshotStore.set({
+      sessionSnapshot$.set({
         ...snapshot,
       });
     });

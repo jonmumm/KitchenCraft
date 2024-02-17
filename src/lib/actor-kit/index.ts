@@ -22,9 +22,11 @@ type UserActorConnectionState = {
 
 type UserActorConnection = Party.Connection<UserActorConnectionState>;
 
-export const createActorClient = <TMachine extends AnyStateMachine>() => {
+export const createActorHTTPClient = <TMachine extends AnyStateMachine>(
+  type: string
+) => {
   const get = async (id: string) => {
-    const resp = await fetch(`${API_SERVER_URL}/parties/actor/${id}`, {
+    const resp = await fetch(`${API_SERVER_URL}/parties/${type}/${id}`, {
       next: { revalidate: 0 },
     });
 
