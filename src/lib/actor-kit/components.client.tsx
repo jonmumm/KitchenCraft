@@ -1,19 +1,17 @@
 "use client";
 
-import { sessionMachine } from "@/app/session-machine";
 import { env } from "@/env.public";
 import { useEventSubject } from "@/hooks/useEvents";
 import { Operation, applyPatch } from "fast-json-patch";
-import { atom } from "nanostores";
 import PartySocket from "partysocket";
 import { ReactNode, useLayoutEffect, useRef } from "react";
-import { ActorRefFrom, SnapshotFrom } from "xstate";
 import { z } from "zod";
 
-type SessionSnapshot = SnapshotFrom<ActorRefFrom<typeof sessionMachine>>; // todo make generic
-const sessionSnapshot$ = atom({} as SessionSnapshot);
+// todo: add an ActorKitRoot we can use for shared context
+// instead of importing the store here to make generic
+import { SessionSnapshot, session$ } from "../../app/session-store";
 
-export const ServerActorProvider = (props: {
+export const ActorProvider = (props: {
   id: string;
   connectionId: string;
   token: string;
@@ -29,6 +27,7 @@ export const ServerActorProvider = (props: {
       return;
     }
     initializedRef.current = true;
+    session$.set(initial);
 
     const socket = new PartySocket({
       host: env.KITCHENCRAFT_API_HOST,
@@ -54,10 +53,10 @@ export const ServerActorProvider = (props: {
       const { operations } = z
         .object({ operations: z.array(z.custom<Operation>()) })
         .parse(JSON.parse(message.data));
-      const snapshot = sessionSnapshot$.get();
+      const snapshot = session$.get();
 
       applyPatch(snapshot, operations);
-      sessionSnapshot$.set({
+      session$.set({
         ...snapshot,
       });
     });

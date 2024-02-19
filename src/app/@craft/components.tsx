@@ -17,6 +17,7 @@ import { twc } from "react-twc";
 import {
   CraftEmpty,
   CraftNotEmpty,
+  SuggestedIngredientBadge,
   SuggestedRecipeCard,
   SuggestedTagBadge,
 } from "./components.client";
@@ -60,7 +61,7 @@ const TRENDING_INGREDIENTS = [
 
 const BadgeCarousel = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="carousel sm:flex-wrap carousel-center space-x-2 space-y-1 pl-2 pr-2">
+    <div className="carousel sm:flex-wrap carousel-center space-x-2 pl-2 pr-2">
       {children}
     </div>
   );
@@ -95,26 +96,19 @@ const TrendingIngredientsSection = () => {
 };
 
 const SuggestedIngredientsSection = () => {
+  const items = new Array(6).fill(0);
   return (
     <CraftNotEmpty>
       <Section>
         <IngredientsLabel />
         <BadgeCarousel>
-          {TRENDING_INGREDIENTS.map((ingredient) => {
+          {items.map((_, index) => {
             return (
-              <Badge
-                className="carousel-item"
-                key={ingredient}
-                variant="secondary"
-                event={{ type: "ADD_INGREDIENT", ingredient }}
-              >
-                {ingredient}
-                {/* <Skeleton
-                  className={`w-${
-                    [8, 12, 14][Math.floor(Math.random() * 3)]
-                  } h-4`}
-                /> */}
-              </Badge>
+              <SuggestedIngredientBadge
+                key={index}
+                index={index}
+                className="carousel-item flex flex-row"
+              />
             );
           })}
         </BadgeCarousel>
@@ -263,6 +257,7 @@ const SuggestedTagsSection = () => {
             return (
               <SuggestedTagBadge
                 key={index}
+                index={index}
                 className="carousel-item flex flex-row"
               />
             );

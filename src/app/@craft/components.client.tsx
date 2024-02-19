@@ -14,7 +14,6 @@ import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { Button } from "@/components/input/button";
 import ClientOnly from "@/components/util/client-only";
 import { useSelector } from "@/hooks/useSelector";
-import { sessionSnapshot$ } from "@/lib/actor-kit/components.client";
 import { cn } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { useStore } from "@nanostores/react";
@@ -26,6 +25,7 @@ import {
 } from "lucide-react";
 import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
+import { session$ } from "../session-store";
 import {
   selectIsCreating,
   selectIsInstantRecipeLoading,
@@ -271,7 +271,6 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
     actor,
     (state) => state.context.currentItemIndex
   );
-  console.log({ currentItemIndex });
 
   const diffToCurrent = index - currentItemIndex;
 
@@ -315,22 +314,56 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   );
 };
 
-export const SuggestedTagBadge = ({
-  key,
+export const SuggestedIngredientBadge = ({
+  index,
   className,
 }: {
-  key: number;
+  index: number;
   className: string;
 }) => {
-  // const session = useStore(sessionSnapshot$);
-  // console.log({ session });
-  // useContext(CraftContext)
-  const tag = "";
+  const session = useStore(session$);
+  const ingredient = session.context.suggestedIngredients[index];
+  // const resultId = index, session.context.suggestedIngredientssResultId);
+  // console.log(index, session.context.suggestedTags);
+
+  if (!ingredient) {
+    return (
+      <Badge
+        className={cn(className, "carousel-item flex flex-row animate-pulse")}
+        variant="secondary"
+      >
+        <Skeleton className="w-8 h-4" />
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      className={cn(className, "carousel-item flex flex-row")}
+      variant="secondary"
+      event={{ type: "ADD_INGREDIENT", ingredient }}
+    >
+      {ingredient}
+    </Badge>
+  );
+};
+
+export const SuggestedTagBadge = ({
+  index,
+  className,
+}: {
+  index: number;
+  className: string;
+}) => {
+  const session = useStore(session$);
+  const tag = session.context.suggestedTags[index];
+  // const resultId = index, session.context.suggestedIngredientssResultId);
+  // console.log(index, session.context.suggestedTags);
 
   if (!tag) {
     return (
       <Badge
-        className={cn(className, "carousel-item flex flex-row")}
+        className={cn(className, "carousel-item flex flex-row animate-pulse")}
         variant="secondary"
       >
         <Skeleton className="w-8 h-4" />

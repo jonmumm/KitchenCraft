@@ -3,9 +3,9 @@ import { sessionMachine } from "@/app/session-machine";
 import { assert } from "@/lib/utils";
 import { ReactNode } from "react";
 import { Actor, SnapshotFrom } from "xstate";
-import { ServerActorProvider } from "./components.client";
+import { ActorProvider } from "../lib/actor-kit/components.client";
 
-export const SessionActorRoot = async (props: {
+export const SessionActor = async (props: {
   id: string;
   render: (snapshot: SnapshotFrom<Actor<typeof sessionMachine>>) => ReactNode; // todo figure out how to hoise the type here out to make generic
 }) => {
@@ -14,13 +14,13 @@ export const SessionActorRoot = async (props: {
   assert(snapshot, "expected snapshot");
 
   return (
-    <ServerActorProvider
+    <ActorProvider
       id={id}
       connectionId={connectionId}
       token={token}
       initial={snapshot}
     >
       {render(snapshot)}
-    </ServerActorProvider>
+    </ActorProvider>
   );
 };

@@ -15,3 +15,10 @@ export async function createHash(message: string) {
     .join("")
     .toString()
 }
+export const appendValueWithComma = (prompt: string, value: string): string => {
+  // Check if the current prompt ends with a comma, if not, add one
+  let separator = prompt.trim().endsWith(",") ? " " : ", ";
+  // Avoid adding a comma if the prompt is empty
+  separator = prompt.length === 0 ? "" : separator;
+  return `${prompt}${separator}${value}`;
+};

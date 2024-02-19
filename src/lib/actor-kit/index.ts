@@ -135,11 +135,13 @@ export const createMachineServer = <
       }
 
       let lastSnapshot = initialSnapshot;
-      const sendSnapshot = () => {
+      const sendSnapshot = (e?: any) => {
         const nextSnapshot = this.actor.getPersistedSnapshot();
         const operations = compare(lastSnapshot, nextSnapshot);
         lastSnapshot = nextSnapshot;
-        connection.send(JSON.stringify({ operations }));
+        if (operations.length) {
+          connection.send(JSON.stringify({ operations }));
+        }
       };
       sendSnapshot();
       const sub = this.actor.subscribe(sendSnapshot);
