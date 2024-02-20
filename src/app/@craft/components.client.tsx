@@ -321,12 +321,16 @@ export const SuggestedIngredientBadge = ({
   index: number;
   className: string;
 }) => {
+  const actor = useContext(CraftContext);
+  const isTyping = useSelector(actor, (state) =>
+    state.matches({ Typing: "True" })
+  );
   const session = useStore(session$);
   const ingredient = session.context.suggestedIngredients[index];
   // const resultId = index, session.context.suggestedIngredientssResultId);
   // console.log(index, session.context.suggestedTags);
 
-  if (!ingredient) {
+  if (!ingredient || isTyping) {
     return (
       <Badge
         className={cn(className, "carousel-item flex flex-row animate-pulse")}
@@ -355,12 +359,17 @@ export const SuggestedTagBadge = ({
   index: number;
   className: string;
 }) => {
+  const actor = useContext(CraftContext);
+  const isTyping = useSelector(actor, (state) =>
+    state.matches({ Typing: "True" })
+  );
+
   const session = useStore(session$);
   const tag = session.context.suggestedTags[index];
   // const resultId = index, session.context.suggestedIngredientssResultId);
   // console.log(index, session.context.suggestedTags);
 
-  if (!tag) {
+  if (!tag || isTyping) {
     return (
       <Badge
         className={cn(className, "carousel-item flex flex-row animate-pulse")}

@@ -140,6 +140,14 @@ export const sessionMachine = setup({
   actors: {
     // autoSuggestMachine,
   },
+  actions: {
+    resetSuggestions: assign({
+      suggestedTags: [],
+      suggestedTagsResultId: "",
+      suggestedIngredients: [],
+      suggestedIngredientssResultId: "",
+    }),
+  },
 }).createMachine({
   id: "UserAppMachine",
   context: ({ input }) => ({
@@ -156,26 +164,38 @@ export const sessionMachine = setup({
         Input: {
           on: {
             CLEAR: {
-              actions: assign({
-                prompt: "",
-              }),
+              actions: [
+                "resetSuggestions",
+                assign({
+                  prompt: "",
+                }),
+              ],
             },
             ADD_TAG: {
-              actions: assign({
-                prompt: ({ context, event }) =>
-                  appendValueWithComma(context.prompt, event.tag),
-              }),
+              actions: [
+                "resetSuggestions",
+                assign({
+                  prompt: ({ context, event }) =>
+                    appendValueWithComma(context.prompt, event.tag),
+                }),
+              ],
             },
             ADD_INGREDIENT: {
-              actions: assign({
-                prompt: ({ context, event }) =>
-                  appendValueWithComma(context.prompt, event.ingredient),
-              }),
+              actions: [
+                "resetSuggestions",
+                assign({
+                  prompt: ({ context, event }) =>
+                    appendValueWithComma(context.prompt, event.ingredient),
+                }),
+              ],
             },
             SET_INPUT: {
-              actions: assign({
-                prompt: ({ event }) => event.value,
-              }),
+              actions: [
+                "resetSuggestions",
+                assign({
+                  prompt: ({ event }) => event.value,
+                }),
+              ],
             },
           },
         },
@@ -587,7 +607,7 @@ class AutoSuggestIngredientStream extends TokenStream<{ prompt: string }> {
 
   protected async getSystemMessage(_: { prompt: string }): Promise<string> {
     const TEMPLATE = `
-Suggest a set of ingredients that would complement the given prompt in a recipe
+Suggest a set of ingredients that would complement the user provided prompt. Do not include any of the same ingredients that are in the prompt.
 
 In the response, format the ingredients as YAML with a single key 'ingredients' and then the list of tags. Return nothing else but the formatted YAML.
     

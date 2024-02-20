@@ -2,6 +2,7 @@
 
 import { selectIsOpen, selectIsRemixing } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
+// import { session$ } from "@/app/session-store";
 import { useCraftIsOpen, usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
@@ -90,6 +91,12 @@ const AutoResizableTextarea: React.FC<
   useEffect(() => {
     resizeTextarea();
   }, [props.value, size, resizeTextarea]);
+
+  useEffect(() => {
+    // return session$.subscribe(() => {
+    //   resizeTextarea();
+    // });
+  }, [resizeTextarea]);
 
   const textSizeClass =
     sizeClassMap[size]?.textSize || sizeClassMap["md"].textSize;
