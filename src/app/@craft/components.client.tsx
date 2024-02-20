@@ -296,7 +296,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           {recipe?.name ? (
             <p className="flex-1">{recipe.name}</p>
           ) : (
-            <div className="flex-1">
+            <div className="flex-1 flex flex-row gap-2">
               <Skeleton className="w-12 h-6" />
               <Skeleton className="w-8 h-6" />
             </div>
