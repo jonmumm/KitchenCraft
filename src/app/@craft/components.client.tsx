@@ -356,6 +356,10 @@ export const SuggestedIngredientBadge = ({
   // const resultId = index, session.context.suggestedIngredientssResultId);
   // console.log(index, session.context.suggestedTags);
 
+  if (!ingredient && !isTyping) {
+    return null;
+  }
+
   if (!ingredient || isTyping) {
     return (
       <Badge
@@ -394,6 +398,9 @@ export const SuggestedTagBadge = ({
   const tag = session.context.suggestedTags[index];
   // const resultId = index, session.context.suggestedIngredientssResultId);
   // console.log(index, session.context.suggestedTags);
+  if (!tag && !isTyping) {
+    return null;
+  }
 
   if (!tag || isTyping) {
     return (
