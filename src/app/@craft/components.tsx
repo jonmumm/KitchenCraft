@@ -59,12 +59,8 @@ const TRENDING_INGREDIENTS = [
   "Artichoke",
 ];
 
-const BadgeCarousel = ({ children }: { children: ReactNode }) => {
-  return (
-    <div className="carousel sm:flex-wrap carousel-center space-x-2 pl-2 pr-2">
-      {children}
-    </div>
-  );
+const BadgeList = ({ children }: { children: ReactNode }) => {
+  return <div className="px-4 flex flex-row gap-2 flex-wrap">{children}</div>;
 };
 
 const IngredientsLabel = () => {
@@ -76,7 +72,7 @@ const TrendingIngredientsSection = () => {
     <CraftEmpty>
       <Section>
         <IngredientsLabel />
-        <BadgeCarousel>
+        <BadgeList>
           {TRENDING_INGREDIENTS.map((ingredient) => {
             return (
               <Badge
@@ -89,7 +85,7 @@ const TrendingIngredientsSection = () => {
               </Badge>
             );
           })}
-        </BadgeCarousel>
+        </BadgeList>
       </Section>
     </CraftEmpty>
   );
@@ -101,7 +97,7 @@ const SuggestedIngredientsSection = () => {
     <CraftNotEmpty>
       <Section>
         <IngredientsLabel />
-        <BadgeCarousel>
+        <BadgeList>
           {items.map((_, index) => {
             return (
               <SuggestedIngredientBadge
@@ -111,7 +107,7 @@ const SuggestedIngredientsSection = () => {
               />
             );
           })}
-        </BadgeCarousel>
+        </BadgeList>
       </Section>
     </CraftNotEmpty>
   );
@@ -206,7 +202,7 @@ const TrendingTagsSection = () => {
       <Section>
         {/* <InstantRecipeItem /> */}
         <TagsLabel />
-        <BadgeCarousel>
+        <BadgeList>
           {TRENDING_TAGS.map(({ tag, type }) => {
             return (
               <Badge
@@ -220,7 +216,7 @@ const TrendingTagsSection = () => {
               </Badge>
             );
           })}
-        </BadgeCarousel>
+        </BadgeList>
       </Section>
     </CraftEmpty>
   );
@@ -252,7 +248,7 @@ const SuggestedTagsSection = () => {
       <Section>
         {/* <InstantRecipeItem /> */}
         <TagsLabel />
-        <BadgeCarousel>
+        <BadgeList>
           {items.map((_, index) => {
             return (
               <SuggestedTagBadge
@@ -262,7 +258,7 @@ const SuggestedTagsSection = () => {
               />
             );
           })}
-        </BadgeCarousel>
+        </BadgeList>
       </Section>
     </CraftNotEmpty>
   );
