@@ -365,7 +365,7 @@ class AutoSuggestTagsStream extends TokenStream<{ prompt: string }> {
 
 Tags below are separate by type, select a balanced set of tags across types. In the response, format the tags as a YAML with a single key tags and then the list of tags. Return nothing else but the formatted YAML.
     
-Here is the example tag set:
+Be inspired by, but not limited to, this example tag set:
 
 {
   "Inspiration": [
