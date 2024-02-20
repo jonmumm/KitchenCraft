@@ -19,6 +19,7 @@ import {
   CraftNotEmpty,
   SuggestedIngredientBadge,
   SuggestedRecipeCard,
+  SuggestedRecipeCards,
   SuggestedTagBadge,
 } from "./components.client";
 
@@ -1718,10 +1719,7 @@ const SuggestedRecipesSection = () => {
     <CraftNotEmpty>
       <div className="flex flex-col items-center justify-center px-4 mt-4 mb-2">
         <div className="relative">
-          <SuggestedRecipeCard index={0} />
-          <SuggestedRecipeCard index={1} />
-          <SuggestedRecipeCard index={2} />
-          <SuggestedRecipeCard index={3} />
+          <SuggestedRecipeCards />
           {/* <Card className="w-full z-40 absolute inset-0 -mt-4 scale-95">
             <CardHeader>
               <CardTitle>Chocolate Chip Cookies</CardTitle>

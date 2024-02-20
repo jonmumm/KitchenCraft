@@ -9,13 +9,13 @@ import {
   CardTitle,
 } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
-import { Skeleton } from "@/components/display/skeleton";
+import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { useStore } from "@nanostores/react";
-import { ChevronsLeftIcon, ChevronsRightIcon, TagIcon } from "lucide-react";
+import { ChevronsDownIcon, XIcon } from "lucide-react";
 import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
 import { session$ } from "../session-store";
@@ -256,8 +256,26 @@ export const CraftingPlacholder = () => {
   return selection && <RecipeCraftingPlaceholder />;
 };
 
+export const SuggestedRecipeCards = () => {
+  return (
+    <>
+      <SuggestedRecipeCard index={0} />
+      <SuggestedRecipeCard index={1} />
+      <SuggestedRecipeCard index={2} />
+      <SuggestedRecipeCard index={3} />
+      <SuggestedRecipeCard index={4} />
+      <SuggestedRecipeCard index={5} />
+    </>
+  );
+};
+
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const actor = useContext(CraftContext);
+  const session = useStore(session$);
+  const recipe = session.context.suggestedRecipes[index];
+  const isTyping = useSelector(actor, (state) =>
+    state.matches({ Typing: "True" })
+  );
   const currentItemIndex = useSelector(
     actor,
     (state) => state.context.currentItemIndex
@@ -275,30 +293,49 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       className={`max-w-xl w-full z-${z} scale-${scale} -mt-${topOffset} inset-0 ${position} transition-all`}
     >
       <CardHeader className="flex flex-col gap-2">
-        <CardTitle>{index + 1}. Chocolate Chip Cookies</CardTitle>
+        <CardTitle className="flex flex-row items-center gap-2">
+          {index + 1}.{" "}
+          {recipe?.name ? (
+            <p className="flex-1">{recipe.name}</p>
+          ) : (
+            <Skeleton className="w-12 h-6" />
+          )}
+          <Button
+            event={{ type: "SKIP" }}
+            variant="outline"
+          >
+            <XIcon />
+          </Button>
+        </CardTitle>
         <CardDescription>
-          Gooey baked in tghe oven for 35 minutes. A classic recipe.
+          {recipe?.description ? (
+            recipe.description
+          ) : (
+            <div className="flex-1">
+              <SkeletonSentence className="h-4" numWords={12} />
+            </div>
+          )}
         </CardDescription>
-        <div className="flex flex-row gap-1 items-center">
+        {/* <div className="flex flex-row gap-1 items-center">
           <TagIcon size={16} />
           <div className="flex flex-row gap-1">
             <Badge variant="secondary">Baking</Badge>
             <Badge variant="secondary">30 minutes</Badge>
             <Badge variant="secondary">Chocolate</Badge>
           </div>
-        </div>
+        </div> */}
       </CardHeader>
       <Separator className="mb-6" />
       <CardContent className="flex justify-between">
-        <Button
+        {/* <Button
           event={{ type: "SKIP" }}
           variant="default"
           className="bg-slate-500"
         >
           <ChevronsLeftIcon /> Skip
-        </Button>
-        <Button variant="default" className="bg-purple-500">
-          Craft <ChevronsRightIcon />
+        </Button> */}
+        <Button className="w-full">
+          Continue Generating <ChevronsDownIcon size={16} />
         </Button>
       </CardContent>
     </Card>

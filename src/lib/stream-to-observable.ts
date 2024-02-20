@@ -58,7 +58,13 @@ export function streamToObservable<
 
         const outputRaw = charArray.join("");
         const outputSanitized = sanitizeOutput(outputRaw);
-        const outputYaml = jsYaml.load(outputSanitized);
+        let outputYaml;
+        try {
+          outputYaml = jsYaml.load(outputSanitized);
+        } catch (ex) {
+          // normal to not always parse
+          continue;
+        }
         const outputParse = partialSchema.safeParse(outputYaml);
         if (outputParse.success) {
           subject.next({
