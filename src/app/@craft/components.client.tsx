@@ -10,27 +10,18 @@ import {
 } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton } from "@/components/display/skeleton";
-import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { Button } from "@/components/input/button";
-import ClientOnly from "@/components/util/client-only";
 import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { useStore } from "@nanostores/react";
-import {
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
-  LoaderIcon,
-  TagIcon,
-} from "lucide-react";
+import { ChevronsLeftIcon, ChevronsRightIcon, TagIcon } from "lucide-react";
 import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
 import { session$ } from "../session-store";
 import {
   selectIsCreating,
-  selectIsInstantRecipeLoading,
   selectIsRemixing,
-  selectIsSuggestionsLoading,
   selectPromptLength,
 } from "./selectors";
 
@@ -98,46 +89,46 @@ export const RemixInputting = ({ children }: { children: ReactNode }) => {
   return <VisibilityControl visible={visible}>{children}</VisibilityControl>;
 };
 
-export const InstantRecipeItem = () => {
-  const actor = useContext(CraftContext);
-  const description = useSelector(
-    actor,
-    (state) => state.context.instantRecipeMetadata?.description
-  );
-  const name = useSelector(
-    actor,
-    (state) => state.context.instantRecipeMetadata?.name
-  );
-  return (
-    <ResultCard index={0} event={{ type: "INSTANT_RECIPE" }}>
-      {/* <Avatar className="opacity-20">
-        <AvatarFallback>{index + 1}.</AvatarFallback>
-      </Avatar> */}
-      <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
-        <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
-          {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
-        </div>
-        {description ? (
-          <p className="line-clamp-4">{description}</p>
-        ) : (
-          <div className="flex flex-col gap-1 w-full">
-            <Skeleton className="w-full h-5" />
-            <Skeleton className="w-full h-5" />
-            <Skeleton className="w-full h-5" />
-          </div>
-        )}
-      </div>
-      <div className="w-24 flex flex-row justify-center">
-        {/* <Button event={{ type: "INSTANT_RECIPE" }} variant="ghost" size="icon"> */}
-        <ClientOnly>
-          <InstantRecipeIcon />
-        </ClientOnly>
-        {/* </Button> */}
-      </div>
-      {/* <Badge className="opacity-20">Craft</Badge> */}
-    </ResultCard>
-  );
-};
+// export const InstantRecipeItem = () => {
+//   const actor = useContext(CraftContext);
+//   const description = useSelector(
+//     actor,
+//     (state) => state.context.instantRecipeMetadata?.description
+//   );
+//   const name = useSelector(
+//     actor,
+//     (state) => state.context.instantRecipeMetadata?.name
+//   );
+//   return (
+//     <ResultCard index={0} event={{ type: "INSTANT_RECIPE" }}>
+//       {/* <Avatar className="opacity-20">
+//         <AvatarFallback>{index + 1}.</AvatarFallback>
+//       </Avatar> */}
+//       <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
+//         <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
+//           {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
+//         </div>
+//         {description ? (
+//           <p className="line-clamp-4">{description}</p>
+//         ) : (
+//           <div className="flex flex-col gap-1 w-full">
+//             <Skeleton className="w-full h-5" />
+//             <Skeleton className="w-full h-5" />
+//             <Skeleton className="w-full h-5" />
+//           </div>
+//         )}
+//       </div>
+//       <div className="w-24 flex flex-row justify-center">
+//         {/* <Button event={{ type: "INSTANT_RECIPE" }} variant="ghost" size="icon"> */}
+//         {/* <ClientOnly>
+//           <InstantRecipeIcon />
+//         </ClientOnly> */}
+//         {/* </Button> */}
+//       </div>
+//       {/* <Badge className="opacity-20">Craft</Badge> */}
+//     </ResultCard>
+//   );
+// };
 
 export const ResultCard = ({
   index,
@@ -169,94 +160,94 @@ export const ResultCard = ({
   );
 };
 
-export const SuggestionItem = ({ index }: { index: number }) => {
-  const actor = useContext(CraftContext);
-  const name = useSelector(
-    actor,
-    (state) => state.context.suggestions?.[index]?.name
-  );
-  const description = useSelector(
-    actor,
-    (state) => state.context.suggestions?.[index]?.description
-  );
-  return (
-    <ResultCard event={{ type: "SELECT_RESULT", index }} index={index + 1}>
-      <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
-        <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
-          {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
-        </div>
-        {description ? (
-          <p className="line-clamp-3">{description}</p>
-        ) : (
-          <div className="flex flex-col gap-1 w-full">
-            <Skeleton className="w-full h-5" />
-            <Skeleton className="w-full h-5" />
-            <Skeleton className="w-full h-5" />
-          </div>
-        )}
-      </div>
-      <div className="w-24 flex flex-row justify-center">
-        <ClientOnly>
-          <SuggestionIcon index={index} />
-        </ClientOnly>
-      </div>
-    </ResultCard>
-  );
-};
+// export const SuggestionItem = ({ index }: { index: number }) => {
+//   const actor = useContext(CraftContext);
+//   const name = useSelector(
+//     actor,
+//     (state) => state.context.suggestions?.[index]?.name
+//   );
+//   const description = useSelector(
+//     actor,
+//     (state) => state.context.suggestions?.[index]?.description
+//   );
+//   return (
+//     <ResultCard event={{ type: "SELECT_RESULT", index }} index={index + 1}>
+//       <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
+//         <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
+//           {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
+//         </div>
+//         {description ? (
+//           <p className="line-clamp-3">{description}</p>
+//         ) : (
+//           <div className="flex flex-col gap-1 w-full">
+//             <Skeleton className="w-full h-5" />
+//             <Skeleton className="w-full h-5" />
+//             <Skeleton className="w-full h-5" />
+//           </div>
+//         )}
+//       </div>
+//       <div className="w-24 flex flex-row justify-center">
+//         <ClientOnly>
+//           <SuggestionIcon index={index} />
+//         </ClientOnly>
+//       </div>
+//     </ResultCard>
+//   );
+// };
 
-const SuggestionIcon = ({ index }: { index: number }) => {
-  const actor = useContext(CraftContext);
-  const isTyping = useSelector(actor, (state) =>
-    state.matches({ Typing: "True" })
-  );
-  const isSuggestionsLoading = useSelector(actor, selectIsSuggestionsLoading);
+// const SuggestionIcon = ({ index }: { index: number }) => {
+//   const actor = useContext(CraftContext);
+//   const isTyping = useSelector(actor, (state) =>
+//     state.matches({ Typing: "True" })
+//   );
+//   const isSuggestionsLoading = useSelector(actor, selectIsSuggestionsLoading);
 
-  const isLoading =
-    useSelector(actor, (state) => !state.context.suggestions?.[index + 1]) &&
-    isSuggestionsLoading;
+//   const isLoading =
+//     useSelector(actor, (state) => !state.context.suggestions?.[index + 1]) &&
+//     isSuggestionsLoading;
 
-  const hasSuggestion = useSelector(
-    actor,
-    (state) => !!state.context.suggestions?.[index]
-  );
+//   const hasSuggestion = useSelector(
+//     actor,
+//     (state) => !!state.context.suggestions?.[index]
+//   );
 
-  return isTyping ? (
-    <EllipsisAnimation />
-  ) : isLoading ? (
-    <LoaderIcon className="animate-spin" />
-  ) : hasSuggestion ? (
-    <Badge variant="outline">Craft</Badge>
-  ) : (
-    <Badge variant="outline">
-      <Skeleton className="w-8 h-4" />
-    </Badge>
-  );
-};
+//   return isTyping ? (
+//     <EllipsisAnimation />
+//   ) : isLoading ? (
+//     <LoaderIcon className="animate-spin" />
+//   ) : hasSuggestion ? (
+//     <Badge variant="outline">Craft</Badge>
+//   ) : (
+//     <Badge variant="outline">
+//       <Skeleton className="w-8 h-4" />
+//     </Badge>
+//   );
+// };
 
-const InstantRecipeIcon = () => {
-  const actor = useContext(CraftContext);
-  const isTyping = useSelector(actor, (state) =>
-    state.matches({ Typing: "True" })
-  );
-  const promptLength = useSelector(actor, selectPromptLength);
-  const hasInstantRecipe = useSelector(
-    actor,
-    (state) => !!state.context.instantRecipeMetadata
-  );
-  const isLoading = useSelector(actor, selectIsInstantRecipeLoading);
+// const InstantRecipeIcon = () => {
+//   const actor = useContext(CraftContext);
+//   const isTyping = useSelector(actor, (state) =>
+//     state.matches({ Typing: "True" })
+//   );
+//   const promptLength = useSelector(actor, selectPromptLength);
+//   const hasInstantRecipe = useSelector(
+//     actor,
+//     (state) => !!state.context.instantRecipeMetadata
+//   );
+//   const isLoading = useSelector(actor, selectIsInstantRecipeLoading);
 
-  return isTyping ? (
-    <EllipsisAnimation />
-  ) : isLoading ? (
-    <LoaderIcon className="animate-spin" />
-  ) : hasInstantRecipe ? (
-    <Badge variant="outline">Craft</Badge>
-  ) : (
-    <Badge variant="outline">
-      <Skeleton className="w-8 h-4" />
-    </Badge>
-  );
-};
+//   return isTyping ? (
+//     <EllipsisAnimation />
+//   ) : isLoading ? (
+//     <LoaderIcon className="animate-spin" />
+//   ) : hasInstantRecipe ? (
+//     <Badge variant="outline">Craft</Badge>
+//   ) : (
+//     <Badge variant="outline">
+//       <Skeleton className="w-8 h-4" />
+//     </Badge>
+//   );
+// };
 
 export const CraftingPlacholder = () => {
   const actor = useContext(CraftContext);

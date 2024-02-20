@@ -360,8 +360,7 @@ class AutoSuggestTagsStream extends TokenStream<{ prompt: string }> {
     return input.prompt;
   }
 
-  protected async getSystemMessage(_: { prompt: string }): Promise<string> {
-    const TEMPLATE = `Return back a relevant set of tags we can suggest to the user that will help them further explore ideas for recipes to create. Do not include any tags that are effectively the same as what's already in the prompt. We want to encourage the user to add to the provided prompt by suggesting new tags.
+ Do not include any tags that are effectively the same as what's already in the prompt. We want to encourage the user to add to the provided prompt by suggesting new tags.
 
 Tags below are separate by type, select a balanced set of tags across types. In the response, format the tags as a YAML with a single key tags and then the list of tags. Return nothing else but the formatted YAML.
     
