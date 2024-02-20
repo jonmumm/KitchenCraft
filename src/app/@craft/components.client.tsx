@@ -263,8 +263,6 @@ export const SuggestedRecipeCards = () => {
       <SuggestedRecipeCard index={1} />
       <SuggestedRecipeCard index={2} />
       <SuggestedRecipeCard index={3} />
-      <SuggestedRecipeCard index={4} />
-      <SuggestedRecipeCard index={5} />
     </>
   );
 };
@@ -298,12 +296,12 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           {recipe?.name ? (
             <p className="flex-1">{recipe.name}</p>
           ) : (
-            <Skeleton className="w-12 h-6" />
+            <div className="flex-1">
+              <Skeleton className="w-12 h-6" />
+              <Skeleton className="w-8 h-6" />
+            </div>
           )}
-          <Button
-            event={{ type: "SKIP" }}
-            variant="outline"
-          >
+          <Button event={{ type: "SKIP" }} variant="outline">
             <XIcon />
           </Button>
         </CardTitle>
