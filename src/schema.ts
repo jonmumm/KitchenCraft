@@ -609,7 +609,19 @@ const SkipEventSchema = z.object({
   type: z.literal("SKIP"),
 });
 
+const AddTokenEventSchema = z.object({
+  type: z.literal("ADD_TOKEN"),
+  token: z.string(),
+});
+
+const RemoveTokenEventSchema = z.object({
+  type: z.literal("REMOVE_TOKEN"),
+  token: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  AddTokenEventSchema,
+  RemoveTokenEventSchema,
   SkipEventSchema,
   SwipeUpEventSchema,
   SwipeDownEventSchema,

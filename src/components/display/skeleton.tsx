@@ -31,7 +31,6 @@ function Skeleton({ className, animation, ...props }: SkeletonProps) {
   );
 }
 
-
 type TailwindWidth =
   | "w-1"
   | "w-2"
@@ -110,7 +109,11 @@ export function SkeletonSentence({
       {new Array(wordCount).fill(0).map((_, index) => {
         const widthClass = getRandomWidthClass();
         return (
-          <Skeleton key={index} className={cn(className, widthClass)} {...props} />
+          <Skeleton
+            key={index}
+            className={cn(className, widthClass)}
+            {...props}
+          />
         );
       })}
     </div>

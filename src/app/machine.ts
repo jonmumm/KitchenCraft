@@ -2,7 +2,6 @@ import {
   GeneratorObervableEvent,
   eventSourceToGenerator,
 } from "@/lib/generator";
-import { appendValueWithComma } from "@/lib/string";
 import { assert } from "@/lib/utils";
 import {
   InstantRecipeMetadataPredictionOutputSchema,
@@ -56,6 +55,7 @@ export const createCraftMachine = ({
   router,
   serverActions,
   initialPath,
+  send,
 }: {
   searchParams: Record<string, string>;
   router: AppRouterInstance;
@@ -70,6 +70,7 @@ export const createCraftMachine = ({
     ) => CreateRecipeResponse;
   };
   initialPath: string;
+  send: (event: AppEvent) => void;
 }) => {
   const instantRecipeMetadataGenerator = fromEventObservable(
     ({ input }: { input: InstantRecipeMetdataInput }) => {
@@ -188,6 +189,7 @@ export const createCraftMachine = ({
     return {
       prompt: prompt || undefined,
       ingredients: ingredients || undefined,
+      tokens: [],
       tags: tags || undefined,
       suggestions: null,
       substitutions: undefined,
@@ -333,6 +335,29 @@ export const createCraftMachine = ({
       },
       type: "parallel",
       states: {
+        TokenState: {
+          on: {
+            REMOVE_TOKEN: {
+              actions: assign({
+                prompt: "",
+                currentItemIndex: 0,
+                tokens: ({ context, event }) => [
+                  ...context.tokens.filter((token) => token !== event.token),
+                ],
+              }),
+            },
+            ADD_TOKEN: {
+              actions: assign({
+                // prompt: "",
+                currentItemIndex: 0,
+                tokens: ({ context, event }) => [
+                  ...context.tokens,
+                  event.token,
+                ],
+              }),
+            },
+          },
+        },
         Creating: {
           initial: "False",
           on: {
@@ -496,6 +521,7 @@ export const createCraftMachine = ({
               actions: [
                 assign({
                   prompt: undefined,
+                  tokens: [],
                   currentItemIndex: 0,
                 }),
                 () => {
@@ -593,64 +619,61 @@ export const createCraftMachine = ({
                 TOGGLE: "False",
                 BACK: "False",
                 CLOSE: "False",
-                ADD_INGREDIENT: {
+                ADD_TOKEN: {
                   actions: [
-                    {
-                      type: "assignPrompt",
-                      params: ({ context, event }) => ({
-                        prompt: appendValueWithComma(
-                          context.prompt || "",
-                          event.ingredient
-                        ),
-                      }),
-                    },
-                    {
-                      type: "replaceQueryParameters",
-                      params({ context, event }) {
-                        return {
-                          paramSet: {
-                            prompt: appendValueWithComma(
-                              context.prompt || "",
-                              event.ingredient
-                            ),
-                          },
-                        };
-                      },
-                    },
+                    // {
+                    //   type: "assignPrompt",
+                    //   params: ({ context, event }) => ({
+                    //     prompt: "",
+                    //   }),
+                    // },
+                    // {
+                    //   type: "replaceQueryParameters",
+                    //   params({ context, event }) {
+                    //     return {
+                    //       paramSet: {
+                    //         prompt: appendValueWithComma(
+                    //           context.prompt || "",
+                    //           event.ingredient
+                    //         ),
+                    //       },
+                    //     };
+                    //   },
+                    // },
                     {
                       type: "focusInput",
                     },
                   ],
                 },
-                ADD_TAG: {
-                  actions: [
-                    {
-                      type: "assignPrompt",
-                      params: ({ context, event }) => ({
-                        prompt: appendValueWithComma(
-                          context.prompt || "",
-                          event.tag
-                        ),
-                      }),
-                    },
-                    {
-                      type: "replaceQueryParameters",
-                      params({ context, event }) {
-                        return {
-                          paramSet: {
-                            prompt: appendValueWithComma(
-                              context.prompt || "",
-                              event.tag
-                            ),
-                          },
-                        };
-                      },
-                    },
-                    {
-                      type: "focusInput",
-                    },
-                  ],
-                },
+                // ADD_TAG: {
+                //   actions: [
+                //     {
+                //       type: "assignPrompt",
+                //       params: ({ context, event }) => ({
+                //         prompt: appendValueWithComma(
+                //           context.prompt || "",
+                //           event.tag
+                //         ),
+                //       }),
+                //     },
+                //     {
+                //       type: "replaceQueryParameters",
+                //       params({ context, event }) {
+                //         return {
+                //           paramSet: {
+                //             prompt: appendValueWithComma(
+                //               context.prompt || "",
+                //               event.tag
+                //             ),
+                //           },
+                //         };
+                //       },
+                //     },
+                //     {
+                //       type: "focusInput",
+                //     },
+                //   ],
+                // },
                 SET_INPUT: {
                   actions: [
                     {
@@ -673,43 +696,32 @@ export const createCraftMachine = ({
                 },
                 KEY_DOWN: [
                   {
-                    guard: ({ context, event }) => {
+                    guard: ({ event, context }) => {
                       const didPressEnter = event.keyboardEvent.key === "Enter";
-                      const hasSelection =
-                        typeof context.currentItemIndex !== "undefined";
-                      return didPressEnter && hasSelection;
-                    },
-                    actions: raise(({ context, event }) => {
-                      event.keyboardEvent.preventDefault();
-                      assert(
-                        typeof context.currentItemIndex !== "undefined",
-                        "expected currentItemIndex"
+                      return (
+                        didPressEnter &&
+                        !!context.prompt &&
+                        !!context.prompt?.length
                       );
-                      if (context.currentItemIndex === 0) {
-                        return {
-                          type: "INSTANT_RECIPE" as const,
-                        };
-                      } else if (
-                        context.currentItemIndex === 7 &&
-                        context.prompt?.length
-                      ) {
-                        return {
-                          type: "CLEAR" as const,
-                        };
-                      } else if (
-                        context.currentItemIndex === 7 &&
-                        (!context.prompt || context.prompt.length === 0)
-                      ) {
-                        return {
-                          type: "CLOSE" as const,
-                        };
-                      } else {
-                        return {
-                          type: "SELECT_RESULT" as const,
-                          index: context.currentItemIndex - 1,
-                        };
-                      }
-                    }),
+                    },
+                    actions: [
+                      ({ context, event }) => {
+                        event.keyboardEvent.preventDefault();
+
+                        // If we want events to go to the server,
+                        // we have to use SEND rather than reply raise
+                        // todo in future we might want to have events go to the server
+                        // by listening to events that happen on the state machine
+                        // rather than explicitly sending up events send through useSend
+                        send({
+                          type: "ADD_TOKEN",
+                          token: context.prompt!, // can this be type guarded from guard?
+                        });
+                      },
+                      assign({
+                        prompt: "",
+                      }),
+                    ],
                   },
                   {
                     actions: [

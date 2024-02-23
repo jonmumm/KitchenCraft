@@ -1,5 +1,5 @@
 import { streamToObservable } from "@/lib/stream-to-observable";
-import { appendValueWithComma } from "@/lib/string";
+import { assert } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { from, switchMap } from "rxjs";
 import { assign, fromEventObservable, setup } from "xstate";
@@ -42,12 +42,11 @@ export const sessionMachine = setup({
     context: {} as {
       distinctId: string;
       prompt: string;
+      runningInput: string | undefined;
+      tokens: string[];
       suggestedRecipes: { name?: string; description?: string }[];
-      suggestedRecipesResultId?: string;
       suggestedTags: string[];
-      suggestedTagsResultId?: string;
       suggestedIngredients: string[];
-      suggestedIngredientssResultId?: string;
     },
     events: {} as
       | AppEvent
@@ -58,14 +57,26 @@ export const sessionMachine = setup({
   actors: {
     // autoSuggestMachine,
   },
+  guards: {
+    shouldRunInput: ({ context, event }) => {
+      if (event.type === "ADD_TOKEN") {
+        const nextInput = buildSuggestionsInput({
+          prompt: event.token,
+          tokens: context.tokens,
+        });
+        console.log({ nextInput, runningInput: context.runningInput });
+        return nextInput !== context.runningInput;
+        // } else if (event.type === "SET_INPUT") {
+        //   return true;
+      }
+      assert(false, "unhandled event type: " + event.type);
+    },
+  },
   actions: {
     resetSuggestions: assign({
       suggestedTags: [],
-      suggestedTagsResultId: "",
       suggestedIngredients: [],
-      suggestedIngredientssResultId: "",
       suggestedRecipes: [],
-      suggestedRecipesResultId: "",
     }),
   },
 }).createMachine({
@@ -73,6 +84,8 @@ export const sessionMachine = setup({
   context: ({ input }) => ({
     distinctId: input.id,
     prompt: "",
+    tokens: [],
+    runningInput: undefined,
     suggestedRecipes: [],
     suggestedTags: [],
     suggestedIngredients: [],
@@ -89,32 +102,54 @@ export const sessionMachine = setup({
                 "resetSuggestions",
                 assign({
                   prompt: "",
+                  runningInput: undefined,
+                  tokens: [],
                 }),
               ],
             },
-            ADD_TAG: {
+            REMOVE_TOKEN: {
               actions: [
                 "resetSuggestions",
                 assign({
-                  prompt: ({ context, event }) =>
-                    appendValueWithComma(context.prompt, event.tag),
+                  tokens: ({ context, event }) =>
+                    context.tokens.filter((token) => token !== event.token),
+                  runningInput: ({ context, event }) =>
+                    buildSuggestionsInput({
+                      prompt: context.prompt,
+                      tokens: context.tokens.filter(
+                        (token) => token !== event.token
+                      ),
+                    }),
                 }),
               ],
             },
-            ADD_INGREDIENT: {
+            ADD_TOKEN: {
               actions: [
                 "resetSuggestions",
                 assign({
-                  prompt: ({ context, event }) =>
-                    appendValueWithComma(context.prompt, event.ingredient),
+                  tokens: ({ context, event }) => [
+                    ...context.tokens,
+                    event.token,
+                  ],
+                  runningInput: ({ context, event }) =>
+                    buildSuggestionsInput({
+                      prompt: context.prompt,
+                      tokens: [...context.tokens, event.token],
+                    }),
                 }),
               ],
+              guard: "shouldRunInput",
             },
             SET_INPUT: {
               actions: [
                 "resetSuggestions",
                 assign({
                   prompt: ({ event }) => event.value,
+                  runningInput: ({ event, context }) =>
+                    buildSuggestionsInput({
+                      prompt: event.value,
+                      tokens: context.tokens,
+                    }),
                 }),
               ],
             },
@@ -123,20 +158,50 @@ export const sessionMachine = setup({
 
         Generators: {
           type: "parallel",
+          on: {
+            REMOVE_TOKEN: {
+              target: [
+                ".Tags.Generating",
+                ".Ingredients.Generating",
+                ".Recipes.Generating",
+              ],
+              guard: ({ context, event }) => {
+                const input = buildSuggestionsInput({
+                  prompt: context.prompt,
+                  tokens: context.tokens.filter(
+                    (token) => token !== event.token
+                  ),
+                });
+                console.log(input);
+                return !!input.length;
+              },
+            },
+            ADD_TOKEN: {
+              target: [
+                ".Tags.Generating",
+                ".Ingredients.Generating",
+                ".Recipes.Generating",
+              ],
+              guard: "shouldRunInput",
+            },
+            SET_INPUT: [
+              {
+                target: [
+                  ".Tags.Holding",
+                  ".Ingredients.Holding",
+                  ".Recipes.Holding",
+                ],
+                guard: ({ event }) => !!event.value?.length,
+              },
+              {
+                target: [".Tags.Idle", ".Ingredients.Idle", ".Recipes.Idle"],
+              },
+            ],
+          },
           states: {
             Tags: {
               initial: "Idle",
-              on: {
-                ADD_INGREDIENT: ".Generating",
-                ADD_TAG: ".Generating",
-                SET_INPUT: [
-                  {
-                    target: ".Holding",
-                    guard: ({ event }) => !!event.value?.length,
-                  },
-                  { target: ".Idle" },
-                ],
-              },
+              on: {},
               states: {
                 Idle: {},
                 Holding: {
@@ -149,11 +214,11 @@ export const sessionMachine = setup({
                 },
                 Generating: {
                   on: {
-                    TAG_START: {
-                      actions: assign({
-                        suggestedTagsResultId: ({ event }) => event.resultId,
-                      }),
-                    },
+                    // TAG_START: {
+                    //   actions: assign({
+                    //     suggestedTagsResultId: ({ event }) => event.resultId,
+                    //   }),
+                    // },
                     TAG_PROGRESS: {
                       actions: assign({
                         suggestedTags: ({ event }) => event.data.tags || [],
@@ -166,7 +231,9 @@ export const sessionMachine = setup({
                     },
                   },
                   invoke: {
-                    input: ({ context }) => ({ prompt: context.prompt }),
+                    input: ({ context }) => ({
+                      prompt: context.runningInput,
+                    }),
                     src: fromEventObservable(
                       ({ input }: { input: { prompt: string } }) => {
                         const tokenStream = new AutoSuggestTagsStream();
@@ -190,17 +257,6 @@ export const sessionMachine = setup({
             },
             Ingredients: {
               initial: "Idle",
-              on: {
-                ADD_INGREDIENT: ".Generating",
-                ADD_TAG: ".Generating",
-                SET_INPUT: [
-                  {
-                    target: ".Holding",
-                    guard: ({ event }) => !!event.value?.length,
-                  },
-                  { target: ".Idle" },
-                ],
-              },
               states: {
                 Idle: {},
                 Holding: {
@@ -213,12 +269,12 @@ export const sessionMachine = setup({
                 },
                 Generating: {
                   on: {
-                    INGREDIENT_START: {
-                      actions: assign({
-                        suggestedIngredientssResultId: ({ event }) =>
-                          event.resultId,
-                      }),
-                    },
+                    // INGREDIENT_START: {
+                    //   actions: assign({
+                    //     suggestedIngredientssResultId: ({ event }) =>
+                    //       event.resultId,
+                    //   }),
+                    // },
                     INGREDIENT_PROGRESS: {
                       actions: assign({
                         suggestedIngredients: ({ event }) =>
@@ -233,7 +289,9 @@ export const sessionMachine = setup({
                     },
                   },
                   invoke: {
-                    input: ({ context }) => ({ prompt: context.prompt }),
+                    input: ({ context }) => ({
+                      prompt: context.runningInput,
+                    }),
                     src: fromEventObservable(
                       ({ input }: { input: { prompt: string } }) => {
                         const tokenStream = new AutoSuggestIngredientStream();
@@ -257,17 +315,6 @@ export const sessionMachine = setup({
             },
             Recipes: {
               initial: "Idle",
-              on: {
-                ADD_INGREDIENT: ".Generating",
-                ADD_TAG: ".Generating",
-                SET_INPUT: [
-                  {
-                    target: ".Holding",
-                    guard: ({ event }) => !!event.value?.length,
-                  },
-                  { target: ".Idle" },
-                ],
-              },
               states: {
                 Idle: {},
                 Holding: {
@@ -280,17 +327,17 @@ export const sessionMachine = setup({
                 },
                 Generating: {
                   on: {
-                    RECIPE_START: {
-                      actions: [
-                        assign({
-                          suggestedRecipesResultId: ({ event }) =>
-                            event.resultId,
-                        }),
-                        () => {
-                          console.log("start");
-                        },
-                      ],
-                    },
+                    // RECIPE_START: {
+                    //   actions: [
+                    //     assign({
+                    //       suggestedRecipesResultId: ({ event }) =>
+                    //         event.resultId,
+                    //     }),
+                    //     () => {
+                    //       console.log("start");
+                    //     },
+                    //   ],
+                    // },
                     RECIPE_PROGRESS: {
                       actions: assign({
                         suggestedRecipes: ({ event }) =>
@@ -304,7 +351,9 @@ export const sessionMachine = setup({
                     },
                   },
                   invoke: {
-                    input: ({ context }) => ({ prompt: context.prompt }),
+                    input: ({ context }) => ({
+                      prompt: context.runningInput,
+                    }),
                     src: fromEventObservable(
                       ({ input }: { input: { prompt: string } }) => {
                         const tokenStream = new AutoSuggestRecipesStream();
@@ -341,3 +390,13 @@ export const sessionMachine = setup({
     },
   },
 });
+
+const buildSuggestionsInput = ({
+  prompt,
+  tokens,
+}: {
+  prompt: string;
+  tokens: string[];
+}) => {
+  return prompt.length ? prompt + ", " + tokens.join(", ") : tokens.join(", ");
+};

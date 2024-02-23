@@ -15,10 +15,11 @@ import {
 import { FC, ReactNode } from "react";
 import { twc } from "react-twc";
 import {
+  AddedTokens,
   CraftEmpty,
   CraftNotEmpty,
+  HasTokens,
   SuggestedIngredientBadge,
-  SuggestedRecipeCard,
   SuggestedRecipeCards,
   SuggestedTagBadge,
 } from "./components.client";
@@ -78,9 +79,9 @@ const TrendingIngredientsSection = () => {
             return (
               <Badge
                 variant="secondary"
-                className="carousel-item"
+                className="carousel-item flex flex-row gap-1"
                 key={ingredient}
-                event={{ type: "ADD_INGREDIENT", ingredient }}
+                event={{ type: "ADD_TOKEN", token: ingredient }}
               >
                 {ingredient}
               </Badge>
@@ -208,12 +209,11 @@ const TrendingTagsSection = () => {
             return (
               <Badge
                 variant="secondary"
-                className="carousel-item"
+                className="carousel-item flex flex-row gap-1 items-center"
                 key={tag}
-                event={{ type: "ADD_TAG", tag }}
+                event={{ type: "ADD_TOKEN", token: tag }}
               >
                 {tag}
-                {/* <span className="text-slate-500">{type}</span>:{tag} */}
               </Badge>
             );
           })}
@@ -271,6 +271,7 @@ export const NewRecipeResultsView = () => {
   return (
     <>
       <Container className="gap-4 flex-1">
+        <CurrentTokensSection />
         <SuggestedRecipesSection />
         <TrendingIngredientsSection />
         <TrendingTagsSection />
@@ -279,7 +280,9 @@ export const NewRecipeResultsView = () => {
       </Container>
       <Footer>
         <ClientOnly>
-          <BackButton />
+          <CraftEmpty>
+            <BackButton />
+          </CraftEmpty>
         </ClientOnly>
       </Footer>
     </>
@@ -1713,6 +1716,14 @@ export const Selections = () => {
 //     <LoaderIcon className="animate-spin" />
 //   );
 // };
+
+const CurrentTokensSection = () => {
+  return (
+    <HasTokens>
+      <AddedTokens />
+    </HasTokens>
+  );
+};
 
 const SuggestedRecipesSection = () => {
   return (

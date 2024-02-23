@@ -1,13 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/display/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/display/card";
+import { Card, CardDescription, CardTitle } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
@@ -23,19 +17,43 @@ import {
   selectIsCreating,
   selectIsRemixing,
   selectPromptLength,
+  selectTokens,
 } from "./selectors";
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const promptLength = useSelector(actor, selectPromptLength);
+  const tokens = useSelector(actor, selectTokens);
+
+  return !tokens.length && promptLength === 0 ? <>{children}</> : null;
+};
+
+export const CraftPromptEmpty = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const promptLength = useSelector(actor, selectPromptLength);
 
   return promptLength === 0 ? <>{children}</> : null;
 };
-export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
+export const CraftPromptNotEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const promptLength = useSelector(actor, selectPromptLength);
 
   return promptLength !== 0 ? <>{children}</> : null;
+};
+
+export const HasTokens = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const numTokens = useSelector(actor, (state) => state.context.tokens.length);
+
+  return numTokens !== 0 ? <>{children}</> : null;
+};
+
+export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const promptLength = useSelector(actor, selectPromptLength);
+  const tokens = useSelector(actor, selectTokens);
+
+  return tokens.length || promptLength !== 0 ? <>{children}</> : null;
 };
 export const RecipeCreating = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
@@ -256,6 +274,31 @@ export const CraftingPlacholder = () => {
   return selection && <RecipeCraftingPlaceholder />;
 };
 
+export const AddedTokens = () => {
+  const actor = useContext(CraftContext);
+  const tokens = useSelector(actor, (state) => state.context.tokens);
+  return (
+    <div className="flex flex-row flex-wrap gap-2 px-4">
+      {tokens.map((token) => {
+        return (
+          <Badge
+            className="flex flex-row gap-1"
+            variant="secondary"
+            key={token}
+            event={{
+              type: "REMOVE_TOKEN",
+              token,
+            }}
+          >
+            <span>{token}</span>
+            <XIcon size={13} />
+          </Badge>
+        );
+      })}
+    </div>
+  );
+};
+
 export const SuggestedRecipeCards = () => {
   return (
     <>
@@ -263,6 +306,8 @@ export const SuggestedRecipeCards = () => {
       <SuggestedRecipeCard index={1} />
       <SuggestedRecipeCard index={2} />
       <SuggestedRecipeCard index={3} />
+      <SuggestedRecipeCard index={4} />
+      <SuggestedRecipeCard index={5} />
     </>
   );
 };
@@ -281,40 +326,50 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
 
   const diffToCurrent = index - currentItemIndex;
 
+  if (diffToCurrent < 0 || diffToCurrent >= 4) {
+    return null;
+  }
+
   const topOffset = diffToCurrent * 4;
-  const scale = 100 - diffToCurrent * 5;
-  const z = 50 - diffToCurrent * 10;
+  const scale = (100 - diffToCurrent * 5) / 100;
+  const zIndex = 50 - diffToCurrent * 10;
   const position = diffToCurrent ? "absolute" : "relative";
+  // const overflow = diffToCurrent !== 0 ? "hidden" : "";
 
   return (
     <Card
-      className={`max-w-xl w-full z-${z} scale-${scale} -mt-${topOffset} inset-0 ${position} transition-all`}
+      className={`max-w-xl w-full top-0 ${position} transition-all`}
+      style={{
+        transform: `scale(${scale})`,
+        minHeight: "200px",
+        zIndex,
+        marginTop: `-${topOffset * 3}px`,
+      }}
+      // style={{ scale }}
     >
-      <CardHeader className="flex flex-col gap-2">
+      <div className="p-4 flex flex-col gap-2">
         <CardTitle className="flex flex-row items-center gap-2">
           {index + 1}.{" "}
           {recipe?.name ? (
             <p className="flex-1">{recipe.name}</p>
           ) : (
             <div className="flex-1 flex flex-row gap-2">
-              <Skeleton className="w-12 h-6" />
-              <Skeleton className="w-8 h-6" />
+              <SkeletonSentence className="h-7" numWords={4} />
             </div>
           )}
           <Button event={{ type: "SKIP" }} variant="outline">
             <XIcon />
           </Button>
         </CardTitle>
-        <CardDescription>
-          {recipe?.description ? (
-            recipe.description
-          ) : (
-            <div className="flex-1">
-              <SkeletonSentence className="h-4" numWords={12} />
-            </div>
-          )}
-        </CardDescription>
-        {/* <div className="flex flex-row gap-1 items-center">
+        {recipe?.description ? (
+          <CardDescription>{recipe.description}</CardDescription>
+        ) : (
+          <div className="flex-1">
+            <SkeletonSentence className="h-4" numWords={12} />
+          </div>
+        )}
+      </div>
+      {/* <div className="flex flex-row gap-1 items-center">
           <TagIcon size={16} />
           <div className="flex flex-row gap-1">
             <Badge variant="secondary">Baking</Badge>
@@ -322,20 +377,19 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             <Badge variant="secondary">Chocolate</Badge>
           </div>
         </div> */}
-      </CardHeader>
-      <Separator className="mb-6" />
-      <CardContent className="flex justify-between">
-        {/* <Button
+      {/* <Button
           event={{ type: "SKIP" }}
           variant="default"
           className="bg-slate-500"
         >
           <ChevronsLeftIcon /> Skip
         </Button> */}
+      <Separator />
+      <div className="p-4">
         <Button className="w-full">
           Continue Generating <ChevronsDownIcon size={16} />
         </Button>
-      </CardContent>
+      </div>
     </Card>
   );
 };
@@ -352,11 +406,13 @@ export const SuggestedIngredientBadge = ({
     state.matches({ Typing: "True" })
   );
   const session = useStore(session$);
+  const isGenerating =
+    session.value.Craft.Generators.Ingredients === "Generating";
   const ingredient = session.context.suggestedIngredients[index];
   // const resultId = index, session.context.suggestedIngredientssResultId);
   // console.log(index, session.context.suggestedTags);
 
-  if (!ingredient && !isTyping) {
+  if (!ingredient && !isTyping && !isGenerating) {
     return null;
   }
 
@@ -373,9 +429,9 @@ export const SuggestedIngredientBadge = ({
 
   return (
     <Badge
-      className={cn(className, "carousel-item flex flex-row")}
+      className={cn(className, "carousel-item flex flex-row cursor-pointer")}
       variant="secondary"
-      event={{ type: "ADD_INGREDIENT", ingredient }}
+      event={{ type: "ADD_TOKEN", token: ingredient }}
     >
       {ingredient}
     </Badge>
@@ -396,9 +452,13 @@ export const SuggestedTagBadge = ({
 
   const session = useStore(session$);
   const tag = session.context.suggestedTags[index];
+  const isGenerating = session.value.Craft.Generators.Tags === "Generating";
+  // const isGenerating = session.matches({
+  //   Craft: { Generators: { Tags: "Generating" } },
+  // });
   // const resultId = index, session.context.suggestedIngredientssResultId);
   // console.log(index, session.context.suggestedTags);
-  if (!tag && !isTyping) {
+  if (!tag && !isTyping && !isGenerating) {
     return null;
   }
 
@@ -415,9 +475,9 @@ export const SuggestedTagBadge = ({
 
   return (
     <Badge
-      className={cn(className, "carousel-item flex flex-row")}
+      className={cn(className, "carousel-item flex flex-row cursor-pointer")}
       variant="secondary"
-      event={{ type: "ADD_TAG", tag }}
+      event={{ type: "ADD_TOKEN", token: tag }}
     >
       {tag}
     </Badge>

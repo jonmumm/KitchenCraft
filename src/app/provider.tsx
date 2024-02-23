@@ -49,11 +49,13 @@ export function ApplicationProvider(props: {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const router = useRouter();
+    const send = useSend();
 
     const actor = useActor("craft", () =>
       createCraftMachine({
         searchParams: Object.fromEntries(searchParams.entries()),
         router,
+        send,
         serverActions: props.actions,
         initialPath: pathname,
       })

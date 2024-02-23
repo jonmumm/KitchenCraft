@@ -41,7 +41,7 @@ import { CraftSnapshot } from "../machine";
 //   state.matches("Mode.Modify.Scale");
 
 export const selectIsOpen = (state: CraftSnapshot) => {
-  return state.matches({Open: "True"});
+  return state.matches({ Open: "True" });
 };
 
 // export const selectInputIsPristine = ({ context }: CraftSnapshot) => {
@@ -62,15 +62,17 @@ export const selectIsOpen = (state: CraftSnapshot) => {
 // };
 
 export const selectIsCreating = (state: CraftSnapshot) =>
-  !state.matches({Creating: "False"});
+  !state.matches({ Creating: "False" });
 
-export const selectIsRemixing = (state: CraftSnapshot) => false
+export const selectIsRemixing = (state: CraftSnapshot) => false;
 
 export const selectIsTyping = (state: CraftSnapshot) =>
-  state.matches({Typing: "True"});
+  state.matches({ Typing: "True" });
 
 export const selectPromptLength = (state: CraftSnapshot) =>
   state.context.prompt?.length || 0;
+
+export const selectTokens = (state: CraftSnapshot) => state.context.tokens;
 
 // export const selectIsInstantRecipeLoading = (state: CraftSnapshot) =>
 //   state.matches("Mode.New.InstantRecipe.InProgress") || state.matches("Mode.New.InstantRecipe.Holding");
