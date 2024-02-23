@@ -64,7 +64,12 @@ export const sessionMachine = setup({
           prompt: event.token,
           tokens: context.tokens,
         });
-        console.log({ nextInput, runningInput: context.runningInput });
+        console.log({
+          nextInput,
+          runningInput: context.runningInput,
+          prompt: context.prompt,
+          tokens: context.tokens,
+        });
         return nextInput !== context.runningInput;
         // } else if (event.type === "SET_INPUT") {
         //   return true;
