@@ -300,14 +300,20 @@ export const AddedTokens = () => {
 };
 
 export const SuggestedRecipeCards = () => {
+  const session = useStore(session$);
+  const complete = session.context.numCompletedRecipes || 6 ;
+  const items = new Array(complete).fill(0);
+
   return (
     <>
-      <SuggestedRecipeCard index={0} />
-      <SuggestedRecipeCard index={1} />
-      <SuggestedRecipeCard index={2} />
-      <SuggestedRecipeCard index={3} />
-      <SuggestedRecipeCard index={4} />
-      <SuggestedRecipeCard index={5} />
+      {items.map((_, index) => {
+        return (
+          <SuggestedRecipeCard
+            key={index}
+            index={index}
+          />
+        );
+      })}
     </>
   );
 };

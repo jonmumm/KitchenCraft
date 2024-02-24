@@ -45,6 +45,8 @@ export const sessionMachine = setup({
       runningInput: string | undefined;
       tokens: string[];
       suggestedRecipes: { name?: string; description?: string }[];
+      currentItemIndex: number;
+      numCompletedRecipes: number;
       suggestedTags: string[];
       suggestedIngredients: string[];
     },
@@ -82,6 +84,7 @@ export const sessionMachine = setup({
       suggestedTags: [],
       suggestedIngredients: [],
       suggestedRecipes: [],
+      numCompletedRecipes: 0,
     }),
   },
 }).createMachine({
@@ -89,6 +92,8 @@ export const sessionMachine = setup({
   context: ({ input }) => ({
     distinctId: input.id,
     prompt: "",
+    currentItemIndex: 0,
+    numCompletedRecipes: 0,
     tokens: [],
     runningInput: undefined,
     suggestedRecipes: [],
@@ -102,6 +107,11 @@ export const sessionMachine = setup({
       states: {
         Input: {
           on: {
+            SKIP: {
+              actions: assign({
+                currentItemIndex: ({ context }) => context.currentItemIndex + 1,
+              }),
+            },
             CLEAR: {
               actions: [
                 "resetSuggestions",
@@ -321,7 +331,21 @@ export const sessionMachine = setup({
             Recipes: {
               initial: "Idle",
               states: {
-                Idle: {},
+                Idle: {
+                  always: {
+                    target: "Generating",
+                    guard: ({ context, event }) => {
+                      if (context.numCompletedRecipes) {
+                        console.log("guard", context.currentItemIndex)
+                        return (
+                          context.currentItemIndex + 3 >=
+                          context.numCompletedRecipes
+                        );
+                      }
+                      return false;
+                    },
+                  },
+                },
                 Holding: {
                   after: {
                     500: {
@@ -331,6 +355,9 @@ export const sessionMachine = setup({
                   },
                 },
                 Generating: {
+                  entry: () => {
+                    console.log("Gen recie")
+                  },
                   on: {
                     // RECIPE_START: {
                     //   actions: [
@@ -345,13 +372,24 @@ export const sessionMachine = setup({
                     // },
                     RECIPE_PROGRESS: {
                       actions: assign({
-                        suggestedRecipes: ({ event }) =>
-                          event.data.recipes || [],
+                        suggestedRecipes: ({ context, event }) => [
+                          ...context.suggestedRecipes.slice(
+                            0,
+                            context.numCompletedRecipes
+                          ),
+                          ...(event.data.recipes || []),
+                        ],
                       }),
                     },
                     RECIPE_COMPLETE: {
                       actions: assign({
-                        suggestedRecipes: ({ event }) => event.data.recipes,
+                        numCompletedRecipes: ({ context, event }) =>
+                          context.numCompletedRecipes +
+                          event.data.recipes.length,
+                        suggestedRecipes: ({ context, event }) => [
+                          ...context.suggestedRecipes,
+                          ...event.data.recipes,
+                        ],
                       }),
                     },
                   },
@@ -382,7 +420,7 @@ export const sessionMachine = setup({
                     onDone: {
                       target: "Idle",
                       actions: (f) => {
-                        console.log("DONE");
+                        console.log("DONE with Recipes");
                       },
                     },
                   },
