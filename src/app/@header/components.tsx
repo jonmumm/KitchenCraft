@@ -6,23 +6,28 @@ import {
   SheetTrigger,
 } from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
-import { MainMenu } from "@/modules/main-menu";
-import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
 import { cn } from "@/lib/utils";
+import { MainMenu } from "@/modules/main-menu";
+import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import {
   ChefHatIcon,
   ChevronRightIcon,
   GripVerticalIcon,
   Loader2Icon,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BackButton, CraftInput, KeyboardToggle } from "./components.client";
+import { CraftNotEmpty } from "../@craft/components.client";
+import {
+  BackButton,
+  CraftAutoComplete,
+  CraftInput,
+  KeyboardToggle,
+} from "./components.client";
 
 export async function Header({
   className,
@@ -55,10 +60,7 @@ export async function Header({
         >
           <div className="crafting:hidden">
             {backUrl ? (
-              <BackButton
-                handleBack={back}
-                hasHistory={hasHistory}
-              />
+              <BackButton handleBack={back} hasHistory={hasHistory} />
             ) : (
               <div className="mt-3 mr-2 w-20">
                 <NavigationLink href="/">
@@ -125,11 +127,14 @@ const CraftCTA = () => {
   // hide the empty state on click
 
   return (
-    <div className="w-full relative shadow-xl rounded-3xl flex flex-row border-2 border-muted py-2 focus-within:border-blue-500">
+    <div className="w-full relative shadow-xl rounded-3xl flex flex-col border-2 border-muted py-2 focus-within:border-blue-500">
       <CraftInput
         // autoFocus={autoFocus}
         commandBadge={getIsMacDesktop()}
       />
+      <CraftNotEmpty>
+        <CraftAutoComplete />
+      </CraftNotEmpty>
     </div>
   );
 };

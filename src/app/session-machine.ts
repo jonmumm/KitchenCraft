@@ -19,6 +19,11 @@ import {
   AutoSuggestTagOutputSchema,
   AutoSuggestTagsStream,
 } from "./auto-suggest-tags.stream";
+import {
+  AutoSuggestTextEvent,
+  AutoSuggestTextOutputSchema,
+  AutoSuggestTextStream,
+} from "./auto-suggest-text.stream";
 
 // const autoSuggestionOutputSchemas = {
 //   tags: InstantRecipeMetadataPredictionOutputSchema,
@@ -48,13 +53,15 @@ export const sessionMachine = setup({
       currentItemIndex: number;
       numCompletedRecipes: number;
       suggestedTags: string[];
+      suggestedText: string[];
       suggestedIngredients: string[];
     },
     events: {} as
       | AppEvent
       | AutoSuggestTagEvent
       | AutoSuggestIngredientEvent
-      | AutoSuggestRecipesEvent,
+      | AutoSuggestRecipesEvent
+      | AutoSuggestTextEvent,
   },
   actors: {
     // autoSuggestMachine,
@@ -84,6 +91,7 @@ export const sessionMachine = setup({
       suggestedTags: [],
       suggestedIngredients: [],
       suggestedRecipes: [],
+      suggestedText: [],
       numCompletedRecipes: 0,
     }),
   },
@@ -98,6 +106,7 @@ export const sessionMachine = setup({
     runningInput: undefined,
     suggestedRecipes: [],
     suggestedTags: [],
+    suggestedText: [],
     suggestedIngredients: [],
   }),
   type: "parallel",
@@ -176,6 +185,7 @@ export const sessionMachine = setup({
           on: {
             REMOVE_TOKEN: {
               target: [
+                ".Text.Generating",
                 ".Tags.Generating",
                 ".Ingredients.Generating",
                 ".Recipes.Generating",
@@ -193,6 +203,7 @@ export const sessionMachine = setup({
             },
             ADD_TOKEN: {
               target: [
+                ".Text.Generating",
                 ".Tags.Generating",
                 ".Ingredients.Generating",
                 ".Recipes.Generating",
@@ -202,6 +213,7 @@ export const sessionMachine = setup({
             SET_INPUT: [
               {
                 target: [
+                  ".Text.Holding",
                   ".Tags.Holding",
                   ".Ingredients.Holding",
                   ".Recipes.Holding",
@@ -209,14 +221,73 @@ export const sessionMachine = setup({
                 guard: ({ event }) => !!event.value?.length,
               },
               {
-                target: [".Tags.Idle", ".Ingredients.Idle", ".Recipes.Idle"],
+                target: [
+                  ".Text.Idle",
+                  ".Tags.Idle",
+                  ".Ingredients.Idle",
+                  ".Recipes.Idle",
+                ],
               },
             ],
           },
           states: {
+            Text: {
+              initial: "Idle",
+              states: {
+                Idle: {},
+                Holding: {
+                  after: {
+                    300: {
+                      target: "Generating",
+                      guard: ({ context }) => !!context.prompt?.length,
+                    },
+                  },
+                },
+                Generating: {
+                  on: {
+                    // TAG_START: {
+                    //   actions: assign({
+                    //     suggestedTagsResultId: ({ event }) => event.resultId,
+                    //   }),
+                    // },
+                    TEXT_PROGRESS: {
+                      actions: assign({
+                        suggestedText: ({ event }) => event.data.items || [],
+                      }),
+                    },
+                    TEXT_COMPLETE: {
+                      actions: assign({
+                        suggestedText: ({ event }) => event.data.items,
+                      }),
+                    },
+                  },
+                  invoke: {
+                    input: ({ context }) => ({
+                      prompt: context.runningInput,
+                    }),
+                    src: fromEventObservable(
+                      ({ input }: { input: { prompt: string } }) => {
+                        const tokenStream = new AutoSuggestTextStream();
+                        return from(tokenStream.getStream(input)).pipe(
+                          switchMap((stream) => {
+                            return streamToObservable(
+                              stream,
+                              "TEXT",
+                              AutoSuggestTextOutputSchema
+                            );
+                          })
+                        );
+                      }
+                    ),
+                    onDone: {
+                      target: "Idle",
+                    },
+                  },
+                },
+              },
+            },
             Tags: {
               initial: "Idle",
-              on: {},
               states: {
                 Idle: {},
                 Holding: {
@@ -336,7 +407,7 @@ export const sessionMachine = setup({
                     target: "Generating",
                     guard: ({ context, event }) => {
                       if (context.numCompletedRecipes) {
-                        console.log("guard", context.currentItemIndex)
+                        console.log("guard", context.currentItemIndex);
                         return (
                           context.currentItemIndex + 3 >=
                           context.numCompletedRecipes
@@ -356,7 +427,7 @@ export const sessionMachine = setup({
                 },
                 Generating: {
                   entry: () => {
-                    console.log("Gen recie")
+                    console.log("Gen recie");
                   },
                   on: {
                     // RECIPE_START: {

@@ -14,6 +14,7 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
+import { useStore } from "@nanostores/react";
 import {
   ArrowLeftIcon,
   ChevronRight,
@@ -32,6 +33,7 @@ import {
   useState,
 } from "react";
 import { CraftContext } from "../context";
+import { session$ } from "../session-store";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -84,6 +86,19 @@ export const BackButton = (props: {
     </form>
   ) : (
     <Content />
+  );
+};
+
+export const CraftAutoComplete = () => {
+  const session = useStore(session$);
+  console.log(session.context.suggestedText.length)
+
+  return (
+    <ol>
+      {session.context.suggestedText.map((item, index) => {
+        return <li key={index}>{item}</li>;
+      })}
+    </ol>
   );
 };
 

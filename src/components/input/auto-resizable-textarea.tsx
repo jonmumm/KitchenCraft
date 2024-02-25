@@ -81,6 +81,8 @@ const AutoResizableTextarea: React.FC<
     }, 0);
   });
   useEventHandler("CLEAR", resizeTextarea);
+  useEventHandler("ADD_TOKEN", resizeTextarea);
+  useEventHandler("REMOVE_TOKEN", resizeTextarea);
 
   useEffect(() => {
     resizeTextarea();
