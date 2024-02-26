@@ -17,48 +17,32 @@ export class AutoSuggestTextStream extends TokenStream<{ prompt: string }> {
   }
 
   protected async getSystemMessage(_: { prompt: string }): Promise<string> {
-    const TEMPLATE = `Given the user prompt, help me come up with a list of 6 suggestions to provide back to the user as autocomplete suggestions to guide them as they are crafting an idea for a new recipe.
+    const TEMPLATE = `Given the user prompt, help me come up with a list of 6 suggestions:
+4 of the suggestions should be ingredients;
+1 of the suggestion should be an ingredient to exclude;
+1 of the suggestions should be either a cooking style / origin, either instruments to use;
+The prompt will be used to generate a recipe in a separate process.
 
-Here is a wide-ranging set of example items to use as reference for things that might be helpful. Don't include back any items that are already included in the user prompt.
+===
+Here is a set of example items to use as reference for things that might be helpful. Don't include back any items that are already included in the user prompt.
 
-"3 eggs"
-"1lb ground beef"
-"2 cups flour"
-"pad thai"
-"curry dish"
-"pasta meal"
-"chicken stew"
-"veggie mix"
-"family meal"
-"6 servings"
-"party size"
-"omelette"
-"pancakes"
-"salad lunch"
-"fruit snack"
-"steak dinner"
-"quick stir-fry"
-"protein-rich"
-"low-cal meal"
-"heart healthy"
-"keto snack"
-"no nuts"
-"dairy-free"
-"gluten-free"
-"lactose-free"
-"bake bread"
-"slow cooker"
-"grilled fish"
-"smoked ribs"
-"kid-friendly"
-"easy recipe"
-"superfoods"
-"without sugar"
-"whole grain"
-"roast veggies"
-"grill bbq"
+user prompt “bacon”
+"bacon, 3 eggs"
+“bacon, flour”
 
-Format the response in YAML with a single key "items" and then the list of text strings to show as autocomplete suggestions. Return nothing else but the formatted YAML.
+user prompt “curry dish”
+“curry dish, traditional India”
+“curry dish, not spicy”
+“curry dish, shrimp”
+
+user prompt “omelette”
+“omelette, family main”
+“omelette, decadent”
+“omelette with coriander”
+
+===
+
+Format the response in YAML with a single key "items" and then the list of text strings to show as autocomplete suggestions. Append the user prompt before each of the items. Randomize the items order. Return nothing else but the formatted YAML.
 `;
 
     return TEMPLATE;
