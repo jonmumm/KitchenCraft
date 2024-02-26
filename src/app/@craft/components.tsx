@@ -15,10 +15,8 @@ import {
 import { FC, ReactNode } from "react";
 import { twc } from "react-twc";
 import {
-  AddedTokens,
   CraftEmpty,
   CraftNotEmpty,
-  HasTokens,
   SuggestedIngredientBadge,
   SuggestedRecipeCards,
   SuggestedTagBadge,
@@ -93,12 +91,12 @@ const TrendingIngredientsSection = () => {
   );
 };
 
-const SuggestedIngredientsSection = () => {
+const QuickAddSection = () => {
   const items = new Array(6).fill(0);
   return (
     <CraftNotEmpty>
       <Section>
-        <IngredientsLabel />
+        {/* <SectionLabel icon={PlusIcon} title={"Add"} /> */}
         <BadgeList>
           {items.map((_, index) => {
             return (
@@ -271,12 +269,10 @@ export const NewRecipeResultsView = () => {
   return (
     <>
       <Container className="gap-4 flex-1">
-        <CurrentTokensSection />
+        <QuickAddSection />
         <SuggestedRecipesSection />
         <TrendingIngredientsSection />
         <TrendingTagsSection />
-        <SuggestedIngredientsSection />
-        <SuggestedTagsSection />
       </Container>
       <Footer>
         <ClientOnly>
@@ -1716,14 +1712,6 @@ export const Selections = () => {
 //     <LoaderIcon className="animate-spin" />
 //   );
 // };
-
-const CurrentTokensSection = () => {
-  return (
-    <HasTokens>
-      <AddedTokens />
-    </HasTokens>
-  );
-};
 
 const SuggestedRecipesSection = () => {
   return (

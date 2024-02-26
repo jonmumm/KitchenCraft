@@ -278,7 +278,7 @@ export const AddedTokens = () => {
   const actor = useContext(CraftContext);
   const tokens = useSelector(actor, (state) => state.context.tokens);
   return (
-    <div className="flex flex-row flex-wrap gap-2 px-4">
+    <div className="flex flex-row flex-wrap gap-2 px-4 mt-2">
       {tokens.map((token) => {
         return (
           <Badge

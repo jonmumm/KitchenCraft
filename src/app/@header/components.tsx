@@ -21,7 +21,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CraftNotEmpty } from "../@craft/components.client";
+import {
+  AddedTokens,
+  CraftPromptNotEmpty,
+  HasTokens,
+} from "../@craft/components.client";
 import {
   BackButton,
   CraftAutoComplete,
@@ -132,9 +136,12 @@ const CraftCTA = () => {
         // autoFocus={autoFocus}
         commandBadge={getIsMacDesktop()}
       />
-      <CraftNotEmpty>
+      <CraftPromptNotEmpty>
         <CraftAutoComplete />
-      </CraftNotEmpty>
+      </CraftPromptNotEmpty>
+      <HasTokens>
+        <AddedTokens />
+      </HasTokens>
     </div>
   );
 };

@@ -2,6 +2,7 @@
 
 import { selectIsOpen, selectIsRemixing } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
+import { session$ } from "@/app/session-store";
 // import { session$ } from "@/app/session-store";
 import { useCraftIsOpen, usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useEventHandler } from "@/hooks/useEventHandler";
@@ -150,9 +151,7 @@ const AutoResizableTextarea: React.FC<
       const isRemixing = useSelector(actor, selectIsRemixing);
 
       const animatePlaceholder = useCallback(() => {
-        const sentences = !isRemixing
-          ? shuffle(placeholderSentences)
-          : shuffle(remixPlaceholderSentences);
+        const sentences = shuffle(session$.get().context.placeholders);
         let currentSentenceIndex = 0;
         let typing = true;
         let currentText = "";
@@ -244,85 +243,45 @@ const AutoResizableTextarea: React.FC<
 
 export default AutoResizableTextarea;
 
-const placeholderSentences = [
-  "3 eggs",
-  "1lb ground beef",
-  "2 cups flour",
-  "pad thai",
-  "curry dish",
-  "pasta meal",
-  "chicken stew",
-  "veggie mix",
-  "family meal",
-  "6 servings",
-  "party size",
-  "omelette",
-  "pancakes",
-  "salad lunch",
-  "fruit snack",
-  "steak dinner",
-  "cook tonight",
-  "quick stir-fry",
-  "protein-rich",
-  "low-cal meal",
-  "heart healthy",
-  "keto snack",
-  "no nuts",
-  "dairy-free",
-  "gluten-free",
-  "lactose-free",
-  "bake bread",
-  "slow cooker",
-  "grilled fish",
-  "smoked ribs",
-  "kid-friendly",
-  "easy recipe",
-  "superfoods",
-  "without sugar",
-  "whole grain",
-  "roast veggies",
-  "grill bbq",
-];
+// const ingredientPlaceholderSentences = [
+//   "feta, egg, leftover pizza",
+//   "avocado, chocolate, chia seeds",
+//   "spinach, blueberries, almonds",
+//   "sweet potato, black beans, lime",
+//   "bacon, maple syrup, pecans",
+//   "quinoa, beets, goat cheese",
+//   "apple, cinnamon, honey",
+//   "salmon, soy sauce, ginger",
+//   "chicken, peanut butter, sriracha",
+//   "tomato, basil, mozzarella",
+//   "pumpkin, coconut milk, curry powder",
+//   "mushrooms, garlic, thyme",
+//   "kale, avocado, lemon",
+//   "shrimp, coconut, pineapple",
+//   "lemon, raspberry, vanilla",
+//   "zucchini, carrot, feta cheese",
+//   "oats, banana, peanut butter",
+//   "fig, balsamic vinegar, arugula",
+//   "eggplant, tomato, ricotta",
+//   "cucumber, dill, yogurt",
+// ];
 
-const ingredientPlaceholderSentences = [
-  "feta, egg, leftover pizza",
-  "avocado, chocolate, chia seeds",
-  "spinach, blueberries, almonds",
-  "sweet potato, black beans, lime",
-  "bacon, maple syrup, pecans",
-  "quinoa, beets, goat cheese",
-  "apple, cinnamon, honey",
-  "salmon, soy sauce, ginger",
-  "chicken, peanut butter, sriracha",
-  "tomato, basil, mozzarella",
-  "pumpkin, coconut milk, curry powder",
-  "mushrooms, garlic, thyme",
-  "kale, avocado, lemon",
-  "shrimp, coconut, pineapple",
-  "lemon, raspberry, vanilla",
-  "zucchini, carrot, feta cheese",
-  "oats, banana, peanut butter",
-  "fig, balsamic vinegar, arugula",
-  "eggplant, tomato, ricotta",
-  "cucumber, dill, yogurt",
-];
-
-const remixPlaceholderSentences = [
-  "Double the servings",
-  "Adapt for Instant Pot",
-  "Make it one-pan",
-  "Use an air fryer",
-  "Swap in whole grains",
-  "Make it vegetarian",
-  "Add a spicy kick",
-  "Transform into a soup",
-  "Bake instead of fry",
-  "Cook it slow and low",
-  "Turn into a casserole",
-  "Grill for extra flavor",
-  "Make it no-bake",
-  "Substitute with healthier fats",
-  "Switch to gluten-free",
-  "Incorporate a new protein",
-  "Simplify to five ingredients",
-];
+// const remixPlaceholderSentences = [
+//   "Double the servings",
+//   "Adapt for Instant Pot",
+//   "Make it one-pan",
+//   "Use an air fryer",
+//   "Swap in whole grains",
+//   "Make it vegetarian",
+//   "Add a spicy kick",
+//   "Transform into a soup",
+//   "Bake instead of fry",
+//   "Cook it slow and low",
+//   "Turn into a casserole",
+//   "Grill for extra flavor",
+//   "Make it no-bake",
+//   "Substitute with healthier fats",
+//   "Switch to gluten-free",
+//   "Incorporate a new protein",
+//   "Simplify to five ingredients",
+// ];

@@ -54,6 +54,7 @@ export const sessionMachine = setup({
       numCompletedRecipes: number;
       suggestedTags: string[];
       suggestedText: string[];
+      placeholders: string[];
       suggestedIngredients: string[];
     },
     events: {} as
@@ -71,12 +72,6 @@ export const sessionMachine = setup({
       if (event.type === "ADD_TOKEN") {
         const nextInput = buildSuggestionsInput({
           prompt: event.token,
-          tokens: context.tokens,
-        });
-        console.log({
-          nextInput,
-          runningInput: context.runningInput,
-          prompt: context.prompt,
           tokens: context.tokens,
         });
         return nextInput !== context.runningInput;
@@ -108,6 +103,7 @@ export const sessionMachine = setup({
     suggestedTags: [],
     suggestedText: [],
     suggestedIngredients: [],
+    placeholders: defaultPlaceholders,
   }),
   type: "parallel",
   states: {
@@ -231,6 +227,61 @@ export const sessionMachine = setup({
             ],
           },
           states: {
+            // Placeholder: {
+            //   initial: "Idle",
+            //   states: {
+            //     Idle: {},
+            //     Holding: {
+            //       after: {
+            //         300: {
+            //           target: "Generating",
+            //           guard: ({ context }) => !!context.prompt?.length,
+            //         },
+            //       },
+            //     },
+            //     Generating: {
+            //       on: {
+            //         // TAG_START: {
+            //         //   actions: assign({
+            //         //     suggestedTagsResultId: ({ event }) => event.resultId,
+            //         //   }),
+            //         // },
+            //         TEXT_PROGRESS: {
+            //           actions: assign({
+            //             suggestedText: ({ event }) => event.data.items || [],
+            //           }),
+            //         },
+            //         TEXT_COMPLETE: {
+            //           actions: assign({
+            //             suggestedText: ({ event }) => event.data.items,
+            //           }),
+            //         },
+            //       },
+            //       invoke: {
+            //         input: ({ context }) => ({
+            //           prompt: context.runningInput,
+            //         }),
+            //         src: fromEventObservable(
+            //           ({ input }: { input: { prompt: string } }) => {
+            //             const tokenStream = new AutoSuggestTextStream();
+            //             return from(tokenStream.getStream(input)).pipe(
+            //               switchMap((stream) => {
+            //                 return streamToObservable(
+            //                   stream,
+            //                   "TEXT",
+            //                   AutoSuggestTextOutputSchema
+            //                 );
+            //               })
+            //             );
+            //           }
+            //         ),
+            //         onDone: {
+            //           target: "Idle",
+            //         },
+            //       },
+            //     },
+            //   },
+            // },
             Text: {
               initial: "Idle",
               states: {
@@ -514,3 +565,43 @@ const buildSuggestionsInput = ({
 }) => {
   return prompt.length ? prompt + ", " + tokens.join(", ") : tokens.join(", ");
 };
+
+const defaultPlaceholders = [
+  "3 eggs",
+  "1lb ground beef",
+  "2 cups flour",
+  "pad thai",
+  "curry dish",
+  "pasta meal",
+  "chicken stew",
+  "veggie mix",
+  "family meal",
+  "6 servings",
+  "party size",
+  "omelette",
+  "pancakes",
+  "salad lunch",
+  "fruit snack",
+  "steak dinner",
+  "cook tonight",
+  "quick stir-fry",
+  "protein-rich",
+  "low-cal meal",
+  "heart healthy",
+  "keto snack",
+  "no nuts",
+  "dairy-free",
+  "gluten-free",
+  "lactose-free",
+  "bake bread",
+  "slow cooker",
+  "grilled fish",
+  "smoked ribs",
+  "kid-friendly",
+  "easy recipe",
+  "superfoods",
+  "without sugar",
+  "whole grain",
+  "roast veggies",
+  "grill bbq",
+];

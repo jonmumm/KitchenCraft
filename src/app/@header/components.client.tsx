@@ -89,16 +89,21 @@ export const BackButton = (props: {
   );
 };
 
+const CraftAutoCompleteItem = ({ index }: { index: number }) => {
+  const session = useStore(session$);
+  return <div>{session.context.suggestedText[index]}</div>;
+};
+
 export const CraftAutoComplete = () => {
   const session = useStore(session$);
-  console.log(session.context.suggestedText.length)
+  const items = new Array(6).fill(0);
 
   return (
-    <ol>
-      {session.context.suggestedText.map((item, index) => {
-        return <li key={index}>{item}</li>;
+    <div className="mt-2 px-4 flex flex-col gap-2 flex-wrap">
+      {items.map((_, index) => {
+        return <CraftAutoCompleteItem key={index} index={index} />;
       })}
-    </ol>
+    </div>
   );
 };
 
