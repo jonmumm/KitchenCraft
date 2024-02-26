@@ -1,6 +1,6 @@
 "use client";
 
-import { selectIsOpen, selectIsRemixing } from "@/app/@craft/selectors";
+import { selectIsOpen } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
 import { session$ } from "@/app/session-store";
 // import { session$ } from "@/app/session-store";
@@ -20,6 +20,7 @@ import React, {
   useContext,
   useEffect,
   useRef,
+  useState,
 } from "react";
 
 type Size = "xs" | "sm" | "md" | "lg"; // Extend with more sizes as needed
@@ -122,6 +123,17 @@ const AutoResizableTextarea: React.FC<
     const actor = useContext(CraftContext);
     const isOpen = useCraftIsOpen();
     const isPristine = usePromptIsPristine();
+    const [placeholdersGenerating, setPlaceholderGenerating] = useState(false);
+
+    // hack figure out better solution for subscribing to server state
+    useEffect(() => {
+      return session$.subscribe((state) => {
+        setPlaceholderGenerating(
+          state.value.Craft.Generators.Placeholder === "Generating"
+        );
+      });
+    }, [setPlaceholderGenerating]);
+
     const value = useSelector(actor, (state) => state.context.prompt);
     const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
       (e) => {
@@ -148,7 +160,6 @@ const AutoResizableTextarea: React.FC<
     const PlaceholderAnimation = () => {
       const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
       const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-      const isRemixing = useSelector(actor, selectIsRemixing);
 
       const animatePlaceholder = useCallback(() => {
         const sentences = shuffle(session$.get().context.placeholders);
@@ -202,11 +213,16 @@ const AutoResizableTextarea: React.FC<
         intervalIdRef.current = setInterval(typeText, 100);
 
         return clearTimers;
-      }, [isRemixing]);
+      }, []);
 
       useEffect(() => {
         const cleanup = animatePlaceholder();
-        return cleanup;
+        return () => {
+          cleanup();
+          if (ref.current) {
+            ref.current.placeholder = "";
+          }
+        };
       }, [animatePlaceholder]);
 
       return null;
@@ -214,7 +230,7 @@ const AutoResizableTextarea: React.FC<
 
     return (
       <>
-        {isPristine && <PlaceholderAnimation />}
+        {isPristine && !placeholdersGenerating && <PlaceholderAnimation />}
         <textarea
           suppressHydrationWarning
           value={value}

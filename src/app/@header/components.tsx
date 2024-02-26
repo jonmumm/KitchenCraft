@@ -136,9 +136,9 @@ const CraftCTA = () => {
         // autoFocus={autoFocus}
         commandBadge={getIsMacDesktop()}
       />
-      <CraftPromptNotEmpty>
+      {/* <CraftPromptNotEmpty>
         <CraftAutoComplete />
-      </CraftPromptNotEmpty>
+      </CraftPromptNotEmpty> */}
       <HasTokens>
         <AddedTokens />
       </HasTokens>

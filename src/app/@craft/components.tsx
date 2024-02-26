@@ -17,9 +17,9 @@ import { twc } from "react-twc";
 import {
   CraftEmpty,
   CraftNotEmpty,
-  SuggestedIngredientBadge,
   SuggestedRecipeCards,
   SuggestedTagBadge,
+  SuggestedTokenBadge,
 } from "./components.client";
 
 const Container = twc.div`flex flex-col gap-2 h-full max-w-3xl mx-auto w-full`;
@@ -100,7 +100,7 @@ const QuickAddSection = () => {
         <BadgeList>
           {items.map((_, index) => {
             return (
-              <SuggestedIngredientBadge
+              <SuggestedTokenBadge
                 key={index}
                 index={index}
                 className="carousel-item flex flex-row"

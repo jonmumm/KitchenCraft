@@ -10,6 +10,11 @@ import {
   AutoSuggestIngredientsOutputSchema,
 } from "./auto-suggest-ingredients.stream";
 import {
+  AutoSuggestPlaceholderEvent,
+  AutoSuggestPlaceholderOutputSchema,
+  AutoSuggestPlaceholderStream,
+} from "./auto-suggest-placeholder.stream";
+import {
   AutoSuggestRecipesEvent,
   AutoSuggestRecipesOutputSchema,
   AutoSuggestRecipesStream,
@@ -24,6 +29,12 @@ import {
   AutoSuggestTextOutputSchema,
   AutoSuggestTextStream,
 } from "./auto-suggest-text.stream";
+import {
+  AutoSuggestTokensEvent,
+  AutoSuggestTokensEventBase,
+  AutoSuggestTokensOutputSchema,
+  AutoSuggestTokensStream,
+} from "./auto-suggest-tokens.stream";
 
 // const autoSuggestionOutputSchemas = {
 //   tags: InstantRecipeMetadataPredictionOutputSchema,
@@ -54,6 +65,7 @@ export const sessionMachine = setup({
       numCompletedRecipes: number;
       suggestedTags: string[];
       suggestedText: string[];
+      suggestedTokens: string[];
       placeholders: string[];
       suggestedIngredients: string[];
     },
@@ -62,7 +74,9 @@ export const sessionMachine = setup({
       | AutoSuggestTagEvent
       | AutoSuggestIngredientEvent
       | AutoSuggestRecipesEvent
-      | AutoSuggestTextEvent,
+      | AutoSuggestTextEvent
+      | AutoSuggestTokensEvent
+      | AutoSuggestPlaceholderEvent,
   },
   actors: {
     // autoSuggestMachine,
@@ -87,6 +101,7 @@ export const sessionMachine = setup({
       suggestedIngredients: [],
       suggestedRecipes: [],
       suggestedText: [],
+      suggestedTokens: [],
       numCompletedRecipes: 0,
     }),
   },
@@ -103,6 +118,7 @@ export const sessionMachine = setup({
     suggestedTags: [],
     suggestedText: [],
     suggestedIngredients: [],
+    suggestedTokens: [],
     placeholders: defaultPlaceholders,
   }),
   type: "parallel",
@@ -181,9 +197,10 @@ export const sessionMachine = setup({
           on: {
             REMOVE_TOKEN: {
               target: [
-                ".Text.Generating",
-                ".Tags.Generating",
-                ".Ingredients.Generating",
+                ".Placeholder.Generating",
+                ".Tokens.Generating",
+                // ".Tags.Generating",
+                // ".Ingredients.Generating",
                 ".Recipes.Generating",
               ],
               guard: ({ context, event }) => {
@@ -199,9 +216,10 @@ export const sessionMachine = setup({
             },
             ADD_TOKEN: {
               target: [
-                ".Text.Generating",
-                ".Tags.Generating",
-                ".Ingredients.Generating",
+                ".Placeholder.Generating",
+                ".Tokens.Generating",
+                // ".Tags.Generating",
+                // ".Ingredients.Generating",
                 ".Recipes.Generating",
               ],
               guard: "shouldRunInput",
@@ -209,25 +227,133 @@ export const sessionMachine = setup({
             SET_INPUT: [
               {
                 target: [
-                  ".Text.Holding",
-                  ".Tags.Holding",
-                  ".Ingredients.Holding",
+                  ".Placeholder.Holding",
+                  ".Tokens.Holding",
+                  // ".Tags.Holding",
+                  // ".Ingredients.Holding",
                   ".Recipes.Holding",
                 ],
                 guard: ({ event }) => !!event.value?.length,
               },
               {
                 target: [
-                  ".Text.Idle",
-                  ".Tags.Idle",
-                  ".Ingredients.Idle",
+                  ".Placeholder.Idle",
+                  ".Tokens.Idle",
+                  // ".Text.Idle",
+                  // ".Tags.Idle",
+                  // ".Ingredients.Idle",
                   ".Recipes.Idle",
                 ],
               },
             ],
           },
           states: {
-            // Placeholder: {
+            Placeholder: {
+              initial: "Idle",
+              states: {
+                Idle: {},
+                Holding: {
+                  after: {
+                    300: {
+                      target: "Generating",
+                      guard: ({ context }) => !!context.prompt?.length,
+                    },
+                  },
+                },
+                Generating: {
+                  on: {
+                    // TAG_START: {
+                    //   actions: assign({
+                    //     suggestedTagsResultId: ({ event }) => event.resultId,
+                    //   }),
+                    // },
+                    PLACEHOLDER_PROGRESS: {
+                      actions: assign({
+                        placeholders: ({ event }) => event.data.items || [],
+                      }),
+                    },
+                    PLACEHOLDER_COMPLETE: {
+                      actions: assign({
+                        placeholders: ({ event }) => event.data.items,
+                      }),
+                    },
+                  },
+                  invoke: {
+                    input: ({ context }) => ({
+                      prompt: context.runningInput,
+                    }),
+                    src: fromEventObservable(
+                      ({ input }: { input: { prompt: string } }) => {
+                        const tokenStream = new AutoSuggestPlaceholderStream();
+                        return from(tokenStream.getStream(input)).pipe(
+                          switchMap((stream) => {
+                            return streamToObservable(
+                              stream,
+                              "PLACEHOLDER",
+                              AutoSuggestPlaceholderOutputSchema
+                            );
+                          })
+                        );
+                      }
+                    ),
+                    onDone: {
+                      target: "Idle",
+                    },
+                  },
+                },
+              },
+            },
+            Tokens: {
+              initial: "Idle",
+              states: {
+                Idle: {},
+                Holding: {
+                  after: {
+                    500: {
+                      target: "Generating",
+                      guard: ({ context }) => !!context.prompt?.length,
+                    },
+                  },
+                },
+                Generating: {
+                  on: {
+                    AUTO_SUGGEST_TOKENS_PROGRESS: {
+                      actions: assign({
+                        suggestedTokens: ({ event }) => event.data.tokens || [],
+                      }),
+                    },
+                    AUTO_SUGGEST_TOKENS_COMPLETE: {
+                      actions: assign({
+                        suggestedTokens: ({ event }) => event.data.tokens,
+                      }),
+                    },
+                  },
+                  invoke: {
+                    input: ({ context }) => ({
+                      prompt: context.runningInput,
+                    }),
+                    src: fromEventObservable(
+                      ({ input }: { input: { prompt: string } }) => {
+                        const tokenStream = new AutoSuggestTokensStream();
+                        return from(tokenStream.getStream(input)).pipe(
+                          switchMap((stream) => {
+                            return streamToObservable(
+                              stream,
+                              AutoSuggestTokensEventBase,
+                              AutoSuggestTokensOutputSchema
+                            );
+                          })
+                        );
+                      }
+                    ),
+                    onDone: {
+                      target: "Idle",
+                    },
+                  },
+                },
+              },
+            },
+            // Text: {
             //   initial: "Idle",
             //   states: {
             //     Idle: {},
@@ -259,7 +385,7 @@ export const sessionMachine = setup({
             //       },
             //       invoke: {
             //         input: ({ context }) => ({
-            //           prompt: context.runningInput,
+            //           prompt: context.prompt,
             //         }),
             //         src: fromEventObservable(
             //           ({ input }: { input: { prompt: string } }) => {
@@ -282,174 +408,119 @@ export const sessionMachine = setup({
             //     },
             //   },
             // },
-            Text: {
-              initial: "Idle",
-              states: {
-                Idle: {},
-                Holding: {
-                  after: {
-                    300: {
-                      target: "Generating",
-                      guard: ({ context }) => !!context.prompt?.length,
-                    },
-                  },
-                },
-                Generating: {
-                  on: {
-                    // TAG_START: {
-                    //   actions: assign({
-                    //     suggestedTagsResultId: ({ event }) => event.resultId,
-                    //   }),
-                    // },
-                    TEXT_PROGRESS: {
-                      actions: assign({
-                        suggestedText: ({ event }) => event.data.items || [],
-                      }),
-                    },
-                    TEXT_COMPLETE: {
-                      actions: assign({
-                        suggestedText: ({ event }) => event.data.items,
-                      }),
-                    },
-                  },
-                  invoke: {
-                    input: ({ context }) => ({
-                      prompt: context.runningInput,
-                    }),
-                    src: fromEventObservable(
-                      ({ input }: { input: { prompt: string } }) => {
-                        const tokenStream = new AutoSuggestTextStream();
-                        return from(tokenStream.getStream(input)).pipe(
-                          switchMap((stream) => {
-                            return streamToObservable(
-                              stream,
-                              "TEXT",
-                              AutoSuggestTextOutputSchema
-                            );
-                          })
-                        );
-                      }
-                    ),
-                    onDone: {
-                      target: "Idle",
-                    },
-                  },
-                },
-              },
-            },
-            Tags: {
-              initial: "Idle",
-              states: {
-                Idle: {},
-                Holding: {
-                  after: {
-                    500: {
-                      target: "Generating",
-                      guard: ({ context }) => !!context.prompt?.length,
-                    },
-                  },
-                },
-                Generating: {
-                  on: {
-                    // TAG_START: {
-                    //   actions: assign({
-                    //     suggestedTagsResultId: ({ event }) => event.resultId,
-                    //   }),
-                    // },
-                    TAG_PROGRESS: {
-                      actions: assign({
-                        suggestedTags: ({ event }) => event.data.tags || [],
-                      }),
-                    },
-                    TAG_COMPLETE: {
-                      actions: assign({
-                        suggestedTags: ({ event }) => event.data.tags,
-                      }),
-                    },
-                  },
-                  invoke: {
-                    input: ({ context }) => ({
-                      prompt: context.runningInput,
-                    }),
-                    src: fromEventObservable(
-                      ({ input }: { input: { prompt: string } }) => {
-                        const tokenStream = new AutoSuggestTagsStream();
-                        return from(tokenStream.getStream(input)).pipe(
-                          switchMap((stream) => {
-                            return streamToObservable(
-                              stream,
-                              "TAG",
-                              AutoSuggestTagOutputSchema
-                            );
-                          })
-                        );
-                      }
-                    ),
-                    onDone: {
-                      target: "Idle",
-                    },
-                  },
-                },
-              },
-            },
-            Ingredients: {
-              initial: "Idle",
-              states: {
-                Idle: {},
-                Holding: {
-                  after: {
-                    500: {
-                      target: "Generating",
-                      guard: ({ context }) => !!context.prompt?.length,
-                    },
-                  },
-                },
-                Generating: {
-                  on: {
-                    // INGREDIENT_START: {
-                    //   actions: assign({
-                    //     suggestedIngredientssResultId: ({ event }) =>
-                    //       event.resultId,
-                    //   }),
-                    // },
-                    INGREDIENT_PROGRESS: {
-                      actions: assign({
-                        suggestedIngredients: ({ event }) =>
-                          event.data.ingredients || [],
-                      }),
-                    },
-                    INGREDIENT_COMPLETE: {
-                      actions: assign({
-                        suggestedIngredients: ({ event }) =>
-                          event.data.ingredients,
-                      }),
-                    },
-                  },
-                  invoke: {
-                    input: ({ context }) => ({
-                      prompt: context.runningInput,
-                    }),
-                    src: fromEventObservable(
-                      ({ input }: { input: { prompt: string } }) => {
-                        const tokenStream = new AutoSuggestIngredientStream();
-                        return from(tokenStream.getStream(input)).pipe(
-                          switchMap((stream) => {
-                            return streamToObservable(
-                              stream,
-                              "INGREDIENT",
-                              AutoSuggestIngredientsOutputSchema
-                            );
-                          })
-                        );
-                      }
-                    ),
-                    onDone: {
-                      target: "Idle",
-                    },
-                  },
-                },
-              },
-            },
+            // Tags: {
+            //   initial: "Idle",
+            //   states: {
+            //     Idle: {},
+            //     Holding: {
+            //       after: {
+            //         500: {
+            //           target: "Generating",
+            //           guard: ({ context }) => !!context.prompt?.length,
+            //         },
+            //       },
+            //     },
+            //     Generating: {
+            //       on: {
+            //         // TAG_START: {
+            //         //   actions: assign({
+            //         //     suggestedTagsResultId: ({ event }) => event.resultId,
+            //         //   }),
+            //         // },
+            //         TAG_PROGRESS: {
+            //           actions: assign({
+            //             suggestedTags: ({ event }) => event.data.tags || [],
+            //           }),
+            //         },
+            //         TAG_COMPLETE: {
+            //           actions: assign({
+            //             suggestedTags: ({ event }) => event.data.tags,
+            //           }),
+            //         },
+            //       },
+            //       invoke: {
+            //         input: ({ context }) => ({
+            //           prompt: context.runningInput,
+            //         }),
+            //         src: fromEventObservable(
+            //           ({ input }: { input: { prompt: string } }) => {
+            //             const tokenStream = new AutoSuggestTagsStream();
+            //             return from(tokenStream.getStream(input)).pipe(
+            //               switchMap((stream) => {
+            //                 return streamToObservable(
+            //                   stream,
+            //                   "TAG",
+            //                   AutoSuggestTagOutputSchema
+            //                 );
+            //               })
+            //             );
+            //           }
+            //         ),
+            //         onDone: {
+            //           target: "Idle",
+            //         },
+            //       },
+            //     },
+            //   },
+            // },
+            // Ingredients: {
+            //   initial: "Idle",
+            //   states: {
+            //     Idle: {},
+            //     Holding: {
+            //       after: {
+            //         500: {
+            //           target: "Generating",
+            //           guard: ({ context }) => !!context.prompt?.length,
+            //         },
+            //       },
+            //     },
+            //     Generating: {
+            //       on: {
+            //         // INGREDIENT_START: {
+            //         //   actions: assign({
+            //         //     suggestedIngredientssResultId: ({ event }) =>
+            //         //       event.resultId,
+            //         //   }),
+            //         // },
+            //         INGREDIENT_PROGRESS: {
+            //           actions: assign({
+            //             suggestedIngredients: ({ event }) =>
+            //               event.data.ingredients || [],
+            //           }),
+            //         },
+            //         INGREDIENT_COMPLETE: {
+            //           actions: assign({
+            //             suggestedIngredients: ({ event }) =>
+            //               event.data.ingredients,
+            //           }),
+            //         },
+            //       },
+            //       invoke: {
+            //         input: ({ context }) => ({
+            //           prompt: context.runningInput,
+            //         }),
+            //         src: fromEventObservable(
+            //           ({ input }: { input: { prompt: string } }) => {
+            //             const tokenStream = new AutoSuggestIngredientStream();
+            //             return from(tokenStream.getStream(input)).pipe(
+            //               switchMap((stream) => {
+            //                 return streamToObservable(
+            //                   stream,
+            //                   "INGREDIENT",
+            //                   AutoSuggestIngredientsOutputSchema
+            //                 );
+            //               })
+            //             );
+            //           }
+            //         ),
+            //         onDone: {
+            //           target: "Idle",
+            //         },
+            //       },
+            //     },
+            //   },
+            // },
             Recipes: {
               initial: "Idle",
               states: {

@@ -207,18 +207,30 @@ export const createCraftMachine = ({
 
   const placeholderMachine = setup({
     types: {
+      input: {} as {
+        ref: HTMLTextAreaElement;
+      },
       context: {} as {
-        text: string;
-        currentIndex: number;
+        currentCharIndex: number; // the end index for which characters are visible in the current placeholder string
+        currentItemIndex: number; // the current placeholder string we are on in the list
+        placeholders: string[]; // the list of placeholder strings to rotate through
       },
       events: {} as AppEvent,
     },
   }).createMachine({
     id: "PlaceholderMachine",
-    context: {
-      text: "",
-      currentIndex: 0,
+    context: ({ input }) => {
+      return {
+        currentCharIndex: 0,
+        currentItemIndex: 0,
+        placeholders: [],
+      };
     },
+    // context: {
+    //   currentCharIndex: 0,
+    //   currentItemIndex: 0,
+    //   // placeholders: ({ input } => Input.)
+    // },
     initial: "Empty",
     states: {
       Empty: {
@@ -496,12 +508,6 @@ export const createCraftMachine = ({
                 },
               },
             },
-          },
-        },
-        Placeholder: {
-          invoke: {
-            id: "Placeholder",
-            src: "placeholderMachine",
           },
         },
         Prompt: {

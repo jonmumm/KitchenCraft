@@ -301,18 +301,13 @@ export const AddedTokens = () => {
 
 export const SuggestedRecipeCards = () => {
   const session = useStore(session$);
-  const complete = session.context.numCompletedRecipes || 6 ;
+  const complete = session.context.numCompletedRecipes || 6;
   const items = new Array(complete).fill(0);
 
   return (
     <>
       {items.map((_, index) => {
-        return (
-          <SuggestedRecipeCard
-            key={index}
-            index={index}
-          />
-        );
+        return <SuggestedRecipeCard key={index} index={index} />;
       })}
     </>
   );
@@ -397,6 +392,49 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         </Button>
       </div>
     </Card>
+  );
+};
+
+export const SuggestedTokenBadge = ({
+  index,
+  className,
+}: {
+  index: number;
+  className: string;
+}) => {
+  const actor = useContext(CraftContext);
+  const isTyping = useSelector(actor, (state) =>
+    state.matches({ Typing: "True" })
+  );
+  const session = useStore(session$);
+  const isGenerating = session.value.Craft.Generators.Tokens === "Generating";
+  const token = session.context.suggestedTokens[index];
+  // const resultId = index, session.context.suggestedIngredientssResultId);
+  // console.log(index, session.context.suggestedTags);
+
+  if (!token && !isTyping && !isGenerating) {
+    return null;
+  }
+
+  if (!token || isTyping) {
+    return (
+      <Badge
+        className={cn(className, "carousel-item flex flex-row animate-pulse")}
+        variant="secondary"
+      >
+        <Skeleton className="w-8 h-4" />
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      className={cn(className, "carousel-item flex flex-row cursor-pointer")}
+      variant="secondary"
+      event={{ type: "ADD_TOKEN", token: token }}
+    >
+      {token}
+    </Badge>
   );
 };
 
