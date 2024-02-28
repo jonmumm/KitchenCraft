@@ -18,7 +18,7 @@ import {
   CraftEmpty,
   CraftNotEmpty,
   SuggestedRecipeCards,
-  SuggestedTagBadge,
+  // SuggestedTagBadge,
   SuggestedTokenBadge,
 } from "./components.client";
 
@@ -239,29 +239,29 @@ const TagsLabel = () => {
   return <SectionLabel icon={TagIcon} title="Tags" />;
 };
 
-const SuggestedTagsSection = () => {
-  const items = new Array(6).fill(0);
+// const SuggestedTagsSection = () => {
+//   const items = new Array(6).fill(0);
 
-  return (
-    <CraftNotEmpty>
-      <Section>
-        {/* <InstantRecipeItem /> */}
-        <TagsLabel />
-        <BadgeList>
-          {items.map((_, index) => {
-            return (
-              <SuggestedTagBadge
-                key={index}
-                index={index}
-                className="carousel-item flex flex-row"
-              />
-            );
-          })}
-        </BadgeList>
-      </Section>
-    </CraftNotEmpty>
-  );
-};
+//   return (
+//     <CraftNotEmpty>
+//       <Section>
+//         {/* <InstantRecipeItem /> */}
+//         <TagsLabel />
+//         <BadgeList>
+//           {items.map((_, index) => {
+//             return (
+//               <SuggestedTagBadge
+//                 key={index}
+//                 index={index}
+//                 className="carousel-item flex flex-row"
+//               />
+//             );
+//           })}
+//         </BadgeList>
+//       </Section>
+//     </CraftNotEmpty>
+//   );
+// };
 
 export const NewRecipeResultsView = () => {
   const items = new Array(6).fill(0);

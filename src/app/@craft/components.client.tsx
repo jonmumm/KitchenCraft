@@ -338,6 +338,12 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   // const overflow = diffToCurrent !== 0 ? "hidden" : "";
 
   return (
+    // <SwipeableCard
+    //   onSwipe={function (direction: number): void {
+    //     console.log(direction);
+    //     // throw new Error("Function not implemented.");
+    //   }}
+    // >
     <Card
       className={`max-w-xl w-full top-0 ${position} transition-all`}
       style={{
@@ -346,7 +352,6 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         zIndex,
         marginTop: `-${topOffset * 3}px`,
       }}
-      // style={{ scale }}
     >
       <div className="p-4 flex flex-col gap-2">
         <CardTitle className="flex flex-row items-center gap-2">
@@ -370,21 +375,6 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           </div>
         )}
       </div>
-      {/* <div className="flex flex-row gap-1 items-center">
-          <TagIcon size={16} />
-          <div className="flex flex-row gap-1">
-            <Badge variant="secondary">Baking</Badge>
-            <Badge variant="secondary">30 minutes</Badge>
-            <Badge variant="secondary">Chocolate</Badge>
-          </div>
-        </div> */}
-      {/* <Button
-          event={{ type: "SKIP" }}
-          variant="default"
-          className="bg-slate-500"
-        >
-          <ChevronsLeftIcon /> Skip
-        </Button> */}
       <Separator />
       <div className="p-4">
         <Button className="w-full">
@@ -392,6 +382,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         </Button>
       </div>
     </Card>
+    // </SwipeableCard>
   );
 };
 
@@ -438,92 +429,92 @@ export const SuggestedTokenBadge = ({
   );
 };
 
-export const SuggestedIngredientBadge = ({
-  index,
-  className,
-}: {
-  index: number;
-  className: string;
-}) => {
-  const actor = useContext(CraftContext);
-  const isTyping = useSelector(actor, (state) =>
-    state.matches({ Typing: "True" })
-  );
-  const session = useStore(session$);
-  const isGenerating =
-    session.value.Craft.Generators.Ingredients === "Generating";
-  const ingredient = session.context.suggestedIngredients[index];
-  // const resultId = index, session.context.suggestedIngredientssResultId);
-  // console.log(index, session.context.suggestedTags);
+// export const SuggestedIngredientBadge = ({
+//   index,
+//   className,
+// }: {
+//   index: number;
+//   className: string;
+// }) => {
+//   const actor = useContext(CraftContext);
+//   const isTyping = useSelector(actor, (state) =>
+//     state.matches({ Typing: "True" })
+//   );
+//   const session = useStore(session$);
+//   const isGenerating =
+//     session.value.Craft.Generators.Ingredients === "Generating";
+//   const ingredient = session.context.suggestedIngredients[index];
+//   // const resultId = index, session.context.suggestedIngredientssResultId);
+//   // console.log(index, session.context.suggestedTags);
 
-  if (!ingredient && !isTyping && !isGenerating) {
-    return null;
-  }
+//   if (!ingredient && !isTyping && !isGenerating) {
+//     return null;
+//   }
 
-  if (!ingredient || isTyping) {
-    return (
-      <Badge
-        className={cn(className, "carousel-item flex flex-row animate-pulse")}
-        variant="secondary"
-      >
-        <Skeleton className="w-8 h-4" />
-      </Badge>
-    );
-  }
+//   if (!ingredient || isTyping) {
+//     return (
+//       <Badge
+//         className={cn(className, "carousel-item flex flex-row animate-pulse")}
+//         variant="secondary"
+//       >
+//         <Skeleton className="w-8 h-4" />
+//       </Badge>
+//     );
+//   }
 
-  return (
-    <Badge
-      className={cn(className, "carousel-item flex flex-row cursor-pointer")}
-      variant="secondary"
-      event={{ type: "ADD_TOKEN", token: ingredient }}
-    >
-      {ingredient}
-    </Badge>
-  );
-};
+//   return (
+//     <Badge
+//       className={cn(className, "carousel-item flex flex-row cursor-pointer")}
+//       variant="secondary"
+//       event={{ type: "ADD_TOKEN", token: ingredient }}
+//     >
+//       {ingredient}
+//     </Badge>
+//   );
+// };
 
-export const SuggestedTagBadge = ({
-  index,
-  className,
-}: {
-  index: number;
-  className: string;
-}) => {
-  const actor = useContext(CraftContext);
-  const isTyping = useSelector(actor, (state) =>
-    state.matches({ Typing: "True" })
-  );
+// export const SuggestedTagBadge = ({
+//   index,
+//   className,
+// }: {
+//   index: number;
+//   className: string;
+// }) => {
+//   const actor = useContext(CraftContext);
+//   const isTyping = useSelector(actor, (state) =>
+//     state.matches({ Typing: "True" })
+//   );
 
-  const session = useStore(session$);
-  const tag = session.context.suggestedTags[index];
-  const isGenerating = session.value.Craft.Generators.Tags === "Generating";
-  // const isGenerating = session.matches({
-  //   Craft: { Generators: { Tags: "Generating" } },
-  // });
-  // const resultId = index, session.context.suggestedIngredientssResultId);
-  // console.log(index, session.context.suggestedTags);
-  if (!tag && !isTyping && !isGenerating) {
-    return null;
-  }
+//   const session = useStore(session$);
+//   const tag = session.context.suggestedTags[index];
+//   const isGenerating = session.value.Craft.Generators.Tags === "Generating";
+//   // const isGenerating = session.matches({
+//   //   Craft: { Generators: { Tags: "Generating" } },
+//   // });
+//   // const resultId = index, session.context.suggestedIngredientssResultId);
+//   // console.log(index, session.context.suggestedTags);
+//   if (!tag && !isTyping && !isGenerating) {
+//     return null;
+//   }
 
-  if (!tag || isTyping) {
-    return (
-      <Badge
-        className={cn(className, "carousel-item flex flex-row animate-pulse")}
-        variant="secondary"
-      >
-        <Skeleton className="w-8 h-4" />
-      </Badge>
-    );
-  }
+//   if (!tag || isTyping) {
+//     return (
+//       <Badge
+//         className={cn(className, "carousel-item flex flex-row animate-pulse")}
+//         variant="secondary"
+//       >
+//         <Skeleton className="w-8 h-4" />
+//       </Badge>
+//     );
+//   }
 
-  return (
-    <Badge
-      className={cn(className, "carousel-item flex flex-row cursor-pointer")}
-      variant="secondary"
-      event={{ type: "ADD_TOKEN", token: tag }}
-    >
-      {tag}
-    </Badge>
-  );
-};
+//   return (
+//     <Badge
+//       className={cn(className, "carousel-item flex flex-row cursor-pointer")}
+//       variant="secondary"
+//       event={{ type: "ADD_TOKEN", token: tag }}
+//     >
+//       {tag}
+//     </Badge>
+//   );
+// };
