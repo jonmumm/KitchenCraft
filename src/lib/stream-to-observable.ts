@@ -44,14 +44,19 @@ export function streamToObservable<
   const charArray: string[] = [];
   const partialSchema = schema.partial();
 
-  subject.next({
-    type: `${streamType}_START`,
-    resultId: nanoid(),
-  });
-
   (async () => {
     try {
+      let started = false;
+
       for await (const chunk of tokenStream) {
+        if (!started) {
+          subject.next({
+            type: `${streamType}_START`,
+            resultId: nanoid(),
+          });
+          started = true;
+        }
+
         for (const char of chunk) {
           charArray.push(char);
         }

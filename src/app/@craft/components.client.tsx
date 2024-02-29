@@ -9,7 +9,7 @@ import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { useStore } from "@nanostores/react";
-import { ChevronsDownIcon, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
 import { session$ } from "../session-store";
@@ -301,8 +301,8 @@ export const AddedTokens = () => {
 
 export const SuggestedRecipeCards = () => {
   const session = useStore(session$);
-  const complete = session.context.numCompletedRecipes || 6;
-  const items = new Array(complete).fill(0);
+  const numCards = Math.max(session.context.numCompletedRecipes, 6);
+  const items = new Array(numCards).fill(0);
 
   return (
     <>
@@ -316,18 +316,17 @@ export const SuggestedRecipeCards = () => {
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const actor = useContext(CraftContext);
   const session = useStore(session$);
-  const recipe = session.context.suggestedRecipes[index];
-  const isTyping = useSelector(actor, (state) =>
-    state.matches({ Typing: "True" })
-  );
+  const recipeId = session.context.suggestedRecipes[index];
+  const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
   const currentItemIndex = useSelector(
     actor,
     (state) => state.context.currentItemIndex
   );
+  const { numCompletedRecipes } = session.context;
 
   const diffToCurrent = index - currentItemIndex;
 
-  if (diffToCurrent < 0 || diffToCurrent >= 4) {
+  if (diffToCurrent < 0 || diffToCurrent >= 4 || index > numCompletedRecipes) {
     return null;
   }
 
@@ -345,7 +344,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
     //   }}
     // >
     <Card
-      className={`max-w-xl w-full top-0 ${position} transition-all`}
+      className={`w-full top-0 ${position} transition-all`}
       style={{
         transform: `scale(${scale})`,
         minHeight: "200px",
@@ -377,9 +376,12 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       </div>
       <Separator />
       <div className="p-4">
-        <Button className="w-full">
+        <div className="flex-1">
+          <SkeletonSentence className="h-4" numWords={12} />
+        </div>
+        {/* <Button className="w-full">
           Continue Generating <ChevronsDownIcon size={16} />
-        </Button>
+        </Button> */}
       </div>
     </Card>
     // </SwipeableCard>

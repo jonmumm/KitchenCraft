@@ -1717,7 +1717,7 @@ const SuggestedRecipesSection = () => {
   return (
     <CraftNotEmpty>
       <div className="flex flex-col items-center justify-center px-4 mt-4 mb-2">
-        <div className="relative">
+        <div className="relative w-full max-w-3xl">
           <SuggestedRecipeCards />
           {/* <Card className="w-full z-40 absolute inset-0 -mt-4 scale-95">
             <CardHeader>
