@@ -358,8 +358,10 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
     return null;
   }
 
-  const topOffset = diffToCurrent * 4;
   const scale = (100 - diffToCurrent * 5) / 100;
+  const topOffset = diffToCurrent
+    ? -4 * (1 + (1 - scale)) - diffToCurrent * 28
+    : 0;
   const zIndex = 50 - diffToCurrent * 10;
   const position = diffToCurrent ? "absolute" : "relative";
   // const overflow = diffToCurrent !== 0 ? "hidden" : "";
@@ -377,7 +379,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         transform: `scale(${scale})`,
         minHeight: "200px",
         zIndex,
-        marginTop: `-${topOffset * 3}px`,
+        marginTop: `${topOffset}px`,
       }}
     >
       <div className="p-4 flex flex-col gap-2">
@@ -727,7 +729,7 @@ function Ingredients({}) {
   );
 }
 
-function Instructions({}) {
+function Instructions() {
   const MAX_NUM_LINES = 30;
   const NUM_LINE_PLACEHOLDERS = 5;
   const recipe = useCurrentRecipe();
