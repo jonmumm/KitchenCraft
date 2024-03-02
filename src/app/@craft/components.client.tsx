@@ -6,10 +6,17 @@ import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { useSelector } from "@/hooks/useSelector";
-import { cn } from "@/lib/utils";
+import { cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { useStore } from "@nanostores/react";
-import { XIcon } from "lucide-react";
+import {
+  ClockIcon,
+  ScrollIcon,
+  ShoppingBasketIcon,
+  TagIcon,
+  XIcon,
+} from "lucide-react";
+import Link from "next/link";
 import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
 import { session$ } from "../session-store";
@@ -313,6 +320,27 @@ export const SuggestedRecipeCards = () => {
   );
 };
 
+const useCurrentRecipe = () => {
+  const session = useStore(session$);
+  // const recipeId =
+  //   session.context.suggestedRecipes[session.context.currentItemIndex];
+  // if (!recipeId) {
+  //   return null;
+  // }
+  // const recipe = session.context.recipes[recipeId];
+  // if (!recipe) {
+  //   return null;
+  // }
+  const recipeId =
+    session.context.suggestedRecipes[session.context.currentItemIndex];
+  if (!recipeId) {
+    return null;
+  }
+
+  const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
+  return recipe;
+};
+
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const actor = useContext(CraftContext);
   const session = useStore(session$);
@@ -373,16 +401,57 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             <SkeletonSentence className="h-4" numWords={12} />
           </div>
         )}
+        <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
+          <span>Yields</span>
+          <span>
+            <Yield />
+          </span>
+        </div>
       </div>
       <Separator />
-      <div className="p-4">
-        <div className="flex-1">
-          <SkeletonSentence className="h-4" numWords={12} />
+      <div>
+        <Times
+          activeTime={recipe?.activeTime}
+          totalTime={recipe?.totalTime}
+          cookTime={recipe?.cookTime}
+        />
+        {/* <SkeletonSentence className="h-4" numWords={12} /> */}
+      </div>
+      <Separator />
+      <div className="py-2">
+        <Tags />
+      </div>
+      <Separator />
+      <div className="px-5">
+        <div className="flex flex-row justify-between gap-1 items-center py-4">
+          <h3 className="uppercase text-xs font-bold text-accent-foreground">
+            Ingredients
+          </h3>
+          <ShoppingBasketIcon />
         </div>
-        {/* <Button className="w-full">
+        <div className="mb-4 flex flex-col gap-2">
+          <ul className="list-disc pl-5 flex flex-col gap-2">
+            <Ingredients />
+          </ul>
+        </div>
+      </div>
+      <Separator />
+      <div className="px-5">
+        <div className="flex flex-row justify-between gap-1 items-center py-4">
+          <h3 className="uppercase text-xs font-bold text-accent-foreground">
+            Instructions
+          </h3>
+          <ScrollIcon />
+        </div>
+        <div className="mb-4 flex flex-col gap-2">
+          <ol className="list-decimal pl-5 flex flex-col gap-2">
+            <Instructions />
+          </ol>
+        </div>
+      </div>
+      {/* <Button className="w-full">
           Continue Generating <ChevronsDownIcon size={16} />
         </Button> */}
-      </div>
     </Card>
     // </SwipeableCard>
   );
@@ -520,3 +589,172 @@ export const SuggestedTokenBadge = ({
 //     </Badge>
 //   );
 // };
+
+const Tags = () => {
+  const items = new Array(10).fill(0);
+
+  const Tag = ({ index }: { index: number }) => {
+    const session = useStore(session$);
+    const recipeId =
+      session.context.suggestedRecipes[session.context.currentItemIndex];
+    if (!recipeId) {
+      return null;
+    }
+    const recipe = session.context.recipes[recipeId];
+    if (!recipe) {
+      return null;
+    }
+    const tag = recipe.tags?.[index];
+    // const tag = await lastValueFrom(
+    //   getObservableAtIndex(index, tags$).pipe(defaultIfEmpty(undefined))
+    // );
+    return (
+      <>
+        {tag ? (
+          <Link href={`/tag/${sentenceToSlug(tag)}`}>
+            <Badge
+              variant="outline"
+              className="inline-flex flex-row gap-1 px-2"
+            >
+              {tag}
+            </Badge>
+          </Link>
+        ) : null}
+      </>
+    );
+  };
+
+  return (
+    <div className="flex flex-row flex-wrap gap-2 px-5 px-y hidden-print items-center justify-center">
+      <TagIcon className="h-5" />
+      {items.map((_, index) => {
+        return <Tag key={index} index={index} />;
+      })}
+      {/* <AddTagButton /> */}
+    </div>
+  );
+};
+
+const Yield = () => {
+  const session = useStore(session$);
+  const recipeId =
+    session.context.suggestedRecipes[session.context.currentItemIndex];
+  if (!recipeId) {
+    return <Skeleton className="w-10 h-4" />;
+  }
+  const val = session.context.recipes[recipeId]?.yield;
+  if (!val) {
+    return <Skeleton className="w-10 h-4" />;
+  }
+
+  return <>{val}</>;
+};
+
+const Times = ({
+  cookTime,
+  totalTime,
+  activeTime,
+}: {
+  cookTime?: string;
+  totalTime?: string;
+  activeTime?: string;
+}) => {
+  // const store = useContext(RecipeViewerContext);
+  // const { prepTime, cookTime, totalTime } = useStore(store, {
+  //   keys: ["prepTime", "cookTime", "totalTime"],
+  // });
+
+  const ActiveTime = () => {
+    return <>{formatDuration(activeTime)}</>;
+  };
+
+  const CookTime = () => {
+    return <>{formatDuration(cookTime)}</>;
+  };
+
+  const TotalTime = () => {
+    return <>{formatDuration(totalTime)}</>;
+  };
+
+  return (
+    <div className="flex flex-row gap-2 px-5 py-2 items-center justify-center">
+      <ClockIcon className="h-5" />
+      <div className="flex flex-row gap-1">
+        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
+          <span className="font-normal">Cook </span>
+          {cookTime ? <CookTime /> : <Skeleton className="w-10 h-4" />}
+        </Badge>
+        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
+          <span className="font-normal">Active </span>
+          {activeTime ? <ActiveTime /> : <Skeleton className="w-10 h-4" />}
+        </Badge>
+        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
+          <span className="font-normal">Total </span>
+          {totalTime ? <TotalTime /> : <Skeleton className="w-10 h-4" />}
+        </Badge>
+      </div>
+    </div>
+  );
+};
+
+function Ingredients({}) {
+  const MAX_NUM_LINES = 30;
+  const NUM_LINE_PLACEHOLDERS = 5;
+  const recipe = useCurrentRecipe();
+  const items = new Array(recipe?.ingredients?.length || MAX_NUM_LINES).fill(0);
+
+  const Item = ({ index }: { index: number }) => {
+    const showPlaceholder = index < NUM_LINE_PLACEHOLDERS;
+    const recipe = useCurrentRecipe();
+    if (!recipe || !recipe.ingredients || !recipe.ingredients[index]) {
+      return showPlaceholder ? (
+        <SkeletonSentence
+          className="h-7"
+          numWords={Math.round(Math.random()) + 3}
+        />
+      ) : null;
+    }
+
+    return <li>{recipe.ingredients[index]}</li>;
+  };
+
+  return (
+    <>
+      {items.map((_, index) => {
+        return <Item key={index} index={index} />;
+      })}
+    </>
+  );
+}
+
+function Instructions({}) {
+  const MAX_NUM_LINES = 30;
+  const NUM_LINE_PLACEHOLDERS = 5;
+  const recipe = useCurrentRecipe();
+  const items = new Array(recipe?.instructions?.length || MAX_NUM_LINES).fill(
+    0
+  );
+
+  const Item = ({ index }: { index: number }) => {
+    const showPlaceholder = index < NUM_LINE_PLACEHOLDERS;
+    const recipe = useCurrentRecipe();
+    if (!recipe || !recipe.instructions || !recipe.instructions[index]) {
+      return showPlaceholder ? (
+        <SkeletonSentence
+          className="h-7"
+          numWords={Math.round(Math.random()) + 3}
+        />
+      ) : null;
+    }
+
+    return <li>{recipe.instructions[index]}</li>;
+  };
+
+  return (
+    <>
+      {items.map((_, index) => {
+        return <Item key={index} index={index} />;
+      })}
+    </>
+  );
+}

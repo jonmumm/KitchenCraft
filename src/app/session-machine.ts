@@ -2,6 +2,7 @@ import { streamToObservable } from "@/lib/stream-to-observable";
 import { produce } from "immer";
 
 import { assert } from "@/lib/utils";
+import { RecipePredictionOutputSchema } from "@/schema";
 import { AppEvent } from "@/types";
 import { nanoid } from "ai";
 import { from, switchMap } from "rxjs";
@@ -15,6 +16,7 @@ import {
 } from "./auto-suggest-placeholder.stream";
 import {
   AutoSuggestRecipesEvent,
+  AutoSuggestRecipesEventBase,
   AutoSuggestRecipesOutputSchema,
   AutoSuggestRecipesStream,
 } from "./auto-suggest-recipes.stream";
@@ -26,6 +28,7 @@ import {
   AutoSuggestTokensOutputSchema,
   AutoSuggestTokensStream,
 } from "./auto-suggest-tokens.stream";
+import { NewRecipeEvent, NewRecipeStream } from "./new-recipe.stream";
 
 // const autoSuggestionOutputSchemas = {
 //   tags: InstantRecipeMetadataPredictionOutputSchema,
@@ -53,7 +56,20 @@ export const sessionMachine = setup({
       tokens: string[];
       // suggestedRecipes: { name?: string; description?: string }[];
       suggestedRecipes: string[];
-      recipes: Record<string, { name?: string; description?: string }>;
+      recipes: Record<
+        string,
+        {
+          name?: string;
+          description?: string;
+          tags?: string[];
+          yield?: string;
+          ingredients?: string[];
+          instructions?: string[];
+          cookTime?: string;
+          totalTime?: string;
+          activeTime?: string;
+        }
+      >;
       generatingRecipeId: string | undefined;
       currentItemIndex: number;
       numCompletedRecipes: number;
@@ -71,7 +87,8 @@ export const sessionMachine = setup({
       | AutoSuggestRecipesEvent
       | AutoSuggestTextEvent
       | AutoSuggestTokensEvent
-      | AutoSuggestPlaceholderEvent,
+      | AutoSuggestPlaceholderEvent
+      | NewRecipeEvent,
   },
   actors: {
     // autoSuggestMachine,
@@ -93,7 +110,7 @@ export const sessionMachine = setup({
   actions: {
     updateNumCompleted: assign(({ context, event }) => {
       return produce(context, (draft) => {
-        if (event.type === "RECIPE_PROGRESS") {
+        if (event.type === "AUTO_SUGGEST_RECIPES_PROGRESS") {
           const batchCompleteCount = event.data.recipes?.length
             ? event.data.recipes.length - 1
             : 0;
@@ -113,7 +130,7 @@ export const sessionMachine = setup({
           //   context.numCompletedRecipes =
           //     context.numStartedRecipes - incompleteCount;
           // }
-        } else if (event.type === "RECIPE_COMPLETE") {
+        } else if (event.type === "AUTO_SUGGEST_RECIPES_COMPLETE") {
           context.numCompletedRecipes = context.numStartedRecipes;
         } else {
           console.warn("Unexpected event type", event);
@@ -391,174 +408,6 @@ export const sessionMachine = setup({
                 },
               },
             },
-            // Text: {
-            //   initial: "Idle",
-            //   states: {
-            //     Idle: {},
-            //     Holding: {
-            //       after: {
-            //         300: {
-            //           target: "Generating",
-            //           guard: ({ context }) => !!context.prompt?.length,
-            //         },
-            //       },
-            //     },
-            //     Generating: {
-            //       on: {
-            //         // TAG_START: {
-            //         //   actions: assign({
-            //         //     suggestedTagsResultId: ({ event }) => event.resultId,
-            //         //   }),
-            //         // },
-            //         TEXT_PROGRESS: {
-            //           actions: assign({
-            //             suggestedText: ({ event }) => event.data.items || [],
-            //           }),
-            //         },
-            //         TEXT_COMPLETE: {
-            //           actions: assign({
-            //             suggestedText: ({ event }) => event.data.items,
-            //           }),
-            //         },
-            //       },
-            //       invoke: {
-            //         input: ({ context }) => ({
-            //           prompt: context.prompt,
-            //         }),
-            //         src: fromEventObservable(
-            //           ({ input }: { input: { prompt: string } }) => {
-            //             const tokenStream = new AutoSuggestTextStream();
-            //             return from(tokenStream.getStream(input)).pipe(
-            //               switchMap((stream) => {
-            //                 return streamToObservable(
-            //                   stream,
-            //                   "TEXT",
-            //                   AutoSuggestTextOutputSchema
-            //                 );
-            //               })
-            //             );
-            //           }
-            //         ),
-            //         onDone: {
-            //           target: "Idle",
-            //         },
-            //       },
-            //     },
-            //   },
-            // },
-            // Tags: {
-            //   initial: "Idle",
-            //   states: {
-            //     Idle: {},
-            //     Holding: {
-            //       after: {
-            //         500: {
-            //           target: "Generating",
-            //           guard: ({ context }) => !!context.prompt?.length,
-            //         },
-            //       },
-            //     },
-            //     Generating: {
-            //       on: {
-            //         // TAG_START: {
-            //         //   actions: assign({
-            //         //     suggestedTagsResultId: ({ event }) => event.resultId,
-            //         //   }),
-            //         // },
-            //         TAG_PROGRESS: {
-            //           actions: assign({
-            //             suggestedTags: ({ event }) => event.data.tags || [],
-            //           }),
-            //         },
-            //         TAG_COMPLETE: {
-            //           actions: assign({
-            //             suggestedTags: ({ event }) => event.data.tags,
-            //           }),
-            //         },
-            //       },
-            //       invoke: {
-            //         input: ({ context }) => ({
-            //           prompt: context.runningInput,
-            //         }),
-            //         src: fromEventObservable(
-            //           ({ input }: { input: { prompt: string } }) => {
-            //             const tokenStream = new AutoSuggestTagsStream();
-            //             return from(tokenStream.getStream(input)).pipe(
-            //               switchMap((stream) => {
-            //                 return streamToObservable(
-            //                   stream,
-            //                   "TAG",
-            //                   AutoSuggestTagOutputSchema
-            //                 );
-            //               })
-            //             );
-            //           }
-            //         ),
-            //         onDone: {
-            //           target: "Idle",
-            //         },
-            //       },
-            //     },
-            //   },
-            // },
-            // Ingredients: {
-            //   initial: "Idle",
-            //   states: {
-            //     Idle: {},
-            //     Holding: {
-            //       after: {
-            //         500: {
-            //           target: "Generating",
-            //           guard: ({ context }) => !!context.prompt?.length,
-            //         },
-            //       },
-            //     },
-            //     Generating: {
-            //       on: {
-            //         // INGREDIENT_START: {
-            //         //   actions: assign({
-            //         //     suggestedIngredientssResultId: ({ event }) =>
-            //         //       event.resultId,
-            //         //   }),
-            //         // },
-            //         INGREDIENT_PROGRESS: {
-            //           actions: assign({
-            //             suggestedIngredients: ({ event }) =>
-            //               event.data.ingredients || [],
-            //           }),
-            //         },
-            //         INGREDIENT_COMPLETE: {
-            //           actions: assign({
-            //             suggestedIngredients: ({ event }) =>
-            //               event.data.ingredients,
-            //           }),
-            //         },
-            //       },
-            //       invoke: {
-            //         input: ({ context }) => ({
-            //           prompt: context.runningInput,
-            //         }),
-            //         src: fromEventObservable(
-            //           ({ input }: { input: { prompt: string } }) => {
-            //             const tokenStream = new AutoSuggestIngredientStream();
-            //             return from(tokenStream.getStream(input)).pipe(
-            //               switchMap((stream) => {
-            //                 return streamToObservable(
-            //                   stream,
-            //                   "INGREDIENT",
-            //                   AutoSuggestIngredientsOutputSchema
-            //                 );
-            //               })
-            //             );
-            //           }
-            //         ),
-            //         onDone: {
-            //           target: "Idle",
-            //         },
-            //       },
-            //     },
-            //   },
-            // },
             Recipes: {
               initial: "Idle",
               states: {
@@ -586,7 +435,7 @@ export const sessionMachine = setup({
                 },
                 Generating: {
                   on: {
-                    RECIPE_START: {
+                    AUTO_SUGGEST_RECIPES_START: {
                       actions: [
                         assign({
                           numStartedRecipes: ({ context }) =>
@@ -594,7 +443,7 @@ export const sessionMachine = setup({
                         }),
                       ],
                     },
-                    RECIPE_PROGRESS: {
+                    AUTO_SUGGEST_RECIPES_PROGRESS: {
                       actions: [
                         "updateNumCompleted",
                         assign(({ context, event }) =>
@@ -621,48 +470,11 @@ export const sessionMachine = setup({
                               draft.recipes[recipeId]!.description =
                                 recipe.description;
                             }
-                            // event.data.recipes?.forEach((recipe, index) => {
-                            // context.numStartedRecipes
-                            // const batchCompleteCount = event.data.recipes
-                            //   ?.length
-                            //   ? event.data.recipes.length - 1
-                            //   : 0;
-                            // const incompleteCount =
-                            //   context.numStartedRecipes -
-                            //   batchCompleteCount -
-                            //   (context.numStartedRecipes - 6);
-
-                            // context.numCompletedRecipes =
-                            //   context.numStartedRecipes - incompleteCount;
-
-                            // let recipeId =
-                            //   context.suggestedRecipes[
-                            //     context.numCompletedRecipes + index
-                            //   ];
-                            // if (!recipeId) {
-                            //   console.log(
-                            //     "PUSH!",
-                            //     recipeId,
-                            //     "index",
-                            //     index,
-                            //     "comleted",
-                            //     context.numCompletedRecipes,
-                            //     "data len",
-                            //     event.data.recipes?.length
-                            //   );
-                            //   recipeId = nanoid();
-                            //   draft.suggestedRecipes = [
-                            //     ...context.suggestedRecipes,
-                            //     recipeId,
-                            //   ];
-                            // }
-
-                            // });
                           })
                         ),
                       ],
                     },
-                    RECIPE_COMPLETE: {
+                    AUTO_SUGGEST_RECIPES_COMPLETE: {
                       actions: "updateNumCompleted",
                     },
                   },
@@ -677,8 +489,101 @@ export const sessionMachine = setup({
                           switchMap((stream) => {
                             return streamToObservable(
                               stream,
-                              "RECIPE",
+                              AutoSuggestRecipesEventBase,
                               AutoSuggestRecipesOutputSchema
+                            );
+                          })
+                        );
+                      }
+                    ),
+                    onError: {
+                      actions: (f) => {
+                        console.log(f);
+                      },
+                    },
+                    onDone: {
+                      target: "Idle",
+                    },
+                  },
+                },
+              },
+            },
+            CurrentRecipe: {
+              initial: "Idle",
+              on: {
+                SKIP: ".Generating",
+              },
+              states: {
+                Idle: {
+                  always: {
+                    target: "Generating",
+                    guard: ({ context, event }) => {
+                      const recipeId =
+                        context.suggestedRecipes[context.currentItemIndex];
+
+                      if (recipeId) {
+                        const numInstructions =
+                          context.recipes[recipeId]?.instructions?.length;
+                        return (
+                          !!context.numCompletedRecipes && !numInstructions
+                        );
+                      }
+                      return false;
+                    },
+                  },
+                },
+                Generating: {
+                  on: {
+                    NEW_RECIPE_PROGRESS: {
+                      actions: [
+                        assign(({ context, event }) =>
+                          produce(context, (draft) => {
+                            const currentRecipeId =
+                              draft.suggestedRecipes[draft.currentItemIndex];
+                            assert(currentRecipeId, "expected currentRecipeId");
+                            let recipe = draft.recipes[currentRecipeId];
+                            assert(recipe, "expected currentRecipe");
+
+                            draft.recipes[currentRecipeId] = {
+                              ...recipe,
+                              ...event.data.recipe,
+                            };
+                          })
+                        ),
+                      ],
+                    },
+                    NEW_RECIPE_COMPLETE: {},
+                  },
+                  invoke: {
+                    input: ({ context }) => {
+                      const currentRecipeId =
+                        context.suggestedRecipes[context.currentItemIndex];
+                      assert(currentRecipeId, "expected currentRecipeId");
+                      const recipe = context.recipes[currentRecipeId];
+                      assert(recipe, "expected currentRecipe");
+                      return {
+                        prompt: context.runningInput,
+                        name: recipe.name,
+                        desscription: recipe.description,
+                      };
+                    },
+                    src: fromEventObservable(
+                      ({
+                        input,
+                      }: {
+                        input: {
+                          name: string;
+                          description: string;
+                          prompt: string;
+                        };
+                      }) => {
+                        const tokenStream = new NewRecipeStream();
+                        return from(tokenStream.getStream(input)).pipe(
+                          switchMap((stream) => {
+                            return streamToObservable(
+                              stream,
+                              "NEW_RECIPE",
+                              RecipePredictionOutputSchema
                             );
                           })
                         );

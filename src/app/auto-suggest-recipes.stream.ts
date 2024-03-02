@@ -12,8 +12,10 @@ export const AutoSuggestRecipesOutputSchema = z.object({
   recipes: z.array(ItemSchema),
 });
 
+export const AutoSuggestRecipesEventBase = "AUTO_SUGGEST_RECIPES";
+
 export type AutoSuggestRecipesEvent = StreamObservableEvent<
-  "RECIPE",
+  typeof AutoSuggestRecipesEventBase,
   z.infer<typeof AutoSuggestRecipesOutputSchema>
 >;
 
