@@ -35,6 +35,14 @@ export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   return !tokens.length && promptLength === 0 ? <>{children}</> : null;
 };
 
+export const CraftReadyToSave = ({ children }: { children: ReactNode }) => {
+  const recipe = useCurrentRecipe();
+  if (recipe && recipe.ingredients?.length) {
+    return <>{children}</>;
+  }
+  return null;
+};
+
 export const CraftPromptEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const promptLength = useSelector(actor, selectPromptLength);

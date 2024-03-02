@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef } from "react";
 
 interface KeyboardAvoidingViewProps {
   children: ReactNode;
@@ -54,11 +54,8 @@ const KeyboardAvoidingView: React.FC<KeyboardAvoidingViewProps> = ({
   }, [updateViewportHeight, handleScroll]);
 
   return (
-    <div className="sticky bottom-0">
-      <div
-        ref={ref}
-        className={`transition-transform pointer-events-none z-50`}
-      >
+    <div className="sticky bottom-0" style={{ zIndex: 60 }}>
+      <div ref={ref} className={`transition-transform pointer-events-none`}>
         {children}
       </div>
     </div>

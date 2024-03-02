@@ -17,6 +17,7 @@ import { twc } from "react-twc";
 import {
   CraftEmpty,
   CraftNotEmpty,
+  CraftReadyToSave,
   SuggestedRecipeCards,
   // SuggestedTagBadge,
   SuggestedTokenBadge,
@@ -276,6 +277,11 @@ export const NewRecipeResultsView = () => {
       </Container>
       <Footer>
         <ClientOnly>
+          <CraftNotEmpty>
+            <CraftReadyToSave>
+              <CraftButton />
+            </CraftReadyToSave>
+          </CraftNotEmpty>
           <CraftEmpty>
             <BackButton />
           </CraftEmpty>
@@ -1765,6 +1771,16 @@ const SubmitButton = () => {
     <Button className="w-full" size="lg">
       Submit <ChevronRightIcon />
     </Button>
+  );
+};
+
+const CraftButton = () => {
+  return (
+    <div className="flex flex-row justify-center pointer-events-none py-4">
+      <Button size="lg" className="w-3/4" event={{ type: "SAVE" }}>
+        Craft
+      </Button>
+    </div>
   );
 };
 
