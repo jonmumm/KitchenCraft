@@ -383,7 +383,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   }
 
   const scale = (100 - diffToCurrent * 5) / 100;
-  const topOffset = -diffToCurrent * 7;
+  const topOffset = -diffToCurrent * 2;
   // const topOffset = diffToCurrent
   //   ? -4 * (1 + (1 - scale)) - diffToCurrent * 28
   //   : 0;
@@ -401,7 +401,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
     <Card
       className={`w-full top-0 ${position} transition-all`}
       style={{
-        transform: `scale(${scale})`,
+        transform: `scaleX(${scale})`,
         minHeight: "200px",
         zIndex,
         marginTop: `${topOffset}%`,
