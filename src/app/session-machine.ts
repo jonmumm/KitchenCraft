@@ -1,12 +1,16 @@
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { produce } from "immer";
 
+import { RecipesTable, db } from "@/db";
+import { NewRecipe } from "@/db/types";
+import { getSlug } from "@/lib/slug";
 import { assert } from "@/lib/utils";
 import { RecipePredictionOutputSchema } from "@/schema";
 import { AppEvent } from "@/types";
 import { nanoid } from "ai";
+import { randomUUID } from "crypto";
 import { from, switchMap } from "rxjs";
-import { assign, fromEventObservable, setup } from "xstate";
+import { assign, fromEventObservable, fromPromise, setup } from "xstate";
 import { z } from "zod";
 import { AutoSuggestIngredientEvent } from "./auto-suggest-ingredients.stream";
 import {
@@ -46,6 +50,18 @@ type Input = z.infer<typeof InputSchema>;
 //   z.infer<typeof autoSuggestIngredientsOutputSchema>
 // >;
 
+type PartialRecipe = {
+  name?: string;
+  description?: string;
+  tags?: string[];
+  yield?: string;
+  ingredients?: string[];
+  instructions?: string[];
+  cookTime?: string;
+  totalTime?: string;
+  activeTime?: string;
+};
+
 export const sessionMachine = setup({
   types: {
     input: {} as Input,
@@ -56,20 +72,7 @@ export const sessionMachine = setup({
       tokens: string[];
       // suggestedRecipes: { name?: string; description?: string }[];
       suggestedRecipes: string[];
-      recipes: Record<
-        string,
-        {
-          name?: string;
-          description?: string;
-          tags?: string[];
-          yield?: string;
-          ingredients?: string[];
-          instructions?: string[];
-          cookTime?: string;
-          totalTime?: string;
-          activeTime?: string;
-        }
-      >;
+      recipes: Record<string, PartialRecipe>;
       generatingRecipeId: string | undefined;
       currentItemIndex: number;
       numCompletedRecipes: number;
@@ -611,6 +614,74 @@ export const sessionMachine = setup({
                     },
                   },
                 },
+              },
+            },
+          },
+        },
+
+        NewRecipe: {
+          initial: "Idle",
+          states: {
+            Idle: {
+              entry: () => {
+                console.log("IDLE");
+              },
+              on: {
+                SAVE: "Creating",
+              },
+            },
+            Error: {
+              entry: ({ event }) => {
+                console.log(event);
+              },
+            },
+            Creating: {
+              invoke: {
+                onDone: "Idle",
+                onError: "Error",
+                input: ({ context }) => {
+                  const currentRecipeId =
+                    context.suggestedRecipes[context.currentItemIndex];
+                  assert(currentRecipeId, "expected currentRecipeId");
+                  let recipe = context.recipes[currentRecipeId];
+                  assert(recipe, "expected currentRecipe");
+                  return { recipe, prompt: context.prompt };
+                },
+                src: fromPromise(
+                  async ({
+                    input,
+                  }: {
+                    input: { recipe: PartialRecipe; prompt: string };
+                  }) => {
+                    const id = nanoid();
+                    const { recipe } = input;
+
+                    assert(recipe.name, "expected name");
+                    const slug = getSlug({ id, name: recipe.name });
+                    assert(recipe.description, "expected description");
+
+                    const finalRecipe = {
+                      id: randomUUID(),
+                      slug,
+                      versionId: 0,
+                      description: recipe.description,
+                      name: recipe.name,
+                      yield: recipe.yield!,
+                      tags: recipe.tags!,
+                      ingredients: recipe.ingredients!,
+                      instructions: recipe.instructions!,
+                      cookTime: recipe.cookTime!,
+                      activeTime: recipe.activeTime!,
+                      totalTime: recipe.totalTime!,
+                      prompt: input.prompt,
+                      createdBy: randomUUID(),
+                      createdAt: new Date(),
+                    } satisfies NewRecipe;
+
+                    await db.insert(RecipesTable).values(finalRecipe);
+                    return slug;
+                  }
+                ),
               },
             },
           },

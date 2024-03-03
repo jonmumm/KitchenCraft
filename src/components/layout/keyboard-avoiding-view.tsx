@@ -24,11 +24,6 @@ const KeyboardAvoidingView: React.FC<KeyboardAvoidingViewProps> = ({
         ? `translateY(-${keyboardHeight}px)`
         : `translateY(0px)`;
       const node = ref.current.parentNode as HTMLDivElement;
-      if (shiftedForKeyboard) {
-        node.style.position = "sticky";
-      } else {
-        node.style.position = "relative";
-      }
       lastKeyboardHeight.current = keyboardHeight;
 
       animationFrameRef.current = requestAnimationFrame(updateViewportHeight);
