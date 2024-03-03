@@ -610,23 +610,28 @@ export const SuggestedTokenBadge = ({
 // };
 
 const Tags = () => {
-  const items = new Array(10).fill(0);
+  const items = new Array(3).fill(0);
 
   const Tag = ({ index }: { index: number }) => {
     const session = useStore(session$);
     const recipeId =
       session.context.suggestedRecipes[session.context.currentItemIndex];
-    if (!recipeId) {
-      return null;
+    if (!recipeId || !session.context.recipes[recipeId]) {
+      return (
+        <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
+          <Skeleton className="w-8 h-4" />
+        </Badge>
+      );
     }
-    const recipe = session.context.recipes[recipeId];
-    if (!recipe) {
-      return null;
-    }
+    const recipe = session.context.recipes[recipeId]!;
     const tag = recipe.tags?.[index];
-    // const tag = await lastValueFrom(
-    //   getObservableAtIndex(index, tags$).pipe(defaultIfEmpty(undefined))
-    // );
+    if (!tag) {
+      return (
+        <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
+          <Skeleton className="w-8 h-4" />
+        </Badge>
+      );
+    }
     return (
       <>
         {tag ? (
@@ -645,7 +650,7 @@ const Tags = () => {
 
   return (
     <div className="flex flex-row flex-wrap gap-2 px-5 px-y hidden-print items-center justify-center">
-      <TagIcon className="h-5" />
+      <TagIcon size={16} className="h-5" />
       {items.map((_, index) => {
         return <Tag key={index} index={index} />;
       })}
@@ -697,19 +702,31 @@ const Times = ({
 
   return (
     <div className="flex flex-row gap-2 px-5 py-2 items-center justify-center">
-      <ClockIcon className="h-5" />
+      <ClockIcon size={16} className="h-5" />
       <div className="flex flex-row gap-1">
         <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
           <span className="font-normal">Cook </span>
-          {cookTime ? <CookTime /> : <Skeleton className="w-10 h-4" />}
+          {cookTime ? (
+            <CookTime />
+          ) : (
+            <Skeleton className="w-5 h-4 bg-slate-500" />
+          )}
         </Badge>
         <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
           <span className="font-normal">Active </span>
-          {activeTime ? <ActiveTime /> : <Skeleton className="w-10 h-4" />}
+          {activeTime ? (
+            <ActiveTime />
+          ) : (
+            <Skeleton className="w-5 h-4 bg-slate-500" />
+          )}
         </Badge>
         <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
           <span className="font-normal">Total </span>
-          {totalTime ? <TotalTime /> : <Skeleton className="w-10 h-4" />}
+          {totalTime ? (
+            <TotalTime />
+          ) : (
+            <Skeleton className="w-5 h-4 bg-slate-500" />
+          )}
         </Badge>
       </div>
     </div>
