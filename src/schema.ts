@@ -503,6 +503,7 @@ const ToggleEventSchema = z.object({
 });
 const ClearEventSchema = z.object({
   type: z.literal("CLEAR"),
+  all: z.boolean().optional(),
 });
 
 const PageLoadedEventSchema = z.object({

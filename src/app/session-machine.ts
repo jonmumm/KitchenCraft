@@ -187,16 +187,28 @@ export const sessionMachine = setup({
                 currentItemIndex: ({ context }) => context.currentItemIndex + 1,
               }),
             },
-            CLEAR: {
-              actions: [
-                "resetSuggestions",
-                assign({
-                  prompt: "",
-                  runningInput: undefined,
-                  tokens: [],
-                }),
-              ],
-            },
+            CLEAR: [
+              {
+                guard: ({ event }) => !!event.all,
+                actions: [
+                  "resetSuggestions",
+                  assign({
+                    prompt: "",
+                    runningInput: undefined,
+                  }),
+                ],
+              },
+              {
+                actions: [
+                  "resetSuggestions",
+                  assign({
+                    prompt: "",
+                    tokens: [],
+                    runningInput: undefined,
+                  }),
+                ],
+              },
+            ],
             REMOVE_TOKEN: {
               actions: [
                 "resetSuggestions",

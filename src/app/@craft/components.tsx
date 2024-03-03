@@ -9,6 +9,7 @@ import {
   CarrotIcon,
   ChevronLeft,
   ChevronRightIcon,
+  Loader2Icon,
   TagIcon,
   XIcon,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { twc } from "react-twc";
 import {
   CraftEmpty,
   CraftNotEmpty,
+  CraftNotReadyToSave,
   CraftReadyToSave,
   SuggestedRecipeCards,
   // SuggestedTagBadge,
@@ -278,9 +280,10 @@ export const NewRecipeResultsView = () => {
       <Footer>
         <ClientOnly>
           <CraftNotEmpty>
-            <CraftReadyToSave>
+            <div className="flex flex-row gap-2 items-center px-2 w-full">
+              <ClearButton />
               <CraftButton />
-            </CraftReadyToSave>
+            </div>
           </CraftNotEmpty>
           <CraftEmpty>
             <BackButton />
@@ -1774,12 +1777,38 @@ const SubmitButton = () => {
   );
 };
 
+// const ClearButton = () => {
+//   return (
+//     <div className="flex flex-row justify-center pointer-events-none py-4">
+//       <Button
+//         size="lg"
+//         className="pointer-events-auto"
+//         event={{ type: "CLEAR", all: true }}
+//       >
+//         Clear
+//       </Button>
+//     </div>
+//   );
+// };
+
 const CraftButton = () => {
   return (
-    <div className="flex flex-row justify-center pointer-events-none py-4">
-      <Button size="lg" className="w-3/4" event={{ type: "SAVE" }}>
-        Craft
-      </Button>
+    <div className="flex flex-row justify-center pointer-events-none py-4 w-full">
+      <CraftNotReadyToSave>
+        <Button size="lg" className="w-full pointer-events-auto" disabled>
+          Generating
+          <Loader2Icon size={14} className="animate-spin ml-2" />
+        </Button>
+      </CraftNotReadyToSave>
+      <CraftReadyToSave>
+        <Button
+          size="lg"
+          className="w-full pointer-events-auto"
+          event={{ type: "SAVE" }}
+        >
+          Craft
+        </Button>
+      </CraftReadyToSave>
     </div>
   );
 };
@@ -1803,7 +1832,7 @@ const ClearButton = () => {
   return (
     <div className="flex flex-row justify-center pointer-events-none py-4">
       <Badge
-        event={{ type: "CLEAR" }}
+        event={{ type: "CLEAR", all: true }}
         className="pointer-events-auto px-3 py-2 cursor-pointer"
         suppressHydrationWarning
       >

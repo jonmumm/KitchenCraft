@@ -349,6 +349,12 @@ export const createCraftMachine = ({
       states: {
         TokenState: {
           on: {
+            CLEAR: {
+              guard: ({ event }) => !!event.all,
+              actions: assign({
+                tokens: [],
+              }),
+            },
             REMOVE_TOKEN: {
               actions: assign({
                 prompt: "",
@@ -527,7 +533,6 @@ export const createCraftMachine = ({
               actions: [
                 assign({
                   prompt: undefined,
-                  tokens: [],
                   currentItemIndex: 0,
                 }),
                 () => {

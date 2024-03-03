@@ -35,6 +35,15 @@ export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   return !tokens.length && promptLength === 0 ? <>{children}</> : null;
 };
 
+export const CraftNotReadyToSave = ({ children }: { children: ReactNode }) => {
+  const recipe = useCurrentRecipe();
+  const readyToSave = recipe && recipe.ingredients?.length;
+  if (!readyToSave) {
+    return <>{children}</>;
+  }
+  return null;
+};
+
 export const CraftReadyToSave = ({ children }: { children: ReactNode }) => {
   const recipe = useCurrentRecipe();
   if (recipe && recipe.ingredients?.length) {
