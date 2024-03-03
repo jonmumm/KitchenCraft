@@ -280,7 +280,7 @@ export const NewRecipeResultsView = () => {
       <Footer>
         <ClientOnly>
           <CraftNotEmpty>
-            <div className="flex flex-row gap-2 items-center px-2 w-full">
+            <div className="flex flex-row gap-2 items-center px-2 max-w-3xl w-full mx-auto">
               <ClearButton />
               <CraftButton />
             </div>
@@ -1807,6 +1807,7 @@ const CraftButton = () => {
           event={{ type: "SAVE" }}
         >
           Craft
+          <span className="text-xs ml-2 animate-pulse">🧪</span>
         </Button>
       </CraftReadyToSave>
     </div>
@@ -1831,14 +1832,15 @@ const BackButton = () => {
 const ClearButton = () => {
   return (
     <div className="flex flex-row justify-center pointer-events-none py-4">
-      <Badge
+      <Button
         event={{ type: "CLEAR", all: true }}
+        size="lg"
         className="pointer-events-auto px-3 py-2 cursor-pointer"
-        suppressHydrationWarning
+        variant="secondary"
       >
          Clear
         <XIcon size={14} />
-      </Badge>
+      </Button>
     </div>
   );
 };
