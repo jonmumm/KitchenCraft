@@ -1803,7 +1803,7 @@ const CraftButton = () => {
       <CraftReadyToSave>
         <Button
           size="lg"
-          className="w-full pointer-events-auto"
+          className="w-full pointer-events-auto shadow-xl"
           event={{ type: "SAVE" }}
         >
           Craft
@@ -1835,7 +1835,7 @@ const ClearButton = () => {
       <Button
         event={{ type: "CLEAR", all: true }}
         size="lg"
-        className="pointer-events-auto px-3 py-2 cursor-pointer"
+        className="pointer-events-auto px-3 py-2 cursor-pointer shadow-xl"
         variant="secondary"
       >
          Clear
