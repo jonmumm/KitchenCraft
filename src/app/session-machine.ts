@@ -194,6 +194,7 @@ export const sessionMachine = setup({
                   "resetSuggestions",
                   assign({
                     prompt: "",
+                    tokens: [],
                     runningInput: undefined,
                   }),
                 ],
@@ -203,7 +204,6 @@ export const sessionMachine = setup({
                   "resetSuggestions",
                   assign({
                     prompt: "",
-                    tokens: [],
                     runningInput: undefined,
                   }),
                 ],
