@@ -19,7 +19,7 @@ import {
 import Link from "next/link";
 import { ComponentProps, ReactNode, useContext } from "react";
 import { CraftContext } from "../context";
-import { session$ } from "../session-store";
+import { SessionStoreContext } from "../session-store.context";
 import {
   selectIsCreating,
   selectIsRemixing,
@@ -324,6 +324,7 @@ export const AddedTokens = () => {
 };
 
 export const SuggestedRecipeCards = () => {
+  const session$ = useSessionStore();
   const session = useStore(session$);
   const numCards = Math.max(session.context.numCompletedRecipes, 6);
   const items = new Array(numCards).fill(0);
@@ -337,7 +338,12 @@ export const SuggestedRecipeCards = () => {
   );
 };
 
+const useSessionStore = () => {
+  return useContext(SessionStoreContext);
+};
+
 const useCurrentRecipe = () => {
+  const session$ = useSessionStore();
   const session = useStore(session$);
   // const recipeId =
   //   session.context.suggestedRecipes[session.context.currentItemIndex];
@@ -360,6 +366,7 @@ const useCurrentRecipe = () => {
 
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const actor = useContext(CraftContext);
+  const session$ = useSessionStore();
   const session = useStore(session$);
   const recipeId = session.context.suggestedRecipes[index];
   const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
@@ -487,6 +494,7 @@ export const SuggestedTokenBadge = ({
   const isTyping = useSelector(actor, (state) =>
     state.matches({ Typing: "True" })
   );
+  const session$ = useSessionStore();
   const session = useStore(session$);
   const isGenerating = session.value.Craft.Generators.Tokens === "Generating";
   const token = session.context.suggestedTokens[index];
@@ -613,6 +621,7 @@ const Tags = () => {
   const items = new Array(3).fill(0);
 
   const Tag = ({ index }: { index: number }) => {
+    const session$ = useSessionStore();
     const session = useStore(session$);
     const recipeId =
       session.context.suggestedRecipes[session.context.currentItemIndex];
@@ -660,6 +669,7 @@ const Tags = () => {
 };
 
 const Yield = () => {
+  const session$ = useSessionStore();
   const session = useStore(session$);
   const recipeId =
     session.context.suggestedRecipes[session.context.currentItemIndex];

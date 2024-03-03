@@ -2,7 +2,7 @@
 
 import { selectIsOpen } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
-import { session$ } from "@/app/session-store";
+import { SessionStoreContext } from "@/app/session-store.context";
 // import { session$ } from "@/app/session-store";
 import { useCraftIsOpen, usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useEventHandler } from "@/hooks/useEventHandler";
@@ -124,6 +124,7 @@ const AutoResizableTextarea: React.FC<
     const isOpen = useCraftIsOpen();
     const isPristine = usePromptIsPristine();
     const [placeholdersGenerating, setPlaceholderGenerating] = useState(false);
+    const session$ = useContext(SessionStoreContext);
 
     // hack figure out better solution for subscribing to server state
     useEffect(() => {
@@ -132,7 +133,7 @@ const AutoResizableTextarea: React.FC<
           state.value.Craft.Generators.Placeholder === "Generating"
         );
       });
-    }, [setPlaceholderGenerating]);
+    }, [setPlaceholderGenerating, session$]);
 
     const value = useSelector(actor, (state) => state.context.prompt);
     const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(

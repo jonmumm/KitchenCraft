@@ -1,33 +1,30 @@
 "use client";
 
+import { SessionStoreContext } from "@/app/session-store.context";
 import { env } from "@/env.public";
 import { useEventSubject } from "@/hooks/useEvents";
 import { Operation, applyPatch } from "fast-json-patch";
 import PartySocket from "partysocket";
-import { ReactNode, useLayoutEffect, useRef } from "react";
+import { ReactNode, useContext, useLayoutEffect, useRef } from "react";
 import { z } from "zod";
-
-// todo: add an ActorKitRoot we can use for shared context
-// instead of importing the store here to make generic
-import { SessionSnapshot, session$ } from "../../app/session-store";
 
 export const ActorProvider = (props: {
   id: string;
   connectionId: string;
   token: string;
-  initial: SessionSnapshot;
   children: ReactNode;
 }) => {
-  const { connectionId, token, id, initial } = props;
+  const { connectionId, token, id } = props;
   const initializedRef = useRef(false);
   const event$ = useEventSubject();
+  const session$ = useContext(SessionStoreContext);
 
   useLayoutEffect(() => {
     if (initializedRef.current) {
       return;
     }
     initializedRef.current = true;
-    session$.set(initial);
+    // session$.set(initial);
 
     const socket = new PartySocket({
       host: env.KITCHENCRAFT_API_HOST,
@@ -60,7 +57,7 @@ export const ActorProvider = (props: {
         ...snapshot,
       });
     });
-  }, [initializedRef, connectionId, token, id, initial, event$]);
+  }, [initializedRef, connectionId, token, id, event$, session$]);
 
   return <>{props.children}</>;
 };

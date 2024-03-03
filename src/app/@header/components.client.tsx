@@ -33,7 +33,7 @@ import {
   useState,
 } from "react";
 import { CraftContext } from "../context";
-import { session$ } from "../session-store";
+import { SessionStoreContext } from "../session-store.context";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -90,11 +90,13 @@ export const BackButton = (props: {
 };
 
 const CraftAutoCompleteItem = ({ index }: { index: number }) => {
+  const session$ = useContext(SessionStoreContext);
   const session = useStore(session$);
   return <div>{session.context.suggestedText[index]}</div>;
 };
 
 export const CraftAutoComplete = () => {
+  const session$ = useContext(SessionStoreContext);
   const session = useStore(session$);
   const items = new Array(6).fill(0);
 
