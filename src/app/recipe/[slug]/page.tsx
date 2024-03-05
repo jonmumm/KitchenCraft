@@ -1,30 +1,23 @@
 import { Card } from "@/components/display/card";
-import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
+import { Skeleton } from "@/components/display/skeleton";
 import { unstable_noStore as noStore } from "next/cache";
 import { Recipe as RecipeJSONLDSchema, WithContext } from "schema-dts";
 
-import { FAQsTokenStream } from "@/app/api/recipe/[slug]/faqs/stream";
 import { TipsAndTricksTokenStream } from "@/app/api/recipe/[slug]/tips-and-tricks/stream";
-import Generator from "@/components/ai/generator";
 import { Avatar, RobotAvatarImage } from "@/components/display/avatar";
 import { Badge } from "@/components/display/badge";
 import MarkdownRenderer from "@/components/display/markdown";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
-import { CommandItem } from "@/components/input/command";
-import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
-import { LastValue } from "@/components/util/last-value";
 import { db } from "@/db";
 import {
   findLatestRecipeVersion,
   findSlugForRecipeVersion,
   getRecipe,
-  getSortedMediaForRecipe,
 } from "@/db/queries";
 import { env } from "@/env.public";
 import { getCurrentProfile, getCurrentUserId } from "@/lib/auth/session";
-import { kv } from "@/lib/kv";
-import { delay } from "@/lib/utils";
+import { delay, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { CommentsProvider } from "@/modules/comments/components";
 import {
   RecipeCommentsContent,
@@ -38,61 +31,36 @@ import {
   MediaGalleryItems,
 } from "@/modules/media-gallery/components.client";
 import {
-  FAQsPredictionInputSchema,
-  QuestionsPredictionOutputSchema,
-  RecipeBaseSchema,
-} from "@/schema";
-import { ObservableType } from "@/types";
-import {
   AxeIcon,
   CameraIcon,
+  ClockIcon,
   GitForkIcon,
-  HelpCircle,
   LightbulbIcon,
   MessageSquareIcon,
-  MessagesSquareIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   StarIcon,
+  TagIcon,
 } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ComponentProps, ReactNode, Suspense } from "react";
-import {
-  BehaviorSubject,
-  defaultIfEmpty,
-  lastValueFrom,
-  map,
-  takeWhile,
-} from "rxjs";
+import { Suspense } from "react";
 import { ShareButton } from "../components.client";
 import { UpvoteButton } from "../upvote-button/component";
-import { Ingredients, Instructions, Tags, Times } from "./components";
 import { TipsAndTricksContent } from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
-import { getObservables, getRecipeStream$ } from "./observables";
-import { getBaseRecipe, getRecipeOutputRaw } from "./queries";
 import { Rating } from "./rating/components.client";
 import {
   getCurrentUserRatingBySlug,
   upsertRecipeRating,
 } from "./rating/queries";
 import { RatingValue } from "./rating/types";
-import {
-  SousChefCommand,
-  SousChefCommandInput,
-  SousChefCommandItem,
-  SousChefFAQSuggestionsCommandGroup,
-  SousChefOutput,
-  SousChefPromptCommandGroup,
-} from "./sous-chef-command/components";
 import { UploadMediaButton } from "./upload-media-button";
-import ErrorBoundary from "next/dist/client/components/error-boundary";
 
-export const maxDuration = 300;
-export const dynamic = "force-dynamic";
-export const revalidate = 10;
+// export const maxDuration = 300;
+// export const dynamic = "force-dynamic";
+// export const revalidate = 10;
 
 type Props = {
   params: { slug: string };
@@ -101,33 +69,28 @@ type Props = {
 export default async function Page(props: Props) {
   const { slug } = props.params;
   const [
-    baseRecipe,
     recipe,
     userId,
     currentProfile,
-    mediaList,
+    // mediaList,
     latestVersion,
-    recipeData$,
     versions,
     rating,
   ] = await Promise.all([
-    getBaseRecipe(slug),
     getRecipe(slug),
     getCurrentUserId(),
     getCurrentProfile(),
-    getSortedMediaForRecipe(slug),
+    // getSortedMediaForRecipe(slug),
     findLatestRecipeVersion(slug),
-    getRecipeStream$(slug),
     getAllVersionsOfRecipeBySlug(db, slug),
     getCurrentUserRatingBySlug(slug),
   ]);
 
-  const { runStatus } = baseRecipe;
-  // const { runStatus } = tempRecipe;
-  const isError = runStatus === "error";
-  const { name, description } = baseRecipe;
+  if (!recipe) {
+    return <h1>Not Found</h1>;
+  }
 
-  if (recipe && latestVersion && recipe.versionId !== latestVersion.versionId) {
+  if (latestVersion && recipe.versionId !== latestVersion.versionId) {
     const slug = await findSlugForRecipeVersion(
       db,
       recipe.id,
@@ -136,31 +99,6 @@ export default async function Page(props: Props) {
     return redirect(`/recipe/${slug}`);
   }
 
-  if (isError) {
-    const outputRaw = await getRecipeOutputRaw(slug);
-    return (
-      <Card className="p-3 m-4">
-        <h3>Error with recipe</h3>
-        <h4>Raw Output</h4>
-        <Card className="p-5">
-          <pre dangerouslySetInnerHTML={{ __html: outputRaw }} />
-        </Card>
-      </Card>
-    );
-  }
-
-  // const recipeData$ = new BehaviorSubject();
-
-  const {
-    ingredients$,
-    instructions$,
-    tags$,
-    yield$,
-    activeTime$,
-    cookTime$,
-    totalTime$,
-  } = getObservables(recipeData$);
-
   const submitRating = async (
     slug: string,
     userId: string,
@@ -168,279 +106,8 @@ export default async function Page(props: Props) {
   ) => {
     "use server";
     console.log(userId, slug, value);
-
     await upsertRecipeRating(db, userId, slug, value);
   };
-
-  // const generatedMedia$ = await getGeneratedMedia$(slug);
-
-  //   const recipe = await firstValueFrom(recipe$);
-  //   const replicate = new Replicate();
-
-  const WaitForRecipe = async ({ children }: { children: ReactNode }) => {
-    await lastValueFrom(recipeData$);
-    return <>{children}</>;
-  };
-
-  // const GeneratedImages = () => {
-  //   const items = new Array(6).fill(0);
-  //   return (
-  //     <>
-  //       <div className="flex flex-row justify-between p-4">
-  //         <h3 className="uppercase text-xs font-bold text-accent-foreground">
-  //           Imagine
-  //         </h3>
-  //         <CameraIcon />
-  //       </div>
-  //       <p className="text-muted-foreground text-xs px-4">
-  //         Generated photos to guide and inspire you
-  //       </p>
-  //       <div className="relative h-96">
-  //         <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
-  //           <AsyncRenderFirstValue
-  //             observable={generatedMedia$}
-  //             render={(media) => {
-  //               return <MediaCarousel media={media} />;
-  //             }}
-  //             fallback={<MediaCarouselFallback />}
-  //           />
-  //         </div>
-  //       </div>
-  //     </>
-  //   );
-  // };
-
-  const AssistantContent = () => {
-    const faq$ = new BehaviorSubject<string[]>([]);
-
-    const FAQGenerator = async ({
-      recipeData,
-    }: {
-      recipeData: ObservableType<typeof recipeData$>;
-    }) => {
-      const data = await kv.get(`recipe:${slug}:questions`);
-      if (data) {
-        const existingQuestionsResult =
-          QuestionsPredictionOutputSchema.shape.questions.safeParse(data);
-        if (existingQuestionsResult.success) {
-          faq$.next(existingQuestionsResult.data);
-          faq$.complete();
-          return null;
-        } else {
-          console.error(existingQuestionsResult.error);
-        }
-      }
-      const recipeTokenStream = new FAQsTokenStream();
-
-      const input = FAQsPredictionInputSchema.parse({
-        recipe: recipeData,
-      });
-      const stream = await recipeTokenStream.getStream(input);
-
-      return (
-        <Generator
-          stream={stream}
-          schema={QuestionsPredictionOutputSchema}
-          onStart={() => {}}
-          onProgress={({ questions }) => {
-            if (questions) {
-              faq$.next(questions);
-            }
-          }}
-          onComplete={({ questions }) => {
-            faq$.next(questions);
-            kv.set(`recipe:${slug}:questions`, questions);
-            faq$.complete();
-          }}
-        />
-      );
-    };
-
-    const NUM_FAQ_SUGGESTIONS = 6;
-    const items = new Array(NUM_FAQ_SUGGESTIONS).fill(0);
-
-    const SousChefFAQSuggestionCommandItem = async ({
-      index,
-    }: ComponentProps<typeof CommandItem> & { index: number }) => {
-      const text = await lastValueFrom(
-        faq$.pipe(
-          map((items) => {
-            const item = items[index];
-            const nextItemExists = !!items?.[index + 1];
-            return { item, nextItemExists };
-          }),
-          takeWhile(({ nextItemExists }) => !nextItemExists, true),
-          map(({ item }) => item),
-          defaultIfEmpty(undefined)
-        )
-      );
-
-      return (
-        <SousChefCommandItem
-          key={index}
-          value={text}
-          className="flex flex-row gap-2"
-        >
-          <Suspense fallback={<Skeleton className="w-full h-6" />}>
-            <Button size="icon" variant="secondary">
-              <HelpCircle className="opacity-40" />
-            </Button>
-            <h4 className="text-sm flex-1">{text}</h4>
-          </Suspense>
-          <Badge variant="secondary">Ask</Badge>
-        </SousChefCommandItem>
-      );
-    };
-
-    return (
-      <>
-        <Suspense fallback={null}>
-          <AsyncRenderFirstValue
-            observable={recipeData$}
-            render={(recipeData) => <FAQGenerator recipeData={recipeData} />}
-            fallback={null}
-          />
-        </Suspense>
-        <div className="px-5" id="assistant">
-          <div className="flex flex-row justify-between gap-1 items-center py-4">
-            <h3 className="uppercase text-xs font-bold text-accent-foreground">
-              Assistant
-            </h3>
-            <MessagesSquareIcon />
-          </div>
-        </div>
-        <SousChefCommand slug={slug}>
-          <SousChefCommandInput />
-          <Separator />
-          <Suspense fallback={null}>
-            <WaitForRecipe>
-              <SousChefPromptCommandGroup />
-            </WaitForRecipe>
-          </Suspense>
-          <SousChefOutput />
-          <SousChefFAQSuggestionsCommandGroup
-            defaultValue={undefined}
-            heading="Questions"
-          >
-            <Suspense
-              fallback={
-                <>
-                  {items.map((_, index) => {
-                    return (
-                      <SousChefCommandItem
-                        disabled={true}
-                        key={index}
-                        className="flex flex-row gap-2"
-                      >
-                        <Button size="icon" variant="secondary">
-                          <HelpCircle className="opacity-40" />
-                        </Button>
-                        <div className="flex-1">
-                          <SkeletonSentence
-                            className="h-4"
-                            numWords={[5, 7, 10]}
-                          />
-                        </div>
-                        <Badge className="opacity-50" variant="secondary">
-                          Ask
-                        </Badge>
-                      </SousChefCommandItem>
-                    );
-                  })}
-                </>
-              }
-            >
-              <WaitForRecipe>
-                {items.map((_, index) => {
-                  return (
-                    <SousChefFAQSuggestionCommandItem
-                      key={index}
-                      index={index}
-                      className="flex flex-row gap-2"
-                    />
-                  );
-                })}
-              </WaitForRecipe>
-            </Suspense>
-          </SousChefFAQSuggestionsCommandGroup>
-        </SousChefCommand>
-      </>
-    );
-  };
-
-  // const CurrentRecipeGenerator = () => {
-  //   return (
-  //     <>
-  //       {input && generatorSubject && (
-  //         <Suspense fallback={<></>}>
-  //           <RecipeGenerator
-  //             input={input}
-  //             onStart={() => {
-  //               kv.hset(`recipe:${slug}`, {
-  //                 runStatus: "started",
-  //                 input,
-  //               }).then(noop);
-  //             }}
-  //             onProgress={(output) => {
-  //               if (output.recipe) {
-  //                 generatorSubject.next(output.recipe);
-  //               }
-  //             }}
-  //             onError={(error, outputRaw) => {
-  //               kv.hset(`recipe:${slug}`, {
-  //                 runStatus: "error",
-  //                 error,
-  //                 outputRaw,
-  //               }).then(noop);
-  //             }}
-  //             onComplete={(output) => {
-  //               const createdAt = new Date();
-  //               const createdBy = userId || guestId;
-  //               assert(createdBy, `neither userId or guestId defined`);
-
-  //               const finalRecipe = {
-  //                 id: randomUUID(),
-  //                 slug,
-  //                 versionId: 0,
-  //                 description,
-  //                 name,
-  //                 yield: output.recipe.yield,
-  //                 tags: output.recipe.tags,
-  //                 ingredients: output.recipe.ingredients,
-  //                 instructions: output.recipe.instructions,
-  //                 cookTime: output.recipe.cookTime,
-  //                 activeTime: output.recipe.activeTime,
-  //                 totalTime: output.recipe.totalTime,
-  //                 prompt: input?.prompt!,
-  //                 createdBy,
-  //                 createdAt,
-  //               } satisfies NewRecipe;
-
-  //               db.insert(RecipesTable)
-  //                 .values(finalRecipe)
-  //                 .then(() => {
-  //                   kv.hset(`recipe:${slug}`, {
-  //                     runStatus: "done",
-  //                   }).then(noop);
-  //                   revalidatePath("/");
-  //                   revalidatePath("/me");
-  //                 });
-
-  //               generatorSubject.next({
-  //                 ...output.recipe,
-  //                 slug,
-  //                 name,
-  //                 description,
-  //                 createdAt,
-  //               });
-  //               generatorSubject.complete();
-  //             }}
-  //           />
-  //         </Suspense>
-  //       )}
-  //     </>
-  //   );
-  // };
 
   const History = () => {
     const Versions = async () => {
@@ -542,9 +209,7 @@ export default async function Page(props: Props) {
         <div className="p-4">
           <ul className="timeline max-sm:timeline-compact timeline-vertical mb-6">
             <Suspense fallback={<Skeleton className="w-full h-20" />}>
-              <WaitForRecipe>
-                <Versions />
-              </WaitForRecipe>
+              <Versions />
             </Suspense>
           </ul>
         </div>
@@ -636,12 +301,12 @@ export default async function Page(props: Props) {
     );
   };
 
+  const { name, description } = recipe;
+
   return (
     <>
       <Suspense fallback={null}>
-        <WaitForRecipe>
-          <Schema />
-        </WaitForRecipe>
+        <Schema />
       </Suspense>
 
       <CommentsProvider slug={slug}>
@@ -664,28 +329,12 @@ export default async function Page(props: Props) {
                     </p>
                     <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
                       <span>Yields</span>
-                      <span>
-                        <Suspense fallback={<Skeleton className="w-24 h-5" />}>
-                          <LastValue observable={yield$} />
-                        </Suspense>
-                      </span>
+                      <span>{recipe.yield}</span>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-1 hidden-print">
                     <UpvoteButton userId={userId} slug={slug} />
-                    {/* {userId && (
-                  <AsyncRenderFirstValue
-                    render={([hasVoted, points]) => (
-                      <UpvoteButtonClient count={points} alreadyVoted={hasVoted} />
-                    )}
-                    fallback={<UpvoteButtonLoading />}
-                    observable={combineLatest([
-                      from(hasUserVotedOnRecipe(db, userId, slug)),
-                      from(getRecipePoints(db, slug)),
-                    ])}
-                  />
-                )} */}
                     <UploadMediaButton slug={slug}>
                       <CameraIcon />
                     </UploadMediaButton>
@@ -773,13 +422,21 @@ export default async function Page(props: Props) {
                 <Separator className="hidden-print" />
               </>
             )} */}
-                <Times
+                {/* <Times
                   totalTime$={totalTime$}
                   activeTime$={activeTime$}
                   cookTime$={cookTime$}
-                />
+                /> */}
+                <div>
+                  <Times
+                    activeTime={recipe.activeTime}
+                    totalTime={recipe.totalTime}
+                    cookTime={recipe.cookTime}
+                  />
+                  {/* <SkeletonSentence className="h-4" numWords={12} /> */}
+                </div>
                 <Separator />
-                <Tags tags$={tags$} />
+                <Tags tags={recipe.tags} />
                 <Separator />
 
                 <div className="px-5">
@@ -792,7 +449,8 @@ export default async function Page(props: Props) {
                   <div className="mb-4 flex flex-col gap-2">
                     <Suspense fallback={<Skeleton className="w-full h-20" />}>
                       <ul className="list-disc pl-5 flex flex-col gap-2">
-                        <Ingredients ingredients$={ingredients$} />
+                        {/* <Ingredients ingredients$={ingredients$} /> */}
+                        <Ingredients ingredients={recipe.ingredients} />
                       </ul>
                     </Suspense>
                   </div>
@@ -807,11 +465,9 @@ export default async function Page(props: Props) {
                     <ScrollIcon />
                   </div>
                   <div className="mb-4 flex flex-col gap-2">
-                    <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                      <ol className="list-decimal pl-5 flex flex-col gap-2">
-                        <Instructions instructions$={instructions$} />
-                      </ol>
-                    </Suspense>
+                    <ol className="list-decimal pl-5 flex flex-col gap-2">
+                      <Instructions instructions={recipe.instructions} />
+                    </ol>
                   </div>
                 </div>
               </Card>
@@ -985,15 +641,12 @@ export default async function Page(props: Props) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const recipe = await getRecipe(params.slug);
-  let name, description;
   if (!recipe) {
-    const recipeKey = `recipe:${params.slug}`;
-    const data = await kv.hgetall(recipeKey);
-    const tempRecipe = RecipeBaseSchema.parse(data);
-    ({ name, description } = tempRecipe);
-  } else {
-    ({ name, description } = recipe);
+    return {
+      title: "Not Found",
+    };
   }
+  const { name, description } = recipe;
   const creatorSlug = recipe?.createdBySlug
     ? ` by @${recipe?.createdBySlug}`
     : ` by ChefAnonymous`;
@@ -1032,4 +685,360 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images,
     },
   };
+}
+
+// const AssistantContent = () => {
+//   const faq$ = new BehaviorSubject<string[]>([]);
+
+//   const FAQGenerator = async ({
+//     recipeData,
+//   }: {
+//     recipeData: ObservableType<typeof recipeData$>;
+//   }) => {
+//     const data = await kv.get(`recipe:${slug}:questions`);
+//     if (data) {
+//       const existingQuestionsResult =
+//         QuestionsPredictionOutputSchema.shape.questions.safeParse(data);
+//       if (existingQuestionsResult.success) {
+//         faq$.next(existingQuestionsResult.data);
+//         faq$.complete();
+//         return null;
+//       } else {
+//         console.error(existingQuestionsResult.error);
+//       }
+//     }
+//     const recipeTokenStream = new FAQsTokenStream();
+
+//     const input = FAQsPredictionInputSchema.parse({
+//       recipe: recipeData,
+//     });
+//     const stream = await recipeTokenStream.getStream(input);
+
+//     return (
+//       <Generator
+//         stream={stream}
+//         schema={QuestionsPredictionOutputSchema}
+//         onStart={() => {}}
+//         onProgress={({ questions }) => {
+//           if (questions) {
+//             faq$.next(questions);
+//           }
+//         }}
+//         onComplete={({ questions }) => {
+//           faq$.next(questions);
+//           kv.set(`recipe:${slug}:questions`, questions);
+//           faq$.complete();
+//         }}
+//       />
+//     );
+//   };
+
+//   const NUM_FAQ_SUGGESTIONS = 6;
+//   const items = new Array(NUM_FAQ_SUGGESTIONS).fill(0);
+
+//   const SousChefFAQSuggestionCommandItem = async ({
+//     index,
+//   }: ComponentProps<typeof CommandItem> & { index: number }) => {
+//     const text = await lastValueFrom(
+//       faq$.pipe(
+//         map((items) => {
+//           const item = items[index];
+//           const nextItemExists = !!items?.[index + 1];
+//           return { item, nextItemExists };
+//         }),
+//         takeWhile(({ nextItemExists }) => !nextItemExists, true),
+//         map(({ item }) => item),
+//         defaultIfEmpty(undefined)
+//       )
+//     );
+
+//     return (
+//       <SousChefCommandItem
+//         key={index}
+//         value={text}
+//         className="flex flex-row gap-2"
+//       >
+//         <Suspense fallback={<Skeleton className="w-full h-6" />}>
+//           <Button size="icon" variant="secondary">
+//             <HelpCircle className="opacity-40" />
+//           </Button>
+//           <h4 className="text-sm flex-1">{text}</h4>
+//         </Suspense>
+//         <Badge variant="secondary">Ask</Badge>
+//       </SousChefCommandItem>
+//     );
+//   };
+
+//   return (
+//     <>
+//       <Suspense fallback={null}>
+//         <AsyncRenderFirstValue
+//           observable={recipeData$}
+//           render={(recipeData) => <FAQGenerator recipeData={recipeData} />}
+//           fallback={null}
+//         />
+//       </Suspense>
+//       <div className="px-5" id="assistant">
+//         <div className="flex flex-row justify-between gap-1 items-center py-4">
+//           <h3 className="uppercase text-xs font-bold text-accent-foreground">
+//             Assistant
+//           </h3>
+//           <MessagesSquareIcon />
+//         </div>
+//       </div>
+//       <SousChefCommand slug={slug}>
+//         <SousChefCommandInput />
+//         <Separator />
+//         <Suspense fallback={null}>
+//           <WaitForRecipe>
+//             <SousChefPromptCommandGroup />
+//           </WaitForRecipe>
+//         </Suspense>
+//         <SousChefOutput />
+//         <SousChefFAQSuggestionsCommandGroup
+//           defaultValue={undefined}
+//           heading="Questions"
+//         >
+//           <Suspense
+//             fallback={
+//               <>
+//                 {items.map((_, index) => {
+//                   return (
+//                     <SousChefCommandItem
+//                       disabled={true}
+//                       key={index}
+//                       className="flex flex-row gap-2"
+//                     >
+//                       <Button size="icon" variant="secondary">
+//                         <HelpCircle className="opacity-40" />
+//                       </Button>
+//                       <div className="flex-1">
+//                         <SkeletonSentence
+//                           className="h-4"
+//                           numWords={[5, 7, 10]}
+//                         />
+//                       </div>
+//                       <Badge className="opacity-50" variant="secondary">
+//                         Ask
+//                       </Badge>
+//                     </SousChefCommandItem>
+//                   );
+//                 })}
+//               </>
+//             }
+//           >
+//             <WaitForRecipe>
+//               {items.map((_, index) => {
+//                 return (
+//                   <SousChefFAQSuggestionCommandItem
+//                     key={index}
+//                     index={index}
+//                     className="flex flex-row gap-2"
+//                   />
+//                 );
+//               })}
+//             </WaitForRecipe>
+//           </Suspense>
+//         </SousChefFAQSuggestionsCommandGroup>
+//       </SousChefCommand>
+//     </>
+//   );
+// };
+
+// const CurrentRecipeGenerator = () => {
+//   return (
+//     <>
+//       {input && generatorSubject && (
+//         <Suspense fallback={<></>}>
+//           <RecipeGenerator
+//             input={input}
+//             onStart={() => {
+//               kv.hset(`recipe:${slug}`, {
+//                 runStatus: "started",
+//                 input,
+//               }).then(noop);
+//             }}
+//             onProgress={(output) => {
+//               if (output.recipe) {
+//                 generatorSubject.next(output.recipe);
+//               }
+//             }}
+//             onError={(error, outputRaw) => {
+//               kv.hset(`recipe:${slug}`, {
+//                 runStatus: "error",
+//                 error,
+//                 outputRaw,
+//               }).then(noop);
+//             }}
+//             onComplete={(output) => {
+//               const createdAt = new Date();
+//               const createdBy = userId || guestId;
+//               assert(createdBy, `neither userId or guestId defined`);
+
+//               const finalRecipe = {
+//                 id: randomUUID(),
+//                 slug,
+//                 versionId: 0,
+//                 description,
+//                 name,
+//                 yield: output.recipe.yield,
+//                 tags: output.recipe.tags,
+//                 ingredients: output.recipe.ingredients,
+//                 instructions: output.recipe.instructions,
+//                 cookTime: output.recipe.cookTime,
+//                 activeTime: output.recipe.activeTime,
+//                 totalTime: output.recipe.totalTime,
+//                 prompt: input?.prompt!,
+//                 createdBy,
+//                 createdAt,
+//               } satisfies NewRecipe;
+
+//               db.insert(RecipesTable)
+//                 .values(finalRecipe)
+//                 .then(() => {
+//                   kv.hset(`recipe:${slug}`, {
+//                     runStatus: "done",
+//                   }).then(noop);
+//                   revalidatePath("/");
+//                   revalidatePath("/me");
+//                 });
+
+//               generatorSubject.next({
+//                 ...output.recipe,
+//                 slug,
+//                 name,
+//                 description,
+//                 createdAt,
+//               });
+//               generatorSubject.complete();
+//             }}
+//           />
+//         </Suspense>
+//       )}
+//     </>
+//   );
+// };
+
+const Tags = ({ tags }: { tags: string[] }) => {
+  const Tag = ({ index }: { index: number }) => {
+    const tag = tags[index];
+    if (!tag) {
+      return (
+        <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
+          <Skeleton className="w-8 h-4" />
+        </Badge>
+      );
+    }
+  };
+
+  return (
+    <div className="flex flex-row flex-wrap gap-2 px-5 px-y hidden-print items-center justify-center">
+      <TagIcon size={16} className="h-5" />
+      {tags.map((tag, index) => {
+        return (
+          <Link href={`/tag/${sentenceToSlug(tag)}`} key={tag}>
+            <Badge
+              variant="outline"
+              className="inline-flex flex-row gap-1 px-2"
+            >
+              {tag}
+            </Badge>
+          </Link>
+        );
+      })}
+      {/* <AddTagButton /> */}
+    </div>
+  );
+};
+
+// copied from @craft commponents.client
+const Times = ({
+  cookTime,
+  totalTime,
+  activeTime,
+}: {
+  cookTime?: string;
+  totalTime?: string;
+  activeTime?: string;
+}) => {
+  // const store = useContext(RecipeViewerContext);
+  // const { prepTime, cookTime, totalTime } = useStore(store, {
+  //   keys: ["prepTime", "cookTime", "totalTime"],
+  // });
+
+  const ActiveTime = () => {
+    return <>{formatDuration(activeTime)}</>;
+  };
+
+  const CookTime = () => {
+    return <>{formatDuration(cookTime)}</>;
+  };
+
+  const TotalTime = () => {
+    return <>{formatDuration(totalTime)}</>;
+  };
+
+  return (
+    <div className="flex flex-row gap-2 px-5 py-2 items-center justify-center">
+      <ClockIcon size={16} className="h-5" />
+      <div className="flex flex-row gap-1">
+        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
+          <span className="font-normal">Cook </span>
+          {cookTime ? (
+            <CookTime />
+          ) : (
+            <Skeleton className="w-5 h-4 bg-slate-500" />
+          )}
+        </Badge>
+        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
+          <span className="font-normal">Active </span>
+          {activeTime ? (
+            <ActiveTime />
+          ) : (
+            <Skeleton className="w-5 h-4 bg-slate-500" />
+          )}
+        </Badge>
+        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
+          <span className="font-normal">Total </span>
+          {totalTime ? (
+            <TotalTime />
+          ) : (
+            <Skeleton className="w-5 h-4 bg-slate-500" />
+          )}
+        </Badge>
+      </div>
+    </div>
+  );
+};
+
+function Ingredients({ ingredients }: { ingredients: string[] }) {
+  const NUM_LINE_PLACEHOLDERS = 5;
+
+  const Item = ({ index }: { index: number }) => {
+    return <li>{ingredients[index]}</li>;
+  };
+
+  return (
+    <>
+      {ingredients.map((_, index) => {
+        return <Item key={index} index={index} />;
+      })}
+    </>
+  );
+}
+
+function Instructions({ instructions }: { instructions: string[] }) {
+  const NUM_LINE_PLACEHOLDERS = 5;
+
+  const Item = ({ index }: { index: number }) => {
+    return <li>{instructions[index]}</li>;
+  };
+
+  return (
+    <>
+      {instructions.map((_, index) => {
+        return <Item key={index} index={index} />;
+      })}
+    </>
+  );
 }

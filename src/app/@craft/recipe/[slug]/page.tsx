@@ -1,36 +1,17 @@
-import { getRecipeStream$ } from "@/app/recipe/[slug]/observables";
-import { getBaseRecipe } from "@/app/recipe/[slug]/queries";
-import SubjectGenerator from "@/components/ai/subject-generator";
 import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
-import { Skeleton } from "@/components/display/skeleton";
-import { LastValue } from "@/components/util/last-value";
 import { getRecipe } from "@/db/queries";
-import { SuggestionPredictionOutputSchema } from "@/schema";
 import { SuggestionPredictionPartialOutput } from "@/types";
-import { Suspense } from "react";
 import { twc } from "react-twc";
-import {
-  ReplaySubject,
-  filter,
-  lastValueFrom,
-  map,
-  take,
-  takeUntil,
-} from "rxjs";
+import { ReplaySubject } from "rxjs";
 import { z } from "zod";
-import { NewRecipeResultsView } from "../../components";
 import {
   CraftInputting,
   CraftingPlacholder,
   RecipeCreating,
   RemixEmpty,
   RemixInputting,
-  ResultCard,
 } from "../../components.client";
-import { RemixSuggestionsTokenStream } from "./remix-suggestions/stream";
-import { ChevronRightIcon, ShuffleIcon } from "lucide-react";
-import { Badge } from "@/components/display/badge";
 
 type Props = {
   params: { slug: string };
@@ -45,7 +26,7 @@ export default async function Page({
 }) {
   const slug = z.string().parse(params["slug"]);
   const recipe = await getRecipe(slug);
-  const { name, description } = await getBaseRecipe(slug);
+  // const { name, description } = await getBaseRecipe(slug);
   // const recipeData$ = await getBase$(slug);
 
   const Container = twc.div`flex flex-col gap-2 px-4 h-full max-w-3xl mx-auto w-full`;
@@ -85,7 +66,7 @@ export default async function Page({
               Remixing
             </Label>
             <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
-              {name}
+              {recipe?.name}
             </div>
           </Card>
           {/* <Suspense fallback={null}>

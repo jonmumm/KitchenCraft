@@ -10,7 +10,6 @@ import { db } from "@/db";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile } from "@/lib/headers";
 import { redirect } from "next/navigation";
-import { getBaseRecipe } from "../queries";
 import {
   CurrentRatingValue,
   Rating,
