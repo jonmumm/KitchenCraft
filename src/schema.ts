@@ -9,6 +9,31 @@ import {
 } from "./constants";
 import { AmazonAffiliateProductSchema, RecipeSchema } from "./db";
 
+export const CallerIdTypeSchema = z.enum(["user", "guest", "system"]);
+
+export const CallerSchema = z.string().transform((val, ctx) => {
+  // Regular expression to validate the UUID format
+  const callerTypeParseResult = CallerIdTypeSchema.safeParse(val.split("-")[0]);
+  if (!callerTypeParseResult.success) {
+    callerTypeParseResult.error.issues.forEach(ctx.addIssue);
+    return z.NEVER;
+  }
+  const uniqueIdType = callerTypeParseResult.data;
+
+  const uniqueId = val.substring(val.indexOf("-") + 1);
+  if (z.string().uuid().safeParse(uniqueId).success) {
+    return { uniqueIdType, uniqueId };
+  } else {
+    // If not valid, add a custom issue
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Must be a valid uuid",
+    });
+    // Return the special NEVER symbol to indicate a validation failure
+    return z.NEVER;
+  }
+});
+
 export const PlanSchema = z
   .enum(["quarterly", "monthly", "annual"])
   .default("quarterly");

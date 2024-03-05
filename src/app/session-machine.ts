@@ -6,7 +6,7 @@ import { NewRecipe } from "@/db/types";
 import { getSlug } from "@/lib/slug";
 import { assert } from "@/lib/utils";
 import { RecipePredictionOutputSchema } from "@/schema";
-import { AppEvent } from "@/types";
+import { AppEvent, WithCaller } from "@/types";
 import { nanoid } from "ai";
 import { randomUUID } from "crypto";
 import { from, switchMap } from "rxjs";
@@ -67,6 +67,8 @@ export const sessionMachine = setup({
     input: {} as Input,
     context: {} as {
       distinctId: string;
+      createdRecipeSlugs: string[];
+      createdBy?: string;
       prompt: string;
       runningInput: string | undefined;
       tokens: string[];
@@ -84,7 +86,7 @@ export const sessionMachine = setup({
       suggestedIngredients: string[];
     },
     events: {} as
-      | AppEvent
+      | WithCaller<AppEvent>
       | AutoSuggestTagEvent
       | AutoSuggestIngredientEvent
       | AutoSuggestRecipesEvent
@@ -176,6 +178,7 @@ export const sessionMachine = setup({
     suggestedText: [],
     suggestedIngredients: [],
     suggestedTokens: [],
+    createdRecipeSlugs: [],
     placeholders: defaultPlaceholders,
   }),
   type: "parallel",
@@ -230,20 +233,13 @@ export const sessionMachine = setup({
             },
             ADD_TOKEN: {
               actions: [
-                "resetSuggestions",
                 assign({
                   tokens: ({ context, event }) => [
                     ...context.tokens,
                     event.token,
                   ],
-                  runningInput: ({ context, event }) =>
-                    buildSuggestionsInput({
-                      prompt: context.prompt,
-                      tokens: [...context.tokens, event.token],
-                    }),
                 }),
               ],
-              guard: "shouldRunInput",
             },
             SET_INPUT: {
               actions: [
@@ -289,6 +285,16 @@ export const sessionMachine = setup({
                 // ".Tags.Generating",
                 // ".Ingredients.Generating",
                 ".Recipes.Generating",
+              ],
+              actions: [
+                "resetSuggestions",
+                assign({
+                  runningInput: ({ context, event }) =>
+                    buildSuggestionsInput({
+                      prompt: context.prompt,
+                      tokens: [...context.tokens, event.token],
+                    }),
+                }),
               ],
               guard: "shouldRunInput",
             },
@@ -623,11 +629,15 @@ export const sessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              entry: () => {
-                console.log("IDLE");
-              },
               on: {
-                SAVE: "Creating",
+                SAVE: {
+                  target: "Creating",
+                  actions: assign({
+                    createdBy: ({ event }) => {
+                      return event.caller.id;
+                    },
+                  }),
+                },
               },
             },
             Error: {
@@ -637,7 +647,14 @@ export const sessionMachine = setup({
             },
             Creating: {
               invoke: {
-                onDone: "Idle",
+                onDone: {
+                  target: "Idle",
+                  actions: assign(({ context, event }) => {
+                    return produce(context, (draft) => {
+                      draft.createdRecipeSlugs.push(event.output);
+                    });
+                  }),
+                },
                 onError: "Error",
                 input: ({ context }) => {
                   const currentRecipeId =
@@ -645,13 +662,22 @@ export const sessionMachine = setup({
                   assert(currentRecipeId, "expected currentRecipeId");
                   let recipe = context.recipes[currentRecipeId];
                   assert(recipe, "expected currentRecipe");
-                  return { recipe, prompt: context.prompt };
+                  assert(context.createdBy, "expected createdBy when savings");
+                  return {
+                    recipe,
+                    prompt: context.prompt,
+                    createdBy: context.createdBy,
+                  };
                 },
                 src: fromPromise(
                   async ({
                     input,
                   }: {
-                    input: { recipe: PartialRecipe; prompt: string };
+                    input: {
+                      recipe: PartialRecipe;
+                      prompt: string;
+                      createdBy: string;
+                    };
                   }) => {
                     const id = nanoid();
                     const { recipe } = input;
@@ -674,7 +700,7 @@ export const sessionMachine = setup({
                       activeTime: recipe.activeTime!,
                       totalTime: recipe.totalTime!,
                       prompt: input.prompt,
-                      createdBy: randomUUID(),
+                      createdBy: input.createdBy,
                       createdAt: new Date(),
                     } satisfies NewRecipe;
 

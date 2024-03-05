@@ -1,4 +1,5 @@
 import { json, notFound, ok } from "@/lib/actor-kit/utils/response";
+import { Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import type * as Party from "partykit/server";
@@ -13,6 +14,8 @@ import {
   createActor,
 } from "xstate";
 import { z } from "zod";
+import { createCallerToken, parseCallerIdToken } from "../browser-session";
+import { assert } from "../utils";
 import { API_SERVER_URL } from "./constants";
 
 type UserActorConnectionState = {
@@ -22,12 +25,17 @@ type UserActorConnectionState = {
 
 type UserActorConnection = Party.Connection<UserActorConnectionState>;
 
-export const createActorHTTPClient = <TMachine extends AnyStateMachine>(
-  type: string
-) => {
+export const createActorHTTPClient = <TMachine extends AnyStateMachine>(props: {
+  type: string;
+  caller: Caller;
+}) => {
   const get = async (id: string) => {
-    const resp = await fetch(`${API_SERVER_URL}/parties/${type}/${id}`, {
+    const token = await createCallerToken(props.caller.id, props.caller.type);
+    const resp = await fetch(`${API_SERVER_URL}/parties/${props.type}/${id}`, {
       next: { revalidate: 0 },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const responseSchema = z.object({
@@ -73,6 +81,7 @@ export const createMachineServer = <
       string,
       ReturnType<Actor<TMachine>["getPersistedSnapshot"]>
     >;
+    callersByConnectionId: Map<string, Caller>;
     subscrptionsByConnectionId: Map<string, Subscription>;
 
     constructor(public room: Party.Room) {
@@ -86,6 +95,7 @@ export const createMachineServer = <
       this.actor.start();
 
       this.initialSnapshotsByConnectionId = new Map();
+      this.callersByConnectionId = new Map();
       this.subscrptionsByConnectionId = new Map();
     }
 
@@ -95,6 +105,8 @@ export const createMachineServer = <
 
     async onRequest(request: Party.Request) {
       if (request.method === "POST") {
+        // todo requi're a caller token before allowing this send...
+        // dont thinkw e use this anywhere yet
         const json = await request.json();
         const event = eventSchema.parse(json);
         this.actor.send(event);
@@ -103,7 +115,15 @@ export const createMachineServer = <
 
       if (request.method === "GET") {
         const connectionId = randomUUID();
-        // this.actor.send({ type: "FETCH", connectionId });
+        const authHeader = request.headers.get("authorization");
+        const callerIdToken = authHeader?.split(" ")[1];
+        assert(callerIdToken, "unable to parse bearer token");
+        const caller = await parseCallerIdToken(callerIdToken);
+        this.callersByConnectionId.set(connectionId, {
+          id: caller.uniqueId,
+          type: caller.uniqueIdType,
+        });
+
         const token = randomUUID(); // todo make this a jwt
         const snapshot = this.actor.getPersistedSnapshot();
 
@@ -151,7 +171,13 @@ export const createMachineServer = <
     async onMessage(message: string, sender: Party.Connection) {
       try {
         const event = eventSchema.parse(JSON.parse(message));
-        this.actor.send(event);
+        const caller = this.callersByConnectionId.get(sender.id);
+        if (caller) {
+          this.actor.send(Object.assign(event, { caller }));
+          // } else {
+          //   console.warn("Couldn't find caller for ", sender.id);
+        }
+
         // console.log("kit", event);
       } catch (ex) {
         console.warn("Error parsing event from client", ex);

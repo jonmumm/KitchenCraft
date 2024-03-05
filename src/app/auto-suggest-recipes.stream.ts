@@ -23,17 +23,7 @@ export class AutoSuggestRecipesStream extends TokenStream<SuggestionPredictionIn
   protected async getUserMessage(
     input: SuggestionPredictionInput
   ): Promise<string> {
-    let prompt = input.prompt + "\n";
-    // Construct the prompt based on the input
-    if (input.ingredients) {
-      prompt += `ingredients: ${input.ingredients.join(",")}`;
-    }
-
-    if (input.tags) {
-      prompt += `tags: ${input.tags.join(",")}`;
-    }
-
-    return prompt;
+    return input.prompt || "";
   }
 
   protected async getSystemMessage(

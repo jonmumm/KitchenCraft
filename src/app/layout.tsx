@@ -1,11 +1,16 @@
+import { SessionActor } from "@/app/session-actor";
 import { Toaster } from "@/components/feedback/sonner";
 import { Toaster as LegacyToaster } from "@/components/feedback/toaster";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";
-import { SessionActor } from "@/app/session-actor";
-import { getCurrentEmail, getSession, getUniqueId } from "@/lib/auth/session";
+import {
+  getCurrentEmail,
+  getSession,
+  getUniqueId,
+  getUniqueIdType,
+} from "@/lib/auth/session";
 import { createAppInstallToken } from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
 import { getResult } from "@/lib/db";
@@ -300,9 +305,10 @@ export default async function RootLayout({
     return { success: true as const, data: { recipeUrl: `/recipe/${slug}` } };
   }
   const uniqueId = await getUniqueId();
-
   const currentEmail = await getCurrentEmail();
+  const uniqueIdType = await getUniqueIdType();
   const appInstallToken = await createAppInstallToken(uniqueId, currentEmail);
+  console.log({ uniqueId, uniqueIdType, appInstallToken });
 
   let manifestHref = `/user-app-manifest.json`;
   if (appInstallToken) {
