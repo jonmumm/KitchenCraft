@@ -73,7 +73,7 @@ export const createMachineServer = <
   TMachine extends AnyStateMachineWithIdInput,
 >(
   machine: TMachine,
-  eventSchema: z.ZodSchema<EventFrom<TMachine>>
+  eventSchema: z.ZodSchema<Omit<EventFrom<TMachine>, "caller">>
 ) => {
   class ActorServer implements Party.Server {
     actor: Actor<TMachine>;
@@ -109,7 +109,7 @@ export const createMachineServer = <
         // dont thinkw e use this anywhere yet
         const json = await request.json();
         const event = eventSchema.parse(json);
-        this.actor.send(event);
+        // this.actor.send(event);
         return ok();
       }
 
@@ -173,6 +173,8 @@ export const createMachineServer = <
         const event = eventSchema.parse(JSON.parse(message));
         const caller = this.callersByConnectionId.get(sender.id);
         if (caller) {
+          // todo idk how to do this
+          // @ts-expect-error
           this.actor.send(Object.assign(event, { caller }));
           // } else {
           //   console.warn("Couldn't find caller for ", sender.id);

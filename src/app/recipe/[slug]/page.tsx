@@ -982,8 +982,8 @@ function Instructions({ instructions }: { instructions: string[] }) {
   );
 }
 
-const CommentsCard = () => {
-  const currentProfile = getCurrentProfile();
+const CommentsCard = async () => {
+  const currentProfile = await getCurrentProfile();
 
   return (
     <Card id="comments" className="mx-3">
