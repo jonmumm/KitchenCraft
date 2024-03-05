@@ -221,13 +221,6 @@ export const sessionMachine = setup({
                 assign({
                   tokens: ({ context, event }) =>
                     context.tokens.filter((token) => token !== event.token),
-                  runningInput: ({ context, event }) =>
-                    buildSuggestionsInput({
-                      prompt: context.prompt,
-                      tokens: context.tokens.filter(
-                        (token) => token !== event.token
-                      ),
-                    }),
                 }),
               ],
             },
@@ -264,10 +257,17 @@ export const sessionMachine = setup({
               target: [
                 ".Placeholder.Generating",
                 ".Tokens.Generating",
-                // ".Tags.Generating",
-                // ".Ingredients.Generating",
                 ".Recipes.Generating",
               ],
+              actions: assign({
+                runningInput: ({ context, event }) =>
+                  buildSuggestionsInput({
+                    prompt: context.prompt,
+                    tokens: context.tokens.filter(
+                      (token) => token !== event.token
+                    ),
+                  }),
+              }),
               guard: ({ context, event }) => {
                 const input = buildSuggestionsInput({
                   prompt: context.prompt,
@@ -282,8 +282,6 @@ export const sessionMachine = setup({
               target: [
                 ".Placeholder.Generating",
                 ".Tokens.Generating",
-                // ".Tags.Generating",
-                // ".Ingredients.Generating",
                 ".Recipes.Generating",
               ],
               actions: [
@@ -292,7 +290,7 @@ export const sessionMachine = setup({
                   runningInput: ({ context, event }) =>
                     buildSuggestionsInput({
                       prompt: context.prompt,
-                      tokens: [...context.tokens, event.token],
+                      tokens: context.tokens,
                     }),
                 }),
               ],
@@ -303,21 +301,12 @@ export const sessionMachine = setup({
                 target: [
                   ".Placeholder.Holding",
                   ".Tokens.Holding",
-                  // ".Tags.Holding",
-                  // ".Ingredients.Holding",
                   ".Recipes.Holding",
                 ],
                 guard: ({ event }) => !!event.value?.length,
               },
               {
-                target: [
-                  ".Placeholder.Idle",
-                  ".Tokens.Idle",
-                  // ".Text.Idle",
-                  // ".Tags.Idle",
-                  // ".Ingredients.Idle",
-                  ".Recipes.Idle",
-                ],
+                target: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle"],
               },
             ],
           },
