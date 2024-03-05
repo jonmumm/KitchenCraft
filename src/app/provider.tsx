@@ -39,6 +39,14 @@ export function ApplicationProvider(props: {
       appSessionId: props.appSessionId,
     })
   ); // todo define global types here
+  const session$ = useContext(SessionStoreContext);
+
+  useEffect(() => {
+    // @ts-expect-error
+    window.app$ = store;
+    // @ts-expect-error
+    window.session$ = session$;
+  }, [store, session$]);
   // const [permission, setPermission] = useState(() => {
   //   Notification.requestPermission();
 
@@ -50,7 +58,6 @@ export function ApplicationProvider(props: {
     const pathname = usePathname();
     const router = useRouter();
     const send = useSend();
-    const session$ = useContext(SessionStoreContext);
 
     const actor = useActor("craft", () =>
       createCraftMachine({
@@ -58,7 +65,7 @@ export function ApplicationProvider(props: {
         router,
         send,
         initialPath: pathname,
-        session$
+        session$,
       })
     );
 
