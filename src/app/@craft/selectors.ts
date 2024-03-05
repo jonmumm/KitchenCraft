@@ -62,7 +62,7 @@ export const selectIsOpen = (state: CraftSnapshot) => {
 // };
 
 export const selectIsCreating = (state: CraftSnapshot) =>
-  !state.matches({ Creating: "False" });
+  state.matches({ Creating: "InProgress" });
 
 export const selectIsRemixing = (state: CraftSnapshot) => false;
 

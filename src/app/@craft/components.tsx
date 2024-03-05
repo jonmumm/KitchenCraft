@@ -19,7 +19,9 @@ import {
   CraftEmpty,
   CraftNotEmpty,
   CraftNotReadyToSave,
+  CraftNotSaving,
   CraftReadyToSave,
+  CraftSaving,
   SuggestedRecipeCards,
   // SuggestedTagBadge,
   SuggestedTokenBadge,
@@ -280,10 +282,19 @@ export const NewRecipeResultsView = () => {
       <Footer>
         <ClientOnly>
           <CraftNotEmpty>
-            <div className="flex flex-row gap-2 items-center px-2 max-w-3xl w-full mx-auto">
-              <ClearButton />
-              <CraftButton />
-            </div>
+            <CraftSaving>
+              <div className="flex gap-2 justify-center items-center px-2 mb-6 max-w-3xl w-full mx-auto">
+                <Badge variant="secondary" className="shadow-xl">
+                  Crafting <span className="text-xs animate-spin ml-2">🧪</span>
+                </Badge>
+              </div>
+            </CraftSaving>
+            <CraftNotSaving>
+              <div className="flex flex-row gap-2 items-center px-2 max-w-3xl w-full mx-auto">
+                <ClearButton />
+                <CraftButton />
+              </div>
+            </CraftNotSaving>
           </CraftNotEmpty>
           <CraftEmpty>
             <BackButton />

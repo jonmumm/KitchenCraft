@@ -72,6 +72,26 @@ export const HasTokens = ({ children }: { children: ReactNode }) => {
   return numTokens !== 0 ? <>{children}</> : null;
 };
 
+export const CraftNotSaving = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const saving = useSelector(
+    actor,
+    (state) => !state.matches({ Creating: "False" })
+  );
+
+  return !saving ? <>{children}</> : null;
+};
+
+export const CraftSaving = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const saving = useSelector(
+    actor,
+    (state) => !state.matches({ Creating: "False" })
+  );
+
+  return saving ? <>{children}</> : null;
+};
+
 export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const promptLength = useSelector(actor, selectPromptLength);
@@ -81,17 +101,30 @@ export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
 };
 export const RecipeCreating = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
-  const isCreating = useSelector(actor, selectIsCreating);
+  const isCreating = useSelector(actor, (state) =>
+    state.matches({ Creating: "InProgress" })
+  );
   return isCreating ? <>{children}</> : null;
 };
+
+export const RecipeNavigating = ({ children }: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const isNavigating = useSelector(actor, (state) =>
+    state.matches({ Creating: "Navigating" })
+  );
+  return isNavigating ? <>{children}</> : null;
+};
+
 export const CraftInputting = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   // const isTyping = useSelector(actor, selectIsTyping);
   // const promptLength = useSelector(actor, selectPromptLength);
-  const isCreating = useSelector(actor, selectIsCreating);
+  const isNotCreating = useSelector(actor, (state) =>
+    state.matches({ Creating: "False" })
+  );
   const isRemixing = useSelector(actor, selectIsRemixing);
 
-  return !isRemixing && !isCreating ? <>{children}</> : null;
+  return !isRemixing && isNotCreating ? <>{children}</> : null;
   // return !isCreating && (isTyping || promptLength) ? <>{children}</> : null;
 };
 

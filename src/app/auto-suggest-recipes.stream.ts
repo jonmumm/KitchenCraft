@@ -23,6 +23,7 @@ export class AutoSuggestRecipesStream extends TokenStream<SuggestionPredictionIn
   protected async getUserMessage(
     input: SuggestionPredictionInput
   ): Promise<string> {
+    console.log(input);
     return input.prompt || "";
   }
 

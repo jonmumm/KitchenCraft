@@ -14,6 +14,7 @@ import {
   SuggestionPredictionOutput,
   SuggestionsInput,
 } from "@/types";
+import { ReadableAtom } from "nanostores";
 import { parseAsString } from "next-usequerystate";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import {
@@ -28,6 +29,7 @@ import {
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
 import { ingredientsParser, tagsParser } from "./parsers";
+import { SessionSnapshot } from "./session-store";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
   const params = new URLSearchParams();
@@ -53,24 +55,15 @@ type CreateRecipeResponse = Promise<
 export const createCraftMachine = ({
   searchParams,
   router,
-  serverActions,
   initialPath,
   send,
+  session$,
 }: {
   searchParams: Record<string, string>;
   router: AppRouterInstance;
-  serverActions: {
-    createNewInstantRecipe: (
-      prompt: string,
-      instantRecipeResultId: string
-    ) => CreateRecipeResponse;
-    createNewRecipeFromSuggestion: (
-      suggestionsResultId: string,
-      index: number
-    ) => CreateRecipeResponse;
-  };
   initialPath: string;
   send: (event: AppEvent) => void;
+  session$: ReadableAtom<SessionSnapshot>;
 }) => {
   const instantRecipeMetadataGenerator = fromEventObservable(
     ({ input }: { input: InstantRecipeMetdataInput }) => {
@@ -104,29 +97,29 @@ export const createCraftMachine = ({
     }
   );
 
-  const createNewInstantRecipe = fromPromise(
-    async ({
-      input,
-    }: {
-      input: { instantRecipeResultId: string; prompt: string };
-    }) => {
-      return await serverActions.createNewInstantRecipe(
-        input.prompt,
-        input.instantRecipeResultId
-      );
-    }
-  );
-  const createNewRecipeFromSuggestion = fromPromise(
-    async ({
-      input,
-    }: {
-      input: { suggestionsResultId: string; index: number };
-    }) =>
-      await serverActions.createNewRecipeFromSuggestion(
-        input.suggestionsResultId,
-        input.index
-      )
-  );
+  // const createNewInstantRecipe = fromPromise(
+  //   async ({
+  //     input,
+  //   }: {
+  //     input: { instantRecipeResultId: string; prompt: string };
+  //   }) => {
+  //     return await serverActions.createNewInstantRecipe(
+  //       input.prompt,
+  //       input.instantRecipeResultId
+  //     );
+  //   }
+  // );
+  // const createNewRecipeFromSuggestion = fromPromise(
+  //   async ({
+  //     input,
+  //   }: {
+  //     input: { suggestionsResultId: string; index: number };
+  //   }) =>
+  //     await serverActions.createNewRecipeFromSuggestion(
+  //       input.suggestionsResultId,
+  //       input.index
+  //     )
+  // );
 
   const getSuggestionsEventSource = (input: SuggestionsInput) => {
     const params = new URLSearchParams();
@@ -319,8 +312,27 @@ export const createCraftMachine = ({
       instantRecipeMetadataGenerator,
       suggestionsGenerator,
       remixSuggestionsGenerator,
-      createNewInstantRecipe,
-      createNewRecipeFromSuggestion,
+      // createNewInstantRecipe,
+      // createNewRecipeFromSuggestion,
+      waitForNewRecipeSlug: fromPromise(
+        () =>
+          new Promise((resolve) => {
+            const initialNumSlugs =
+              session$.get().context.createdRecipeSlugs.length;
+            // todo: timeout?
+            const unsub = session$.listen((state) => {
+              console.log(state);
+              if (
+                initialNumSlugs !==
+                state.context.createdRecipeSlugs.length
+              ) {
+                resolve(null);
+                unsub();
+              }
+            });
+            return;
+          })
+      ),
     },
     guards: {
       hasDirtyInput: ({ context }) => {
@@ -378,106 +390,28 @@ export const createCraftMachine = ({
         },
         Creating: {
           initial: "False",
-          on: {
-            INSTANT_RECIPE: {
-              target: ".InstantRecipe",
-              guard: ({ context }) => !!context.instantRecipeMetadata,
-              actions: assign({
-                selection: ({ context }) => {
-                  const metadata = context.instantRecipeMetadata;
-                  assert(metadata?.name, "expected name");
-                  assert(metadata?.description, "expected description");
-                  return {
-                    name: metadata.name,
-                    description: metadata.description,
-                  };
-                },
-              }),
-            },
-            SELECT_RESULT: {
-              target: ".SuggestionRecipe",
-              guard: ({ event, context }) => {
-                {
-                  return !!context.suggestions?.[event.index];
-                }
-              },
-              actions: assign({
-                currentItemIndex: ({ event }) => event.index,
-                selection: ({ event, context }) => {
-                  const metadata = context.suggestions?.[event.index];
-                  assert(metadata?.name, "expected name");
-                  assert(metadata?.description, "expected description");
-                  return {
-                    name: metadata.name,
-                    description: metadata.description,
-                  };
-                },
-              }),
-            },
-            SET_INPUT: ".False",
-          },
           states: {
-            InstantRecipe: {
-              invoke: {
-                src: "createNewInstantRecipe",
-                onDone: {
-                  target: "Navigating",
-                  actions: [
-                    assign({
-                      currentRecipeUrl: ({ event }) => {
-                        assert(
-                          event.output.success,
-                          "expected to receive recipeUrl"
-                        );
-                        return event.output.data.recipeUrl;
-                      },
-                    }),
-                  ],
-                },
-                input: ({ context }) => {
-                  const { instantRecipeResultId, prompt } = context;
-                  assert(
-                    instantRecipeResultId,
-                    "expected instantRecipeResultId"
-                  );
-                  assert(prompt, "expected prompt");
-                  return { instantRecipeResultId, prompt };
-                },
+            False: {
+              on: {
+                SAVE: "InProgress",
               },
             },
-            SuggestionRecipe: {
+            InProgress: {
               invoke: {
-                src: "createNewRecipeFromSuggestion",
-                onDone: {
-                  target: "Navigating",
-                  actions: [
-                    assign({
-                      currentRecipeUrl: ({ event }) => {
-                        assert(
-                          event.output.success,
-                          "expected to receive recipeUrl"
-                        );
-                        return event.output.data.recipeUrl;
-                      },
-                    }),
-                  ],
-                },
-                input: ({ context }) => {
-                  const { suggestionsResultId, currentItemIndex } = context;
-                  assert(suggestionsResultId, "expected suggestionResultId");
-                  assert(
-                    typeof currentItemIndex !== "undefined",
-                    "expected currentItemIndex"
-                  );
-                  return { suggestionsResultId, index: currentItemIndex };
-                },
+                src: "waitForNewRecipeSlug",
+                onDone: "Navigating",
+              },
+              after: {
+                10000: "TimedOut",
               },
             },
             Navigating: {
               entry: ({ context }) => {
-                router.push(
-                  `${context.currentRecipeUrl}?prompt=${context.prompt}`
-                );
+                const { createdRecipeSlugs } = session$.get().context;
+                const slug = createdRecipeSlugs[createdRecipeSlugs.length - 1];
+                assert(slug, "expected slug when navigating to new recipe");
+
+                router.push(`/recipe/${slug}`);
               },
               after: {
                 10000: "TimedOut",
@@ -490,7 +424,6 @@ export const createCraftMachine = ({
               },
             },
             TimedOut: {},
-            False: {},
           },
         },
         Typing: {
