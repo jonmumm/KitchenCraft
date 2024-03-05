@@ -269,8 +269,6 @@ const TagsLabel = () => {
 // };
 
 export const NewRecipeResultsView = () => {
-  const items = new Array(6).fill(0);
-
   return (
     <>
       <Container className="gap-4 flex-1">

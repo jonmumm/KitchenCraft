@@ -43,7 +43,6 @@ export async function middleware(request: NextRequest) {
   // todo only do this if actually a guest?
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-guest-id", uniqueId);
-  console.log("xguestid", uniqueId);
 
   const res = NextResponse.next({
     request: {

@@ -71,7 +71,6 @@ export default async function Page(props: Props) {
   const [
     recipe,
     userId,
-    currentProfile,
     // mediaList,
     latestVersion,
     versions,
@@ -79,7 +78,6 @@ export default async function Page(props: Props) {
   ] = await Promise.all([
     getRecipe(slug),
     getCurrentUserId(),
-    getCurrentProfile(),
     // getSortedMediaForRecipe(slug),
     findLatestRecipeVersion(slug),
     getAllVersionsOfRecipeBySlug(db, slug),
@@ -491,75 +489,16 @@ export default async function Page(props: Props) {
                   />
                 </div>
               </Card>
-              <Card id="comments" className="mx-3">
-                <div className="flex flex-row gap-2 items-center justify-between py-4 px-5">
-                  <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                    Comments
-                  </h3>
-                  <MessageSquareIcon />
-                </div>
-                <Separator />
-                <div className="p-4">
-                  {currentProfile && (
-                    <div className="flex flex-col gap-2">
-                      <div className="flex flex-row items-center gap-3">
-                        <Avatar className="w-10 h-10">
-                          <RobotAvatarImage alt={currentProfile.profileSlug} />
-                        </Avatar>
-                        <div className="text-sm font-medium">
-                          @{currentProfile.profileSlug}
-                        </div>
-                      </div>
-
-                      <RecipeCommentsTexarea />
-                      <Button event={{ type: "SUBMIT" }} className="w-full">
-                        Post Comment
-                      </Button>
-                    </div>
-                    // <div className="flex items-start space-x-4">
-                    //   <Avatar className="w-10 h-10">
-                    //     <RobotAvatarImage alt={currentProfile.profileSlug} />
-                    //   </Avatar>
-                    //   <div className="flex-1 grid gap-1">
-                    //     <div className="flex items-center justify-between">
-                    //       <div className="text-sm font-medium">
-                    //         @{currentProfile.profileSlug}
-                    //       </div>
-                    //       {/* <div className="text-xs text-gray-500 dark:text-gray-400">
-                    //       5 minutes ago
-                    //     </div> */}
-                    //     </div>
-                    //     <div className="flex flex-col gap-1">
-                    //       <Textarea
-                    //         className="w-full h-20 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
-                    //         placeholder="Write a comment..."
-                    //       />
-                    //       <Button className="w-full">Post Comment</Button>
-                    //     </div>
-                    //   </div>
-                    // </div>
-                  )}
-                  {/* <RecipeCommentsEmpty>
-                      <p className="text-center text-sm text-muted-foreground m-4">
-                        No comments yet.
-                      </p>
-                    </RecipeCommentsEmpty> */}
-                  <RecipeCommentsContent>
-                    <div className="mt-4 space-y-4">
-                      <RecipeCommentsItems />
-                    </div>
-                  </RecipeCommentsContent>
-                </div>
-              </Card>
+              {/* <CommentsCard /> */}
               <Card id="history" className="mx-3">
                 <History />
               </Card>
               {/* <Card id="assistant" className="mx-3">
                   <AssistantContent />
               </Card> */}
-              <Card id="tips-and-tricks" className="mx-3">
+              {/* <Card id="tips-and-tricks" className="mx-3">
                 <TipsAndTricks />
-              </Card>
+              </Card> */}
               {/* <Card id="assistant" className="mx-3">
             <AssistantContent />
           </Card> */}
@@ -1042,3 +981,43 @@ function Instructions({ instructions }: { instructions: string[] }) {
     </>
   );
 }
+
+const CommentsCard = () => {
+  const currentProfile = getCurrentProfile();
+
+  return (
+    <Card id="comments" className="mx-3">
+      <div className="flex flex-row gap-2 items-center justify-between py-4 px-5">
+        <h3 className="uppercase text-xs font-bold text-accent-foreground">
+          Comments
+        </h3>
+        <MessageSquareIcon />
+      </div>
+      <Separator />
+      <div className="p-4">
+        {currentProfile && (
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-3">
+              <Avatar className="w-10 h-10">
+                <RobotAvatarImage alt={currentProfile.profileSlug} />
+              </Avatar>
+              <div className="text-sm font-medium">
+                @{currentProfile.profileSlug}
+              </div>
+            </div>
+
+            <RecipeCommentsTexarea />
+            <Button event={{ type: "SUBMIT" }} className="w-full">
+              Post Comment
+            </Button>
+          </div>
+        )}
+        <RecipeCommentsContent>
+          <div className="mt-4 space-y-4">
+            <RecipeCommentsItems />
+          </div>
+        </RecipeCommentsContent>
+      </div>
+    </Card>
+  );
+};
