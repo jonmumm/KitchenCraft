@@ -778,10 +778,11 @@ const Times = ({
 };
 
 function Ingredients({}) {
-  const MAX_NUM_LINES = 30;
   const NUM_LINE_PLACEHOLDERS = 5;
   const recipe = useCurrentRecipe();
-  const items = new Array(recipe?.ingredients?.length || MAX_NUM_LINES).fill(0);
+  const items = new Array(
+    Math.max(recipe?.ingredients?.length || 0, NUM_LINE_PLACEHOLDERS)
+  ).fill(0);
 
   const Item = ({ index }: { index: number }) => {
     const showPlaceholder = index < NUM_LINE_PLACEHOLDERS;
@@ -808,12 +809,11 @@ function Ingredients({}) {
 }
 
 function Instructions() {
-  const MAX_NUM_LINES = 30;
   const NUM_LINE_PLACEHOLDERS = 5;
   const recipe = useCurrentRecipe();
-  const items = new Array(recipe?.instructions?.length || MAX_NUM_LINES).fill(
-    0
-  );
+  const items = new Array(
+    Math.max(recipe?.instructions?.length || 0, NUM_LINE_PLACEHOLDERS)
+  ).fill(0);
 
   const Item = ({ index }: { index: number }) => {
     const showPlaceholder = index < NUM_LINE_PLACEHOLDERS;
