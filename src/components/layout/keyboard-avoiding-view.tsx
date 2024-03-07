@@ -26,7 +26,11 @@ const KeyboardAvoidingView: React.FC<KeyboardAvoidingViewProps> = ({
 
       // Hack to make it so bar doesnt stick out
       // todo handle this adjusgemnt elsewhere if keyboard is open
-      if (keyboardHeight && "standalone" in window.navigator) {
+      if (
+        keyboardHeight &&
+        "standalone" in window.navigator &&
+        window.navigator.standalone
+      ) {
         ref.current.style.marginBottom = "-30px";
       } else {
         ref.current.style.marginBottom = "0px";
