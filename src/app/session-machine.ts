@@ -110,6 +110,14 @@ export const sessionMachine = setup({
         //   return true;
       }
 
+      if (event.type === "REMOVE_TOKEN") {
+        const nextInput = buildSuggestionsInput({
+          prompt: event.token,
+          tokens: context.tokens.filter((token) => token !== event.token),
+        });
+        return !!nextInput.length;
+      }
+
       if (event.type === "NEW_RECIPE") {
         return !!event.prompt?.length || !!event.tokens?.length;
       }
@@ -267,31 +275,30 @@ export const sessionMachine = setup({
         Generators: {
           type: "parallel",
           on: {
-            REMOVE_TOKEN: {
-              target: [
-                ".Placeholder.Generating",
-                ".Tokens.Generating",
-                ".Recipes.Generating",
-              ],
-              actions: assign({
-                runningInput: ({ context, event }) =>
-                  buildSuggestionsInput({
-                    prompt: context.prompt,
-                    tokens: context.tokens.filter(
-                      (token) => token !== event.token
-                    ),
-                  }),
-              }),
-              guard: ({ context, event }) => {
-                const input = buildSuggestionsInput({
-                  prompt: context.prompt,
-                  tokens: context.tokens.filter(
-                    (token) => token !== event.token
-                  ),
-                });
-                return !!input.length;
+            REMOVE_TOKEN: [
+              {
+                target: [
+                  ".Placeholder.Generating",
+                  ".Tokens.Generating",
+                  ".Recipes.Generating",
+                ],
+                actions: assign({
+                  runningInput: ({ context, event }) =>
+                    buildSuggestionsInput({
+                      prompt: context.prompt,
+                      tokens: context.tokens.filter(
+                        (token) => token !== event.token
+                      ),
+                    }),
+                }),
+                guard: "shouldRunInput",
               },
-            },
+              {
+                actions: assign({
+                  runningInput: undefined,
+                }),
+              },
+            ],
             NEW_RECIPE: {
               target: [
                 ".Placeholder.Generating",

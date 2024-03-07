@@ -290,7 +290,7 @@ export const NewRecipeResultsView = () => {
             </CraftSaving>
             <CraftNotSaving>
               <div className="max-w-3xl p-2 w-full standalone:mb-10 mx-auto">
-                <div className="flex flex-row gap-2 items-center w-full bg-slate-500 rounded-md p-2 shadow-xl">
+                <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 rounded-md p-2 shadow-xl">
                   <BackButton />
                   <ClearButton />
                   <CraftButton />
@@ -1848,8 +1848,8 @@ const BackButton = () => {
       <Button
         event={{ type: "BACK" }}
         size="lg"
-        className="pointer-events-auto px-3 py-2 cursor-pointer shadow-xl"
-        variant="secondary"
+        className="pointer-events-auto px-3 py-2 cursor-pointer"
+        variant="outline"
       >
         <ChevronLeftIcon size={14} />
          Back
@@ -1864,8 +1864,8 @@ const ClearButton = () => {
       <Button
         event={{ type: "CLEAR", all: true }}
         size="lg"
-        className="pointer-events-auto px-3 py-2 cursor-pointer shadow-xl"
-        variant="secondary"
+        className="pointer-events-auto px-3 py-2 cursor-pointer"
+        variant="outline"
       >
          Clear
         <XIcon size={14} />
