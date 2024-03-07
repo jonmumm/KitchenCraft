@@ -22,6 +22,7 @@ export const getAllVersionsOfRecipeBySlug = async (
       id: RecipesTable.id,
       name: RecipesTable.name,
       prompt: RecipesTable.prompt,
+      tokens: RecipesTable.tokens,
       // Select other fields if necessary
     })
     .from(RecipesTable)

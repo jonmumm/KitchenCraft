@@ -245,6 +245,9 @@ export const createCraftMachine = ({
       assignPrompt: assign({
         prompt: (_, params: { prompt: string | undefined }) => params.prompt,
       }),
+      assignTokens: assign({
+        tokens: (_, params: { tokens: string[] }) => params.tokens,
+      }),
       replaceQueryParameters: (
         { context },
         params: { paramSet: Record<string, string | undefined> }
@@ -322,10 +325,7 @@ export const createCraftMachine = ({
             // todo: timeout?
             const unsub = session$.listen((state) => {
               console.log(state);
-              if (
-                initialNumSlugs !==
-                state.context.createdRecipeSlugs.length
-              ) {
+              if (initialNumSlugs !== state.context.createdRecipeSlugs.length) {
                 resolve(null);
                 unsub();
               }
@@ -817,6 +817,12 @@ export const createCraftMachine = ({
                       type: "assignPrompt",
                       params({ event }) {
                         return { prompt: event.prompt };
+                      },
+                    },
+                    {
+                      type: "assignTokens",
+                      params({ event }) {
+                        return { tokens: event.tokens || [] };
                       },
                     },
                     {

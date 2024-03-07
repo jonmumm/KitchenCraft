@@ -127,7 +127,7 @@ export default async function Page(props: Props) {
                   Fri Dec 29 @ 10:32am
                 </span>
                 <div className="flex flex-row max-sm:justify-start justify-end">
-                  <Badge variant="secondary">Version {index}</Badge>
+                  <Badge variant="outline">Version {index}</Badge>
                 </div>
               </div>
               <div className="timeline-middle">
@@ -150,9 +150,26 @@ export default async function Page(props: Props) {
                     {version.name}
                   </h3>
                 </div>
-                <span className="text-muted-foreground text-sm italic">
-                  &quot;{version.prompt}.&quot;
-                </span>
+                {version.prompt.length ? (
+                  <span className="text-muted-foreground text-sm italic">
+                    &quot;{version.prompt}.&quot;
+                  </span>
+                ) : (
+                  <></>
+                )}
+                {version.tokens.length ? (
+                  <div className="flex flex-row flex-wrap py-2 gap-2">
+                    {version.tokens.map((token) => {
+                      return (
+                        <Badge variant="secondary" key={token}>
+                          {token}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <></>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
@@ -160,6 +177,7 @@ export default async function Page(props: Props) {
                   event={{
                     type: "NEW_RECIPE",
                     prompt: version.prompt,
+                    tokens: version.tokens,
                   }}
                 >
                   <AxeIcon size={14} />

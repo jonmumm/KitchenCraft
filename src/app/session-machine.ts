@@ -109,6 +109,11 @@ export const sessionMachine = setup({
         // } else if (event.type === "SET_INPUT") {
         //   return true;
       }
+
+      if (event.type === "NEW_RECIPE") {
+        return !!event.prompt?.length || !!event.tokens?.length;
+      }
+
       assert(false, "unhandled event type: " + event.type);
     },
   },
@@ -215,6 +220,15 @@ export const sessionMachine = setup({
                 ],
               },
             ],
+            NEW_RECIPE: {
+              actions: [
+                "resetSuggestions",
+                assign({
+                  tokens: ({ event }) => event.tokens || [],
+                  prompt: ({ event }) => event.prompt || "",
+                }),
+              ],
+            },
             REMOVE_TOKEN: {
               actions: [
                 "resetSuggestions",
@@ -277,6 +291,24 @@ export const sessionMachine = setup({
                 });
                 return !!input.length;
               },
+            },
+            NEW_RECIPE: {
+              target: [
+                ".Placeholder.Generating",
+                ".Tokens.Generating",
+                ".Recipes.Generating",
+              ],
+              actions: [
+                "resetSuggestions",
+                assign({
+                  runningInput: ({ context, event }) =>
+                    buildSuggestionsInput({
+                      prompt: context.prompt,
+                      tokens: context.tokens,
+                    }),
+                }),
+              ],
+              guard: "shouldRunInput",
             },
             ADD_TOKEN: {
               target: [
@@ -678,6 +710,7 @@ export const sessionMachine = setup({
                     const slug = getSlug({ id, name: recipe.name });
                     assert(recipe.description, "expected description");
 
+                    console.log({ input });
                     const finalRecipe = {
                       id: randomUUID(),
                       slug,

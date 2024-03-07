@@ -441,6 +441,7 @@ const CloseConfiguratorEventSchema = z.object({
 const NewRecipeEventSchema = z.object({
   type: z.literal("NEW_RECIPE"),
   prompt: z.string().optional(),
+  tokens: z.array(z.string()).optional(),
 });
 
 const ModifyEventSchema = z.object({
