@@ -51,7 +51,7 @@ export const Body = ({
 
   return (
     <body
-      className={`${inter.className} overflow-x-hidden pb-16 ${
+      className={`${inter.className} overflow-x-hidden ${
         craftIsOpen ? `crafting` : ``
       }
       ${promptIsDirty ? `prompt-dirty` : ``}

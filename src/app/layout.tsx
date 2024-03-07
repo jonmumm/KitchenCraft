@@ -155,7 +155,7 @@ export default async function RootLayout({
                     {craft}
                   </div>
                 </div>
-                <div className="sticky mt-4 bottom-0 z-20">{footer}</div>
+                <div className="sticky bottom-0 z-20">{footer}</div>
                 {canInstallPWA && <SafariInstallPrompt />}
               </ThemeProvider>
               <Toaster />

@@ -435,7 +435,8 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       className={`w-full top-0 ${position} transition-all`}
       style={{
         transform: `scaleX(${scale})`,
-        minHeight: "200px",
+        maxHeight: diffToCurrent !== 0 ? "200px" : "none",
+        overflow: "hidden",
         zIndex,
         marginTop: `${topOffset}px`,
       }}
