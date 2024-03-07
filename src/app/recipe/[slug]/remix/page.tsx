@@ -8,7 +8,7 @@ import { RenderFirstValue } from "@/components/util/render-first-value";
 import { RecipesTable, db } from "@/db";
 import { getCurrentVersionId, getRecipe } from "@/db/queries";
 import { NewRecipe, Recipe } from "@/db/types";
-import { getUniqueId, getSession } from "@/lib/auth/session";
+import { getUniqueId } from "@/lib/auth/session";
 import { getSlug } from "@/lib/slug";
 import { assert } from "@/lib/utils";
 import {
@@ -164,6 +164,7 @@ export default async function Page(props: Props) {
             tags: output.recipe.tags,
             ingredients: output.recipe.ingredients,
             prompt,
+            tokens: [],
             instructions: output.recipe.instructions,
             cookTime: output.recipe.cookTime,
             activeTime: output.recipe.activeTime,
@@ -360,6 +361,7 @@ const saveRecipe = async (
         : [],
       cookTime: newRecipe.cookTime,
       activeTime: newRecipe.activeTime,
+      tokens: [],
       totalTime: newRecipe.totalTime,
       prompt,
       createdBy,
@@ -392,6 +394,7 @@ const saveAsNewRecipe = async (
     name: newRecipe.name,
     versionId: 0,
     yield: newRecipe.yield,
+    tokens: [],
     tags: Array.isArray(newRecipe.tags)
       ? newRecipe.tags.map((item) => (typeof item == "string" ? item : ""))
       : [],
