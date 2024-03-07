@@ -416,7 +416,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   }
 
   const scale = (100 - diffToCurrent * 5) / 100;
-  const topOffset = -diffToCurrent * 2;
+  const topOffset = -diffToCurrent * 4;
   // const topOffset = diffToCurrent
   //   ? -4 * (1 + (1 - scale)) - diffToCurrent * 28
   //   : 0;
@@ -437,7 +437,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         transform: `scaleX(${scale})`,
         minHeight: "200px",
         zIndex,
-        marginTop: `${topOffset}%`,
+        marginTop: `${topOffset}px`,
       }}
     >
       <div className="p-4 flex flex-col gap-2">
