@@ -148,7 +148,7 @@ export default async function RootLayout({
                 enableSystem
                 disableTransitionOnChange
               >
-                <div className="h-100dvh flex flex-col">
+                <div className="h-screen flex flex-col">
                   <div>{header}</div>
                   <div className="crafting:hidden">{children}</div>
                   <div className="flex-1 hidden crafting:flex flex-col">
