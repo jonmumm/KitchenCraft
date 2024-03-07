@@ -289,10 +289,12 @@ export const NewRecipeResultsView = () => {
               </div>
             </CraftSaving>
             <CraftNotSaving>
-              <div className="flex flex-row gap-2 items-center px-2 max-w-3xl w-full mx-auto py-2 bg-slate-500 rounded-t-md md:rounded-md md:mb-2 mt-2 standalone:pb-10">
-                <BackButton />
-                <ClearButton />
-                <CraftButton />
+              <div className="max-w-3xl p-2 w-full standalone:mb-10">
+                <div className="flex flex-row gap-2 items-center w-full bg-slate-500 rounded-md p-2 shadow-xl">
+                  <BackButton />
+                  <ClearButton />
+                  <CraftButton />
+                </div>
               </div>
             </CraftNotSaving>
           </CraftNotEmpty>
