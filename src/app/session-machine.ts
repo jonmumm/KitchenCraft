@@ -275,6 +275,7 @@ export const sessionMachine = setup({
         Generators: {
           type: "parallel",
           on: {
+            CLEAR: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle", ".CurrentRecipe.Idle"],
             REMOVE_TOKEN: [
               {
                 target: [
@@ -294,6 +295,7 @@ export const sessionMachine = setup({
                 guard: "shouldRunInput",
               },
               {
+                target: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle", ".CurrentRecipe.Idle"],
                 actions: assign({
                   runningInput: undefined,
                 }),
