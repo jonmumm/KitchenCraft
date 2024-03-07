@@ -289,7 +289,7 @@ export const NewRecipeResultsView = () => {
               </div>
             </CraftSaving>
             <CraftNotSaving>
-              <div className="max-w-3xl p-2 w-full standalone:mb-10">
+              <div className="max-w-3xl p-2 w-full standalone:mb-10 mx-auto">
                 <div className="flex flex-row gap-2 items-center w-full bg-slate-500 rounded-md p-2 shadow-xl">
                   <BackButton />
                   <ClearButton />
