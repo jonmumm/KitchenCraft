@@ -656,6 +656,7 @@ export const sessionMachine = setup({
                   return {
                     recipe,
                     prompt: context.prompt,
+                    tokens: context.tokens,
                     createdBy: context.createdBy,
                   };
                 },
@@ -666,6 +667,7 @@ export const sessionMachine = setup({
                     input: {
                       recipe: PartialRecipe;
                       prompt: string;
+                      tokens: string[];
                       createdBy: string;
                     };
                   }) => {
@@ -687,6 +689,7 @@ export const sessionMachine = setup({
                       ingredients: recipe.ingredients!,
                       instructions: recipe.instructions!,
                       cookTime: recipe.cookTime!,
+                      tokens: input.tokens,
                       activeTime: recipe.activeTime!,
                       totalTime: recipe.totalTime!,
                       prompt: input.prompt,
