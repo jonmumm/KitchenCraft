@@ -8,6 +8,7 @@ import { getMostUsedTagsLastWeek } from "@/db/queries";
 import {
   CarrotIcon,
   ChevronLeft,
+  ChevronLeftIcon,
   ChevronRightIcon,
   Loader2Icon,
   TagIcon,
@@ -288,14 +289,15 @@ export const NewRecipeResultsView = () => {
               </div>
             </CraftSaving>
             <CraftNotSaving>
-              <div className="flex flex-row gap-2 items-center px-2 max-w-3xl w-full mx-auto">
+              <div className="flex flex-row gap-2 items-center px-2 max-w-3xl w-full mx-auto py-2 bg-slate-500 rounded-t-md md:rounded-md">
+                <BackButton />
                 <ClearButton />
                 <CraftButton />
               </div>
             </CraftNotSaving>
           </CraftNotEmpty>
           <CraftEmpty>
-            <BackButton />
+            <BackBadge />
           </CraftEmpty>
         </ClientOnly>
       </Footer>
@@ -1802,7 +1804,7 @@ const SubmitButton = () => {
 
 const CraftButton = () => {
   return (
-    <div className="flex flex-row justify-center pointer-events-none py-4 w-full">
+    <div className="flex flex-row justify-center pointer-events-none w-full">
       <CraftNotReadyToSave>
         <Button size="lg" className="w-full pointer-events-auto" disabled>
           Generating
@@ -1823,9 +1825,9 @@ const CraftButton = () => {
   );
 };
 
-const BackButton = () => {
+const BackBadge = () => {
   return (
-    <div className="flex flex-row justify-center pointer-events-none py-4">
+    <div className="flex flex-row justify-center pointer-events-none py-2">
       <Badge
         event={{ type: "BACK" }}
         className="pointer-events-auto px-3 py-2 cursor-pointer"
@@ -1838,9 +1840,25 @@ const BackButton = () => {
   );
 };
 
+const BackButton = () => {
+  return (
+    <div className="flex flex-row justify-center pointer-events-none">
+      <Button
+        event={{ type: "BACK" }}
+        size="lg"
+        className="pointer-events-auto px-3 py-2 cursor-pointer shadow-xl"
+        variant="secondary"
+      >
+        <ChevronLeftIcon size={14} />
+         Back
+      </Button>
+    </div>
+  );
+};
+
 const ClearButton = () => {
   return (
-    <div className="flex flex-row justify-center pointer-events-none py-4">
+    <div className="flex flex-row justify-center pointer-events-none">
       <Button
         event={{ type: "CLEAR", all: true }}
         size="lg"

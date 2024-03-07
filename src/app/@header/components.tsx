@@ -21,17 +21,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  AddedTokens,
-  CraftPromptNotEmpty,
-  HasTokens,
-} from "../@craft/components.client";
-import {
-  BackButton,
-  CraftAutoComplete,
-  CraftInput,
-  KeyboardToggle,
-} from "./components.client";
+import { AddedTokens, HasTokens } from "../@craft/components.client";
+import { BackButton, CraftInput, KeyboardToggle } from "./components.client";
 
 export async function Header({
   className,
@@ -75,7 +66,7 @@ export async function Header({
               </div>
             )}
           </div>
-          <div className="flex flex-col gap-4 w-full crafting:max-w-3xl crafting:mx-auto">
+          <div className="flex flex-row gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
             {/* <CraftHeading /> */}
             <CraftCTA />
           </div>
@@ -131,18 +122,20 @@ const CraftCTA = () => {
   // hide the empty state on click
 
   return (
-    <div className="w-full relative shadow-xl rounded-3xl flex flex-col border-2 border-muted py-2 focus-within:border-blue-500 gap-2">
-      {/* <CraftPromptNotEmpty>
+    <>
+      <div className="w-full relative shadow-xl rounded-3xl flex flex-col border-2 border-muted py-2 focus-within:border-blue-500 gap-2">
+        {/* <CraftPromptNotEmpty>
         <CraftAutoComplete />
       </CraftPromptNotEmpty> */}
-      <HasTokens>
-        <AddedTokens />
-      </HasTokens>
-      <CraftInput
-        // autoFocus={autoFocus}
-        commandBadge={getIsMacDesktop()}
-      />
-    </div>
+        <HasTokens>
+          <AddedTokens />
+        </HasTokens>
+        <CraftInput
+          // autoFocus={autoFocus}
+          commandBadge={getIsMacDesktop()}
+        />
+      </div>
+    </>
   );
 };
 

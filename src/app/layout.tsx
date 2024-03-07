@@ -78,7 +78,6 @@ export default async function RootLayout({
   const currentEmail = await getCurrentEmail();
   const uniqueIdType = await getUniqueIdType();
   const appInstallToken = await createAppInstallToken(uniqueId, currentEmail);
-  console.log({ uniqueId, uniqueIdType, appInstallToken });
 
   let manifestHref = `/user-app-manifest.json`;
   if (appInstallToken) {
