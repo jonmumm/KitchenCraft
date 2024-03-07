@@ -100,6 +100,7 @@ const config: Config = {
     require("daisyui"),
     require("tailwindcss-animate"),
     require("@tailwindcss/typography"),
+    require("tailwindcss-displaymodes"),
   ],
 };
 export default config;

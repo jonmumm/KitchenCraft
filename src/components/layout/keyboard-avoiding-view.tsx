@@ -23,7 +23,15 @@ const KeyboardAvoidingView: React.FC<KeyboardAvoidingViewProps> = ({
       ref.current.style.transform = shiftedForKeyboard
         ? `translateY(-${keyboardHeight}px)`
         : `translateY(0px)`;
-      const node = ref.current.parentNode as HTMLDivElement;
+
+      // Hack to make it so bar doesnt stick out
+      // todo handle this adjusgemnt elsewhere if keyboard is open
+      if (keyboardHeight && "standalone" in window.navigator) {
+        ref.current.style.marginBottom = "-30px";
+      } else {
+        ref.current.style.marginBottom = "0px";
+      }
+
       lastKeyboardHeight.current = keyboardHeight;
 
       animationFrameRef.current = requestAnimationFrame(updateViewportHeight);
