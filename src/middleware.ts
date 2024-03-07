@@ -6,7 +6,6 @@ import {
   setGuestTokenCookieHeader,
 } from "./lib/browser-session";
 import { CallerSchema } from "./schema";
-import { assert } from "./lib/utils";
 
 export async function middleware(request: NextRequest) {
   const appInstallToken = request.nextUrl.searchParams.get("token");
@@ -31,8 +30,7 @@ export async function middleware(request: NextRequest) {
     const guestToken = await getGuestTokenFromCookies();
     let caller = guestToken?.jti;
 
-    if (!caller) {
-      console.log({ caller });
+    if (caller) {
       const callerParse = CallerSchema.safeParse(caller);
       if (callerParse.success && callerParse.data.uniqueIdType === "guest") {
         uniqueId = callerParse.data.uniqueId;
