@@ -6,6 +6,7 @@ import {
   setGuestTokenCookieHeader,
 } from "./lib/browser-session";
 import { CallerSchema } from "./schema";
+import { assert } from "./lib/utils";
 
 export async function middleware(request: NextRequest) {
   const appInstallToken = request.nextUrl.searchParams.get("token");
@@ -31,12 +32,18 @@ export async function middleware(request: NextRequest) {
     let caller = guestToken?.jti;
 
     if (!caller) {
+      console.log({ caller });
+      const callerParse = CallerSchema.safeParse(caller);
+      if (callerParse.success && callerParse.data.uniqueIdType === "guest") {
+        uniqueId = callerParse.data.uniqueId;
+      }
+    }
+
+    if (!uniqueId) {
       const id = uuidv4();
       const callerToken = await createCallerToken(id, "guest");
       newGuestToken = callerToken;
       uniqueId = id;
-    } else {
-      uniqueId = CallerSchema.parse(caller).uniqueId;
     }
   }
 
