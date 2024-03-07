@@ -1829,7 +1829,7 @@ const CraftButton = () => {
 
 const BackBadge = () => {
   return (
-    <div className="flex flex-row justify-center pointer-events-none py-2">
+    <div className="flex flex-row justify-center pointer-events-none py-2 standalone:mb-10 mb-2">
       <Badge
         event={{ type: "BACK" }}
         className="pointer-events-auto px-3 py-2 cursor-pointer"
