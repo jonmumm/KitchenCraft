@@ -1,4 +1,4 @@
-import { PublicEnvironmentSchema, SecretsEnvironmentSchema } from "./schema";
+import { SecretsEnvironmentSchema } from "./schema";
 
 export const privateEnv = SecretsEnvironmentSchema.parse({
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,

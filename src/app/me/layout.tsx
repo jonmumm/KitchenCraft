@@ -12,7 +12,7 @@ import {
 } from "@/components/input/dropdown-menu";
 import { db } from "@/db";
 import { getTagCountsForUserCreatedRecipes } from "@/db/queries";
-import { getDistinctId } from "@/lib/auth/session";
+import { getUniqueId } from "@/lib/auth/session";
 import { TagsCarousel } from "@/modules/tags-carousel";
 import {
   ArrowBigUpDashIcon,
@@ -24,7 +24,7 @@ import {
 import { ReactNode } from "react";
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  const distinctId = await getDistinctId();
+  const distinctId = await getUniqueId();
   return (
     <>
       <TagsCarousel

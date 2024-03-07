@@ -14,6 +14,7 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
+import { useStore } from "@nanostores/react";
 import {
   ArrowLeftIcon,
   ChevronRight,
@@ -32,6 +33,7 @@ import {
   useState,
 } from "react";
 import { CraftContext } from "../context";
+import { SessionStoreContext } from "../session-store.context";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -84,6 +86,26 @@ export const BackButton = (props: {
     </form>
   ) : (
     <Content />
+  );
+};
+
+const CraftAutoCompleteItem = ({ index }: { index: number }) => {
+  const session$ = useContext(SessionStoreContext);
+  const session = useStore(session$);
+  return <div>{session.context.suggestedText[index]}</div>;
+};
+
+export const CraftAutoComplete = () => {
+  const session$ = useContext(SessionStoreContext);
+  const session = useStore(session$);
+  const items = new Array(6).fill(0);
+
+  return (
+    <div className="mt-2 px-4 flex flex-col gap-2 flex-wrap">
+      {items.map((_, index) => {
+        return <CraftAutoCompleteItem key={index} index={index} />;
+      })}
+    </div>
   );
 };
 
@@ -151,14 +173,14 @@ export const CraftInput = ({
         onKeyDown={handleKeyDown}
         placeholderComponent={
           <div className="flex flex-row w-full h-full relative justify-end items-center">
-            <div className="flex flex-col flex-1 items-start">
+            {/* <div className="flex flex-col flex-1 items-start">
               <span className="font-semibold text-sm">What to make?</span>
               <div className="flex flex-row gap-1 text-muted-foreground text-xs">
                 <span>ingredients</span>
                 <span>•</span>
                 <span>tags</span>
               </div>
-            </div>
+            </div> */}
             {commandBadge && (
               <Badge variant="secondary" className="mr-4">
                 <CommandIcon size={14} />

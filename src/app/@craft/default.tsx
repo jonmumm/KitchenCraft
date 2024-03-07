@@ -1,9 +1,4 @@
 import { NewRecipeResultsView } from "./components";
-import {
-  CraftInputting,
-  CraftingPlacholder,
-  RecipeCreating,
-} from "./components.client";
 
 export default function Page({
   searchParams,
@@ -12,13 +7,20 @@ export default function Page({
 }) {
   return (
     <>
-      <CraftInputting>
-        <NewRecipeResultsView />
-      </CraftInputting>
+      {/* <CraftInputting> */}
+      <NewRecipeResultsView />
+      {/* </CraftInputting>
 
       <RecipeCreating>
-        <CraftingPlacholder />
+        <div className="flex flex-col flex-1 justify-item items-center">
+          Crafting ...
+        </div>
       </RecipeCreating>
+      <RecipeNavigating>
+        <div className="flex flex-col flex-1 justify-item items-center">
+          Navigating ...
+        </div>
+      </RecipeNavigating> */}
     </>
   );
 

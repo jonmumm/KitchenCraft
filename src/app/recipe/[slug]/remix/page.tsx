@@ -8,7 +8,7 @@ import { RenderFirstValue } from "@/components/util/render-first-value";
 import { RecipesTable, db } from "@/db";
 import { getCurrentVersionId, getRecipe } from "@/db/queries";
 import { NewRecipe, Recipe } from "@/db/types";
-import { getDistinctId, getSession } from "@/lib/auth/session";
+import { getUniqueId, getSession } from "@/lib/auth/session";
 import { getSlug } from "@/lib/slug";
 import { assert } from "@/lib/utils";
 import {
@@ -53,7 +53,7 @@ type Props = {
  * @returns
  */
 export default async function Page(props: Props) {
-  const distinctId = await getDistinctId();
+  const distinctId = await getUniqueId();
   const baseSlug = props.params.slug;
 
   let prompt: string;

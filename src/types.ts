@@ -17,6 +17,7 @@ import {
   AmazonProductsPredictionInputSchema,
   AppEventSchema,
   AssistantMessageSchema,
+  CallerIdTypeSchema,
   CookingTimeSchema,
   CookwareSchema,
   CreateMessageInputSchema,
@@ -91,6 +92,9 @@ import {
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 
+export type CallerType = z.infer<typeof CallerIdTypeSchema>;
+export type Caller = { id: string; type: CallerType };
+export type WithCaller<T> = T & { caller: Caller };
 export type Ingredient = (typeof ingredients)[0];
 
 export type TempRecipe = z.infer<typeof TempRecipeSchema>;

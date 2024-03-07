@@ -57,10 +57,11 @@ function Badge({
       return props.onClick;
     }
   }, [event, props, send]);
+  const cursor = event ? "cursor-pointer" : "";
 
   return (
     <div
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(badgeVariants({ variant }), className, cursor)}
       {...props}
       onClick={handleClick}
     />

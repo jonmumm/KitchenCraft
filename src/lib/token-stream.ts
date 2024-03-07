@@ -25,14 +25,14 @@ export abstract class TokenStream<T> {
   public async getStream(input?: T): Promise<AsyncIterable<string>> {
     const tokens = this.getDefaultTokens();
 
-    const status = await this.getStatus();
-    if (status === "running") {
-      // todo if an input is provided, assert here that
-      // it matches the input that in the stream cache
-      return this.getRunningStream();
-    } else if (status === "done") {
-      return this.getCompletedStream();
-    } else if (input) {
+    // const status = await this.getStatus();
+    // if (status === "running") {
+    // todo if an input is provided, assert here that
+    // it matches the input that in the stream cache
+    // return this.getRunningStream();
+    // } else if (status === "done") {
+    // return this.getCompletedStream();
+    if (input) {
       return this.getOpenAIStream(input, tokens);
     } else {
       throw new Error("no input provided and stream wasnt in cache");
@@ -171,7 +171,7 @@ export abstract class TokenStream<T> {
     const chat = new ChatOpenAI({
       temperature: this.getTemperature(),
       maxTokens: tokens,
-      modelName: "gpt-3.5-turbo-1106",
+      modelName: "gpt-3.5-turbo-0125",
     });
     const userMessage = await this.getUserMessage(input);
     const systemMessage = await this.getSystemMessage(input);

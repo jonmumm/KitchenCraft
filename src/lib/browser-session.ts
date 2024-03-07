@@ -1,4 +1,6 @@
 import { privateEnv } from "@/env.secrets";
+import { CallerSchema } from "@/schema";
+import { CallerType } from "@/types";
 import { serialize } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies, headers } from "next/headers";
@@ -11,27 +13,32 @@ interface UserJwtPayload {
 }
 
 // todo find something better that works on edge functions
-function uuidv4() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    var r = (Math.random() * 16) | 0,
-      v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
 
 export class AuthError extends Error {}
 
 export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
 
-export const createGuestToken = async (_id?: string) => {
-  const id = _id || uuidv4();
+export const createCallerToken = async (uniqueId: string, type: CallerType) => {
+  const callerId = `${type}-${uniqueId}`;
+  CallerSchema.parse(callerId);
   const token = await new SignJWT({})
     .setProtectedHeader({ alg: "HS256" })
-    .setJti(id)
+    .setJti(callerId)
     .setIssuedAt()
     .setExpirationTime("30d")
     .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
-  return { token, id };
+  return token;
+};
+
+export const parseCallerIdToken = async (token: string) => {
+  console.log("22", token);
+  const verified = await jwtVerify(
+    token,
+    new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
+  );
+  console.log("111", verified.payload.jti, token);
+  assert(verified.payload.jti, "expected JTI on appInstallToken");
+  return CallerSchema.parse(verified.payload.jti);
 };
 
 export const createAppInstallToken = async (
@@ -82,7 +89,7 @@ export const verifyToken = async (token: string) => {
   return verified.payload as UserJwtPayload;
 };
 
-export const getGuestToken = async () => {
+export const getGuestTokenFromCookies = async () => {
   const cookieStore = cookies();
   const guestToken = cookieStore.get(GUEST_TOKEN_COOKIE_KEY)?.value;
 
@@ -106,6 +113,6 @@ export const getGuestToken = async () => {
 export const getGuestId = async () => {
   const headerList = headers();
   const guestId = headerList.get("x-guest-id");
-  assert(guestId, "expected guestId");
+  assert(guestId, "expected x-guest-id in header");
   return guestId;
 };

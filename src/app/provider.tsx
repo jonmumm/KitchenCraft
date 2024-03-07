@@ -16,9 +16,10 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { CraftContext } from "./context";
 import { createCraftMachine } from "./machine";
+import { SessionStoreContext } from "./session-store.context";
 
 // export const ApplicationContext = createContext()
 
@@ -31,7 +32,6 @@ import { createCraftMachine } from "./machine";
 export function ApplicationProvider(props: {
   children: ReactNode;
   session: Awaited<ReturnType<typeof getSession>>;
-  actions: Parameters<typeof createCraftMachine>[0]["serverActions"];
   appSessionId: string | undefined;
 }) {
   const [store] = useState(
@@ -39,6 +39,14 @@ export function ApplicationProvider(props: {
       appSessionId: props.appSessionId,
     })
   ); // todo define global types here
+  const session$ = useContext(SessionStoreContext);
+
+  useEffect(() => {
+    // @ts-expect-error
+    window.app$ = store;
+    // @ts-expect-error
+    window.session$ = session$;
+  }, [store, session$]);
   // const [permission, setPermission] = useState(() => {
   //   Notification.requestPermission();
 
@@ -49,13 +57,15 @@ export function ApplicationProvider(props: {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const router = useRouter();
+    const send = useSend();
 
     const actor = useActor("craft", () =>
       createCraftMachine({
         searchParams: Object.fromEntries(searchParams.entries()),
         router,
-        serverActions: props.actions,
+        send,
         initialPath: pathname,
+        session$,
       })
     );
 

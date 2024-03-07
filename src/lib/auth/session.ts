@@ -20,13 +20,21 @@ export const getCurrentUserId = withSpan(
   "getCurrentUserId"
 );
 
-export const getDistinctId = withSpan(
+export const getUniqueId = withSpan(
   cache(async () => {
     const userId = await getCurrentUserId();
     const guestId = await getGuestId();
     return userId || guestId;
   }),
-  "getDistinctId"
+  "getUniqueId"
+);
+
+export const getUniqueIdType = withSpan(
+  cache(async () => {
+    const userId = await getCurrentUserId();
+    return userId ? ("user" as const) : ("guest" as const);
+  }),
+  "getUniqueId"
 );
 
 export const getCurrentEmail = withSpan(

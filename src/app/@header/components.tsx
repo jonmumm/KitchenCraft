@@ -6,22 +6,22 @@ import {
   SheetTrigger,
 } from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
-import { MainMenu } from "@/modules/main-menu";
-import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
 import { cn } from "@/lib/utils";
+import { MainMenu } from "@/modules/main-menu";
+import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import {
   ChefHatIcon,
   ChevronRightIcon,
   GripVerticalIcon,
   Loader2Icon,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AddedTokens, HasTokens } from "../@craft/components.client";
 import { BackButton, CraftInput, KeyboardToggle } from "./components.client";
 
 export async function Header({
@@ -46,7 +46,7 @@ export async function Header({
 
   return (
     <>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto w-full">
         <div
           className={cn(
             `w-full flex justify-between p-4 gap-4 hidden-print items-center group`,
@@ -55,10 +55,7 @@ export async function Header({
         >
           <div className="crafting:hidden">
             {backUrl ? (
-              <BackButton
-                handleBack={back}
-                hasHistory={hasHistory}
-              />
+              <BackButton handleBack={back} hasHistory={hasHistory} />
             ) : (
               <div className="mt-3 mr-2 w-20">
                 <NavigationLink href="/">
@@ -69,7 +66,7 @@ export async function Header({
               </div>
             )}
           </div>
-          <div className="flex flex-col gap-4 w-full crafting:max-w-3xl crafting:mx-auto">
+          <div className="flex flex-row gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
             {/* <CraftHeading /> */}
             <CraftCTA />
           </div>
@@ -125,61 +122,21 @@ const CraftCTA = () => {
   // hide the empty state on click
 
   return (
-    <div className="w-full relative shadow-xl rounded-3xl flex flex-row border-2 border-muted py-2 focus-within:border-blue-500">
-      <CraftInput
-        // autoFocus={autoFocus}
-        commandBadge={getIsMacDesktop()}
-      />
-    </div>
+    <>
+      <div className="w-full relative shadow-xl rounded-3xl flex flex-col border-2 border-muted py-2 focus-within:border-blue-500 gap-2">
+        {/* <CraftPromptNotEmpty>
+        <CraftAutoComplete />
+      </CraftPromptNotEmpty> */}
+        <HasTokens>
+          <AddedTokens />
+        </HasTokens>
+        <CraftInput
+          // autoFocus={autoFocus}
+          commandBadge={getIsMacDesktop()}
+        />
+      </div>
+    </>
   );
-
-  /* <div className="flex flex-col flex-1 items-start whitespace-nowrap py-2 absolute left-10 top-1 cursor-text select-none">
-        <>
-          <span className="font-semibold text-md">What to make?</span>
-          <div className="flex flex-row gap-1 text-muted-foreground text-xs">
-            <span>ingredients</span>
-            <span>•</span>
-            <span>tags</span>
-          </div>
-        </>
-      </div> */
-  // return (
-  //   <Button
-  //     event={{ type: "NEW_RECIPE" }}
-  //     size="fit"
-  //     variant="ghost"
-  //     className="relative shadow-lg rounded-full flex flex-row py-2 px-6 gap-3 items-center justify-center border-solid border-2 border-muted cursor-text"
-  //   >
-  //     <ChevronRightIcon className="opacity-50 cursor-default" />
-  //     <div className="flex flex-col flex-1 items-start whitespace-nowrap">
-  //       {!prompt ? (
-  //         <>
-  //           <span className="font-semibold text-md">What to make?</span>
-  //           <div className="flex flex-row gap-1 text-muted-foreground text-xs">
-  //             <span>ingredients</span>
-  //             <span>•</span>
-  //             <span>tags</span>
-  //           </div>
-  //         </>
-  //       ) : (
-  //         <>{prompt}</>
-  //       )}
-  //     </div>
-  //     {getIsMacDesktop() && (
-  //       <Badge variant="secondary" className="mr-12">
-  //         <CommandIcon size={14} />
-  //         <span style={{ fontSize: "14px" }}>K</span>
-  //       </Badge>
-  //     )}
-  //     <Image
-  //       className="absolute right-0 h-full w-auto cursor-pointer"
-  //       alt="KitchenCraft App Icon"
-  //       width={512}
-  //       height={512}
-  //       src="/apple-touch-icon.png"
-  //     />
-  //   </Button>
-  // );
 };
 
 export async function HeaderLoading({

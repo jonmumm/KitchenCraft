@@ -9,6 +9,31 @@ import {
 } from "./constants";
 import { AmazonAffiliateProductSchema, RecipeSchema } from "./db";
 
+export const CallerIdTypeSchema = z.enum(["user", "guest", "system"]);
+
+export const CallerSchema = z.string().transform((val, ctx) => {
+  // Regular expression to validate the UUID format
+  const callerTypeParseResult = CallerIdTypeSchema.safeParse(val.split("-")[0]);
+  if (!callerTypeParseResult.success) {
+    callerTypeParseResult.error.issues.forEach(ctx.addIssue);
+    return z.NEVER;
+  }
+  const uniqueIdType = callerTypeParseResult.data;
+
+  const uniqueId = val.substring(val.indexOf("-") + 1);
+  if (z.string().uuid().safeParse(uniqueId).success) {
+    return { uniqueIdType, uniqueId };
+  } else {
+    // If not valid, add a custom issue
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Must be a valid uuid",
+    });
+    // Return the special NEVER symbol to indicate a validation failure
+    return z.NEVER;
+  }
+});
+
 export const PlanSchema = z
   .enum(["quarterly", "monthly", "annual"])
   .default("quarterly");
@@ -51,6 +76,7 @@ export const SecretsEnvironmentSchema = z.object({
 
 export const PublicEnvironmentSchema = z.object({
   KITCHENCRAFT_URL: z.string().url(),
+  KITCHENCRAFT_API_HOST: z.string(),
   ADSENSE_PUBLISHER_ID: z.string(),
   POSTHOG_CLIENT_KEY: z.string(),
   STRIPE_PUBLIC_KEY: z.string(),
@@ -502,6 +528,7 @@ const ToggleEventSchema = z.object({
 });
 const ClearEventSchema = z.object({
   type: z.literal("CLEAR"),
+  all: z.boolean().optional(),
 });
 
 const PageLoadedEventSchema = z.object({
@@ -604,7 +631,24 @@ const SwipeDownEventSchema = z.object({
   type: z.literal("SWIPE_DOWN"),
 });
 
+const SkipEventSchema = z.object({
+  type: z.literal("SKIP"),
+});
+
+const AddTokenEventSchema = z.object({
+  type: z.literal("ADD_TOKEN"),
+  token: z.string(),
+});
+
+const RemoveTokenEventSchema = z.object({
+  type: z.literal("REMOVE_TOKEN"),
+  token: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  AddTokenEventSchema,
+  RemoveTokenEventSchema,
+  SkipEventSchema,
   SwipeUpEventSchema,
   SwipeDownEventSchema,
   SwipeRightEventSchema,

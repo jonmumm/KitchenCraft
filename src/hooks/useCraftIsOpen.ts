@@ -4,7 +4,7 @@ import { useSelector } from "./useSelector";
 
 export const useCraftIsOpen = () => {
   const actor = useContext(CraftContext);
-  return useSelector(actor, (state) => state.matches("Open.True"));
+  return useSelector(actor, (state) => state.matches({ Open: "True" }));
 };
 
 export const usePromptIsDirty = () => {
@@ -14,5 +14,5 @@ export const usePromptIsDirty = () => {
 
 export const usePromptIsPristine = () => {
   const actor = useContext(CraftContext);
-  return useSelector(actor, (state) => state.matches("Prompt.Pristine"));
+  return useSelector(actor, (state) => state.matches({ Prompt: "Pristine" }));
 };

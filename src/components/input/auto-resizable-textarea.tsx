@@ -1,7 +1,9 @@
 "use client";
 
-import { selectIsOpen, selectIsRemixing } from "@/app/@craft/selectors";
+import { selectIsOpen } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
+import { SessionStoreContext } from "@/app/session-store.context";
+// import { session$ } from "@/app/session-store";
 import { useCraftIsOpen, usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
@@ -17,8 +19,8 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
+  useState,
 } from "react";
 
 type Size = "xs" | "sm" | "md" | "lg"; // Extend with more sizes as needed
@@ -81,6 +83,8 @@ const AutoResizableTextarea: React.FC<
     }, 0);
   });
   useEventHandler("CLEAR", resizeTextarea);
+  useEventHandler("ADD_TOKEN", resizeTextarea);
+  useEventHandler("REMOVE_TOKEN", resizeTextarea);
 
   useEffect(() => {
     resizeTextarea();
@@ -91,6 +95,12 @@ const AutoResizableTextarea: React.FC<
   useEffect(() => {
     resizeTextarea();
   }, [props.value, size, resizeTextarea]);
+
+  useEffect(() => {
+    // return session$.subscribe(() => {
+    //   resizeTextarea();
+    // });
+  }, [resizeTextarea]);
 
   const textSizeClass =
     sizeClassMap[size]?.textSize || sizeClassMap["md"].textSize;
@@ -113,6 +123,18 @@ const AutoResizableTextarea: React.FC<
     const actor = useContext(CraftContext);
     const isOpen = useCraftIsOpen();
     const isPristine = usePromptIsPristine();
+    const [placeholdersGenerating, setPlaceholderGenerating] = useState(false);
+    const session$ = useContext(SessionStoreContext);
+
+    // hack figure out better solution for subscribing to server state
+    useEffect(() => {
+      return session$.subscribe((state) => {
+        setPlaceholderGenerating(
+          state.value.Craft.Generators.Placeholder === "Generating"
+        );
+      });
+    }, [setPlaceholderGenerating, session$]);
+
     const value = useSelector(actor, (state) => state.context.prompt);
     const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
       (e) => {
@@ -139,15 +161,9 @@ const AutoResizableTextarea: React.FC<
     const PlaceholderAnimation = () => {
       const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
       const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-      const isRemixing = useSelector(actor, selectIsRemixing);
-
-      const sentences = useMemo(() => {
-        return !isRemixing
-          ? shuffle(placeholderSentences)
-          : shuffle(remixPlaceholderSentences);
-      }, [isRemixing]);
 
       const animatePlaceholder = useCallback(() => {
+        const sentences = shuffle(session$.get().context.placeholders);
         let currentSentenceIndex = 0;
         let typing = true;
         let currentText = "";
@@ -198,11 +214,16 @@ const AutoResizableTextarea: React.FC<
         intervalIdRef.current = setInterval(typeText, 100);
 
         return clearTimers;
-      }, [sentences]);
+      }, []);
 
       useEffect(() => {
         const cleanup = animatePlaceholder();
-        return cleanup;
+        return () => {
+          cleanup();
+          if (ref.current) {
+            ref.current.placeholder = "";
+          }
+        };
       }, [animatePlaceholder]);
 
       return null;
@@ -210,12 +231,12 @@ const AutoResizableTextarea: React.FC<
 
     return (
       <>
-        {isOpen && isPristine && <PlaceholderAnimation />}
+        {isPristine && !placeholdersGenerating && <PlaceholderAnimation />}
         <textarea
           suppressHydrationWarning
           value={value}
           ref={ref}
-          className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden placeholder-transparent crafting:placeholder-slate-500`}
+          className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden placeholder-slate-500`}
           onChange={handleChange}
           onBlur={handleBlur}
           onFocus={handleFocus}
@@ -239,45 +260,45 @@ const AutoResizableTextarea: React.FC<
 
 export default AutoResizableTextarea;
 
-const placeholderSentences = [
-  "feta, egg, leftover pizza",
-  "avocado, chocolate, chia seeds",
-  "spinach, blueberries, almonds",
-  "sweet potato, black beans, lime",
-  "bacon, maple syrup, pecans",
-  "quinoa, beets, goat cheese",
-  "apple, cinnamon, honey",
-  "salmon, soy sauce, ginger",
-  "chicken, peanut butter, sriracha",
-  "tomato, basil, mozzarella",
-  "pumpkin, coconut milk, curry powder",
-  "mushrooms, garlic, thyme",
-  "kale, avocado, lemon",
-  "shrimp, coconut, pineapple",
-  "lemon, raspberry, vanilla",
-  "zucchini, carrot, feta cheese",
-  "oats, banana, peanut butter",
-  "fig, balsamic vinegar, arugula",
-  "eggplant, tomato, ricotta",
-  "cucumber, dill, yogurt",
-];
+// const ingredientPlaceholderSentences = [
+//   "feta, egg, leftover pizza",
+//   "avocado, chocolate, chia seeds",
+//   "spinach, blueberries, almonds",
+//   "sweet potato, black beans, lime",
+//   "bacon, maple syrup, pecans",
+//   "quinoa, beets, goat cheese",
+//   "apple, cinnamon, honey",
+//   "salmon, soy sauce, ginger",
+//   "chicken, peanut butter, sriracha",
+//   "tomato, basil, mozzarella",
+//   "pumpkin, coconut milk, curry powder",
+//   "mushrooms, garlic, thyme",
+//   "kale, avocado, lemon",
+//   "shrimp, coconut, pineapple",
+//   "lemon, raspberry, vanilla",
+//   "zucchini, carrot, feta cheese",
+//   "oats, banana, peanut butter",
+//   "fig, balsamic vinegar, arugula",
+//   "eggplant, tomato, ricotta",
+//   "cucumber, dill, yogurt",
+// ];
 
-const remixPlaceholderSentences = [
-  "Double the servings",
-  "Adapt for Instant Pot",
-  "Make it one-pan",
-  "Use an air fryer",
-  "Swap in whole grains",
-  "Make it vegetarian",
-  "Add a spicy kick",
-  "Transform into a soup",
-  "Bake instead of fry",
-  "Cook it slow and low",
-  "Turn into a casserole",
-  "Grill for extra flavor",
-  "Make it no-bake",
-  "Substitute with healthier fats",
-  "Switch to gluten-free",
-  "Incorporate a new protein",
-  "Simplify to five ingredients",
-];
+// const remixPlaceholderSentences = [
+//   "Double the servings",
+//   "Adapt for Instant Pot",
+//   "Make it one-pan",
+//   "Use an air fryer",
+//   "Swap in whole grains",
+//   "Make it vegetarian",
+//   "Add a spicy kick",
+//   "Transform into a soup",
+//   "Bake instead of fry",
+//   "Cook it slow and low",
+//   "Turn into a casserole",
+//   "Grill for extra flavor",
+//   "Make it no-bake",
+//   "Substitute with healthier fats",
+//   "Switch to gluten-free",
+//   "Incorporate a new protein",
+//   "Simplify to five ingredients",
+// ];
