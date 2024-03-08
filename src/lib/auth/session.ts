@@ -1,6 +1,8 @@
+import { sessionMachine } from "@/app/session-machine";
 import { getProfileByUserId } from "@/db/queries";
 import { getServerSession } from "next-auth";
 import { cache } from "react";
+import { createActorHTTPClient } from "../actor-kit";
 import { getGuestId } from "../browser-session";
 import { withSpan } from "../observability";
 import { authOptions } from "./options";
@@ -35,6 +37,22 @@ export const getUniqueIdType = withSpan(
     return userId ? ("user" as const) : ("guest" as const);
   }),
   "getUniqueId"
+);
+
+export const getSessionActorClient = withSpan(
+  cache(async () => {
+    const uniqueId = await getUniqueId();
+    const uniqueIdType = await getUniqueIdType();
+
+    return createActorHTTPClient<typeof sessionMachine>({
+      type: "session",
+      caller: {
+        id: uniqueId,
+        type: uniqueIdType,
+      },
+    });
+  }),
+  "getActorClient"
 );
 
 export const getCurrentEmail = withSpan(

@@ -6,6 +6,7 @@ import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { cva } from "class-variance-authority";
+import { useEffect, useImperativeHandle, useRef } from "react";
 
 const cardVariants = cva(
   "rounded-lg shadow-sm transition-colors focus-within:outline-none bg-card text-card-foreground",
@@ -33,32 +34,67 @@ const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
     event?: AppEvent;
+    eventOnView?: AppEvent;
     variant?: "interactive" | "default" | "hicontrast" | "locontrast";
   }
->(({ className, event, variant = "default", ...props }, ref) => {
-  const send = useSend();
+>(
+  (
+    { className, event, eventOnView, variant = "default", ...props },
+    forwardedRef
+  ) => {
+    const send = useSend();
+    const ref = useRef<HTMLDivElement>(null);
+    useImperativeHandle(forwardedRef, () => ref.current!);
 
-  const handleClick = React.useMemo(() => {
-    if (event && !props.onClick) {
-      const handler: React.MouseEventHandler<HTMLDivElement> = (e) => {
-        send(event);
-        e.preventDefault();
-      };
-      return handler;
-    } else {
-      return props.onClick;
-    }
-  }, [event, props.onClick, send]);
+    const handleClick = React.useMemo(() => {
+      if (event && !props.onClick) {
+        const handler: React.MouseEventHandler<HTMLDivElement> = (e) => {
+          send(event);
+          e.preventDefault();
+        };
+        return handler;
+      } else {
+        return props.onClick;
+      }
+    }, [event, props.onClick, send]);
 
-  return (
-    <div
-      ref={ref}
-      className={cn(cardVariants({ variant }), className)}
-      onClick={handleClick}
-      {...props}
-    />
-  );
-});
+    useEffect(() => {
+      const currentElement = ref.current;
+      if (eventOnView && currentElement) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                // Trigger event when the card comes into view
+                send(eventOnView);
+                // Optional: Unobserve after the first trigger
+                observer.unobserve(currentElement);
+              }
+            });
+          },
+          {
+            // Optional: Adjust observer options (e.g., threshold, rootMargin) as needed
+          }
+        );
+
+        observer.observe(currentElement);
+
+        return () => {
+          observer.disconnect();
+        };
+      }
+    }, [eventOnView, send]);
+
+    return (
+      <div
+        ref={ref}
+        className={cn(cardVariants({ variant }), className)}
+        onClick={handleClick}
+        {...props}
+      />
+    );
+  }
+);
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<

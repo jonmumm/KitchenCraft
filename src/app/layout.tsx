@@ -2,13 +2,12 @@ import { Toaster } from "@/components/feedback/sonner";
 import { Toaster as LegacyToaster } from "@/components/feedback/toaster";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
-import { createActorHTTPClient } from "@/lib/actor-kit";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
   getCurrentEmail,
   getSession,
-  getUniqueId,
-  getUniqueIdType,
+  getSessionActorClient,
+  getUniqueId
 } from "@/lib/auth/session";
 import { createAppInstallToken } from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
@@ -20,7 +19,6 @@ import { ReactNode } from "react";
 import "../styles/globals.css";
 import { Body, SearchParamsToastMessage } from "./components.client";
 import { ApplicationProvider } from "./provider";
-import { sessionMachine } from "./session-machine";
 import { SessionStoreProvider } from "./session-store-provider";
 import "./styles.css";
 
@@ -76,7 +74,6 @@ export default async function RootLayout({
 }) {
   const uniqueId = await getUniqueId();
   const currentEmail = await getCurrentEmail();
-  const uniqueIdType = await getUniqueIdType();
   const appInstallToken = await createAppInstallToken(uniqueId, currentEmail);
 
   let manifestHref = `/user-app-manifest.json`;
@@ -87,14 +84,7 @@ export default async function RootLayout({
   const canInstallPWA = getCanInstallPWA();
   const session = await getSession();
 
-  const sessionActorClient = createActorHTTPClient<typeof sessionMachine>({
-    type: "session",
-    caller: {
-      id: uniqueId,
-      type: uniqueIdType,
-    },
-  });
-
+  const sessionActorClient = await getSessionActorClient();
   // todo: generate a session id instead of using the users unique id for the session id
   const { snapshot, connectionId, token } =
     await sessionActorClient.get(uniqueId);

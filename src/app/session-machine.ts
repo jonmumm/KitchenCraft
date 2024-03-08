@@ -84,6 +84,8 @@ export const sessionMachine = setup({
       suggestedTokens: string[];
       placeholders: string[];
       suggestedIngredients: string[];
+      viewedAdIds: string[];
+      clickedAdIds: string[];
     },
     events: {} as
       | WithCaller<AppEvent>
@@ -193,9 +195,33 @@ export const sessionMachine = setup({
     suggestedTokens: [],
     createdRecipeSlugs: [],
     placeholders: defaultPlaceholders,
+    loadedAdIds: [],
+    viewedAdIds: [],
+    clickedAdIds: [],
   }),
   type: "parallel",
   states: {
+    Ads: {
+      on: {
+        PRESS_AD: {
+          actions: assign({
+            viewedAdIds: ({ context, event }) => [
+              ...context.viewedAdIds,
+              event.adId,
+            ],
+          }),
+        },
+        VIEW_AD: {
+          actions: assign({
+            viewedAdIds: ({ context, event }) => [
+              ...context.viewedAdIds,
+              event.adId,
+            ],
+          }),
+        },
+      },
+    },
+
     Craft: {
       type: "parallel",
       states: {
@@ -275,7 +301,12 @@ export const sessionMachine = setup({
         Generators: {
           type: "parallel",
           on: {
-            CLEAR: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle", ".CurrentRecipe.Idle"],
+            CLEAR: [
+              ".Placeholder.Idle",
+              ".Tokens.Idle",
+              ".Recipes.Idle",
+              ".CurrentRecipe.Idle",
+            ],
             REMOVE_TOKEN: [
               {
                 target: [
@@ -295,7 +326,12 @@ export const sessionMachine = setup({
                 guard: "shouldRunInput",
               },
               {
-                target: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle", ".CurrentRecipe.Idle"],
+                target: [
+                  ".Placeholder.Idle",
+                  ".Tokens.Idle",
+                  ".Recipes.Idle",
+                  ".CurrentRecipe.Idle",
+                ],
                 actions: assign({
                   runningInput: undefined,
                 }),

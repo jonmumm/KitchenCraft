@@ -646,7 +646,19 @@ const RemoveTokenEventSchema = z.object({
   token: z.string(),
 });
 
+const ViewAdEventSchema = z.object({
+  type: z.literal("VIEW_AD"),
+  adId: z.string(),
+});
+
+const PressAdEventSchema = z.object({
+  type: z.literal("PRESS_AD"),
+  adId: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ViewAdEventSchema,
+  PressAdEventSchema,
   AddTokenEventSchema,
   RemoveTokenEventSchema,
   SkipEventSchema,
