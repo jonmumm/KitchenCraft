@@ -1,6 +1,16 @@
+import { StreamObservableEvent } from "@/lib/stream-to-observable";
 import { TokenStream } from "@/lib/token-stream";
+import { RecipeProductsPredictionOutputSchema } from "@/schema";
 import { RecipeProductsPredictionInput } from "@/types";
 import { PromptTemplate } from "langchain/prompts";
+import { z } from "zod";
+
+export const RecipeProductsEventBase = "SUGGEST_RECIPE_PRODUCTS";
+
+export type SuggestRecipeProductsEvent = StreamObservableEvent<
+  typeof RecipeProductsEventBase,
+  z.infer<typeof RecipeProductsPredictionOutputSchema>
+>;
 
 export class RecipeProductsTokenStream extends TokenStream<RecipeProductsPredictionInput> {
   protected async getUserMessage(

@@ -4,7 +4,9 @@ import type { z } from "zod";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
 import ingredients from "./data/ingredients.json";
 import {
+  AffiliateProductSchema,
   AmazonAffiliateProductSchema,
+  NewAffiliateProductSchema,
   NewAmazonAffiliateProductSchema,
   NewProfileSchema,
   NewRecipeCommentSchema,
@@ -14,6 +16,8 @@ import {
   featureIdEnum,
 } from "./db";
 import {
+  AdContextSchema,
+  // AdDisplaySchema,
   AmazonProductsPredictionInputSchema,
   AppEventSchema,
   AssistantMessageSchema,
@@ -89,6 +93,13 @@ import {
   UpvoteEventSchema,
   UserMessageSchema,
 } from "./schema";
+
+// Define a type utility to extract the type based on the `type` property
+export type ExtractType<T, TypeString> = T extends { type: infer U }
+  ? U extends TypeString
+    ? T
+    : never
+  : never;
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 
@@ -301,3 +312,8 @@ export type FeatureId = (typeof featureIdEnum.enumValues)[number];
 export type MediaFragmentLiteral = z.infer<typeof MediaFragmentLiteralSchema>;
 export type RecipeComment = z.infer<typeof RecipeCommentSchema>;
 export type NewRecipeComment = z.infer<typeof NewRecipeCommentSchema>;
+
+export type AdContext = z.infer<typeof AdContextSchema>;
+// export type AdDisplay = z.infer<typeof AdDisplaySchema>;
+export type AffiliateProduct = z.infer<typeof AffiliateProductSchema>;
+export type NewAffiliateProduct = z.infer<typeof NewAffiliateProductSchema>;

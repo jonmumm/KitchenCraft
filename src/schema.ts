@@ -7,7 +7,11 @@ import {
   DISH_TYPES,
   TECHNIQUES,
 } from "./constants";
-import { AmazonAffiliateProductSchema, RecipeSchema } from "./db";
+import {
+  AffiliateProductSchema,
+  AmazonAffiliateProductSchema,
+  RecipeSchema,
+} from "./db";
 
 export const CallerIdTypeSchema = z.enum(["user", "guest", "system"]);
 
@@ -532,6 +536,21 @@ const ClearEventSchema = z.object({
   all: z.boolean().optional(),
 });
 
+// const RoutePropsSchema = z.discriminatedUnion("name", [
+//   z.object({
+//     name: z.literal("Home"),
+//   }),
+//   z.object({
+//     name: z.literal("Recipe"),
+//   }),
+// ]);
+
+// const RouteEventSchema = z.object({
+//   type: z.literal("ROUTE"),
+//   route: RoutePropsSchema,
+//   searchParams: z.record(z.string(), z.string()),
+// });
+
 const PageLoadedEventSchema = z.object({
   type: z.literal("PAGE_LOADED"),
   pathname: z.string(),
@@ -646,19 +665,67 @@ const RemoveTokenEventSchema = z.object({
   token: z.string(),
 });
 
-const ViewAdEventSchema = z.object({
-  type: z.literal("VIEW_AD"),
-  adId: z.string(),
+const ViewAdInstanceEventSchema = z.object({
+  type: z.literal("VIEW_AD_INSTANCE"),
+  adInstanceId: z.string(),
 });
 
-const PressAdEventSchema = z.object({
-  type: z.literal("PRESS_AD"),
-  adId: z.string(),
+const PressAdInstanceEventSchema = z.object({
+  type: z.literal("PRESS_AD_INSTANCE"),
+  adInstanceId: z.string(),
+});
+
+// const VisitHomeEventSchema = z.object({
+//   type: z.literal("VISIT_HOME"),
+//   searchParams: z.record(z.string()),
+// });
+
+export const AdContextSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("recipe"),
+    slug: z.string(),
+    productType: AffiliateProductSchema.shape.type,
+  }),
+  z.object({
+    type: z.literal("craft_card"),
+  }),
+  z.object({
+    type: z.literal("home_feed"),
+  }),
+]);
+
+// export const AdProductSchema = z.object({
+//   affiliate: z.enum(["Amazon", "Etsy", "Instacart", "Target"]),
+//   affiliateUniqueId: z.string(),
+//   category: z.array(z.enum(["ingredient", "book", "equipment"])),
+//   curated: z.boolean(),
+//   curatedBy: z.string().optional(),
+// });
+
+// const AdDisplaySchema = z.discriminatedUnion("type", [
+//   z.object({
+//     type: z.literal("image"),
+//     title: z.string(),
+//     description: z.string(),
+//     url: z.string(),
+//   }),
+// ]);
+
+const InitAdInstancesEventSchema = z.object({
+  type: z.literal("INIT_AD_INSTANCES"),
+  ids: z.array(z.string()),
+  context: AdContextSchema,
+});
+
+const GetSnapshotEventSchema = z.object({
+  type: z.literal("GET_SNAPSHOT"),
 });
 
 export const AppEventSchema = z.discriminatedUnion("type", [
-  ViewAdEventSchema,
-  PressAdEventSchema,
+  GetSnapshotEventSchema,
+  InitAdInstancesEventSchema,
+  ViewAdInstanceEventSchema,
+  PressAdInstanceEventSchema,
   AddTokenEventSchema,
   RemoveTokenEventSchema,
   SkipEventSchema,

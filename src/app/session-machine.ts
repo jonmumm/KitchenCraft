@@ -5,12 +5,30 @@ import { RecipesTable, db } from "@/db";
 import { NewRecipe } from "@/db/types";
 import { getSlug } from "@/lib/slug";
 import { assert } from "@/lib/utils";
-import { RecipePredictionOutputSchema } from "@/schema";
-import { AppEvent, WithCaller } from "@/types";
+import {
+  RecipePredictionOutputSchema,
+  RecipeProductsPredictionOutputSchema,
+} from "@/schema";
+import {
+  AdContext,
+  AffiliateProduct,
+  AppEvent,
+  ExtractType,
+  ProductType,
+  WithCaller,
+} from "@/types";
 import { nanoid } from "ai";
 import { randomUUID } from "crypto";
-import { from, switchMap } from "rxjs";
-import { assign, fromEventObservable, fromPromise, setup } from "xstate";
+import { eq } from "drizzle-orm";
+import type * as Party from "partykit/server";
+import { from, map, mergeMap, switchMap } from "rxjs";
+import {
+  assign,
+  fromEventObservable,
+  fromPromise,
+  setup,
+  spawnChild,
+} from "xstate";
 import { z } from "zod";
 import { AutoSuggestIngredientEvent } from "./auto-suggest-ingredients.stream";
 import {
@@ -33,6 +51,11 @@ import {
   AutoSuggestTokensStream,
 } from "./auto-suggest-tokens.stream";
 import { NewRecipeEvent, NewRecipeStream } from "./new-recipe.stream";
+import {
+  RecipeProductsEventBase,
+  RecipeProductsTokenStream,
+  SuggestRecipeProductsEvent,
+} from "./recipe/[slug]/products/recipe-products-stream";
 
 // const autoSuggestionOutputSchemas = {
 //   tags: InstantRecipeMetadataPredictionOutputSchema,
@@ -40,8 +63,16 @@ import { NewRecipeEvent, NewRecipeStream } from "./new-recipe.stream";
 //   recipes: SuggestionPredictionOutputSchema,
 // };
 
+type NewRecipeProductKeywordEvent = {
+  type: "NEW_RECIPE_PRODUCT_KEYWORD";
+  keyword: string;
+  productType: ProductType;
+  slug: string;
+};
+
 const InputSchema = z.object({
   id: z.string(),
+  storage: z.custom<Party.Storage>(),
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -62,6 +93,17 @@ type PartialRecipe = {
   activeTime?: string;
 };
 
+type AdInstance = {
+  id: string;
+  context: AdContext;
+  product?: AffiliateProduct;
+};
+
+// const adTargetingMachine = setup({}).createMachine({id: "AdTargetingMachine",
+// states:{
+
+// }})
+
 export const sessionMachine = setup({
   types: {
     input: {} as Input,
@@ -71,8 +113,8 @@ export const sessionMachine = setup({
       createdBy?: string;
       prompt: string;
       runningInput: string | undefined;
+      storage: Party.Storage;
       tokens: string[];
-      // suggestedRecipes: { name?: string; description?: string }[];
       suggestedRecipes: string[];
       recipes: Record<string, PartialRecipe>;
       generatingRecipeId: string | undefined;
@@ -84,8 +126,10 @@ export const sessionMachine = setup({
       suggestedTokens: string[];
       placeholders: string[];
       suggestedIngredients: string[];
-      viewedAdIds: string[];
-      clickedAdIds: string[];
+      adInstances: Record<string, AdInstance>;
+      viewedAdInstanceIds: string[];
+      clickedAdInstanceIds: string[];
+      productIdViewCounts: Record<string, number>;
     },
     events: {} as
       | WithCaller<AppEvent>
@@ -95,12 +139,180 @@ export const sessionMachine = setup({
       | AutoSuggestTextEvent
       | AutoSuggestTokensEvent
       | AutoSuggestPlaceholderEvent
-      | NewRecipeEvent,
+      | SuggestRecipeProductsEvent
+      | NewRecipeEvent
+      | NewRecipeProductKeywordEvent,
   },
   actors: {
-    // autoSuggestMachine,
+    createNewRecipe: fromPromise(
+      async ({
+        input,
+      }: {
+        input: {
+          recipe: PartialRecipe;
+          prompt: string;
+          tokens: string[];
+          createdBy: string;
+        };
+      }) => {
+        const id = nanoid();
+        const { recipe } = input;
+
+        assert(recipe.name, "expected name");
+        const slug = getSlug({ id, name: recipe.name });
+        assert(recipe.description, "expected description");
+
+        const finalRecipe = {
+          id: randomUUID(),
+          slug,
+          versionId: 0,
+          description: recipe.description,
+          name: recipe.name,
+          yield: recipe.yield!,
+          tags: recipe.tags!,
+          ingredients: recipe.ingredients!,
+          instructions: recipe.instructions!,
+          cookTime: recipe.cookTime!,
+          tokens: input.tokens,
+          activeTime: recipe.activeTime!,
+          totalTime: recipe.totalTime!,
+          prompt: input.prompt,
+          createdBy: input.createdBy,
+          createdAt: new Date(),
+        } satisfies NewRecipe;
+
+        await db.insert(RecipesTable).values(finalRecipe);
+        return slug;
+      }
+    ),
+    generateRecipes: fromEventObservable(
+      ({ input }: { input: { prompt: string } }) => {
+        const tokenStream = new AutoSuggestRecipesStream();
+        return from(tokenStream.getStream(input)).pipe(
+          switchMap((stream) => {
+            return streamToObservable(
+              stream,
+              AutoSuggestRecipesEventBase,
+              AutoSuggestRecipesOutputSchema
+            );
+          })
+        );
+      }
+    ),
+    generatePlaceholders: fromEventObservable(
+      ({ input }: { input: { prompt: string } }) => {
+        const tokenStream = new AutoSuggestPlaceholderStream();
+        return from(tokenStream.getStream(input)).pipe(
+          switchMap((stream) => {
+            return streamToObservable(
+              stream,
+              "PLACEHOLDER",
+              AutoSuggestPlaceholderOutputSchema
+            );
+          })
+        );
+      }
+    ),
+    generateRecipe: fromEventObservable(
+      ({
+        input,
+      }: {
+        input: {
+          name: string;
+          description: string;
+          prompt: string;
+        };
+      }) => {
+        const tokenStream = new NewRecipeStream();
+        return from(tokenStream.getStream(input)).pipe(
+          switchMap((stream) => {
+            return streamToObservable(
+              stream,
+              "NEW_RECIPE",
+              RecipePredictionOutputSchema
+            );
+          })
+        );
+      }
+    ),
+    generateTokens: fromEventObservable(
+      ({ input }: { input: { prompt: string } }) => {
+        const tokenStream = new AutoSuggestTokensStream();
+        return from(tokenStream.getStream(input)).pipe(
+          switchMap((stream) => {
+            return streamToObservable(
+              stream,
+              AutoSuggestTokensEventBase,
+              AutoSuggestTokensOutputSchema
+            );
+          })
+        );
+      }
+    ),
+    initializeRecipeAds: fromEventObservable(
+      ({ input }: { input: { context: ExtractType<AdContext, "recipe"> } }) => {
+        const getRecipes = db
+          .select()
+          .from(RecipesTable)
+          .where(eq(RecipesTable.slug, input.context.slug))
+          .execute();
+        const lastKeywords = new Set();
+
+        return from(getRecipes).pipe(
+          map((recipes) => {
+            const recipe = recipes[0];
+            assert(recipe, "expected recipe");
+            console.log(recipe);
+            return recipe;
+          }),
+          switchMap(async (recipe) => {
+            const tokenStream = new RecipeProductsTokenStream();
+            return await tokenStream.getStream({
+              type: input.context.productType,
+              recipe,
+            });
+          }),
+          switchMap((stream) => {
+            console.log("starting stream");
+            return streamToObservable(
+              stream,
+              RecipeProductsEventBase,
+              RecipeProductsPredictionOutputSchema
+            );
+          }),
+          mergeMap((event) => {
+            if (
+              event.type === "SUGGEST_RECIPE_PRODUCTS_PROGRESS" &&
+              Array.isArray(event.data.queries)
+            ) {
+              const newKeywords = event.data.queries.filter(
+                (keyword) => !lastKeywords.has(keyword)
+              );
+              newKeywords.forEach((keyword) => lastKeywords.add(keyword)); // Update state
+
+              // // Map new keywords to events and emit them immediately
+              return newKeywords.map((keyword) => ({
+                type: "NEW_RECIPE_PRODUCT_KEYWORD",
+                keyword: keyword,
+                productType: input.context.productType,
+                slug: input.context.slug,
+              }));
+            } else if (event.type === "SUGGEST_RECIPE_PRODUCTS_COMPLETE") {
+              // Handle completion if needed. For now, return an empty array to emit nothing.
+              return [];
+            }
+            // Return an empty array for any other event types to emit nothing.
+            return [];
+          })
+        );
+      }
+    ),
   },
   guards: {
+    shouldCreateNewAds: ({ context }) => {
+      Object.values(context.adInstances).map((item) => item.product);
+      return false;
+    },
     shouldRunInput: ({ context, event }) => {
       if (event.type === "ADD_TOKEN") {
         const nextInput = buildSuggestionsInput({
@@ -181,6 +393,7 @@ export const sessionMachine = setup({
   context: ({ input }) => ({
     distinctId: input.id,
     prompt: "",
+    storage: input.storage,
     currentItemIndex: 0,
     numCompletedRecipes: 0,
     numStartedRecipes: 0,
@@ -195,29 +408,105 @@ export const sessionMachine = setup({
     suggestedTokens: [],
     createdRecipeSlugs: [],
     placeholders: defaultPlaceholders,
-    loadedAdIds: [],
-    viewedAdIds: [],
-    clickedAdIds: [],
+    adInstances: {},
+    viewedAdInstanceIds: [],
+    clickedAdInstanceIds: [],
+    productIdViewCounts: {},
   }),
   type: "parallel",
   states: {
     Ads: {
-      on: {
-        PRESS_AD: {
-          actions: assign({
-            viewedAdIds: ({ context, event }) => [
-              ...context.viewedAdIds,
-              event.adId,
-            ],
-          }),
+      type: "parallel",
+      states: {
+        Pipeline: {
+          on: {
+            NEW_RECIPE_PRODUCT_KEYWORD: {
+              actions: assign(({ context, event }) => {
+                console.log(event.keyword);
+                return {};
+              }),
+            },
+          },
         },
-        VIEW_AD: {
-          actions: assign({
-            viewedAdIds: ({ context, event }) => [
-              ...context.viewedAdIds,
-              event.adId,
-            ],
-          }),
+        Instances: {
+          on: {
+            INIT_AD_INSTANCES: {
+              actions: assign(({ context, event }) =>
+                produce(context, (draft) => {
+                  event.ids.forEach((id) => {
+                    draft.adInstances[id] = {
+                      id,
+                      context: event.context,
+                    };
+                  });
+                })
+              ),
+            },
+            PRESS_AD_INSTANCE: {
+              actions: assign({
+                viewedAdInstanceIds: ({ context, event }) => [
+                  ...context.viewedAdInstanceIds,
+                  event.adInstanceId,
+                ],
+              }),
+            },
+            VIEW_AD_INSTANCE: {
+              actions: assign({
+                viewedAdInstanceIds: ({ context, event }) => [
+                  ...context.viewedAdInstanceIds,
+                  event.adInstanceId,
+                ],
+              }),
+            },
+          },
+        },
+        Initialization: {
+          initial: "Idle",
+          states: {
+            Idle: {
+              on: {
+                INIT_AD_INSTANCES: [
+                  {
+                    guard: ({ event }) => event.context.type === "recipe",
+                    actions: spawnChild("initializeRecipeAds", {
+                      input: ({ context, event }) => {
+                        assert(
+                          event.type === "INIT_AD_INSTANCES",
+                          "expected event INIT_AD_INSTANCES"
+                        );
+                        assert(
+                          event.context.type === "recipe",
+                          "expected recipe context"
+                        );
+
+                        return {
+                          ids: event.ids,
+                          context: event.context,
+                          productIdViewCounts: context.productIdViewCounts,
+                        };
+                      },
+                    }),
+                  },
+                ],
+                // target:"Initializing",
+              },
+            },
+            // Initializing: {
+            //   invoke: {
+            //     onDone: {
+            //       target: "Idle",
+            //       actions: assign(({ event, context }) =>
+            //         produce(context, (draft) => {
+            //           console.log(event);
+            //           // draft.adInstances
+            //         })
+            //       ),
+            //     },
+            //     input: () => ({ adIds: [] }),
+            //     src: "initializeAds",
+            //   },
+            // },
+          },
         },
       },
     },
@@ -422,22 +711,9 @@ export const sessionMachine = setup({
                     input: ({ context }) => ({
                       prompt: context.prompt.length
                         ? context.prompt
-                        : context.runningInput,
+                        : context.runningInput!,
                     }),
-                    src: fromEventObservable(
-                      ({ input }: { input: { prompt: string } }) => {
-                        const tokenStream = new AutoSuggestPlaceholderStream();
-                        return from(tokenStream.getStream(input)).pipe(
-                          switchMap((stream) => {
-                            return streamToObservable(
-                              stream,
-                              "PLACEHOLDER",
-                              AutoSuggestPlaceholderOutputSchema
-                            );
-                          })
-                        );
-                      }
-                    ),
+                    src: "generatePlaceholders",
                     onDone: {
                       target: "Idle",
                     },
@@ -472,22 +748,9 @@ export const sessionMachine = setup({
                   },
                   invoke: {
                     input: ({ context }) => ({
-                      prompt: context.runningInput,
+                      prompt: context.runningInput!,
                     }),
-                    src: fromEventObservable(
-                      ({ input }: { input: { prompt: string } }) => {
-                        const tokenStream = new AutoSuggestTokensStream();
-                        return from(tokenStream.getStream(input)).pipe(
-                          switchMap((stream) => {
-                            return streamToObservable(
-                              stream,
-                              AutoSuggestTokensEventBase,
-                              AutoSuggestTokensOutputSchema
-                            );
-                          })
-                        );
-                      }
-                    ),
+                    src: "generateTokens",
                     onDone: {
                       target: "Idle",
                     },
@@ -567,22 +830,9 @@ export const sessionMachine = setup({
                   },
                   invoke: {
                     input: ({ context }) => ({
-                      prompt: context.runningInput,
+                      prompt: context.runningInput!,
                     }),
-                    src: fromEventObservable(
-                      ({ input }: { input: { prompt: string } }) => {
-                        const tokenStream = new AutoSuggestRecipesStream();
-                        return from(tokenStream.getStream(input)).pipe(
-                          switchMap((stream) => {
-                            return streamToObservable(
-                              stream,
-                              AutoSuggestRecipesEventBase,
-                              AutoSuggestRecipesOutputSchema
-                            );
-                          })
-                        );
-                      }
-                    ),
+                    src: "generateTokens",
                     onError: {
                       actions: (f) => {
                         console.log(f);
@@ -650,33 +900,12 @@ export const sessionMachine = setup({
                       const recipe = context.recipes[currentRecipeId];
                       assert(recipe, "expected currentRecipe");
                       return {
-                        prompt: context.runningInput,
-                        name: recipe.name,
-                        desscription: recipe.description,
+                        prompt: context.runningInput!,
+                        name: recipe.name!,
+                        description: recipe.description!,
                       };
                     },
-                    src: fromEventObservable(
-                      ({
-                        input,
-                      }: {
-                        input: {
-                          name: string;
-                          description: string;
-                          prompt: string;
-                        };
-                      }) => {
-                        const tokenStream = new NewRecipeStream();
-                        return from(tokenStream.getStream(input)).pipe(
-                          switchMap((stream) => {
-                            return streamToObservable(
-                              stream,
-                              "NEW_RECIPE",
-                              RecipePredictionOutputSchema
-                            );
-                          })
-                        );
-                      }
-                    ),
+                    src: "generateRecipe",
                     onError: {
                       actions: (f) => {
                         console.log(f);
@@ -737,48 +966,7 @@ export const sessionMachine = setup({
                     createdBy: context.createdBy,
                   };
                 },
-                src: fromPromise(
-                  async ({
-                    input,
-                  }: {
-                    input: {
-                      recipe: PartialRecipe;
-                      prompt: string;
-                      tokens: string[];
-                      createdBy: string;
-                    };
-                  }) => {
-                    const id = nanoid();
-                    const { recipe } = input;
-
-                    assert(recipe.name, "expected name");
-                    const slug = getSlug({ id, name: recipe.name });
-                    assert(recipe.description, "expected description");
-
-                    console.log({ input });
-                    const finalRecipe = {
-                      id: randomUUID(),
-                      slug,
-                      versionId: 0,
-                      description: recipe.description,
-                      name: recipe.name,
-                      yield: recipe.yield!,
-                      tags: recipe.tags!,
-                      ingredients: recipe.ingredients!,
-                      instructions: recipe.instructions!,
-                      cookTime: recipe.cookTime!,
-                      tokens: input.tokens,
-                      activeTime: recipe.activeTime!,
-                      totalTime: recipe.totalTime!,
-                      prompt: input.prompt,
-                      createdBy: input.createdBy,
-                      createdAt: new Date(),
-                    } satisfies NewRecipe;
-
-                    await db.insert(RecipesTable).values(finalRecipe);
-                    return slug;
-                  }
-                ),
+                src: "createNewRecipe",
               },
             },
           },
@@ -837,3 +1025,28 @@ const defaultPlaceholders = [
   "roast veggies",
   "grill bbq",
 ];
+
+// const getGoogleResultsForAffiliateProducts = async (keyword: string) => {
+//   let query: string;
+//   switch (type) {
+//     case "book":
+//       query = `book ${keyword}`;
+//       break;
+//     case "equipment":
+//       query = `kitchen ${keyword}`;
+//       break;
+//     default:
+//       query = keyword;
+//   }
+
+//   const googleSearchResponse = await fetch(
+//     `https://www.googleapis.com/customsearch/v1?key=${
+//       privateEnv.GOOGLE_CUSTOM_SEARCH_API_KEY
+//     }&cx=${privateEnv.GOOGLE_CUSTOM_SEARCH_ENGINE_ID}&q=${encodeURIComponent(
+//       query
+//     )}`
+//   );
+
+//   const result = await googleSearchResponse.json();
+//   return result;
+// };

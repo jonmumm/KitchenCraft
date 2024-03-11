@@ -32,15 +32,18 @@ import {
 } from "@/modules/media-gallery/components.client";
 import {
   AxeIcon,
+  BackpackIcon,
   CameraIcon,
   ClockIcon,
   GitForkIcon,
+  LibraryIcon,
   LightbulbIcon,
   MessageSquareIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   StarIcon,
   TagIcon,
+  UtensilsCrossedIcon,
 } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -50,6 +53,7 @@ import { ShareButton } from "../components.client";
 import { UpvoteButton } from "../upvote-button/component";
 import { TipsAndTricksContent } from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
+import { AffiliateProductCarousel } from "./products/components";
 import { Rating } from "./rating/components.client";
 import {
   getCurrentUserRatingBySlug,
@@ -525,69 +529,63 @@ export default async function Page(props: Props) {
               <GeneratedImages />
             </Card>
           )} */}
-              {/* <Card id="products" className="mx-3 mb-3">
-            <div className="flex flex-row justify-between p-4">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Consumables
-              </h3>
-              <BackpackIcon />
-            </div>
-            <p className="text-muted-foreground text-xs px-4">
-              Things you may need.
-            </p>
-            <div className="relative h-96">
-              <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
-                <ProductsCarousel
-                  slug={slug}
-                  input$={recipeData$.pipe(
-                    map((recipe) => ({ recipe, type: "ingredient" }))
-                  )}
-                />
-              </div>
-            </div>
-          </Card>
-          <Card id="products" className="mx-3 mb-3">
-            <div className="flex flex-row justify-between p-4">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Gear
-              </h3>
-              <UtensilsCrossedIcon />
-            </div>
-            <p className="text-muted-foreground text-xs px-4">
-              For help along the way.
-            </p>
-            <div className="relative h-96">
-              <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
-                <ProductsCarousel
-                  slug={slug}
-                  input$={recipeData$.pipe(
-                    map((recipe) => ({ recipe, type: "equipment" }))
-                  )}
-                />
-              </div>
-            </div>
-          </Card>
-          <Card id="products" className="mx-3 mb-3">
-            <div className="flex flex-row justify-between p-4">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Books
-              </h3>
-              <LibraryIcon />
-            </div>
-            <p className="text-muted-foreground text-xs px-4">
-              Dive deeper with experts.
-            </p>
-            <div className="relative h-96">
-              <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
-                <ProductsCarousel
-                  slug={slug}
-                  input$={recipeData$.pipe(
-                    map((recipe) => ({ recipe, type: "book" }))
-                  )}
-                />
-              </div>
-            </div>
-          </Card> */}
+              <Card id="products" className="mx-3 mb-3">
+                <div className="flex flex-row justify-between p-4">
+                  <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                    Consumables
+                  </h3>
+                  <BackpackIcon />
+                </div>
+                <p className="text-muted-foreground text-xs px-4">
+                  Things you may need.
+                </p>
+                <div className="relative h-96">
+                  <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
+                    <AffiliateProductCarousel
+                      slug={slug}
+                      productType={"ingredient"}
+                    />
+                  </div>
+                </div>
+              </Card>
+              <Card id="products" className="mx-3 mb-3">
+                <div className="flex flex-row justify-between p-4">
+                  <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                    Gear
+                  </h3>
+                  <UtensilsCrossedIcon />
+                </div>
+                <p className="text-muted-foreground text-xs px-4">
+                  For help along the way.
+                </p>
+                <div className="relative h-96">
+                  <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
+                    <AffiliateProductCarousel
+                      slug={slug}
+                      productType={"equipment"}
+                    />
+                  </div>
+                </div>
+              </Card>
+              <Card id="products" className="mx-3 mb-3">
+                <div className="flex flex-row justify-between p-4">
+                  <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                    Books
+                  </h3>
+                  <LibraryIcon />
+                </div>
+                <p className="text-muted-foreground text-xs px-4">
+                  Dive deeper with experts.
+                </p>
+                <div className="relative h-96">
+                  <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
+                    <AffiliateProductCarousel
+                      slug={slug}
+                      productType={"book"}
+                    />
+                  </div>
+                </div>
+              </Card>
             </div>
           </div>
         </MediaGalleryProvider>

@@ -709,11 +709,21 @@ const Yield = () => {
   const recipeId =
     session.context.suggestedRecipes[session.context.currentItemIndex];
   if (!recipeId) {
-    return <Skeleton className="w-10 h-4" />;
+    return (
+      <div className="flex flex-row gap-1">
+        <Skeleton className="w-4 h-4" />
+        <Skeleton className="w-10 h-4" />
+      </div>
+    );
   }
   const val = session.context.recipes[recipeId]?.yield;
   if (!val) {
-    return <Skeleton className="w-10 h-4" />;
+    return (
+      <div className="flex flex-row gap-1">
+        <Skeleton className="w-4 h-4" />
+        <Skeleton className="w-10 h-4" />
+      </div>
+    );
   }
 
   return <>{val}</>;

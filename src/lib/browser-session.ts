@@ -31,12 +31,10 @@ export const createCallerToken = async (uniqueId: string, type: CallerType) => {
 };
 
 export const parseCallerIdToken = async (token: string) => {
-  console.log("22", token);
   const verified = await jwtVerify(
     token,
     new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
   );
-  console.log("111", verified.payload.jti, token);
   assert(verified.payload.jti, "expected JTI on appInstallToken");
   return CallerSchema.parse(verified.payload.jti);
 };

@@ -1,5 +1,5 @@
 import { json, notFound, ok } from "@/lib/actor-kit/utils/response";
-import { Caller } from "@/types";
+import { AppEvent, Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import type * as Party from "partykit/server";
@@ -51,7 +51,21 @@ export const createActorHTTPClient = <TMachine extends AnyStateMachine>(props: {
     return (await get(id)).snapshot as SnapshotFrom<Actor<TMachine>>;
   };
 
-  return { get, getSnapshot };
+  const send = async (id: string, event: AppEvent) => {
+    const token = await createCallerToken(props.caller.id, props.caller.type);
+    const resp = await fetch(`${API_SERVER_URL}/parties/${props.type}/${id}`, {
+      method: "POST",
+      next: { revalidate: 0 },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(event),
+    });
+
+    return await resp.json();
+  };
+
+  return { get, getSnapshot, send };
 };
 
 type WithIdInput = { id: string };
@@ -87,6 +101,7 @@ export const createMachineServer = <
     constructor(public room: Party.Room) {
       const input = {
         id: this.room.id,
+        storage: room.storage,
       } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
 
       this.actor = createActor(machine, {
@@ -104,28 +119,35 @@ export const createMachineServer = <
     }
 
     async onRequest(request: Party.Request) {
+      const connectionId = randomUUID();
+      const authHeader = request.headers.get("authorization");
+      const callerIdToken = authHeader?.split(" ")[1];
+      assert(callerIdToken, "unable to parse bearer token");
+      const caller = await parseCallerIdToken(callerIdToken);
+
       if (request.method === "POST") {
         // todo requi're a caller token before allowing this send...
         // dont thinkw e use this anywhere yet
         const json = await request.json();
         const event = eventSchema.parse(json);
-        // this.actor.send(event);
+        // @ts-expect-error
+        this.actor.send(Object.assign(event, { caller }));
         return ok();
       }
 
       if (request.method === "GET") {
-        const connectionId = randomUUID();
-        const authHeader = request.headers.get("authorization");
-        const callerIdToken = authHeader?.split(" ")[1];
-        assert(callerIdToken, "unable to parse bearer token");
-        const caller = await parseCallerIdToken(callerIdToken);
         this.callersByConnectionId.set(connectionId, {
           id: caller.uniqueId,
           type: caller.uniqueIdType,
         });
-
         const token = randomUUID(); // todo make this a jwt
         const snapshot = this.actor.getPersistedSnapshot();
+
+        // @ts-expect-error
+        this.actor.send({
+          type: "GET_SNAPSHOT",
+          caller,
+        });
 
         // Clients have 30 seconds to connect before the snapshot gets cleaned up
         // and they must re-sync the full data
@@ -176,8 +198,6 @@ export const createMachineServer = <
           // todo idk how to do this
           // @ts-expect-error
           this.actor.send(Object.assign(event, { caller }));
-          // } else {
-          //   console.warn("Couldn't find caller for ", sender.id);
         }
 
         // console.log("kit", event);

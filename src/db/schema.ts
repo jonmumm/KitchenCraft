@@ -428,3 +428,39 @@ export const RecipeComments = pgTable("recipe_comments", {
 // Create schemas for selection and insertion
 export const RecipeCommentSchema = createSelectSchema(RecipeComments);
 export const NewRecipeCommentSchema = createInsertSchema(RecipeComments);
+
+export const affiliateEnum = pgEnum("affiliate", [
+  "Amazon",
+  "Etsy",
+  "Instacart",
+  "Target",
+]);
+
+// Amazon Affiliate Product Table
+export const AffiliateProductTable = pgTable(
+  "affiliate_product",
+  {
+    name: text("name").notNull(),
+    type: productTypeEnum("type").notNull(),
+    affiliate: affiliateEnum("affiliate").notNull(),
+    affiliateUniqueId: text("affiliate_unique_id").notNull(),
+    imageUrl: text("image_url").notNull(),
+    imageWidth: integer("image_width").notNull(),
+    imageHeight: integer("image_height").notNull(),
+    blurDataUrl: text("blur_data_url").notNull(),
+    curated: boolean("curated").notNull().default(false),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    metadata: jsonb("metadata"),
+  },
+  (table) => ({
+    unq: unique("affiliate_unique_id_idx").on(
+      table.affiliate,
+      table.affiliateUniqueId
+    ),
+  })
+);
+
+export const AffiliateProductSchema = createSelectSchema(AffiliateProductTable);
+export const NewAffiliateProductSchema = createInsertSchema(
+  AmazonAffiliateProductTable
+);
