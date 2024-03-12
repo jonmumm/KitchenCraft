@@ -832,7 +832,7 @@ export const sessionMachine = setup({
                     input: ({ context }) => ({
                       prompt: context.runningInput!,
                     }),
-                    src: "generateTokens",
+                    src: "generateRecipes",
                     onError: {
                       actions: (f) => {
                         console.log(f);
