@@ -375,9 +375,9 @@ export const AddedTokens = () => {
 export const SuggestedRecipeCards = () => {
   const session$ = useSessionStore();
   const session = useStore(session$);
-  const numCards = Math.max(
+  const numCards = Math.min(
     session.context.numCompletedRecipes,
-    Math.min(session.context.numCompletedRecipes, 6)
+    Math.max(session.context.numCompletedRecipes, 6)
   );
   const items = new Array(numCards).fill(0);
 
