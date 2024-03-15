@@ -375,10 +375,7 @@ export const AddedTokens = () => {
 export const SuggestedRecipeCards = () => {
   const session$ = useSessionStore();
   const session = useStore(session$);
-  const numCards = Math.min(
-    session.context.numCompletedRecipes,
-    Math.max(session.context.numCompletedRecipes, 6)
-  );
+  const numCards = Math.max(session.context.numCompletedRecipes, 6);
   const items = new Array(numCards).fill(0);
 
   return (
@@ -456,7 +453,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
 
   const diffToCurrent = index - currentItemIndex;
 
-  if (diffToCurrent < 0 || diffToCurrent >= 4 || index > numCompletedRecipes) {
+  if (diffToCurrent < 0 || diffToCurrent >= 4) {
     return null;
   }
 
