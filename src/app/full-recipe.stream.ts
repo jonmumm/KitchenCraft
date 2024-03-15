@@ -2,32 +2,28 @@ import { StreamObservableEvent } from "@/lib/stream-to-observable";
 import { TokenStream } from "@/lib/token-stream";
 import { RecipePredictionOutputSchema } from "@/schema";
 import { z } from "zod";
+import { buildInput } from "./utils";
 
-const ItemSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-});
-
-type NewRecipeInput = {
+type Input = {
   prompt: string;
+  tokens: string[];
   name: string;
   description: string;
 };
 
+export const FullRecipeEventBase = "FULL_RECIPE";
 
-export const NewRecipeEventBase = "NEW_RECIPE";
-
-export type NewRecipeEvent = StreamObservableEvent<
-  typeof NewRecipeEventBase,
+export type FullRecipeEvent = StreamObservableEvent<
+  typeof FullRecipeEventBase,
   z.infer<typeof RecipePredictionOutputSchema>
 >;
 
-export class NewRecipeStream extends TokenStream<NewRecipeInput> {
-  protected async getUserMessage(input: NewRecipeInput): Promise<string> {
+export class FullRecipeStream extends TokenStream<Input> {
+  protected async getUserMessage(input: Input): Promise<string> {
     return NEW_RECIPE_USER_PROMPT_TEMPLATE(input);
   }
 
-  protected async getSystemMessage(input: NewRecipeInput): Promise<string> {
+  protected async getSystemMessage(input: Input): Promise<string> {
     return NEW_RECIPE_TEMPLATE(input);
   }
 
@@ -36,8 +32,8 @@ export class NewRecipeStream extends TokenStream<NewRecipeInput> {
   }
 }
 
-const NEW_RECIPE_USER_PROMPT_TEMPLATE = (input: NewRecipeInput) => `
-${input.prompt}
+const NEW_RECIPE_USER_PROMPT_TEMPLATE = (input: Input) => `
+${buildInput(input)}
 
 \`\`\`yaml
 name: ${input.name}
@@ -45,8 +41,11 @@ description: ${input.description}
 \`\`\`
 `;
 
-const NEW_RECIPE_TEMPLATE = (input: NewRecipeInput) => `
-The user will provide for a name and description of a recipe to generate. Please generate a full recipe for this selection following the format and examples below.
+const NEW_RECIPE_TEMPLATE = (
+  input: Input
+) => `You are an expert chef assistant. The user will provider the name and description for a recipe.
+
+Come up with a recipe recipe that matches the users prompt following the format and examples below. Format it in YAML and include nothing else in the response.
 
 Format: ${FORMAT_INSTRUCTIONS}
 
@@ -56,14 +55,7 @@ Example 1: ${EXAMPLE_1.output}
 
 Example 2: ${EXAMPLE_2.output}
 
-Example 3: ${EXAMPLE_3.output}
-
-For added context, this is the original prompt to come up with the name and description the user will provide:
-
-\`\`\`
-${input.prompt}
-\`\`\`
-`;
+Example 3: ${EXAMPLE_3.output}`;
 
 const OUTPUT_1 = `\`\`\`yaml
 recipe:

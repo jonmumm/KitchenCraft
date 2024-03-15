@@ -317,3 +317,21 @@ export type AdContext = z.infer<typeof AdContextSchema>;
 // export type AdDisplay = z.infer<typeof AdDisplaySchema>;
 export type AffiliateProduct = z.infer<typeof AffiliateProductSchema>;
 export type NewAffiliateProduct = z.infer<typeof NewAffiliateProductSchema>;
+
+export type PartialRecipe = {
+  name?: string;
+  description?: string;
+  tags?: string[];
+  yield?: string;
+  ingredients?: string[];
+  instructions?: string[];
+  cookTime?: string;
+  totalTime?: string;
+  activeTime?: string;
+};
+
+export type AdInstance = {
+  id: string;
+  context: AdContext;
+  product?: AffiliateProduct;
+};

@@ -31,11 +31,6 @@ export default async function AdCard(props: {
     >
       <div className="relative">
         <Skeleton className="w-full h-56" />
-        {/* <img
-              className="w-full h-56 object-contain p-4"
-              src={product.imageUrl}
-              alt={product.name}
-            /> */}
       </div>
       <div className="p-4 bg-slate-50 text-slate-900 flex-1 flex items-center justify-center text-sm">
         <h4 className="font-semibold text-md mb-2 line-clamp-3 flex-1">

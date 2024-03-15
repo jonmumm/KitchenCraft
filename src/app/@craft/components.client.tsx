@@ -17,7 +17,12 @@ import {
   XIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { ComponentProps, ReactNode, useContext } from "react";
+import {
+  ComponentProps,
+  ReactNode,
+  useContext,
+  useSyncExternalStore,
+} from "react";
 import { CraftContext } from "../context";
 import { SessionStoreContext } from "../session-store.context";
 import {
@@ -26,6 +31,17 @@ import {
   selectPromptLength,
   selectTokens,
 } from "./selectors";
+// import {
+//   selectIsCreating,
+//   selectIsRemixing,
+//   selectPromptLength,
+//   selectTokens,
+// } from "./selectors";
+//   selectIsCreating,
+//   selectIsRemixing,
+//   selectPromptLength,
+//   selectTokens,
+// } from "./selectors";
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
@@ -373,6 +389,32 @@ export const SuggestedRecipeCards = () => {
 
 const useSessionStore = () => {
   return useContext(SessionStoreContext);
+};
+
+const useNumCompletedRecipes = () => {
+  const session$ = useSessionStore();
+  return useSyncExternalStore(
+    session$.subscribe,
+    () => {
+      return session$.get().context.numCompletedRecipes;
+    },
+    () => {
+      return session$.get().context.numCompletedRecipes;
+    }
+  );
+};
+
+const useCurrentItemIndex = () => {
+  const session$ = useSessionStore();
+  return useSyncExternalStore(
+    session$.subscribe,
+    () => {
+      return session$.get().context.currentItemIndex;
+    },
+    () => {
+      return session$.get().context.currentItemIndex;
+    }
+  );
 };
 
 const useCurrentRecipe = () => {
@@ -791,8 +833,13 @@ const Times = ({
 function Ingredients({}) {
   const NUM_LINE_PLACEHOLDERS = 5;
   const recipe = useCurrentRecipe();
+  const numIngredients = recipe?.ingredients?.length || 0;
+  const currentItemIndex = useCurrentItemIndex();
+  const numCompletedRecipes = useNumCompletedRecipes();
   const items = new Array(
-    Math.max(recipe?.ingredients?.length || 0, NUM_LINE_PLACEHOLDERS)
+    numCompletedRecipes < currentItemIndex + 1 && !recipe?.instructions?.length
+      ? Math.max(numIngredients, NUM_LINE_PLACEHOLDERS)
+      : numIngredients
   ).fill(0);
 
   const Item = ({ index }: { index: number }) => {
@@ -822,8 +869,13 @@ function Ingredients({}) {
 function Instructions() {
   const NUM_LINE_PLACEHOLDERS = 5;
   const recipe = useCurrentRecipe();
+  const numInstructions = recipe?.instructions?.length || 0;
+  const currentItemIndex = useCurrentItemIndex();
+  const numCompletedRecipes = useNumCompletedRecipes();
   const items = new Array(
-    Math.max(recipe?.instructions?.length || 0, NUM_LINE_PLACEHOLDERS)
+    numCompletedRecipes < currentItemIndex + 1
+      ? Math.max(numInstructions, NUM_LINE_PLACEHOLDERS)
+      : numInstructions
   ).fill(0);
 
   const Item = ({ index }: { index: number }) => {
