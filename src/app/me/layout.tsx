@@ -58,7 +58,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
   );
 }
 
-export const TagsFilter = () => {
+const TagsFilter = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -80,7 +80,7 @@ export const TagsFilter = () => {
   );
 };
 
-export const UpvotesFilter = () => {
+const UpvotesFilter = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -107,7 +107,7 @@ export const UpvotesFilter = () => {
   );
 };
 
-export const RatingsFilter = () => {
+const RatingsFilter = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -140,7 +140,7 @@ export const RatingsFilter = () => {
   );
 };
 
-export const CommentsFilter = () => {
+const CommentsFilter = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -160,7 +160,7 @@ export const CommentsFilter = () => {
   );
 };
 
-export const SortDropdown = () => {
+const SortDropdown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -187,7 +187,7 @@ export const SortDropdown = () => {
   );
 };
 
-export const Rating = ({ value }: { value: number }) => {
+const Rating = ({ value }: { value: number }) => {
   return (
     <div className="flex flex-row">
       {[1, 2, 3, 4, 5].map((current) => (
