@@ -7,12 +7,12 @@ import {
   getCurrentEmail,
   getSession,
   getSessionActorClient,
-  getUniqueId
+  getUniqueId,
 } from "@/lib/auth/session";
 import { createAppInstallToken } from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA } from "@/lib/headers";
-import { assert } from "@/lib/utils";
+import { assert, noop } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
@@ -65,12 +65,14 @@ export default async function RootLayout({
   footer,
   header,
   remix,
+  banner,
 }: {
   children: ReactNode;
   craft: ReactNode;
   footer: ReactNode;
   header: ReactNode;
   remix: ReactNode;
+  banner: ReactNode;
 }) {
   const uniqueId = await getUniqueId();
   const currentEmail = await getCurrentEmail();
@@ -89,6 +91,7 @@ export default async function RootLayout({
   const { snapshot, connectionId, token } =
     await sessionActorClient.get(uniqueId);
   assert(snapshot, "expected snapshot");
+  sessionActorClient.send(uniqueId, { type: "SSR_LAYOUT" }).then(noop);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -139,6 +142,7 @@ export default async function RootLayout({
                 disableTransitionOnChange
               >
                 <div className="min-h-screen flex flex-col">
+                  <div>{banner}</div>
                   <div>{header}</div>
                   <div className="crafting:hidden">{children}</div>
                   <div className="flex-1 hidden crafting:flex flex-col">

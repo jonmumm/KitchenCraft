@@ -40,7 +40,6 @@ export class InstantRecipeMetadataStream extends TokenStream<InstantRecipeMetada
     .join("\n\n")}
   `
         : "");
-    console.log({ message, input });
     return message;
   }
 

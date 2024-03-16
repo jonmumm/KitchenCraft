@@ -1,6 +1,7 @@
 import { env } from "@/env.public";
 import Bowser from "bowser";
 import { headers } from "next/headers";
+import { parseCookie } from "./coookieStore";
 
 export const getOrigin = () => {
   const headersList = headers();
@@ -45,6 +46,11 @@ export const getCanInstallPWA = () => {
   const browser = Bowser.getParser(headerList.get("user-agent")!);
   return browser.getOSName() === "iOS" && browser.getBrowserName() === "Safari";
 };
+
+export const getAppSessionId = () => {
+  return parseCookie("appSessionId");
+};
+
 export const getIsMobile = () => {
   const browser = getBrowser();
   return browser.getPlatformType() === "mobile";

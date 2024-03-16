@@ -121,7 +121,7 @@ export const RecipeListItem = ({
                 <MediaGalleryItems />
               </MediaGallery>
             </MediaGalleryContainer>
-            <div className="flex flex-row justify-start pl-2">
+            {/* <div className="flex flex-row justify-start pl-2">
               <Link
                 shallow
                 href={`?prompt=${encodeURIComponent(
@@ -145,7 +145,7 @@ export const RecipeListItem = ({
                   </p>
                 </Button>
               </Link>
-            </div>
+            </div> */}
             <NavigationLink href={href}>
               <div className="px-5 flex flex-row gap-4 items-center">
                 <p className="flex-1">{recipe.description}</p>

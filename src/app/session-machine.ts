@@ -275,7 +275,6 @@ export const sessionMachine = setup({
           map((recipes) => {
             const recipe = recipes[0];
             assert(recipe, "expected recipe");
-            console.log(recipe);
             return recipe;
           }),
           switchMap(async (recipe) => {
@@ -286,7 +285,6 @@ export const sessionMachine = setup({
             });
           }),
           switchMap((stream) => {
-            console.log("starting stream");
             return streamToObservable(
               stream,
               RecipeProductsEventBase,
@@ -298,9 +296,9 @@ export const sessionMachine = setup({
               event.type === "SUGGEST_RECIPE_PRODUCTS_PROGRESS" &&
               Array.isArray(event.data.queries)
             ) {
-              const newKeywords = event.data.queries.filter(
-                (keyword) => !lastKeywords.has(keyword)
-              );
+              const newKeywords = event.data.queries
+                .slice(0, event.data.queries.length - 1)
+                .filter((keyword) => !lastKeywords.has(keyword));
               newKeywords.forEach((keyword) => lastKeywords.add(keyword)); // Update state
 
               // // Map new keywords to events and emit them immediately
@@ -464,24 +462,8 @@ export const sessionMachine = setup({
                     }),
                   },
                 ],
-                // target:"Initializing",
               },
             },
-            // Initializing: {
-            //   invoke: {
-            //     onDone: {
-            //       target: "Idle",
-            //       actions: assign(({ event, context }) =>
-            //         produce(context, (draft) => {
-            //           console.log(event);
-            //           // draft.adInstances
-            //         })
-            //       ),
-            //     },
-            //     input: () => ({ adIds: [] }),
-            //     src: "initializeAds",
-            //   },
-            // },
           },
         },
       },
@@ -808,7 +790,6 @@ export const sessionMachine = setup({
                         "Continously generates name and description metadata for recipes up until currentItemIndex + 6",
                       states: {
                         Waiting: {
-                          entry: () => console.log("enter waiting"),
                           always: {
                             target: "Generating",
                             guard: ({ context }) =>
@@ -820,17 +801,11 @@ export const sessionMachine = setup({
                           entry: console.error,
                         },
                         Generating: {
-                          entry: () => console.log("enter generating"),
                           on: {
                             INSTANT_RECIPE_METADATA_START: {
                               actions: assign(({ context, event }) =>
                                 produce(context, (draft) => {
                                   const id = randomUUID();
-                                  console.log(
-                                    "METADAT START",
-                                    context.suggestedRecipes.length,
-                                    event
-                                  );
                                   draft.suggestedRecipes.push(id);
                                   draft.recipes[id] = {};
                                 })
@@ -865,7 +840,6 @@ export const sessionMachine = setup({
                                 // todo dry: up
                                 assign(({ context, event }) =>
                                   produce(context, (draft) => {
-                                    console.log("COMPLETE START");
                                     const currentRecipeId =
                                       context.suggestedRecipes[
                                         context.suggestedRecipes.length - 1
@@ -881,10 +855,6 @@ export const sessionMachine = setup({
                                       ...recipe,
                                       ...event.data,
                                     };
-                                    console.log(
-                                      "COMPLETE!",
-                                      context.numCompletedRecipeMetadata
-                                    );
                                     draft.numCompletedRecipeMetadata =
                                       context.numCompletedRecipeMetadata + 1;
                                   })
@@ -898,18 +868,10 @@ export const sessionMachine = setup({
                           invoke: {
                             onError: "Error",
                             input: ({ context, event }) => {
-                              console.log("INVOKIN!!!!!", event);
                               const previousRejections =
                                 context.suggestedRecipes.map(
                                   (id) => context.recipes[id]!
                                 );
-                              // console.log({
-                              //   previousRejections,
-                              //   suggestedRecipes: context.suggestedRecipes,
-                              //   result: context.suggestedRecipes.map(
-                              //     (id) => context.recipes[id!]
-                              //   ),
-                              // });
                               return {
                                 prompt: context.prompt,
                                 tokens: context.tokens,
@@ -936,8 +898,6 @@ export const sessionMachine = setup({
                         },
                         Generating: {
                           entry: assign({
-                            // numCompletedRecipeMetadata: number;: ({ context }) =>
-                            //   context.numCompletedRecipeMetadata: number; + 1,
                             generatingRecipeId: ({ context }) =>
                               context.suggestedRecipes[
                                 context.numCompletedRecipes

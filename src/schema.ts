@@ -721,7 +721,12 @@ const GetSnapshotEventSchema = z.object({
   type: z.literal("GET_SNAPSHOT"),
 });
 
+const SSRLayoutEventSchema = z.object({
+  type: z.literal("SSR_LAYOUT"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  SSRLayoutEventSchema,
   GetSnapshotEventSchema,
   InitAdInstancesEventSchema,
   ViewAdInstanceEventSchema,
