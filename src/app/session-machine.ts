@@ -563,6 +563,57 @@ export const sessionMachine = setup({
           },
         },
 
+        NewRecipe: {
+          initial: "Idle",
+          states: {
+            Idle: {
+              on: {
+                SAVE: {
+                  target: "Creating",
+                  actions: assign({
+                    createdBy: ({ event }) => {
+                      return event.caller.id;
+                    },
+                  }),
+                },
+              },
+            },
+            Error: {
+              entry: ({ event }) => {
+                console.log(event);
+              },
+            },
+            Creating: {
+              invoke: {
+                onDone: {
+                  target: "Idle",
+                  actions: assign(({ context, event }) => {
+                    return produce(context, (draft) => {
+                      draft.createdRecipeSlugs.push(event.output);
+                    });
+                  }),
+                },
+                onError: "Error",
+                input: ({ context }) => {
+                  const currentRecipeId =
+                    context.suggestedRecipes[context.currentItemIndex];
+                  assert(currentRecipeId, "expected currentRecipeId");
+                  let recipe = context.recipes[currentRecipeId];
+                  assert(recipe, "expected currentRecipe");
+                  assert(context.createdBy, "expected createdBy when savings");
+                  return {
+                    recipe,
+                    prompt: context.prompt,
+                    tokens: context.tokens,
+                    createdBy: context.createdBy,
+                  };
+                },
+                src: "createNewRecipe",
+              },
+            },
+          },
+        },
+
         Generators: {
           type: "parallel",
           on: {
