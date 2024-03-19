@@ -4,7 +4,7 @@ import { RecipePredictionOutputSchema } from "@/schema";
 import { z } from "zod";
 import { buildInput } from "./utils";
 
-type Input = {
+export type FullRecipeStreamInput = {
   prompt: string;
   tokens: string[];
   name: string;
@@ -18,12 +18,12 @@ export type FullRecipeEvent = StreamObservableEvent<
   z.infer<typeof RecipePredictionOutputSchema>
 >;
 
-export class FullRecipeStream extends TokenStream<Input> {
-  protected async getUserMessage(input: Input): Promise<string> {
+export class FullRecipeStream extends TokenStream<FullRecipeStreamInput> {
+  protected async getUserMessage(input: FullRecipeStreamInput): Promise<string> {
     return NEW_RECIPE_USER_PROMPT_TEMPLATE(input);
   }
 
-  protected async getSystemMessage(input: Input): Promise<string> {
+  protected async getSystemMessage(input: FullRecipeStreamInput): Promise<string> {
     return NEW_RECIPE_TEMPLATE(input);
   }
 
@@ -32,7 +32,7 @@ export class FullRecipeStream extends TokenStream<Input> {
   }
 }
 
-const NEW_RECIPE_USER_PROMPT_TEMPLATE = (input: Input) => `
+const NEW_RECIPE_USER_PROMPT_TEMPLATE = (input: FullRecipeStreamInput) => `
 ${buildInput(input)}
 
 \`\`\`yaml
@@ -42,7 +42,7 @@ description: ${input.description}
 `;
 
 const NEW_RECIPE_TEMPLATE = (
-  input: Input
+  input: FullRecipeStreamInput
 ) => `You are an expert chef assistant. The user will provider the name and description for a recipe.
 
 Come up with a recipe recipe that matches the users prompt following the format and examples below. Format it in YAML and include nothing else in the response.

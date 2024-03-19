@@ -17,3 +17,11 @@ TODO setup `.env.example` based on `src/env.public.ts` and `src/env.private.ts`.
 This project is licensed under the AGPL-3.0, a strong copyleft license. It mandates that if you modify and run a modified version of this software on a server or network, you must also offer the source code of your modified version to your users. This ensures that the freedom to modify and redistribute the software (even when running on servers) is preserved, promoting transparency and community contributions.
 
 See [LICENSE.md](/LICENSE.md) for more.
+
+## Stream Tests
+
+To run test for a prompt, use something similar to this command:
+ 
+```
+npm run test related src/app/full-recipe.stream.test.ts
+```
