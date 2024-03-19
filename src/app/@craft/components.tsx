@@ -23,10 +23,12 @@ import {
   CraftNotSaving,
   CraftReadyToSave,
   CraftSaving,
+  EnterEmailForm,
   SuggestedRecipeCards,
   // SuggestedTagBadge,
   SuggestedTokenBadge,
 } from "./components.client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/display/card";
 
 const Container = twc.div`flex flex-col gap-2 h-full max-w-3xl mx-auto w-full`;
 const Section = twc.div`flex flex-col gap-1`;

@@ -4,10 +4,21 @@ import { Badge } from "@/components/display/badge";
 import { Card, CardDescription, CardTitle } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
+import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/input/form";
 import { useSelector } from "@/hooks/useSelector";
 import { cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import {
   ClockIcon,
@@ -17,12 +28,17 @@ import {
   XIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ComponentProps,
   ReactNode,
+  useCallback,
   useContext,
+  useState,
   useSyncExternalStore,
 } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { CraftContext } from "../context";
 import { SessionStoreContext } from "../session-store.context";
 import {
@@ -31,6 +47,7 @@ import {
   selectPromptLength,
   selectTokens,
 } from "./selectors";
+import { signIn } from "next-auth/react";
 // import {
 //   selectIsCreating,
 //   selectIsRemixing,
@@ -901,3 +918,75 @@ function Instructions() {
     </>
   );
 }
+
+const formSchema = z.object({
+  email: z.string().email({ message: "Invalid email address" }),
+});
+
+export const EnterEmailForm = () => {
+  const [disabled, setDisabled] = useState(false);
+  const router = useRouter();
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+  const onSubmit = useCallback(
+    async (data: z.infer<typeof formSchema>) => {
+      setDisabled(true);
+      try {
+        await signIn("email", {
+          email: data.email,
+          redirect: false,
+        });
+
+        const passcodeParams = new URLSearchParams({
+          email: data.email,
+        });
+
+        const callbackUrl = "/me"; // todo make the pending recipe....
+        passcodeParams.set("callbackUrl", callbackUrl);
+
+        router.push(`/auth/passcode?${passcodeParams.toString()}`);
+      } catch (error) {
+        console.error("Sign in failed:", error);
+        setDisabled(false);
+      }
+    },
+    [router]
+  );
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field, fieldState }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  autoFocus
+                  autoComplete="email"
+                  disabled={disabled}
+                  type="email"
+                  placeholder="you@example.com"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>Send yourself a login code.</FormDescription>
+              {fieldState.error && (
+                <FormMessage>{fieldState.error.message}</FormMessage>
+              )}
+            </FormItem>
+          )}
+        />
+        <Button disabled={disabled} type="submit" className="w-full" size="lg">
+          {disabled ? "Loading..." : "Submit"}
+        </Button>
+      </form>
+    </Form>
+  );
+};

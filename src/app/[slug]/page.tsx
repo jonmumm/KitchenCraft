@@ -4,6 +4,12 @@ import { Card } from "@/components/display/card";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/input/dropdown-menu";
+import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogOverlay,
@@ -12,37 +18,26 @@ import {
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
 import {
-  getCurrentVersionId,
   getProfileBySlug,
   getProfileLifetimePoints,
   getRecentRecipesByProfile,
 } from "@/db/queries";
-import { getCurrentUserId, getSession } from "@/lib/auth/session";
-import { getUserAgent } from "@/lib/headers";
+import { getCurrentUserId } from "@/lib/auth/session";
+import { getIsMobile } from "@/lib/headers";
 import { formatJoinDateStr } from "@/lib/utils";
 import { ProfileSlugSchema } from "@/schema";
-import Bowser from "bowser";
 import { ChefHatIcon, MoreVerticalIcon } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { combineLatest, from, map, shareReplay } from "rxjs";
 import { RecipeListItem } from "../recipe/components";
-import { redirect } from "next/navigation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/input/dropdown-menu";
-import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
 
 export default async function Page(props: { params: { slug: string } }) {
   const currentUserId = await getCurrentUserId();
   const slug = decodeURIComponent(props.params.slug);
-  const userAgent = getUserAgent();
-  const browser = Bowser.getParser(userAgent);
-  const isMobile = browser.getPlatformType() === "mobile";
+  const isMobile = getIsMobile();
 
   const profileParse = ProfileSlugSchema.safeParse(slug);
   if (!profileParse.success) {

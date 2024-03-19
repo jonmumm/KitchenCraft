@@ -9,7 +9,7 @@ import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
 import { getSession } from "@/lib/auth/session";
 import { map } from "nanostores";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import {
   useParams,
   usePathname,
@@ -65,6 +65,7 @@ export function ApplicationProvider(props: {
         router,
         send,
         initialPath: pathname,
+        session: props.session,
         session$,
       })
     );
@@ -79,6 +80,7 @@ export function ApplicationProvider(props: {
       <SessionProvider session={props.session}>
         <ApplicationContext.Provider value={store}>
           <CraftProvider>
+            <SessionEventProviders />
             <PageLoadEventsProvider />
             <SearchParamsEventsProvider />
             <HashChangeEventsProvider />
@@ -155,6 +157,25 @@ const SearchParamsEventsProvider = () => {
       });
     }
   }, [send, searchParams]);
+
+  return null;
+};
+
+const SessionEventProviders = () => {
+  const session = useSession();
+  const send = useSend();
+  const initializedRef = useRef(true);
+
+  useEffect(() => {
+    if (!initializedRef.current) {
+      send({ type: "UPDATE_SESSION", session });
+    }
+    // if (loaded.current !== pathname) {
+    //   send({ type: "PAGE_LOADED", pathname });
+    //   loaded.current = pathname;
+    // }
+    return () => {};
+  }, [send, session]);
 
   return null;
 };

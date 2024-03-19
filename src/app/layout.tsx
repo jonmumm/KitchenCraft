@@ -1,5 +1,8 @@
-import { Toaster } from "@/components/feedback/sonner";
 import { Toaster as LegacyToaster } from "@/components/feedback/toaster";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+} from "@/components/layout/responsive-dialog";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
@@ -11,13 +14,19 @@ import {
 } from "@/lib/auth/session";
 import { createAppInstallToken } from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
-import { getCanInstallPWA } from "@/lib/headers";
+import { getCanInstallPWA, getIsMobile } from "@/lib/headers";
 import { assert, noop } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
+import { Toaster } from "sonner";
 import "../styles/globals.css";
-import { Body, SearchParamsToastMessage } from "./components.client";
+import {
+  Body,
+  IsInputtingEmail,
+  SaveRecipeCard,
+  SearchParamsToastMessage,
+} from "./components.client";
 import { ApplicationProvider } from "./provider";
 import { SessionStoreProvider } from "./session-store-provider";
 import "./styles.css";
@@ -151,6 +160,7 @@ export default async function RootLayout({
                 </div>
                 <div className="sticky bottom-0 z-20">{footer}</div>
                 {canInstallPWA && <SafariInstallPrompt />}
+                <RegistrationDialog />
               </ThemeProvider>
               <Toaster />
               <SearchParamsToastMessage />
@@ -162,3 +172,16 @@ export default async function RootLayout({
     </html>
   );
 }
+
+const RegistrationDialog = () => {
+  const isMobile = getIsMobile();
+  return (
+    <IsInputtingEmail>
+      <ResponsiveDialog open isMobile={isMobile}>
+        <ResponsiveDialogContent>
+          <SaveRecipeCard />
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    </IsInputtingEmail>
+  );
+};

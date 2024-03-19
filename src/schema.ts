@@ -1,4 +1,5 @@
 import type { CreateMessage } from "ai";
+import { useSession } from "next-auth/react";
 import { z } from "zod";
 import {
   COOKING_TIMES,
@@ -725,8 +726,14 @@ const SSRLayoutEventSchema = z.object({
   type: z.literal("SSR_LAYOUT"),
 });
 
+const UpdateSessionEventSchema = z.object({
+  type: z.literal("UPDATE_SESSION"),
+  session: z.custom<ReturnType<typeof useSession>>(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   SSRLayoutEventSchema,
+  UpdateSessionEventSchema,
   GetSnapshotEventSchema,
   InitAdInstancesEventSchema,
   ViewAdInstanceEventSchema,

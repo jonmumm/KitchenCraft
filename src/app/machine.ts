@@ -15,6 +15,7 @@ import {
   SuggestionsInput,
 } from "@/types";
 import { ReadableAtom } from "nanostores";
+import { Session } from "next-auth";
 import { parseAsString } from "next-usequerystate";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import {
@@ -57,12 +58,14 @@ export const createCraftMachine = ({
   router,
   initialPath,
   send,
+  session,
   session$,
 }: {
   searchParams: Record<string, string>;
   router: AppRouterInstance;
   initialPath: string;
   send: (event: AppEvent) => void;
+  session: Session | null;
   session$: ReadableAtom<SessionSnapshot>;
 }) => {
   const instantRecipeMetadataGenerator = fromEventObservable(
@@ -386,6 +389,47 @@ export const createCraftMachine = ({
                 ],
               }),
             },
+          },
+        },
+        Auth: {
+          initial: !session ? "Anonymous" : "LoggedIn",
+          on: {
+            UPDATE_SESSION: {
+              target: ".LoggedIn",
+            },
+          },
+          states: {
+            Anonymous: {
+              on: {
+                SAVE: "Registering",
+              },
+            },
+            Registering: {
+              initial: "InputtingEmail",
+              onDone: "LoggedIn",
+              states: {
+                InputtingEmail: {
+                  on: {
+                    PAGE_LOADED: {
+                      target: "InputtingOTP",
+                      guard: ({ event }) => event.pathname === "/auth/passcode",
+                    },
+                  },
+                },
+                InputtingOTP: {
+                  on: {
+                    PAGE_LOADED: {
+                      target: "Complete",
+                      guard: ({ event }) => event.pathname === "/me",
+                    },
+                  },
+                },
+                Complete: {
+                  type: "final"
+                }
+              },
+            },
+            LoggedIn: {},
           },
         },
         Creating: {
