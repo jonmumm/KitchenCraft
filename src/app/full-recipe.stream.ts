@@ -45,7 +45,7 @@ const NEW_RECIPE_TEMPLATE = (
   input: FullRecipeStreamInput
 ) => `You are an expert chef assistant. The user will provider the name and description for a recipe.
 
-Come up with a recipe recipe that matches the users prompt following the format and examples below. Format it in YAML and include nothing else in the response.
+Come up with a recipe recipe that matches the users prompt following the format and examples below. The instruction steps must include again the ingredient quantity. Format it in YAML and include nothing else in the response.
 
 Format: ${FORMAT_INSTRUCTIONS}
 
@@ -188,8 +188,8 @@ recipe:
     - "Ingredient 2 with quantity and description"
     - "... additional ingredients"
   instructions:
-    - "Step 1 of the cooking/preparation instructions, include the ingredients quantity"
-    - "Step 2 of the cooking/preparation instructions, include the ingredients quantity"
+    - "Step 1 of the cooking/preparation instructions"
+    - "Step 2 of the cooking/preparation instructions"
     - "... additional steps"
 \`\`\`
 `;
