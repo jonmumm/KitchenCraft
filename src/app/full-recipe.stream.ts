@@ -188,8 +188,8 @@ recipe:
     - "Ingredient 2 with quantity and description"
     - "... additional ingredients"
   instructions:
-    - "Step 1 of the cooking/preparation instructions (remind the ingredient quantity for easy reading)"
-    - "Step 2 of the cooking/preparation instructions (remind the ingredient quantity for easy reading)"
+    - "Step 1 of the cooking/preparation instructions, include the ingredients quantity"
+    - "Step 2 of the cooking/preparation instructions, include the ingredients quantity"
     - "... additional steps"
 \`\`\`
 `;
