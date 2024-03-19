@@ -78,10 +78,10 @@ recipe:
     - "1/2 tsp salt"
   instructions:
     - "Preheat oven to 180°C (350°F). Grease and line a square baking tin."
-    - "Melt the chocolate and butter together in a heatproof bowl over simmering water."
-    - "In another bowl, whisk together the eggs, sugar, and vanilla extract."
+    - "Melt the 200g chocolate and 175g butter together in a heatproof bowl over simmering water."
+    - "In another bowl, whisk together the 3 eggs, 200g sugar, and 1 tsp vanilla extract."
     - "Fold the melted chocolate mixture into the egg mixture."
-    - "Sift in the flour, cocoa powder, and salt. Fold until just combined."
+    - "Sift in the 100g flour, 25g cocoa powder, and 1/2 tsp salt. Fold until just combined."
     - "Pour the batter into the prepared tin and spread evenly."
     - "Bake for 20-25 minutes or until a toothpick comes out with a few crumbs. Let it cool before slicing."
 \`\`\``;
@@ -112,12 +112,12 @@ recipe:
     - "Salt to taste"
     - "Fresh coriander leaves for garnish"
   instructions:
-    - "In a bowl, marinate the chicken with yogurt, lemon juice, and half of the garam masala. Let it sit for at least 2 hours."
-    - "Heat oil in a pan and fry the chicken pieces until golden brown. Remove and set aside."
-    - "In the same pan, sauté onions until translucent. Add ginger and garlic, and fry for a couple of minutes."
-    - "Add the spices (turmeric, red chili powder, remaining garam masala) and sauté for a minute."
-    - "Pour in the tomato puree, salt, and let it simmer for 10 minutes."
-    - "Add the fried chicken pieces and cream. Cook for another 10-15 minutes until the chicken is tender."
+    - "In a bowl, marinate the 500g cubed chicken with 150g yogurt, 2 tbsp lemon juice, and half (1 tsp) of the garam masala. Let it sit for at least 2 hours."
+    - "Heat 2 tbsp oil in a pan and fry the chicken pieces until golden brown. Remove and set aside."
+    - "In the same pan, sauté the chopped onion until translucent. Add 1 tbs ginger and 3 garlic cloves, and fry for a couple of minutes."
+    - "Add the spices (1 tsp turmeric, 1 tsp red chili powder, remaining (1 tsp) garam masala) and sauté for a minute."
+    - "Pour in the 200g tomato puree, salt, and let it simmer for 10 minutes."
+    - "Add the fried chicken pieces and 100ml cream. Cook for another 10-15 minutes until the chicken is tender."
     - "Garnish with fresh coriander leaves before serving."
 \`\`\``;
 
@@ -138,7 +138,7 @@ recipe:
     - "100g mozzarella cheese (optional)"
     - "Butter or oil for frying"
   instructions:
-    - "In a large bowl, combine cornmeal, salt, and warm water. Mix until a dough forms."
+    - "In a large bowl, combine 2 cups cornmeal, 1 tsp salt, and warm water. Mix until a dough forms."
     - "Divide the dough into 6 equal parts and shape each part into a ball. Flatten the balls to form discs about 1/2 inch thick."
     - "If you're adding cheese, place a portion of the cheese in the center of each disc, fold the dough over, and reshape into a disc, ensuring the cheese is sealed inside."
     - "Heat butter or oil in a skillet over medium heat. Cook the arepas for 7-10 minutes on each side or until they're golden brown."
