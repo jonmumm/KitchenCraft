@@ -401,7 +401,9 @@ export const createCraftMachine = ({
           states: {
             Anonymous: {
               on: {
-                SAVE: "Registering",
+                SAVE: {
+                  target: "Registering",
+                },
               },
             },
             Registering: {
@@ -425,8 +427,8 @@ export const createCraftMachine = ({
                   },
                 },
                 Complete: {
-                  type: "final"
-                }
+                  type: "final",
+                },
               },
             },
             LoggedIn: {},

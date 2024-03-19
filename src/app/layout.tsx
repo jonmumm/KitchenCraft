@@ -2,6 +2,7 @@ import { Toaster as LegacyToaster } from "@/components/feedback/toaster";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
+  ResponsiveDialogOverlay,
 } from "@/components/layout/responsive-dialog";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -178,6 +179,7 @@ const RegistrationDialog = () => {
   return (
     <IsInputtingEmail>
       <ResponsiveDialog open isMobile={isMobile}>
+        <ResponsiveDialogOverlay />
         <ResponsiveDialogContent>
           <SaveRecipeCard />
         </ResponsiveDialogContent>
