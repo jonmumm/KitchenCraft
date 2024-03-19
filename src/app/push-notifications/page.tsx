@@ -5,7 +5,7 @@ import { getProfileByUserId } from "@/db/queries";
 import { env } from "@/env.public";
 import { privateEnv } from "@/env.secrets";
 import { getUniqueId } from "@/lib/auth/session";
-import { setCookie } from "@/lib/coookieStore";
+import { MAX_INT, setCookie } from "@/lib/coookieStore";
 import { assert } from "@/lib/utils";
 import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
@@ -30,7 +30,7 @@ export default async function Page() {
     subscription: PushSubscriptionJSON
   ): Promise<void> {
     "use server";
-    setCookie("permissionState:push", "granted");
+    setCookie("permissionState:push", "granted", { maxAge: MAX_INT });
     redirect("/");
   }
 
@@ -39,9 +39,8 @@ export default async function Page() {
     subscription: PushSubscriptionJSON
   ): Promise<void> {
     "use server";
-    console.log("registering!");
 
-    setCookie("permissionState:push", "granted");
+    setCookie("permissionState:push", "granted", { maxAge: MAX_INT });
 
     const { endpoint, keys, expirationTime } = subscription;
     console.log(expirationTime);

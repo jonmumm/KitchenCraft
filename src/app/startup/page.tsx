@@ -3,7 +3,7 @@ import ServerRedirect from "@/components/navigation/server-redirect";
 import { adapter, authOptions, emailConfig } from "@/lib/auth/options";
 import { getCurrentEmail } from "@/lib/auth/session";
 import { parseAppInstallToken } from "@/lib/browser-session";
-import { parseCookie, setCookie } from "@/lib/coookieStore";
+import { MAX_INT, parseCookie, setCookie } from "@/lib/coookieStore";
 import { createHash, randomString } from "@/lib/string";
 import { assert } from "@/lib/utils";
 import { randomUUID } from "crypto";
@@ -66,7 +66,7 @@ export default async function Page({
           to="/push-notifications"
           onBeforeRedirect={async function () {
             "use server";
-            setCookie("appSessionId", randomUUID());
+            setCookie("appSessionId", randomUUID(), { maxAge: MAX_INT });
           }}
         />
       </div>

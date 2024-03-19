@@ -83,3 +83,5 @@ export function setCookie<K extends CookieKeys>(
     }
   }
 }
+
+export const MAX_INT = 2147483647; // year 2038
