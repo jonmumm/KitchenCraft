@@ -8,7 +8,7 @@ export default async function Page({}) {
         <div className={`flex flex-col h-full justify-between p-4`}>
           <TypeLogo className="h-20 crafting:hidden" />
           <div className="flex flex-col gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
-            <h2 className="text-2xl font-medium">What&apos;s for dinner?</h2>
+            <h2 className="text-2xl font-medium crafting:hidden">What&apos;s for dinner?</h2>
             <p className="crafting:hidden text-muted-foreground text-sm mb-2">
               ⚡️ Instantly create personalized recipes.
             </p>
