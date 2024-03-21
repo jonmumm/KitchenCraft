@@ -42,10 +42,6 @@ import {
 
 export async function MainMenu({ className }: { className?: string }) {
   const session = await getSession();
-  const headerList = headers();
-  const browser = Bowser.getParser(headerList.get("user-agent")!);
-  const canInstallPWA =
-    browser.getOSName() === "iOS" && browser.getBrowserName() === "Safari";
 
   const userId = session?.user.id;
   const email = session?.user.email;
@@ -105,7 +101,7 @@ export async function MainMenu({ className }: { className?: string }) {
     <>
       {!userId && (
         <>
-          {canInstallPWA && <AppInstall />}
+          {/* {canInstallPWA && <AppInstall />} */}
           <Link href="/auth/signin">
             <Button size="lg" className="w-full">
               Sign In / Sign Up
@@ -197,7 +193,7 @@ export async function MainMenu({ className }: { className?: string }) {
               </div>
             </div>
           </div>
-          {canInstallPWA && <AppInstall />}
+          {/* {canInstallPWA && <AppInstall />} */}
           <Separator />
           <div className="flex flex-row items-center justify-between w-full gap-3">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
