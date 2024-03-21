@@ -90,7 +90,7 @@ export async function Footer({
             <SheetTrigger asChild>
               <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 basis-36 min-w-0">
                 <GripVerticalIcon />
-                <FooterTabTitle isActive={false}>Settings</FooterTabTitle>
+                <FooterTabTitle isActive={false}>Menu</FooterTabTitle>
               </Card>
             </SheetTrigger>
             <SheetOverlay />
