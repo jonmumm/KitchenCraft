@@ -70,7 +70,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
           </div>
         )}
         <HomeTabs>
-          <TabsList className="w-full">
+          {/* <TabsList className="w-full">
             <TabsTrigger value="hot" asChild>
               <NavigationLink href="/">
                 Hot
@@ -99,9 +99,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
                 <BestDropdown />
               </NavigationLink>
             </TabsTrigger>
-          </TabsList>
-          <TagsCarousel currentTag={"All"} />
-          <Separator className="mb-8" />
+          </TabsList> */}
+          {/* <TagsCarousel currentTag={"All"} /> */}
+          {/* <Separator className="mb-8" /> */}
           <TabsContent value="hot">{children}</TabsContent>
           <TabsContent value="recent">{children}</TabsContent>
           <TabsContent value="best">{children}</TabsContent>

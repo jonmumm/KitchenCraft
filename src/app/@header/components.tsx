@@ -118,7 +118,7 @@ export async function Header({
   );
 }
 
-const CraftCTA = () => {
+export const CraftCTA = () => {
   // hide the empty state on click
 
   return (
