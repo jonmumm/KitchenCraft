@@ -14,7 +14,7 @@ export default async function Page({}) {
   return (
     <>
       <div className="max-w-3xl mx-auto w-full h-[50vh] crafting:h-auto relative">
-        <div className="hidden lg:block absolute h-full right-4 top-8">
+        <div className="hidden lg:block crafting:hidden absolute h-full right-4 top-8">
           <MenuSheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">

@@ -30,6 +30,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { CraftContext } from "../context";
@@ -111,27 +112,36 @@ export const CraftAutoComplete = () => {
 
 export const CraftInput = ({
   commandBadge,
+  isMobile,
   className,
 }: {
   commandBadge: boolean;
+  isMobile: boolean;
   className?: string;
 }) => {
   const initialParam = useSearchParams();
+  const initiailzedRef = useRef(false);
   const [initialValue] = useState(initialParam.get("prompt") || "");
-  const [autoFocus] = useState(initialParam.get("crafting") === "1");
+  const [autoFocus] = useState(
+    initialParam.get("crafting") === "1" || !isMobile
+  );
+  // const [autoFocus] = useState(true);
 
   // Cleanup the listener set up to add the crafting class if user clicks #prompt before react loads
-  useEffect(() => {
-    setTimeout(() => {
-      window.removePromptListener && window.removePromptListener();
-    }, 0);
-    // assert("removePromptListener";
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     window.removePromptListener && window.removePromptListener();
+  //   }, 0);
+  //   // assert("removePromptListener";
+  // }, []);
 
   const send = useSend();
   const handleBlur = useCallback(() => {
-    send({ type: "BLUR_PROMPT" });
-  }, [send]);
+    if (autoFocus && initiailzedRef.current) {
+      send({ type: "BLUR_PROMPT" });
+    }
+    initiailzedRef.current = true;
+  }, [send, autoFocus, initiailzedRef]);
 
   const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
     (e) => {
@@ -152,6 +162,20 @@ export const CraftInput = ({
   }, [send]);
 
   const handleFocus = useCallback(() => {
+    // This is a hack to prevent scrolling
+    // https://gist.github.com/kiding/72721a0553fa93198ae2bb6eefaa3299
+    const promptEl = document.body.querySelector("#prompt") as
+      | HTMLTextAreaElement
+      | undefined;
+    if (promptEl) {
+      promptEl.style.opacity = "0";
+    }
+    setTimeout(() => {
+      if (promptEl) {
+        promptEl.style.opacity = "1";
+      }
+    }, 1);
+
     send({ type: "FOCUS_PROMPT" });
   }, [send]);
 
@@ -242,7 +266,7 @@ export const CraftInput = ({
                 }
             }
             // todo remove the listener react loads
-            var removePromptListener = setupPromptListener();
+            // var removePromptListener = setupPromptListener();
           `,
         }}
       />

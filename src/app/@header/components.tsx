@@ -9,7 +9,7 @@ import { TypeLogo } from "@/components/logo";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
-import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
+import { getIsMacDesktop, getIsMobile, getRefererPath } from "@/lib/headers";
 import { cn } from "@/lib/utils";
 import { MainMenu } from "@/modules/main-menu";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
@@ -131,6 +131,7 @@ export const CraftCTA = () => {
           <AddedTokens />
         </HasTokens>
         <CraftInput
+          isMobile={getIsMobile()}
           // autoFocus={autoFocus}
           commandBadge={getIsMacDesktop()}
         />
