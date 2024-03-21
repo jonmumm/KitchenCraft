@@ -82,6 +82,39 @@ export const ReactiveFooter = ({
   );
 };
 
+
+export const SettingsTabLink = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => {
+  const send = useSend();
+
+  useEffect(() => {
+    setTimeout(() => {
+      window.removeCraftListener && window.removeCraftListener();
+    }, 0);
+  }, []);
+
+  const handleClick = useCallback(() => {
+    send({ type: "NEW_RECIPE" });
+  }, [send]);
+  
+  return (
+    <>
+      <div
+        onClick={handleClick}
+        id="craft-link"
+        className={cn("basis-32 cursor-pointer", className)}
+      >
+        {children}
+      </div>
+    </>
+  );
+};
+
 export const CraftTabLink = ({
   children,
   className,

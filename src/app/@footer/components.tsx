@@ -1,17 +1,25 @@
 import { Card } from "@/components/display/card";
-import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
+import { Skeleton } from "@/components/display/skeleton";
+import { Button } from "@/components/input/button";
+import {
+  SheetContent,
+  SheetOverlay,
+  SheetTrigger,
+} from "@/components/layout/sheet";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
-import { AxeIcon, ChefHatIcon, Loader2Icon, SearchIcon } from "lucide-react";
-import { from, map, of } from "rxjs";
+import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import {
-  CraftTabLink,
-  CraftTabTitle,
-  FooterTabTitle,
-  ReactiveFooter,
-} from "./components.client";
+  ChefHatIcon,
+  GripVerticalIcon,
+  HomeIcon,
+  Loader2Icon,
+} from "lucide-react";
+import { from, map, of } from "rxjs";
+import { MainMenu } from "../menu/components";
+import { FooterTabTitle, ReactiveFooter } from "./components.client";
 
 export async function Footer({
   currentTab,
@@ -47,15 +55,19 @@ export async function Footer({
   // };
 
   return (
-    <ReactiveFooter className="fixed z-20 bottom-0 left-0 right-0 flex rounded-b-none lg:hidden p-4 crafting:hidden">
-      <div className="bg-card w-full border-muted shadow-2xl border-2 border-solid p-2 rounded-full">
+    <ReactiveFooter className="fixed z-20 bottom-0 left-0 right-0 flex rounded-b-none lg:hidden crafting:hidden">
+      <div
+        className="bg-card w-full border-t-2 border-solid border-slate-50 dark:border-slate-950"
+        // style={{ borderTop: "1px solid #777" }}
+        // style={{ boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.25)" }}
+      >
         <div className="flex flex-row gap-2 justify-center w-full">
           <NavigationLink href="/" className="basis-36 min-w-0">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1">
-              <SearchIcon className="transitioning:hidden" />
+              <HomeIcon className="transitioning:hidden" />
               <Loader2Icon className="hidden transitioning:block animate-spin" />
               <FooterTabTitle isActive={currentTab === "explore"}>
-                Explore
+                Home
               </FooterTabTitle>
             </Card>
           </NavigationLink>
@@ -74,6 +86,20 @@ export async function Footer({
               </FooterTabTitle>
             </Card>
           </NavigationLink>
+          <MenuSheet>
+            <SheetTrigger asChild>
+              <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 basis-36 min-w-0">
+                <GripVerticalIcon />
+                <FooterTabTitle isActive={false}>Settings</FooterTabTitle>
+              </Card>
+            </SheetTrigger>
+            <SheetOverlay />
+            <SheetContent side="right" className="p-4">
+              <div className="flex flex-col gap-2 py-4">
+                <MainMenu />
+              </div>
+            </SheetContent>
+          </MenuSheet>
           {/* <Link href="/leaderboard" className="basis-36">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 min-w-0">
               <TrophyIcon />
@@ -82,12 +108,12 @@ export async function Footer({
               </FooterTabTitle>
             </Card>
           </Link> */}
-          <CraftTabLink className="basis-36">
+          {/* <CraftTabLink className="basis-36">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 min-w-0">
               <AxeIcon />
               <CraftTabTitle />
             </Card>
-          </CraftTabLink>
+          </CraftTabLink> */}
         </div>
       </div>
     </ReactiveFooter>
@@ -101,7 +127,7 @@ export async function FooterPlaceholder() {
         <div className="flex flex-row gap-2 justify-center w-full">
           <NavigationLink href="/" className="basis-36 min-w-0">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1">
-              <SearchIcon className="transitioning:hidden" />
+              <HomeIcon className="transitioning:hidden" />
               <Loader2Icon className="hidden transitioning:block animate-spin" />
               <Skeleton className="w-8 h-4" />
             </Card>
@@ -113,6 +139,20 @@ export async function FooterPlaceholder() {
               <Skeleton className="w-8 h-4" />
             </Card>
           </NavigationLink>
+
+          <MenuSheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <GripVerticalIcon />
+              </Button>
+            </SheetTrigger>
+            <SheetOverlay />
+            <SheetContent side="right">
+              <div className="flex flex-col gap-2 py-4">
+                <MainMenu />
+              </div>
+            </SheetContent>
+          </MenuSheet>
           {/* <Link href="/leaderboard" className="basis-36">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 min-w-0">
               <TrophyIcon />
@@ -121,12 +161,12 @@ export async function FooterPlaceholder() {
               </FooterTabTitle>
             </Card>
           </Link> */}
-          <CraftTabLink className="basis-36">
+          {/* <CraftTabLink className="basis-36">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 min-w-0">
               <AxeIcon />
               <Skeleton className="w-8 h-4" />
             </Card>
-          </CraftTabLink>
+          </CraftTabLink> */}
         </div>
       </div>
     </ReactiveFooter>

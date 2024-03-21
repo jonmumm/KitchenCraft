@@ -94,7 +94,7 @@ export async function Header({
               <TrophyIcon />
             </Button>
           </Link> */}
-          <div className="crafting:hidden">
+          {/* <div className="crafting:hidden">
             <MenuSheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -108,7 +108,7 @@ export async function Header({
                 </div>
               </SheetContent>
             </MenuSheet>
-          </div>
+          </div> */}
           {/* <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
       </Card> */}
         </div>
