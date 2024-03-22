@@ -197,12 +197,12 @@ export const CraftInput = ({
         onKeyDown={handleKeyDown}
         placeholderComponent={
           <div className="flex flex-row w-full h-full relative justify-end items-center">
-            {commandBadge && (
+            {/* {commandBadge && (
               <Badge variant="secondary" className="mr-4">
                 <CommandIcon size={14} />
                 <span style={{ fontSize: "14px" }}>K</span>
               </Badge>
-            )}
+            )} */}
           </div>
         }
       />
