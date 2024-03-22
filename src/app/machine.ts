@@ -2,7 +2,7 @@ import {
   GeneratorObervableEvent,
   eventSourceToGenerator,
 } from "@/lib/generator";
-import { assert } from "@/lib/utils";
+import { assert, isMobile } from "@/lib/utils";
 import {
   InstantRecipeMetadataPredictionOutputSchema,
   SuggestionPredictionOutputSchema,
@@ -21,6 +21,7 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 import {
   ActorRefFrom,
   SnapshotFrom,
+  and,
   assign,
   fromEventObservable,
   fromPromise,
@@ -344,6 +345,9 @@ export const createCraftMachine = ({
       hasPristineInput: ({ context }) => {
         return !context.prompt || !context.prompt.length;
       },
+      isMobile: () => {
+        return isMobile();
+      },
       isInputFocused: ({ event, ...props }) => {
         assert(event.type === "HYDRATE_INPUT", "expected HYDRATE_INPUT event");
         return event.ref === document.activeElement;
@@ -498,6 +502,28 @@ export const createCraftMachine = ({
         Prompt: {
           initial: initialPromptState,
           on: {
+            // HYDRATE_INPUT: {
+            //   guard: "isInputFocused",
+            //   actions: [
+            //     {
+            //       type: "assignPrompt",
+            //       params({ event }) {
+            //         console.log()
+            //         return { prompt: event.ref.value };
+            //       },
+            //     },
+            //     {
+            //       type: "replaceQueryParameters",
+            //       params({ event }) {
+            //         return {
+            //           paramSet: {
+            //             prompt: event.ref.value,
+            //           },
+            //         };
+            //       },
+            //     },
+            //   ],
+            // },
             SET_INPUT: [
               {
                 target: [".Pristine"],
@@ -886,27 +912,12 @@ export const createCraftMachine = ({
                     },
                   ],
                 },
+                SET_INPUT: {
+                  target: "True",
+                },
                 HYDRATE_INPUT: {
                   target: "True",
-                  guard: "isInputFocused",
-                  actions: [
-                    {
-                      type: "assignPrompt",
-                      params({ event }) {
-                        return { prompt: event.ref.value };
-                      },
-                    },
-                    {
-                      type: "replaceQueryParameters",
-                      params({ event }) {
-                        return {
-                          paramSet: {
-                            prompt: event.ref.value,
-                          },
-                        };
-                      },
-                    },
-                  ],
+                  guard: and(["isInputFocused", "isMobile"]),
                 },
               },
             },
