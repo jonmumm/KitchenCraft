@@ -2,7 +2,7 @@ import {
   GeneratorObervableEvent,
   eventSourceToGenerator,
 } from "@/lib/generator";
-import { assert, isMobile } from "@/lib/utils";
+import { assert } from "@/lib/utils";
 import {
   InstantRecipeMetadataPredictionOutputSchema,
   SuggestionPredictionOutputSchema,
@@ -148,8 +148,6 @@ export const createCraftMachine = ({
       document.body.classList.contains("crafting"))
       ? "True"
       : "False";
-
-  const initialFocus = initialOpen || !isMobile();
 
   // if (typeof window !== "undefined" && initialOpen) {
   //   const queryParams = new URLSearchParams(window.location.search);

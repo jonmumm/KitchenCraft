@@ -120,28 +120,20 @@ export const CraftInput = ({
   className?: string;
 }) => {
   const initialParam = useSearchParams();
-  const initiailzedRef = useRef(false);
+  const initialBlurRef = useRef(false);
+  const initialFocusRef = useRef(false);
   const [initialValue] = useState(initialParam.get("prompt") || "");
   const [autoFocus] = useState(
     initialParam.get("crafting") === "1" || !isMobile
   );
-  // const [autoFocus] = useState(true);
-
-  // Cleanup the listener set up to add the crafting class if user clicks #prompt before react loads
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     window.removePromptListener && window.removePromptListener();
-  //   }, 0);
-  //   // assert("removePromptListener";
-  // }, []);
 
   const send = useSend();
   const handleBlur = useCallback(() => {
-    if (autoFocus && initiailzedRef.current) {
+    if (autoFocus && initialBlurRef.current) {
       send({ type: "BLUR_PROMPT" });
     }
-    initiailzedRef.current = true;
-  }, [send, autoFocus, initiailzedRef]);
+    initialBlurRef.current = true;
+  }, [send, autoFocus, initialBlurRef]);
 
   const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
     (e) => {
@@ -162,22 +154,30 @@ export const CraftInput = ({
   }, [send]);
 
   const handleFocus = useCallback(() => {
-    // This is a hack to prevent scrolling
-    // https://gist.github.com/kiding/72721a0553fa93198ae2bb6eefaa3299
-    const promptEl = document.body.querySelector("#prompt") as
-      | HTMLTextAreaElement
-      | undefined;
-    if (promptEl) {
-      promptEl.style.opacity = "0";
-    }
-    setTimeout(() => {
-      if (promptEl) {
-        promptEl.style.opacity = "1";
-      }
-    }, 1);
+    const inputElement = document.getElementById("prompt");
+    if (!inputElement) return;
 
+    // Set opacity to 0 to prevent automatic scrolling
+    inputElement.style.opacity = "0";
+    window.scrollTo(0, 0);
+
+    // requestAnimationFrame(() => {
+    //   inputElement.style.opacity = "1";
+    // }); // Adjust timing as needed
+
+    // Hack
+    // Doing it with 0 and RAF don't work
+    setTimeout(() => {
+      inputElement.style.opacity = "1";
+      window.scrollTo(0, 0);
+    }, 500); // Adjust timing as needed
+
+    if (autoFocus && initialFocusRef.current) {
+      initialFocusRef.current = true;
+      return;
+    }
     send({ type: "FOCUS_PROMPT" });
-  }, [send]);
+  }, [send, autoFocus, initialFocusRef]);
 
   return (
     <div
@@ -197,27 +197,12 @@ export const CraftInput = ({
         onKeyDown={handleKeyDown}
         placeholderComponent={
           <div className="flex flex-row w-full h-full relative justify-end items-center">
-            {/* <div className="flex flex-col flex-1 items-start">
-              <span className="font-semibold text-sm">What to make?</span>
-              <div className="flex flex-row gap-1 text-muted-foreground text-xs">
-                <span>ingredients</span>
-                <span>•</span>
-                <span>tags</span>
-              </div>
-            </div> */}
             {commandBadge && (
               <Badge variant="secondary" className="mr-4">
                 <CommandIcon size={14} />
                 <span style={{ fontSize: "14px" }}>K</span>
               </Badge>
             )}
-            {/* <Image
-              className="w-12 aspect-square absolute right-[3px]"
-              src="/apple-touch-icon.png"
-              alt="KitchenCraft Logo"
-              width={512}
-              height={512}
-            /> */}
           </div>
         }
       />

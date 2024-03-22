@@ -20,6 +20,7 @@ const KeyboardAvoidingView: React.FC<KeyboardAvoidingViewProps> = ({
         window.innerHeight - (window.visualViewport?.height || 0);
       const shiftedForKeyboard = lastScrollTop.current === 0;
 
+      // alert(keyboardHeight, shiftedForKeyboard);
       ref.current.style.transform = shiftedForKeyboard
         ? `translateY(-${keyboardHeight}px)`
         : `translateY(0px)`;
