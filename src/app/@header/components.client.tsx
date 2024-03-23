@@ -27,6 +27,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { usePreventScroll } from "react-aria";
 import { CraftContext } from "../context";
 import { SessionStoreContext } from "../session-store.context";
 
@@ -113,6 +114,7 @@ export const CraftInput = ({
   initialAutoFocus?: boolean;
   className?: string;
 }) => {
+  usePreventScroll();
   const initialParam = useSearchParams();
   const initialBlurRef = useRef(false);
   const initialFocusRef = useRef(false);
@@ -158,7 +160,7 @@ export const CraftInput = ({
     if (!inputElement) return;
 
     // Set opacity to 0 to prevent automatic scrolling
-    inputElement.style.opacity = "0";
+    // inputElement.style.opacity = "0";
     window.scrollTo(0, 0);
 
     // requestAnimationFrame(() => {
@@ -167,10 +169,10 @@ export const CraftInput = ({
 
     // Hack
     // Doing it with 0 and RAF don't work
-    setTimeout(() => {
-      inputElement.style.opacity = "1";
-      window.scrollTo(0, 0);
-    }, 500); // Adjust timing as needed
+    // setTimeout(() => {
+    //   inputElement.style.opacity = "1";
+    //   window.scrollTo(0, 0);
+    // }, 500); // Adjust timing as needed
 
     if (autoFocus && initialFocusRef.current) {
       initialFocusRef.current = true;
