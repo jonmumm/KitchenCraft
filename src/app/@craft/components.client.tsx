@@ -42,6 +42,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CraftContext } from "../context";
 import { SessionStoreContext } from "../session-store.context";
+import { buildInput } from "../utils";
 import {
   selectIsCreating,
   selectIsRemixing,
@@ -991,10 +992,30 @@ export const EnterEmailForm = () => {
   );
 };
 
-export const BackButton = () => {
+export const ClearButton = () => {
   const session$ = useContext(SessionStoreContext);
   const session = useStore(session$);
-  const disabled = session.context.currentItemIndex === 0;
+  const disabled = buildInput(session.context).length === 0;
+  return (
+    <div className="flex flex-row justify-center pointer-events-none">
+      <Button
+        event={{ type: "CLEAR", all: true }}
+        size="lg"
+        className="pointer-events-auto px-3 py-2 cursor-pointer"
+        variant="outline"
+        disabled={disabled}
+      >
+         Clear
+      </Button>
+    </div>
+  );
+};
+
+export const UndoButton = () => {
+  const session$ = useContext(SessionStoreContext);
+  const session = useStore(session$);
+  const disabled = false;
+  // const disabled = session.context.currentItemIndex === 0;
   return (
     <div className="flex flex-row justify-center pointer-events-none">
       <Button
