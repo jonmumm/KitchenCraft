@@ -7,7 +7,6 @@ declare global {
   }
 }
 
-import { Badge } from "@/components/display/badge";
 import AutoResizableTextarea from "@/components/input/auto-resizable-textarea";
 import { Button } from "@/components/input/button";
 import { useSelector } from "@/hooks/useSelector";
@@ -15,12 +14,7 @@ import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
 import { useStore } from "@nanostores/react";
-import {
-  ArrowLeftIcon,
-  ChevronRight,
-  CommandIcon,
-  XCircleIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, ChevronRight, XCircleIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChangeEventHandler,
@@ -123,17 +117,22 @@ export const CraftInput = ({
   const initialBlurRef = useRef(false);
   const initialFocusRef = useRef(false);
   const [initialValue] = useState(initialParam.get("prompt") || "");
-  const [autoFocus] = useState(
-    initialParam.get("crafting") === "1" || !isMobile
+  const actor = useContext(CraftContext);
+
+  const [autoFocus, setAutofocus] = useState(
+    (actor.getSnapshot().value.Hydration === "Waiting" &&
+      initialParam.get("crafting") === "1") ||
+      !isMobile
   );
 
   const send = useSend();
   const handleBlur = useCallback(() => {
     if (autoFocus && initialBlurRef.current) {
       send({ type: "BLUR_PROMPT" });
+      setAutofocus(false);
     }
     initialBlurRef.current = true;
-  }, [send, autoFocus, initialBlurRef]);
+  }, [send, autoFocus, initialBlurRef, setAutofocus]);
 
   const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
     (e) => {

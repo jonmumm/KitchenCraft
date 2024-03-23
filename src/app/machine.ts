@@ -499,31 +499,42 @@ export const createCraftMachine = ({
             },
           },
         },
+        Hydration: {
+          initial: "Waiting",
+          states: {
+            Waiting: {
+              on: {
+                HYDRATE_INPUT: {
+                  target: "Complete",
+                  actions: [
+                    {
+                      type: "assignPrompt",
+                      params({ event }) {
+                        return { prompt: event.ref.value };
+                      },
+                    },
+                    {
+                      type: "replaceQueryParameters",
+                      params({ event }) {
+                        return {
+                          paramSet: {
+                            prompt: event.ref.value,
+                          },
+                        };
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            Complete: {
+              type: "final",
+            },
+          },
+        },
         Prompt: {
           initial: initialPromptState,
           on: {
-            // HYDRATE_INPUT: {
-            //   guard: "isInputFocused",
-            //   actions: [
-            //     {
-            //       type: "assignPrompt",
-            //       params({ event }) {
-            //         console.log()
-            //         return { prompt: event.ref.value };
-            //       },
-            //     },
-            //     {
-            //       type: "replaceQueryParameters",
-            //       params({ event }) {
-            //         return {
-            //           paramSet: {
-            //             prompt: event.ref.value,
-            //           },
-            //         };
-            //       },
-            //     },
-            //   ],
-            // },
             SET_INPUT: [
               {
                 target: [".Pristine"],
@@ -591,6 +602,29 @@ export const createCraftMachine = ({
         },
         Open: {
           initial: initialOpen,
+          on: {
+            SET_INPUT: {
+              target: ".True",
+              actions: [
+                {
+                  type: "assignPrompt",
+                  params: ({ event }) => ({
+                    prompt: event.value,
+                  }),
+                },
+                {
+                  type: "replaceQueryParameters",
+                  params({ event }) {
+                    return {
+                      paramSet: {
+                        prompt: event.value,
+                      },
+                    };
+                  },
+                },
+              ],
+            },
+          },
           states: {
             True: {
               entry: [
@@ -693,26 +727,6 @@ export const createCraftMachine = ({
                 //     },
                 //   ],
                 // },
-                SET_INPUT: {
-                  actions: [
-                    {
-                      type: "assignPrompt",
-                      params: ({ event }) => ({
-                        prompt: event.value,
-                      }),
-                    },
-                    {
-                      type: "replaceQueryParameters",
-                      params({ event }) {
-                        return {
-                          paramSet: {
-                            prompt: event.value,
-                          },
-                        };
-                      },
-                    },
-                  ],
-                },
                 KEY_DOWN: [
                   {
                     guard: ({ event, context }) => {
@@ -911,9 +925,6 @@ export const createCraftMachine = ({
                       },
                     },
                   ],
-                },
-                SET_INPUT: {
-                  target: "True",
                 },
                 HYDRATE_INPUT: {
                   target: "True",
