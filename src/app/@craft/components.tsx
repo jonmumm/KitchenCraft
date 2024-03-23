@@ -8,7 +8,6 @@ import { getMostUsedTagsLastWeek } from "@/db/queries";
 import {
   CarrotIcon,
   ChevronLeft,
-  ChevronLeftIcon,
   ChevronRightIcon,
   Loader2Icon,
   TagIcon,
@@ -23,12 +22,10 @@ import {
   CraftNotSaving,
   CraftReadyToSave,
   CraftSaving,
-  EnterEmailForm,
   SuggestedRecipeCards,
   // SuggestedTagBadge,
   SuggestedTokenBadge,
 } from "./components.client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/display/card";
 
 const Container = twc.div`flex flex-col gap-2 h-full max-w-3xl mx-auto w-full`;
 const Section = twc.div`flex flex-col gap-1`;
@@ -293,7 +290,7 @@ export const NewRecipeResultsView = () => {
             <CraftNotSaving>
               <div className="max-w-3xl p-2 w-full standalone:mb-10 mx-auto">
                 <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 rounded-md p-2 shadow-xl">
-                  <BackButton />
+                  <CloseButton />
                   <ClearButton />
                   <CraftButton />
                 </div>
@@ -1844,7 +1841,7 @@ const BackBadge = () => {
   );
 };
 
-const BackButton = () => {
+const CloseButton = () => {
   return (
     <div className="flex flex-row justify-center pointer-events-none">
       <Button
@@ -1853,8 +1850,8 @@ const BackButton = () => {
         className="pointer-events-auto px-3 py-2 cursor-pointer"
         variant="outline"
       >
-        <ChevronLeftIcon size={14} />
-         Back
+        {/* <XIcon size={14} /> */}
+        <XIcon />
       </Button>
     </div>
   );
@@ -1870,7 +1867,7 @@ const ClearButton = () => {
         variant="outline"
       >
          Clear
-        <XIcon size={14} />
+        {/* <XIcon size={14} /> */}
       </Button>
     </div>
   );
