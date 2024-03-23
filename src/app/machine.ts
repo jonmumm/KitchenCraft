@@ -924,6 +924,9 @@ export const createCraftMachine = ({
                         };
                       },
                     },
+                    assign({
+                      currentItemIndex: 0,
+                    }),
                   ],
                 },
                 HYDRATE_INPUT: {

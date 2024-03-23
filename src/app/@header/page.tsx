@@ -5,6 +5,7 @@ import {
   SheetTrigger,
 } from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
+import { getIsMobile } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import { GripVerticalIcon } from "lucide-react";
 import { MainMenu } from "../menu/components";
@@ -38,7 +39,7 @@ export default async function Page({}) {
             <p className="crafting:hidden text-muted-foreground text-sm mb-2">
               ⚡️ Instantly create personalized recipes.
             </p>
-            <CraftCTA />
+            <CraftCTA initialAutoFocus={!getIsMobile()} />
           </div>
           {/* <Link href="/leaderboard" className="hidden lg:block crafting:hidden">
             <Button variant="ghost">

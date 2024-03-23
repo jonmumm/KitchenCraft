@@ -1,24 +1,12 @@
 import { Badge } from "@/components/display/badge";
 import { Button } from "@/components/input/button";
-import {
-  SheetContent,
-  SheetOverlay,
-  SheetTrigger,
-} from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
-import { getIsMacDesktop, getIsMobile, getRefererPath } from "@/lib/headers";
+import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
 import { cn } from "@/lib/utils";
-import { MainMenu } from "@/modules/main-menu";
-import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import {
-  ChefHatIcon,
-  ChevronRightIcon,
-  GripVerticalIcon,
-  Loader2Icon,
-} from "lucide-react";
+import { ChefHatIcon, ChevronRightIcon, Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AddedTokens, HasTokens } from "../@craft/components.client";
@@ -118,7 +106,11 @@ export async function Header({
   );
 }
 
-export const CraftCTA = () => {
+export const CraftCTA = ({
+  initialAutoFocus,
+}: {
+  initialAutoFocus?: boolean;
+}) => {
   // hide the empty state on click
 
   return (
@@ -131,7 +123,7 @@ export const CraftCTA = () => {
           <AddedTokens />
         </HasTokens>
         <CraftInput
-          isMobile={getIsMobile()}
+          initialAutoFocus={initialAutoFocus}
           // autoFocus={autoFocus}
           commandBadge={getIsMacDesktop()}
         />

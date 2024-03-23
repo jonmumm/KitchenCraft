@@ -62,7 +62,7 @@ import {
   RecipeProductsTokenStream,
   SuggestRecipeProductsEvent,
 } from "./recipe/[slug]/products/recipe-products-stream";
-import { buildInput } from "./utils";
+import { buildInput, generateUrlSafeHash } from "./utils";
 
 // const autoSuggestionOutputSchemas = {
 //   tags: InstantRecipeMetadataPredictionOutputSchema,
@@ -101,7 +101,7 @@ export const sessionMachine = setup({
       createdRecipeSlugs: string[];
       createdBy?: string;
       prompt: string;
-      runningInput: string | undefined;
+      inputHash: string | undefined;
       storage: Party.Storage;
       tokens: string[];
       suggestedRecipes: string[];
@@ -326,21 +326,23 @@ export const sessionMachine = setup({
     },
     shouldRunInput: ({ context, event }) => {
       if (event.type === "ADD_TOKEN") {
-        const nextInput = buildInput({
-          prompt: event.token,
-          tokens: context.tokens,
-        });
-        return nextInput !== context.runningInput;
+        const hash = generateUrlSafeHash(
+          buildInput({
+            prompt: event.token,
+            tokens: context.tokens,
+          })
+        );
+        return hash !== context.inputHash;
         // } else if (event.type === "SET_INPUT") {
         //   return true;
       }
 
       if (event.type === "REMOVE_TOKEN") {
-        const nextInput = buildInput({
+        const input = buildInput({
           prompt: event.token,
           tokens: context.tokens.filter((token) => token !== event.token),
         });
-        return !!nextInput.length;
+        return !!input.length;
       }
 
       if (event.type === "NEW_RECIPE") {
@@ -372,7 +374,7 @@ export const sessionMachine = setup({
     numCompletedRecipes: 0,
     numCompletedRecipeMetadata: 0,
     tokens: [],
-    runningInput: undefined,
+    inputHash: undefined,
     recipes: {},
     suggestedRecipes: [],
     generatingRecipeId: undefined,
@@ -487,7 +489,7 @@ export const sessionMachine = setup({
                   assign({
                     prompt: "",
                     tokens: [],
-                    runningInput: undefined,
+                    inputHash: undefined,
                   }),
                 ],
               },
@@ -496,7 +498,7 @@ export const sessionMachine = setup({
                   "resetSuggestions",
                   assign({
                     prompt: "",
-                    runningInput: undefined,
+                    inputHash: undefined,
                   }),
                 ],
               },
@@ -507,6 +509,7 @@ export const sessionMachine = setup({
                 assign({
                   tokens: ({ event }) => event.tokens || [],
                   prompt: ({ event }) => event.prompt || "",
+                  currentItemIndex: 0,
                 }),
               ],
             },
@@ -534,11 +537,13 @@ export const sessionMachine = setup({
                 "resetSuggestions",
                 assign({
                   prompt: ({ event }) => event.value,
-                  runningInput: ({ event, context }) =>
-                    buildInput({
-                      prompt: event.value,
-                      tokens: context.tokens,
-                    }),
+                  inputHash: ({ event, context }) =>
+                    generateUrlSafeHash(
+                      buildInput({
+                        prompt: event.value,
+                        tokens: context.tokens,
+                      })
+                    ),
                 }),
               ],
             },
@@ -599,12 +604,7 @@ export const sessionMachine = setup({
         Generators: {
           type: "parallel",
           on: {
-            CLEAR: [
-              ".Placeholder.Idle",
-              ".Tokens.Idle",
-              ".Recipes.Idle",
-              // ".CurrentRecipe.Idle",
-            ],
+            CLEAR: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle"],
             REMOVE_TOKEN: [
               {
                 target: [
@@ -613,13 +613,16 @@ export const sessionMachine = setup({
                   ".Recipes.Generating",
                 ],
                 actions: assign({
-                  runningInput: ({ context, event }) =>
-                    buildInput({
-                      prompt: context.prompt,
-                      tokens: context.tokens.filter(
-                        (token) => token !== event.token
-                      ),
-                    }),
+                  inputHash: ({ context, event }) => {
+                    return generateUrlSafeHash(
+                      buildInput({
+                        prompt: context.prompt,
+                        tokens: context.tokens.filter(
+                          (token) => token !== event.token
+                        ),
+                      })
+                    );
+                  },
                 }),
                 guard: "shouldRunInput",
               },
@@ -631,7 +634,7 @@ export const sessionMachine = setup({
                   // ".CurrentRecipe.Idle",
                 ],
                 actions: assign({
-                  runningInput: undefined,
+                  inputHash: undefined,
                 }),
               },
             ],
@@ -644,11 +647,13 @@ export const sessionMachine = setup({
               actions: [
                 "resetSuggestions",
                 assign({
-                  runningInput: ({ context, event }) =>
-                    buildInput({
+                  inputHash: ({ context, event }) => {
+                    const input = buildInput({
                       prompt: context.prompt,
                       tokens: context.tokens,
-                    }),
+                    });
+                    return generateUrlSafeHash(input);
+                  },
                 }),
               ],
               guard: "shouldRunInput",
@@ -662,11 +667,13 @@ export const sessionMachine = setup({
               actions: [
                 "resetSuggestions",
                 assign({
-                  runningInput: ({ context, event }) =>
-                    buildInput({
-                      prompt: context.prompt,
-                      tokens: context.tokens,
-                    }),
+                  inputHash: ({ context, event }) =>
+                    generateUrlSafeHash(
+                      buildInput({
+                        prompt: context.prompt,
+                        tokens: context.tokens,
+                      })
+                    ),
                 }),
               ],
               guard: "shouldRunInput",
@@ -720,7 +727,7 @@ export const sessionMachine = setup({
                     input: ({ context }) => ({
                       prompt: context.prompt.length
                         ? context.prompt
-                        : context.runningInput!,
+                        : buildInput(context),
                     }),
                     src: "generatePlaceholders",
                     onDone: {
@@ -757,7 +764,7 @@ export const sessionMachine = setup({
                   },
                   invoke: {
                     input: ({ context }) => ({
-                      prompt: context.runningInput!,
+                      prompt: buildInput(context),
                     }),
                     src: "generateTokens",
                     onDone: {

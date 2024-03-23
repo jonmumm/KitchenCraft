@@ -106,11 +106,11 @@ export const CraftAutoComplete = () => {
 
 export const CraftInput = ({
   commandBadge,
-  isMobile,
+  initialAutoFocus,
   className,
 }: {
   commandBadge: boolean;
-  isMobile: boolean;
+  initialAutoFocus?: boolean;
   className?: string;
 }) => {
   const initialParam = useSearchParams();
@@ -121,7 +121,7 @@ export const CraftInput = ({
 
   const [autoFocus, setAutofocus] = useState(
     actor.getSnapshot().value.Hydration === "Waiting" &&
-      (initialParam.get("crafting") === "1" || !isMobile)
+      (initialParam.get("crafting") === "1" || initialAutoFocus)
   );
 
   const send = useSend();
