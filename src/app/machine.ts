@@ -670,7 +670,7 @@ export const createCraftMachine = ({
                 //   ],
                 // },
                 TOGGLE: "False",
-                BACK: "False",
+                // BACK: "False",
                 CLOSE: "False",
                 ADD_TOKEN: {
                   actions: [

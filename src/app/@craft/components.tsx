@@ -5,6 +5,7 @@ import KeyboardAvoidingView from "@/components/layout/keyboard-avoiding-view";
 import ClientOnly from "@/components/util/client-only";
 import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
+import { useStore } from "@nanostores/react";
 import {
   CarrotIcon,
   ChevronRightIcon,
@@ -12,9 +13,11 @@ import {
   TagIcon,
   XIcon,
 } from "lucide-react";
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useContext } from "react";
 import { twc } from "react-twc";
+import { SessionStoreContext } from "../session-store.context";
 import {
+  BackButton,
   CraftEmpty,
   CraftNotEmpty,
   CraftNotReadyToSave,
@@ -291,6 +294,7 @@ export const NewRecipeResultsView = () => {
                 <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 p-2 border-t-2 border-solid border-slate-200 dark:border-slate-800">
                   <CloseButton />
                   <ClearButton />
+                  <BackButton />
                   <CraftButton />
                 </div>
               </div>
@@ -1839,17 +1843,18 @@ const CloseBadge = () => {
   );
 };
 
+
 const CloseButton = () => {
   return (
     <div className="flex flex-row justify-center pointer-events-none">
       <Button
-        event={{ type: "BACK" }}
+        event={{ type: "CLOSE" }}
         size="lg"
         className="pointer-events-auto px-3 py-2 cursor-pointer"
         variant="outline"
       >
         {/* <XIcon size={14} /> */}
-        <XIcon />
+        Close
       </Button>
     </div>
   );

@@ -27,6 +27,7 @@ import {
   TagIcon,
   XIcon,
 } from "lucide-react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -47,7 +48,6 @@ import {
   selectPromptLength,
   selectTokens,
 } from "./selectors";
-import { signIn } from "next-auth/react";
 // import {
 //   selectIsCreating,
 //   selectIsRemixing,
@@ -988,5 +988,24 @@ export const EnterEmailForm = () => {
         </Button>
       </form>
     </Form>
+  );
+};
+
+export const BackButton = () => {
+  const session$ = useContext(SessionStoreContext);
+  const session = useStore(session$);
+  const disabled = session.context.currentItemIndex === 0;
+  return (
+    <div className="flex flex-row justify-center pointer-events-none">
+      <Button
+        event={{ type: "BACK" }}
+        size="lg"
+        className="pointer-events-auto px-3 py-2 cursor-pointer"
+        variant="outline"
+        disabled={disabled}
+      >
+        Undo
+      </Button>
+    </div>
   );
 };
