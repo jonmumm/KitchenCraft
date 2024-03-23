@@ -874,11 +874,11 @@ export const createCraftMachine = ({
                     };
                   },
                 },
-                assign({
-                  currentItemIndex: () => {
-                    return 0;
-                  },
-                }),
+                // assign({
+                //   currentItemIndex: () => {
+                //     return 0;
+                //   },
+                // }),
               ],
               on: {
                 UPDATE_SEARCH_PARAMS: {
