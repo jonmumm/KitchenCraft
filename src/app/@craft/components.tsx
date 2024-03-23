@@ -7,7 +7,6 @@ import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
 import {
   CarrotIcon,
-  ChevronLeft,
   ChevronRightIcon,
   Loader2Icon,
   TagIcon,
@@ -288,8 +287,8 @@ export const NewRecipeResultsView = () => {
               </div>
             </CraftSaving>
             <CraftNotSaving>
-              <div className="max-w-3xl p-2 w-full standalone:mb-10 mx-auto">
-                <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 rounded-md p-2 shadow-xl">
+              <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
+                <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 p-2 border-t-2 border-solid border-slate-200 dark:border-slate-800">
                   <CloseButton />
                   <ClearButton />
                   <CraftButton />
@@ -298,7 +297,7 @@ export const NewRecipeResultsView = () => {
             </CraftNotSaving>
           </CraftNotEmpty>
           <CraftEmpty>
-            <BackBadge />
+            <CloseBadge />
           </CraftEmpty>
         </ClientOnly>
       </Footer>
@@ -1826,16 +1825,15 @@ const CraftButton = () => {
   );
 };
 
-const BackBadge = () => {
+const CloseBadge = () => {
   return (
     <div className="flex flex-row justify-center pointer-events-none py-2 standalone:mb-10 mb-2">
       <Badge
         event={{ type: "BACK" }}
         className="pointer-events-auto px-3 py-2 cursor-pointer"
-        suppressHydrationWarning
       >
-        <ChevronLeft size={14} />
-         Back
+        Close
+        <XIcon size={14} />
       </Badge>
     </div>
   );
