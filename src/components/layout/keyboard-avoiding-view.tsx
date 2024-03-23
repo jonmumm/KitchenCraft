@@ -62,7 +62,7 @@ const KeyboardAvoidingView: React.FC<KeyboardAvoidingViewProps> = ({
   }, [updateViewportHeight, handleScroll]);
 
   return (
-    <div className="fixed w-full bottom-0" style={{ zIndex: 60 }}>
+    <div className="sticky bottom-0" style={{ zIndex: 60 }}>
       <div ref={ref} className={`transition-transform pointer-events-none`}>
         {children}
       </div>
