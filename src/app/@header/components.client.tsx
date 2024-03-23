@@ -120,9 +120,8 @@ export const CraftInput = ({
   const actor = useContext(CraftContext);
 
   const [autoFocus, setAutofocus] = useState(
-    (actor.getSnapshot().value.Hydration === "Waiting" &&
-      initialParam.get("crafting") === "1") ||
-      !isMobile
+    actor.getSnapshot().value.Hydration === "Waiting" &&
+      (initialParam.get("crafting") === "1" || !isMobile)
   );
 
   const send = useSend();
@@ -130,6 +129,8 @@ export const CraftInput = ({
     if (autoFocus && initialBlurRef.current) {
       send({ type: "BLUR_PROMPT" });
       setAutofocus(false);
+    } else if (!autoFocus) {
+      send({ type: "BLUR_PROMPT" });
     }
     initialBlurRef.current = true;
   }, [send, autoFocus, initialBlurRef, setAutofocus]);
