@@ -15,7 +15,6 @@ import {
 import { FC, ReactNode } from "react";
 import { twc } from "react-twc";
 import {
-  UndoButton,
   ClearButton,
   CraftEmpty,
   CraftNotEmpty,
@@ -26,6 +25,7 @@ import {
   SuggestedRecipeCards,
   // SuggestedTagBadge,
   SuggestedTokenBadge,
+  UndoButton,
 } from "./components.client";
 
 const Container = twc.div`flex flex-col gap-2 h-full max-w-3xl mx-auto w-full`;
@@ -301,7 +301,7 @@ export const NewRecipeResultsView = () => {
           </CraftNotEmpty>
           <CraftEmpty>
             <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
-              <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 p-2 border-t-2 border-solid border-slate-200 dark:border-slate-800">
+              <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 p-2 border-t-2 border-solid border-slate-200 dark:border-slate-800 justify-center">
                 <CloseButton />
                 <ClearButton />
                 <UndoButton />
