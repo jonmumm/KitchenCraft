@@ -22,6 +22,7 @@ import {
 import { nanoid } from "ai";
 import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
+import { Operation, applyPatch, compare } from "fast-json-patch";
 import type * as Party from "partykit/server";
 import { from, map, mergeMap, switchMap } from "rxjs";
 import {
@@ -119,6 +120,8 @@ export const sessionMachine = setup({
       viewedAdInstanceIds: string[];
       clickedAdInstanceIds: string[];
       productIdViewCounts: Record<string, number>;
+      undoOperations: Operation[][];
+      redoOperations: Operation[][];
     },
     events: {} as
       | WithCaller<AppEvent>
@@ -388,9 +391,18 @@ export const sessionMachine = setup({
     viewedAdInstanceIds: [],
     clickedAdInstanceIds: [],
     productIdViewCounts: {},
+    undoOperations: [],
+    redoOperations: [],
   }),
   type: "parallel",
   states: {
+    // Operations: {
+    //   on: {
+    //     ADD_TOKEN: {
+    //       actions: assign({}),
+    //     },
+    //   },
+    // },
     Ads: {
       type: "parallel",
       states: {
@@ -476,9 +488,36 @@ export const sessionMachine = setup({
       states: {
         Input: {
           on: {
+            UNDO: {
+              actions: assign(({ context }) => {
+                return produce(context, (draft) => {
+                  const patch = draft.undoOperations.pop();
+                  if (patch) {
+                    applyPatch(draft, patch);
+                  } else {
+                    console.warn("tried to UNDO with no operations on stack");
+                  }
+                });
+              }),
+            },
             SKIP: {
               actions: assign({
                 currentItemIndex: ({ context }) => context.currentItemIndex + 1,
+                undoOperations: ({ context, event }) => [
+                  ...context.undoOperations,
+                  compare(
+                    {
+                      prompt: context.prompt,
+                      tokens: context.tokens,
+                      currentItemIndex: context.currentItemIndex + 1,
+                    },
+                    {
+                      prompt: context.prompt,
+                      tokens: context.tokens,
+                      currentItemIndex: context.currentItemIndex,
+                    }
+                  ),
+                ],
               }),
             },
             CLEAR: [
@@ -490,6 +529,21 @@ export const sessionMachine = setup({
                     prompt: "",
                     tokens: [],
                     inputHash: undefined,
+                    undoOperations: ({ context, event }) => [
+                      ...context.undoOperations,
+                      compare(
+                        {
+                          prompt: "",
+                          tokens: [],
+                          currentItemIndex: context.currentItemIndex,
+                        },
+                        {
+                          prompt: context.prompt,
+                          tokens: context.tokens,
+                          currentItemIndex: context.currentItemIndex,
+                        }
+                      ),
+                    ],
                   }),
                 ],
               },
@@ -499,6 +553,21 @@ export const sessionMachine = setup({
                   assign({
                     prompt: "",
                     inputHash: undefined,
+                    undoOperations: ({ context, event }) => [
+                      ...context.undoOperations,
+                      compare(
+                        {
+                          prompt: "",
+                          tokens: context.tokens,
+                          currentItemIndex: context.currentItemIndex,
+                        },
+                        {
+                          prompt: context.prompt,
+                          tokens: context.tokens,
+                          currentItemIndex: context.currentItemIndex,
+                        }
+                      ),
+                    ],
                   }),
                 ],
               },
@@ -519,6 +588,23 @@ export const sessionMachine = setup({
                 assign({
                   tokens: ({ context, event }) =>
                     context.tokens.filter((token) => token !== event.token),
+                  undoOperations: ({ context, event }) => [
+                    ...context.undoOperations,
+                    compare(
+                      {
+                        prompt: context.prompt,
+                        tokens: context.tokens.filter(
+                          (token) => token !== event.token
+                        ),
+                        currentItemIndex: context.currentItemIndex,
+                      },
+                      {
+                        prompt: context.prompt,
+                        tokens: context.tokens,
+                        currentItemIndex: context.currentItemIndex,
+                      }
+                    ),
+                  ],
                 }),
               ],
             },
@@ -528,6 +614,21 @@ export const sessionMachine = setup({
                   tokens: ({ context, event }) => [
                     ...context.tokens,
                     event.token,
+                  ],
+                  undoOperations: ({ context, event }) => [
+                    ...context.undoOperations,
+                    compare(
+                      {
+                        prompt: context.prompt,
+                        tokens: [...context.tokens, event.token],
+                        currentItemIndex: context.currentItemIndex,
+                      },
+                      {
+                        prompt: context.prompt,
+                        tokens: context.tokens,
+                        currentItemIndex: context.currentItemIndex,
+                      }
+                    ),
                   ],
                 }),
               ],

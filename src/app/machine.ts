@@ -193,7 +193,6 @@ export const createCraftMachine = ({
       dietaryAlternatives: undefined,
       equipmentAdaptations: undefined,
       submittedInputHash: undefined,
-      currentItemIndex: 0,
       currentRecipeUrl: undefined,
     } satisfies Context;
   })();
@@ -209,7 +208,6 @@ export const createCraftMachine = ({
       },
       context: {} as {
         currentCharIndex: number; // the end index for which characters are visible in the current placeholder string
-        currentItemIndex: number; // the current placeholder string we are on in the list
         placeholders: string[]; // the list of placeholder strings to rotate through
       },
       events: {} as AppEvent,
@@ -219,7 +217,6 @@ export const createCraftMachine = ({
     context: ({ input }) => {
       return {
         currentCharIndex: 0,
-        currentItemIndex: 0,
         placeholders: [],
       };
     },
@@ -358,11 +355,11 @@ export const createCraftMachine = ({
       id: "CraftMachine",
       context: initialContext,
       on: {
-        SKIP: {
-          actions: assign({
-            currentItemIndex: ({ context }) => context.currentItemIndex + 1,
-          }),
-        },
+        // SKIP: {
+        //   actions: assign({
+        //     currentItemIndex: ({ context }) => context.currentItemIndex + 1,
+        //   }),
+        // },
       },
       type: "parallel",
       states: {
@@ -377,7 +374,7 @@ export const createCraftMachine = ({
             REMOVE_TOKEN: {
               actions: assign({
                 prompt: "",
-                currentItemIndex: 0,
+                // currentItemIndex: 0,
                 tokens: ({ context, event }) => [
                   ...context.tokens.filter((token) => token !== event.token),
                 ],
@@ -386,7 +383,7 @@ export const createCraftMachine = ({
             ADD_TOKEN: {
               actions: assign({
                 // prompt: "",
-                currentItemIndex: 0,
+                // currentItemIndex: 0,
                 tokens: ({ context, event }) => [
                   ...context.tokens,
                   event.token,
@@ -549,7 +546,7 @@ export const createCraftMachine = ({
               actions: [
                 assign({
                   prompt: undefined,
-                  currentItemIndex: 0,
+                  // currentItemIndex: 0,
                 }),
                 () => {
                   const promptEl = document.body.querySelector("#prompt") as
@@ -758,92 +755,92 @@ export const createCraftMachine = ({
                   },
                   {
                     actions: [
-                      assign({
-                        currentItemIndex: ({ context, event }) => {
-                          const { key, ctrlKey, shiftKey } =
-                            event.keyboardEvent;
-                          const { currentItemIndex } = context;
-                          const latestDescriptionLength =
-                            context.suggestions?.[context.suggestions.length]
-                              ?.description?.length || 0;
+                      // assign({
+                      //   currentItemIndex: ({ context, event }) => {
+                      //     const { key, ctrlKey, shiftKey } =
+                      //       event.keyboardEvent;
+                      //     const { currentItemIndex } = context;
+                      //     const latestDescriptionLength =
+                      //       context.suggestions?.[context.suggestions.length]
+                      //         ?.description?.length || 0;
 
-                          const maxItemIndex = 7;
+                      //     const maxItemIndex = 7;
 
-                          // const maxItemIndex = !context.instantRecipeMetadata
-                          //   ? 0
-                          //   : context.suggestions?.length
-                          //   ? latestDescriptionLength > 10
-                          //     ? context.suggestions.length + 1
-                          //     : context.suggestions?.length
-                          //     ? context.suggestions.length
-                          //     : 1
-                          //   : 0;
+                      //     // const maxItemIndex = !context.instantRecipeMetadata
+                      //     //   ? 0
+                      //     //   : context.suggestions?.length
+                      //     //   ? latestDescriptionLength > 10
+                      //     //     ? context.suggestions.length + 1
+                      //     //     : context.suggestions?.length
+                      //     //     ? context.suggestions.length
+                      //     //     : 1
+                      //     //   : 0;
 
-                          let nextItemIndex =
-                            typeof currentItemIndex !== "undefined"
-                              ? currentItemIndex
-                              : -1;
+                      //     let nextItemIndex =
+                      //       typeof currentItemIndex !== "undefined"
+                      //         ? currentItemIndex
+                      //         : -1;
 
-                          switch (key) {
-                            case "n":
-                            case "j": {
-                              // vim keybind down
-                              if (ctrlKey) {
-                                nextItemIndex = nextItemIndex + 1;
-                              }
-                              break;
-                            }
-                            case "ArrowDown": {
-                              nextItemIndex = nextItemIndex + 1;
-                              break;
-                            }
-                            case "p":
-                            case "k": {
-                              // vim keybind up
-                              if (ctrlKey) {
-                                nextItemIndex = nextItemIndex - 1;
-                              }
-                              break;
-                            }
-                            case "ArrowUp": {
-                              nextItemIndex = nextItemIndex - 1;
-                              break;
-                            }
-                          }
+                      //     switch (key) {
+                      //       case "n":
+                      //       case "j": {
+                      //         // vim keybind down
+                      //         if (ctrlKey) {
+                      //           nextItemIndex = nextItemIndex + 1;
+                      //         }
+                      //         break;
+                      //       }
+                      //       case "ArrowDown": {
+                      //         nextItemIndex = nextItemIndex + 1;
+                      //         break;
+                      //       }
+                      //       case "p":
+                      //       case "k": {
+                      //         // vim keybind up
+                      //         if (ctrlKey) {
+                      //           nextItemIndex = nextItemIndex - 1;
+                      //         }
+                      //         break;
+                      //       }
+                      //       case "ArrowUp": {
+                      //         nextItemIndex = nextItemIndex - 1;
+                      //         break;
+                      //       }
+                      //     }
 
-                          if (nextItemIndex < 0) {
-                            return 0;
-                          }
+                      //     if (nextItemIndex < 0) {
+                      //       return 0;
+                      //     }
 
-                          if (nextItemIndex > maxItemIndex) {
-                            nextItemIndex = maxItemIndex;
-                          }
+                      //     if (nextItemIndex > maxItemIndex) {
+                      //       nextItemIndex = maxItemIndex;
+                      //     }
 
-                          const el = document.querySelector(
-                            `#result-${nextItemIndex}`
-                          );
+                      //     const el = document.querySelector(
+                      //       `#result-${nextItemIndex}`
+                      //     );
 
-                          if (!el) {
-                            // element must have unmounted, no longer selectable
-                            return 0;
-                          }
+                      //     if (!el) {
+                      //       // element must have unmounted, no longer selectable
+                      //       return 0;
+                      //     }
 
-                          // Scroll the element into view
-                          el.scrollIntoView();
+                      //     // Scroll the element into view
+                      //     el.scrollIntoView();
 
-                          // Wait for the next repaint to ensure the scrolling has finished
-                          requestAnimationFrame(() => {
-                            const elementRect = el.getBoundingClientRect();
-                            const absoluteElementTop =
-                              elementRect.top + window.pageYOffset;
-                            const middle =
-                              absoluteElementTop - window.innerHeight / 2;
-                            window.scrollTo(0, middle);
-                          });
+                      //     // Wait for the next repaint to ensure the scrolling has finished
+                      //     requestAnimationFrame(() => {
+                      //       const elementRect = el.getBoundingClientRect();
+                      //       const absoluteElementTop =
+                      //         elementRect.top + window.pageYOffset;
+                      //       const middle =
+                      //         absoluteElementTop - window.innerHeight / 2;
+                      //       window.scrollTo(0, middle);
+                      //     });
 
-                          return nextItemIndex;
-                        },
-                      }),
+                      //     return nextItemIndex;
+                      //   },
+                      // }),
                     ],
                   },
                 ],
@@ -924,9 +921,9 @@ export const createCraftMachine = ({
                         };
                       },
                     },
-                    assign({
-                      currentItemIndex: 0,
-                    }),
+                    // assign({
+                    //   currentItemIndex: 0,
+                    // }),
                   ],
                 },
                 HYDRATE_INPUT: {

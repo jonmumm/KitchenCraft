@@ -31,7 +31,6 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ComponentProps,
   ReactNode,
   useCallback,
   useContext,
@@ -47,7 +46,6 @@ import {
   selectIsCreating,
   selectIsRemixing,
   selectPromptLength,
-  selectTokens,
 } from "./selectors";
 // import {
 //   selectIsCreating,
@@ -64,7 +62,7 @@ import {
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const promptLength = useSelector(actor, selectPromptLength);
-  const tokens = useSelector(actor, selectTokens);
+  const tokens = useTokens();
 
   return !tokens.length && promptLength === 0 ? <>{children}</> : null;
 };
@@ -100,8 +98,7 @@ export const CraftPromptNotEmpty = ({ children }: { children: ReactNode }) => {
 };
 
 export const HasTokens = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const numTokens = useSelector(actor, (state) => state.context.tokens.length);
+  const numTokens = useTokens().length;
 
   return numTokens !== 0 ? <>{children}</> : null;
 };
@@ -129,7 +126,7 @@ export const CraftSaving = ({ children }: { children: ReactNode }) => {
 export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const promptLength = useSelector(actor, selectPromptLength);
-  const tokens = useSelector(actor, selectTokens);
+  const tokens = useTokens();
 
   return tokens.length || promptLength !== 0 ? <>{children}</> : null;
 };
@@ -239,35 +236,35 @@ export const RemixInputting = ({ children }: { children: ReactNode }) => {
 //   );
 // };
 
-export const ResultCard = ({
-  index,
-  children,
-  ...props
-}: {
-  index: number;
-} & ComponentProps<typeof Card>) => {
-  const actor = useContext(CraftContext);
-  const isFocused = useSelector(
-    actor,
-    (state) => state.context.currentItemIndex === index
-  );
+// const ResultCard = ({
+//   index,
+//   children,
+//   ...props
+// }: {
+//   index: number;
+// } & ComponentProps<typeof Card>) => {
+//   const actor = useContext(CraftContext);
+//   const isFocused = useSelector(
+//     actor,
+//     (state) => state.context.currentItemIndex === index
+//   );
 
-  return (
-    <Card
-      id={`result-${index}`}
-      variant="interactive"
-      {...props}
-      className={cn(
-        `w-full flex flex-row justify-between items-center cursor-pointer ${
-          isFocused ? `outline-blue-500 outline outline-2` : ``
-        }`,
-        props.className
-      )}
-    >
-      {children}
-    </Card>
-  );
-};
+//   return (
+//     <Card
+//       id={`result-${index}`}
+//       variant="interactive"
+//       {...props}
+//       className={cn(
+//         `w-full flex flex-row justify-between items-center cursor-pointer ${
+//           isFocused ? `outline-blue-500 outline outline-2` : ``
+//         }`,
+//         props.className
+//       )}
+//     >
+//       {children}
+//     </Card>
+//   );
+// };
 
 // export const SuggestionItem = ({ index }: { index: number }) => {
 //   const actor = useContext(CraftContext);
@@ -366,8 +363,7 @@ export const CraftingPlacholder = () => {
 };
 
 export const AddedTokens = () => {
-  const actor = useContext(CraftContext);
-  const tokens = useSelector(actor, (state) => state.context.tokens);
+  const tokens = useTokens();
   return (
     <div className="flex flex-row flex-wrap gap-2 px-4 mt-2">
       {tokens.map((token) => {
@@ -392,8 +388,7 @@ export const AddedTokens = () => {
 
 export const SuggestedRecipeCards = () => {
   const session$ = useSessionStore();
-  const session = useStore(session$);
-  const numCards = session.context.currentItemIndex + 6;
+  const numCards = useCurrentItemIndex() + 6;
   const items = new Array(numCards).fill(0);
 
   return (
@@ -435,6 +430,12 @@ const useCurrentItemIndex = () => {
   );
 };
 
+const useTokens = () => {
+  const session$ = useSessionStore();
+  const { context } = useStore(session$);
+  return context.tokens;
+};
+
 const useCurrentRecipe = () => {
   const session$ = useSessionStore();
   const session = useStore(session$);
@@ -458,16 +459,11 @@ const useCurrentRecipe = () => {
 };
 
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
-  const actor = useContext(CraftContext);
   const session$ = useSessionStore();
   const session = useStore(session$);
   const recipeId = session.context.suggestedRecipes[index];
   const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
-  const currentItemIndex = useSelector(
-    actor,
-    (state) => state.context.currentItemIndex
-  );
-  const { numCompletedRecipes } = session.context;
+  const currentItemIndex = useCurrentItemIndex();
 
   const diffToCurrent = index - currentItemIndex;
 
@@ -1014,12 +1010,12 @@ export const ClearButton = () => {
 export const UndoButton = () => {
   const session$ = useContext(SessionStoreContext);
   const session = useStore(session$);
-  const disabled = false;
-  // const disabled = session.context.currentItemIndex === 0;
+  const disabled = session.context.undoOperations.length === 0;
+
   return (
     <div className="flex flex-row justify-center pointer-events-none">
       <Button
-        event={{ type: "BACK" }}
+        event={{ type: "UNDO" }}
         size="lg"
         className="pointer-events-auto px-3 py-2 cursor-pointer"
         variant="outline"

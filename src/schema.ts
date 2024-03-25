@@ -431,6 +431,10 @@ const SubmitPromptEventSchema = z.object({
   prompt: z.string(),
 });
 
+const UndoEventSchema = z.object({
+  type: z.literal("UNDO"),
+});
+
 const BackEventSchema = z.object({
   type: z.literal("BACK"),
 });
@@ -786,6 +790,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   BlurPromptEventSchema,
   InitEventSchema,
   BackEventSchema,
+  UndoEventSchema,
   ToggleConfiguratorEventSchema,
   CloseConfiguratorEventSchema,
   SetUsernameEventSchema,

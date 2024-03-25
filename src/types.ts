@@ -93,6 +93,7 @@ import {
   UpvoteEventSchema,
   UserMessageSchema,
 } from "./schema";
+import { SnapshotFrom } from "xstate";
 
 // Define a type utility to extract the type based on the `type` property
 export type ExtractType<T, TypeString> = T extends { type: infer U }
