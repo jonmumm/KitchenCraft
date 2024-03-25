@@ -44,7 +44,11 @@ export const getIsMacDesktop = () => {
 export const getCanInstallPWA = () => {
   const headerList = headers();
   const browser = Bowser.getParser(headerList.get("user-agent")!);
-  return browser.getOSName() === "iOS" && browser.getBrowserName() === "Safari";
+  return (
+    browser.getOSName() === "iOS" &&
+    (browser.getBrowserName() === "Safari" ||
+      browser.getBrowserName() === "Chrome")
+  );
 };
 
 export const getAppSessionId = () => {
