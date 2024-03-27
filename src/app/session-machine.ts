@@ -106,7 +106,7 @@ export const sessionMachine = setup({
       storage: Party.Storage;
       tokens: string[];
       suggestedRecipes: string[];
-      recipes: Record<string, PartialRecipe>;
+      recipes: Record<string, PartialRecipe & { complete: boolean }>;
       generatingRecipeId: string | undefined;
       currentItemIndex: number;
       numCompletedRecipes: number;
@@ -338,6 +338,26 @@ export const sessionMachine = setup({
         return hash !== context.inputHash;
         // } else if (event.type === "SET_INPUT") {
         //   return true;
+      }
+
+      if (event.type === "UNDO") {
+        const hash = generateUrlSafeHash(
+          buildInput({
+            prompt: context.prompt,
+            tokens: context.tokens,
+          })
+        );
+
+        const patch = context.undoOperations[context.undoOperations.length - 1];
+        assert(patch, "expected patch");
+        const nextContext = produce(context, (draft) => {
+          applyPatch(draft, patch);
+        });
+
+        const nextHash = generateUrlSafeHash(buildInput(nextContext));
+        const nextInput = buildInput(nextContext);
+
+        return !!nextInput.length && hash !== nextHash;
       }
 
       if (event.type === "REMOVE_TOKEN") {
@@ -706,6 +726,54 @@ export const sessionMachine = setup({
           type: "parallel",
           on: {
             CLEAR: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle"],
+            UNDO: [
+              {
+                target: [
+                  ".Placeholder.Generating",
+                  ".Tokens.Generating",
+                  ".Recipes.Generating",
+                ],
+                actions: [
+                  "resetSuggestions",
+                  assign({
+                    inputHash: ({ context, event }) => {
+                      return generateUrlSafeHash(buildInput(context));
+                    },
+                  }),
+                ],
+                guard: "shouldRunInput",
+              },
+              {
+                target: [
+                  ".Placeholder.Idle",
+                  ".Tokens.Idle",
+                  ".Recipes.Idle",
+                  // ".CurrentRecipe.Idle",
+                ],
+                guard: ({ context }) => {
+                  const hash = generateUrlSafeHash(
+                    buildInput({
+                      prompt: context.prompt,
+                      tokens: context.tokens,
+                    })
+                  );
+
+                  const patch =
+                    context.undoOperations[context.undoOperations.length - 1];
+                  assert(patch, "expected patch");
+                  const nextContext = produce(context, (draft) => {
+                    applyPatch(draft, patch);
+                  });
+                  const nextInput = buildInput(nextContext);
+
+                  return !nextInput.length;
+                },
+                actions: assign({
+                  inputHash: undefined,
+                  generatingRecipeId: undefined,
+                }),
+              },
+            ],
             REMOVE_TOKEN: [
               {
                 target: [
@@ -713,18 +781,21 @@ export const sessionMachine = setup({
                   ".Tokens.Generating",
                   ".Recipes.Generating",
                 ],
-                actions: assign({
-                  inputHash: ({ context, event }) => {
-                    return generateUrlSafeHash(
-                      buildInput({
-                        prompt: context.prompt,
-                        tokens: context.tokens.filter(
-                          (token) => token !== event.token
-                        ),
-                      })
-                    );
-                  },
-                }),
+                actions: [
+                  "resetSuggestions",
+                  assign({
+                    inputHash: ({ context, event }) => {
+                      return generateUrlSafeHash(
+                        buildInput({
+                          prompt: context.prompt,
+                          tokens: context.tokens.filter(
+                            (token) => token !== event.token
+                          ),
+                        })
+                      );
+                    },
+                  }),
+                ],
                 guard: "shouldRunInput",
               },
               {
@@ -892,7 +963,6 @@ export const sessionMachine = setup({
                   type: "parallel",
                   states: {
                     NameAndDescription: {
-                      entry: () => console.log("generaitng name and desc"),
                       initial: "Generating",
                       description:
                         "Continously generates name and description metadata for recipes up until currentItemIndex + 6",
@@ -915,7 +985,9 @@ export const sessionMachine = setup({
                                 produce(context, (draft) => {
                                   const id = randomUUID();
                                   draft.suggestedRecipes.push(id);
-                                  draft.recipes[id] = {};
+                                  draft.recipes[id] = {
+                                    complete: false,
+                                  };
                                 })
                               ),
                             },
@@ -993,34 +1065,81 @@ export const sessionMachine = setup({
                     },
                     FullRecipe: {
                       initial: "Waiting",
+                      on: {
+                        SKIP: [
+                          {
+                            target: ".Generating",
+                            guard: ({ context }) => {
+                              const nextId = findNextUncompletedRecipe({
+                                ...context,
+                                currentItemIndex: context.currentItemIndex + 1,
+                              });
+                              return (
+                                !!nextId &&
+                                nextId !== context.generatingRecipeId
+                              );
+                            },
+                            actions: assign({
+                              generatingRecipeId: ({ context }) =>
+                                findNextUncompletedRecipe(context),
+                            }),
+                          },
+                        ],
+                      },
                       states: {
                         Waiting: {
                           on: {
-                            INSTANT_RECIPE_METADATA_COMPLETE: {
-                              target: "Generating",
-                            },
-                            // SKIP: {
-                            //   target: "Generating",
-                            // },
+                            INSTANT_RECIPE_METADATA_COMPLETE: [
+                              {
+                                target: "Generating",
+                                guard: ({ context }) => {
+                                  const nextId = findNextUncompletedRecipe({
+                                    ...context,
+                                    numCompletedRecipeMetadata:
+                                      context.numCompletedRecipeMetadata + 1,
+                                  });
+                                  return (
+                                    !!nextId &&
+                                    nextId !== context.generatingRecipeId
+                                  );
+                                },
+                                actions: assign({
+                                  generatingRecipeId: ({ context }) => {
+                                    const next = findNextUncompletedRecipe({
+                                      ...context,
+                                      numCompletedRecipeMetadata:
+                                        context.numCompletedRecipeMetadata + 1,
+                                    });
+                                    return next;
+                                  },
+                                }),
+                              },
+                            ],
                           },
                         },
                         Generating: {
-                          entry: assign({
-                            generatingRecipeId: ({ context }) =>
-                              context.suggestedRecipes[
-                                context.numCompletedRecipes
-                              ],
-                          }),
                           invoke: {
                             onDone: [
                               {
                                 target: "Generating",
                                 guard: ({ context }) => {
-                                  return (
-                                    context.numCompletedRecipeMetadata >
-                                    context.numCompletedRecipes
+                                  assert(
+                                    context.generatingRecipeId,
+                                    "expected generatingRecipeId"
                                   );
+                                  return !!findNextUncompletedRecipe(context);
                                 },
+                                actions: assign({
+                                  generatingRecipeId: ({ context }) => {
+                                    assert(
+                                      context.generatingRecipeId,
+                                      "expected generatingRecipeId"
+                                    );
+                                    const next =
+                                      findNextUncompletedRecipe(context);
+                                    return next;
+                                  },
+                                }),
                                 reenter: true,
                               },
                               {
@@ -1087,6 +1206,7 @@ export const sessionMachine = setup({
                                   draft.recipes[generatingRecipeId] = {
                                     ...recipe,
                                     ...event.data.recipe,
+                                    complete: true,
                                   };
                                   draft.numCompletedRecipes++;
                                 });
@@ -1171,3 +1291,33 @@ const defaultPlaceholders = [
 //   const result = await googleSearchResponse.json();
 //   return result;
 // };
+
+interface RecipeFunctionArgs {
+  suggestedRecipes: string[];
+  recipes: Record<string, { complete: boolean }>;
+  currentItemIndex: number;
+  numCompletedRecipeMetadata: number;
+}
+
+const findNextUncompletedRecipe = ({
+  suggestedRecipes,
+  recipes,
+  currentItemIndex,
+  numCompletedRecipeMetadata,
+}: RecipeFunctionArgs) => {
+  // Start the search from the next item after the currentItemIndex
+  for (
+    let i = currentItemIndex;
+    i < Math.max(suggestedRecipes.length, numCompletedRecipeMetadata);
+    i++
+  ) {
+    const recipeId = suggestedRecipes[i]!;
+    if (!recipes[recipeId]?.complete) {
+      // Found the next uncompleted recipe
+      return recipeId;
+    }
+  }
+
+  // No more uncompleted recipes after the current one
+  return undefined;
+};
