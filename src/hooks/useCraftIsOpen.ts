@@ -1,5 +1,7 @@
 import { CraftContext } from "@/app/context";
+import { SessionStoreContext } from "@/app/session-store.context";
 import { useContext } from "react";
+import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { useSelector } from "./useSelector";
 
 export const useCraftIsOpen = () => {
@@ -8,11 +10,21 @@ export const useCraftIsOpen = () => {
 };
 
 export const usePromptIsDirty = () => {
-  const actor = useContext(CraftContext);
-  return useSelector(actor, (state) => !!state.context.prompt?.length);
+  const session$ = useContext(SessionStoreContext);
+  return useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => session$.get().context,
+    () => session$.get().context,
+    (context) => context.prompt.length > 0
+  );
 };
 
 export const usePromptIsPristine = () => {
-  const actor = useContext(CraftContext);
-  return useSelector(actor, (state) => state.matches({ Prompt: "Pristine" }));
+  const session$ = useContext(SessionStoreContext);
+  return useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => session$.get().context,
+    () => session$.get().context,
+    (context) => context.prompt.length === 0
+  );
 };

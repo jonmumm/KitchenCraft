@@ -277,18 +277,3 @@ export const KeyboardToggle = () => {
   }, [send]);
   return null;
 };
-
-export const VisibleIfTypingPrompt = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
-  const actor = useContext(CraftContext);
-  const prompt = useSelector(actor, (state) => state.context.prompt);
-
-  return (
-    <div className={prompt?.length ? "hidden" : `group-focus-within:hidden`}>
-      {children}
-    </div>
-  );
-};

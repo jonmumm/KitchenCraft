@@ -9,7 +9,6 @@ import {
 } from "@/components/display/card";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
-import { cn } from "@/lib/utils";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ReactNode, useContext, useEffect, useRef } from "react";
@@ -18,34 +17,6 @@ import { EnterEmailForm } from "./@craft/components.client";
 import { CraftContext } from "./context";
 
 const inter = Inter({ subsets: ["latin"] });
-
-export const HiddenIfCrafting = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const promptLength = useSelector(
-    actor,
-    (state) => state.context.prompt?.length || 0
-  );
-
-  return (
-    <div
-      className={cn(
-        promptLength > 0 ? "hidden" : `block peer-focus-within:hidden`
-      )}
-    >
-      {children}
-    </div>
-  );
-};
-
-export const VisibleIfCrafting = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const promptLength = useSelector(
-    actor,
-    (state) => state.context.prompt?.length || 0
-  );
-
-  return <div className="hidden peer-focus-within:block">{children}</div>;
-};
 
 export const Body = ({
   children,

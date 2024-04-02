@@ -30,11 +30,6 @@ export const useIsMacDesktop = () => {
   return useMemo(() => /Mac|iMac|Macintosh/.test(navigator.platform), []);
 };
 
-export const usePrompt = () => {
-  const actor = useContext(CraftContext);
-  return useSelector(actor, (state) => state.context.prompt);
-};
-
 export const useIngredients = () => {
   const actor = useContext(CraftContext);
   return useSelector(actor, (state) => state.context.ingredients);
