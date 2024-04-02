@@ -24,7 +24,6 @@ export function generateUrlSafeHash(input: string): string {
 }
 
 export function isEqual<T>(arr1: T[], arr2: T[]): boolean {
-  console.log(arr1, arr2);
   if (arr1.length !== arr2.length) {
     return false;
   }

@@ -4,6 +4,7 @@ import { SessionStoreContext } from "@/app/session-store.context";
 import { env } from "@/env.public";
 import { useEventSubject } from "@/hooks/useEvents";
 import { Operation, applyPatch } from "fast-json-patch";
+import { produce } from "immer";
 import PartySocket from "partysocket";
 import { ReactNode, useContext, useLayoutEffect, useRef } from "react";
 import { z } from "zod";
@@ -50,12 +51,14 @@ export const ActorProvider = (props: {
       const { operations } = z
         .object({ operations: z.array(z.custom<Operation>()) })
         .parse(JSON.parse(message.data));
-      const snapshot = session$.get();
 
-      applyPatch(snapshot, operations);
-      session$.set({
-        ...snapshot,
+      // applyPatch(snapshot, operations);
+      // session$.set(produceWithPatches(session$.get()))
+      const nextState = produce(session$.get(), (draft) => {
+        applyPatch(draft, operations);
       });
+      // console.log(session$.get(), nextState);
+      session$.set(nextState);
     });
   }, [initializedRef, connectionId, token, id, event$, session$]);
 

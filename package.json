@@ -80,7 +80,7 @@
     "langchain": "^0.0.173",
     "lucide-react": "^0.279.0",
     "marked": "^11.1.0",
-    "nanostores": "^0.9.3",
+    "nanostores": "^0.10.0",
     "next": "^14.0.4",
     "next-auth": "^4.24.5",
     "next-themes": "^0.2.1",

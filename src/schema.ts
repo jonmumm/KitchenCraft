@@ -735,7 +735,17 @@ const UpdateSessionEventSchema = z.object({
   session: z.custom<ReturnType<typeof useSession>>(),
 });
 
+const PrevEventSchema = z.object({
+  type: z.literal("PREV"),
+});
+
+const NextEventSchema = z.object({
+  type: z.literal("NEXT"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  PrevEventSchema,
+  NextEventSchema,
   SSRLayoutEventSchema,
   UpdateSessionEventSchema,
   GetSnapshotEventSchema,

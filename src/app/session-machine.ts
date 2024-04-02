@@ -508,36 +508,35 @@ export const sessionMachine = setup({
       states: {
         Input: {
           on: {
-            UNDO: {
+            PREV: {
               actions: assign(({ context }) => {
                 return produce(context, (draft) => {
-                  const patch = draft.undoOperations.pop();
-                  if (patch) {
-                    applyPatch(draft, patch);
-                  } else {
-                    console.warn("tried to UNDO with no operations on stack");
-                  }
+                  assert(
+                    context.currentItemIndex > 0,
+                    "expected non 0 currentItemIndex"
+                  );
+                  draft.currentItemIndex = draft.currentItemIndex - 1;
                 });
               }),
             },
-            SKIP: {
+            NEXT: {
               actions: assign({
                 currentItemIndex: ({ context }) => context.currentItemIndex + 1,
-                undoOperations: ({ context, event }) => [
-                  ...context.undoOperations,
-                  compare(
-                    {
-                      prompt: context.prompt,
-                      tokens: context.tokens,
-                      currentItemIndex: context.currentItemIndex + 1,
-                    },
-                    {
-                      prompt: context.prompt,
-                      tokens: context.tokens,
-                      currentItemIndex: context.currentItemIndex,
-                    }
-                  ),
-                ],
+                // undoOperations: ({ context, event }) => [
+                //   ...context.undoOperations,
+                //   compare(
+                //     {
+                //       prompt: context.prompt,
+                //       tokens: context.tokens,
+                //       currentItemIndex: context.currentItemIndex + 1,
+                //     },
+                //     {
+                //       prompt: context.prompt,
+                //       tokens: context.tokens,
+                //       currentItemIndex: context.currentItemIndex,
+                //     }
+                //   ),
+                // ],
               }),
             },
             CLEAR: [
@@ -726,54 +725,54 @@ export const sessionMachine = setup({
           type: "parallel",
           on: {
             CLEAR: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle"],
-            UNDO: [
-              {
-                target: [
-                  ".Placeholder.Generating",
-                  ".Tokens.Generating",
-                  ".Recipes.Generating",
-                ],
-                actions: [
-                  "resetSuggestions",
-                  assign({
-                    inputHash: ({ context, event }) => {
-                      return generateUrlSafeHash(buildInput(context));
-                    },
-                  }),
-                ],
-                guard: "shouldRunInput",
-              },
-              {
-                target: [
-                  ".Placeholder.Idle",
-                  ".Tokens.Idle",
-                  ".Recipes.Idle",
-                  // ".CurrentRecipe.Idle",
-                ],
-                guard: ({ context }) => {
-                  const hash = generateUrlSafeHash(
-                    buildInput({
-                      prompt: context.prompt,
-                      tokens: context.tokens,
-                    })
-                  );
+            // PREV: [
+            //   {
+            //     target: [
+            //       ".Placeholder.Generating",
+            //       ".Tokens.Generating",
+            //       ".Recipes.Generating",
+            //     ],
+            //     actions: [
+            //       "resetSuggestions",
+            //       assign({
+            //         inputHash: ({ context, event }) => {
+            //           return generateUrlSafeHash(buildInput(context));
+            //         },
+            //       }),
+            //     ],
+            //     guard: "shouldRunInput",
+            //   },
+            //   {
+            //     target: [
+            //       ".Placeholder.Idle",
+            //       ".Tokens.Idle",
+            //       ".Recipes.Idle",
+            //       // ".CurrentRecipe.Idle",
+            //     ],
+            //     guard: ({ context }) => {
+            //       const hash = generateUrlSafeHash(
+            //         buildInput({
+            //           prompt: context.prompt,
+            //           tokens: context.tokens,
+            //         })
+            //       );
 
-                  const patch =
-                    context.undoOperations[context.undoOperations.length - 1];
-                  assert(patch, "expected patch");
-                  const nextContext = produce(context, (draft) => {
-                    applyPatch(draft, patch);
-                  });
-                  const nextInput = buildInput(nextContext);
+            //       const patch =
+            //         context.undoOperations[context.undoOperations.length - 1];
+            //       assert(patch, "expected patch");
+            //       const nextContext = produce(context, (draft) => {
+            //         applyPatch(draft, patch);
+            //       });
+            //       const nextInput = buildInput(nextContext);
 
-                  return !nextInput.length;
-                },
-                actions: assign({
-                  inputHash: undefined,
-                  generatingRecipeId: undefined,
-                }),
-              },
-            ],
+            //       return !nextInput.length;
+            //     },
+            //     actions: assign({
+            //       inputHash: undefined,
+            //       generatingRecipeId: undefined,
+            //     }),
+            //   },
+            // ],
             REMOVE_TOKEN: [
               {
                 target: [
@@ -1066,7 +1065,7 @@ export const sessionMachine = setup({
                     FullRecipe: {
                       initial: "Waiting",
                       on: {
-                        SKIP: [
+                        NEXT: [
                           {
                             target: ".Generating",
                             guard: ({ context }) => {

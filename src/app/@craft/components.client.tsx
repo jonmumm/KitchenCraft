@@ -15,6 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
+import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
 import { cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
@@ -38,15 +39,12 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useForm } from "react-hook-form";
+import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
 import { CraftContext } from "../context";
 import { SessionStoreContext } from "../session-store.context";
-import { buildInput } from "../utils";
-import {
-  selectIsCreating,
-  selectIsRemixing,
-  selectPromptLength,
-} from "./selectors";
+import { buildInput, isEqual } from "../utils";
+import { selectIsCreating, selectIsRemixing } from "./selectors";
 // import {
 //   selectIsCreating,
 //   selectIsRemixing,
@@ -61,10 +59,10 @@ import {
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
-  const promptLength = useSelector(actor, selectPromptLength);
-  const tokens = useTokens();
+  const promptLength = usePromptLength();
+  const numTokens = useNumTokens();
 
-  return !tokens.length && promptLength === 0 ? <>{children}</> : null;
+  return !numTokens && promptLength === 0 ? <>{children}</> : null;
 };
 
 export const CraftNotReadyToSave = ({ children }: { children: ReactNode }) => {
@@ -86,19 +84,19 @@ export const CraftReadyToSave = ({ children }: { children: ReactNode }) => {
 
 export const CraftPromptEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
-  const promptLength = useSelector(actor, selectPromptLength);
+  const promptLength = usePromptLength();
 
   return promptLength === 0 ? <>{children}</> : null;
 };
 export const CraftPromptNotEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
-  const promptLength = useSelector(actor, selectPromptLength);
+  const promptLength = usePromptLength();
 
   return promptLength !== 0 ? <>{children}</> : null;
 };
 
 export const HasTokens = ({ children }: { children: ReactNode }) => {
-  const numTokens = useTokens().length;
+  const numTokens = useNumTokens();
 
   return numTokens !== 0 ? <>{children}</> : null;
 };
@@ -125,10 +123,10 @@ export const CraftSaving = ({ children }: { children: ReactNode }) => {
 
 export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
-  const promptLength = useSelector(actor, selectPromptLength);
-  const tokens = useTokens();
+  const promptLength = usePromptLength();
+  const numTokens = useNumTokens();
 
-  return tokens.length || promptLength !== 0 ? <>{children}</> : null;
+  return numTokens || promptLength !== 0 ? <>{children}</> : null;
 };
 export const RecipeCreating = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
@@ -181,7 +179,7 @@ export const RemixEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const isCreating = useSelector(actor, selectIsCreating);
   const isRemixing = useSelector(actor, selectIsRemixing);
-  const promptLength = useSelector(actor, selectPromptLength);
+  const promptLength = usePromptLength();
   const visible = !promptLength && isRemixing && !isCreating;
   return <VisibilityControl visible={visible}>{children}</VisibilityControl>;
 };
@@ -190,7 +188,7 @@ export const RemixInputting = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const isCreating = useSelector(actor, selectIsCreating);
   const isRemixing = useSelector(actor, selectIsRemixing);
-  const promptLength = useSelector(actor, selectPromptLength);
+  const promptLength = usePromptLength();
   const visible = !!promptLength && isRemixing && !isCreating;
   return <VisibilityControl visible={visible}>{children}</VisibilityControl>;
 };
@@ -387,7 +385,6 @@ export const AddedTokens = () => {
 };
 
 export const SuggestedRecipeCards = () => {
-  const session$ = useSessionStore();
   const numCards = useCurrentItemIndex() + 6;
   const items = new Array(numCards).fill(0);
 
@@ -402,6 +399,50 @@ export const SuggestedRecipeCards = () => {
 
 const useSessionStore = () => {
   return useContext(SessionStoreContext);
+};
+
+const usePromptLength = () => {
+  const session = useSessionStore();
+  const [length, setLength] = useState(session.get().context.prompt.length);
+  useEventHandler("SET_INPUT", ({ value }) => setLength(value.length));
+  return length;
+};
+
+const useNumTokens = () => {
+  const session$ = useSessionStore();
+
+  return useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => {
+      return session$.get().context.tokens;
+    },
+    () => {
+      return session$.get().context.tokens;
+    },
+    (tokens) => tokens.length
+  );
+};
+
+const useTokens = () => {
+  const session$ = useSessionStore();
+  console.log("USE TOKENS!");
+
+  // return session$.get().context.tokens;
+  return useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => {
+      return session$.get().context;
+    },
+    () => session$.get().context,
+    ({ tokens }) => {
+      return tokens;
+    },
+    isEqual
+  );
+  // const { context } = useStore(session$);
+
+  // console.log("use tokens");
+  // return context.tokens;
 };
 
 const useNumCompletedRecipes = () => {
@@ -419,21 +460,16 @@ const useNumCompletedRecipes = () => {
 
 const useCurrentItemIndex = () => {
   const session$ = useSessionStore();
-  return useSyncExternalStore(
+  return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => {
-      return session$.get().context.currentItemIndex;
+      return session$.get().context;
     },
     () => {
-      return session$.get().context.currentItemIndex;
-    }
+      return session$.get().context;
+    },
+    (context) => context.currentItemIndex
   );
-};
-
-const useTokens = () => {
-  const session$ = useSessionStore();
-  const { context } = useStore(session$);
-  return context.tokens;
 };
 
 const useCurrentRecipe = () => {
@@ -507,9 +543,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               <SkeletonSentence className="h-7" numWords={4} />
             </div>
           )}
-          <Button event={{ type: "SKIP" }} variant="outline">
+          {/* <Button event={{ type: "SKIP" }} variant="outline">
             <XIcon />
-          </Button>
+          </Button> */}
         </CardTitle>
         {recipe?.description ? (
           <CardDescription>{recipe.description}</CardDescription>
@@ -1022,6 +1058,25 @@ export const UndoButton = () => {
         disabled={disabled}
       >
         Undo
+      </Button>
+    </div>
+  );
+};
+
+export const PrevButton = () => {
+  // const index = use
+  // const index = useCur
+  const index = useCurrentItemIndex();
+  return (
+    <div className="flex flex-row justify-center pointer-events-none">
+      <Button
+        event={{ type: "PREV" }}
+        size="lg"
+        className="pointer-events-auto px-3 py-2 cursor-pointer"
+        variant="outline"
+        disabled={index === 0}
+      >
+        Prev
       </Button>
     </div>
   );

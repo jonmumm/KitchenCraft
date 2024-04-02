@@ -22,6 +22,7 @@ import {
   CraftNotSaving,
   CraftReadyToSave,
   CraftSaving,
+  PrevButton,
   SuggestedRecipeCards,
   // SuggestedTagBadge,
   SuggestedTokenBadge,
@@ -267,15 +268,17 @@ export const NewRecipeResultsView = () => {
             <CraftNotSaving>
               <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
                 <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 p-2 border-t-2 border-solid border-slate-200 dark:border-slate-800">
-                  <CloseButton />
-                  <ClearButton />
-                  <UndoButton />
-                  <CraftButton />
+                  {/* <CloseButton /> */}
+                  {/* <ClearButton /> */}
+                  {/* <UndoButton /> */}
+                  <PrevButton />
+                  <SaveButton />
+                  <NextButton />
                 </div>
               </div>
             </CraftNotSaving>
           </CraftNotEmpty>
-          <CraftEmpty>
+          {/* <CraftEmpty>
             <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
               <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 p-2 border-t-2 border-solid border-slate-200 dark:border-slate-800 justify-center">
                 <CloseButton />
@@ -283,7 +286,7 @@ export const NewRecipeResultsView = () => {
                 <UndoButton />
               </div>
             </div>
-          </CraftEmpty>
+          </CraftEmpty> */}
         </ClientOnly>
       </Footer>
     </>
@@ -321,6 +324,7 @@ export const Selections = () => {
 };
 
 const SuggestedRecipesSection = () => {
+  console.log("srs");
   return (
     <CraftNotEmpty>
       <div className="flex flex-col items-center justify-center px-4 mt-4 mb-2">
@@ -360,7 +364,7 @@ const SuggestedRecipesSection = () => {
   );
 };
 
-const CraftButton = () => {
+const SaveButton = () => {
   return (
     <div className="flex flex-row justify-center pointer-events-none w-full">
       <CraftNotReadyToSave>
@@ -374,29 +378,43 @@ const CraftButton = () => {
           className="w-full pointer-events-auto shadow-xl"
           event={{ type: "SAVE" }}
         >
-          Craft
-          <span className="text-xs ml-2 animate-pulse">🧪</span>
+          Save
         </Button>
       </CraftReadyToSave>
     </div>
   );
 };
 
-const CloseButton = () => {
+
+const NextButton = () => {
   return (
     <div className="flex flex-row justify-center pointer-events-none">
       <Button
-        event={{ type: "CLOSE" }}
+        event={{ type: "NEXT" }}
         size="lg"
         className="pointer-events-auto px-3 py-2 cursor-pointer"
         variant="outline"
       >
-        {/* <XIcon size={14} /> */}
-        Close
+        Next
       </Button>
     </div>
   );
 };
+
+// const CloseButton = () => {
+//   return (
+//     <div className="flex flex-row justify-center pointer-events-none">
+//       <Button
+//         event={{ type: "CLOSE" }}
+//         size="lg"
+//         className="pointer-events-auto px-3 py-2 cursor-pointer"
+//         variant="outline"
+//       >
+//         <XIcon size={14} />
+//       </Button>
+//     </div>
+//   );
+// };
 
 const Footer = ({ children }: { children: ReactNode }) => {
   return <KeyboardAvoidingView>{children}</KeyboardAvoidingView>;

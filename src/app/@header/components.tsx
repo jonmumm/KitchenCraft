@@ -6,7 +6,12 @@ import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
 import { cn } from "@/lib/utils";
-import { ChefHatIcon, ChevronRightIcon, Loader2Icon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ChefHatIcon,
+  ChevronRightIcon,
+  Loader2Icon,
+} from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AddedTokens, HasTokens } from "../@craft/components.client";
@@ -53,6 +58,11 @@ export async function Header({
                 </NavigationLink>
               </div>
             )}
+          </div>
+          <div className="hidden crafting:block">
+            <Button variant={"ghost"} event={{ type: "CLOSE" }}>
+              <ArrowLeftIcon />
+            </Button>
           </div>
           <div className="flex flex-row gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
             {/* <CraftHeading /> */}

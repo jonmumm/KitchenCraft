@@ -184,9 +184,7 @@ export const createCraftMachine = ({
       searchParams["tags"] && tagsParser.parseServerSide(searchParams["tags"]);
 
     return {
-      prompt: prompt || undefined,
       ingredients: ingredients || undefined,
-      tokens: [],
       tags: tags || undefined,
       suggestions: null,
       substitutions: undefined,
@@ -197,7 +195,7 @@ export const createCraftMachine = ({
     } satisfies Context;
   })();
 
-  const initialPromptState = initialContext.prompt?.length
+  const initialPromptState = session$.get().context.prompt?.length
     ? "Dirty"
     : "Pristine";
 
@@ -243,12 +241,6 @@ export const createCraftMachine = ({
       events: {} as AppEvent | GeneratorEvent,
     },
     actions: {
-      assignPrompt: assign({
-        prompt: (_, params: { prompt: string | undefined }) => params.prompt,
-      }),
-      assignTokens: assign({
-        tokens: (_, params: { tokens: string[] }) => params.tokens,
-      }),
       replaceQueryParameters: (
         { context },
         params: { paramSet: Record<string, string | undefined> }
@@ -336,12 +328,12 @@ export const createCraftMachine = ({
       ),
     },
     guards: {
-      hasDirtyInput: ({ context }) => {
-        return !!context.prompt?.length;
-      },
-      hasPristineInput: ({ context }) => {
-        return !context.prompt || !context.prompt.length;
-      },
+      // hasDirtyInput: ({ context }) => {
+      //   return !!context.prompt?.length;
+      // },
+      // hasPristineInput: ({ context }) => {
+      //   return !context.prompt || !context.prompt.length;
+      // },
       isMobile: () => {
         return isMobile();
       },
@@ -363,35 +355,33 @@ export const createCraftMachine = ({
       },
       type: "parallel",
       states: {
-        TokenState: {
-          on: {
-            CLEAR: {
-              guard: ({ event }) => !!event.all,
-              actions: assign({
-                tokens: [],
-              }),
-            },
-            REMOVE_TOKEN: {
-              actions: assign({
-                prompt: "",
-                // currentItemIndex: 0,
-                tokens: ({ context, event }) => [
-                  ...context.tokens.filter((token) => token !== event.token),
-                ],
-              }),
-            },
-            ADD_TOKEN: {
-              actions: assign({
-                // prompt: "",
-                // currentItemIndex: 0,
-                tokens: ({ context, event }) => [
-                  ...context.tokens,
-                  event.token,
-                ],
-              }),
-            },
-          },
-        },
+        // TokenState: {
+        //   on: {
+        //     CLEAR: {
+        //       guard: ({ event }) => !!event.all,
+        //       actions: assign({
+        //         tokens: [],
+        //       }),
+        //     },
+        //     REMOVE_TOKEN: {
+        //       actions: assign({
+        //         prompt: "",
+        //         // currentItemIndex: 0,
+        //         tokens: ({ context, event }) => [
+        //           ...context.tokens.filter((token) => token !== event.token),
+        //         ],
+        //       }),
+        //     },
+        //     ADD_TOKEN: {
+        //       actions: assign({
+        //         tokens: ({ context, event }) => [
+        //           ...context.tokens,
+        //           event.token,
+        //         ],
+        //       }),
+        //     },
+        //   },
+        // },
         Auth: {
           initial: !session ? "Anonymous" : "LoggedIn",
           on: {
@@ -504,12 +494,12 @@ export const createCraftMachine = ({
                 HYDRATE_INPUT: {
                   target: "Complete",
                   actions: [
-                    {
-                      type: "assignPrompt",
-                      params({ event }) {
-                        return { prompt: event.ref.value };
-                      },
-                    },
+                    // {
+                    //   type: "assignPrompt",
+                    //   params({ event }) {
+                    //     return { prompt: event.ref.value };
+                    //   },
+                    // },
                     {
                       type: "replaceQueryParameters",
                       params({ event }) {
@@ -530,24 +520,10 @@ export const createCraftMachine = ({
           },
         },
         Prompt: {
-          initial: initialPromptState,
+          // initial: initialPromptState,
           on: {
-            SET_INPUT: [
-              {
-                target: [".Pristine"],
-                guard: ({ event }) => event.value.length === 0,
-              },
-              {
-                target: [".Dirty"],
-              },
-            ],
             CLEAR: {
-              target: [".Pristine"],
               actions: [
-                assign({
-                  prompt: undefined,
-                  // currentItemIndex: 0,
-                }),
                 () => {
                   const promptEl = document.body.querySelector("#prompt") as
                     | HTMLTextAreaElement
@@ -573,29 +549,29 @@ export const createCraftMachine = ({
               ],
             },
           },
-          states: {
-            Dirty: {
-              entry: () => {
-                document.body.classList.add("prompt-dirty");
-                document.body.classList.remove("prompt-pristine");
-              },
-              always: {
-                target: "Pristine",
-                guard: ({ context }) =>
-                  !context.prompt || context.prompt === "",
-              },
-            },
-            Pristine: {
-              entry: () => {
-                document.body.classList.remove("prompt-dirty");
-                document.body.classList.add("prompt-pristine");
-              },
-              always: {
-                target: "Dirty",
-                guard: ({ context }) => !!context.prompt?.length,
-              },
-            },
-          },
+          // states: {
+          //   Dirty: {
+          //     entry: () => {
+          //       document.body.classList.add("prompt-dirty");
+          //       document.body.classList.remove("prompt-pristine");
+          //     },
+          //     always: {
+          //       target: "Pristine",
+          //       guard: ({ context }) =>
+          //         !context.prompt || context.prompt === "",
+          //     },
+          //   },
+          //   Pristine: {
+          //     entry: () => {
+          //       document.body.classList.remove("prompt-dirty");
+          //       document.body.classList.add("prompt-pristine");
+          //     },
+          //     always: {
+          //       target: "Dirty",
+          //       guard: ({ context }) => !!context.prompt?.length,
+          //     },
+          //   },
+          // },
         },
         Open: {
           initial: initialOpen,
@@ -603,12 +579,6 @@ export const createCraftMachine = ({
             SET_INPUT: {
               target: ".True",
               actions: [
-                {
-                  type: "assignPrompt",
-                  params: ({ event }) => ({
-                    prompt: event.value,
-                  }),
-                },
                 {
                   type: "replaceQueryParameters",
                   params({ event }) {
@@ -633,16 +603,17 @@ export const createCraftMachine = ({
                 },
                 {
                   type: "replaceQueryParameters",
-                  params({ context }) {
-                    const prompt = context.prompt
-                      ? { prompt: context.prompt }
-                      : {};
-                    return {
-                      paramSet: {
-                        crafting: "1",
-                        ...prompt,
-                      },
-                    };
+                  params({ event }) {
+                    if (event.type === "SET_INPUT") {
+                      const prompt = event.value ? { prompt: event.value } : {};
+                      return {
+                        paramSet: {
+                          crafting: "1",
+                          ...prompt,
+                        },
+                      };
+                    }
+                    return { paramSet: {} };
                   },
                 },
                 {
@@ -728,15 +699,19 @@ export const createCraftMachine = ({
                   {
                     guard: ({ event, context }) => {
                       const didPressEnter = event.keyboardEvent.key === "Enter";
-                      return (
-                        didPressEnter &&
-                        !!context.prompt &&
-                        !!context.prompt?.length
-                      );
+                      const prompt = session$.get().context.prompt;
+                      return didPressEnter && !!prompt && !!prompt.length;
                     },
                     actions: [
                       ({ context, event }) => {
                         event.keyboardEvent.preventDefault();
+
+                        const el = document.getElementById(
+                          "prompt"
+                        ) as HTMLTextAreaElement;
+
+                        const token = el.value;
+                        el.value = "";
 
                         // If we want events to go to the server,
                         // we have to use SEND rather than reply raise
@@ -745,12 +720,9 @@ export const createCraftMachine = ({
                         // rather than explicitly sending up events send through useSend
                         send({
                           type: "ADD_TOKEN",
-                          token: context.prompt!, // can this be type guarded from guard?
+                          token,
                         });
                       },
-                      assign({
-                        prompt: "",
-                      }),
                     ],
                   },
                   {
@@ -763,9 +735,7 @@ export const createCraftMachine = ({
                       //     const latestDescriptionLength =
                       //       context.suggestions?.[context.suggestions.length]
                       //         ?.description?.length || 0;
-
                       //     const maxItemIndex = 7;
-
                       //     // const maxItemIndex = !context.instantRecipeMetadata
                       //     //   ? 0
                       //     //   : context.suggestions?.length
@@ -775,12 +745,10 @@ export const createCraftMachine = ({
                       //     //     ? context.suggestions.length
                       //     //     : 1
                       //     //   : 0;
-
                       //     let nextItemIndex =
                       //       typeof currentItemIndex !== "undefined"
                       //         ? currentItemIndex
                       //         : -1;
-
                       //     switch (key) {
                       //       case "n":
                       //       case "j": {
@@ -807,27 +775,21 @@ export const createCraftMachine = ({
                       //         break;
                       //       }
                       //     }
-
                       //     if (nextItemIndex < 0) {
                       //       return 0;
                       //     }
-
                       //     if (nextItemIndex > maxItemIndex) {
                       //       nextItemIndex = maxItemIndex;
                       //     }
-
                       //     const el = document.querySelector(
                       //       `#result-${nextItemIndex}`
                       //     );
-
                       //     if (!el) {
                       //       // element must have unmounted, no longer selectable
                       //       return 0;
                       //     }
-
                       //     // Scroll the element into view
                       //     el.scrollIntoView();
-
                       //     // Wait for the next repaint to ensure the scrolling has finished
                       //     requestAnimationFrame(() => {
                       //       const elementRect = el.getBoundingClientRect();
@@ -837,7 +799,6 @@ export const createCraftMachine = ({
                       //         absoluteElementTop - window.innerHeight / 2;
                       //       window.scrollTo(0, middle);
                       //     });
-
                       //     return nextItemIndex;
                       //   },
                       // }),
@@ -878,15 +839,15 @@ export const createCraftMachine = ({
                 // }),
               ],
               on: {
-                UPDATE_SEARCH_PARAMS: {
-                  target: "True",
-                  guard: ({ event }) => {
-                    return event.searchParams["crafting"] === "1";
-                  },
-                  actions: assign({
-                    prompt: ({ event }) => event.searchParams["prompt"],
-                  }),
-                },
+                // UPDATE_SEARCH_PARAMS: {
+                //   target: "True",
+                //   guard: ({ event }) => {
+                //     return event.searchParams["crafting"] === "1";
+                //   },
+                //   actions: assign({
+                //     prompt: ({ event }) => event.searchParams["prompt"],
+                //   }),
+                // },
                 TOGGLE: {
                   target: "True",
                 },
@@ -899,18 +860,18 @@ export const createCraftMachine = ({
                 NEW_RECIPE: {
                   target: "True",
                   actions: [
-                    {
-                      type: "assignPrompt",
-                      params({ event }) {
-                        return { prompt: event.prompt };
-                      },
-                    },
-                    {
-                      type: "assignTokens",
-                      params({ event }) {
-                        return { tokens: event.tokens || [] };
-                      },
-                    },
+                    // {
+                    //   type: "assignPrompt",
+                    //   params({ event }) {
+                    //     return { prompt: event.prompt };
+                    //   },
+                    // },
+                    // {
+                    //   type: "assignTokens",
+                    //   params({ event }) {
+                    //     return { tokens: event.tokens || [] };
+                    //   },
+                    // },
                     {
                       type: "replaceQueryParameters",
                       params({ event }) {
