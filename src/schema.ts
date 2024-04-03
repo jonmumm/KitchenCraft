@@ -609,6 +609,10 @@ const DownloadAppEventShema = z.object({
   type: z.literal("DOWNLOAD_APP"),
 });
 
+const CancelEventSchema = z.object({
+  type: z.literal("CANCEL"),
+});
+
 const HydratInputEventSchema = z.object({
   type: z.literal("HYDRATE_INPUT"),
   ref: z.custom<HTMLTextAreaElement>(),
@@ -764,6 +768,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   EnablePushNotificationsEventSchema,
   ErrorEventSchema,
   DownloadAppEventShema,
+  CancelEventSchema,
   KeyDownEventSchema,
   RemixEventSchema,
   PageLoadedEventSchema,

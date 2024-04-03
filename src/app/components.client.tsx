@@ -7,8 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/display/card";
+import { Button } from "@/components/input/button";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
+import { XIcon } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ReactNode, useContext, useEffect, useRef } from "react";
@@ -81,6 +83,11 @@ export const SaveRecipeCard = () => {
             <CardDescription>
               Enter your email to save your recipe.
             </CardDescription>
+          </div>
+          <div className="">
+            <Button event={{ type: "CANCEL" }}>
+              <XIcon />
+            </Button>
           </div>
         </div>
       </CardHeader>

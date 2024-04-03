@@ -22,7 +22,6 @@ import {
   ActorRefFrom,
   SnapshotFrom,
   and,
-  assign,
   fromEventObservable,
   fromPromise,
   raise,
@@ -400,6 +399,9 @@ export const createCraftMachine = ({
             Registering: {
               initial: "InputtingEmail",
               onDone: "LoggedIn",
+              on: {
+                CANCEL: "Anonymous",
+              },
               states: {
                 InputtingEmail: {
                   on: {
