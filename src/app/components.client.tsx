@@ -107,6 +107,6 @@ export const IsInputtingEmail = (props: { children: ReactNode }) => {
       !!state.value.Auth.Registering &&
       state.value.Auth.Registering === "InputtingEmail"
   );
-  console.log({ isRegistering });
+
   return isRegistering ? <>{props.children}</> : null;
 };
