@@ -28,6 +28,7 @@ import {
   TagIcon,
   XIcon,
 } from "lucide-react";
+import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -959,6 +960,7 @@ const formSchema = z.object({
 export const EnterEmailForm = () => {
   const [disabled, setDisabled] = useState(false);
   const router = useRouter();
+  const session$ = useContext(SessionStoreContext);
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -978,7 +980,14 @@ export const EnterEmailForm = () => {
           email: data.email,
         });
 
-        const callbackUrl = "/me"; // todo make the pending recipe....
+        const { createdRecipeSlugs } = session$.get().context;
+        waitFor(session$, (state) => {
+          return session$.get().value.Craft.NewRecipe !== "Creating";
+        });
+        const slug = createdRecipeSlugs[createdRecipeSlugs.length - 1];
+
+        const callbackUrl = `/recipe/${slug}`;
+        // session$
         passcodeParams.set("callbackUrl", callbackUrl);
 
         router.push(`/auth/passcode?${passcodeParams.toString()}`);
@@ -1081,3 +1090,51 @@ export const PrevButton = () => {
     </div>
   );
 };
+
+interface WaitForOptions {
+  timeout?: number;
+}
+
+export function waitFor<T>(
+  store: WritableAtom<T>,
+  predicate: (state: T) => boolean,
+  options: WaitForOptions = {}
+) {
+  const { timeout = 10000 } = options;
+
+  return new Promise<void>((resolve, reject) => {
+    // let unsubscribe;
+
+    // Function to clean up listeners and timeout
+    // const cleanUp = () => {
+    //   clearTimeout(timeoutHandle);
+    //   unsubscribe();
+    // };
+
+    // Check if the current state already satisfies the predicate
+    if (predicate(store.get())) {
+      resolve();
+      return;
+    }
+    let timeoutHandle: NodeJS.Timeout | undefined;
+
+    // Subscribe to store changes
+    const unsubscribe = store.listen((state) => {
+      if (predicate(state)) {
+        resolve();
+        unsubscribe();
+        clearTimeout(timeoutHandle);
+      }
+    });
+
+    // Set up a timeout to reject the promise if condition is not met within the timeout period
+    timeoutHandle = setTimeout(() => {
+      unsubscribe();
+      reject(
+        new Error(
+          `Timeout of ${timeout} ms exceeded without meeting the condition.`
+        )
+      );
+    }, timeout);
+  });
+}
