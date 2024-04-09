@@ -3,11 +3,11 @@
 import { atom } from "nanostores";
 import { ReactNode, useState } from "react";
 import { ActorRefFrom, SnapshotFrom } from "xstate";
-import { sessionMachine } from "./session-machine";
-import { SessionStoreContext } from "./session-store.context";
+import { pageSessionMachine } from "./page-session-machine";
+import { SessionStoreContext } from "./page-session-store.context";
 
 export type SessionStoreSnapshot = SnapshotFrom<
-  ActorRefFrom<typeof sessionMachine>
+  ActorRefFrom<typeof pageSessionMachine>
 >; // todo make generic
 
 export const SessionStoreProvider = ({

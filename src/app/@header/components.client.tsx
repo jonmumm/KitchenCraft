@@ -28,7 +28,7 @@ import {
   useState,
 } from "react";
 import { CraftContext } from "../context";
-import { SessionStoreContext } from "../session-store.context";
+import { SessionStoreContext } from "../page-session-store.context";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -179,6 +179,22 @@ export const CraftInput = ({
     send({ type: "FOCUS_PROMPT" });
   }, [send, autoFocus, initialFocusRef]);
 
+  const PromptCarrot = () => {
+    const actor = useContext(CraftContext);
+    const isOpen = useSelector(
+      actor,
+      (state) => !state.matches({ Open: "False" })
+    );
+    return (
+      <ChevronRight
+        className={cn(
+          isOpen ? "w-0" : "w-4",
+          "ml-4 h-4 shrink-0 opacity-50 self-start mt-2"
+        )}
+      />
+    );
+  };
+
   return (
     <div
       className={cn(
@@ -186,7 +202,7 @@ export const CraftInput = ({
         className
       )}
     >
-      <ChevronRight className="ml-4 h-4 w-4 shrink-0 opacity-50 self-start mt-2" />
+      <PromptCarrot />
       <AutoResizableTextarea
         id="prompt"
         initialValue={initialValue}

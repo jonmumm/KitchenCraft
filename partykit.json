@@ -4,6 +4,6 @@
   "main": "src/server.ts",
   "compatibilityDate": "2024-02-10",
   "parties": {
-    "session": "src/app/session-server.ts"
+    "page_session": "src/app/page-session-server.ts"
   }
 }

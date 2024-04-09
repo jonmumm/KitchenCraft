@@ -14,6 +14,7 @@ import {
   AdContext,
   AdInstance,
   AppEvent,
+  Caller,
   ExtractType,
   PartialRecipe,
   ProductType,
@@ -81,6 +82,8 @@ type NewRecipeProductKeywordEvent = {
 const InputSchema = z.object({
   id: z.string(),
   storage: z.custom<Party.Storage>(),
+  url: z.string().url(),
+  initialCaller: z.custom<Caller>(),
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -94,35 +97,39 @@ type Input = z.infer<typeof InputSchema>;
 
 // }})
 
-export const sessionMachine = setup({
+type Context = {
+  distinctId: string;
+  // createdRecipeSlugs: string[];
+  initialCaller: Caller;
+  createdBy?: string;
+  prompt: string;
+  inputHash: string | undefined;
+  storage: Party.Storage;
+  tokens: string[];
+  suggestedRecipes: string[];
+  recipes: Record<string, PartialRecipe & { complete: boolean }>;
+  generatingRecipeId: string | undefined;
+  currentItemIndex: number;
+  numCompletedRecipes: number;
+  numCompletedRecipeMetadata: number;
+  suggestedTags: string[];
+  suggestedText: string[];
+  suggestedTokens: string[];
+  placeholders: string[];
+  suggestedIngredients: string[];
+  adInstances: Record<string, AdInstance>;
+  viewedAdInstanceIds: string[];
+  clickedAdInstanceIds: string[];
+  productIdViewCounts: Record<string, number>;
+  undoOperations: Operation[][];
+  redoOperations: Operation[][];
+  history: string[];
+};
+
+export const pageSessionMachine = setup({
   types: {
     input: {} as Input,
-    context: {} as {
-      distinctId: string;
-      createdRecipeSlugs: string[];
-      createdBy?: string;
-      prompt: string;
-      inputHash: string | undefined;
-      storage: Party.Storage;
-      tokens: string[];
-      suggestedRecipes: string[];
-      recipes: Record<string, PartialRecipe & { complete: boolean }>;
-      generatingRecipeId: string | undefined;
-      currentItemIndex: number;
-      numCompletedRecipes: number;
-      numCompletedRecipeMetadata: number;
-      suggestedTags: string[];
-      suggestedText: string[];
-      suggestedTokens: string[];
-      placeholders: string[];
-      suggestedIngredients: string[];
-      adInstances: Record<string, AdInstance>;
-      viewedAdInstanceIds: string[];
-      clickedAdInstanceIds: string[];
-      productIdViewCounts: Record<string, number>;
-      undoOperations: Operation[][];
-      redoOperations: Operation[][];
-    },
+    context: {} as Context,
     events: {} as
       | WithCaller<AppEvent>
       | AutoSuggestTagEvent
@@ -152,12 +159,12 @@ export const sessionMachine = setup({
         const { recipe } = input;
 
         assert(recipe.name, "expected name");
-        const slug = getSlug({ id, name: recipe.name });
         assert(recipe.description, "expected description");
+        assert(recipe.slug, "expected slug");
 
         const finalRecipe = {
           id: randomUUID(),
-          slug,
+          slug: recipe.slug,
           versionId: 0,
           description: recipe.description,
           name: recipe.name,
@@ -175,7 +182,7 @@ export const sessionMachine = setup({
         } satisfies NewRecipe;
 
         await db.insert(RecipesTable).values(finalRecipe);
-        return slug;
+        return recipe.slug;
       }
     ),
     // generateRecipes: fromEventObservable(
@@ -391,7 +398,9 @@ export const sessionMachine = setup({
   id: "UserAppMachine",
   context: ({ input }) => ({
     distinctId: input.id,
+    history: [input.url],
     prompt: "",
+    initialCaller: input.initialCaller,
     storage: input.storage,
     currentItemIndex: 0,
     numCompletedRecipes: 0,
@@ -405,7 +414,7 @@ export const sessionMachine = setup({
     suggestedText: [],
     suggestedIngredients: [],
     suggestedTokens: [],
-    createdRecipeSlugs: [],
+    // createdRecipeSlugs: [],
     placeholders: defaultPlaceholders,
     adInstances: {},
     viewedAdInstanceIds: [],
@@ -416,92 +425,85 @@ export const sessionMachine = setup({
   }),
   type: "parallel",
   states: {
-    // Operations: {
-    //   on: {
-    //     ADD_TOKEN: {
-    //       actions: assign({}),
+    // Ads: {
+    //   type: "parallel",
+    //   states: {
+    //     Pipeline: {
+    //       on: {
+    //         NEW_RECIPE_PRODUCT_KEYWORD: {
+    //           actions: assign(({ context, event }) => {
+    //             console.log(event.keyword);
+    //             return {};
+    //           }),
+    //         },
+    //       },
+    //     },
+    //     Instances: {
+    //       on: {
+    //         INIT_AD_INSTANCES: {
+    //           actions: assign(({ context, event }) =>
+    //             produce(context, (draft) => {
+    //               event.ids.forEach((id) => {
+    //                 draft.adInstances[id] = {
+    //                   id,
+    //                   context: event.context,
+    //                 };
+    //               });
+    //             })
+    //           ),
+    //         },
+    //         PRESS_AD_INSTANCE: {
+    //           actions: assign({
+    //             viewedAdInstanceIds: ({ context, event }) => [
+    //               ...context.viewedAdInstanceIds,
+    //               event.adInstanceId,
+    //             ],
+    //           }),
+    //         },
+    //         VIEW_AD_INSTANCE: {
+    //           actions: assign({
+    //             viewedAdInstanceIds: ({ context, event }) => [
+    //               ...context.viewedAdInstanceIds,
+    //               event.adInstanceId,
+    //             ],
+    //           }),
+    //         },
+    //       },
+    //     },
+    //     Initialization: {
+    //       initial: "Idle",
+    //       states: {
+    //         Idle: {
+    //           on: {
+    //             INIT_AD_INSTANCES: [
+    //               {
+    //                 guard: ({ event }) => event.context.type === "recipe",
+    //                 actions: spawnChild("initializeRecipeAds", {
+    //                   input: ({ context, event }) => {
+    //                     assert(
+    //                       event.type === "INIT_AD_INSTANCES",
+    //                       "expected event INIT_AD_INSTANCES"
+    //                     );
+    //                     assert(
+    //                       event.context.type === "recipe",
+    //                       "expected recipe context"
+    //                     );
+
+    //                     return {
+    //                       ids: event.ids,
+    //                       context: event.context,
+    //                       productIdViewCounts: context.productIdViewCounts,
+    //                     };
+    //                   },
+    //                 }),
+    //               },
+    //             ],
+    //           },
+    //         },
+    //       },
     //     },
     //   },
     // },
-    Ads: {
-      type: "parallel",
-      states: {
-        Pipeline: {
-          on: {
-            NEW_RECIPE_PRODUCT_KEYWORD: {
-              actions: assign(({ context, event }) => {
-                console.log(event.keyword);
-                return {};
-              }),
-            },
-          },
-        },
-        Instances: {
-          on: {
-            INIT_AD_INSTANCES: {
-              actions: assign(({ context, event }) =>
-                produce(context, (draft) => {
-                  event.ids.forEach((id) => {
-                    draft.adInstances[id] = {
-                      id,
-                      context: event.context,
-                    };
-                  });
-                })
-              ),
-            },
-            PRESS_AD_INSTANCE: {
-              actions: assign({
-                viewedAdInstanceIds: ({ context, event }) => [
-                  ...context.viewedAdInstanceIds,
-                  event.adInstanceId,
-                ],
-              }),
-            },
-            VIEW_AD_INSTANCE: {
-              actions: assign({
-                viewedAdInstanceIds: ({ context, event }) => [
-                  ...context.viewedAdInstanceIds,
-                  event.adInstanceId,
-                ],
-              }),
-            },
-          },
-        },
-        Initialization: {
-          initial: "Idle",
-          states: {
-            Idle: {
-              on: {
-                INIT_AD_INSTANCES: [
-                  {
-                    guard: ({ event }) => event.context.type === "recipe",
-                    actions: spawnChild("initializeRecipeAds", {
-                      input: ({ context, event }) => {
-                        assert(
-                          event.type === "INIT_AD_INSTANCES",
-                          "expected event INIT_AD_INSTANCES"
-                        );
-                        assert(
-                          event.context.type === "recipe",
-                          "expected recipe context"
-                        );
-
-                        return {
-                          ids: event.ids,
-                          context: event.context,
-                          productIdViewCounts: context.productIdViewCounts,
-                        };
-                      },
-                    }),
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    },
 
     Craft: {
       type: "parallel",
@@ -670,56 +672,56 @@ export const sessionMachine = setup({
           },
         },
 
-        NewRecipe: {
-          initial: "Idle",
-          states: {
-            Idle: {
-              on: {
-                SAVE: {
-                  target: "Creating",
-                  actions: assign({
-                    createdBy: ({ event }) => {
-                      return event.caller.id;
-                    },
-                  }),
-                },
-              },
-            },
-            Error: {
-              entry: ({ event }) => {
-                console.log(event);
-              },
-            },
-            Creating: {
-              invoke: {
-                onDone: {
-                  target: "Idle",
-                  actions: assign(({ context, event }) => {
-                    return produce(context, (draft) => {
-                      draft.createdRecipeSlugs.push(event.output);
-                    });
-                  }),
-                },
-                onError: "Error",
-                input: ({ context }) => {
-                  const currentRecipeId =
-                    context.suggestedRecipes[context.currentItemIndex];
-                  assert(currentRecipeId, "expected currentRecipeId");
-                  let recipe = context.recipes[currentRecipeId];
-                  assert(recipe, "expected currentRecipe");
-                  assert(context.createdBy, "expected createdBy when savings");
-                  return {
-                    recipe,
-                    prompt: context.prompt,
-                    tokens: context.tokens,
-                    createdBy: context.createdBy,
-                  };
-                },
-                src: "createNewRecipe",
-              },
-            },
-          },
-        },
+        // NewRecipe: {
+        //   initial: "Idle",
+        //   states: {
+        //     Idle: {
+        //       on: {
+        //         SAVE: {
+        //           target: "Creating",
+        //           actions: assign({
+        //             createdBy: ({ event }) => {
+        //               return event.caller.id;
+        //             },
+        //           }),
+        //         },
+        //       },
+        //     },
+        //     Error: {
+        //       entry: ({ event }) => {
+        //         console.log(event);
+        //       },
+        //     },
+        //     Creating: {
+        //       invoke: {
+        //         onDone: {
+        //           target: "Idle",
+        //           actions: assign(({ context, event }) => {
+        //             return produce(context, (draft) => {
+        //               draft.createdRecipeSlugs.push(event.output);
+        //             });
+        //           }),
+        //         },
+        //         onError: "Error",
+        //         input: ({ context }) => {
+        //           const currentRecipeId =
+        //             context.suggestedRecipes[context.currentItemIndex];
+        //           assert(currentRecipeId, "expected currentRecipeId");
+        //           let recipe = context.recipes[currentRecipeId];
+        //           assert(recipe, "expected currentRecipe");
+        //           assert(context.createdBy, "expected createdBy when savings");
+        //           return {
+        //             recipe,
+        //             prompt: context.prompt,
+        //             tokens: context.tokens,
+        //             createdBy: context.createdBy,
+        //           };
+        //         },
+        //         src: "createNewRecipe",
+        //       },
+        //     },
+        //   },
+        // },
 
         Generators: {
           type: "parallel",
@@ -1033,6 +1035,7 @@ export const sessionMachine = setup({
                                     draft.recipes[currentRecipeId] = {
                                       ...recipe,
                                       ...event.data,
+                                      // slug:
                                     };
                                     draft.numCompletedRecipeMetadata =
                                       context.numCompletedRecipeMetadata + 1;
@@ -1128,21 +1131,32 @@ export const sessionMachine = setup({
                                   );
                                   return !!findNextUncompletedRecipe(context);
                                 },
-                                actions: assign({
-                                  generatingRecipeId: ({ context }) => {
-                                    assert(
-                                      context.generatingRecipeId,
-                                      "expected generatingRecipeId"
-                                    );
-                                    const next =
-                                      findNextUncompletedRecipe(context);
-                                    return next;
-                                  },
-                                }),
+                                actions: [
+                                  // todo: dry up get input with below
+                                  spawnChild("createNewRecipe", {
+                                    input: ({ context }) =>
+                                      getCurrentRecipeCreateInput({ context }),
+                                  }),
+                                  assign({
+                                    generatingRecipeId: ({ context }) => {
+                                      assert(
+                                        context.generatingRecipeId,
+                                        "expected generatingRecipeId"
+                                      );
+                                      const next =
+                                        findNextUncompletedRecipe(context);
+                                      return next;
+                                    },
+                                  }),
+                                ],
                                 reenter: true,
                               },
                               {
                                 target: "Waiting",
+                                actions: spawnChild("createNewRecipe", {
+                                  input: ({ context }) =>
+                                    getCurrentRecipeCreateInput({ context }),
+                                }),
                               },
                             ],
                             input: ({ context, event }) => {
@@ -1205,6 +1219,10 @@ export const sessionMachine = setup({
                                   draft.recipes[generatingRecipeId] = {
                                     ...recipe,
                                     ...event.data.recipe,
+                                    slug: getSlug({
+                                      id: generatingRecipeId,
+                                      name: recipe.name!,
+                                    }),
                                     complete: true,
                                   };
                                   draft.numCompletedRecipes++;
@@ -1319,4 +1337,16 @@ const findNextUncompletedRecipe = ({
 
   // No more uncompleted recipes after the current one
   return undefined;
+};
+
+const getCurrentRecipeCreateInput = ({ context }: { context: Context }) => {
+  assert(context.generatingRecipeId, "expected currentRecipeId");
+  let recipe = context.recipes[context.generatingRecipeId];
+  assert(recipe, "expected currentRecipe");
+  return {
+    recipe,
+    prompt: context.prompt,
+    tokens: context.tokens,
+    createdBy: context.initialCaller.id,
+  };
 };

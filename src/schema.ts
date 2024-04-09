@@ -730,9 +730,9 @@ const GetSnapshotEventSchema = z.object({
   type: z.literal("GET_SNAPSHOT"),
 });
 
-const SSRLayoutEventSchema = z.object({
-  type: z.literal("SSR_LAYOUT"),
-});
+// const SSRLayoutEventSchema = z.object({
+//   type: z.literal("SSR_LAYOUT"),
+// });
 
 const UpdateSessionEventSchema = z.object({
   type: z.literal("UPDATE_SESSION"),
@@ -750,7 +750,7 @@ const NextEventSchema = z.object({
 export const AppEventSchema = z.discriminatedUnion("type", [
   PrevEventSchema,
   NextEventSchema,
-  SSRLayoutEventSchema,
+  // SSRLayoutEventSchema,
   UpdateSessionEventSchema,
   GetSnapshotEventSchema,
   InitAdInstancesEventSchema,

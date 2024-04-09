@@ -19,7 +19,7 @@ import {
 import { ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { CraftContext } from "./context";
 import { createCraftMachine } from "./machine";
-import { SessionStoreContext } from "./session-store.context";
+import { SessionStoreContext } from "./page-session-store.context";
 
 // export const ApplicationContext = createContext()
 

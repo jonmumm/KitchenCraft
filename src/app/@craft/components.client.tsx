@@ -17,13 +17,17 @@ import {
 } from "@/components/input/form";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
-import { cn, formatDuration, sentenceToSlug } from "@/lib/utils";
+import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import {
   ClockIcon,
+  HeartIcon,
+  Loader2Icon,
+  MoveLeftIcon,
   ScrollIcon,
+  ShareIcon,
   ShoppingBasketIcon,
   TagIcon,
   XIcon,
@@ -43,9 +47,8 @@ import { useForm } from "react-hook-form";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
 import { CraftContext } from "../context";
-import { SessionStoreContext } from "../session-store.context";
+import { SessionStoreContext } from "../page-session-store.context";
 import { buildInput, isEqual } from "../utils";
-import { selectIsCreating, selectIsRemixing } from "./selectors";
 // import {
 //   selectIsCreating,
 //   selectIsRemixing,
@@ -102,24 +105,14 @@ export const HasTokens = ({ children }: { children: ReactNode }) => {
   return numTokens !== 0 ? <>{children}</> : null;
 };
 
-export const CraftNotSaving = ({ children }: { children: ReactNode }) => {
+export const CraftNotOpen = ({ children }: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const saving = useSelector(
     actor,
-    (state) => !state.matches({ Creating: "False" })
+    (state) => !state.matches({ Open: "False" })
   );
 
   return !saving ? <>{children}</> : null;
-};
-
-export const CraftSaving = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const saving = useSelector(
-    actor,
-    (state) => !state.matches({ Creating: "False" })
-  );
-
-  return saving ? <>{children}</> : null;
 };
 
 export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
@@ -128,34 +121,6 @@ export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
   const numTokens = useNumTokens();
 
   return numTokens || promptLength !== 0 ? <>{children}</> : null;
-};
-export const RecipeCreating = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const isCreating = useSelector(actor, (state) =>
-    state.matches({ Creating: "InProgress" })
-  );
-  return isCreating ? <>{children}</> : null;
-};
-
-export const RecipeNavigating = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const isNavigating = useSelector(actor, (state) =>
-    state.matches({ Creating: "Navigating" })
-  );
-  return isNavigating ? <>{children}</> : null;
-};
-
-export const CraftInputting = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  // const isTyping = useSelector(actor, selectIsTyping);
-  // const promptLength = useSelector(actor, selectPromptLength);
-  const isNotCreating = useSelector(actor, (state) =>
-    state.matches({ Creating: "False" })
-  );
-  const isRemixing = useSelector(actor, selectIsRemixing);
-
-  return !isRemixing && isNotCreating ? <>{children}</> : null;
-  // return !isCreating && (isTyping || promptLength) ? <>{children}</> : null;
 };
 
 const VisibilityControl = ({
@@ -174,24 +139,6 @@ const VisibilityControl = ({
       {children}
     </div>
   );
-};
-
-export const RemixEmpty = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const isCreating = useSelector(actor, selectIsCreating);
-  const isRemixing = useSelector(actor, selectIsRemixing);
-  const promptLength = usePromptLength();
-  const visible = !promptLength && isRemixing && !isCreating;
-  return <VisibilityControl visible={visible}>{children}</VisibilityControl>;
-};
-
-export const RemixInputting = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const isCreating = useSelector(actor, selectIsCreating);
-  const isRemixing = useSelector(actor, selectIsRemixing);
-  const promptLength = usePromptLength();
-  const visible = !!promptLength && isRemixing && !isCreating;
-  return <VisibilityControl visible={visible}>{children}</VisibilityControl>;
 };
 
 // export const InstantRecipeItem = () => {
@@ -459,6 +406,41 @@ const useNumCompletedRecipes = () => {
   );
 };
 
+const useSuggestedRecipeSlugAtIndex = (index: number) => {
+  const session$ = useSessionStore();
+  return useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => {
+      return session$.get().context;
+    },
+    () => {
+      return session$.get().context;
+    },
+    (context) => {
+      const recipeId = context.suggestedRecipes[index];
+      return !!recipeId ? context.recipes[recipeId]?.slug : undefined;
+    }
+  );
+};
+
+const useCurrentRecipeSlug = () => {
+  const session$ = useSessionStore();
+  return useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => {
+      return session$.get().context;
+    },
+    () => {
+      return session$.get().context;
+    },
+    (context) => {
+      const recipeId = context.suggestedRecipes[context.currentItemIndex];
+
+      return !!recipeId ? context.recipes[recipeId]?.slug : undefined;
+    }
+  );
+};
+
 const useCurrentItemIndex = () => {
   const session$ = useSessionStore();
   return useSyncExternalStoreWithSelector(
@@ -501,6 +483,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const recipeId = session.context.suggestedRecipes[index];
   const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
   const currentItemIndex = useCurrentItemIndex();
+  const slug = useSuggestedRecipeSlugAtIndex(index);
 
   const diffToCurrent = index - currentItemIndex;
 
@@ -544,9 +527,10 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               <SkeletonSentence className="h-7" numWords={4} />
             </div>
           )}
-          {/* <Button event={{ type: "SKIP" }} variant="outline">
-            <XIcon />
-          </Button> */}
+          <div className="flex flex-col gap-1 items-center">
+            <SaveButton slug={slug} />
+            <ShareButton slug={slug} />
+          </div>
         </CardTitle>
         {recipe?.description ? (
           <CardDescription>{recipe.description}</CardDescription>
@@ -980,11 +964,14 @@ export const EnterEmailForm = () => {
           email: data.email,
         });
 
-        const { createdRecipeSlugs } = session$.get().context;
-        waitFor(session$, (state) => {
-          return session$.get().value.Craft.NewRecipe !== "Creating";
-        });
-        const slug = createdRecipeSlugs[createdRecipeSlugs.length - 1];
+        const context = session$.get().context;
+        const currentRecipeId =
+          context.suggestedRecipes[context.currentItemIndex];
+        assert(currentRecipeId, "expected currentRecipeId");
+        const recipe = context.recipes[currentRecipeId];
+
+        const slug = recipe?.slug;
+        assert(slug, "expected recipe slug");
 
         const callbackUrl = `/recipe/${slug}`;
         // session$
@@ -1077,16 +1064,21 @@ export const PrevButton = () => {
   // const index = useCur
   const index = useCurrentItemIndex();
   return (
-    <div className="flex flex-row justify-center pointer-events-none">
-      <Button
-        event={{ type: "PREV" }}
-        size="lg"
-        className="pointer-events-auto px-3 py-2 cursor-pointer"
-        variant="outline"
-        disabled={index === 0}
-      >
-        Prev
-      </Button>
+    <div
+      className={cn(
+        "flex-row justify-center pointer-events-none",
+        index ? "flex" : "invisible"
+      )}
+    >
+      {index && (
+        <Button
+          event={{ type: "PREV" }}
+          size="lg"
+          className="pointer-events-auto px-3 py-2 cursor-pointer shadow-xl rounded-full"
+        >
+          <MoveLeftIcon size={32} />
+        </Button>
+      )}
     </div>
   );
 };
@@ -1138,3 +1130,35 @@ export function waitFor<T>(
     }, timeout);
   });
 }
+
+const SaveButton = ({ slug }: { slug?: string }) => {
+  return (
+    <div className="flex flex-row justify-center pointer-events-none w-full">
+      {slug ? (
+        <Button event={{ type: "SAVE" }}>
+          <HeartIcon />
+        </Button>
+      ) : (
+        <Button disabled>
+          <Loader2Icon className="animate-spin" />
+        </Button>
+      )}
+    </div>
+  );
+};
+
+const ShareButton = ({ slug }: { slug?: string }) => {
+  return (
+    <>
+      {slug ? (
+        <Button variant="outline" event={{ type: "SHARE", slug }}>
+          <ShareIcon />
+        </Button>
+      ) : (
+        <Button variant="outline" disabled>
+          <Loader2Icon className="animate-spin" />
+        </Button>
+      )}
+    </>
+  );
+};

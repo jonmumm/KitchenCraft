@@ -1,5 +1,5 @@
 import { CraftContext } from "@/app/context";
-import { SessionStoreContext } from "@/app/session-store.context";
+import { SessionStoreContext } from "@/app/page-session-store.context";
 import { useContext } from "react";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { useSelector } from "./useSelector";

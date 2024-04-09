@@ -1,6 +1,6 @@
 "use client";
 
-import { SessionStoreContext } from "@/app/session-store.context";
+import { SessionStoreContext } from "@/app/page-session-store.context";
 import { env } from "@/env.public";
 import { useEventSubject } from "@/hooks/useEvents";
 import { Operation, applyPatch } from "fast-json-patch";
@@ -29,7 +29,7 @@ export const ActorProvider = (props: {
 
     const socket = new PartySocket({
       host: env.KITCHENCRAFT_API_HOST,
-      party: "session",
+      party: "page_session",
       room: id,
       id: connectionId,
       query: { token },

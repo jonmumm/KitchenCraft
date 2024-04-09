@@ -69,7 +69,7 @@ export default async function Page() {
                     Member benefits include:
                   </Label>
                   <ul className="list-disc pl-6 flex flex-col gap-2 my-4">
-                    <li>Unlimited recipes</li>
+                    <li>Save recipes</li>
                     <li>No daily quotas</li>
                     <li>Private recipes</li>
                     <li>Ad-free experience</li>

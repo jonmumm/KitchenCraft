@@ -24,14 +24,14 @@ import {
 import { ReactNode } from "react";
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  const distinctId = await getUniqueId();
+  const uniqueId = await getUniqueId();
   return (
     <>
       <TagsCarousel
         showCount
         currentTag={"All"}
         root="/me"
-        query={getTagCountsForUserCreatedRecipes(db, distinctId)}
+        query={getTagCountsForUserCreatedRecipes(db, uniqueId)}
       />
       <Separator />
       <div className="max-w-2xl w-full mx-auto px-4 mb-8">

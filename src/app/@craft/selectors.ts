@@ -61,9 +61,6 @@ export const selectIsOpen = (state: CraftSnapshot) => {
 //   return hash === context.submittedInputHash;
 // };
 
-export const selectIsCreating = (state: CraftSnapshot) =>
-  state.matches({ Creating: "InProgress" });
-
 export const selectIsRemixing = (state: CraftSnapshot) => false;
 
 export const selectIsTyping = (state: CraftSnapshot) =>

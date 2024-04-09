@@ -7,26 +7,23 @@ import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
 import {
   CarrotIcon,
-  ChevronRightIcon,
+  HeartIcon,
   Loader2Icon,
+  MoveRightIcon,
+  ShareIcon,
   TagIcon,
-  XIcon,
 } from "lucide-react";
 import { FC, ReactNode } from "react";
 import { twc } from "react-twc";
 import {
-  ClearButton,
   CraftEmpty,
   CraftNotEmpty,
   CraftNotReadyToSave,
-  CraftNotSaving,
   CraftReadyToSave,
-  CraftSaving,
   PrevButton,
   SuggestedRecipeCards,
   // SuggestedTagBadge,
   SuggestedTokenBadge,
-  UndoButton,
 } from "./components.client";
 
 const Container = twc.div`flex flex-col gap-2 h-full max-w-3xl mx-auto w-full`;
@@ -258,25 +255,24 @@ export const NewRecipeResultsView = () => {
       <Footer>
         <ClientOnly>
           <CraftNotEmpty>
-            <CraftSaving>
+            {/* <CraftSaving>
               <div className="flex gap-2 justify-center items-center px-2 mb-6 max-w-3xl w-full mx-auto">
                 <Badge variant="secondary" className="shadow-xl">
                   Crafting <span className="text-xs animate-spin ml-2">🧪</span>
                 </Badge>
               </div>
-            </CraftSaving>
-            <CraftNotSaving>
-              <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
-                <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 p-2 border-t-2 border-solid border-slate-200 dark:border-slate-800">
-                  {/* <CloseButton /> */}
-                  {/* <ClearButton /> */}
-                  {/* <UndoButton /> */}
-                  <PrevButton />
-                  <SaveButton />
-                  <NextButton />
-                </div>
+            </CraftSaving> */}
+            <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
+              <div className="flex flex-row gap-2 items-center w-full p-2 justify-between">
+                {/* <CloseButton /> */}
+                {/* <ClearButton /> */}
+                {/* <UndoButton /> */}
+                <PrevButton />
+                {/* <ShareButton /> */}
+                {/* <LikeButton /> */}
+                <NextButton />
               </div>
-            </CraftNotSaving>
+            </div>
           </CraftNotEmpty>
           {/* <CraftEmpty>
             <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
@@ -364,11 +360,16 @@ const SuggestedRecipesSection = () => {
   );
 };
 
-const SaveButton = () => {
+const ShareButton = () => {
   return (
     <div className="flex flex-row justify-center pointer-events-none w-full">
       <CraftNotReadyToSave>
-        <Button size="lg" className="w-full pointer-events-auto" disabled>
+        <Button
+          size="lg"
+          className="w-full pointer-events-auto"
+          disabled
+          variant="secondary"
+        >
           <Loader2Icon size={14} className="animate-spin ml-2" />
         </Button>
       </CraftNotReadyToSave>
@@ -376,15 +377,44 @@ const SaveButton = () => {
         <Button
           size="lg"
           className="w-full pointer-events-auto shadow-xl"
-          event={{ type: "SAVE" }}
+          variant="secondary"
+          event={{ type: "SHARE", slug: "foobar" }}
         >
-          Save
+          <span>Share</span>
+          <ShareIcon className="ml-2" size={15} />
         </Button>
       </CraftReadyToSave>
     </div>
   );
 };
 
+const LikeButton = () => {
+  return (
+    <div className="flex flex-row justify-center pointer-events-none w-full">
+      <CraftNotReadyToSave>
+        <Button
+          size="lg"
+          className="pointer-events-auto"
+          disabled
+          variant="outline"
+        >
+          <Loader2Icon size={14} className="animate-spin ml-2" />
+        </Button>
+      </CraftNotReadyToSave>
+      <CraftReadyToSave>
+        <Button
+          size="lg"
+          className="pointer-events-auto shadow-xl"
+          variant="outline"
+          event={{ type: "SAVE" }}
+        >
+          Add
+          <HeartIcon className="ml-2" size={15} />
+        </Button>
+      </CraftReadyToSave>
+    </div>
+  );
+};
 
 const NextButton = () => {
   return (
@@ -392,10 +422,9 @@ const NextButton = () => {
       <Button
         event={{ type: "NEXT" }}
         size="lg"
-        className="pointer-events-auto px-3 py-2 cursor-pointer"
-        variant="outline"
+        className="pointer-events-auto px-3 py-2 cursor-pointer shadow-xl rounded-full"
       >
-        Next
+        <MoveRightIcon size={32} />
       </Button>
     </div>
   );
