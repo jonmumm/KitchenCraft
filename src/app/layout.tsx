@@ -10,13 +10,13 @@ import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
   getCurrentEmail,
   getSession,
-  getSessionActorClient,
+  getPageSessionActorClient,
   getUniqueId,
 } from "@/lib/auth/session";
-import { createAppInstallToken } from "@/lib/browser-session";
+import { createAppInstallToken, getPageSessionId } from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA, getIsMobile } from "@/lib/headers";
-import { assert, noop } from "@/lib/utils";
+import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
@@ -29,7 +29,7 @@ import {
   SearchParamsToastMessage,
 } from "./components.client";
 import { ApplicationProvider } from "./provider";
-import { SessionStoreProvider } from "./session-store-provider";
+import { SessionStoreProvider } from "./page-session-store-provider";
 import "./styles.css";
 
 const APP_NAME = "KitchenCraft";
@@ -69,21 +69,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
-  children,
-  craft,
-  footer,
-  header,
-  remix,
-  banner,
-}: {
-  children: ReactNode;
-  craft: ReactNode;
-  footer: ReactNode;
-  header: ReactNode;
-  remix: ReactNode;
-  banner: ReactNode;
-}) {
+export default async function RootLayout(
+  {
+    children,
+    craft,
+    footer,
+    header,
+    remix,
+    banner,
+  }: {
+    children: ReactNode;
+    craft: ReactNode;
+    footer: ReactNode;
+    header: ReactNode;
+    remix: ReactNode;
+    banner: ReactNode;
+  },
+  params: Record<string, string>
+) {
   const uniqueId = await getUniqueId();
   const currentEmail = await getCurrentEmail();
   const appInstallToken = await createAppInstallToken(uniqueId, currentEmail);
@@ -96,12 +99,11 @@ export default async function RootLayout({
   const canInstallPWA = getCanInstallPWA();
   const session = await getSession();
 
-  const sessionActorClient = await getSessionActorClient();
-  // todo: generate a session id instead of using the users unique id for the session id
+  const sessionActorClient = await getPageSessionActorClient();
+  const pageSessionId = await getPageSessionId();
   const { snapshot, connectionId, token } =
-    await sessionActorClient.get(uniqueId);
+    await sessionActorClient.get(pageSessionId);
   assert(snapshot, "expected snapshot");
-  sessionActorClient.send(uniqueId, { type: "SSR_LAYOUT" }).then(noop);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -140,7 +142,7 @@ export default async function RootLayout({
           appSessionId={parseCookie("appSessionId")}
         >
           <ActorProvider
-            id={uniqueId}
+            id={pageSessionId}
             connectionId={connectionId}
             token={token}
           >

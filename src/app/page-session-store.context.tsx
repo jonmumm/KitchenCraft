@@ -1,10 +1,10 @@
 import { WritableAtom } from "nanostores";
 import { createContext } from "react";
 import { ActorRefFrom, SnapshotFrom } from "xstate";
-import { sessionMachine } from "./session-machine";
+import { pageSessionMachine } from "./page-session-machine";
 
 export type SessionStoreSnapshot = SnapshotFrom<
-  ActorRefFrom<typeof sessionMachine>
+  ActorRefFrom<typeof pageSessionMachine>
 >; // todo make generic
 
 export const SessionStoreContext = createContext(

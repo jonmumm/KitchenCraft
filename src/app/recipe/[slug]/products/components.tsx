@@ -3,8 +3,7 @@ import Image from "next/image";
 import AdCard from "@/app/ad/components";
 import { RecipeSchema } from "@/db";
 import { Media } from "@/db/types";
-import { getSessionActorClient, getUniqueId } from "@/lib/auth/session";
-import { noop } from "@/lib/utils";
+import { getUniqueId } from "@/lib/auth/session";
 import { AdContext, AffiliateProduct } from "@/types";
 import { randomUUID } from "crypto";
 import { PromptTemplate } from "langchain/prompts";
@@ -288,7 +287,7 @@ export const AffiliateProductCarousel = ({
   // };
 
   const InitializeAdInstances = async () => {
-    const sessionActorClient = await getSessionActorClient();
+    // const sessionActorClient = await getSessionActorClient();
     const uniqueId = await getUniqueId();
     // todo: generate a session id instead of using the users unique id for the session id
 
@@ -297,13 +296,13 @@ export const AffiliateProductCarousel = ({
         ? { type: "recipe", slug, productType }
         : { type: "home_feed" };
 
-    sessionActorClient
-      .send(uniqueId, {
-        type: "INIT_AD_INSTANCES",
-        ids: adInstancesIds,
-        context,
-      })
-      .then(noop);
+    // sessionActorClient
+    //   .send(uniqueId, {
+    //     type: "INIT_AD_INSTANCES",
+    //     ids: adInstancesIds,
+    //     context,
+    //   })
+    //   .then(noop);
     return null;
   };
 

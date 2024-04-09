@@ -44,10 +44,13 @@ export async function middleware(request: NextRequest) {
       uniqueId = id;
     }
   }
+  const pageSessionId = uuidv4();
 
   // todo only do this if actually a guest?
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-guest-id", uniqueId);
+  requestHeaders.set("x-page-session-id", pageSessionId);
+  requestHeaders.set("x-url", request.url);
 
   const res = NextResponse.next({
     request: {

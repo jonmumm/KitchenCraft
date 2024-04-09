@@ -321,6 +321,7 @@ export type NewAffiliateProduct = z.infer<typeof NewAffiliateProductSchema>;
 
 export type PartialRecipe = {
   name?: string;
+  slug?: string;
   description?: string;
   tags?: string[];
   yield?: string;

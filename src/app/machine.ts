@@ -30,7 +30,7 @@ import {
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
 import { ingredientsParser, tagsParser } from "./parsers";
-import { SessionSnapshot } from "./session-store";
+import { SessionSnapshot } from "./page-session-store";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
   const params = new URLSearchParams();
@@ -309,22 +309,22 @@ export const createCraftMachine = ({
       remixSuggestionsGenerator,
       // createNewInstantRecipe,
       // createNewRecipeFromSuggestion,
-      waitForNewRecipeSlug: fromPromise(
-        () =>
-          new Promise((resolve) => {
-            const initialNumSlugs =
-              session$.get().context.createdRecipeSlugs.length;
-            // todo: timeout?
-            const unsub = session$.listen((state) => {
-              console.log(state);
-              if (initialNumSlugs !== state.context.createdRecipeSlugs.length) {
-                resolve(null);
-                unsub();
-              }
-            });
-            return;
-          })
-      ),
+      // waitForNewRecipeSlug: fromPromise(
+      //   () =>
+      //     new Promise((resolve) => {
+      //       const initialNumSlugs =
+      //         session$.get().context.createdRecipeSlugs.length;
+      //       // todo: timeout?
+      //       const unsub = session$.listen((state) => {
+      //         console.log(state);
+      //         if (initialNumSlugs !== state.context.createdRecipeSlugs.length) {
+      //           resolve(null);
+      //           unsub();
+      //         }
+      //       });
+      //       return;
+      //     })
+      // ),
     },
     guards: {
       // hasDirtyInput: ({ context }) => {
@@ -427,44 +427,44 @@ export const createCraftMachine = ({
             LoggedIn: {},
           },
         },
-        Creating: {
-          initial: "False",
-          states: {
-            False: {
-              on: {
-                SAVE: "InProgress",
-              },
-            },
-            InProgress: {
-              invoke: {
-                src: "waitForNewRecipeSlug",
-                onDone: "Navigating",
-              },
-              after: {
-                10000: "TimedOut",
-              },
-            },
-            Navigating: {
-              entry: ({ context }) => {
-                const { createdRecipeSlugs } = session$.get().context;
-                const slug = createdRecipeSlugs[createdRecipeSlugs.length - 1];
-                assert(slug, "expected slug when navigating to new recipe");
+        // Creating: {
+        //   initial: "False",
+        //   states: {
+        //     False: {
+        //       on: {
+        //         SAVE: "InProgress",
+        //       },
+        //     },
+        //     InProgress: {
+        //       invoke: {
+        //         src: "waitForNewRecipeSlug",
+        //         onDone: "Navigating",
+        //       },
+        //       after: {
+        //         10000: "TimedOut",
+        //       },
+        //     },
+        //     Navigating: {
+        //       entry: ({ context }) => {
+        //         const { createdRecipeSlugs } = session$.get().context;
+        //         const slug = createdRecipeSlugs[createdRecipeSlugs.length - 1];
+        //         assert(slug, "expected slug when navigating to new recipe");
 
-                router.push(`/recipe/${slug}`);
-              },
-              after: {
-                10000: "TimedOut",
-              },
-              on: {
-                PAGE_LOADED: {
-                  target: "False",
-                  actions: [raise({ type: "CLOSE" })],
-                },
-              },
-            },
-            TimedOut: {},
-          },
-        },
+        //         router.push(`/recipe/${slug}`);
+        //       },
+        //       after: {
+        //         10000: "TimedOut",
+        //       },
+        //       on: {
+        //         PAGE_LOADED: {
+        //           target: "False",
+        //           actions: [raise({ type: "CLOSE" })],
+        //         },
+        //       },
+        //     },
+        //     TimedOut: {},
+        //   },
+        // },
         Typing: {
           initial: "False",
           states: {

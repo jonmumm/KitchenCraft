@@ -108,6 +108,26 @@ export const getGuestTokenFromCookies = async () => {
   }
 };
 
+export const getPageSessionId = () => {
+  const headerList = headers();
+  const pageSessionId = headerList.get("x-page-session-id");
+  assert(pageSessionId, "expected x-page-session-id in header");
+  return pageSessionId;
+};
+
+export const getRequestUrl = () => {
+  const headerList = headers();
+  const url = headerList.get("x-url");
+  assert(url, "expected x-url in header");
+  return url;
+};
+
+export const getSearchParams = () => {
+  const url = getRequestUrl();
+  const search = url.split("?")[1] || "";
+  return new URLSearchParams(search);
+};
+
 export const getGuestId = async () => {
   const headerList = headers();
   const guestId = headerList.get("x-guest-id");

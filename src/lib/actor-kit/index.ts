@@ -1,4 +1,4 @@
-import { json, notFound, ok } from "@/lib/actor-kit/utils/response";
+import { json, notFound } from "@/lib/actor-kit/utils/response";
 import { AppEvent, Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
@@ -28,15 +28,21 @@ type UserActorConnection = Party.Connection<UserActorConnectionState>;
 export const createActorHTTPClient = <TMachine extends AnyStateMachine>(props: {
   type: string;
   caller: Caller;
+  input: Record<string, string>; // todo type this to the machine
 }) => {
   const get = async (id: string) => {
     const token = await createCallerToken(props.caller.id, props.caller.type);
-    const resp = await fetch(`${API_SERVER_URL}/parties/${props.type}/${id}`, {
-      next: { revalidate: 0 },
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const resp = await fetch(
+      `${API_SERVER_URL}/parties/${props.type}/${id}?input=${JSON.stringify(
+        props.input
+      )}`,
+      {
+        next: { revalidate: 0 },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     const responseSchema = z.object({
       connectionId: z.string(),
@@ -90,7 +96,7 @@ export const createMachineServer = <
   eventSchema: z.ZodSchema<Omit<EventFrom<TMachine>, "caller">>
 ) => {
   class ActorServer implements Party.Server {
-    actor: Actor<TMachine>;
+    actor: Actor<TMachine> | undefined;
     initialSnapshotsByConnectionId: Map<
       string,
       ReturnType<Actor<TMachine>["getPersistedSnapshot"]>
@@ -99,16 +105,6 @@ export const createMachineServer = <
     subscrptionsByConnectionId: Map<string, Subscription>;
 
     constructor(public room: Party.Room) {
-      const input = {
-        id: this.room.id,
-        storage: room.storage,
-      } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
-
-      this.actor = createActor(machine, {
-        input,
-      });
-      this.actor.start();
-
       this.initialSnapshotsByConnectionId = new Map();
       this.callersByConnectionId = new Map();
       this.subscrptionsByConnectionId = new Map();
@@ -125,17 +121,37 @@ export const createMachineServer = <
       assert(callerIdToken, "unable to parse bearer token");
       const caller = await parseCallerIdToken(callerIdToken);
 
-      if (request.method === "POST") {
-        // todo requi're a caller token before allowing this send...
-        // dont thinkw e use this anywhere yet
-        const json = await request.json();
-        const event = eventSchema.parse(json);
-        // @ts-expect-error
-        this.actor.send(Object.assign(event, { caller }));
-        return ok();
-      }
+      // if (request.method === "POST") {
+      //   // todo requi're a caller token before allowing this send...
+      //   // dont thinkw e use this anywhere yet
+      //   const json = await request.json();
+      //   const event = eventSchema.parse(json);
+      //   // @ts-expect-error
+      //   this.actor.send(Object.assign(event, { caller }));
+      //   return ok();
+      // }
 
       if (request.method === "GET") {
+        const search = request.url.split("?")[1];
+        const params = new URLSearchParams(search || "");
+        const inputJsonString = params.get("input");
+        assert(inputJsonString, "expected input object in query params");
+
+        const input = {
+          id: this.room.id,
+          storage: this.room.storage,
+          initialCaller: {
+            id: caller.uniqueId,
+            type: caller.uniqueIdType,
+          } satisfies Caller,
+          ...JSON.parse(inputJsonString),
+        } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
+
+        this.actor = createActor(machine, {
+          input,
+        });
+        this.actor.start();
+
         this.callersByConnectionId.set(connectionId, {
           id: caller.uniqueId,
           type: caller.uniqueIdType,
@@ -167,6 +183,13 @@ export const createMachineServer = <
     }
 
     async onConnect(connection: UserActorConnection) {
+      const actor = this.actor;
+      if (!actor) {
+        // if not dev
+        // assert(actor, "expected actor to exist before websocket connection");
+        return;
+      }
+
       const initialSnapshot = this.initialSnapshotsByConnectionId.get(
         connection.id
       );
@@ -178,7 +201,7 @@ export const createMachineServer = <
 
       let lastSnapshot = initialSnapshot;
       const sendSnapshot = (e?: any) => {
-        const nextSnapshot = this.actor.getPersistedSnapshot();
+        const nextSnapshot = actor.getPersistedSnapshot();
         const operations = compare(lastSnapshot, nextSnapshot);
         lastSnapshot = nextSnapshot;
         if (operations.length) {
@@ -186,7 +209,7 @@ export const createMachineServer = <
         }
       };
       sendSnapshot();
-      const sub = this.actor.subscribe(sendSnapshot);
+      const sub = actor.subscribe(sendSnapshot);
       this.subscrptionsByConnectionId.set(connection.id, sub);
     }
 
