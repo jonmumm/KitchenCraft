@@ -49,6 +49,7 @@ import { z } from "zod";
 import { CraftContext } from "../context";
 import { SessionStoreContext } from "../page-session-store.context";
 import { buildInput, isEqual } from "../utils";
+import { ShareButton } from "../recipe/components.client";
 // import {
 //   selectIsCreating,
 //   selectIsRemixing,
@@ -529,7 +530,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           )}
           <div className="flex flex-col gap-1 items-center">
             <SaveButton slug={slug} />
-            <ShareButton slug={slug} />
+            <ShareButton slug={slug} name={recipe?.name!} description={recipe?.description!} />
           </div>
         </CardTitle>
         {recipe?.description ? (
@@ -1147,18 +1148,18 @@ const SaveButton = ({ slug }: { slug?: string }) => {
   );
 };
 
-const ShareButton = ({ slug }: { slug?: string }) => {
-  return (
-    <>
-      {slug ? (
-        <Button variant="outline" event={{ type: "SHARE", slug }}>
-          <ShareIcon />
-        </Button>
-      ) : (
-        <Button variant="outline" disabled>
-          <Loader2Icon className="animate-spin" />
-        </Button>
-      )}
-    </>
-  );
-};
+// const ShareButton = ({ slug }: { slug?: string }) => {
+//   return (
+//     <>
+//       {slug ? (
+//         <Button variant="outline" event={{ type: "SHARE", slug }}>
+//           <ShareIcon />
+//         </Button>
+//       ) : (
+//         <Button variant="outline" disabled>
+//           <Loader2Icon className="animate-spin" />
+//         </Button>
+//       )}
+//     </>
+//   );
+// };

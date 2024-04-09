@@ -7,15 +7,15 @@ import {
   PopoverTrigger,
 } from "@/components/layout/popover";
 import { useSend } from "@/hooks/useSend";
-import { ShareIcon } from "lucide-react";
-import { ReactNode, useCallback, useState } from "react";
+import { Loader2Icon, ShareIcon } from "lucide-react";
+import { useCallback, useState } from "react";
 
 export const ShareButton = ({
   slug,
   name,
   description,
 }: {
-  slug: string;
+  slug?: string;
   name: string;
   description: string;
 }) => {
@@ -48,6 +48,14 @@ export const ShareButton = ({
       }, 3000);
     }
   }, [setShowCopied, slug, send, name]);
+
+  if (!slug) {
+    return (
+      <Button variant="outline" disabled>
+        <Loader2Icon className="animate-spin" />
+      </Button>
+    );
+  }
 
   return (
     <div>
