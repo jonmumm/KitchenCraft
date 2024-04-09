@@ -23,6 +23,10 @@ export const ShareButton = ({
   const send = useSend();
 
   const handlePressCopy = useCallback(() => {
+    if (!slug) {
+      return;
+    }
+
     const { origin } = window.location;
     const url = `${origin}/recipe/${slug}`;
 
