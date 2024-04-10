@@ -1134,7 +1134,7 @@ export function waitFor<T>(
 
 const SaveButton = ({ slug }: { slug?: string }) => {
   return (
-    <div className="flex flex-row justify-center pointer-events-none w-full">
+    <div className="flex flex-row justify-center w-full">
       {slug ? (
         <Button event={{ type: "SAVE" }}>
           <HeartIcon />
