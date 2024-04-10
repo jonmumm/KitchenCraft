@@ -23,14 +23,13 @@ import {
   SnapshotFrom,
   and,
   fromEventObservable,
-  fromPromise,
   raise,
   setup,
 } from "xstate";
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
-import { ingredientsParser, tagsParser } from "./parsers";
 import { SessionSnapshot } from "./page-session-store";
+import { ingredientsParser, tagsParser } from "./parsers";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
   const params = new URLSearchParams();
@@ -408,6 +407,8 @@ export const createCraftMachine = ({
                     PAGE_LOADED: {
                       target: "InputtingOTP",
                       guard: ({ event }) => event.pathname === "/auth/passcode",
+                      actions: raise({ type: "CLOSE" }),
+                      // actions: send({ type: "CLOSE" }),
                     },
                   },
                 },

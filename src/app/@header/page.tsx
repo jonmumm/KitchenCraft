@@ -12,6 +12,10 @@ import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
 
 export default async function Page({}) {
+  return <Header />;
+}
+
+const Header = () => {
   return (
     <>
       <div className="max-w-3xl mx-auto w-full h-[50vh] crafting:h-auto relative">
@@ -75,4 +79,4 @@ export default async function Page({}) {
       {/* <KeyboardToggle /> */}
     </>
   );
-}
+};
