@@ -56,7 +56,7 @@ export const ShareButton = ({
   if (!slug) {
     return (
       <Button variant="outline" disabled>
-        <Loader2Icon className="animate-spin" />
+        <ShareIcon className="animate-pulse" />
       </Button>
     );
   }

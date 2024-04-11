@@ -747,9 +747,14 @@ const NextEventSchema = z.object({
   type: z.literal("NEXT"),
 });
 
+const PrintEventSchema = z.object({
+  type: z.literal("PRINT"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   PrevEventSchema,
   NextEventSchema,
+  PrintEventSchema,
   // SSRLayoutEventSchema,
   UpdateSessionEventSchema,
   GetSnapshotEventSchema,

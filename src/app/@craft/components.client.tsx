@@ -26,8 +26,8 @@ import {
   HeartIcon,
   Loader2Icon,
   MoveLeftIcon,
+  PrinterIcon,
   ScrollIcon,
-  ShareIcon,
   ShoppingBasketIcon,
   TagIcon,
   XIcon,
@@ -48,8 +48,8 @@ import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-s
 import { z } from "zod";
 import { CraftContext } from "../context";
 import { SessionStoreContext } from "../page-session-store.context";
-import { buildInput, isEqual } from "../utils";
 import { ShareButton } from "../recipe/components.client";
+import { buildInput, isEqual } from "../utils";
 // import {
 //   selectIsCreating,
 //   selectIsRemixing,
@@ -519,27 +519,36 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       }}
     >
       <div className="p-4 flex flex-col gap-2">
-        <CardTitle className="flex flex-row items-center gap-2">
-          {index + 1}.{" "}
-          {recipe?.name ? (
-            <p className="flex-1">{recipe.name}</p>
-          ) : (
-            <div className="flex-1 flex flex-row gap-2">
-              <SkeletonSentence className="h-7" numWords={4} />
-            </div>
-          )}
+        <div className="flex flex-row gap-1">
+          <div className="flex flex-col gap-2">
+            <CardTitle className="flex flex-row items-center gap-2">
+              {index + 1}.{" "}
+              {recipe?.name ? (
+                <p className="flex-1">{recipe.name}</p>
+              ) : (
+                <div className="flex-1 flex flex-row gap-2">
+                  <SkeletonSentence className="h-7" numWords={4} />
+                </div>
+              )}
+            </CardTitle>
+            {recipe?.description ? (
+              <CardDescription>{recipe.description}</CardDescription>
+            ) : (
+              <div className="flex-1">
+                <SkeletonSentence className="h-4" numWords={12} />
+              </div>
+            )}
+          </div>
           <div className="flex flex-col gap-1 items-center">
             <SaveButton slug={slug} />
-            <ShareButton slug={slug} name={recipe?.name!} description={recipe?.description!} />
+            <ShareButton
+              slug={slug}
+              name={recipe?.name!}
+              description={recipe?.description!}
+            />
+            <PrintButton slug={slug} />
           </div>
-        </CardTitle>
-        {recipe?.description ? (
-          <CardDescription>{recipe.description}</CardDescription>
-        ) : (
-          <div className="flex-1">
-            <SkeletonSentence className="h-4" numWords={12} />
-          </div>
-        )}
+        </div>
         <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
           <span>Yields</span>
           <span>
@@ -1132,16 +1141,32 @@ export function waitFor<T>(
   });
 }
 
+const PrintButton = ({ slug }: { slug?: string }) => {
+  return (
+    <div className="flex flex-row justify-center w-full">
+      {slug ? (
+        <Button variant="outline" event={{ type: "PRINT" }}>
+          <PrinterIcon />
+        </Button>
+      ) : (
+        <Button variant="outline" disabled>
+          <PrinterIcon className="animate-pulse" />
+        </Button>
+      )}
+    </div>
+  );
+};
+
 const SaveButton = ({ slug }: { slug?: string }) => {
   return (
     <div className="flex flex-row justify-center w-full">
       {slug ? (
-        <Button event={{ type: "SAVE" }}>
+        <Button variant="secondary" event={{ type: "SAVE" }}>
           <HeartIcon />
         </Button>
       ) : (
-        <Button disabled>
-          <Loader2Icon className="animate-spin" />
+        <Button variant="secondary" disabled>
+          <HeartIcon className="animate-pulse" />
         </Button>
       )}
     </div>
