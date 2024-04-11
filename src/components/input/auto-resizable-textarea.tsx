@@ -9,6 +9,7 @@ import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelectorCallback } from "@/hooks/useSelectorCallback";
 import { useSend } from "@/hooks/useSend";
 import { assert, shuffle } from "@/lib/utils";
+import { produce } from "immer";
 
 import React, {
   ChangeEventHandler,
@@ -106,17 +107,17 @@ const AutoResizableTextarea: React.FC<
   const heightClass =
     sizeClassMap[size]?.heightClass || sizeClassMap["md"].heightClass;
 
-  // const Placeholder = () => {
-  //   const isPristine = usePromptIsPristine();
+  const Placeholder = () => {
+    const isPristine = usePromptIsPristine();
 
-  //   return (
-  //     isPristine && (
-  //       <div className="absolute inset-0 transition-opacity duration-75 crafting:opacity-0 pointer-events-none crafting:hidden prompt-dirty:hidden">
-  //         {placeholderComponent}
-  //       </div>
-  //     )
-  //   );
-  // };
+    return (
+      isPristine && (
+        <div className="absolute inset-0 transition-opacity duration-75 crafting:opacity-0 pointer-events-none crafting:hidden prompt-dirty:hidden">
+          {placeholderComponent}
+        </div>
+      )
+    );
+  };
 
   const Textarea = () => {
     // const actor = useContext(CraftContext);
@@ -158,12 +159,16 @@ const AutoResizableTextarea: React.FC<
     );
 
     const PlaceholderAnimation = () => {
-      console.log("PLACHOLER ANIM");
       const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
       const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
       const animatePlaceholder = useCallback(() => {
-        const sentences = shuffle(session$.get().context.placeholders);
+        const sentences = produce(
+          session$.get().context.placeholders,
+          (draft) => {
+            shuffle(draft);
+          }
+        );
         let currentSentenceIndex = 0;
         let typing = true;
         let currentText = "";
@@ -216,15 +221,15 @@ const AutoResizableTextarea: React.FC<
         return clearTimers;
       }, []);
 
-      // useEffect(() => {
-      //   const cleanup = animatePlaceholder();
-      //   return () => {
-      //     cleanup();
-      //     if (ref.current) {
-      //       ref.current.placeholder = "";
-      //     }
-      //   };
-      // }, [animatePlaceholder]);
+      useEffect(() => {
+        const cleanup = animatePlaceholder();
+        return () => {
+          cleanup();
+          if (ref.current) {
+            ref.current.placeholder = "";
+          }
+        };
+      }, [animatePlaceholder]);
 
       return null;
     };
@@ -252,7 +257,7 @@ const AutoResizableTextarea: React.FC<
   return (
     <div className="relative block flex-1 items-center mr-3">
       <Textarea />
-      {/* <Placeholder /> */}
+      <Placeholder />
     </div>
   );
 };

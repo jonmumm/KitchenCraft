@@ -464,3 +464,28 @@ export const AffiliateProductSchema = createSelectSchema(AffiliateProductTable);
 export const NewAffiliateProductSchema = createInsertSchema(
   AmazonAffiliateProductTable
 );
+
+export const UserRecipeTable = pgTable(
+  "user_recipe", // Table name
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => UsersTable.id, { onDelete: "cascade" }), // Link to UsersTable
+    recipeId: uuid("recipe_id")
+      .notNull(),
+    addedAt: timestamp("added_at", { mode: "date" }).notNull().defaultNow(), // Timestamp of when the recipe was added
+  },
+  (table) => {
+    return {
+      pk: primaryKey({
+        columns: [table.userId, table.recipeId], // Composite primary key
+      }),
+    };
+  }
+);
+
+// Schema for selecting data from UserRecipeTable
+export const UserRecipeSchema = createSelectSchema(UserRecipeTable);
+
+// Schema for inserting new records into UserRecipeTable
+export const NewUserRecipeSchema = createInsertSchema(UserRecipeTable);

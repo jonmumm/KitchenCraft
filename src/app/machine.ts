@@ -392,6 +392,7 @@ export const createCraftMachine = ({
               on: {
                 SAVE: {
                   target: "Registering",
+                  actions: () => console.log("HELLO!")
                 },
               },
             },
