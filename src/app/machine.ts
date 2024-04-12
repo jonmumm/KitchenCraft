@@ -22,6 +22,7 @@ import {
   ActorRefFrom,
   SnapshotFrom,
   and,
+  assign,
   fromEventObservable,
   raise,
   setup,
@@ -190,6 +191,7 @@ export const createCraftMachine = ({
       equipmentAdaptations: undefined,
       submittedInputHash: undefined,
       currentRecipeUrl: undefined,
+      scrollItemIndex: 0,
     } satisfies Context;
   })();
 
@@ -392,7 +394,7 @@ export const createCraftMachine = ({
               on: {
                 SAVE: {
                   target: "Registering",
-                  actions: () => console.log("HELLO!")
+                  actions: () => console.log("HELLO!"),
                 },
               },
             },
@@ -896,6 +898,25 @@ export const createCraftMachine = ({
                   guard: and(["isInputFocused", "isMobile"]),
                 },
               },
+            },
+          },
+        },
+        Carousel: {
+          on: {
+            PREV: {
+              actions: assign({
+                scrollItemIndex: ({ context }) => context.scrollItemIndex - 1,
+              }),
+            },
+            NEXT: {
+              actions: assign({
+                scrollItemIndex: ({ context }) => context.scrollItemIndex + 1,
+              }),
+            },
+            SCROLL_INDEX: {
+              actions: assign({
+                scrollItemIndex: ({ event }) => event.index,
+              }),
             },
           },
         },

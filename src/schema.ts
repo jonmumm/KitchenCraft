@@ -751,7 +751,13 @@ const PrintEventSchema = z.object({
   type: z.literal("PRINT"),
 });
 
+const ScrollIndexEventSchema = z.object({
+  type: z.literal("SCROLL_INDEX"),
+  index: z.number(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ScrollIndexEventSchema,
   PrevEventSchema,
   NextEventSchema,
   PrintEventSchema,

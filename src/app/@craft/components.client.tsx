@@ -17,6 +17,7 @@ import {
 } from "@/components/input/form";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
+import { useSend } from "@/hooks/useSend";
 import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +25,6 @@ import { useStore } from "@nanostores/react";
 import {
   ClockIcon,
   HeartIcon,
-  Loader2Icon,
   MoveLeftIcon,
   PrinterIcon,
   ScrollIcon,
@@ -40,6 +40,8 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -334,8 +336,8 @@ export const AddedTokens = () => {
 };
 
 export const SuggestedRecipeCards = () => {
-  const numCards = useCurrentItemIndex() + 6;
-  const items = new Array(numCards).fill(0);
+  const numCards = useNumCards();
+  const items = new Array(numCards).fill(numCards);
 
   return (
     <>
@@ -374,7 +376,6 @@ const useNumTokens = () => {
 
 const useTokens = () => {
   const session$ = useSessionStore();
-  console.log("USE TOKENS!");
 
   // return session$.get().context.tokens;
   return useSyncExternalStoreWithSelector(
@@ -442,6 +443,44 @@ const useCurrentRecipeSlug = () => {
   );
 };
 
+const useNumCards = () => {
+  const session$ = useSessionStore();
+  return useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => {
+      return session$.get().context;
+    },
+    () => {
+      return session$.get().context;
+    },
+    (context) => context.suggestedRecipes.length
+  );
+};
+
+// const useScrollItemIndex = () => {
+//   const actor = useContext(CraftContext);
+
+//   // Subscribe function that listens to changes from the actor
+//   const subscribe = (onStoreChange: () => void) => {
+//     const { unsubscribe } = actor.subscribe(onStoreChange);
+//     return unsubscribe;
+//   };
+
+//   // Snapshot function to get the current state context
+//   const getSnapshot = () => actor.getSnapshot().context;
+
+//   // Selector function to extract scrollItemIndex from the context
+//   const selector = (context: ReturnType<typeof getSnapshot>) =>
+//     context.scrollItemIndex;
+
+//   return useSyncExternalStoreWithSelector(
+//     subscribe,
+//     getSnapshot,
+//     getSnapshot, // Using getSnapshot for the selector as well
+//     selector
+//   );
+// };
+
 const useCurrentItemIndex = () => {
   const session$ = useSessionStore();
   return useSyncExternalStoreWithSelector(
@@ -454,6 +493,46 @@ const useCurrentItemIndex = () => {
     },
     (context) => context.currentItemIndex
   );
+};
+
+const useRecipeAtIndex = (index: number) => {
+  const session$ = useSessionStore();
+  return useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => {
+      return session$.get().context;
+    },
+    () => {
+      return session$.get().context;
+    },
+    (context) => {
+      const id = context.suggestedRecipes[index];
+      if (!id) {
+        return undefined;
+      }
+      const recipe = context.recipes[id];
+      return recipe;
+    }
+  );
+
+  // const session = useStore(session$);
+  // // const recipeId =
+  // //   session.context.suggestedRecipes[session.context.currentItemIndex];
+  // // if (!recipeId) {
+  // //   return null;
+  // // }
+  // // const recipe = session.context.recipes[recipeId];
+  // // if (!recipe) {
+  // //   return null;
+  // // }
+  // const recipeId =
+  //   session.context.suggestedRecipes[session.context.currentItemIndex];
+  // if (!recipeId) {
+  //   return null;
+  // }
+
+  // const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
+  // return recipe;
 };
 
 const useCurrentRecipe = () => {
@@ -479,46 +558,11 @@ const useCurrentRecipe = () => {
 };
 
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
-  const session$ = useSessionStore();
-  const session = useStore(session$);
-  const recipeId = session.context.suggestedRecipes[index];
-  const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
-  const currentItemIndex = useCurrentItemIndex();
-  const slug = useSuggestedRecipeSlugAtIndex(index);
-
-  const diffToCurrent = index - currentItemIndex;
-
-  if (diffToCurrent < 0 || diffToCurrent >= 4) {
-    return null;
-  }
-
-  const scale = (100 - diffToCurrent * 5) / 100;
-  const topOffset = -diffToCurrent * 4;
-  // const topOffset = diffToCurrent
-  //   ? -4 * (1 + (1 - scale)) - diffToCurrent * 28
-  //   : 0;
-  const zIndex = 50 - diffToCurrent * 10;
-  const position = diffToCurrent ? "absolute" : "relative";
-  // const overflow = diffToCurrent !== 0 ? "hidden" : "";
+  const recipe = useRecipeAtIndex(index);
 
   return (
-    // <SwipeableCard
-    //   onSwipe={function (direction: number): void {
-    //     console.log(direction);
-    //     // throw new Error("Function not implemented.");
-    //   }}
-    // >
-    <Card
-      className={`w-full top-0 ${position} transition-all`}
-      style={{
-        transform: `scaleX(${scale})`,
-        maxHeight: diffToCurrent !== 0 ? "200px" : "none",
-        overflow: "hidden",
-        zIndex,
-        marginTop: `${topOffset}px`,
-      }}
-    >
-      <div className="p-4 flex flex-col gap-2">
+    <Card className="carousel-item w-[90vw] md:w-4/5 relative flex flex-col">
+      <div className="flex flex-col p-4">
         <div className="flex flex-row gap-1 w-full">
           <div className="flex flex-col gap-2 w-full">
             <CardTitle className="flex flex-row items-center gap-2">
@@ -540,13 +584,13 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             )}
           </div>
           <div className="flex flex-col gap-1 items-center">
-            <SaveButton slug={slug} />
+            <SaveButton slug={recipe?.slug} />
             <ShareButton
-              slug={slug}
+              slug={recipe?.slug}
               name={recipe?.name!}
               description={recipe?.description!}
             />
-            <PrintButton slug={slug} />
+            <PrintButton slug={recipe?.slug} />
           </div>
         </div>
         <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
@@ -567,7 +611,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       </div>
       <Separator />
       <div className="py-2">
-        <Tags />
+        <Tags index={index} />
       </div>
       <Separator />
       <div className="px-5">
@@ -579,7 +623,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         </div>
         <div className="mb-4 flex flex-col gap-2">
           <ul className="list-disc pl-5 flex flex-col gap-2">
-            <Ingredients />
+            <Ingredients index={index} />
           </ul>
         </div>
       </div>
@@ -593,7 +637,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         </div>
         <div className="mb-4 flex flex-col gap-2">
           <ol className="list-decimal pl-5 flex flex-col gap-2">
-            <Instructions />
+            <Instructions index={index} />
           </ol>
         </div>
       </div>
@@ -739,14 +783,13 @@ export const SuggestedTokenBadge = ({
 //   );
 // };
 
-const Tags = () => {
+const Tags = ({ index }: { index: number }) => {
   const items = new Array(3).fill(0);
 
-  const Tag = ({ index }: { index: number }) => {
+  const Tag = (props: { index: number }) => {
     const session$ = useSessionStore();
     const session = useStore(session$);
-    const recipeId =
-      session.context.suggestedRecipes[session.context.currentItemIndex];
+    const recipeId = session.context.suggestedRecipes[index];
     if (!recipeId || !session.context.recipes[recipeId]) {
       return (
         <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
@@ -755,7 +798,7 @@ const Tags = () => {
       );
     }
     const recipe = session.context.recipes[recipeId]!;
-    const tag = recipe.tags?.[index];
+    const tag = recipe.tags?.[props.index];
     if (!tag) {
       return (
         <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
@@ -782,8 +825,8 @@ const Tags = () => {
   return (
     <div className="flex flex-row flex-wrap gap-2 px-5 px-y hidden-print items-center justify-center">
       <TagIcon size={16} className="h-5" />
-      {items.map((_, index) => {
-        return <Tag key={index} index={index} />;
+      {items.map((_, ind) => {
+        return <Tag key={ind} index={ind} />;
       })}
       {/* <AddTagButton /> */}
     </div>
@@ -875,22 +918,21 @@ const Times = ({
   );
 };
 
-function Ingredients({}) {
+function Ingredients({ index }: { index: number }) {
   const NUM_LINE_PLACEHOLDERS = 5;
-  const recipe = useCurrentRecipe();
+  const recipe = useRecipeAtIndex(index);
   const numIngredients = recipe?.ingredients?.length || 0;
-  const currentItemIndex = useCurrentItemIndex();
   const numCompletedRecipes = useNumCompletedRecipes();
   const items = new Array(
-    numCompletedRecipes < currentItemIndex + 1 && !recipe?.instructions?.length
+    numCompletedRecipes < index + 1 && !recipe?.instructions?.length
       ? Math.max(numIngredients, NUM_LINE_PLACEHOLDERS)
       : numIngredients
   ).fill(0);
 
-  const Item = ({ index }: { index: number }) => {
-    const showPlaceholder = index < NUM_LINE_PLACEHOLDERS;
-    const recipe = useCurrentRecipe();
-    if (!recipe || !recipe.ingredients || !recipe.ingredients[index]) {
+  const Item = (props: { index: number }) => {
+    const showPlaceholder = props.index < NUM_LINE_PLACEHOLDERS;
+    const recipe = useRecipeAtIndex(index);
+    if (!recipe || !recipe.ingredients || !recipe.ingredients[props.index]) {
       return showPlaceholder ? (
         <SkeletonSentence
           className="h-7"
@@ -899,7 +941,7 @@ function Ingredients({}) {
       ) : null;
     }
 
-    return <li>{recipe.ingredients[index]}</li>;
+    return <li>{recipe.ingredients[props.index]}</li>;
   };
 
   return (
@@ -911,22 +953,21 @@ function Ingredients({}) {
   );
 }
 
-function Instructions() {
+function Instructions({ index }: { index: number }) {
   const NUM_LINE_PLACEHOLDERS = 5;
-  const recipe = useCurrentRecipe();
+  const recipe = useRecipeAtIndex(index);
   const numInstructions = recipe?.instructions?.length || 0;
-  const currentItemIndex = useCurrentItemIndex();
   const numCompletedRecipes = useNumCompletedRecipes();
   const items = new Array(
-    numCompletedRecipes < currentItemIndex + 1
+    numCompletedRecipes < index + 1
       ? Math.max(numInstructions, NUM_LINE_PLACEHOLDERS)
       : numInstructions
   ).fill(0);
 
-  const Item = ({ index }: { index: number }) => {
-    const showPlaceholder = index < NUM_LINE_PLACEHOLDERS;
-    const recipe = useCurrentRecipe();
-    if (!recipe || !recipe.instructions || !recipe.instructions[index]) {
+  const Item = (props: { index: number }) => {
+    const showPlaceholder = props.index < NUM_LINE_PLACEHOLDERS;
+    const recipe = useRecipeAtIndex(index);
+    if (!recipe || !recipe.instructions || !recipe.instructions[props.index]) {
       return showPlaceholder ? (
         <SkeletonSentence
           className="h-7"
@@ -935,7 +976,7 @@ function Instructions() {
       ) : null;
     }
 
-    return <li>{recipe.instructions[index]}</li>;
+    return <li>{recipe.instructions[props.index]}</li>;
   };
 
   return (
@@ -993,7 +1034,7 @@ export const EnterEmailForm = () => {
         setDisabled(false);
       }
     },
-    [router]
+    [router, session$]
   );
 
   return (
@@ -1161,11 +1202,11 @@ const SaveButton = ({ slug }: { slug?: string }) => {
   return (
     <div className="flex flex-row justify-center w-full">
       {slug ? (
-        <Button variant="secondary" event={{ type: "SAVE" }}>
+        <Button event={{ type: "SAVE" }}>
           <HeartIcon />
         </Button>
       ) : (
-        <Button variant="secondary" disabled>
+        <Button disabled>
           <HeartIcon className="animate-pulse" />
         </Button>
       )}
@@ -1188,3 +1229,71 @@ const SaveButton = ({ slug }: { slug?: string }) => {
 //     </>
 //   );
 // };
+
+export const CraftCarousel = ({ children }: { children: ReactNode }) => {
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+  const actor = useContext(CraftContext);
+  const scrollItemIndex = useSelector(
+    actor,
+    (state) => state.context.scrollItemIndex
+  );
+  // const scrollItemIndex = useScrollItemIndex();
+  console.log({ scrollItemIndex });
+  const indexRef = useRef(scrollItemIndex);
+
+  const send = useSend();
+
+  useEffect(() => {
+    if (scrollItemIndex !== indexRef.current) {
+      // scrollItemIndex was updated from elsewhere, update internally and then scroll to it
+      const carousel = carouselRef.current;
+      if (!carousel) {
+        return;
+      }
+      // scrollItemIndex was updated from elsewhere, update internally and then scroll to it
+      indexRef.current = scrollItemIndex;
+      const targetItem = carousel.children[scrollItemIndex];
+      if (targetItem) {
+        const targetScrollPosition = targetItem.clientWidth * scrollItemIndex;
+        console.log({ targetScrollPosition }, carousel);
+        carousel.scrollLeft = targetScrollPosition;
+      }
+    }
+  }, [scrollItemIndex]);
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    // Function to handle scroll event
+    const handleScroll = () => {
+      const child = carousel.children[0];
+      if (!child) {
+        return;
+      }
+      const itemWidth = child.clientWidth;
+      const newIndex = Math.round(carousel.scrollLeft / itemWidth);
+      if (newIndex !== indexRef.current) {
+        indexRef.current = newIndex;
+        send({ type: "SCROLL_INDEX", index: newIndex });
+      }
+    };
+
+    // Attach the scroll event listener
+    carousel.addEventListener("scroll", handleScroll);
+
+    // Clean up function to remove event listener
+    return () => {
+      carousel.removeEventListener("scroll", handleScroll);
+    };
+  }, [send, actor]);
+
+  return (
+    <div
+      ref={carouselRef}
+      className="carousel pl-4 carousel-center md:pl-[20%] space-x-2"
+    >
+      {children}
+    </div>
+  );
+};

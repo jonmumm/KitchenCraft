@@ -16,6 +16,7 @@ import {
 import { FC, ReactNode } from "react";
 import { twc } from "react-twc";
 import {
+  CraftCarousel,
   CraftEmpty,
   CraftNotEmpty,
   CraftNotReadyToSave,
@@ -26,7 +27,7 @@ import {
   SuggestedTokenBadge,
 } from "./components.client";
 
-const Container = twc.div`flex flex-col gap-2 h-full max-w-3xl mx-auto w-full`;
+const Container = twc.div`flex flex-col gap-2 h-full mx-auto w-full`;
 const Section = twc.div`flex flex-col gap-1`;
 
 const TRENDING_INGREDIENTS = [
@@ -74,7 +75,7 @@ const IngredientsLabel = () => {
 const TrendingIngredientsSection = () => {
   return (
     <CraftEmpty>
-      <Section>
+      <Section className="max-w-3xl mx-auto">
         <IngredientsLabel />
         <BadgeList>
           {TRENDING_INGREDIENTS.map((ingredient) => {
@@ -99,7 +100,7 @@ const QuickAddSection = () => {
   const items = new Array(6).fill(0);
   return (
     <CraftNotEmpty>
-      <Section>
+      <Section className="max-w-3xl mx-auto">
         {/* <SectionLabel icon={PlusIcon} title={"Add"} /> */}
         <BadgeList>
           {items.map((_, index) => {
@@ -203,7 +204,7 @@ const TRENDING_TAGS = [
 const TrendingTagsSection = () => {
   return (
     <CraftEmpty>
-      <Section>
+      <Section className="max-w-3xl mx-auto">
         {/* <InstantRecipeItem /> */}
         <TagsLabel />
         <BadgeList>
@@ -320,44 +321,60 @@ export const Selections = () => {
 };
 
 const SuggestedRecipesSection = () => {
-  console.log("srs");
+  // const items = new Array(6).fill(0);
+
   return (
     <CraftNotEmpty>
-      <div className="flex flex-col items-center justify-center px-4 mt-4 mb-2">
-        <div className="relative w-full max-w-3xl">
-          <SuggestedRecipeCards />
-          {/* <Card className="w-full z-40 absolute inset-0 -mt-4 scale-95">
-            <CardHeader>
-              <CardTitle>Chocolate Chip Cookies</CardTitle>
-              <CardDescription>
-                Gooey baked in tghe oven for 35 minutes. A classic recipe.
-              </CardDescription>
-            </CardHeader>
-            <Separator className="mb-6" />
-            <CardContent className="flex justify-end">
-              <Button variant="secondary">
-                Continue Crafting <ChevronsRightIcon />
-              </Button>
-            </CardContent>
-          </Card>
-          <Card className="w-full z-30 absolute inset-0 -mt-8 scale-90">
-            <CardHeader>
-              <CardTitle>Chocolate Chip Cookies</CardTitle>
-              <CardDescription>
-                Gooey baked in tghe oven for 35 minutes. A classic recipe.
-              </CardDescription>
-            </CardHeader>
-            <Separator className="mb-6" />
-            <CardContent className="flex justify-end">
-              <Button variant="secondary">
-                Continue Crafting <ChevronsRightIcon />
-              </Button>
-            </CardContent>
-          </Card> */}
-        </div>
-      </div>
+      <CraftCarousel>
+        <SuggestedRecipeCards />
+        {/* {items.map((item, index) => {
+          return (
+            <Card key={index} className="carousel-item w-4/5">
+              Hello
+            </Card>
+          );
+        })} */}
+      </CraftCarousel>
     </CraftNotEmpty>
   );
+
+  // return (
+  //   <CraftNotEmpty>
+  //     <div className="flex flex-col items-center justify-center px-4 mt-4 mb-2">
+  //       <div className="relative w-full max-w-3xl carousel">
+  //         <SuggestedRecipeCards />
+  //         {/* <Card className="w-full z-40 absolute inset-0 -mt-4 scale-95">
+  //           <CardHeader>
+  //             <CardTitle>Chocolate Chip Cookies</CardTitle>
+  //             <CardDescription>
+  //               Gooey baked in tghe oven for 35 minutes. A classic recipe.
+  //             </CardDescription>
+  //           </CardHeader>
+  //           <Separator className="mb-6" />
+  //           <CardContent className="flex justify-end">
+  //             <Button variant="secondary">
+  //               Continue Crafting <ChevronsRightIcon />
+  //             </Button>
+  //           </CardContent>
+  //         </Card>
+  //         <Card className="w-full z-30 absolute inset-0 -mt-8 scale-90">
+  //           <CardHeader>
+  //             <CardTitle>Chocolate Chip Cookies</CardTitle>
+  //             <CardDescription>
+  //               Gooey baked in tghe oven for 35 minutes. A classic recipe.
+  //             </CardDescription>
+  //           </CardHeader>
+  //           <Separator className="mb-6" />
+  //           <CardContent className="flex justify-end">
+  //             <Button variant="secondary">
+  //               Continue Crafting <ChevronsRightIcon />
+  //             </Button>
+  //           </CardContent>
+  //         </Card> */}
+  //       </div>
+  //     </div>
+  //   </CraftNotEmpty>
+  // );
 };
 
 const ShareButton = () => {

@@ -521,6 +521,11 @@ export const pageSessionMachine = setup({
                 });
               }),
             },
+            SCROLL_INDEX: {
+              actions: assign({
+                currentItemIndex: ({ event }) => event.index,
+              }),
+            },
             NEXT: {
               actions: assign({
                 currentItemIndex: ({ context }) => context.currentItemIndex + 1,
@@ -1068,6 +1073,25 @@ export const pageSessionMachine = setup({
                     FullRecipe: {
                       initial: "Waiting",
                       on: {
+                        SCROLL_INDEX: [
+                          {
+                            target: ".Generating",
+                            guard: ({ event, context }) => {
+                              const nextId = findNextUncompletedRecipe({
+                                ...context,
+                                currentItemIndex: event.index,
+                              });
+                              return (
+                                !!nextId &&
+                                nextId !== context.generatingRecipeId
+                              );
+                            },
+                            actions: assign({
+                              generatingRecipeId: ({ context }) =>
+                                findNextUncompletedRecipe(context),
+                            }),
+                          },
+                        ],
                         NEXT: [
                           {
                             target: ".Generating",
