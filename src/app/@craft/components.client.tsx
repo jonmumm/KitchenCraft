@@ -10,7 +10,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/input/command";
@@ -35,6 +34,7 @@ import { Popover } from "@radix-ui/react-popover";
 import {
   ClockIcon,
   HeartIcon,
+  LockIcon,
   MoveLeftIcon,
   PrinterIcon,
   ScrollIcon,
@@ -62,6 +62,7 @@ import { CraftContext } from "../context";
 import { SessionStoreContext } from "../page-session-store.context";
 import { ShareButton } from "../recipe/components.client";
 import { buildInput, isEqual } from "../utils";
+import { CommandInput } from "@/components/input/command.primitive";
 // import {
 //   selectIsCreating,
 //   selectIsRemixing,
@@ -1235,8 +1236,7 @@ const SaveButton = ({ slug }: { slug?: string }) => {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="p-0" side="right" align="start">
-            <Command>
-              <CommandInput placeholder="Filter lists..." />
+            <Command defaultValue={""}>
               <CommandList>
                 {/* <SaveCommandEmpty /> */}
 
@@ -1265,12 +1265,19 @@ const SaveButton = ({ slug }: { slug?: string }) => {
                     //   setOpen(false);
                     // }}
                   >
-                    Create New
+                    Create Public List
                   </CommandItem>
                 </CommandGroup>
-                <CommandGroup heading="Private Lists (Upgrade to unlock)">
+                <CommandGroup
+                  heading={
+                    <div className="flex flex-row gap-1">
+                      <span>Shared Group Lists (0/0)</span>
+                      <LockIcon size={14} />
+                    </div>
+                  }
+                >
                   <CommandItem
-                    value={"Create New Private"}
+                    value={"Create New SHraed"}
                     // onSelect={(value) => {
                     //   // setSelectedStatus(
                     //   //   statuses.find(
@@ -1280,7 +1287,7 @@ const SaveButton = ({ slug }: { slug?: string }) => {
                     //   setOpen(false);
                     // }}
                   >
-                    Create New
+                    Create Shared List
                   </CommandItem>
                 </CommandGroup>
               </CommandList>
