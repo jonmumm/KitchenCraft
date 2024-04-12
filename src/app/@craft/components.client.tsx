@@ -7,6 +7,14 @@ import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/input/command";
+import {
   Form,
   FormControl,
   FormDescription,
@@ -15,6 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
+import { PopoverContent, PopoverTrigger } from "@/components/layout/popover";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
@@ -22,6 +31,7 @@ import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
+import { Popover } from "@radix-ui/react-popover";
 import {
   ClockIcon,
   HeartIcon,
@@ -1199,12 +1209,84 @@ const PrintButton = ({ slug }: { slug?: string }) => {
 };
 
 const SaveButton = ({ slug }: { slug?: string }) => {
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="flex flex-row justify-center w-full">
       {slug ? (
-        <Button event={{ type: "SAVE" }}>
-          <HeartIcon />
-        </Button>
+        // <Button event={{ type: "SAVE" }}>
+        //   <HeartIcon />
+        // </Button>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+            // size="sm"
+            // className="w-[150px] justify-start"
+            >
+              <HeartIcon className="opacity-50" />
+              {/* {selectedStatus ? (
+                <>
+                  <selectedStatus.icon className="mr-2 h-4 w-4 shrink-0" />
+                  {selectedStatus.label}
+                </>
+              ) : (
+                <>+ Set status</>
+              )} */}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" side="right" align="start">
+            <Command>
+              <CommandInput placeholder="Filter lists..." />
+              <CommandList>
+                {/* <SaveCommandEmpty /> */}
+
+                <CommandGroup heading="Public Lists (1/1)">
+                  <CommandItem
+                    value={"My Recipes"}
+                    // onSelect={(value) => {
+                    //   // setSelectedStatus(
+                    //   //   statuses.find(
+                    //   //     (priority) => priority.value === value
+                    //   //   ) || null
+                    //   // );
+                    //   setOpen(false);
+                    // }}
+                  >
+                    My Recipes
+                  </CommandItem>
+                  <CommandItem
+                    value={"Create New Public"}
+                    // onSelect={(value) => {
+                    //   // setSelectedStatus(
+                    //   //   statuses.find(
+                    //   //     (priority) => priority.value === value
+                    //   //   ) || null
+                    //   // );
+                    //   setOpen(false);
+                    // }}
+                  >
+                    Create New
+                  </CommandItem>
+                </CommandGroup>
+                <CommandGroup heading="Private Lists (Upgrade to unlock)">
+                  <CommandItem
+                    value={"Create New Private"}
+                    // onSelect={(value) => {
+                    //   // setSelectedStatus(
+                    //   //   statuses.find(
+                    //   //     (priority) => priority.value === value
+                    //   //   ) || null
+                    //   // );
+                    //   setOpen(false);
+                    // }}
+                  >
+                    Create New
+                  </CommandItem>
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       ) : (
         <Button disabled>
           <HeartIcon className="animate-pulse" />
@@ -1296,4 +1378,8 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
       {children}
     </div>
   );
+};
+
+const SaveCommandEmpty = () => {
+  return <CommandEmpty>Create New</CommandEmpty>;
 };

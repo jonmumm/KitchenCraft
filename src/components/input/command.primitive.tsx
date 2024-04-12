@@ -524,7 +524,6 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
     const last = () => updateSelectedToIndex(getValidItems().length - 1);
 
     const next = (e: React.KeyboardEvent) => {
-      console.log("NEXT!");
       e.preventDefault();
 
       if (e.metaKey) {

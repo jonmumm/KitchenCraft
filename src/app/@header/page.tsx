@@ -7,7 +7,7 @@ import {
 import { TypeLogo } from "@/components/logo";
 import { getIsMobile } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import { ArrowLeftIcon, GripVerticalIcon } from "lucide-react";
+import { GripVerticalIcon } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
 
@@ -44,12 +44,12 @@ const Header = () => {
               ⚡️ Instantly create personalized recipes.
             </p>
             <div className="flex flex-row gap-1 items-center">
+              <CraftCTA initialAutoFocus={!getIsMobile()} />
               <div className="hidden crafting:block">
-                <Button variant={"ghost"} event={{ type: "CLOSE" }}>
-                  <ArrowLeftIcon />
+                <Button variant={"ghost"} className="ml-2 px-2 text-xs" event={{ type: "CLOSE" }}>
+                  CLOSE
                 </Button>
               </div>
-              <CraftCTA initialAutoFocus={!getIsMobile()} />
             </div>
           </div>
           {/* <Link href="/leaderboard" className="hidden lg:block crafting:hidden">

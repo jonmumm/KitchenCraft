@@ -293,6 +293,11 @@ export const createCraftMachine = ({
             : window.location.pathname;
         router.push(newUrl);
       },
+      blurInput: () => {
+        const element = document.querySelector<HTMLTextAreaElement>("#prompt");
+        assert(element, "exlected prompt element");
+        element.blur();
+      },
       focusInput: () => {
         const element = document.querySelector<HTMLTextAreaElement>("#prompt");
         assert(element, "exlected prompt element");
@@ -646,6 +651,9 @@ export const createCraftMachine = ({
                 TOGGLE: "False",
                 // BACK: "False",
                 CLOSE: "False",
+                REMOVE_TOKEN: {
+                  // todo, conditionally focus the input if there is no prompt
+                },
                 ADD_TOKEN: {
                   actions: [
                     // {
@@ -668,39 +676,10 @@ export const createCraftMachine = ({
                     //   },
                     // },
                     {
-                      type: "focusInput",
+                      type: "blurInput",
                     },
                   ],
                 },
-                // ADD_TAG: {
-                //   actions: [
-                //     {
-                //       type: "assignPrompt",
-                //       params: ({ context, event }) => ({
-                //         prompt: appendValueWithComma(
-                //           context.prompt || "",
-                //           event.tag
-                //         ),
-                //       }),
-                //     },
-                //     {
-                //       type: "replaceQueryParameters",
-                //       params({ context, event }) {
-                //         return {
-                //           paramSet: {
-                //             prompt: appendValueWithComma(
-                //               context.prompt || "",
-                //               event.tag
-                //             ),
-                //           },
-                //         };
-                //       },
-                //     },
-                //     {
-                //       type: "focusInput",
-                //     },
-                //   ],
-                // },
                 KEY_DOWN: [
                   {
                     guard: ({ event, context }) => {

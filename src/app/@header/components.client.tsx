@@ -27,6 +27,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { CraftNotEmpty } from "../@craft/components.client";
 import { CraftContext } from "../context";
 import { SessionStoreContext } from "../page-session-store.context";
 
@@ -150,7 +151,7 @@ export const CraftInput = ({
   );
 
   const handleClear = useCallback(() => {
-    send({ type: "CLEAR" });
+    send({ type: "CLEAR", all: true });
   }, [send]);
 
   const handleFocus = useCallback(() => {
@@ -222,10 +223,12 @@ export const CraftInput = ({
           </div>
         }
       />
-      <XCircleIcon
-        onClick={handleClear}
-        className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 hidden prompt-dirty:block prompt-pristine:hidden active:opacity-30 cursor-pointer"
-      />
+      <CraftNotEmpty>
+        <XCircleIcon
+          onClick={handleClear}
+          className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 active:opacity-30 cursor-pointer"
+        />
+      </CraftNotEmpty>
       <script
         dangerouslySetInnerHTML={{
           __html: `

@@ -7,10 +7,9 @@ import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
 import { cn } from "@/lib/utils";
 import {
-  ArrowLeftIcon,
   ChefHatIcon,
   ChevronRightIcon,
-  Loader2Icon,
+  Loader2Icon
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -59,14 +58,14 @@ export async function Header({
               </div>
             )}
           </div>
-          <div className="hidden crafting:block">
-            <Button variant={"ghost"} event={{ type: "CLOSE" }}>
-              <ArrowLeftIcon />
-            </Button>
-          </div>
           <div className="flex flex-row gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
             {/* <CraftHeading /> */}
             <CraftCTA />
+          </div>
+          <div className="hidden crafting:block">
+            <Button variant={"ghost"} event={{ type: "CLOSE" }}>
+              Close
+            </Button>
           </div>
           <NavigationLink
             href="/me"
