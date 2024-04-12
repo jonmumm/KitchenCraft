@@ -610,10 +610,6 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         {/* <SkeletonSentence className="h-4" numWords={12} /> */}
       </div>
       <Separator />
-      <div className="py-2">
-        <Tags index={index} />
-      </div>
-      <Separator />
       <div className="px-5">
         <div className="flex flex-row justify-between gap-1 items-center py-4">
           <h3 className="uppercase text-xs font-bold text-accent-foreground">
@@ -640,6 +636,10 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             <Instructions index={index} />
           </ol>
         </div>
+      </div>
+      <Separator />
+      <div className="py-2">
+        <Tags index={index} />
       </div>
       {/* <Button className="w-full">
           Continue Generating <ChevronsDownIcon size={16} />
