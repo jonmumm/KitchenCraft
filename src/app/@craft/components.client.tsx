@@ -1436,7 +1436,7 @@ export const SaveRecipeBadge = () => {
       target="_blank"
       className={cn(
         "flex-1 flex justify-center items-center transition-all",
-        !isShowing ? "translate-y-44" : "pointer-events-auto"
+        !isShowing ? "translate-y-96" : "pointer-events-auto"
       )}
     >
       <Badge className="shadow-xl text-center py-1 px-3 truncate max-w-full flex flex-row gap-1">
