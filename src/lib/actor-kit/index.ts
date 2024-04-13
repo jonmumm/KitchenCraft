@@ -33,8 +33,8 @@ export const createActorHTTPClient = <TMachine extends AnyStateMachine>(props: {
   const get = async (id: string) => {
     const token = await createCallerToken(props.caller.id, props.caller.type);
     const resp = await fetch(
-      `${API_SERVER_URL}/parties/${props.type}/${id}?input=${JSON.stringify(
-        props.input
+      `${API_SERVER_URL}/parties/${props.type}/${id}?input=${encodeURIComponent(
+        JSON.stringify(props.input)
       )}`,
       {
         next: { revalidate: 0 },
@@ -132,10 +132,12 @@ export const createMachineServer = <
       // }
 
       if (request.method === "GET") {
-        const search = request.url.split("?")[1];
-        const params = new URLSearchParams(search || "");
+        const index = request.url.indexOf("?");
+        const search = index !== -1 ? request.url.substring(index + 1) : "";
+        const params = new URLSearchParams(search);
         const inputJsonString = params.get("input");
         assert(inputJsonString, "expected input object in query params");
+        const inputJson = JSON.parse(inputJsonString);
 
         const input = {
           id: this.room.id,
@@ -144,7 +146,7 @@ export const createMachineServer = <
             id: caller.uniqueId,
             type: caller.uniqueIdType,
           } satisfies Caller,
-          ...JSON.parse(inputJsonString),
+          ...inputJson,
         } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
 
         this.actor = createActor(machine, {
