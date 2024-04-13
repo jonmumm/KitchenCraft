@@ -14,6 +14,7 @@ import {
   SuggestionPredictionOutput,
   SuggestionsInput,
 } from "@/types";
+import { produce } from "immer";
 import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
 import { parseAsString } from "next-usequerystate";
@@ -24,7 +25,6 @@ import {
   and,
   assign,
   fromEventObservable,
-  raise,
   setup,
 } from "xstate";
 import { z } from "zod";
@@ -188,6 +188,7 @@ export const createCraftMachine = ({
       suggestions: null,
       substitutions: undefined,
       dietaryAlternatives: undefined,
+      savedRecipeSlugs: [],
       equipmentAdaptations: undefined,
       submittedInputHash: undefined,
       currentRecipeUrl: undefined,
@@ -399,7 +400,6 @@ export const createCraftMachine = ({
               on: {
                 SAVE: {
                   target: "Registering",
-                  actions: () => console.log("HELLO!"),
                 },
               },
             },
@@ -415,7 +415,7 @@ export const createCraftMachine = ({
                     PAGE_LOADED: {
                       target: "InputtingOTP",
                       guard: ({ event }) => event.pathname === "/auth/passcode",
-                      actions: raise({ type: "CLOSE" }),
+                      // actions: raise({ type: "CLOSE" }),
                       // actions: send({ type: "CLOSE" }),
                     },
                   },
@@ -433,7 +433,48 @@ export const createCraftMachine = ({
                 },
               },
             },
-            LoggedIn: {},
+            LoggedIn: {
+              type: "parallel",
+              states: {
+                Saving: {
+                  initial: "False",
+                  on: {
+                    SAVE: {
+                      target: ".Showing",
+                      actions: assign(({ context }) =>
+                        produce(context, (draft) => {
+                          const {
+                            currentItemIndex,
+                            suggestedRecipes,
+                            recipes,
+                          } = session$.get().context;
+                          const recipeId = suggestedRecipes[currentItemIndex];
+                          assert(recipeId, "expected recipeId when saving");
+                          const recipe = recipes[recipeId];
+                          assert(recipe, "expected recipe when saving");
+                          assert(
+                            recipe.slug,
+                            "expected recipe slug when saving"
+                          );
+                          draft.savedRecipeSlugs.push(recipe.slug);
+                        })
+                      ),
+                    },
+                  },
+                  states: {
+                    False: {},
+                    Showing: {
+                      on: {
+                        NEXT: "False",
+                        PREV: "False",
+                        SCROLL_INDEX: "False",
+                        CLEAR: "False",
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
         // Creating: {
@@ -794,6 +835,10 @@ export const createCraftMachine = ({
                 //   guard: ({ event }) => event.searchParams["crafting"] !== "1",
                 //   target: "False",
                 // },
+
+                PAGE_LOADED: {
+                  target: "False",
+                },
               },
             },
             False: {

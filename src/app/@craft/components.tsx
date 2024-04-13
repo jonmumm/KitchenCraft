@@ -22,6 +22,7 @@ import {
   CraftNotReadyToSave,
   CraftReadyToSave,
   PrevButton,
+  SaveRecipeBadge,
   SuggestedRecipeCards,
   // SuggestedTagBadge,
   SuggestedTokenBadge,
@@ -256,19 +257,20 @@ export const NewRecipeResultsView = () => {
       <Footer>
         <ClientOnly>
           <CraftNotEmpty>
-            {/* <CraftSaving>
-              <div className="flex gap-2 justify-center items-center px-2 mb-6 max-w-3xl w-full mx-auto">
-                <Badge variant="secondary" className="shadow-xl">
-                  Crafting <span className="text-xs animate-spin ml-2">🧪</span>
-                </Badge>
-              </div>
-            </CraftSaving> */}
             <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
               <div className="flex flex-row gap-2 items-center w-full p-2 justify-between">
                 {/* <CloseButton /> */}
                 {/* <ClearButton /> */}
                 {/* <UndoButton /> */}
                 <PrevButton />
+                <SaveRecipeBadge />
+                {/* <CraftSaving>
+                  <Badge variant="secondary" className="shadow-xl">
+                    Saving <span>My Recipe clanem</span>
+                    <span className="text-xs animate-spin ml-2">🧪</span>
+                  </Badge>
+                </CraftSaving> */}
+                {/* <GoToButton /> */}
                 {/* <ShareButton /> */}
                 {/* <LikeButton /> */}
                 <NextButton />

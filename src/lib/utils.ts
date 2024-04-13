@@ -289,3 +289,15 @@ export const delay = (ms: number) => {
     setTimeout(resolve, ms);
   });
 };
+
+export function findKeyByValue(
+  object: Record<string, unknown>,
+  value: unknown
+) {
+  for (let key in object) {
+    if (object.hasOwnProperty(key) && object[key] === value) {
+      return key;
+    }
+  }
+  return undefined;
+}

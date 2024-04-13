@@ -1,8 +1,11 @@
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { produce } from "immer";
 
-import { RecipesTable, db } from "@/db";
+import { ListRecipeTable, ListTable, RecipesTable, db } from "@/db";
+// import { createListRecipe, ensureMyRecipesList } from "@/db/queries";
 import { NewRecipe } from "@/db/types";
+import { getErrorMessage } from "@/lib/error";
+import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
 import { assert } from "@/lib/utils";
 import {
@@ -15,6 +18,7 @@ import {
   AdInstance,
   AppEvent,
   Caller,
+  DbOrTransaction,
   ExtractType,
   PartialRecipe,
   ProductType,
@@ -22,7 +26,8 @@ import {
 } from "@/types";
 import { nanoid } from "ai";
 import { randomUUID } from "crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
+import { PgTransaction } from "drizzle-orm/pg-core";
 import { Operation, applyPatch, compare } from "fast-json-patch";
 import type * as Party from "partykit/server";
 import { from, map, mergeMap, switchMap } from "rxjs";
@@ -144,6 +149,22 @@ export const pageSessionMachine = setup({
       | NewRecipeProductKeywordEvent,
   },
   actors: {
+    saveRecipeToList: fromPromise(
+      async ({
+        input,
+      }: {
+        input: {
+          recipeId: string;
+          userId: string;
+        };
+      }) => {
+        const result = await ensureMyRecipesList(db, input.userId);
+        assert(result.success, "expected to get listId");
+
+        await createListRecipe(db, input.userId, input.recipeId, result.listId);
+        return "";
+      }
+    ),
     createNewRecipe: fromPromise(
       async ({
         input,
@@ -673,6 +694,33 @@ export const pageSessionMachine = setup({
                     ),
                 }),
               ],
+            },
+          },
+        },
+
+        Saving: {
+          on: {
+            SAVE: {
+              guard: ({ event }) => event.caller.type === "user",
+              actions: spawnChild("saveRecipeToList", {
+                input: ({ context, event }) => {
+                  assert("caller" in event, "expected caller");
+                  assert(
+                    event.caller.type === "user",
+                    "expected caller to be user"
+                  );
+                  const userId = event.caller.id;
+
+                  const recipeId =
+                    context.suggestedRecipes[context.currentItemIndex];
+                  assert(recipeId, "expected recipeId");
+
+                  return {
+                    recipeId,
+                    userId,
+                  };
+                },
+              }),
             },
           },
         },
@@ -1373,4 +1421,93 @@ const getCurrentRecipeCreateInput = ({ context }: { context: Context }) => {
     tokens: context.tokens,
     createdBy: context.initialCaller.id,
   };
+};
+
+const createListRecipe = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string,
+  recipeId: string,
+  listId: string
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  try {
+    const result = await withDatabaseSpan(
+      queryRunner
+        .insert(ListRecipeTable)
+        .values({
+          userId: userId,
+          recipeId: recipeId,
+          listId: listId,
+          addedAt: sql`NOW()`, // Automatically set the added time to now
+        })
+        // Handling potential unique constraint violation
+        .onConflictDoNothing({
+          target: [ListRecipeTable.listId, ListRecipeTable.recipeId],
+        }),
+      "createListRecipe"
+    ).execute();
+
+    if (result.count === 0) {
+      throw new Error("This recipe is already in the list.");
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+};
+
+const ensureMyRecipesList = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  try {
+    // First, attempt to find the user's "My Recipes" list.
+    let result = await withDatabaseSpan(
+      queryRunner
+        .select({
+          id: ListTable.id,
+        })
+        .from(ListTable)
+        .where(
+          and(eq(ListTable.slug, "my-recipes"), eq(ListTable.createdBy, userId))
+        ),
+      "findMyRecipesList"
+    ).execute();
+
+    // If the list exists, return the list ID.
+    let item = result[0];
+    if (item) {
+      return { success: true, listId: item.id } as const;
+    }
+
+    // If the list does not exist, create it.
+    result = await withDatabaseSpan(
+      queryRunner.insert(ListTable).values({
+        slug: "my-recipes",
+        name: "My Recipes",
+        createdBy: userId,
+        createdAt: sql`NOW()`, // Automatically set the creation time to now
+      }),
+      "createMyRecipesList"
+    ).execute();
+
+    item = result[0];
+
+    if (!item) {
+      return {
+        success: false,
+        error: "was not able to insert my-recipes list",
+      } as const;
+    }
+
+    return { success: true, listId: item.id } as const;
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) } as const;
+  }
 };

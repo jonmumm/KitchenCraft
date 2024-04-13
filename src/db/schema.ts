@@ -465,27 +465,54 @@ export const NewAffiliateProductSchema = createInsertSchema(
   AmazonAffiliateProductTable
 );
 
-export const UserRecipeTable = pgTable(
-  "user_recipe", // Table name
+export const ListTable = pgTable(
+  "list", // Table name
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => UsersTable.id, { onDelete: "cascade" }), // Link to UsersTable
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(), // Timestamp of when the recipe was added
+  },
+  (table) => {
+    return {
+      unq: unique("createdby_by_slug_unique_idx").on(
+        table.createdBy,
+        table.slug
+      ),
+    };
+  }
+);
+
+export const ListRecipeTable = pgTable(
+  "list_recipe", // Table name
   {
     userId: text("user_id")
       .notNull()
       .references(() => UsersTable.id, { onDelete: "cascade" }), // Link to UsersTable
-    recipeId: uuid("recipe_id")
-      .notNull(),
+    recipeId: uuid("recipe_id").notNull(),
+    listId: uuid("list_id")
+      .notNull()
+      .references(() => ListTable.id, { onDelete: "cascade" }),
     addedAt: timestamp("added_at", { mode: "date" }).notNull().defaultNow(), // Timestamp of when the recipe was added
   },
   (table) => {
     return {
       pk: primaryKey({
-        columns: [table.userId, table.recipeId], // Composite primary key
+        columns: [table.listId, table.recipeId],
       }),
+      // listReference: foreignKey({
+      //   columns: [table.userId, table.listId],
+      //   foreignColumns: [ListTable.createdBy, ListTable.slug],
+      // }),
     };
   }
 );
 
 // Schema for selecting data from UserRecipeTable
-export const UserRecipeSchema = createSelectSchema(UserRecipeTable);
+export const ListRecipeSchema = createSelectSchema(ListRecipeTable);
 
 // Schema for inserting new records into UserRecipeTable
-export const NewUserRecipeSchema = createInsertSchema(UserRecipeTable);
+export const NewListRecipeSchema = createInsertSchema(ListRecipeTable);

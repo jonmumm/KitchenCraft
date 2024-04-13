@@ -10,6 +10,7 @@ export const ContextSchema = z.object({
   // currentItemIndex: z.number(),
   // tokens: z.array(z.string()),
   scrollItemIndex: z.number(),
+  savedRecipeSlugs: z.array(z.string()),
   currentRecipeUrl: z.string().optional(),
   currentRemixSlug: z.string().optional(),
   // prompt: z.string().optional(),

@@ -6,13 +6,7 @@ import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/input/command";
+import { CommandEmpty } from "@/components/input/command";
 import {
   Form,
   FormControl,
@@ -22,7 +16,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
-import { PopoverContent, PopoverTrigger } from "@/components/layout/popover";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
@@ -30,11 +23,10 @@ import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
-import { Popover } from "@radix-ui/react-popover";
 import {
   ClockIcon,
+  ExternalLinkIcon,
   HeartIcon,
-  LockIcon,
   MoveLeftIcon,
   PrinterIcon,
   ScrollIcon,
@@ -59,10 +51,10 @@ import { useForm } from "react-hook-form";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
 import { CraftContext } from "../context";
+import { CraftSnapshot } from "../machine";
 import { SessionStoreContext } from "../page-session-store.context";
 import { ShareButton } from "../recipe/components.client";
 import { buildInput, isEqual } from "../utils";
-import { CommandInput } from "@/components/input/command.primitive";
 // import {
 //   selectIsCreating,
 //   selectIsRemixing,
@@ -136,6 +128,9 @@ export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
 
   return numTokens || promptLength !== 0 ? <>{children}</> : null;
 };
+
+const selectIsShowingSaving = (state: CraftSnapshot) =>
+  state.matches({ Auth: { LoggedIn: { Saving: "Showing" } } });
 
 const VisibilityControl = ({
   visible,
@@ -1121,6 +1116,32 @@ export const UndoButton = () => {
   );
 };
 
+// export const GoToButton = () => {
+//   // const index = use
+//   // const index = useCur
+//   const index = useCurrentItemIndex();
+//   return (
+//     <div
+//       className={cn(
+//         "flex-row justify-center pointer-events-none",
+//         index ? "flex" : "invisible"
+//       )}
+//     >
+//       {index && (
+//         <Button
+//           event={{ type: "PREV" }}
+//           size="lg"
+//           className="pointer-events-auto px-3 py-2 cursor-pointer shadow-xl rounded-full flex flex-row gap-1 items-center"
+//           variant="secondary"
+//         >
+//           <span>Open Recipe</span>
+//           <ExternalLinkIcon size={15} />
+//         </Button>
+//       )}
+//     </div>
+//   );
+// };
+
 export const PrevButton = () => {
   // const index = use
   // const index = useCur
@@ -1210,90 +1231,28 @@ const PrintButton = ({ slug }: { slug?: string }) => {
 };
 
 const SaveButton = ({ slug }: { slug?: string }) => {
-  const [open, setOpen] = useState(false);
+  const actor = useContext(CraftContext);
+
+  const selectIsFilled = useCallback(
+    (state: CraftSnapshot) => {
+      if (!slug) {
+        return false;
+      }
+
+      return state.context.savedRecipeSlugs.includes(slug);
+    },
+    [slug]
+  );
+  const isFilled = useSelector(actor, selectIsFilled);
 
   return (
     <div className="flex flex-row justify-center w-full">
       {slug ? (
-        // <Button event={{ type: "SAVE" }}>
-        //   <HeartIcon />
-        // </Button>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-            // size="sm"
-            // className="w-[150px] justify-start"
-            >
-              <HeartIcon className="opacity-50" />
-              {/* {selectedStatus ? (
-                <>
-                  <selectedStatus.icon className="mr-2 h-4 w-4 shrink-0" />
-                  {selectedStatus.label}
-                </>
-              ) : (
-                <>+ Set status</>
-              )} */}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0" side="right" align="start">
-            <Command defaultValue={""}>
-              <CommandList>
-                {/* <SaveCommandEmpty /> */}
-
-                <CommandGroup heading="Public Lists (1/1)">
-                  <CommandItem
-                    value={"My Recipes"}
-                    // onSelect={(value) => {
-                    //   // setSelectedStatus(
-                    //   //   statuses.find(
-                    //   //     (priority) => priority.value === value
-                    //   //   ) || null
-                    //   // );
-                    //   setOpen(false);
-                    // }}
-                  >
-                    My Recipes
-                  </CommandItem>
-                  <CommandItem
-                    value={"Create New Public"}
-                    // onSelect={(value) => {
-                    //   // setSelectedStatus(
-                    //   //   statuses.find(
-                    //   //     (priority) => priority.value === value
-                    //   //   ) || null
-                    //   // );
-                    //   setOpen(false);
-                    // }}
-                  >
-                    Create Public List
-                  </CommandItem>
-                </CommandGroup>
-                <CommandGroup
-                  heading={
-                    <div className="flex flex-row gap-1">
-                      <span>Shared Group Lists (0/0)</span>
-                      <LockIcon size={14} />
-                    </div>
-                  }
-                >
-                  <CommandItem
-                    value={"Create New SHraed"}
-                    // onSelect={(value) => {
-                    //   // setSelectedStatus(
-                    //   //   statuses.find(
-                    //   //     (priority) => priority.value === value
-                    //   //   ) || null
-                    //   // );
-                    //   setOpen(false);
-                    // }}
-                  >
-                    Create Shared List
-                  </CommandItem>
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Button event={{ type: "SAVE" }}>
+          <HeartIcon
+            className={cn(isFilled ? "fill-white dark:fill-black" : "")}
+          />
+        </Button>
       ) : (
         <Button disabled>
           <HeartIcon className="animate-pulse" />
@@ -1389,4 +1348,102 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
 
 const SaveCommandEmpty = () => {
   return <CommandEmpty>Create New</CommandEmpty>;
+};
+
+// const ListsDropdown = () => {
+
+//         return <DropdownMenu>
+//           <DropdownMenuTrigger asChild>
+//             <Button
+//             // size="sm"
+//             // className="w-[150px] justify-start"
+//             >
+//               <HeartIcon className="opacity-50" />
+//               {/* {selectedStatus ? (
+//                  <>
+//                    <selectedStatus.icon className="mr-2 h-4 w-4 shrink-0" />
+//                    {selectedStatus.label}
+//                  </>
+//                ) : (
+//                  <>+ Set status</>
+//                )} */}
+//             </Button>
+//           </DropdownMenuTrigger>
+//           <DropdownMenuContent className="w-56">
+//             <DropdownMenuLabel>
+//               <div className="flex flex-row gap-1 items-center">
+//                 <RssIcon className="mr-2 h-4 w-4" />
+//                 <span>Public</span>
+//               </div>
+//             </DropdownMenuLabel>
+//             <DropdownMenuSeparator />
+//             <DropdownMenuCheckboxItem
+//             // checked={showStatusBar}
+//             // onCheckedChange={setShowStatusBar}
+//             >
+//               My Recipes
+//             </DropdownMenuCheckboxItem>
+//             <DropdownMenuItem className="opacity-70">
+//               <PlusIcon className="mr-2 h-4 w-4" />
+//               <span>Create Public List</span>
+//               {/* <DropdownMenuShortcut>⌘S</DropdownMenuShortcut> */}
+//             </DropdownMenuItem>
+//             <DropdownMenuSeparator />
+//             <DropdownMenuLabel>
+//               <div className="flex flex-row gap-1 items-center">
+//                 <UsersIcon className="mr-2 h-4 w-4" />
+//                 <span>Group</span>
+//               </div>
+//             </DropdownMenuLabel>
+//             <DropdownMenuSeparator />
+//             <DropdownMenuItem className="opacity-70">
+//               <PlusIcon className="mr-2 h-4 w-4" />
+//               <span>Create Group List</span>
+//               {/* <DropdownMenuShortcut>⌘S</DropdownMenuShortcut> */}
+//             </DropdownMenuItem>
+//           </DropdownMenuContent>
+//         </DropdownMenu>
+// }
+
+const useRecipeNameForSlug = (slug?: string) => {
+  const session$ = useSessionStore();
+  return useSyncExternalStore(
+    session$.subscribe,
+    () => {
+      const recipes = Object.values(session$.get().context.recipes);
+      return recipes.find((r) => !!slug && r.slug === slug)?.name;
+    },
+    () => {
+      const recipes = Object.values(session$.get().context.recipes);
+      return recipes.find((r) => !!slug && r.slug === slug)?.name;
+    }
+  );
+};
+
+export const SaveRecipeBadge = () => {
+  const actor = useContext(CraftContext);
+  const lastestSlug = useSelector(
+    actor,
+    (state) =>
+      state.context.savedRecipeSlugs[state.context.savedRecipeSlugs.length - 1]
+  );
+  // const recipeName = useRecipeNameForSlug(lastestSlug);
+  const isShowing = useSelector(actor, selectIsShowingSaving);
+
+  return (
+    <Link
+      href={`/recipe/${lastestSlug}`}
+      target="_blank"
+      className={cn(
+        "flex-1 flex justify-center items-center transition-all",
+        !isShowing ? "translate-y-44" : "pointer-events-auto"
+      )}
+    >
+      <Badge className="shadow-xl text-center py-1 px-3 truncate max-w-full flex flex-row gap-1">
+        <span>Saved.</span>
+        <em className="font-semibold not-italic underline">Open</em>
+        <ExternalLinkIcon size={14} />
+      </Badge>
+    </Link>
+  );
 };
