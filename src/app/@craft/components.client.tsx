@@ -1286,7 +1286,6 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
     (state) => state.context.scrollItemIndex
   );
   // const scrollItemIndex = useScrollItemIndex();
-  console.log({ scrollItemIndex });
   const indexRef = useRef(scrollItemIndex);
 
   const send = useSend();

@@ -1,4 +1,5 @@
 import { AppEvent } from "@/types";
+import { atom } from "nanostores";
 import { useSession } from "next-auth/react";
 import posthog from "posthog-js";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -30,15 +31,16 @@ export const usePosthogAnalytics = (posthogClientKey: string) => {
   useLayoutEffect(() => {
     if (session.status === "authenticated") {
       const { email, name } = session.data.user;
+      // todo were probably caling this multiple times
       posthog.identify(session.data.user.id, { email, name });
     }
   }, [session]);
 
   useLayoutEffect(() => {
-    if (!client) {
-      console.warn("unexpected missing posthog client");
+    if (!client || initialized$.get()) {
       return;
     }
+    initialized$.set(true);
 
     const sub = event$.pipe(filter(isEventDebugLogLevel)).subscribe((event) => {
       didSendInitialRef.current = true;
@@ -59,3 +61,5 @@ export const usePosthogAnalytics = (posthogClientKey: string) => {
 
   return client;
 };
+
+const initialized$ = atom(false);

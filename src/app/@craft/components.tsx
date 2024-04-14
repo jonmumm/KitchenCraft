@@ -257,7 +257,7 @@ export const NewRecipeResultsView = () => {
       <Footer>
         <ClientOnly>
           <CraftNotEmpty>
-            <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
+            <div className="max-w-3xl w-full standalone:mb-10 mx-auto overflow-hidden">
               <div className="flex flex-row gap-2 items-center w-full p-2 justify-between">
                 {/* <CloseButton /> */}
                 {/* <ClearButton /> */}
