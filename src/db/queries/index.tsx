@@ -176,21 +176,38 @@ export const getFirstMediaForRecipe = async (recipeSlug: string) => {
     .then((res) => res[0]); // Return the first result
 };
 
-export const getRecentRecipesByUser = async (userId: string) => {
-  // Subquery to get the maximum versionId for each recipe
-  const maxVersionSubquery = db
+export const getRecipesByListSlug = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string,
+  listSlug: string
+) => {
+  const queryRunner =
+    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
+
+  // Subquery to get the maximum versionId for each recipe that is part of "My Recipes" list
+  const maxVersionSubquery = queryRunner
     .select({
       recipeId: RecipesTable.id,
       maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
     })
     .from(RecipesTable)
+    .innerJoin(ListRecipeTable, eq(ListRecipeTable.recipeId, RecipesTable.id))
+    .innerJoin(
+      ListTable,
+      and(
+        eq(ListRecipeTable.listId, ListTable.id),
+        eq(ListTable.slug, listSlug),
+        eq(ListTable.createdBy, userId)
+      )
+    )
     .groupBy(RecipesTable.id)
-    .as("maxVersionSubquery"); // Naming the subquery
+    .as("maxVersionSubquery");
 
-  const query = db
+  // Main query to get the detailed recipe data
+  const query = queryRunner
     .select({
       id: RecipesTable.id,
-      versionId: RecipesTable.versionId, // Include versionId in the selection
+      versionId: RecipesTable.versionId,
       slug: RecipesTable.slug,
       name: RecipesTable.name,
       description: RecipesTable.description,
@@ -198,8 +215,8 @@ export const getRecentRecipesByUser = async (userId: string) => {
       prompt: RecipesTable.prompt,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
-      points,
-      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`, // Counts the number of unique media items per recipe
+      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
+      mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
     .innerJoin(
@@ -210,11 +227,10 @@ export const getRecentRecipesByUser = async (userId: string) => {
       )
     )
     .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
-    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId)) // LEFT JOIN to include media count
-    .where(eq(RecipesTable.createdBy, userId))
+    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
     .groupBy(
       RecipesTable.id,
-      RecipesTable.versionId, // Include versionId in groupBy
+      RecipesTable.versionId,
       RecipesTable.slug,
       RecipesTable.name,
       RecipesTable.prompt,
@@ -225,8 +241,16 @@ export const getRecentRecipesByUser = async (userId: string) => {
     )
     .orderBy(desc(RecipesTable.createdAt))
     .limit(30);
+  console.log(query.toSQL());
 
-  return await withDatabaseSpan(query, "getRecentRecipesByUser").execute();
+  return await withDatabaseSpan(query, "getRecipesByListSlug").execute();
+};
+
+export const getRecentRecipesByUser = async (
+  dbOrTransaction: DbOrTransaction,
+  userId: string
+) => {
+  return getRecipesByListSlug(dbOrTransaction, userId, "my-recipes");
 };
 
 export const getRecentRecipesByCreator = async (createdBy: string) => {
@@ -277,6 +301,7 @@ export const getRecentRecipesByCreator = async (createdBy: string) => {
     )
     .orderBy(desc(RecipesTable.createdAt)) // Order by most recent
     .limit(30); // Limit the number of results
+
   return await withDatabaseSpan(query, "getRecentRecipesByCreator").execute();
 };
 
@@ -1236,7 +1261,6 @@ export const getGeneratedMediaForRecipeSlug = async (
   dbOrTransaction: DbOrTransaction,
   slug: string
 ) => {
-  console.log(slug);
   return (
     await withDatabaseSpan(
       dbOrTransaction
@@ -1413,4 +1437,3 @@ export const upsertUserFeatureState = async (
 
   return result;
 };
-

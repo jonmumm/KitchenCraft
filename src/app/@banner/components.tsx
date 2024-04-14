@@ -5,7 +5,6 @@ import Image from "next/image";
 export default async function Banner() {
   const appSessionId = getAppSessionId();
   const canInstallPWA = getCanInstallPWA();
-  console.log({ appSessionId });
   if (!canInstallPWA || appSessionId) {
     return null;
   }

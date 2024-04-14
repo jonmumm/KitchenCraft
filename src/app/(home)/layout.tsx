@@ -2,15 +2,10 @@ import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
-import {
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/navigation/tabs";
+import { TabsContent } from "@/components/navigation/tabs";
 import quoteList from "@/data/quotes.json";
 import { ChevronRightIcon, Loader2Icon, TimerIcon } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 // import {
 //   RecipeDescription,
@@ -19,9 +14,9 @@ import { ReactNode, Suspense } from "react";
 //   RecipeTimestamp,
 // } from "./components";
 import { Badge } from "@/components/display/badge";
-import { Separator } from "@/components/display/separator";
 import { EventButton } from "@/components/event-button";
-import { TagsCarousel } from "@/modules/tags-carousel";
+import NavigationLink from "@/components/navigation/navigation-link";
+import { db } from "@/db";
 import { getSession } from "@/lib/auth/session";
 import { formatDuration, shuffle, timeAgo } from "@/lib/utils";
 import {
@@ -29,9 +24,7 @@ import {
   getRecentRecipesByUser,
   getSortedMediaForMultipleRecipes,
 } from "../../db/queries";
-import { BestDropdown } from "./components.client";
 import LayoutClient, { HomeTabs } from "./layout.client";
-import NavigationLink from "@/components/navigation/navigation-link";
 // import { db } from "@vercel/postgres";
 
 export default async function Layout({ children }: { children: ReactNode }) {
@@ -124,7 +117,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
   };
 
   const RecipeList = async () => {
-    const recipes = await getRecentRecipesByUser(userId);
+    const recipes = await getRecentRecipesByUser(db, userId);
     const slugs = recipes.map((recipe) => recipe.slug);
     const quotes = shuffle(quoteList);
     const mediaBySlug = slugs.length

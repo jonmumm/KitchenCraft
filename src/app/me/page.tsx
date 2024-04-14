@@ -8,7 +8,7 @@ import { AsyncRenderFirstValue } from "@/components/util/async-render-first-valu
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
 import quoteList from "@/data/quotes.json";
 import { db } from "@/db";
-import { getRecentRecipesByCreator, updateRecipeCreator } from "@/db/queries";
+import { getRecentRecipesByCreator, getRecentRecipesByUser, updateRecipeCreator } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getGuestId } from "@/lib/browser-session";
 import { assert, shuffle } from "@/lib/utils";
@@ -40,7 +40,7 @@ export default async function Page() {
 
   const [recipes$] = [
     createdBy
-      ? from(getRecentRecipesByCreator(createdBy)).pipe(shareReplay(1))
+      ? from(getRecentRecipesByUser(db, createdBy)).pipe(shareReplay(1))
       : of([]),
   ];
   // const browserSessionId = await getGuestId();

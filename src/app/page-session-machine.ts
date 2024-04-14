@@ -24,7 +24,6 @@ import {
   ProductType,
   WithCaller,
 } from "@/types";
-import { nanoid } from "ai";
 import { randomUUID } from "crypto";
 import { and, eq, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
@@ -176,7 +175,6 @@ export const pageSessionMachine = setup({
           createdBy: string;
         };
       }) => {
-        const id = nanoid();
         const { recipe } = input;
 
         assert(recipe.name, "expected name");
@@ -184,9 +182,9 @@ export const pageSessionMachine = setup({
         assert(recipe.slug, "expected slug");
 
         const finalRecipe = {
-          id: randomUUID(),
+          id: recipe.id,
           slug: recipe.slug,
-          versionId: 0,
+          versionId: recipe.versionId,
           description: recipe.description,
           name: recipe.name,
           yield: recipe.yield!,
@@ -1040,6 +1038,8 @@ export const pageSessionMachine = setup({
                                   const id = randomUUID();
                                   draft.suggestedRecipes.push(id);
                                   draft.recipes[id] = {
+                                    id,
+                                    versionId: 0,
                                     complete: false,
                                   };
                                 })

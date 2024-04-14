@@ -93,7 +93,6 @@ import {
   UpvoteEventSchema,
   UserMessageSchema,
 } from "./schema";
-import { SnapshotFrom } from "xstate";
 
 // Define a type utility to extract the type based on the `type` property
 export type ExtractType<T, TypeString> = T extends { type: infer U }
@@ -320,6 +319,8 @@ export type AffiliateProduct = z.infer<typeof AffiliateProductSchema>;
 export type NewAffiliateProduct = z.infer<typeof NewAffiliateProductSchema>;
 
 export type PartialRecipe = {
+  id: string;
+  versionId: number;
   name?: string;
   slug?: string;
   description?: string;
