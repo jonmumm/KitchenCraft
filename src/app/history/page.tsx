@@ -16,6 +16,7 @@ import { redirect } from "next/navigation";
 import { Progress } from "@/components/feedback/progress";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
+import { db } from "@/db";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
 
@@ -25,7 +26,7 @@ export default async function Page() {
     redirect("/auth/signin");
   }
   const userId = session.user.id;
-  const recipes$ = from(getRecentRecipesByUser(userId)).pipe(shareReplay(1));
+  const recipes$ = from(getRecentRecipesByUser(db, userId)).pipe(shareReplay(1));
 
   // Rest of your existing components like Username, Points, ClaimDate etc.
   const quotaLimit$ = of(3);
