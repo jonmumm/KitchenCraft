@@ -13,6 +13,8 @@ Run the backend with `npx partykit dev`.
 
 You will also need to configure your environment according to the values in `src/env.public.ts` and `src/env.secrets.ts`.
 
+Developed using node 18 and npm 9.
+
 ## Deploy to Vercel
 
 TODO setup `.env.example` based on `src/env.public.ts` and `src/env.private.ts`.
