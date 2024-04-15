@@ -6,7 +6,12 @@ Instantly create personalized recipes.
 
 ## Developing
 
-Clone the repo. Run `npm install` and `npm run dev`.
+Clone the repo. Run `npm install`
+
+Run the frontend with `npm run dev`.
+Run the backend with `npx partykit dev`.
+
+You will also need to configure your environment according to the values in `env.public.ts` and `env.secrets.ts`.
 
 ## Deploy to Vercel
 
