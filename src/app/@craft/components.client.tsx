@@ -6,7 +6,6 @@ import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
-import { CommandEmpty } from "@/components/input/command";
 import {
   Form,
   FormControl,
@@ -1263,10 +1262,7 @@ export const EnterChefNameForm = () => {
         <Button
           disabled={disabled || !isAvailable}
           type="submit"
-          className={cn(
-            "w-full",
-            isAvailable ? "bg-blue-500 text-white" : ""
-          )}
+          className={cn("w-full", isAvailable ? "bg-blue-500 text-white" : "")}
           size="lg"
         >
           {disabled ? (
@@ -1362,6 +1358,7 @@ const PlaceholderAnimatingInput = forwardRef<
 
   return <Input ref={localInputRef} {...inputProps} />;
 });
+PlaceholderAnimatingInput.displayName = "PlaceholderAnimatingInput"
 
 export const ClearButton = () => {
   const session$ = useContext(SessionStoreContext);
@@ -1628,80 +1625,6 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
     >
       {children}
     </div>
-  );
-};
-
-const SaveCommandEmpty = () => {
-  return <CommandEmpty>Create New</CommandEmpty>;
-};
-
-// const ListsDropdown = () => {
-
-//         return <DropdownMenu>
-//           <DropdownMenuTrigger asChild>
-//             <Button
-//             // size="sm"
-//             // className="w-[150px] justify-start"
-//             >
-//               <HeartIcon className="opacity-50" />
-//               {/* {selectedStatus ? (
-//                  <>
-//                    <selectedStatus.icon className="mr-2 h-4 w-4 shrink-0" />
-//                    {selectedStatus.label}
-//                  </>
-//                ) : (
-//                  <>+ Set status</>
-//                )} */}
-//             </Button>
-//           </DropdownMenuTrigger>
-//           <DropdownMenuContent className="w-56">
-//             <DropdownMenuLabel>
-//               <div className="flex flex-row gap-1 items-center">
-//                 <RssIcon className="mr-2 h-4 w-4" />
-//                 <span>Public</span>
-//               </div>
-//             </DropdownMenuLabel>
-//             <DropdownMenuSeparator />
-//             <DropdownMenuCheckboxItem
-//             // checked={showStatusBar}
-//             // onCheckedChange={setShowStatusBar}
-//             >
-//               My Recipes
-//             </DropdownMenuCheckboxItem>
-//             <DropdownMenuItem className="opacity-70">
-//               <PlusIcon className="mr-2 h-4 w-4" />
-//               <span>Create Public List</span>
-//               {/* <DropdownMenuShortcut>⌘S</DropdownMenuShortcut> */}
-//             </DropdownMenuItem>
-//             <DropdownMenuSeparator />
-//             <DropdownMenuLabel>
-//               <div className="flex flex-row gap-1 items-center">
-//                 <UsersIcon className="mr-2 h-4 w-4" />
-//                 <span>Group</span>
-//               </div>
-//             </DropdownMenuLabel>
-//             <DropdownMenuSeparator />
-//             <DropdownMenuItem className="opacity-70">
-//               <PlusIcon className="mr-2 h-4 w-4" />
-//               <span>Create Group List</span>
-//               {/* <DropdownMenuShortcut>⌘S</DropdownMenuShortcut> */}
-//             </DropdownMenuItem>
-//           </DropdownMenuContent>
-//         </DropdownMenu>
-// }
-
-const useRecipeNameForSlug = (slug?: string) => {
-  const session$ = useSessionStore();
-  return useSyncExternalStore(
-    session$.subscribe,
-    () => {
-      const recipes = Object.values(session$.get().context.recipes);
-      return recipes.find((r) => !!slug && r.slug === slug)?.name;
-    },
-    () => {
-      const recipes = Object.values(session$.get().context.recipes);
-      return recipes.find((r) => !!slug && r.slug === slug)?.name;
-    }
   );
 };
 
