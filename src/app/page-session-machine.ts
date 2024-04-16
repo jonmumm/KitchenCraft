@@ -1605,21 +1605,8 @@ export const pageSessionMachine = setup({
       type: "parallel",
 
       states: {
-        Valid: {
-          initial: "No",
-          states: {
-            No: {},
-            Yes: {},
-          },
-        },
-
         Available: {
           initial: "Uninitialized",
-          // always: [{
-          //   target: ".Invalid",
-          //   guard: ({ event })
-
-          // }],
           on: {
             CHANGE: {
               target: ".Holding",
