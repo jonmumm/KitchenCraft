@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/display/skeleton";
 import { Progress } from "@/components/feedback/progress";
 import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
-import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { RenderFirstValue } from "@/components/util/render-first-value";
 import { db } from "@/db";
@@ -18,12 +17,11 @@ import {
   getUserPointsLast30Days,
 } from "@/db/queries";
 import { getSession } from "@/lib/auth/session";
-import Bowser from "bowser";
 import { ChefHatIcon, GithubIcon, LoaderIcon, YoutubeIcon } from "lucide-react";
-import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import { FaDiscord } from "react-icons/fa";
 import {
   Observable,
   combineLatest,
@@ -362,6 +360,11 @@ export async function MainMenu({ className }: { className?: string }) {
       <Separator />
       <div className="flex flex-row gap-2 justify-center">
         <div className="flex flex-row justify-center gap-2">
+          <Link target="_blank" href="https://discord.gg/2DZYEFjCce">
+            <Button size="icon" variant="outline">
+              <FaDiscord />
+            </Button>
+          </Link>
           <Link target="_blank" href="https://github.com/jonmumm/kitchencraft">
             <Button size="icon" variant="outline">
               <GithubIcon />
