@@ -39,7 +39,7 @@ export class SuggestChefNamesStream extends TokenStream<{
           input.previousSuggestions.join(", ") +
           "."
         : "";
-    const TEMPLATE = `Generate six personalized nicknames suitable for use on a recipe app, based on the user's email address. ${previousSuggestionsText} The nicknames should incorporate elements of the email, use numbers, and underscores for readability, and reflect a variety of styles seen in usernames like 'sam_sizzle77', 'grill_king202', and 'spicy_chefTom'. For example, if the email is 'johnsmith@gmail.com', some suitable nicknames could be 'johnny_cooks', 'smith_bakeStar202', or 'chef_smith77'.
+    const TEMPLATE = `Generate six personalized nicknames suitable for use on a recipe app, based on the user's email address ${previousSuggestionsText}. The nicknames should incorporate elements of the email (ignoring the domain), use random numbers, you can use underscores for readability, and reflect a variety of styles seen in usernames like [Adjective][Noun] (e.g. BakingJohn), [Flavor/Ingredient][Descriptor] (e.g VanillaTony, ginger_nami_12), [Region/City][Chef/Cook] (e.g. denver_cook_smith, TokyoChef) or another style. Use a mix of camelcase (70% of the time) and full lower case with understore (30% of the time).
 
 Format the response in YAML with a single key "names" and then the list of text strings to show as suggestion user names. Return nothing else but the formatted YAML. Return 6 suggestions`;
     return TEMPLATE;
