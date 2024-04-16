@@ -1,7 +1,13 @@
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { produce } from "immer";
 
-import { ListRecipeTable, ListTable, RecipesTable, db } from "@/db";
+import {
+  ListRecipeTable,
+  ListTable,
+  ProfileTable,
+  RecipesTable,
+  db,
+} from "@/db";
 // import { createListRecipe, ensureMyRecipesList } from "@/db/queries";
 import { NewRecipe } from "@/db/types";
 import { getErrorMessage } from "@/lib/error";
@@ -25,7 +31,7 @@ import {
   WithCaller,
 } from "@/types";
 import { randomUUID } from "crypto";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, ilike, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { Operation, applyPatch, compare } from "fast-json-patch";
 import type * as Party from "partykit/server";
@@ -36,6 +42,7 @@ import {
   fromPromise,
   setup,
   spawnChild,
+  and as xstateAnd,
 } from "xstate";
 import { z } from "zod";
 import { AutoSuggestIngredientEvent } from "./auto-suggest-ingredients.stream";
@@ -68,6 +75,11 @@ import {
   RecipeProductsTokenStream,
   SuggestRecipeProductsEvent,
 } from "./recipe/[slug]/products/recipe-products-stream";
+import {
+  SuggestChefNamesEvent,
+  SuggestChefNamesOutputSchema,
+  SuggestChefNamesStream,
+} from "./suggest-chef-names-stream";
 import { buildInput, generateUrlSafeHash } from "./utils";
 
 // const autoSuggestionOutputSchemas = {
@@ -108,6 +120,10 @@ type Context = {
   createdBy?: string;
   prompt: string;
   inputHash: string | undefined;
+  chefname: string | undefined;
+  email: string | undefined;
+  previousSuggestedChefnames: string[];
+  suggestedChefnames: string[];
   storage: Party.Storage;
   tokens: string[];
   suggestedRecipes: string[];
@@ -144,6 +160,7 @@ export const pageSessionMachine = setup({
       | AutoSuggestPlaceholderEvent
       | InstantRecipeMetadataEvent
       | SuggestRecipeProductsEvent
+      | SuggestChefNamesEvent
       | FullRecipeEvent
       | NewRecipeProductKeywordEvent,
   },
@@ -162,6 +179,48 @@ export const pageSessionMachine = setup({
 
         await createListRecipe(db, input.userId, input.recipeId, result.listId);
         return "";
+      }
+    ),
+    // : fromPromise(
+    //   async ({
+    //     input,
+    //   }: {
+    //     input: {
+    //       chefname: string;
+    //     };
+    //   }) => {
+    //     const profile = await getProfileBySlug(input.chefname);
+    //     return !profile;
+    //   }
+    // ),
+    generateChefNameSuggestions: fromEventObservable(
+      ({
+        input,
+      }: {
+        input: { email: string; previousSuggestions: string[] };
+      }) => {
+        const tokenStream = new SuggestChefNamesStream();
+        return from(tokenStream.getStream(input)).pipe(
+          switchMap((stream) => {
+            return streamToObservable(
+              stream,
+              "SUGGEST_CHEF_NAMES",
+              SuggestChefNamesOutputSchema
+            );
+          })
+        );
+      }
+    ),
+    checkChefNameAvailability: fromPromise(
+      async ({
+        input,
+      }: {
+        input: {
+          chefname: string;
+        };
+      }) => {
+        const profile = await getProfileBySlug(input.chefname);
+        return !profile;
       }
     ),
     createNewRecipe: fromPromise(
@@ -349,6 +408,22 @@ export const pageSessionMachine = setup({
     ),
   },
   guards: {
+    hasValidChefName: ({ context }) => {
+      return !!context.chefname && context.chefname?.length > 0;
+    },
+    didChangeEmailInput: ({ context, event }) => {
+      return event.type === "CHANGE" && event.name === "email";
+    },
+    didChangeChefNameInput: ({ context, event }) => {
+      return event.type === "CHANGE" && event.name === "chefname";
+    },
+    isChefNameNotEmpty: ({ context, event }) => {
+      return (
+        event.type === "CHANGE" &&
+        event.name === "chefname" &&
+        !!event.value.length
+      );
+    },
     shouldCreateNewAds: ({ context }) => {
       Object.values(context.adInstances).map((item) => item.product);
       return false;
@@ -420,6 +495,10 @@ export const pageSessionMachine = setup({
     history: [input.url],
     prompt: "",
     initialCaller: input.initialCaller,
+    chefname: undefined,
+    suggestedChefnames: [],
+    previousSuggestedChefnames: [],
+    email: undefined,
     storage: input.storage,
     currentItemIndex: 0,
     numCompletedRecipes: 0,
@@ -923,7 +1002,7 @@ export const pageSessionMachine = setup({
                 Idle: {},
                 Holding: {
                   after: {
-                    300: {
+                    600: {
                       target: "Generating",
                       guard: ({ context }) => !!context.prompt?.length,
                     },
@@ -1005,7 +1084,7 @@ export const pageSessionMachine = setup({
                 Idle: {},
                 Holding: {
                   after: {
-                    300: {
+                    600: {
                       target: "Generating",
                       guard: ({ context }) => !!context.prompt?.length,
                     },
@@ -1313,6 +1392,234 @@ export const pageSessionMachine = setup({
         },
       },
     },
+
+    Auth: {
+      initial: "Uninitialized",
+      //  ? "Anonymous" : "LoggedIn",
+      on: {
+        UPDATE_SESSION: {
+          target: ".LoggedIn",
+        },
+      },
+      states: {
+        Uninitialized: {
+          always: [
+            {
+              target: "Anonymous",
+              guard: ({ context }) => context.initialCaller.type === "guest",
+            },
+            {
+              target: "LoggedIn",
+            },
+          ],
+        },
+        Anonymous: {
+          on: {
+            SAVE: {
+              target: "Registering",
+            },
+          },
+        },
+        Registering: {
+          initial: "InputtingEmail",
+          onDone: "LoggedIn",
+          on: {
+            CANCEL: "Anonymous",
+            SUGGEST_CHEF_NAMES_START: {
+              actions: assign(({ context }) =>
+                produce(context, (draft) => {
+                  draft.previousSuggestedChefnames =
+                    context.previousSuggestedChefnames.concat(
+                      context.suggestedChefnames
+                    );
+                  draft.suggestedChefnames = [];
+                })
+              ),
+            },
+            SUGGEST_CHEF_NAMES_PROGRESS: {
+              actions: assign({
+                suggestedChefnames: ({ event, context }) => {
+                  const names = event.data.names;
+                  return names || context.suggestedChefnames;
+                },
+              }),
+            },
+            SUGGEST_CHEF_NAMES_COMPLETE: {
+              actions: assign({
+                suggestedChefnames: ({ event, context }) => {
+                  const names = event.data.names;
+                  return names;
+                },
+              }),
+            },
+          },
+          states: {
+            InputtingEmail: {
+              on: {
+                CHANGE: {
+                  guard: "didChangeEmailInput",
+                  actions: assign({
+                    email: ({ event }) => event.value,
+                  }),
+                },
+                SUBMIT: {
+                  actions: spawnChild("generateChefNameSuggestions", {
+                    input: ({ context }) => {
+                      assert(
+                        context.email,
+                        "expected email when generating chef name suggestions"
+                      );
+                      return {
+                        email: context.email,
+                        previousSuggestions: context.previousSuggestedChefnames,
+                      };
+                    },
+                  }),
+                  target: "InputtingChefName",
+                },
+              },
+            },
+            InputtingChefName: {
+              type: "parallel",
+              states: {
+                Input: {
+                  initial: "Pristine",
+                  on: {
+                    REFRESH: {
+                      actions: spawnChild("generateChefNameSuggestions", {
+                        input: ({ context }) => {
+                          assert(
+                            context.email,
+                            "expected email when generating chef name suggestions"
+                          );
+                          return {
+                            email: context.email,
+                            previousSuggestions:
+                              context.previousSuggestedChefnames.concat(
+                                context.suggestedChefnames
+                              ),
+                          };
+                        },
+                      }),
+                    },
+                    CHANGE: [
+                      {
+                        target: ".Holding",
+                        reenter: true,
+                        guard: xstateAnd([
+                          "didChangeChefNameInput",
+                          "isChefNameNotEmpty",
+                        ]),
+                      },
+                      {
+                        target: ".Pristine",
+                        guard: "didChangeChefNameInput",
+                      },
+                    ],
+                  },
+                  states: {
+                    Pristine: {
+                      on: {
+                        CHANGE: {
+                          target: "Holding",
+                          guard: "didChangeChefNameInput",
+                        },
+                      },
+                    },
+                    Holding: {},
+                    Validating: {},
+                    Available: {},
+                    Taken: {},
+                  },
+                },
+              },
+            },
+            InputtingOTP: {
+              on: {
+                PAGE_LOADED: {
+                  target: "Complete",
+                  guard: ({ event }) => event.pathname === "/me",
+                },
+              },
+            },
+            Complete: {
+              type: "final",
+            },
+          },
+        },
+        LoggedIn: {},
+      },
+    },
+
+    Profile: {
+      type: "parallel",
+
+      states: {
+        Valid: {
+          initial: "No",
+          states: {
+            No: {},
+            Yes: {},
+          },
+        },
+
+        Available: {
+          initial: "Uninitialized",
+          // always: [{
+          //   target: ".Invalid",
+          //   guard: ({ event })
+
+          // }],
+          on: {
+            CHANGE: {
+              target: ".Holding",
+              guard: "didChangeChefNameInput",
+              actions: assign(({ context, event }) =>
+                produce(context, (draft) => {
+                  draft.chefname = event.value;
+                })
+              ),
+            },
+          },
+          states: {
+            Uninitialized: {},
+            No: {},
+            Holding: {
+              after: {
+                500: {
+                  target: "Loading",
+                  guard: ({ context }) =>
+                    !!context.chefname && context.chefname.length > 0,
+                },
+              },
+            },
+            Loading: {
+              invoke: {
+                id: "checkChefNameAvailability",
+                src: "checkChefNameAvailability",
+                input: ({ context }) => {
+                  console.log("LOADING!!!!");
+                  assert(context.chefname, "expected chefname");
+                  return {
+                    chefname: context.chefname,
+                  };
+                },
+                onDone: [
+                  {
+                    target: "Yes",
+                    guard: ({ event }) => event.output,
+                  },
+                  {
+                    target: "No",
+                  },
+                ],
+              },
+            },
+            Yes: {},
+          },
+        },
+      },
+    },
   },
 });
 
@@ -1510,4 +1817,20 @@ const ensureMyRecipesList = async (
   } catch (error) {
     return { success: false, error: getErrorMessage(error) } as const;
   }
+};
+
+const getProfileBySlug = async (profileSlug: string) => {
+  const query = db
+    .select({
+      profileSlug: ProfileTable.profileSlug,
+      activated: ProfileTable.activated,
+      mediaId: ProfileTable.mediaId,
+      userId: ProfileTable.userId,
+      createdAt: ProfileTable.createdAt,
+    })
+    .from(ProfileTable)
+    .where(ilike(ProfileTable.profileSlug, profileSlug)); // Filter by the given profile slug
+  return await withDatabaseSpan(query, "getProfileBySlug")
+    .execute()
+    .then((res) => res[0]); // Return the first (and expectedly only) result
 };

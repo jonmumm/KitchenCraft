@@ -115,7 +115,7 @@ const HashChangeEventsProvider = () => {
       }, 0);
       lastHash.current = window.location.hash;
     }
-  }, [params]);
+  }, [params, send]);
 
   return null;
 };

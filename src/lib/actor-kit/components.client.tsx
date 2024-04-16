@@ -34,6 +34,7 @@ export const ActorProvider = (props: {
       room: id,
       id: connectionId,
       query: { token },
+      debug: true,
     });
 
     event$.subscribe((event) => {

@@ -7,7 +7,7 @@ import { FormEventHandler, ForwardRefRenderFunction, useCallback } from "react";
 interface EventInputProps extends React.HTMLProps<HTMLDivElement> {
   name: string;
   asChild?: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export const EventInput: ForwardRefRenderFunction<

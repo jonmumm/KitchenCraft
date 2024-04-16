@@ -19,6 +19,7 @@ import {
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
+import { useSessionStore } from "@/hooks/useSessionStore";
 import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,19 +41,24 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ReactNode,
+  forwardRef,
   useCallback,
   useContext,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
   useSyncExternalStore,
 } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
 import { CraftContext } from "../context";
 import { CraftSnapshot } from "../machine";
-import { SessionStoreContext } from "../page-session-store.context";
+import {
+  SessionStoreContext,
+  SessionStoreSnapshot,
+} from "../page-session-store.context";
 import { ShareButton } from "../recipe/components.client";
 import { buildInput, isEqual } from "../utils";
 // import {
@@ -354,10 +360,6 @@ export const SuggestedRecipeCards = () => {
   );
 };
 
-const useSessionStore = () => {
-  return useContext(SessionStoreContext);
-};
-
 const usePromptLength = () => {
   const session = useSessionStore();
   const [length, setLength] = useState(session.get().context.prompt.length);
@@ -486,6 +488,20 @@ const useNumCards = () => {
 //     selector
 //   );
 // };
+
+const useChefName = () => {
+  const session$ = useSessionStore();
+  return useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => {
+      return session$.get().context.chefname;
+    },
+    () => {
+      return session$.get().context.chefname;
+    },
+    (chefname) => chefname
+  );
+};
 
 const useCurrentItemIndex = () => {
   const session$ = useSessionStore();
@@ -994,7 +1010,11 @@ function Instructions({ index }: { index: number }) {
   );
 }
 
-const formSchema = z.object({
+const chefnameFormSchema = z.object({
+  chefname: z.string(),
+});
+
+const emailFormSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
 });
 
@@ -1003,15 +1023,25 @@ export const EnterEmailForm = () => {
   const router = useRouter();
   const session$ = useContext(SessionStoreContext);
   const form = useForm({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(emailFormSchema),
     defaultValues: {
       email: "",
     },
   });
+  const send = useSend();
+
+  useEffect(() => {
+    return form.watch((data) => {
+      const value = data.email || "";
+      send({ type: "CHANGE", name: "email", value });
+    }).unsubscribe;
+  }, [form.watch, send]);
+
   const onSubmit = useCallback(
-    async (data: z.infer<typeof formSchema>) => {
+    async (data: z.infer<typeof emailFormSchema>) => {
       setDisabled(true);
       try {
+        send({ type: "SUBMIT" });
         await signIn("email", {
           email: data.email,
           redirect: false,
@@ -1076,6 +1106,262 @@ export const EnterEmailForm = () => {
     </Form>
   );
 };
+
+const selectIsLoadingAvailability = (snapshot: SessionStoreSnapshot) => {
+  const stateValue = snapshot.value;
+  return (
+    typeof stateValue === "object" &&
+    !!stateValue.Profile &&
+    typeof stateValue.Profile === "object" &&
+    (stateValue.Profile.Available === "Loading" ||
+      stateValue.Profile.Available === "Holding")
+  );
+};
+
+const selectIsAvailable = (snapshot: SessionStoreSnapshot) => {
+  const stateValue = snapshot.value;
+  return (
+    typeof stateValue === "object" &&
+    !!stateValue.Profile &&
+    typeof stateValue.Profile === "object" &&
+    stateValue.Profile.Available === "Yes"
+  );
+};
+
+const selectIsPristine = (snapshot: SessionStoreSnapshot) => {
+  const stateValue = snapshot.value;
+  return (
+    typeof stateValue === "object" &&
+    !!stateValue.Profile &&
+    typeof stateValue.Profile === "object" &&
+    stateValue.Profile.Available === "Uninitialized"
+  );
+};
+
+export const EnterChefNameForm = () => {
+  // const [disabled, setDisabled] = useState(false);
+  const session$ = useContext(SessionStoreContext);
+  const isLoadingAvailability = useSyncExternalStore(
+    session$.subscribe,
+    () => {
+      return selectIsLoadingAvailability(session$.get());
+    },
+    () => {
+      return false;
+    }
+  );
+  const isPristine = useSyncExternalStore(
+    session$.subscribe,
+    () => {
+      return selectIsPristine(session$.get());
+    },
+    () => {
+      return false;
+    }
+  );
+  const isAvailable = useSyncExternalStore(
+    session$.subscribe,
+    () => {
+      return selectIsAvailable(session$.get());
+    },
+    () => {
+      return false;
+    }
+  );
+  const [disabled, setDisabled] = useState(false);
+  const send = useSend();
+
+  const form = useForm({
+    resolver: zodResolver(chefnameFormSchema),
+    defaultValues: {
+      chefname: "",
+    },
+  });
+
+  useEventHandler("SELECT_VALUE", (event) => {
+    if (event.name === "suggested_chefname") {
+      form.setValue("chefname", event.value);
+    }
+    return;
+  });
+
+  useEffect(() => {
+    return form.watch((data) => {
+      const value = data.chefname || "";
+      send({ type: "CHANGE", name: "chefname", value });
+    }).unsubscribe;
+  }, [form.watch, send]);
+
+  // useEffect(() => {
+  //   return form.watch("chefname")
+
+  // }, [form.watch])
+
+  // todo how do i call  this on chefname change
+  // send({ type: "CHANGE", name: "chefname", value: data.chefname });
+  const onSubmit = useCallback(
+    async (data: z.infer<typeof chefnameFormSchema>) => {
+      setDisabled(true);
+      send({ type: "SUBMIT" });
+    },
+    [session$, send]
+  );
+
+  // const FormValueSender = () => {
+  //   const field = useFormField();
+  //   console.log({ field });
+  //   return <></>;
+  // };
+
+  const TakenChefName = () => {
+    const chefname = useChefName();
+
+    return <>{chefname} Taken</>;
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="chefname"
+          render={({ field, fieldState }) => (
+            <FormItem>
+              {/* <FormValueSender /> */}
+              <FormLabel>Chef Name</FormLabel>
+              <FormControl>
+                <PlaceholderAnimatingInput
+                  samplePlaceholders={[
+                    "chefJoe123",
+                    "amyCooks88",
+                    "bbqBob202",
+                    "LisaFoodie",
+                    "mikemaster7",
+                    "sambaker007",
+                    "VicVegan303",
+                    "patPatty",
+                    "grillGal555",
+                    "guyPie404",
+                  ]}
+                  autoFocus
+                  disabled={disabled}
+                  type="text"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                You recipes will be saved to:
+                <br /> kitchencraft.ai/@
+                <ChefNamePath />
+              </FormDescription>
+              {fieldState.error && (
+                <FormMessage>{fieldState.error.message}</FormMessage>
+              )}
+            </FormItem>
+          )}
+        />
+        <Button
+          disabled={disabled || !isAvailable}
+          type="submit"
+          className={cn(
+            "w-full",
+            isAvailable ? "bg-blue-500 text-white" : ""
+          )}
+          size="lg"
+        >
+          {disabled ? (
+            "Loading..."
+          ) : isAvailable ? (
+            "Available! Submit"
+          ) : isLoadingAvailability ? (
+            "Checking..."
+          ) : isPristine ? (
+            "Submit"
+          ) : (
+            <TakenChefName />
+          )}
+        </Button>
+      </form>
+    </Form>
+  );
+};
+
+const ChefNamePath = () => {
+  const chefname = useWatch({ name: "chefname" });
+
+  return (
+    <span className="font-semibold">
+      {chefname === "" ? "YOUR-CHEF-NAME" : chefname}
+    </span>
+  );
+};
+
+type PlaceholderAnimatingInputProps = {
+  samplePlaceholders: string[];
+} & React.ComponentProps<typeof Input>;
+
+const PlaceholderAnimatingInput = forwardRef<
+  HTMLInputElement,
+  PlaceholderAnimatingInputProps
+>(({ samplePlaceholders, ...inputProps }, ref) => {
+  const localInputRef = useRef<HTMLInputElement>(null);
+  const typing = useRef(true);
+  const placeholderText = useRef("");
+  const placeholderIndex = useRef(0);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Connect the local ref with the forwarded ref
+  useImperativeHandle(ref, () => localInputRef.current!);
+
+  useEffect(() => {
+    const updatePlaceholder = () => {
+      const currentPlaceholder = samplePlaceholders[placeholderIndex.current];
+      if (typing.current) {
+        assert(currentPlaceholder, "expected at least one samplePlaceholder");
+        if (placeholderText.current.length < currentPlaceholder.length) {
+          placeholderText.current = currentPlaceholder.slice(
+            0,
+            placeholderText.current.length + 1
+          );
+          if (localInputRef.current) {
+            localInputRef.current.placeholder = placeholderText.current;
+          }
+        } else {
+          if (!typingTimeoutRef.current) {
+            typingTimeoutRef.current = setTimeout(() => {
+              typing.current = false;
+              updatePlaceholder(); // Begin deleting after a pause
+            }, 1000); // Pause before starting to delete
+          }
+        }
+      } else {
+        if (placeholderText.current.length > 0) {
+          placeholderText.current = placeholderText.current.slice(0, -1);
+          if (localInputRef.current) {
+            localInputRef.current.placeholder = placeholderText.current;
+          }
+        } else {
+          typing.current = true;
+          placeholderIndex.current =
+            (placeholderIndex.current + 1) % samplePlaceholders.length;
+          clearTimeout(typingTimeoutRef.current!);
+          typingTimeoutRef.current = null;
+          updatePlaceholder(); // Reset to type the next placeholder
+        }
+      }
+    };
+
+    const intervalId = setInterval(updatePlaceholder, 100);
+    return () => {
+      clearInterval(intervalId);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [samplePlaceholders]);
+
+  return <Input ref={localInputRef} {...inputProps} />;
+});
 
 export const ClearButton = () => {
   const session$ = useContext(SessionStoreContext);

@@ -393,6 +393,7 @@ const ChangeEventSchema = z.object({
   type: z.literal("CHANGE"),
   name: z.string(),
   value: z.string(),
+  // prevValue: z.string().optional(),
 });
 
 const SetInputEventSchema = z.object({
@@ -756,8 +757,20 @@ const ScrollIndexEventSchema = z.object({
   index: z.number(),
 });
 
+const SelectValueEventSchema = z.object({
+  type: z.literal("SELECT_VALUE"),
+  name: z.string(),
+  value: z.string(),
+});
+
+const RefreshEventSchema = z.object({
+  type: z.literal("REFRESH"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  RefreshEventSchema,
   ScrollIndexEventSchema,
+  SelectValueEventSchema,
   PrevEventSchema,
   NextEventSchema,
   PrintEventSchema,

@@ -9,8 +9,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
   getCurrentEmail,
-  getSession,
   getPageSessionActorClient,
+  getSession,
   getUniqueId,
 } from "@/lib/auth/session";
 import { createAppInstallToken, getPageSessionId } from "@/lib/browser-session";
@@ -24,12 +24,14 @@ import { Toaster } from "sonner";
 import "../styles/globals.css";
 import {
   Body,
+  IsInputtingChefName,
   IsInputtingEmail,
-  SaveRecipeCard,
+  EnterEmailCard,
   SearchParamsToastMessage,
+  EnterChefNameCard,
 } from "./components.client";
-import { ApplicationProvider } from "./provider";
 import { SessionStoreProvider } from "./page-session-store-provider";
+import { ApplicationProvider } from "./provider";
 import "./styles.css";
 
 const APP_NAME = "KitchenCraft";
@@ -179,13 +181,23 @@ export default async function RootLayout(
 const RegistrationDialog = () => {
   const isMobile = getIsMobile();
   return (
-    <IsInputtingEmail>
-      <ResponsiveDialog open isMobile={isMobile}>
-        <ResponsiveDialogOverlay />
-        <ResponsiveDialogContent>
-          <SaveRecipeCard />
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-    </IsInputtingEmail>
+    <>
+      <IsInputtingChefName>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent>
+            <EnterChefNameCard />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </IsInputtingChefName>
+      <IsInputtingEmail>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent>
+            <EnterEmailCard />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </IsInputtingEmail>
+    </>
   );
 };

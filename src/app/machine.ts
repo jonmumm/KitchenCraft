@@ -334,12 +334,14 @@ export const createCraftMachine = ({
       // ),
     },
     guards: {
-      // hasDirtyInput: ({ context }) => {
-      //   return !!context.prompt?.length;
-      // },
-      // hasPristineInput: ({ context }) => {
-      //   return !context.prompt || !context.prompt.length;
-      // },
+      hasValidChefName: ({ context }) => {
+        const stateValue = session$.get().value;
+        return (
+          typeof stateValue.Profile &&
+          !!stateValue.Profile.Available &&
+          stateValue.Profile.Available === "Yes"
+        );
+      },
       isMobile: () => {
         return isMobile();
       },
@@ -413,10 +415,15 @@ export const createCraftMachine = ({
                 InputtingEmail: {
                   on: {
                     PAGE_LOADED: {
+                      target: "InputtingChefName",
+                    },
+                  },
+                },
+                InputtingChefName: {
+                  on: {
+                    SUBMIT: {
                       target: "InputtingOTP",
-                      guard: ({ event }) => event.pathname === "/auth/passcode",
-                      // actions: raise({ type: "CLOSE" }),
-                      // actions: send({ type: "CLOSE" }),
+                      guard: "hasValidChefName",
                     },
                   },
                 },
