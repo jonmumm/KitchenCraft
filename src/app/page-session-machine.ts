@@ -1527,6 +1527,45 @@ export const pageSessionMachine = setup({
             InputtingChefName: {
               initial: "Inputting",
               onDone: "InputtingOTP",
+              on: {
+                REFRESH: {
+                  actions: spawnChild("generateChefNameSuggestions", {
+                    input: ({ context }) => {
+                      assert(
+                        context.email,
+                        "expected email when generating chef name suggestions"
+                      );
+
+                      const recipeId =
+                        context.suggestedRecipes[context.currentItemIndex];
+                      assert(
+                        recipeId,
+                        "expected recipeId when generating chef name suggestions"
+                      );
+                      const recipe = context.recipes[recipeId];
+                      assert(
+                        recipe?.name,
+                        "expected recipe name when generating chef name sueggestions"
+                      );
+                      assert(
+                        recipe?.description,
+                        "expected recipe name when generating chef name sueggestions"
+                      );
+
+                      return {
+                        email: context.email,
+                        previousSuggestions: context.previousSuggestedChefnames,
+                        prompt: context.prompt,
+                        tokens: context.tokens,
+                        selectedRecipe: {
+                          name: recipe.name,
+                          description: recipe.description,
+                        },
+                      };
+                    },
+                  }),
+                },
+              },
               states: {
                 Inputting: {
                   on: {
