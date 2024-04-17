@@ -39,16 +39,34 @@ export default async function Page({
     "use server";
     const token = formData.get("token")?.toString();
     assert(token, "expected token in form body");
+    // console.log({ connectionToken });
+
+    // const onCompleteUrl = `/auth/complete?callbackUrl=${callbackUrl}&connectionToken=${connectionToken}`;
 
     const emailCallbackParams = new URLSearchParams({
       email: email,
       token,
+      // callbackUrl,
     });
 
-    if (callbackUrl) {
-      emailCallbackParams.set("callbackUrl", callbackUrl);
-    }
+    // if (callbackUrl) {
+    //   // todo might be a problem with this encoding? sometimes seeing errors but not all the time
+    //   emailCallbackParams.set("callbackUrl", callbackUrl);
+    // }
 
+    // TODO update the caller now...
+    // const uniqueId = await getUniqueId();
+    // const uniqueIdType = await getUniqueIdType();
+    // const url = getRequestUrl();
+
+    // createActorHTTPClient<typeof pageSessionMachine>({
+    //   type: "page_session",
+    //   caller: {
+    //     id: uniqueId,
+    //     type: uniqueIdType,
+    //   },
+    //   input: { url },
+    // });
     redirect(`/api/auth/callback/email?${emailCallbackParams.toString()}`);
   };
 
@@ -57,7 +75,7 @@ export default async function Page({
       <section>
         <h1 className="font-semibold text-xl">Check Your Email</h1>
         <PasscodeForm
-          submit={handleSubmit.bind(null, email).bind(null, callbackUrl)}
+          // submit={handleSubmit.bind(null, email).bind(null, callbackUrl)}
           email={email}
           gmailLink={gmailLink}
         />

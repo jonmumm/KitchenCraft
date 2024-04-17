@@ -60,6 +60,7 @@ export const createCraftMachine = ({
   send,
   session,
   session$,
+  token
 }: {
   searchParams: Record<string, string>;
   router: AppRouterInstance;
@@ -67,6 +68,7 @@ export const createCraftMachine = ({
   send: (event: AppEvent) => void;
   session: Session | null;
   session$: ReadableAtom<SessionSnapshot>;
+  token: string;
 }) => {
   const instantRecipeMetadataGenerator = fromEventObservable(
     ({ input }: { input: InstantRecipeMetdataInput }) => {
@@ -193,6 +195,7 @@ export const createCraftMachine = ({
       submittedInputHash: undefined,
       currentRecipeUrl: undefined,
       scrollItemIndex: 0,
+      token,
     } satisfies Context;
   })();
 

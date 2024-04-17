@@ -33,6 +33,7 @@ export function ApplicationProvider(props: {
   children: ReactNode;
   session: Awaited<ReturnType<typeof getSession>>;
   appSessionId: string | undefined;
+  token: string;
 }) {
   const [store] = useState(
     map<{ appSessionId: string | undefined } & unknown>({
@@ -67,6 +68,7 @@ export function ApplicationProvider(props: {
         initialPath: pathname,
         session: props.session,
         session$,
+        token: props.token,
       })
     );
 

@@ -83,6 +83,7 @@ import {
   SuggestionPredictionPartialOutputSchema,
   SuggestionSchema,
   SuggestionsInputSchema,
+  SystemEventSchema,
   SystemMessageSchema,
   TechniqueSchema,
   TempRecipeSchema,
@@ -102,6 +103,7 @@ export type ExtractType<T, TypeString> = T extends { type: infer U }
   : never;
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
+export type SystemEvent = z.infer<typeof SystemEventSchema>;
 
 export type CallerType = z.infer<typeof CallerIdTypeSchema>;
 export type Caller = { id: string; type: CallerType };

@@ -1,7 +1,9 @@
 import { json, notFound } from "@/lib/actor-kit/utils/response";
-import { AppEvent, Caller } from "@/types";
+import { AppEventSchema, SystemEventSchema } from "@/schema";
+import { Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
+import { SignJWT } from "jose";
 import type * as Party from "partykit/server";
 import {
   Actor,
@@ -25,16 +27,32 @@ type UserActorConnectionState = {
 
 type UserActorConnection = Party.Connection<UserActorConnectionState>;
 
-export const createActorHTTPClient = <TMachine extends AnyStateMachine>(props: {
+const GuestCallerEventSchema = AppEventSchema;
+const UserCallerEventSchema = AppEventSchema;
+const SystemCallerEventSchema = SystemEventSchema;
+
+type GuestCallerEvent = z.infer<typeof GuestCallerEventSchema>;
+type UserCallerEvent = z.infer<typeof UserCallerEventSchema>;
+type SystemCallerEvent = z.infer<typeof SystemCallerEventSchema>;
+
+type EventMap = {
+  guest: GuestCallerEvent;
+  user: UserCallerEvent;
+  system: SystemCallerEvent;
+};
+
+export const createActorHTTPClient = <
+  TMachine extends AnyStateMachine,
+  TCallerType extends keyof EventMap,
+>(props: {
   type: string;
-  caller: Caller;
-  input: Record<string, string>; // todo type this to the machine
+  caller: Caller & { type: TCallerType };
 }) => {
-  const get = async (id: string) => {
+  const get = async (id: string, input: Record<string, string>) => {
     const token = await createCallerToken(props.caller.id, props.caller.type);
     const resp = await fetch(
       `${API_SERVER_URL}/parties/${props.type}/${id}?input=${encodeURIComponent(
-        JSON.stringify(props.input)
+        JSON.stringify(input)
       )}`,
       {
         next: { revalidate: 0 },
@@ -53,15 +71,14 @@ export const createActorHTTPClient = <TMachine extends AnyStateMachine>(props: {
     return responseSchema.parse(await resp.json());
   };
 
-  const getSnapshot = async (id: string) => {
-    return (await get(id)).snapshot as SnapshotFrom<Actor<TMachine>>;
+  const getSnapshot = async (id: string, input: Record<string, string>) => {
+    return (await get(id, input)).snapshot as SnapshotFrom<Actor<TMachine>>;
   };
 
-  const send = async (id: string, event: AppEvent) => {
+  const send = async (id: string, event: EventMap[TCallerType]) => {
     const token = await createCallerToken(props.caller.id, props.caller.type);
     const resp = await fetch(`${API_SERVER_URL}/parties/${props.type}/${id}`, {
       method: "POST",
-      next: { revalidate: 0 },
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -132,6 +149,7 @@ export const createMachineServer = <
       // }
 
       if (request.method === "GET") {
+        // console.log(request.cf);
         const index = request.url.indexOf("?");
         const search = index !== -1 ? request.url.substring(index + 1) : "";
         const params = new URLSearchParams(search);
@@ -158,7 +176,7 @@ export const createMachineServer = <
           id: caller.uniqueId,
           type: caller.uniqueIdType,
         });
-        const token = randomUUID(); // todo make this a jwt
+        const token = await createConnectionToken(this.room.id, connectionId);
         const snapshot = this.actor.getPersistedSnapshot();
 
         // @ts-expect-error
@@ -178,6 +196,30 @@ export const createMachineServer = <
           connectionId,
           token,
           snapshot,
+        });
+      } else if (request.method === "POST") {
+        if (caller.uniqueIdType === "system") {
+          const json = await request.json();
+          const event = SystemCallerEventSchema.parse(json);
+          // Set future events from this connection to
+          // come from the userId
+          if (event.type === "AUTHENTICATE") {
+            this.callersByConnectionId.set(event.connectionId, {
+              id: event.callerId,
+              type: "user",
+            });
+          }
+
+          const caller = { type: "system" };
+          // @ts-expect-error
+          this.actor.send(Object.assign(event, { caller }));
+        }
+
+        // todo handle events from clients directly here...
+        // todo wait until no pending events left on it before we return...
+
+        return json({
+          status: "ok",
         });
       }
 
@@ -241,4 +283,18 @@ export const createMachineServer = <
   }
 
   return ActorServer satisfies Party.Worker;
+};
+
+const createConnectionToken = async (id: string, connectionId: string) => {
+  let signJWT = new SignJWT({})
+    .setProtectedHeader({ alg: "HS256" })
+    .setJti(connectionId)
+    .setSubject(id)
+    .setIssuedAt()
+    .setExpirationTime("5m");
+
+  const token = await signJWT.sign(
+    new TextEncoder().encode(process.env.NEXTAUTH_SECRET) // todo parameterize this somehow and/or use diff env var
+  );
+  return token;
 };

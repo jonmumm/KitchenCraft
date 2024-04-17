@@ -13,7 +13,7 @@ import {
   getSession,
   getUniqueId,
 } from "@/lib/auth/session";
-import { createAppInstallToken, getPageSessionId } from "@/lib/browser-session";
+import { createAppInstallToken, getPageSessionId, getRequestUrl } from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA, getIsMobile } from "@/lib/headers";
 import { assert } from "@/lib/utils";
@@ -24,11 +24,11 @@ import { Toaster } from "sonner";
 import "../styles/globals.css";
 import {
   Body,
+  EnterChefNameCard,
+  EnterEmailCard,
   IsInputtingChefName,
   IsInputtingEmail,
-  EnterEmailCard,
   SearchParamsToastMessage,
-  EnterChefNameCard,
 } from "./components.client";
 import { SessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
@@ -103,9 +103,17 @@ export default async function RootLayout(
 
   const sessionActorClient = await getPageSessionActorClient();
   const pageSessionId = await getPageSessionId();
+  const url = await getRequestUrl();
   const { snapshot, connectionId, token } =
-    await sessionActorClient.get(pageSessionId);
+    await sessionActorClient.get(pageSessionId, { url });
   assert(snapshot, "expected snapshot");
+
+  // const reauthenticate = async (_pageSessionId: string) => {
+  //   "use server";
+  //   const uniqueId = await getUniqueId();
+  //   console.log("UNIQUEID!!!", uniqueId, _pageSessionId);
+  //   // call here....
+  // };
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -142,11 +150,13 @@ export default async function RootLayout(
         <ApplicationProvider
           session={session}
           appSessionId={parseCookie("appSessionId")}
+          token={token}
         >
           <ActorProvider
             id={pageSessionId}
             connectionId={connectionId}
             token={token}
+            // reauthenticate={reauthenticate.bind(null, pageSessionId)}
           >
             <Body isPWA={!!parseCookie("appSessionId")}>
               <ThemeProvider

@@ -6,8 +6,15 @@ import { useEventSubject } from "@/hooks/useEvents";
 import { Operation, applyPatch } from "fast-json-patch";
 import { produce } from "immer";
 import { atom } from "nanostores";
+import { useSession } from "next-auth/react";
 import PartySocket from "partysocket";
-import { ReactNode, useContext, useLayoutEffect } from "react";
+import {
+  ReactNode,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { z } from "zod";
 
 const initialized$ = atom(false);
@@ -17,10 +24,31 @@ export const ActorProvider = (props: {
   connectionId: string;
   token: string;
   children: ReactNode;
+  // reauthenticate: () => Promise<void>;
 }) => {
   const { connectionId, token, id } = props;
   const event$ = useEventSubject();
   const session$ = useContext(SessionStoreContext);
+
+  // const LoginHandler = () => {
+  //   const session = useSession();
+  //   // Store the previous session for comparison
+  //   const previousSession = usePrevious(session);
+
+  //   // useEffect(() => {
+  //   //   // Check if there was a transition from unauthenticated to authenticated
+  //   //   if (
+  //   //     previousSession?.status === "unauthenticated" &&
+  //   //     session.status === "authenticated"
+  //   //   ) {
+  //   //     props.reauthenticate().catch((error) => {
+  //   //       console.error("Reauthentication failed:", error);
+  //   //     });
+  //   //   }
+  //   // }, [session, previousSession, props.reauthenticate]);
+
+  //   return null;
+  // };
 
   useLayoutEffect(() => {
     if (initialized$.get()) {
@@ -82,5 +110,20 @@ export const ActorProvider = (props: {
     });
   }, [connectionId, token, id, event$, session$]);
 
-  return <>{props.children}</>;
+  return (
+    <>
+      {props.children}
+      {/* <LoginHandler /> */}
+    </>
+  );
 };
+
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T>();
+
+  useEffect(() => {
+    ref.current = value;
+  }, [value]); // Only re-run if value changes
+
+  return ref.current; // Return previous value (happens before update in useEffect above)
+}

@@ -767,6 +767,16 @@ const RefreshEventSchema = z.object({
   type: z.literal("REFRESH"),
 });
 
+const AuthenticateEventSchema = z.object({
+  type: z.literal("AUTHENTICATE"),
+  connectionId: z.string(),
+  callerId: z.string(),
+});
+
+export const SystemEventSchema = z.discriminatedUnion("type", [
+  AuthenticateEventSchema,
+]);
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   RefreshEventSchema,
   ScrollIndexEventSchema,

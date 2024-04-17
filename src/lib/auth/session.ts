@@ -43,15 +43,13 @@ export const getPageSessionActorClient = withSpan(
   cache(async () => {
     const uniqueId = await getUniqueId();
     const uniqueIdType = await getUniqueIdType();
-    const url = getRequestUrl();
 
-    return createActorHTTPClient<typeof pageSessionMachine>({
+    return createActorHTTPClient<typeof pageSessionMachine, typeof uniqueIdType>({
       type: "page_session",
       caller: {
         id: uniqueId,
         type: uniqueIdType,
       },
-      input: { url },
     });
   }),
   "getPageSessionActorClient"

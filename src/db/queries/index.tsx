@@ -241,7 +241,6 @@ export const getRecipesByListSlug = async (
     )
     .orderBy(desc(RecipesTable.createdAt))
     .limit(30);
-  console.log(query.toSQL());
 
   return await withDatabaseSpan(query, "getRecipesByListSlug").execute();
 };
@@ -287,7 +286,6 @@ export const getRecentRecipesByCreator = async (createdBy: string) => {
     )
     .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
     .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .where(eq(RecipesTable.createdBy, createdBy))
     .groupBy(
       RecipesTable.id,
       RecipesTable.versionId,

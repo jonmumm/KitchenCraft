@@ -65,11 +65,13 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn(params) {
+      // console.log("SIGNIN", params);
       return true;
     },
 
     // e.g. getSession(), useSession(), /api/auth/session
     async session(params) {
+      // console.log("SESSION", params);
       const { token, session } = params;
       if (session.user && token) {
         session.user.id = token.id;
@@ -84,6 +86,7 @@ export const authOptions: NextAuthOptions = {
 
     // this data can become available to the browser
     async jwt(params) {
+      // console.log("JWT", params);
       if (params.trigger === "signUp") {
         // sign up hook here...
       }
@@ -97,7 +100,7 @@ export const authOptions: NextAuthOptions = {
 
       if (!dbUser) {
         if (user) {
-          token.id = user?.id;
+          token.id = user.id;
         }
         return token;
       }

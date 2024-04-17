@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
+import { CraftContext } from "@/app/context";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
 import {
@@ -17,11 +18,12 @@ import {
 } from "@/components/input/form";
 import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChangeEventHandler,
   ClipboardEventHandler,
   useCallback,
+  useContext,
   useEffect,
   useState,
 } from "react";
@@ -33,10 +35,12 @@ const formSchema = z.object({
 export function PasscodeForm(props: {
   gmailLink?: string;
   email: string;
-  submit: (formData: FormData) => Promise<void>;
+  // submit: (formData: FormData) => Promise<void>;
 }) {
   const [disabled, setDisabled] = useState(false);
+  const actor = useContext(CraftContext);
   const params = useSearchParams();
+  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,29 +79,40 @@ export function PasscodeForm(props: {
     );
   };
 
+  const onSubmit = useCallback(
+    (data: z.infer<typeof formSchema>) => {
+      setDisabled(true);
+      let onCompleteUrl = `/auth/complete?connectionToken=${
+        actor.getSnapshot().context.token
+      }`;
+      const callbackUrl = params.get("callbackUrl");
+      if (callbackUrl) {
+        onCompleteUrl = `${onCompleteUrl}&callbackUrl=${encodeURIComponent(
+          callbackUrl
+        )}`;
+      }
+
+      const emailCallbackParams = new URLSearchParams({
+        email: props.email,
+        token: data.token,
+        callbackUrl: onCompleteUrl,
+      });
+
+      router.push(`/api/auth/callback/email?${emailCallbackParams.toString()}`);
+    },
+    [setDisabled, router, props.email]
+  );
+
   const handleOnPaste: ClipboardEventHandler<HTMLInputElement> = useCallback(
     (event) => {
       const result = formSchema.safeParse({
         token: event.clipboardData.getData("text"),
       });
       if (result.success) {
-        setDisabled(true);
-        const data = new FormData();
-        data.set("token", result.data.token);
-        props.submit(data);
+        onSubmit(result.data);
       }
     },
-    [props.submit, setDisabled]
-  );
-
-  const onSubmit = useCallback(
-    (data: z.infer<typeof formSchema>) => {
-      setDisabled(true);
-      const formData = new FormData();
-      formData.set("token", data.token);
-      props.submit(formData);
-    },
-    [props.submit, setDisabled]
+    [onSubmit]
   );
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -131,7 +146,7 @@ export function PasscodeForm(props: {
   return (
     <Form {...form}>
       <form
-        action={props.submit}
+        // action={props.submit}
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-8"
       >

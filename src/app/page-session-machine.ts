@@ -28,6 +28,7 @@ import {
   ExtractType,
   PartialRecipe,
   ProductType,
+  SystemEvent,
   WithCaller,
 } from "@/types";
 import { randomUUID } from "crypto";
@@ -42,7 +43,6 @@ import {
   fromPromise,
   setup,
   spawnChild,
-  and as xstateAnd,
 } from "xstate";
 import { z } from "zod";
 import { AutoSuggestIngredientEvent } from "./auto-suggest-ingredients.stream";
@@ -152,6 +152,7 @@ export const pageSessionMachine = setup({
     context: {} as Context,
     events: {} as
       | WithCaller<AppEvent>
+      | WithCaller<SystemEvent>
       | AutoSuggestTagEvent
       | AutoSuggestIngredientEvent
       | AutoSuggestRecipesEvent
@@ -215,6 +216,21 @@ export const pageSessionMachine = setup({
             );
           })
         );
+      }
+    ),
+    updateChefName: fromPromise(
+      async ({
+        input,
+      }: {
+        input: {
+          chefname: string;
+          userId: string;
+        };
+      }) => {
+        return await db
+          .update(ProfileTable)
+          .set({ profileSlug: input.chefname })
+          .where(eq(ProfileTable.userId, input.userId));
       }
     ),
     checkChefNameAvailability: fromPromise(
@@ -1509,86 +1525,35 @@ export const pageSessionMachine = setup({
               },
             },
             InputtingChefName: {
-              type: "parallel",
+              initial: "Inputting",
+              onDone: "InputtingOTP",
               states: {
-                Input: {
-                  initial: "Pristine",
+                Inputting: {
                   on: {
-                    REFRESH: {
-                      actions: spawnChild("generateChefNameSuggestions", {
-                        input: ({ context }) => {
-                          assert(
-                            context.email,
-                            "expected email when generating chef name suggestions"
-                          );
-
-                          const recipeId =
-                            context.suggestedRecipes[context.currentItemIndex];
-                          assert(
-                            recipeId,
-                            "expected recipeId when generating chef name suggestions"
-                          );
-                          const recipe = context.recipes[recipeId];
-                          assert(
-                            recipe?.name,
-                            "expected recipe name when generating chef name sueggestions"
-                          );
-                          assert(
-                            recipe?.description,
-                            "expected recipe name when generating chef name sueggestions"
-                          );
-
-                          return {
-                            email: context.email,
-                            previousSuggestions:
-                              context.previousSuggestedChefnames,
-                            prompt: context.prompt,
-                            tokens: context.tokens,
-                            selectedRecipe: {
-                              name: recipe.name,
-                              description: recipe.description,
-                            },
-                          };
-                        },
-                      }),
-                    },
-                    CHANGE: [
-                      {
-                        target: ".Holding",
-                        reenter: true,
-                        guard: xstateAnd([
-                          "didChangeChefNameInput",
-                          "isChefNameNotEmpty",
-                        ]),
-                      },
-                      {
-                        target: ".Pristine",
-                        guard: "didChangeChefNameInput",
-                      },
-                    ],
+                    SUBMIT: "Complete",
                   },
-                  states: {
-                    Pristine: {
-                      on: {
-                        CHANGE: {
-                          target: "Holding",
-                          guard: "didChangeChefNameInput",
-                        },
-                      },
-                    },
-                    Holding: {},
-                    Validating: {},
-                    Available: {},
-                    Taken: {},
-                  },
+                },
+                Complete: {
+                  type: "final",
                 },
               },
             },
             InputtingOTP: {
               on: {
-                PAGE_LOADED: {
+                AUTHENTICATE: {
                   target: "Complete",
-                  guard: ({ event }) => event.pathname === "/me",
+                  actions: spawnChild("updateChefName", {
+                    input: ({ context, event }) => {
+                      assert(
+                        event.type === "AUTHENTICATE",
+                        "expected authenticate event"
+                      );
+
+                      const { chefname } = context;
+                      assert(chefname, "expected chefname to be set");
+                      return { chefname, userId: event.callerId };
+                    },
+                  }),
                 },
               },
             },
