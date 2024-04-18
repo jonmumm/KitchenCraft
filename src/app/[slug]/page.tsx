@@ -24,6 +24,8 @@ import { RecipeListItem } from "../recipe/components";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
 
+export const dynamic = "force-dynamic";
+
 export default async function Page(props: { params: { slug: string } }) {
   const currentUserId = await getCurrentUserId();
   const slug = decodeURIComponent(props.params.slug);
