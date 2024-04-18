@@ -27,13 +27,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
   const uniqueId = await getUniqueId();
   return (
     <>
-      <TagsCarousel
-        showCount
-        currentTag={"All"}
-        root="/me"
-        query={getTagCountsForUserCreatedRecipes(db, uniqueId)}
-      />
-      <Separator />
       <div className="max-w-2xl w-full mx-auto px-4 mb-8">
         <div className="flex flex-row items-center justify-between mt-6">
           <div className="flex flex-row items-center gap-2">

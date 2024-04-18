@@ -9,19 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/input/dropdown-menu";
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogOverlay,
-  ResponsiveDialogTrigger,
-} from "@/components/layout/responsive-dialog";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
-import {
-  getProfileBySlug,
-  getProfileLifetimePoints,
-  getRecentRecipesByProfile,
-} from "@/db/queries";
+import { getProfileBySlug, getRecentRecipesByProfile } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile } from "@/lib/headers";
 import { formatJoinDateStr } from "@/lib/utils";
@@ -29,7 +19,7 @@ import { ProfileSlugSchema } from "@/schema";
 import { ChefHatIcon, MoreVerticalIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { combineLatest, from, map, shareReplay } from "rxjs";
+import { from, map, shareReplay } from "rxjs";
 import { RecipeListItem } from "../recipe/components";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
@@ -45,50 +35,15 @@ export default async function Page(props: { params: { slug: string } }) {
   }
   const profileSlug = profileParse.data.slice(1);
 
-  const [recipes$, profile$, points$] = [
+  const [recipes$, profile$] = [
     from(getRecentRecipesByProfile(profileSlug)).pipe(shareReplay(1)),
     from(getProfileBySlug(profileSlug)).pipe(shareReplay(1)),
-    from(getProfileLifetimePoints(profileSlug)).pipe(shareReplay(1)),
   ];
 
   const claimDate$ = profile$.pipe(map((profile) => profile?.createdAt));
   const isOwner$ = profile$.pipe(
     map((profile) => profile?.userId === currentUserId)
   );
-  // const is
-
-  // const recipesByIndex$ = new Array(NUM_PLACEHOLDER_RECIPES)
-  //   .fill(0)
-  //   .map((_, index) => {
-  //     console.log(index);
-  //     return recipes$.pipe(
-  //       tap(console.log),
-  //       filter((items) => !!items[index]),
-  //       map((items) => items[index]),
-  //       filter(notUndefined),
-  //       take(1)
-  //     );
-  //   });
-
-  const Username = () => {
-    return (
-      <AsyncRenderFirstValue
-        observable={profile$}
-        render={(profile) => <>{slug}</>}
-        fallback={<Skeleton className="w-full h-4" />}
-      />
-    );
-  };
-
-  const Points = () => {
-    return (
-      <AsyncRenderFirstValue
-        observable={points$}
-        render={(points) => <>{points}</>}
-        fallback={<Skeleton className="w-full h-4" />}
-      />
-    );
-  };
 
   const ClaimDate = () => {
     return (
@@ -129,7 +84,7 @@ export default async function Page(props: { params: { slug: string } }) {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             <DropdownMenuItem>
-                              <Link href="/api/auth/signout">Sign Out</Link>
+                              <Link href="/edit-profile">Edit Chef Name</Link>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -145,18 +100,20 @@ export default async function Page(props: { params: { slug: string } }) {
                 </div>
               </div>
             </div>
-            <div className="min-w-0">
+            {/* <div className="min-w-0">
               <ResponsiveDialog isMobile={isMobile}>
                 <ResponsiveDialogTrigger asChild>
-                  <Button className="h-full w-full">Activate Chef Page</Button>
+                  <Button className="h-full w-full" variant="ghost">
+                    <SettingsIcon />
+                  </Button>
                 </ResponsiveDialogTrigger>
                 <ResponsiveDialogOverlay />
                 <ResponsiveDialogContent>Hello</ResponsiveDialogContent>
               </ResponsiveDialog>
-            </div>
+            </div> */}
           </div>
         </Card>
-        <AsyncRenderFirstValue
+        {/* <AsyncRenderFirstValue
           observable={combineLatest([profile$, isOwner$])}
           render={([profile, isOwner]) => {
             return (
@@ -181,7 +138,7 @@ export default async function Page(props: { params: { slug: string } }) {
             );
           }}
           fallback={<Skeleton />}
-        />
+        /> */}
       </div>
       <div className="w-full flex flex-col gap-4">
         {/* Display the recipes using RecipeListItem */}

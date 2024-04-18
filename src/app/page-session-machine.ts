@@ -1698,7 +1698,6 @@ export const pageSessionMachine = setup({
                 id: "checkChefNameAvailability",
                 src: "checkChefNameAvailability",
                 input: ({ context }) => {
-                  console.log("LOADING!!!!");
                   assert(context.chefname, "expected chefname");
                   return {
                     chefname: context.chefname,

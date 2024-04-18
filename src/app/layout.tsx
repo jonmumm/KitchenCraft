@@ -192,14 +192,6 @@ const RegistrationDialog = () => {
   const isMobile = getIsMobile();
   return (
     <>
-      <IsInputtingChefName>
-        <ResponsiveDialog open isMobile={isMobile}>
-          <ResponsiveDialogOverlay />
-          <ResponsiveDialogContent>
-            <EnterChefNameCard />
-          </ResponsiveDialogContent>
-        </ResponsiveDialog>
-      </IsInputtingChefName>
       <IsInputtingEmail>
         <ResponsiveDialog open isMobile={isMobile}>
           <ResponsiveDialogOverlay />
@@ -208,6 +200,14 @@ const RegistrationDialog = () => {
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </IsInputtingEmail>
+      <IsInputtingChefName>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent>
+            <EnterChefNameCard />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </IsInputtingChefName>
     </>
   );
 };

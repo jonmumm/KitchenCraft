@@ -1,5 +1,5 @@
-import { Header } from "./components";
+import { HeaderWithInput } from "./components";
 
 export default async function Default() {
-  return <Header />;
+  return <HeaderWithInput />;
 }

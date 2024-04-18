@@ -1,22 +1,30 @@
+import { MainMenu } from "@/app/menu/components";
 import { Badge } from "@/components/display/badge";
 import { Button } from "@/components/input/button";
+import {
+  SheetContent,
+  SheetOverlay,
+  SheetTrigger,
+} from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
 import { cn } from "@/lib/utils";
+import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import {
   ChefHatIcon,
   ChevronRightIcon,
-  Loader2Icon
+  GripVerticalIcon,
+  Loader2Icon,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AddedTokens, HasTokens } from "../@craft/components.client";
 import { BackButton, CraftInput, KeyboardToggle } from "./components.client";
 
-export async function Header({
+export async function HeaderWithInput({
   className,
   backUrl,
   autoFocus,
@@ -68,7 +76,9 @@ export async function Header({
             </Button>
           </div>
           <NavigationLink
-            href="/me"
+            href={
+              profile?.profileSlug ? `/@${profile.profileSlug}` : `/my-recipes`
+            }
             className="hidden lg:block crafting:hidden"
           >
             <div className="flex flex-row gap-1 items-center">
@@ -186,6 +196,58 @@ export async function HeaderLoading({
           src="/apple-touch-icon.png"
         /> */}
       </Button>
+    </div>
+  );
+}
+
+export default function BasicHeader({
+  profile,
+}: {
+  profile?: Awaited<ReturnType<typeof getProfileByUserId>>;
+}) {
+  // const userId = await getCurrentUserId();
+  // const profile = userId ? await getProfileByUserId(userId) : undefined;
+  return (
+    <div className="relative">
+      <Link href="/" className={`flex flex-col h-full justify-center p-4`}>
+        <TypeLogo className="h-20 crafting:hidden" />
+      </Link>
+      <div className="hidden crafting:hidden absolute right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
+        <NavigationLink
+          href={
+            profile?.profileSlug ? `/@${profile.profileSlug}` : `/my-recipes`
+          }
+          className="hidden lg:block crafting:hidden"
+        >
+          <div className="flex flex-row gap-1 items-center">
+            <div className="flex flex-row gap-1">
+              <Badge
+                variant="outline"
+                className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
+              >
+                <ChefHatIcon className="transitioning:hidden" />
+                <Loader2Icon className="hidden transitioning:block animate-spin" />
+                <span>
+                  {profile?.profileSlug ? profile.profileSlug : "My Recipes"}
+                </span>
+              </Badge>
+            </div>
+          </div>
+        </NavigationLink>
+        <MenuSheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <GripVerticalIcon />
+            </Button>
+          </SheetTrigger>
+          <SheetOverlay />
+          <SheetContent side="right" className="p-4">
+            <div className="flex flex-col gap-2 py-4">
+              <MainMenu />
+            </div>
+          </SheetContent>
+        </MenuSheet>
+      </div>
     </div>
   );
 }

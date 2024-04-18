@@ -1,10 +1,9 @@
-import { TypeLogo } from "@/components/logo";
-import Link from "next/link";
+import { getProfileByUserId } from "@/db/queries";
+import { getCurrentUserId } from "@/lib/auth/session";
+import BasicHeader from "../../components";
 
 export default async function Default() {
-  return (
-    <Link href="/" className={`flex flex-col h-full justify-center p-4`}>
-      <TypeLogo className="h-20 crafting:hidden" />
-    </Link>
-  );
+  const userId = await getCurrentUserId();
+  const profile = userId ? await getProfileByUserId(userId) : undefined;
+  return <BasicHeader profile={profile} />;
 }

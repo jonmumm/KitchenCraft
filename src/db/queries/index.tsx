@@ -320,16 +320,30 @@ export const getProfileBySlug = async (profileSlug: string) => {
 };
 
 export const getRecentRecipesByProfile = async (profileSlug: string) => {
-  const maxVersionSubquery = db
+  const queryRunner = db;
+
+  // Subquery to get the maximum versionId for each recipe that is part of "My Recipes" list
+  const maxVersionSubquery = queryRunner
     .select({
       recipeId: RecipesTable.id,
       maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
     })
     .from(RecipesTable)
+    .innerJoin(ListRecipeTable, eq(ListRecipeTable.recipeId, RecipesTable.id))
+    .innerJoin(ListTable, eq(ListRecipeTable.listId, ListTable.id))
+    .innerJoin(
+      ProfileTable,
+      and(
+        eq(ListTable.createdBy, ProfileTable.userId),
+        eq(ProfileTable.profileSlug, profileSlug),
+        eq(ListTable.slug, "my-recipes")
+      )
+    )
     .groupBy(RecipesTable.id)
-    .as("maxVersionSubquery"); // Naming the subquery
+    .as("maxVersionSubquery");
 
-  const query = db
+  // Main query to get the detailed recipe data
+  const query = queryRunner
     .select({
       id: RecipesTable.id,
       versionId: RecipesTable.versionId,
@@ -340,11 +354,10 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
       prompt: RecipesTable.prompt,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
-      points,
+      points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
       mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`,
     })
     .from(RecipesTable)
-    .innerJoin(ProfileTable, eq(ProfileTable.userId, RecipesTable.createdBy))
     .innerJoin(
       maxVersionSubquery,
       and(
@@ -354,20 +367,20 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
     )
     .leftJoin(UpvotesTable, eq(RecipesTable.id, UpvotesTable.recipeId))
     .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
-    .where(eq(ProfileTable.profileSlug, profileSlug))
     .groupBy(
       RecipesTable.id,
       RecipesTable.versionId,
       RecipesTable.slug,
       RecipesTable.name,
       RecipesTable.description,
-      RecipesTable.createdBy,
       RecipesTable.prompt,
-      RecipesTable.createdAt,
-      RecipesTable.totalTime
+      RecipesTable.totalTime,
+      RecipesTable.createdBy,
+      RecipesTable.createdAt
     )
-    .orderBy(desc(RecipesTable.createdAt)) // Order by most recent
-    .limit(30); // Limit the number of results
+    .orderBy(desc(RecipesTable.createdAt))
+    .limit(30);
+
   return await withDatabaseSpan(query, "getRecentRecipesByProfile").execute();
 };
 
