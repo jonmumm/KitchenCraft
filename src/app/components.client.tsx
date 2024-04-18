@@ -12,16 +12,14 @@ import { Label } from "@/components/display/label";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
-import { useSelector } from "@/hooks/useSelector";
 import { useSessionStore } from "@/hooks/useSessionStore";
 import { RefreshCwIcon, XIcon } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ReactNode, useContext, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { EnterChefNameForm, EnterEmailForm } from "./@craft/components.client";
-import { CraftContext } from "./context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -117,7 +115,8 @@ export const EnterChefNameCard = () => {
           <div className="flex flex-col gap-1">
             <CardTitle>Your Chef Name</CardTitle>
             <CardDescription>
-              Choose a name so you and others can quickly access your saved recipes. Must be unique.
+              Choose a name so you and others can quickly access your saved
+              recipes. Must be unique.
             </CardDescription>
             <div className="flex flex-row justify-between items-center">
               <Label className="uppercase text-xs text-muted-foreground">
@@ -166,26 +165,39 @@ export const EnterEmailCard = () => {
 };
 
 export const IsInputtingChefName = (props: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const active = useSelector(
-    actor,
-    (state) =>
-      typeof state.value.Auth === "object" &&
-      !!state.value.Auth.Registering &&
-      state.value.Auth.Registering === "InputtingChefName"
+  const session$ = useSessionStore();
+  const active = useSyncExternalStore(
+    session$.subscribe,
+    () => {
+      const stateValue = session$.get().value;
+      return (
+        typeof stateValue.Auth === "object" &&
+        typeof stateValue.Auth.Registering === "object" &&
+        !!stateValue.Auth.Registering.InputtingChefName
+      );
+    },
+    () => {
+      return false;
+    }
   );
-
   return active ? <>{props.children}</> : null;
 };
 
 export const IsInputtingEmail = (props: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
-  const active = useSelector(
-    actor,
-    (state) =>
-      typeof state.value.Auth === "object" &&
-      !!state.value.Auth.Registering &&
-      state.value.Auth.Registering === "InputtingEmail"
+  const session$ = useSessionStore();
+  const active = useSyncExternalStore(
+    session$.subscribe,
+    () => {
+      const stateValue = session$.get().value;
+      const val =
+        typeof stateValue.Auth === "object" &&
+        typeof stateValue.Auth.Registering === "object" &&
+        !!stateValue.Auth.Registering.InputtingEmail;
+      return val;
+    },
+    () => {
+      return false;
+    }
   );
 
   return active ? <>{props.children}</> : null;

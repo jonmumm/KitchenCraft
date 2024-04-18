@@ -6,6 +6,7 @@ import {
   ListTable,
   ProfileTable,
   RecipesTable,
+  UsersTable,
   db,
 } from "@/db";
 // import { createListRecipe, ensureMyRecipesList } from "@/db/queries";
@@ -115,6 +116,7 @@ type Input = z.infer<typeof InputSchema>;
 
 type Context = {
   distinctId: string;
+  isNewUser: boolean | undefined;
   // createdRecipeSlugs: string[];
   initialCaller: Caller;
   createdBy?: string;
@@ -243,6 +245,22 @@ export const pageSessionMachine = setup({
       }) => {
         const profile = await getProfileBySlug(input.chefname);
         return !profile;
+      }
+    ),
+    checkIfNewUser: fromPromise(
+      async ({
+        input,
+      }: {
+        input: {
+          email: string;
+        };
+      }) => {
+        return !(
+          await db
+            .select()
+            .from(UsersTable)
+            .where(eq(UsersTable.email, input.email))
+        )[0];
       }
     ),
     createNewRecipe: fromPromise(
@@ -430,6 +448,9 @@ export const pageSessionMachine = setup({
     ),
   },
   guards: {
+    isNewUser: () => {
+      return false;
+    },
     hasValidChefName: ({ context }) => {
       return !!context.chefname && context.chefname?.length > 0;
     },
@@ -517,6 +538,7 @@ export const pageSessionMachine = setup({
     history: [input.url],
     prompt: "",
     initialCaller: input.initialCaller,
+    isNewUser: undefined,
     chefname: undefined,
     suggestedChefnames: [],
     previousSuggestedChefnames: [],
@@ -1484,45 +1506,82 @@ export const pageSessionMachine = setup({
                     email: ({ event }) => event.value,
                   }),
                 },
-                SUBMIT: {
-                  actions: spawnChild("generateChefNameSuggestions", {
+                SUBMIT: [
+                  {
+                    actions: spawnChild("generateChefNameSuggestions", {
+                      input: ({ context }) => {
+                        assert(
+                          context.email,
+                          "expected email when generating chef name suggestions"
+                        );
+
+                        const recipeId =
+                          context.suggestedRecipes[context.currentItemIndex];
+                        assert(
+                          recipeId,
+                          "expected recipeId when generating chef name suggestions"
+                        );
+                        const recipe = context.recipes[recipeId];
+                        assert(
+                          recipe?.name,
+                          "expected recipe name when generating chef name sueggestions"
+                        );
+                        assert(
+                          recipe?.description,
+                          "expected recipe name when generating chef name sueggestions"
+                        );
+
+                        return {
+                          email: context.email,
+                          previousSuggestions:
+                            context.previousSuggestedChefnames,
+                          prompt: context.prompt,
+                          tokens: context.tokens,
+                          selectedRecipe: {
+                            name: recipe.name,
+                            description: recipe.description,
+                          },
+                        };
+                      },
+                    }),
+                    target: ".Checking",
+                  },
+                ],
+              },
+              initial: "Inputting",
+              states: {
+                Inputting: {},
+                Checking: {
+                  invoke: {
+                    src: "checkIfNewUser",
                     input: ({ context }) => {
                       assert(
                         context.email,
-                        "expected email when generating chef name suggestions"
+                        "expected email address when check if new user"
                       );
-
-                      const recipeId =
-                        context.suggestedRecipes[context.currentItemIndex];
-                      assert(
-                        recipeId,
-                        "expected recipeId when generating chef name suggestions"
-                      );
-                      const recipe = context.recipes[recipeId];
-                      assert(
-                        recipe?.name,
-                        "expected recipe name when generating chef name sueggestions"
-                      );
-                      assert(
-                        recipe?.description,
-                        "expected recipe name when generating chef name sueggestions"
-                      );
-
-                      return {
-                        email: context.email,
-                        previousSuggestions: context.previousSuggestedChefnames,
-                        prompt: context.prompt,
-                        tokens: context.tokens,
-                        selectedRecipe: {
-                          name: recipe.name,
-                          description: recipe.description,
-                        },
-                      };
+                      return { email: context.email };
                     },
-                  }),
-                  target: "InputtingChefName",
+                    onDone: {
+                      target: "Complete",
+                      actions: assign({
+                        isNewUser: ({ event }) => event.output,
+                      }),
+                    },
+                  },
+                },
+                Complete: {
+                  type: "final",
                 },
               },
+              onDone: [
+                {
+                  target: "InputtingChefName",
+                  guard: ({ context }) => !!context.isNewUser,
+                },
+                {
+                  target: "InputtingOTP",
+                },
+              ],
             },
             InputtingChefName: {
               initial: "Inputting",

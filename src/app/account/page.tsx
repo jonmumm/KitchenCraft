@@ -11,16 +11,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/display/card";
-import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
-import { Input } from "@/components/input";
-import { Button } from "@/components/input/button";
-import { getProfileByUserId } from "@/db/queries";
 import {
   getCurrentEmail,
   getCurrentProfile,
   getCurrentUserId,
-  getSession,
 } from "@/lib/auth/session";
 import { ChefHatIcon, Settings2Icon } from "lucide-react";
 import Link from "next/link";
@@ -61,7 +56,7 @@ export default async function Page() {
                 </Link>
               </div>
               <div className="flex items-center justify-between">
-                <Link href="/me">
+                <Link href={`/@${profile?.profileSlug}`}>
                   <Badge>
                     <div className="flex flex-row gap-1 items-center">
                       <ChefHatIcon />{" "}
