@@ -115,6 +115,7 @@ type Input = z.infer<typeof InputSchema>;
 // }})
 
 type Context = {
+  recipeIdToSave: string | undefined;
   distinctId: string;
   isNewUser: boolean | undefined;
   // createdRecipeSlugs: string[];
@@ -821,81 +822,42 @@ export const pageSessionMachine = setup({
 
         Saving: {
           on: {
-            SAVE: {
-              guard: ({ event }) => event.caller.type === "user",
-              actions: spawnChild("saveRecipeToList", {
-                input: ({ context, event }) => {
-                  assert("caller" in event, "expected caller");
-                  assert(
-                    event.caller.type === "user",
-                    "expected caller to be user"
-                  );
-                  const userId = event.caller.id;
+            SAVE: [
+              {
+                guard: ({ event }) => event.caller.type === "user",
+                actions: spawnChild("saveRecipeToList", {
+                  input: ({ context, event }) => {
+                    assert("caller" in event, "expected caller");
+                    assert(
+                      event.caller.type === "user",
+                      "expected caller to be user"
+                    );
+                    const userId = event.caller.id;
 
-                  const recipeId =
-                    context.suggestedRecipes[context.currentItemIndex];
-                  assert(recipeId, "expected recipeId");
+                    const recipeId =
+                      context.suggestedRecipes[context.currentItemIndex];
+                    assert(recipeId, "expected recipeId");
 
-                  return {
-                    recipeId,
-                    userId,
-                  };
-                },
-              }),
-            },
+                    return {
+                      recipeId,
+                      userId,
+                    };
+                  },
+                }),
+              },
+              {
+                actions: assign({
+                  recipeIdToSave: ({ context }) => {
+                    const recipeId =
+                      context.suggestedRecipes[context.currentItemIndex];
+                    assert(recipeId, "expected recipeId");
+                    return recipeId;
+                  },
+                }),
+              },
+            ],
           },
         },
-
-        // NewRecipe: {
-        //   initial: "Idle",
-        //   states: {
-        //     Idle: {
-        //       on: {
-        //         SAVE: {
-        //           target: "Creating",
-        //           actions: assign({
-        //             createdBy: ({ event }) => {
-        //               return event.caller.id;
-        //             },
-        //           }),
-        //         },
-        //       },
-        //     },
-        //     Error: {
-        //       entry: ({ event }) => {
-        //         console.log(event);
-        //       },
-        //     },
-        //     Creating: {
-        //       invoke: {
-        //         onDone: {
-        //           target: "Idle",
-        //           actions: assign(({ context, event }) => {
-        //             return produce(context, (draft) => {
-        //               draft.createdRecipeSlugs.push(event.output);
-        //             });
-        //           }),
-        //         },
-        //         onError: "Error",
-        //         input: ({ context }) => {
-        //           const currentRecipeId =
-        //             context.suggestedRecipes[context.currentItemIndex];
-        //           assert(currentRecipeId, "expected currentRecipeId");
-        //           let recipe = context.recipes[currentRecipeId];
-        //           assert(recipe, "expected currentRecipe");
-        //           assert(context.createdBy, "expected createdBy when savings");
-        //           return {
-        //             recipe,
-        //             prompt: context.prompt,
-        //             tokens: context.tokens,
-        //             createdBy: context.createdBy,
-        //           };
-        //         },
-        //         src: "createNewRecipe",
-        //       },
-        //     },
-        //   },
-        // },
 
         Generators: {
           type: "parallel",
@@ -1640,18 +1602,39 @@ export const pageSessionMachine = setup({
               on: {
                 AUTHENTICATE: {
                   target: "Complete",
-                  actions: spawnChild("updateChefName", {
-                    input: ({ context, event }) => {
-                      assert(
-                        event.type === "AUTHENTICATE",
-                        "expected authenticate event"
-                      );
+                  actions: [
+                    spawnChild("updateChefName", {
+                      input: ({ context, event }) => {
+                        assert(
+                          event.type === "AUTHENTICATE",
+                          "expected authenticate event"
+                        );
 
-                      const { chefname } = context;
-                      assert(chefname, "expected chefname to be set");
-                      return { chefname, userId: event.callerId };
-                    },
-                  }),
+                        const { chefname } = context;
+                        assert(chefname, "expected chefname to be set");
+                        return { chefname, userId: event.callerId };
+                      },
+                    }),
+                    spawnChild("saveRecipeToList", {
+                      input: ({ context, event }) => {
+                        assert("caller" in event, "expected caller");
+                        assert(
+                          event.caller.type === "user",
+                          "expected caller to be user"
+                        );
+                        const userId = event.caller.id;
+
+                        const recipeId =
+                          context.suggestedRecipes[context.currentItemIndex];
+                        assert(recipeId, "expected recipeId");
+
+                        return {
+                          recipeId,
+                          userId,
+                        };
+                      },
+                    }),
+                  ],
                 },
               },
             },
