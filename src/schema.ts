@@ -774,15 +774,20 @@ const AuthenticateEventSchema = z.object({
 });
 
 const LogoutEventSchema = z.object({
-  type: z.literal("LOGOUT")
-})
+  type: z.literal("LOGOUT"),
+});
+
+const ProfileSubscribeEventSchema = z.object({
+  type: z.literal("PROFILE_SUBSCRIBE"),
+  slug: z.string(),
+});
 
 export const SystemEventSchema = z.discriminatedUnion("type", [
   AuthenticateEventSchema,
 ]);
 
-
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ProfileSubscribeEventSchema,
   LogoutEventSchema,
   RefreshEventSchema,
   ScrollIndexEventSchema,

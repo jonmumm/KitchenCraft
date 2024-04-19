@@ -1,25 +1,17 @@
 import { Avatar, AvatarFallback } from "@/components/display/avatar";
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
-import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/input/dropdown-menu";
-import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
 import { getProfileBySlug, getRecentRecipesByProfile } from "@/db/queries";
-import { getCurrentUserId } from "@/lib/auth/session";
+import { getCurrentProfile, getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile } from "@/lib/headers";
 import { formatJoinDateStr } from "@/lib/utils";
 import { ProfileSlugSchema } from "@/schema";
-import { ChefHatIcon, MoreVerticalIcon } from "lucide-react";
+import { ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { from, map, shareReplay } from "rxjs";
+import { from, shareReplay } from "rxjs";
 import { RecipeListItem } from "../recipe/components";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
@@ -28,6 +20,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Page(props: { params: { slug: string } }) {
   const currentUserId = await getCurrentUserId();
+  const currentProfile = await getCurrentProfile();
   const slug = decodeURIComponent(props.params.slug);
   const isMobile = getIsMobile();
 
@@ -36,26 +29,22 @@ export default async function Page(props: { params: { slug: string } }) {
     redirect("/");
   }
   const profileSlug = profileParse.data.slice(1);
+  const isProfileCurrentUser = currentProfile?.profileSlug === profileSlug;
+  const profile = await getProfileBySlug(profileSlug);
 
-  const [recipes$, profile$] = [
+  const [recipes$] = [
     from(getRecentRecipesByProfile(profileSlug)).pipe(shareReplay(1)),
-    from(getProfileBySlug(profileSlug)).pipe(shareReplay(1)),
   ];
-
-  const claimDate$ = profile$.pipe(map((profile) => profile?.createdAt));
-  const isOwner$ = profile$.pipe(
-    map((profile) => profile?.userId === currentUserId)
-  );
 
   const ClaimDate = () => {
     return (
-      <AsyncRenderFirstValue
-        observable={claimDate$}
-        render={(claimDate) => (
-          <>{claimDate ? formatJoinDateStr(claimDate) : <>Unclaimed</>}</>
+      <>
+        {profile?.createdAt ? (
+          formatJoinDateStr(profile.createdAt)
+        ) : (
+          <>Unclaimed</>
         )}
-        fallback={<Skeleton className="w-full h-4" />}
-      />
+      </>
     );
   };
 
@@ -74,7 +63,20 @@ export default async function Page(props: { params: { slug: string } }) {
               <div className="flex flex-col gap-1 flex-1">
                 <div className="flex flex-row gap-1 items-center justify-between">
                   <h1 className="underline font-bold text-xl">{profileSlug}</h1>
-                  <AsyncRenderFirstValue
+                  {!profile?.createdAt ? (
+                    <Badge>Unclaimed</Badge>
+                  ) : isProfileCurrentUser ? (
+                    <Link href="/edit-profile">
+                      <Button>Edit Profile</Button>
+                    </Link>
+                  ) : (
+                    <Button
+                      event={{ type: "PROFILE_SUBSCRIBE", slug: profileSlug }}
+                    >
+                      Subscribe
+                    </Button>
+                  )}
+                  {/* <AsyncRenderFirstValue
                     observable={isOwner$}
                     render={(isOwner) => {
                       return isOwner ? (
@@ -93,13 +95,15 @@ export default async function Page(props: { params: { slug: string } }) {
                       ) : null;
                     }}
                     fallback={undefined}
-                  />
+                  /> */}
                 </div>
-                <div>
-                  <Badge variant="outline">
-                    <ClaimDate />
-                  </Badge>
-                </div>
+                {profile && (
+                  <div>
+                    <Badge variant="outline">
+                      <ClaimDate />
+                    </Badge>
+                  </div>
+                )}
               </div>
             </div>
             {/* <div className="min-w-0">
