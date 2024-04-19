@@ -115,6 +115,7 @@ export const createMachineServer = <
   eventSchema: z.ZodSchema<Omit<EventFrom<TMachine>, "caller">>
 ) => {
   class ActorServer implements Party.Server {
+    ai: Ai;
     actor: Actor<TMachine> | undefined;
     initialSnapshotsByConnectionId: Map<
       string,
@@ -124,6 +125,7 @@ export const createMachineServer = <
     subscrptionsByConnectionId: Map<string, Subscription>;
 
     constructor(public room: Party.Room) {
+      this.ai = new Ai(room.context.ai);
       this.initialSnapshotsByConnectionId = new Map();
       this.callersByConnectionId = new Map();
       this.subscrptionsByConnectionId = new Map();

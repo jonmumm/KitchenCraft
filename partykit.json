@@ -3,6 +3,7 @@
   "name": "kitchencraft",
   "main": "src/server.ts",
   "compatibilityDate": "2024-02-10",
+  "ai": true,
   "parties": {
     "page_session": "src/app/page-session-server.ts"
   }
