@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   await client.send(pageSessionId, {
     type: "AUTHENTICATE",
     connectionId,
-    callerId: userId,
+    userId,
   });
 
   if (callbackUrl) {

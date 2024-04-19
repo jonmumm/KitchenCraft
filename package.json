@@ -88,6 +88,7 @@
     "observable-hooks": "^4.2.3",
     "openai": "^4.10.0",
     "partykit": "^0.0.97",
+    "partykit-ai": "^0.0.16",
     "partysocket": "^0.0.25",
     "pg": "^8.11.3",
     "postgres": "^3.4.3",

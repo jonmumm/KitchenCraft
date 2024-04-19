@@ -1,10 +1,12 @@
 import { json, notFound } from "@/lib/actor-kit/utils/response";
+import { Ai } from "partykit-ai";
 import { AppEventSchema, SystemEventSchema } from "@/schema";
 import { Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import { SignJWT } from "jose";
 import type * as Party from "partykit/server";
+import { AI } from "partykit/server";
 import {
   Actor,
   AnyStateMachine,
@@ -113,6 +115,7 @@ export const createMachineServer = <
   eventSchema: z.ZodSchema<Omit<EventFrom<TMachine>, "caller">>
 ) => {
   class ActorServer implements Party.Server {
+    ai: Ai;
     actor: Actor<TMachine> | undefined;
     initialSnapshotsByConnectionId: Map<
       string,
@@ -125,6 +128,7 @@ export const createMachineServer = <
       this.initialSnapshotsByConnectionId = new Map();
       this.callersByConnectionId = new Map();
       this.subscrptionsByConnectionId = new Map();
+      this.ai = new Ai(room.context.ai);
     }
 
     onStart() {
@@ -160,6 +164,7 @@ export const createMachineServer = <
         const input = {
           id: this.room.id,
           storage: this.room.storage,
+          ai: this.ai,
           initialCaller: {
             id: caller.uniqueId,
             type: caller.uniqueIdType,
@@ -205,7 +210,7 @@ export const createMachineServer = <
           // come from the userId
           if (event.type === "AUTHENTICATE") {
             this.callersByConnectionId.set(event.connectionId, {
-              id: event.callerId,
+              id: event.userId,
               type: "user",
             });
           }

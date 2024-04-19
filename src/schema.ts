@@ -770,7 +770,7 @@ const RefreshEventSchema = z.object({
 const AuthenticateEventSchema = z.object({
   type: z.literal("AUTHENTICATE"),
   connectionId: z.string(),
-  callerId: z.string(),
+  userId: z.string(),
 });
 
 export const SystemEventSchema = z.discriminatedUnion("type", [

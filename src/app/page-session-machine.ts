@@ -1,5 +1,6 @@
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { produce } from "immer";
+import { Ai } from "partykit-ai";
 
 import {
   ListRecipeTable,
@@ -99,6 +100,7 @@ type NewRecipeProductKeywordEvent = {
 const InputSchema = z.object({
   id: z.string(),
   storage: z.custom<Party.Storage>(),
+  ai: z.custom<Ai>(),
   url: z.string().url(),
   initialCaller: z.custom<Caller>(),
 });
@@ -185,18 +187,6 @@ export const pageSessionMachine = setup({
         return "";
       }
     ),
-    // : fromPromise(
-    //   async ({
-    //     input,
-    //   }: {
-    //     input: {
-    //       chefname: string;
-    //     };
-    //   }) => {
-    //     const profile = await getProfileBySlug(input.chefname);
-    //     return !profile;
-    //   }
-    // ),
     generateChefNameSuggestions: fromEventObservable(
       ({
         input,
@@ -537,6 +527,7 @@ export const pageSessionMachine = setup({
   context: ({ input }) => ({
     distinctId: input.id,
     history: [input.url],
+    recipeIdToSave: undefined,
     prompt: "",
     initialCaller: input.initialCaller,
     isNewUser: undefined,
@@ -1612,17 +1603,15 @@ export const pageSessionMachine = setup({
 
                         const { chefname } = context;
                         assert(chefname, "expected chefname to be set");
-                        return { chefname, userId: event.callerId };
+                        return { chefname, userId: event.userId };
                       },
                     }),
                     spawnChild("saveRecipeToList", {
                       input: ({ context, event }) => {
-                        assert("caller" in event, "expected caller");
                         assert(
-                          event.caller.type === "user",
-                          "expected caller to be user"
+                          event.type === "AUTHENTICATE",
+                          "expected authenticate event"
                         );
-                        const userId = event.caller.id;
 
                         const recipeId =
                           context.suggestedRecipes[context.currentItemIndex];
@@ -1630,7 +1619,7 @@ export const pageSessionMachine = setup({
 
                         return {
                           recipeId,
-                          userId,
+                          userId: event.userId,
                         };
                       },
                     }),

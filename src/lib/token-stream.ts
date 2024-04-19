@@ -22,21 +22,9 @@ export abstract class TokenStream<T> {
     return 1;
   }
 
-  public async getStream(input?: T): Promise<AsyncIterable<string>> {
+  public async getStream(input: T): Promise<AsyncIterable<string>> {
     const tokens = this.getDefaultTokens();
-
-    // const status = await this.getStatus();
-    // if (status === "running") {
-    // todo if an input is provided, assert here that
-    // it matches the input that in the stream cache
-    // return this.getRunningStream();
-    // } else if (status === "done") {
-    // return this.getCompletedStream();
-    if (input) {
-      return this.getOpenAIStream(input, tokens);
-    } else {
-      throw new Error("no input provided and stream wasnt in cache");
-    }
+    return this.getOpenAIStream(input, tokens);
   }
 
   // public async getStreamFromCache(): Promise<AsyncIterable<string>> {
