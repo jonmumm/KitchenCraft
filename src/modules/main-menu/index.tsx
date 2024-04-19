@@ -382,15 +382,13 @@ export async function MainMenu({ className }: { className?: string }) {
           </MenuItem>
           <Separator />
           <MenuItem className="flex justify-center">
-            <form method="POST" action="/api/auth/signout">
-              <Button
-                type="submit"
-                variant="ghost"
-                className="text-sm underline text-center"
-              >
-                Sign Out
-              </Button>
-            </form>
+            <Button
+              variant="ghost"
+              className="text-sm underline text-center"
+              event={{type: "LOGOUT"}}
+            >
+              Sign Out
+            </Button>
           </MenuItem>
           <Separator />
         </>

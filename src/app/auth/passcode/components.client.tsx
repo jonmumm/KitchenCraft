@@ -82,7 +82,7 @@ export function PasscodeForm(props: {
   const onSubmit = useCallback(
     (data: z.infer<typeof formSchema>) => {
       setDisabled(true);
-      let onCompleteUrl = `/auth/complete?connectionToken=${
+      let onCompleteUrl = `/auth/reauthenticate?connectionToken=${
         actor.getSnapshot().context.token
       }`;
       const callbackUrl = params.get("callbackUrl");

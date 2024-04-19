@@ -5,11 +5,12 @@ import { ApplicationContext } from "@/context/application";
 import { ServiceWorkerProvider } from "@/context/service-worker";
 import { env } from "@/env.public";
 import { useActor } from "@/hooks/useActor";
+import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
 import { getSession } from "@/lib/auth/session";
 import { map } from "nanostores";
-import { SessionProvider, useSession } from "next-auth/react";
+import { SessionProvider, signOut, useSession } from "next-auth/react";
 import {
   useParams,
   usePathname,
@@ -87,6 +88,7 @@ export function ApplicationProvider(props: {
             <SearchParamsEventsProvider />
             <HashChangeEventsProvider />
             <PopStateEventsProvider />
+            <LogoutProvider />
             <AnalyticsProvider />
             {props.appSessionId && <PWALifeCycle />}
             {props.children}
@@ -118,6 +120,14 @@ const HashChangeEventsProvider = () => {
       lastHash.current = window.location.hash;
     }
   }, [params, send]);
+
+  return null;
+};
+
+const LogoutProvider = () => {
+  useEventHandler("LOGOUT", () => {
+    signOut({ callbackUrl: "/" });
+  });
 
   return null;
 };

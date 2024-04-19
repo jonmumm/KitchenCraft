@@ -773,11 +773,17 @@ const AuthenticateEventSchema = z.object({
   userId: z.string(),
 });
 
+const LogoutEventSchema = z.object({
+  type: z.literal("LOGOUT")
+})
+
 export const SystemEventSchema = z.discriminatedUnion("type", [
   AuthenticateEventSchema,
 ]);
 
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  LogoutEventSchema,
   RefreshEventSchema,
   ScrollIndexEventSchema,
   SelectValueEventSchema,
