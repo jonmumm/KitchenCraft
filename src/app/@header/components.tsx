@@ -75,27 +75,42 @@ export async function HeaderWithInput({
               Close
             </Button>
           </div>
-          <NavigationLink
-            href={
-              profile?.profileSlug ? `/@${profile.profileSlug}` : `/my-recipes`
-            }
-            className="hidden lg:block crafting:hidden"
-          >
-            <div className="flex flex-row gap-1 items-center">
-              <div className="flex flex-row gap-1">
-                <Badge
-                  variant="outline"
-                  className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
-                >
-                  <ChefHatIcon className="transitioning:hidden" />
-                  <Loader2Icon className="hidden transitioning:block animate-spin" />
-                  <span>
-                    {profile?.profileSlug ? profile.profileSlug : "My Recipes"}
-                  </span>
-                </Badge>
-              </div>
+      <div className="hidden crafting:hidden right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
+        <NavigationLink
+          href={
+            profile?.profileSlug ? `/@${profile.profileSlug}` : `/my-recipes`
+          }
+          className="hidden lg:block crafting:hidden"
+        >
+          <div className="flex flex-row gap-1 items-center">
+            <div className="flex flex-row gap-1">
+              <Badge
+                variant="outline"
+                className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
+              >
+                <ChefHatIcon className="transitioning:hidden" />
+                <Loader2Icon className="hidden transitioning:block animate-spin" />
+                <span>
+                  {profile?.profileSlug ? profile.profileSlug : "My Recipes"}
+                </span>
+              </Badge>
             </div>
-          </NavigationLink>
+          </div>
+        </NavigationLink>
+        <MenuSheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <GripVerticalIcon />
+            </Button>
+          </SheetTrigger>
+          <SheetOverlay />
+          <SheetContent side="right" className="p-4">
+            <div className="flex flex-col gap-2 py-4">
+              <MainMenu />
+            </div>
+          </SheetContent>
+        </MenuSheet>
+      </div>
           {/* <Link href="/leaderboard" className="hidden lg:block crafting:hidden">
             <Button variant="ghost">
               <TrophyIcon />
