@@ -37,7 +37,7 @@ export default async function Page({}) {
                   <ChefHatIcon className="transitioning:hidden" />
                   <Loader2Icon className="hidden transitioning:block animate-spin" />
                   <span>
-                    {profile?.profileSlug ? profile.profileSlug : "My Recipes"}
+                    {profile?.profileSlug ? profile.profileSlug : "My Cookbook"}
                   </span>
                 </Badge>
               </div>
