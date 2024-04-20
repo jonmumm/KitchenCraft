@@ -38,7 +38,7 @@ export default async function Banner() {
             variant="success"
             event={{ type: "DOWNLOAD_APP" }}
           >
-            OPEN
+            GET
           </Badge>
         </div>
       </div>
