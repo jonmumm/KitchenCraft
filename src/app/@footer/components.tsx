@@ -50,7 +50,7 @@ export async function Footer({
               <ChefHatIcon className="transitioning:hidden" />
               <Loader2Icon className="hidden transitioning:block animate-spin" />
               <FooterTabTitle isActive={currentTab === "profile"}>
-                {slug ? slug : "My Recipes"}
+                {slug ? slug : "My Cookbook"}
               </FooterTabTitle>
             </Card>
           </NavigationLink>
