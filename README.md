@@ -2,7 +2,7 @@
 
 # KitchenCraft.ai
 
-Instantly create personalized recipes.
+The personal AI cookbook.
 
 ## Developing
 
