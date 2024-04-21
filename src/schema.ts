@@ -12,6 +12,7 @@ import {
   AffiliateProductSchema,
   AmazonAffiliateProductSchema,
   RecipeSchema,
+  UserPreferenceSchema,
 } from "./db";
 
 export const CallerIdTypeSchema = z.enum(["user", "guest", "system"]);
@@ -567,6 +568,12 @@ const SearchParamsEventSchema = z.object({
   searchParams: z.record(z.string(), z.string()),
 });
 
+// Sent when a user first connects to the websocket
+const ConnectEventSchema = z.object({
+  type: z.literal("CONNECT"),
+  connectionId: z.string(),
+});
+
 const HashChangeEventSchema = z.object({
   type: z.literal("HASH_CHANGE"),
   hash: z.string(),
@@ -782,11 +789,33 @@ const ProfileSubscribeEventSchema = z.object({
   slug: z.string(),
 });
 
+const UnsaveEventSchema = z.object({
+  type: z.literal("UNSAVE"),
+});
+
+const CloseSettingsEventSchema = z.object({
+  type: z.literal("CLOSE_SETTINGS"),
+});
+
+const OpenSettingsEventSchema = z.object({
+  type: z.literal("OPEN_SETTINGS"),
+});
+
+const UpdateUserPreferenceEventSchema = z.object({
+  type: z.literal("UPDATE_USER_PREFERENCE"),
+  key: UserPreferenceSchema.shape.preferenceKey,
+  value: z.array(z.string()),
+});
+
 export const SystemEventSchema = z.discriminatedUnion("type", [
   AuthenticateEventSchema,
 ]);
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+  UpdateUserPreferenceEventSchema,
+  CloseSettingsEventSchema,
+  OpenSettingsEventSchema,
+  UnsaveEventSchema,
   ProfileSubscribeEventSchema,
   LogoutEventSchema,
   RefreshEventSchema,
@@ -813,6 +842,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   EnablePushNotificationsEventSchema,
   ErrorEventSchema,
   DownloadAppEventShema,
+  ConnectEventSchema,
   CancelEventSchema,
   KeyDownEventSchema,
   RemixEventSchema,

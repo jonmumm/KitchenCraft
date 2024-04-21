@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/display/accordion";
 import { Badge } from "@/components/display/badge";
 import {
   Card,
@@ -12,14 +18,23 @@ import { Label } from "@/components/display/label";
 import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
+import { useSelector } from "@/hooks/useSelector";
 import { useSessionStore } from "@/hooks/useSessionStore";
 import { RefreshCwIcon, XIcon } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ReactNode, useEffect, useRef, useSyncExternalStore } from "react";
+import {
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import { toast } from "sonner";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { EnterChefNameForm, EnterEmailForm } from "./@craft/components.client";
+import { CraftContext } from "./context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -139,6 +154,25 @@ export const EnterChefNameCard = () => {
   );
 };
 
+export const PersonalizationSettingsFlow = () => {
+  return (
+    <Card className="py-2">
+      <div className="flex flex-row gap-2 justify-between items-center px-2">
+        <h2 className="text-lg font-bold">Preferences</h2>
+        <Button variant="outline" event={{ type: "CLOSE" }}>
+          <XIcon />
+        </Button>
+      </div>
+      <Accordion type="multiple">
+        <AccordionItem value="dietary_restrictions">
+          <AccordionTrigger>Dietary Restrictions</AccordionTrigger>
+          <AccordionContent>Hello</AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </Card>
+  );
+};
+
 export const EnterEmailCard = () => {
   return (
     <Card>
@@ -164,41 +198,43 @@ export const EnterEmailCard = () => {
   );
 };
 
+export const IsInPersonalizationSettings = (props: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const active = useSelector(actor, (state) =>
+    state.matches({ PersonalizationSettings: "Open" })
+  );
+
+  return active ? <>{props.children}</> : null;
+};
+
 export const IsInputtingChefName = (props: { children: ReactNode }) => {
   const session$ = useSessionStore();
-  const active = useSyncExternalStore(
-    session$.subscribe,
-    () => {
-      const stateValue = session$.get().value;
-      return (
-        typeof stateValue.Auth === "object" &&
-        typeof stateValue.Auth.Registering === "object" &&
-        !!stateValue.Auth.Registering.InputtingChefName
-      );
-    },
-    () => {
-      return false;
-    }
-  );
+
+  const selector = useCallback(() => {
+    const stateValue = session$.get().value;
+    return (
+      typeof stateValue.Auth === "object" &&
+      typeof stateValue.Auth.Registering === "object" &&
+      !!stateValue.Auth.Registering.InputtingChefName
+    );
+  }, []);
+
+  const active = useSyncExternalStore(session$.subscribe, selector, selector);
   return active ? <>{props.children}</> : null;
 };
 
 export const IsInputtingEmail = (props: { children: ReactNode }) => {
   const session$ = useSessionStore();
-  const active = useSyncExternalStore(
-    session$.subscribe,
-    () => {
-      const stateValue = session$.get().value;
-      const val =
-        typeof stateValue.Auth === "object" &&
-        typeof stateValue.Auth.Registering === "object" &&
-        !!stateValue.Auth.Registering.InputtingEmail;
-      return val;
-    },
-    () => {
-      return false;
-    }
-  );
+  const selector = useCallback(() => {
+    const stateValue = session$.get().value;
+    const val =
+      typeof stateValue.Auth === "object" &&
+      typeof stateValue.Auth.Registering === "object" &&
+      !!stateValue.Auth.Registering.InputtingEmail;
+    return val;
+  }, []);
+
+  const active = useSyncExternalStore(session$.subscribe, selector, selector);
 
   return active ? <>{props.children}</> : null;
 };

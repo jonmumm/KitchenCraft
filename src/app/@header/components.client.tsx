@@ -14,7 +14,7 @@ import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
 import { useStore } from "@nanostores/react";
-import { ArrowLeftIcon, ChevronRight, XCircleIcon } from "lucide-react";
+import { ArrowLeftIcon, ChevronRight, Settings2Icon, XCircleIcon } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChangeEventHandler,
@@ -27,7 +27,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { CraftNotEmpty } from "../@craft/components.client";
+import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { CraftContext } from "../context";
 import { SessionStoreContext } from "../page-session-store.context";
 
@@ -150,6 +150,10 @@ export const CraftInput = ({
     [send]
   );
 
+  const handleOpenSettings = useCallback(() => {
+    send({ type: "OPEN_SETTINGS" });
+  }, [send]);
+
   const handleClear = useCallback(() => {
     send({ type: "CLEAR", all: true });
   }, [send]);
@@ -190,7 +194,7 @@ export const CraftInput = ({
       <ChevronRight
         className={cn(
           isOpen ? "w-0" : "w-4",
-          "ml-4 h-4 shrink-0 opacity-50 self-start mt-2"
+          "ml-4 h-4 shrink-0 opacity-50 self-start mt-1.5"
         )}
       />
     );
@@ -223,6 +227,12 @@ export const CraftInput = ({
           </div>
         }
       />
+      <CraftEmpty>
+        <Settings2Icon
+          onClick={handleOpenSettings}
+          className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 active:opacity-30 cursor-pointer"
+        />
+      </CraftEmpty>
       <CraftNotEmpty>
         <XCircleIcon
           onClick={handleClear}

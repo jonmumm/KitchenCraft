@@ -7,6 +7,7 @@ import {
   ListTable,
   ProfileTable,
   RecipesTable,
+  UserPreferencesTable,
   UsersTable,
   db,
 } from "@/db";
@@ -31,6 +32,7 @@ import {
   PartialRecipe,
   ProductType,
   SystemEvent,
+  UserPreferenceType,
   WithCaller,
 } from "@/types";
 import { randomUUID } from "crypto";
@@ -116,11 +118,21 @@ type Input = z.infer<typeof InputSchema>;
 
 // }})
 
+type UserPreferences = {
+  dietary_restrictions?: string[]; // Array of restrictions, e.g., ["gluten-free", "nut-free"]
+  cuisine_preferences?: string[]; // Array of preferred cuisines, e.g., ["Italian", "Mexican"]
+  cooking_frequency?: string; // e.g., "weekly", "daily"
+  cooking_equipment?: string[]; // e.g., ["oven", "blender"]
+  ingredient_preference?: string[]; // e.g., ["organic", "non-GMO"]
+  time_availability?: string; // e.g., "30-60 min"
+  meal_type_preferences?: string[]; // e.g., ["breakfast", "dinner"]
+  allergy_info?: string[]; // e.g., ["dairy-free", "peanut-free"]
+};
+
 type Context = {
   recipeIdToSave: string | undefined;
   distinctId: string;
   isNewUser: boolean | undefined;
-  // createdRecipeSlugs: string[];
   initialCaller: Caller;
   createdBy?: string;
   prompt: string;
@@ -149,6 +161,7 @@ type Context = {
   undoOperations: Operation[][];
   redoOperations: Operation[][];
   history: string[];
+  userPreferences: UserPreferences; // New field to store user preferences
 };
 
 export const pageSessionMachine = setup({
@@ -294,20 +307,6 @@ export const pageSessionMachine = setup({
         return recipe.slug;
       }
     ),
-    // generateRecipes: fromEventObservable(
-    //   ({ input }: { input: { prompt: string } }) => {
-    //     const tokenStream = new AutoSuggestRecipesStream();
-    //     return from(tokenStream.getStream(input)).pipe(
-    //       switchMap((stream) => {
-    //         return streamToObservable(
-    //           stream,
-    //           AutoSuggestRecipesEventBase,
-    //           AutoSuggestRecipesOutputSchema
-    //         );
-    //       })
-    //     );
-    //   }
-    // ),
     generatePlaceholders: fromEventObservable(
       ({ input }: { input: { prompt: string } }) => {
         const tokenStream = new AutoSuggestPlaceholderStream();
@@ -437,6 +436,20 @@ export const pageSessionMachine = setup({
         );
       }
     ),
+    updateUserPreferences: fromPromise(
+      async ({
+        input,
+      }: {
+        input: {
+          userId: string;
+          preference: UserPreferenceType;
+          value: string[];
+        };
+      }) => {
+        const { userId, preference, value } = input;
+        await upsertUserPreference(userId, preference, value);
+      }
+    ),
   },
   guards: {
     isNewUser: () => {
@@ -521,12 +534,50 @@ export const pageSessionMachine = setup({
       numCompletedRecipeMetadata: 0,
       numCompletedRecipes: 0,
     }),
+    assignUserPreferences: assign(({ event, context }) => {
+      assert(
+        event.type === "UPDATE_USER_PREFERENCE",
+        "expected updateUserPreference"
+      );
+      return produce(context, (draft) => {
+        // Utilize the key from the event to decide which preference to update
+        switch (event.key) {
+          case "dietary_restrictions":
+            draft.userPreferences.dietary_restrictions = event.value;
+            break;
+          case "cuisine_preferences":
+            draft.userPreferences.cuisine_preferences = event.value;
+            break;
+          case "cooking_frequency":
+            draft.userPreferences.cooking_frequency = event.value[0];
+            break;
+          case "cooking_equipment":
+            draft.userPreferences.cooking_equipment = event.value;
+            break;
+          case "ingredient_preference":
+            draft.userPreferences.ingredient_preference = event.value;
+            break;
+          case "time_availability":
+            draft.userPreferences.time_availability = event.value[0];
+            break;
+          case "meal_type_preferences":
+            draft.userPreferences.meal_type_preferences = event.value;
+            break;
+          case "allergy_info":
+            draft.userPreferences.allergy_info = event.value;
+            break;
+          default:
+            throw new Error(`Unhandled preference key: ${event.key}`);
+        }
+      });
+    }),
   },
 }).createMachine({
   id: "UserAppMachine",
   context: ({ input }) => ({
     distinctId: input.id,
     history: [input.url],
+    userPreferences: {},
     recipeIdToSave: undefined,
     prompt: "",
     initialCaller: input.initialCaller,
@@ -558,7 +609,46 @@ export const pageSessionMachine = setup({
     redoOperations: [],
   }),
   type: "parallel",
+  on: {
+    UPDATE_USER_PREFERENCE: {
+      actions: [
+        spawnChild("updateUserPreferences", {
+          input: ({ event }) => {
+            assert(
+              event.type === "UPDATE_USER_PREFERENCE",
+              "expected update user preferenc event"
+            );
+            assert(event.caller.type === "user", "expected caller to be user");
+            return {
+              userId: event.caller.id,
+              preference: event.key,
+              value: event.value,
+            };
+          },
+        }),
+        "assignUserPreferences",
+      ],
+    },
+  },
   states: {
+    UserPreferences: {
+      initial: "Uninitialized",
+      states: {
+        Uninitialized: {
+          on: {
+            CONNECT: "Initializing",
+          },
+        },
+        Initializing: {},
+        DietaryRestrictions: {},
+        CuisinePreferences: {},
+        CookingFrequency: {},
+        IngredientPreference: {},
+        TimeAvailability: {},
+        MealTimePreferences: {},
+      },
+    },
+
     // Ads: {
     //   type: "parallel",
     //   states: {
@@ -1905,3 +1995,36 @@ const getProfileBySlug = async (profileSlug: string) => {
     .execute()
     .then((res) => res[0]); // Return the first (and expectedly only) result
 };
+
+async function upsertUserPreference(
+  userId: string,
+  key: UserPreferenceType,
+  value: string | string[]
+) {
+  try {
+    const result = await db
+      .insert(UserPreferencesTable)
+      .values({
+        userId: userId,
+        preferenceKey: key,
+        preferenceValue: value,
+      })
+      .onConflictDoUpdate({
+        target: [
+          UserPreferencesTable.userId,
+          UserPreferencesTable.preferenceKey,
+        ],
+        set: {
+          preferenceValue: value,
+          updatedAt: sql`NOW()`, // Update the timestamp to the current time
+        },
+      })
+      .execute();
+
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("Error upserting user preference:", error);
+    const message = getErrorMessage(error);
+    return { success: false, error: message };
+  }
+}

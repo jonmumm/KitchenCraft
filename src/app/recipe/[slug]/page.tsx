@@ -50,8 +50,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ShareButton } from "../components.client";
-import { UpvoteButton } from "../upvote-button/component";
-import { TipsAndTricksContent } from "./components.client";
+import { SaveButton, TipsAndTricksContent } from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
 import { AffiliateProductCarousel } from "./products/components";
 import { Rating } from "./rating/components.client";
@@ -354,7 +353,7 @@ export default async function Page(props: Props) {
                   </div>
 
                   <div className="flex flex-col gap-1 hidden-print">
-                    <UpvoteButton userId={userId} slug={slug} />
+                    <SaveButton initialIsSaved={false} />
                     <UploadMediaButton slug={slug}>
                       <CameraIcon />
                     </UploadMediaButton>

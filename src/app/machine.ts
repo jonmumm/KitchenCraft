@@ -60,7 +60,7 @@ export const createCraftMachine = ({
   send,
   session,
   session$,
-  token
+  token,
 }: {
   searchParams: Record<string, string>;
   router: AppRouterInstance;
@@ -487,44 +487,6 @@ export const createCraftMachine = ({
             },
           },
         },
-        // Creating: {
-        //   initial: "False",
-        //   states: {
-        //     False: {
-        //       on: {
-        //         SAVE: "InProgress",
-        //       },
-        //     },
-        //     InProgress: {
-        //       invoke: {
-        //         src: "waitForNewRecipeSlug",
-        //         onDone: "Navigating",
-        //       },
-        //       after: {
-        //         10000: "TimedOut",
-        //       },
-        //     },
-        //     Navigating: {
-        //       entry: ({ context }) => {
-        //         const { createdRecipeSlugs } = session$.get().context;
-        //         const slug = createdRecipeSlugs[createdRecipeSlugs.length - 1];
-        //         assert(slug, "expected slug when navigating to new recipe");
-
-        //         router.push(`/recipe/${slug}`);
-        //       },
-        //       after: {
-        //         10000: "TimedOut",
-        //       },
-        //       on: {
-        //         PAGE_LOADED: {
-        //           target: "False",
-        //           actions: [raise({ type: "CLOSE" })],
-        //         },
-        //       },
-        //     },
-        //     TimedOut: {},
-        //   },
-        // },
         Typing: {
           initial: "False",
           states: {
@@ -952,6 +914,17 @@ export const createCraftMachine = ({
                 scrollItemIndex: ({ event }) => event.index,
               }),
             },
+          },
+        },
+        PersonalizationSettings: {
+          initial: "Closed",
+          states: {
+            Closed: {
+              on: {
+                OPEN_SETTINGS: "Open",
+              },
+            },
+            Open: {},
           },
         },
       },

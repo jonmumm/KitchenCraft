@@ -13,10 +13,10 @@ import {
 import { useCommandState } from "@/components/input/command.primitive";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import useEventSource from "@/hooks/useEventSource";
-import { assert } from "@/lib/utils";
+import { assert, cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { useStore } from "@nanostores/react";
-import { PlusIcon, ShuffleIcon } from "lucide-react";
+import { HeartIcon, PlusIcon, ShuffleIcon } from "lucide-react";
 import { map } from "nanostores";
 import { useRouter } from "next/navigation";
 
@@ -168,4 +168,27 @@ export const TipsAndTricksContent = ({ slug }: { slug: string }) => {
   });
 
   return <MarkdownRenderer markdownText={text} />;
+};
+
+export const SaveButton = ({ initialIsSaved }: { initialIsSaved: boolean }) => {
+  const [saved, setSaved] = useState(initialIsSaved);
+
+  useEventHandler("SAVE", () => {
+    setSaved(true);
+  });
+  useEventHandler("UNSAVE", () => {
+    setSaved(false);
+  });
+
+  return (
+    <Button
+      variant="outline"
+      className="w-full"
+      event={{ type: saved ? "SAVE" : "UNSAVE" }}
+    >
+      <HeartIcon
+        className={cn(initialIsSaved ? "fill-black dark:fill-white" : "")}
+      />
+    </Button>
+  );
 };

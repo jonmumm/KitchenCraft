@@ -13,21 +13,27 @@ import {
   getSession,
   getUniqueId,
 } from "@/lib/auth/session";
-import { createAppInstallToken, getPageSessionId, getRequestUrl } from "@/lib/browser-session";
+import {
+  createAppInstallToken,
+  getPageSessionId,
+  getRequestUrl,
+} from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA, getIsMobile } from "@/lib/headers";
 import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import type { Metadata } from "next";
-import { ReactNode } from "react";
+import { ReactNode, useCallback } from "react";
 import { Toaster } from "sonner";
 import "../styles/globals.css";
 import {
   Body,
   EnterChefNameCard,
   EnterEmailCard,
+  IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
+  PersonalizationSettingsFlow,
   SearchParamsToastMessage,
 } from "./components.client";
 import { SessionStoreProvider } from "./page-session-store-provider";
@@ -104,8 +110,10 @@ export default async function RootLayout(
   const sessionActorClient = await getPageSessionActorClient();
   const pageSessionId = await getPageSessionId();
   const url = await getRequestUrl();
-  const { snapshot, connectionId, token } =
-    await sessionActorClient.get(pageSessionId, { url });
+  const { snapshot, connectionId, token } = await sessionActorClient.get(
+    pageSessionId,
+    { url }
+  );
   assert(snapshot, "expected snapshot");
 
   // const reauthenticate = async (_pageSessionId: string) => {
@@ -176,6 +184,7 @@ export default async function RootLayout(
                 <div className="sticky bottom-0 z-20">{footer}</div>
                 {canInstallPWA && <SafariInstallPrompt />}
                 <RegistrationDialog />
+                <PersonalizationSettingsDialog />
               </ThemeProvider>
               <Toaster />
               <SearchParamsToastMessage />
@@ -187,6 +196,23 @@ export default async function RootLayout(
     </html>
   );
 }
+
+const PersonalizationSettingsDialog = () => {
+  const isMobile = getIsMobile();
+
+  return (
+    <>
+      <IsInPersonalizationSettings>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent>
+            <PersonalizationSettingsFlow />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </IsInPersonalizationSettings>
+    </>
+  );
+};
 
 const RegistrationDialog = () => {
   const isMobile = getIsMobile();

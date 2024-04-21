@@ -1,12 +1,11 @@
 import { json, notFound } from "@/lib/actor-kit/utils/response";
-import { Ai } from "partykit-ai";
 import { AppEventSchema, SystemEventSchema } from "@/schema";
 import { Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import { SignJWT } from "jose";
+import { Ai } from "partykit-ai";
 import type * as Party from "partykit/server";
-import { AI } from "partykit/server";
 import {
   Actor,
   AnyStateMachine,
@@ -257,6 +256,14 @@ export const createMachineServer = <
         }
       };
       sendSnapshot();
+      const caller = this.callersByConnectionId.get(connection.id);
+
+      // @ts-expect-error
+      actor.send({
+        type: "CONNECT",
+        connectionId: connection.id,
+        caller,
+      });
       const sub = actor.subscribe(sendSnapshot);
       this.subscrptionsByConnectionId.set(connection.id, sub);
     }

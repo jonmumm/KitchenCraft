@@ -12,6 +12,7 @@ import {
   NewRecipeCommentSchema,
   ProfileSchema,
   RecipeCommentSchema,
+  UserPreferenceSchema,
   db,
   featureIdEnum,
 } from "./db";
@@ -340,3 +341,6 @@ export type AdInstance = {
   context: AdContext;
   product?: AffiliateProduct;
 };
+
+export type UserPreference = z.infer<typeof UserPreferenceSchema>;
+export type UserPreferenceType = UserPreference["preferenceKey"];

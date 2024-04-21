@@ -516,3 +516,43 @@ export const ListRecipeSchema = createSelectSchema(ListRecipeTable);
 
 // Schema for inserting new records into UserRecipeTable
 export const NewListRecipeSchema = createInsertSchema(ListRecipeTable);
+
+// Define the enum for user preference keys
+export const PreferenceKeyEnum = pgEnum("preference_key_enum", [
+  "dietary_restrictions",
+  "cuisine_preferences",
+  "cooking_frequency",
+  "cooking_equipment",
+  "ingredient_preference",
+  "time_availability",
+  "meal_type_preferences", // Example: breakfast, lunch, dinner
+  "allergy_info", // Example: nut-free, dairy-free
+]);
+
+export const UserPreferencesTable = pgTable(
+  "user_preferences",
+  {
+    preferenceId: bigserial("preference_id", { mode: "number" })
+      .notNull()
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => UsersTable.id, { onDelete: "cascade" }),
+    preferenceKey: PreferenceKeyEnum("preference_key").notNull(),
+    preferenceValue: jsonb("preference_value")
+      .$type<string | string[]>()
+      .notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
+  },
+  (table) => ({
+    unq: unique("user_preferences_user_id_and_preference_key_idx").on(
+      table.userId,
+      table.preferenceKey
+    ),
+  })
+);
+
+// Create schemas for selecting and inserting data
+export const UserPreferenceSchema = createSelectSchema(UserPreferencesTable);
+export const NewUserPreferenceSchema = createInsertSchema(UserPreferencesTable);
