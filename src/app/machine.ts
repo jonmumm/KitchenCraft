@@ -924,7 +924,11 @@ export const createCraftMachine = ({
                 OPEN_SETTINGS: "Open",
               },
             },
-            Open: {},
+            Open: {
+              on: {
+                CLOSE: "Closed",
+              },
+            },
           },
         },
       },
