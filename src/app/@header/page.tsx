@@ -24,7 +24,7 @@ export default async function Page({}) {
         <div className="hidden crafting:hidden absolute right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
           <NavigationLink
             href={
-              profile?.profileSlug ? `/@${profile.profileSlug}` : `/my-recipes`
+              profile?.profileSlug ? `/@${profile.profileSlug}` : `/my-cookbook`
             }
             className="hidden lg:block crafting:hidden"
           >

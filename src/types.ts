@@ -6,6 +6,7 @@ import ingredients from "./data/ingredients.json";
 import {
   AffiliateProductSchema,
   AmazonAffiliateProductSchema,
+  ListSchema,
   NewAffiliateProductSchema,
   NewAmazonAffiliateProductSchema,
   NewProfileSchema,
@@ -344,3 +345,5 @@ export type AdInstance = {
 
 export type UserPreference = z.infer<typeof UserPreferenceSchema>;
 export type UserPreferenceType = UserPreference["preferenceKey"];
+
+export type RecipeList =z.infer<typeof ListSchema>;

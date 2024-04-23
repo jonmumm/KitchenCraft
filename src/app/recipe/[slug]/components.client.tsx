@@ -16,7 +16,7 @@ import useEventSource from "@/hooks/useEventSource";
 import { assert, cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { useStore } from "@nanostores/react";
-import { HeartIcon, PlusIcon, ShuffleIcon } from "lucide-react";
+import { HeartIcon, PlusCircleIcon, PlusIcon, ShuffleIcon } from "lucide-react";
 import { map } from "nanostores";
 import { useRouter } from "next/navigation";
 
@@ -186,7 +186,7 @@ export const SaveButton = ({ initialIsSaved }: { initialIsSaved: boolean }) => {
       className="w-full"
       event={{ type: saved ? "SAVE" : "UNSAVE" }}
     >
-      <HeartIcon
+      <PlusCircleIcon
         className={cn(initialIsSaved ? "fill-black dark:fill-white" : "")}
       />
     </Button>

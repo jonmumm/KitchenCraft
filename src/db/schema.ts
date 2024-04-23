@@ -486,6 +486,8 @@ export const ListTable = pgTable(
   }
 );
 
+export const ListSchema = createSelectSchema(ListTable);
+
 export const ListRecipeTable = pgTable(
   "list_recipe", // Table name
   {

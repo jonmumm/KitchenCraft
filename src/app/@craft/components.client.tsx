@@ -26,8 +26,8 @@ import { useStore } from "@nanostores/react";
 import {
   ClockIcon,
   ExternalLinkIcon,
-  HeartIcon,
   MoveLeftIcon,
+  PlusCircleIcon,
   PrinterIcon,
   ScrollIcon,
   ShoppingBasketIcon,
@@ -134,8 +134,8 @@ export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
   return numTokens || promptLength !== 0 ? <>{children}</> : null;
 };
 
-const selectIsShowingSaving = (state: CraftSnapshot) =>
-  state.matches({ Auth: { LoggedIn: { Saving: "Showing" } } });
+const selectIsShowingAddedRecipe = (state: CraftSnapshot) =>
+  state.matches({ Auth: { LoggedIn: { Saving: { False: "Added" } } } });
 
 const VisibilityControl = ({
   visible,
@@ -1009,8 +1009,12 @@ function Instructions({ index }: { index: number }) {
   );
 }
 
-const chefnameFormSchema = z.object({
+const chefNameFormSchema = z.object({
   chefname: z.string(),
+});
+
+const listNameFormSchema = z.object({
+  listName: z.string(),
 });
 
 const emailFormSchema = z.object({
@@ -1106,7 +1110,9 @@ export const EnterEmailForm = () => {
   );
 };
 
-const selectIsLoadingAvailability = (snapshot: SessionStoreSnapshot) => {
+const selectIsLoadingChefNameAvailability = (
+  snapshot: SessionStoreSnapshot
+) => {
   const stateValue = snapshot.value;
   return (
     typeof stateValue === "object" &&
@@ -1117,7 +1123,7 @@ const selectIsLoadingAvailability = (snapshot: SessionStoreSnapshot) => {
   );
 };
 
-const selectIsAvailable = (snapshot: SessionStoreSnapshot) => {
+const selectIsChefNameAvailable = (snapshot: SessionStoreSnapshot) => {
   const stateValue = snapshot.value;
   return (
     typeof stateValue === "object" &&
@@ -1127,7 +1133,7 @@ const selectIsAvailable = (snapshot: SessionStoreSnapshot) => {
   );
 };
 
-const selectIsPristine = (snapshot: SessionStoreSnapshot) => {
+const selectIsChefNameInputPristine = (snapshot: SessionStoreSnapshot) => {
   const stateValue = snapshot.value;
   return (
     typeof stateValue === "object" &&
@@ -1143,7 +1149,7 @@ export const EnterChefNameForm = () => {
   const isLoadingAvailability = useSyncExternalStore(
     session$.subscribe,
     () => {
-      return selectIsLoadingAvailability(session$.get());
+      return selectIsLoadingChefNameAvailability(session$.get());
     },
     () => {
       return false;
@@ -1152,7 +1158,7 @@ export const EnterChefNameForm = () => {
   const isPristine = useSyncExternalStore(
     session$.subscribe,
     () => {
-      return selectIsPristine(session$.get());
+      return selectIsChefNameInputPristine(session$.get());
     },
     () => {
       return false;
@@ -1161,7 +1167,7 @@ export const EnterChefNameForm = () => {
   const isAvailable = useSyncExternalStore(
     session$.subscribe,
     () => {
-      return selectIsAvailable(session$.get());
+      return selectIsChefNameAvailable(session$.get());
     },
     () => {
       return false;
@@ -1171,7 +1177,7 @@ export const EnterChefNameForm = () => {
   const send = useSend();
 
   const form = useForm({
-    resolver: zodResolver(chefnameFormSchema),
+    resolver: zodResolver(chefNameFormSchema),
     defaultValues: {
       chefname: "",
     },
@@ -1199,7 +1205,7 @@ export const EnterChefNameForm = () => {
   // todo how do i call  this on chefname change
   // send({ type: "CHANGE", name: "chefname", value: data.chefname });
   const onSubmit = useCallback(
-    async (data: z.infer<typeof chefnameFormSchema>) => {
+    async (data: z.infer<typeof chefNameFormSchema>) => {
       setDisabled(true);
       send({ type: "SUBMIT" });
     },
@@ -1282,6 +1288,102 @@ export const EnterChefNameForm = () => {
   );
 };
 
+export const EnterListNameForm = () => {
+  const session$ = useContext(SessionStoreContext);
+  const [disabled, setDisabled] = useState(false);
+  const send = useSend();
+
+  const form = useForm({
+    resolver: zodResolver(chefNameFormSchema),
+    defaultValues: {
+      listName: "",
+    },
+  });
+
+  useEventHandler("SELECT_VALUE", (event) => {
+    if (event.name === "suggested_listname") {
+      form.setValue("listName", event.value);
+    }
+    return;
+  });
+
+  useEffect(() => {
+    return form.watch((data) => {
+      const value = data.listName || "";
+      send({ type: "CHANGE", name: "listName", value });
+    }).unsubscribe;
+  }, [form.watch, send]);
+
+  // todo how do i call  this on chefname change
+  // send({ type: "CHANGE", name: "chefname", value: data.chefname });
+  const onSubmit = useCallback(
+    async (data: z.infer<typeof listNameFormSchema>) => {
+      setDisabled(true);
+      send({ type: "SUBMIT" });
+    },
+    [session$, send]
+  );
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="listName"
+          render={({ field, fieldState }) => (
+            <FormItem>
+              {/* <FormValueSender /> */}
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <PlaceholderAnimatingInput
+                  samplePlaceholders={[
+                    "tuesday night dinner ideas",
+                    "weekend bbq dishes",
+                    "healthy work snacks",
+                    "birthday cake ideas",
+                    "kids friendly meal prep",
+                    "easy 20 minute meals",
+                  ]}
+                  autoFocus
+                  disabled={disabled}
+                  type="text"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                Available @ <br />
+                kitchencraft.ai/@[your-chef-name]/
+                <ListNamePath />
+              </FormDescription>
+              {fieldState.error && (
+                <FormMessage>{fieldState.error.message}</FormMessage>
+              )}
+            </FormItem>
+          )}
+        />
+        <Button
+          disabled={disabled}
+          type="submit"
+          className={cn("w-full")}
+          size="lg"
+        >
+          Submit
+        </Button>
+      </form>
+    </Form>
+  );
+};
+
+const ListNamePath = () => {
+  const listName = useWatch({ name: "listName" });
+
+  return (
+    <span className="font-semibold">
+      {listName === "" ? "[LIST-NAME]" : sentenceToSlug(listName)}
+    </span>
+  );
+};
+
 const ChefNamePath = () => {
   const chefname = useWatch({ name: "chefname" });
 
@@ -1358,7 +1460,7 @@ const PlaceholderAnimatingInput = forwardRef<
 
   return <Input ref={localInputRef} {...inputProps} />;
 });
-PlaceholderAnimatingInput.displayName = "PlaceholderAnimatingInput"
+PlaceholderAnimatingInput.displayName = "PlaceholderAnimatingInput";
 
 export const ClearButton = () => {
   const session$ = useContext(SessionStoreContext);
@@ -1514,31 +1616,29 @@ const PrintButton = ({ slug }: { slug?: string }) => {
 };
 
 const SaveButton = ({ slug }: { slug?: string }) => {
-  const actor = useContext(CraftContext);
+  // const actor = useContext(CraftContext);
 
-  const selectIsFilled = useCallback(
-    (state: CraftSnapshot) => {
-      if (!slug) {
-        return false;
-      }
+  // const selectIsFilled = useCallback(
+  //   (state: CraftSnapshot) => {
+  //     if (!slug) {
+  //       return false;
+  //     }
 
-      return state.context.savedRecipeSlugs.includes(slug);
-    },
-    [slug]
-  );
-  const isFilled = useSelector(actor, selectIsFilled);
+  //     return state.context.savedRecipeSlugs.includes(slug);
+  //   },
+  //   [slug]
+  // );
+  // const isFilled = useSelector(actor, selectIsFilled);
 
   return (
     <div className="flex flex-row justify-center w-full">
       {slug ? (
         <Button event={{ type: "SAVE" }}>
-          <HeartIcon
-            className={cn(isFilled ? "fill-white dark:fill-black" : "")}
-          />
+          <PlusCircleIcon />
         </Button>
       ) : (
         <Button disabled>
-          <HeartIcon className="animate-pulse" />
+          <PlusCircleIcon className="animate-pulse" />
         </Button>
       )}
     </div>
@@ -1636,7 +1736,7 @@ export const SaveRecipeBadge = () => {
       state.context.savedRecipeSlugs[state.context.savedRecipeSlugs.length - 1]
   );
   // const recipeName = useRecipeNameForSlug(lastestSlug);
-  const isShowing = useSelector(actor, selectIsShowingSaving);
+  const isShowing = useSelector(actor, selectIsShowingAddedRecipe);
 
   return (
     <Link
