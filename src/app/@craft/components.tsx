@@ -10,6 +10,7 @@ import {
   HeartIcon,
   Loader2Icon,
   MoveRightIcon,
+  PlusCircleIcon,
   ShareIcon,
   TagIcon,
 } from "lucide-react";
@@ -428,7 +429,7 @@ const LikeButton = () => {
           event={{ type: "SAVE" }}
         >
           Add
-          <HeartIcon className="ml-2" size={15} />
+          <PlusCircleIcon className="ml-2" size={15} />
         </Button>
       </CraftReadyToSave>
     </div>

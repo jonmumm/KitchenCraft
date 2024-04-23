@@ -21,13 +21,13 @@ import { useSend } from "@/hooks/useSend";
 import { useSessionStore } from "@/hooks/useSessionStore";
 import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
+import { ChefNameSchema, ListNameSchema } from "@/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import {
   ClockIcon,
-  ExternalLinkIcon,
-  HeartIcon,
   MoveLeftIcon,
+  PlusCircleIcon,
   PrinterIcon,
   ScrollIcon,
   ShoppingBasketIcon,
@@ -134,8 +134,8 @@ export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
   return numTokens || promptLength !== 0 ? <>{children}</> : null;
 };
 
-const selectIsShowingSaving = (state: CraftSnapshot) =>
-  state.matches({ Auth: { LoggedIn: { Saving: "Showing" } } });
+const selectIsShowingAddedRecipe = (state: CraftSnapshot) =>
+  state.matches({ Auth: { LoggedIn: { Adding: { False: "Added" } } } });
 
 const VisibilityControl = ({
   visible,
@@ -1009,8 +1009,12 @@ function Instructions({ index }: { index: number }) {
   );
 }
 
-const chefnameFormSchema = z.object({
-  chefname: z.string(),
+const chefNameFormSchema = z.object({
+  chefname: ChefNameSchema,
+});
+
+const listNameFormSchema = z.object({
+  listName: ListNameSchema,
 });
 
 const emailFormSchema = z.object({
@@ -1106,7 +1110,9 @@ export const EnterEmailForm = () => {
   );
 };
 
-const selectIsLoadingAvailability = (snapshot: SessionStoreSnapshot) => {
+const selectIsLoadingChefNameAvailability = (
+  snapshot: SessionStoreSnapshot
+) => {
   const stateValue = snapshot.value;
   return (
     typeof stateValue === "object" &&
@@ -1117,7 +1123,18 @@ const selectIsLoadingAvailability = (snapshot: SessionStoreSnapshot) => {
   );
 };
 
-const selectIsAvailable = (snapshot: SessionStoreSnapshot) => {
+const selectSelectedListSlug = (snapshot: SessionStoreSnapshot) => {
+  return snapshot.context.currentListSlug;
+};
+
+const selectSelectedList = (snapshot: SessionStoreSnapshot) => {
+  if (snapshot.context.listsBySlug && snapshot.context.currentListSlug) {
+    return snapshot.context.listsBySlug[snapshot.context.currentListSlug];
+  }
+  return undefined;
+};
+
+const selectIsChefNameAvailable = (snapshot: SessionStoreSnapshot) => {
   const stateValue = snapshot.value;
   return (
     typeof stateValue === "object" &&
@@ -1127,7 +1144,7 @@ const selectIsAvailable = (snapshot: SessionStoreSnapshot) => {
   );
 };
 
-const selectIsPristine = (snapshot: SessionStoreSnapshot) => {
+const selectIsChefNameInputPristine = (snapshot: SessionStoreSnapshot) => {
   const stateValue = snapshot.value;
   return (
     typeof stateValue === "object" &&
@@ -1143,7 +1160,7 @@ export const EnterChefNameForm = () => {
   const isLoadingAvailability = useSyncExternalStore(
     session$.subscribe,
     () => {
-      return selectIsLoadingAvailability(session$.get());
+      return selectIsLoadingChefNameAvailability(session$.get());
     },
     () => {
       return false;
@@ -1152,7 +1169,7 @@ export const EnterChefNameForm = () => {
   const isPristine = useSyncExternalStore(
     session$.subscribe,
     () => {
-      return selectIsPristine(session$.get());
+      return selectIsChefNameInputPristine(session$.get());
     },
     () => {
       return false;
@@ -1161,7 +1178,7 @@ export const EnterChefNameForm = () => {
   const isAvailable = useSyncExternalStore(
     session$.subscribe,
     () => {
-      return selectIsAvailable(session$.get());
+      return selectIsChefNameAvailable(session$.get());
     },
     () => {
       return false;
@@ -1171,7 +1188,7 @@ export const EnterChefNameForm = () => {
   const send = useSend();
 
   const form = useForm({
-    resolver: zodResolver(chefnameFormSchema),
+    resolver: zodResolver(chefNameFormSchema),
     defaultValues: {
       chefname: "",
     },
@@ -1199,7 +1216,7 @@ export const EnterChefNameForm = () => {
   // todo how do i call  this on chefname change
   // send({ type: "CHANGE", name: "chefname", value: data.chefname });
   const onSubmit = useCallback(
-    async (data: z.infer<typeof chefnameFormSchema>) => {
+    async (data: z.infer<typeof chefNameFormSchema>) => {
       setDisabled(true);
       send({ type: "SUBMIT" });
     },
@@ -1282,6 +1299,100 @@ export const EnterChefNameForm = () => {
   );
 };
 
+export const EnterListNameForm = () => {
+  const session$ = useContext(SessionStoreContext);
+  const [disabled, setDisabled] = useState(false);
+  const send = useSend();
+
+  const form = useForm({
+    resolver: zodResolver(listNameFormSchema),
+    defaultValues: {
+      listName: "",
+    },
+  });
+
+  useEffect(() => {
+    return form.watch((data) => {
+      const value = data.listName || "";
+      send({ type: "CHANGE", name: "listName", value });
+    }).unsubscribe;
+  }, [form.watch, send]);
+
+  const onSubmit = useCallback(
+    async (data: z.infer<typeof listNameFormSchema>) => {
+      setDisabled(true);
+      send({ type: "SUBMIT" });
+    },
+    [session$, send]
+  );
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="listName"
+          render={({ field, fieldState }) => (
+            <FormItem>
+              {/* <FormValueSender /> */}
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <PlaceholderAnimatingInput
+                  samplePlaceholders={[
+                    "tuesday night dinner ideas",
+                    "weekend bbq dishes",
+                    "healthy work snacks",
+                    "birthday cake ideas",
+                    "kids friendly meal prep",
+                    "easy 20 minute meals",
+                  ]}
+                  autoFocus
+                  disabled={disabled}
+                  type="text"
+                  {...field}
+                />
+              </FormControl>
+              {fieldState.error && (
+                <FormMessage>{fieldState.error.message}</FormMessage>
+              )}
+            </FormItem>
+          )}
+        />
+        <Button
+          disabled={disabled}
+          type="submit"
+          className={cn("w-full")}
+          size="lg"
+        >
+          Submit
+        </Button>
+      </form>
+    </Form>
+  );
+};
+
+const ListURL = () => {
+  const chefname = useChefName();
+  const listName = useWatch({ name: "listName" });
+
+  const ListNamePath = () => {
+    return (
+      <span className="font-semibold">
+        {listName === "" ? "]" : sentenceToSlug(listName)}
+      </span>
+    );
+  };
+
+  return listName.length ? (
+    <FormDescription>
+      kitchencraft.ai/@{chefname}/
+      <ListNamePath />
+    </FormDescription>
+  ) : (
+    <></>
+  );
+};
+
 const ChefNamePath = () => {
   const chefname = useWatch({ name: "chefname" });
 
@@ -1358,7 +1469,7 @@ const PlaceholderAnimatingInput = forwardRef<
 
   return <Input ref={localInputRef} {...inputProps} />;
 });
-PlaceholderAnimatingInput.displayName = "PlaceholderAnimatingInput"
+PlaceholderAnimatingInput.displayName = "PlaceholderAnimatingInput";
 
 export const ClearButton = () => {
   const session$ = useContext(SessionStoreContext);
@@ -1514,31 +1625,29 @@ const PrintButton = ({ slug }: { slug?: string }) => {
 };
 
 const SaveButton = ({ slug }: { slug?: string }) => {
-  const actor = useContext(CraftContext);
+  // const actor = useContext(CraftContext);
 
-  const selectIsFilled = useCallback(
-    (state: CraftSnapshot) => {
-      if (!slug) {
-        return false;
-      }
+  // const selectIsFilled = useCallback(
+  //   (state: CraftSnapshot) => {
+  //     if (!slug) {
+  //       return false;
+  //     }
 
-      return state.context.savedRecipeSlugs.includes(slug);
-    },
-    [slug]
-  );
-  const isFilled = useSelector(actor, selectIsFilled);
+  //     return state.context.savedRecipeSlugs.includes(slug);
+  //   },
+  //   [slug]
+  // );
+  // const isFilled = useSelector(actor, selectIsFilled);
 
   return (
     <div className="flex flex-row justify-center w-full">
       {slug ? (
         <Button event={{ type: "SAVE" }}>
-          <HeartIcon
-            className={cn(isFilled ? "fill-white dark:fill-black" : "")}
-          />
+          <PlusCircleIcon />
         </Button>
       ) : (
         <Button disabled>
-          <HeartIcon className="animate-pulse" />
+          <PlusCircleIcon className="animate-pulse" />
         </Button>
       )}
     </div>
@@ -1630,28 +1739,40 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
 
 export const SaveRecipeBadge = () => {
   const actor = useContext(CraftContext);
-  const lastestSlug = useSelector(
-    actor,
-    (state) =>
-      state.context.savedRecipeSlugs[state.context.savedRecipeSlugs.length - 1]
+  const chefname = useChefName();
+  const session$ = useSessionStore();
+  // const selectedListSlug, useSyncExternalStore(session$.subscribe, selectSelectedListSlug, selectIsChefNameAvailable)
+  const selectedList = useSyncExternalStore(
+    session$.subscribe,
+    () => selectSelectedList(session$.get()),
+    () => selectSelectedList(session$.get())
   );
-  // const recipeName = useRecipeNameForSlug(lastestSlug);
-  const isShowing = useSelector(actor, selectIsShowingSaving);
+  const isShowing = useSelector(actor, selectIsShowingAddedRecipe);
 
   return (
     <Link
-      href={`/recipe/${lastestSlug}`}
+      href={`/@${chefname}/${selectedList?.slug}`}
       target="_blank"
       className={cn(
         "flex-1 flex justify-center items-center transition-all",
         !isShowing ? "translate-y-96" : "pointer-events-auto"
       )}
     >
-      <Badge className="shadow-xl text-center py-1 px-3 truncate max-w-full flex flex-row gap-1">
-        <span>Saved.</span>
-        <em className="font-semibold not-italic underline">Open</em>
-        <ExternalLinkIcon size={14} />
-      </Badge>
+      <Card className="shadow-xl p-3 flex flex-row gap-2 items-center text-sm">
+        <div className="flex flex-row gap-1 text-s items-center flex-1">
+          <span className="text-muted-foreground">Added to</span>{" "}
+          <span className="truncate max-w-full">
+            {selectedList?.name || "My Cookbook"}
+          </span>
+        </div>
+        <Button
+          event={{ type: "CHANGE_LIST" }}
+          variant="ghost"
+          className="underline p-0 h-fit"
+        >
+          Change
+        </Button>
+      </Card>
     </Link>
   );
 };

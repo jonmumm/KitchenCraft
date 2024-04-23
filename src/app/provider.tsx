@@ -73,6 +73,11 @@ export function ApplicationProvider(props: {
       })
     );
 
+    useEffect(() => {
+      // @ts-expect-error
+      window.client$ = actor;
+    }, [actor]);
+
     return (
       <CraftContext.Provider value={actor}>{children}</CraftContext.Provider>
     );

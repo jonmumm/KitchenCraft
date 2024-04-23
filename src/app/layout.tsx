@@ -23,18 +23,22 @@ import { getCanInstallPWA, getIsMobile } from "@/lib/headers";
 import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import type { Metadata } from "next";
-import { ReactNode, useCallback } from "react";
+import { ReactNode } from "react";
 import { Toaster } from "sonner";
 import "../styles/globals.css";
 import {
   Body,
+  CreateNewListCard,
   EnterChefNameCard,
   EnterEmailCard,
+  IsCreatingList,
   IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
+  IsSelectingList,
   PersonalizationSettingsFlow,
   SearchParamsToastMessage,
+  SelectListCard,
 } from "./components.client";
 import { SessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
@@ -184,6 +188,7 @@ export default async function RootLayout(
                 <div className="sticky bottom-0 z-20">{footer}</div>
                 {canInstallPWA && <SafariInstallPrompt />}
                 <RegistrationDialog />
+                <SaveDialog />
                 <PersonalizationSettingsDialog />
               </ThemeProvider>
               <Toaster />
@@ -234,6 +239,30 @@ const RegistrationDialog = () => {
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </IsInputtingChefName>
+    </>
+  );
+};
+
+const SaveDialog = () => {
+  const isMobile = getIsMobile();
+  return (
+    <>
+      <IsSelectingList>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent>
+            <SelectListCard />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </IsSelectingList>
+      <IsCreatingList>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent>
+            <CreateNewListCard />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </IsCreatingList>
     </>
   );
 };

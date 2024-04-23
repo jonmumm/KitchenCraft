@@ -25,6 +25,7 @@ import {
   and,
   assign,
   fromEventObservable,
+  fromPromise,
   setup,
 } from "xstate";
 import { z } from "zod";
@@ -203,6 +204,48 @@ export const createCraftMachine = ({
     ? "Dirty"
     : "Pristine";
 
+  const waitForSessionValue = fromPromise(
+    async ({
+      input,
+    }: {
+      input: {
+        selector: (snapshot: SessionSnapshot) => boolean;
+        timeoutMs: number;
+      };
+    }) => {
+      return new Promise<void>((resolve, reject) => {
+        const snapshot = session$.get();
+        const { selector } = input;
+
+        const value = selector(snapshot);
+        if (value) {
+          resolve();
+        }
+        let returned = false;
+
+        setTimeout(() => {
+          if (!returned) {
+            reject();
+            returned = true;
+          }
+        }, input.timeoutMs);
+
+        const unsub = session$.subscribe((snapshot) => {
+          const value = selector(snapshot);
+          if (value) {
+            returned = true;
+            resolve();
+            unsub();
+          }
+        });
+      });
+      // session$.subscribe(input.selector, () => {
+
+      // })
+      // session$
+    }
+  );
+
   const placeholderMachine = setup({
     types: {
       input: {} as {
@@ -317,6 +360,7 @@ export const createCraftMachine = ({
       instantRecipeMetadataGenerator,
       suggestionsGenerator,
       remixSuggestionsGenerator,
+      waitForSessionValue,
       // createNewInstantRecipe,
       // createNewRecipeFromSuggestion,
       // waitForNewRecipeSlug: fromPromise(
@@ -446,39 +490,94 @@ export const createCraftMachine = ({
             LoggedIn: {
               type: "parallel",
               states: {
-                Saving: {
+                Adding: {
                   initial: "False",
-                  on: {
-                    SAVE: {
-                      target: ".Showing",
-                      actions: assign(({ context }) =>
-                        produce(context, (draft) => {
-                          const {
-                            currentItemIndex,
-                            suggestedRecipes,
-                            recipes,
-                          } = session$.get().context;
-                          const recipeId = suggestedRecipes[currentItemIndex];
-                          assert(recipeId, "expected recipeId when saving");
-                          const recipe = recipes[recipeId];
-                          assert(recipe, "expected recipe when saving");
-                          assert(
-                            recipe.slug,
-                            "expected recipe slug when saving"
-                          );
-                          draft.savedRecipeSlugs.push(recipe.slug);
-                        })
-                      ),
-                    },
-                  },
                   states: {
-                    False: {},
-                    Showing: {
+                    False: {
+                      initial: "Pristine",
                       on: {
-                        NEXT: "False",
-                        PREV: "False",
-                        SCROLL_INDEX: "False",
-                        CLEAR: "False",
+                        CHANGE_LIST: {
+                          target: "True",
+                        },
+                        SAVE: [
+                          {
+                            target: ".Added",
+                            guard: () =>
+                              !!session$.get().context.currentListSlug,
+                          },
+                          {
+                            target: "True",
+                            actions: assign(({ context }) =>
+                              produce(context, (draft) => {
+                                const {
+                                  currentItemIndex,
+                                  suggestedRecipes,
+                                  recipes,
+                                } = session$.get().context;
+                                const recipeId =
+                                  suggestedRecipes[currentItemIndex];
+                                assert(
+                                  recipeId,
+                                  "expected recipeId when adding to list"
+                                );
+                                const recipe = recipes[recipeId];
+                                assert(
+                                  recipe,
+                                  "expected recipe when adding to list"
+                                );
+                                assert(
+                                  recipe.slug,
+                                  "expected recipe slug when adding to list"
+                                );
+                                draft.savedRecipeSlugs.push(recipe.slug);
+                              })
+                            ),
+                          },
+                        ],
+                      },
+                      states: {
+                        Pristine: {},
+                        Added: {
+                          id: "RecipeAdded",
+                          on: {
+                            NEXT: "Pristine",
+                            PREV: "Pristine",
+                            SCROLL_INDEX: "Pristine",
+                            CLEAR: "Pristine",
+                          },
+                        },
+                      },
+                    },
+                    True: {
+                      type: "parallel",
+                      on: {
+                        SELECT_LIST: "#RecipeAdded",
+                        CANCEL: "False",
+                        SUBMIT: "#RecipeAdded",
+                      },
+                      states: {
+                        ListCreating: {
+                          initial: "False",
+                          states: {
+                            False: {
+                              on: {
+                                CREATE_LIST: "True",
+                              },
+                            },
+                            True: {},
+                          },
+                        },
+                        // Lists: {
+                        //   invoke: {
+                        //     src: "waitForSessionValue",
+                        //     input: {
+                        //       selector(snapshot) {
+                        //         return !!snapshot.context.currentListSlug;
+                        //       },
+                        //       timeoutMs: 10000,
+                        //     },
+                        //   },
+                        // },
                       },
                     },
                   },

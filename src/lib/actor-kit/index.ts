@@ -139,7 +139,12 @@ export const createMachineServer = <
       const authHeader = request.headers.get("authorization");
       const callerIdToken = authHeader?.split(" ")[1];
       assert(callerIdToken, "unable to parse bearer token");
-      const caller = await parseCallerIdToken(callerIdToken);
+      const { uniqueId, uniqueIdType } =
+        await parseCallerIdToken(callerIdToken);
+      const caller = {
+        id: uniqueId,
+        type: uniqueIdType,
+      } satisfies Caller;
 
       // if (request.method === "POST") {
       //   // todo requi're a caller token before allowing this send...
@@ -163,10 +168,7 @@ export const createMachineServer = <
         const input = {
           id: this.room.id,
           storage: this.room.storage,
-          initialCaller: {
-            id: caller.uniqueId,
-            type: caller.uniqueIdType,
-          } satisfies Caller,
+          initialCaller: caller,
           ...inputJson,
         } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
 
@@ -175,10 +177,7 @@ export const createMachineServer = <
         });
         this.actor.start();
 
-        this.callersByConnectionId.set(connectionId, {
-          id: caller.uniqueId,
-          type: caller.uniqueIdType,
-        });
+        this.callersByConnectionId.set(connectionId, caller);
         const token = await createConnectionToken(this.room.id, connectionId);
         const snapshot = this.actor.getPersistedSnapshot();
 
@@ -201,7 +200,7 @@ export const createMachineServer = <
           snapshot,
         });
       } else if (request.method === "POST") {
-        if (caller.uniqueIdType === "system") {
+        if (uniqueIdType === "system") {
           const json = await request.json();
           const event = SystemCallerEventSchema.parse(json);
           // Set future events from this connection to
@@ -213,9 +212,8 @@ export const createMachineServer = <
             });
           }
 
-          const caller = { type: "system" };
           // @ts-expect-error
-          this.actor.send(Object.assign(event, { caller }));
+          this.actor.send(Object.assign(event, { caller: { type: "system" } }));
         }
 
         // todo handle events from clients directly here...

@@ -184,7 +184,7 @@ export const getRecipesByListSlug = async (
   const queryRunner =
     dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
-  // Subquery to get the maximum versionId for each recipe that is part of "My Recipes" list
+  // Subquery to get the maximum versionId for each recipe that is part of "My Cookbook" list
   const maxVersionSubquery = queryRunner
     .select({
       recipeId: RecipesTable.id,
@@ -249,7 +249,7 @@ export const getRecentRecipesByUser = async (
   dbOrTransaction: DbOrTransaction,
   userId: string
 ) => {
-  return getRecipesByListSlug(dbOrTransaction, userId, "my-recipes");
+  return getRecipesByListSlug(dbOrTransaction, userId, "my-cookbook");
 };
 
 export const getRecentRecipesByCreator = async (createdBy: string) => {
@@ -322,7 +322,7 @@ export const getProfileBySlug = async (profileSlug: string) => {
 export const getRecentRecipesByProfile = async (profileSlug: string) => {
   const queryRunner = db;
 
-  // Subquery to get the maximum versionId for each recipe that is part of "My Recipes" list
+  // Subquery to get the maximum versionId for each recipe that is part of "My Cookbook" list
   const maxVersionSubquery = queryRunner
     .select({
       recipeId: RecipesTable.id,
@@ -336,7 +336,7 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
       and(
         eq(ListTable.createdBy, ProfileTable.userId),
         eq(ProfileTable.profileSlug, profileSlug),
-        eq(ListTable.slug, "my-recipes")
+        eq(ListTable.slug, "my-cookbook")
       )
     )
     .groupBy(RecipesTable.id)
