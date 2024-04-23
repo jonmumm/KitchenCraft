@@ -21,11 +21,11 @@ import { useSend } from "@/hooks/useSend";
 import { useSessionStore } from "@/hooks/useSessionStore";
 import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
+import { ChefNameSchema, ListNameSchema } from "@/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import {
   ClockIcon,
-  ExternalLinkIcon,
   MoveLeftIcon,
   PlusCircleIcon,
   PrinterIcon,
@@ -135,7 +135,7 @@ export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
 };
 
 const selectIsShowingAddedRecipe = (state: CraftSnapshot) =>
-  state.matches({ Auth: { LoggedIn: { Saving: { False: "Added" } } } });
+  state.matches({ Auth: { LoggedIn: { Adding: { False: "Added" } } } });
 
 const VisibilityControl = ({
   visible,
@@ -1010,11 +1010,11 @@ function Instructions({ index }: { index: number }) {
 }
 
 const chefNameFormSchema = z.object({
-  chefname: z.string(),
+  chefname: ChefNameSchema,
 });
 
 const listNameFormSchema = z.object({
-  listName: z.string(),
+  listName: ListNameSchema,
 });
 
 const emailFormSchema = z.object({
@@ -1121,6 +1121,17 @@ const selectIsLoadingChefNameAvailability = (
     (stateValue.Profile.Available === "Loading" ||
       stateValue.Profile.Available === "Holding")
   );
+};
+
+const selectSelectedListSlug = (snapshot: SessionStoreSnapshot) => {
+  return snapshot.context.currentListSlug;
+};
+
+const selectSelectedList = (snapshot: SessionStoreSnapshot) => {
+  if (snapshot.context.listsBySlug && snapshot.context.currentListSlug) {
+    return snapshot.context.listsBySlug[snapshot.context.currentListSlug];
+  }
+  return undefined;
 };
 
 const selectIsChefNameAvailable = (snapshot: SessionStoreSnapshot) => {
@@ -1294,17 +1305,10 @@ export const EnterListNameForm = () => {
   const send = useSend();
 
   const form = useForm({
-    resolver: zodResolver(chefNameFormSchema),
+    resolver: zodResolver(listNameFormSchema),
     defaultValues: {
       listName: "",
     },
-  });
-
-  useEventHandler("SELECT_VALUE", (event) => {
-    if (event.name === "suggested_listname") {
-      form.setValue("listName", event.value);
-    }
-    return;
   });
 
   useEffect(() => {
@@ -1314,8 +1318,6 @@ export const EnterListNameForm = () => {
     }).unsubscribe;
   }, [form.watch, send]);
 
-  // todo how do i call  this on chefname change
-  // send({ type: "CHANGE", name: "chefname", value: data.chefname });
   const onSubmit = useCallback(
     async (data: z.infer<typeof listNameFormSchema>) => {
       setDisabled(true);
@@ -1350,11 +1352,6 @@ export const EnterListNameForm = () => {
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                Available @ <br />
-                kitchencraft.ai/@[your-chef-name]/
-                <ListNamePath />
-              </FormDescription>
               {fieldState.error && (
                 <FormMessage>{fieldState.error.message}</FormMessage>
               )}
@@ -1374,13 +1371,25 @@ export const EnterListNameForm = () => {
   );
 };
 
-const ListNamePath = () => {
+const ListURL = () => {
+  const chefname = useChefName();
   const listName = useWatch({ name: "listName" });
 
-  return (
-    <span className="font-semibold">
-      {listName === "" ? "[LIST-NAME]" : sentenceToSlug(listName)}
-    </span>
+  const ListNamePath = () => {
+    return (
+      <span className="font-semibold">
+        {listName === "" ? "]" : sentenceToSlug(listName)}
+      </span>
+    );
+  };
+
+  return listName.length ? (
+    <FormDescription>
+      kitchencraft.ai/@{chefname}/
+      <ListNamePath />
+    </FormDescription>
+  ) : (
+    <></>
   );
 };
 
@@ -1730,28 +1739,40 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
 
 export const SaveRecipeBadge = () => {
   const actor = useContext(CraftContext);
-  const lastestSlug = useSelector(
-    actor,
-    (state) =>
-      state.context.savedRecipeSlugs[state.context.savedRecipeSlugs.length - 1]
+  const chefname = useChefName();
+  const session$ = useSessionStore();
+  // const selectedListSlug, useSyncExternalStore(session$.subscribe, selectSelectedListSlug, selectIsChefNameAvailable)
+  const selectedList = useSyncExternalStore(
+    session$.subscribe,
+    () => selectSelectedList(session$.get()),
+    () => selectSelectedList(session$.get())
   );
-  // const recipeName = useRecipeNameForSlug(lastestSlug);
   const isShowing = useSelector(actor, selectIsShowingAddedRecipe);
 
   return (
     <Link
-      href={`/recipe/${lastestSlug}`}
+      href={`/@${chefname}/${selectedList?.slug}`}
       target="_blank"
       className={cn(
         "flex-1 flex justify-center items-center transition-all",
         !isShowing ? "translate-y-96" : "pointer-events-auto"
       )}
     >
-      <Badge className="shadow-xl text-center py-1 px-3 truncate max-w-full flex flex-row gap-1">
-        <span>Saved.</span>
-        <em className="font-semibold not-italic underline">Open</em>
-        <ExternalLinkIcon size={14} />
-      </Badge>
+      <Card className="shadow-xl p-3 flex flex-row gap-2 items-center text-sm">
+        <div className="flex flex-row gap-1 text-s items-center flex-1">
+          <span className="text-muted-foreground">Added to</span>{" "}
+          <span className="truncate max-w-full">
+            {selectedList?.name || "My Cookbook"}
+          </span>
+        </div>
+        <Button
+          event={{ type: "CHANGE_LIST" }}
+          variant="ghost"
+          className="underline p-0 h-fit"
+        >
+          Change
+        </Button>
+      </Card>
     </Link>
   );
 };

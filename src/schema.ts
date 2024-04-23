@@ -822,11 +822,16 @@ const CreateListEventSchema = z.object({
   type: z.literal("CREATE_LIST"),
 });
 
+const ChangeListEventSchema = z.object({
+  type: z.literal("CHANGE_LIST"),
+});
+
 export const SystemEventSchema = z.discriminatedUnion("type", [
   AuthenticateEventSchema,
 ]);
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ChangeListEventSchema,
   CreateListEventSchema,
   SelectListEventSchema,
   UpdateUserPreferenceEventSchema,
@@ -1273,3 +1278,21 @@ export const AmazonProductPageUrlSchema = z
 
     return asinMatch[1];
   });
+
+export const ListNameSchema = z
+  .string()
+  .min(1) // updated to require at least one character
+  .max(50)
+  .regex(
+    /^[a-zA-Z0-9 ]*$/,
+    "List name must only contain letters, numbers, and spaces"
+  );
+
+export const ChefNameSchema = z
+  .string()
+  .min(2)
+  .max(30)
+  .regex(
+    /^[a-zA-Z0-9_\-\.]*$/,
+    "Chef name must only contain alphanumeric characters, dashes, underscores, and periods"
+  );

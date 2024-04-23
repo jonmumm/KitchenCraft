@@ -17,7 +17,6 @@ import {
 import { Label } from "@/components/display/label";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
-import { ScrollArea } from "@/components/layout/scroll-area";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
 import { useSessionStore } from "@/hooks/useSessionStore";
@@ -231,11 +230,11 @@ export const IsInputtingChefName = (props: { children: ReactNode }) => {
 
 const selectIsCreatingList = (state: CraftSnapshot) =>
   state.matches({
-    Auth: { LoggedIn: { Saving: { True: { ListCreating: "True" } } } },
+    Auth: { LoggedIn: { Adding: { True: { ListCreating: "True" } } } },
   });
 
 const selectIsSelectingList = (state: CraftSnapshot) =>
-  state.matches({ Auth: { LoggedIn: { Saving: "True" } } }) &&
+  state.matches({ Auth: { LoggedIn: { Adding: "True" } } }) &&
   !selectIsCreatingList(state);
 
 export const IsSelectingList = (props: { children: ReactNode }) => {
@@ -280,9 +279,9 @@ const useIsLoadingRecipeLists = () => {
     },
     (value) =>
       typeof value.Craft === "object" &&
-      typeof value.Craft.Saving === "object" &&
-      typeof value.Craft.Saving.True === "object" &&
-      value.Craft.Saving.True.Lists === "Fetching"
+      typeof value.Craft.Adding === "object" &&
+      typeof value.Craft.Adding.True === "object" &&
+      value.Craft.Adding.True.Lists === "Fetching"
   );
 };
 
@@ -292,16 +291,16 @@ const useSortedRecipeLists = () => {
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => {
-      return session$.get().context;
+      return session$.get().context.listsBySlug;
     },
     () => {
-      return session$.get().context;
+      return session$.get().context.listsBySlug;
     },
-    (context) =>
-      context.listsBySlug
-        ? Object.values(context.listsBySlug).filter(
-            ({ slug }) => slug !== "my-cookbook"
-          )
+    (listsBySlug) =>
+      listsBySlug
+        ? Object.values(listsBySlug)
+            .filter(({ slug }) => slug !== "my-cookbook")
+            .toSorted((a, b) => (a.createdAt > b.createdAt ? -1 : 1))
         : []
   );
 };
@@ -379,20 +378,22 @@ export const SelectListCard = () => {
 
   const RecentLists = () => {
     const lists = useSortedRecipeLists();
+    console.log({ lists });
     const isLoading = useIsLoadingRecipeLists();
     const items = new Array(6).fill("");
 
     return (
-      <div className="carousel carousel-center max-w-[100vw] space-x-2 pl-2 pr-4">
+      <div className="flex flex-col gap-2 px-4">
         {items.map((item, index) => {
           const name = lists[index]?.name;
           const count = lists[index]?.recipeCount;
           const createdAt = lists[index]?.createdAt;
+          const listSlug = lists[index]?.slug;
           return (
             <Card
               key={index}
-              className="p-4 flex gap-1 items-center justify-between cursor-pointer carousel-item w-72"
-              event={{ type: "SELECT_LIST", listSlug: "my-cookbook" }}
+              className="p-4 flex gap-1 items-center justify-between cursor-pointer"
+              event={listSlug ? { type: "SELECT_LIST", listSlug } : undefined}
             >
               <div className="grid gap-1">
                 <h4 className="font-semibold">
@@ -424,8 +425,10 @@ export const SelectListCard = () => {
                   </span>
                 )}
               </div>
-              {lists[index] ? (
-                <Button size="sm">Select</Button>
+              {listSlug ? (
+                <Button size="sm" event={{ type: "SELECT_LIST", listSlug }}>
+                  Select
+                </Button>
               ) : isLoading ? (
                 <Button size="sm" variant="outline">
                   <Skeleton className="h-4 w-10" />
@@ -447,7 +450,7 @@ export const SelectListCard = () => {
   };
 
   return (
-    <div className="overflow-y-auto max-h-[95vh] py-4">
+    <div className="overflow-y-auto max-h-[95svh] py-4">
       <div className="flex flex-row gap-1 items-center justify-between px-4">
         <div className="flex flex-col gap-1 mb-2">
           <CardTitle>Add to List</CardTitle>
@@ -532,13 +535,12 @@ export const CreateNewListCard = () => {
   };
 
   return (
-    <ScrollArea className="overflow-y-auto">
-      <Card className="py-4">
-        <div className="flex flex-row gap-1 items-center justify-between px-4">
-          <div className="flex flex-col gap-1 mb-2">
-            <CardTitle>New Recipe List</CardTitle>
-            <CardDescription>Enter a name for your new list.</CardDescription>
-            {/* <div className="flex flex-row justify-between items-center">
+    <Card className="py-4">
+      <div className="flex flex-row gap-1 items-center justify-between px-4">
+        <div className="flex flex-col gap-1 mb-2">
+          <CardTitle>New Recipe List</CardTitle>
+          <CardDescription>Enter a name for your new list.</CardDescription>
+          {/* <div className="flex flex-row justify-between items-center">
               <Label className="uppercase text-xs text-muted-foreground">
                 Recent
               </Label>
@@ -546,18 +548,17 @@ export const CreateNewListCard = () => {
                 <RefreshCwIcon size={14} />
               </Button>
             </div> */}
-            {/* <div className="flex flex-1 gap-1 flex-wrap">
+          {/* <div className="flex flex-1 gap-1 flex-wrap">
             </div> */}
-          </div>
-          <Button variant="outline" size="icon" event={{ type: "CANCEL" }}>
-            <XIcon />
-          </Button>
         </div>
-        <CardContent>
-          <EnterListNameForm />
-        </CardContent>
-      </Card>
-    </ScrollArea>
+        <Button variant="outline" size="icon" event={{ type: "CANCEL" }}>
+          <XIcon />
+        </Button>
+      </div>
+      <CardContent>
+        <EnterListNameForm />
+      </CardContent>
+    </Card>
   );
 };
 
@@ -567,9 +568,9 @@ const MyCookbookCard = () => {
       className="p-4 flex items-center justify-between cursor-pointer"
       event={{ type: "SELECT_LIST", listSlug: "my-cookbook" }}
     >
-      <div className="grid gap-1">
+      <div className="grid gap-2">
         <h4 className="font-semibold">My Cookbook</h4>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-muted-foreground">
           Your personal collection of recipes.
         </p>
       </div>

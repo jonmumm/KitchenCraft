@@ -490,12 +490,15 @@ export const createCraftMachine = ({
             LoggedIn: {
               type: "parallel",
               states: {
-                Saving: {
+                Adding: {
                   initial: "False",
                   states: {
                     False: {
                       initial: "Pristine",
                       on: {
+                        CHANGE_LIST: {
+                          target: "True",
+                        },
                         SAVE: [
                           {
                             target: ".Added",
@@ -515,13 +518,16 @@ export const createCraftMachine = ({
                                   suggestedRecipes[currentItemIndex];
                                 assert(
                                   recipeId,
-                                  "expected recipeId when saving"
+                                  "expected recipeId when adding to list"
                                 );
                                 const recipe = recipes[recipeId];
-                                assert(recipe, "expected recipe when saving");
+                                assert(
+                                  recipe,
+                                  "expected recipe when adding to list"
+                                );
                                 assert(
                                   recipe.slug,
-                                  "expected recipe slug when saving"
+                                  "expected recipe slug when adding to list"
                                 );
                                 draft.savedRecipeSlugs.push(recipe.slug);
                               })
@@ -532,6 +538,7 @@ export const createCraftMachine = ({
                       states: {
                         Pristine: {},
                         Added: {
+                          id: "RecipeAdded",
                           on: {
                             NEXT: "Pristine",
                             PREV: "Pristine",
@@ -544,8 +551,9 @@ export const createCraftMachine = ({
                     True: {
                       type: "parallel",
                       on: {
-                        SELECT_LIST: "False",
+                        SELECT_LIST: "#RecipeAdded",
                         CANCEL: "False",
+                        SUBMIT: "#RecipeAdded",
                       },
                       states: {
                         ListCreating: {
