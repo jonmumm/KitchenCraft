@@ -294,13 +294,14 @@ export const MediaGalleryItem = ({
       <AnimatedImage
         // {...handlers}
         className={cn(
-          !fullscreen ? "rounded-box" : ` h-full w-full`
+          'object-contain',
+          !fullscreen ? "aspect-square w-auto rounded-box" : ` h-full w-full`
         )}
-        style={{ height }}
+        style={{ height, objectFit: 'cover' }}
         src={media.url}
         priority={index == 0}
-        width={293}
-        height={293}
+        width={media.width}
+        height={media.height}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         alt={`Recipe Image #${index + 1}`}
       />
