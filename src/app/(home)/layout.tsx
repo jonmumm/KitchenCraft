@@ -49,7 +49,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
               <Label className="uppercase font-semibold text-accent-foreground opacity-70 text-xs">
                 {username}&apos;s Crafts
               </Label>
-              <NavigationLink href={username ? `/@${username}` : `/my-cookbook`}>
+              <NavigationLink
+                href={username ? `/@${username}` : `/my-cookbook`}
+              >
                 <Badge variant="outline">
                   View All <span className="transitioning:hidden ml-1">⇨</span>
                   <Loader2Icon

@@ -125,6 +125,9 @@ type Input = z.infer<typeof InputSchema>;
 // }})
 
 type Context = {
+  onboardingInput: {
+    mealType: string | undefined;
+  };
   currentListSlug: string | undefined;
   recipeIdToSave: string | undefined;
   pageSessionId: string;
@@ -588,6 +591,7 @@ export const pageSessionMachine = setup({
 }).createMachine({
   id: "UserAppMachine",
   context: ({ input }) => ({
+    onboardingInput: {},
     pageSessionId: input.id,
     history: [input.url],
     uniqueId: input.initialCaller.id,
@@ -1793,6 +1797,73 @@ export const pageSessionMachine = setup({
           on: {
             SAVE: {
               target: "Registering",
+            },
+          },
+
+          type: "parallel",
+          states: {
+            Onboarding: {
+              initial: "NotStarted",
+              on: {
+                CLOSE: ".NotStarted",
+              },
+              states: {
+                NotStarted: {
+                  on: {
+                    START_ONBOARDING: "MealType",
+                  },
+                },
+                MealType: {
+                  on: {
+                    SELECT_VALUE: {
+                      target: "Exclusions",
+                      guard: ({ event }) =>
+                        event.name === "onboarding:meal_type",
+                      actions: assign({
+                        onboardingInput: ({ context, event }) =>
+                          produce(context.onboardingInput, (draft) => {
+                            draft.mealType = event.value;
+                          }),
+                      }),
+                    },
+                  },
+                },
+                Exclusions: {
+                  on: {
+                    NEXT: "Misc",
+                    CHANGE: {
+                      target: "Exclusions",
+                      guard: ({ event }) =>
+                        event.name === "onboarding:exclusions",
+                      actions: assign(({ context, event }) =>
+                        produce(context, (draft) => {
+                          draft.userPreferences.dietaryRestrictions =
+                            event.value;
+                          draft.modifiedPreferences.dietaryRestrictions = true;
+                        })
+                      ),
+                    },
+                  },
+                },
+                Misc: {
+                  on: {
+                    NEXT: "Equipment",
+                  },
+                },
+                Equipment: {
+                  on: {
+                    NEXT: "Ingredients",
+                  },
+                },
+                Ingredients: {
+                  on: {
+                    NEXT: "Complete",
+                  },
+                },
+                Complete: {
+                  type: "final",
+                },
+              },
             },
           },
         },

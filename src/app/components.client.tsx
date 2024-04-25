@@ -16,8 +16,10 @@ import {
 } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
+import { Progress } from "@/components/feedback/progress";
 import { Button } from "@/components/input/button";
 import { Textarea } from "@/components/input/textarea";
+import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditiona.renderer";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
@@ -36,6 +38,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { twc } from "react-twc";
 import { toast } from "sonner";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import {
@@ -44,6 +47,7 @@ import {
   EnterListNameForm,
 } from "./@craft/components.client";
 import { CraftContext } from "./context";
+import { EQUIPMENT_ITEMS, MISC_ONBORADING_QUESTIONS } from "./data";
 import { CraftSnapshot } from "./machine";
 import { SessionSnapshot } from "./page-session-store";
 
@@ -165,6 +169,315 @@ export const EnterChefNameCard = () => {
   );
 };
 
+const OnboardingMiscQuestion = () => {
+  return (
+    <div className="py-2">
+      <div className="flex flex-col gap-4 justify-between items-center px-2">
+        <QuestionHeader>Which of these apply to you?</QuestionHeader>
+        <div className="flex flex-col gap-2 w-full">
+          {MISC_ONBORADING_QUESTIONS.map((item) => {
+            return (
+              <div
+                key={item.id}
+                className="w-full flex items-center justify-between"
+              >
+                <QuestionSubQuestion>{item.question}</QuestionSubQuestion>
+                <div className="flex items-stretch flex-row gap-2">
+                  <Button
+                    variant="outline"
+                    event={{
+                      type: "SELECT_VALUE",
+                      name: `onboarding:misc:${item.id}`,
+                      value: "no",
+                    }}
+                  >
+                    No
+                  </Button>
+                  <Button
+                    variant="outline"
+                    event={{
+                      type: "SELECT_VALUE",
+                      name: `onboarding:misc:${item.id}`,
+                      value: "yes",
+                    }}
+                  >
+                    Yes
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <Button className="w-full" size="lg" event={{ type: "NEXT" }}>
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const OnboardingExclusionsQuestion = () => {
+  const send = useSend();
+  const [empty, setEmpty] = useState(true);
+
+  return (
+    <QuestionContainer>
+      <Progress value={40} />
+      <QuestionHeader>
+        Do you have any dietary restrictions or ingredients you would like to
+        exclude from recipes?
+      </QuestionHeader>
+      <QuestionTextarea
+        autoFocus
+        placeholder="(e.g. nut allergies, no eggs, no dairy, vegan, gluten-free, keto)"
+        onChange={(event) => {
+          send({
+            type: "CHANGE",
+            name: "onboarding:exclusions",
+            value: event.currentTarget.value,
+          });
+          event.currentTarget.value.length ? setEmpty(false) : setEmpty(true);
+        }}
+      />
+      <Button
+        event={{
+          type: "NEXT",
+        }}
+      >
+        {empty ? <>No, Skip</> : <>Next</>}
+      </Button>
+    </QuestionContainer>
+  );
+  // return (
+  //   <div className="py-2">
+  //     <div className="flex flex-row gap-2 justify-between items-center px-2">
+  //       <h2 className="text-lg font-bold">Exclusions</h2>
+  //       <Button variant="outline" event={{ type: "CLOSE" }}>
+  //         <XIcon />
+  //       </Button>
+  //     </div>
+  //     <Button event={{ type: "NEXT" }} />
+  //   </div>
+  // );
+};
+
+const OnboardingComplete = () => {
+  return (
+    <div className="py-2">
+      <div className="flex flex-row gap-2 justify-between items-center px-2">
+        <h2 className="text-lg font-bold">Complete</h2>
+        <Button variant="outline" event={{ type: "CLOSE" }}>
+          <XIcon />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const OnboardingIngredientsQuestion = () => {
+  const send = useSend();
+  const [empty, setEmpty] = useState(true);
+
+  return (
+    <QuestionContainer>
+      <QuestionHeader>
+        Now, what ingredients would you like to use? Let's come up with some
+        recipe ideas!
+      </QuestionHeader>
+      <QuestionTextarea
+        autoFocus
+        placeholder="(e.g., chicken, avocado, quinoa)"
+        onChange={(event) => {
+          send({
+            type: "CHANGE",
+            name: "onboarding:preferred_ingredients",
+            value: event.currentTarget.value,
+          });
+          event.currentTarget.value.length ? setEmpty(false) : setEmpty(true);
+        }}
+      />
+      <Button
+        disabled={empty}
+        event={{
+          type: "NEXT",
+        }}
+      >
+        Get Personalized Recipes
+      </Button>
+    </QuestionContainer>
+  );
+};
+
+const OnboardingEquipmentQuestion = () => {
+  return (
+    <div className="py-2">
+      <div className="flex flex-col gap-4 justify-between items-center px-2">
+        <QuestionHeader>Do you have any of these?</QuestionHeader>
+        <div className="flex flex-col gap-2 w-full">
+          {EQUIPMENT_ITEMS.map((item) => (
+            <div
+              key={item.id}
+              className="w-full flex items-center justify-between"
+            >
+              <QuestionSubQuestion>{item.equipment}</QuestionSubQuestion>
+              <div className="flex items-stretch flex-row gap-2">
+                <Button
+                  variant="outline"
+                  event={{
+                    type: "SELECT_VALUE",
+                    name: `onboarding:equipment:${item.id}`,
+                    value: "no",
+                  }}
+                >
+                  No
+                </Button>
+                <Button
+                  variant="outline"
+                  event={{
+                    type: "SELECT_VALUE",
+                    name: `onboarding:equipment:${item.id}`,
+                    value: "yes",
+                  }}
+                >
+                  Yes
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <Button className="w-full" size="lg" event={{ type: "NEXT" }}>
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const QuestionContainer = twc.div`px-2 flex flex-col gap-2 py-2`;
+const QuestionHeader = twc.h2`text-lg font-bold`;
+const QuestionSubQuestion = twc.h3`text-md font-semibold`;
+const QuestionExamples = twc.div`text-sm text-muted-foreground`;
+
+const OnboardingMealTypeQuestion = () => {
+  return (
+    <QuestionContainer>
+      <Progress value={20} />
+      <QuestionHeader>
+        What kind of recipe would you like to make?
+      </QuestionHeader>
+      <Button
+        variant="outline"
+        event={{
+          type: "SELECT_VALUE",
+          name: "onboarding:meal_type",
+          value: "Breakfast",
+        }}
+      >
+        Breakfast
+      </Button>
+      <Button
+        variant="outline"
+        event={{
+          type: "SELECT_VALUE",
+          name: "onboarding:meal_type",
+          value: "Lunch",
+        }}
+      >
+        Lunch
+      </Button>
+      <Button
+        variant="outline"
+        event={{
+          type: "SELECT_VALUE",
+          name: "onboarding:meal_type",
+          value: "Lunch",
+        }}
+      >
+        Dinner
+      </Button>
+      <Button
+        variant="outline"
+        event={{
+          type: "SELECT_VALUE",
+          name: "onboarding:meal_type",
+          value: "Snack",
+        }}
+      >
+        Snack
+      </Button>
+      <Button
+        variant="outline"
+        event={{
+          type: "SELECT_VALUE",
+          name: "onboarding:meal_type",
+          value: "Appetizer",
+        }}
+      >
+        Appetizer
+      </Button>
+      <Button
+        variant="outline"
+        event={{
+          type: "SELECT_VALUE",
+          name: "onboarding:meal_type",
+          value: "Side",
+        }}
+      >
+        Side
+      </Button>
+      <Button
+        variant="outline"
+        event={{
+          type: "SELECT_VALUE",
+          name: "onboarding:meal_type",
+          value: "Dessert",
+        }}
+      >
+        Dessert
+      </Button>
+    </QuestionContainer>
+  );
+};
+
+const QuestionTextarea = (props: ComponentProps<typeof Textarea>) => {
+  return <Textarea className="text-lg my-2" {...props} />;
+};
+
+export const OnboardingFlow = () => {
+  return (
+    <>
+      <SessionSnapshotConditionalRenderer
+        selector={selectIsInOnboardingMealType}
+      >
+        <OnboardingMealTypeQuestion />
+      </SessionSnapshotConditionalRenderer>
+      <SessionSnapshotConditionalRenderer
+        selector={selectIsInOnboardingExclusions}
+      >
+        <OnboardingExclusionsQuestion />
+      </SessionSnapshotConditionalRenderer>
+      <SessionSnapshotConditionalRenderer selector={selectIsInOnboardingMisc}>
+        <OnboardingMiscQuestion />
+      </SessionSnapshotConditionalRenderer>
+      <SessionSnapshotConditionalRenderer
+        selector={selectIsInOnboardingEquipment}
+      >
+        <OnboardingEquipmentQuestion />
+      </SessionSnapshotConditionalRenderer>
+      <SessionSnapshotConditionalRenderer
+        selector={selectIsInOnboardingIngredients}
+      >
+        <OnboardingIngredientsQuestion />
+      </SessionSnapshotConditionalRenderer>
+      <SessionSnapshotConditionalRenderer
+        selector={selectIsInOnboardingComplete}
+      >
+        <OnboardingComplete />
+      </SessionSnapshotConditionalRenderer>
+    </>
+  );
+};
+
 export const PersonalizationSettingsMenu = () => {
   const send = useSend();
   return (
@@ -252,11 +565,85 @@ export const PersonalizationSettingsMenu = () => {
   );
 };
 
+const selectIsInOnboarding = (snapshot: SessionSnapshot) => {
+  const state = snapshot.value;
+  return (
+    typeof state.Auth === "object" &&
+    typeof state.Auth.Anonymous === "object" &&
+    state.Auth.Anonymous.Onboarding !== "NotStarted"
+  );
+};
+
+const selectIsInOnboardingMealType = (snapshot: SessionSnapshot) => {
+  const state = snapshot.value;
+  return (
+    typeof state.Auth === "object" &&
+    typeof state.Auth.Anonymous === "object" &&
+    state.Auth.Anonymous.Onboarding === "MealType"
+  );
+};
+
+const selectIsInOnboardingExclusions = (snapshot: SessionSnapshot) => {
+  const state = snapshot.value;
+  return (
+    typeof state.Auth === "object" &&
+    typeof state.Auth.Anonymous === "object" &&
+    state.Auth.Anonymous.Onboarding === "Exclusions"
+  );
+};
+
+const selectIsInOnboardingEquipment = (snapshot: SessionSnapshot) => {
+  const state = snapshot.value;
+  return (
+    typeof state.Auth === "object" &&
+    typeof state.Auth.Anonymous === "object" &&
+    state.Auth.Anonymous.Onboarding === "Equipment"
+  );
+};
+
+const selectIsInOnboardingMisc = (snapshot: SessionSnapshot) => {
+  const state = snapshot.value;
+  return (
+    typeof state.Auth === "object" &&
+    typeof state.Auth.Anonymous === "object" &&
+    state.Auth.Anonymous.Onboarding === "Misc"
+  );
+};
+
+const selectIsInOnboardingComplete = (snapshot: SessionSnapshot) => {
+  const state = snapshot.value;
+  return (
+    typeof state.Auth === "object" &&
+    typeof state.Auth.Anonymous === "object" &&
+    state.Auth.Anonymous.Onboarding === "Complete"
+  );
+};
+
+const selectIsInOnboardingIngredients = (snapshot: SessionSnapshot) => {
+  const state = snapshot.value;
+  return (
+    typeof state.Auth === "object" &&
+    typeof state.Auth.Anonymous === "object" &&
+    state.Auth.Anonymous.Onboarding === "Ingredients"
+  );
+};
+
 const selectIsUserPreferencesInitialized = (snapshot: SessionSnapshot) => {
   const state = snapshot.value;
   return (
     state.UserPreferences !== "Uninitialized" &&
     state.UserPreferences !== "Initializing"
+  );
+};
+
+export const IsInOnboarding = ({ children }: { children: ReactNode }) => {
+  return (
+    <SessionSnapshotConditionalRenderer
+      selector={selectIsInOnboarding}
+      initialValueOverride={true}
+    >
+      {children}
+    </SessionSnapshotConditionalRenderer>
   );
 };
 

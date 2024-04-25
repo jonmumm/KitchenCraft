@@ -797,6 +797,10 @@ const CloseSettingsEventSchema = z.object({
   type: z.literal("CLOSE_SETTINGS"),
 });
 
+const StartOnboardingEventSchema = z.object({
+  type: z.literal("START_ONBOARDING"),
+});
+
 const OpenSettingsEventSchema = z.object({
   type: z.literal("OPEN_SETTINGS"),
 });
@@ -841,6 +845,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ProfileSubscribeEventSchema,
   LogoutEventSchema,
   RefreshEventSchema,
+  StartOnboardingEventSchema,
   ScrollIndexEventSchema,
   SelectValueEventSchema,
   PrevEventSchema,

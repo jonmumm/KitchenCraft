@@ -1,13 +1,12 @@
 import { Badge } from "@/components/display/badge";
-import { getAppSessionId, getCanInstallPWA } from "@/lib/headers";
 import Image from "next/image";
 
-export default async function Banner() {
-  const appSessionId = getAppSessionId();
-  const canInstallPWA = getCanInstallPWA();
-  if (!canInstallPWA || appSessionId) {
-    return null;
-  }
+export default function Banner() {
+  // const appSessionId = getAppSessionId();
+  // const canInstallPWA = getCanInstallPWA();
+  // if (!canInstallPWA || appSessionId) {
+  //   return null;
+  // }
   return (
     <div className="bg-black flex flex-row gap-2 px-4 py-2 items-center justify-center">
       <div className="w-8 bg-black">
@@ -26,19 +25,19 @@ export default async function Banner() {
       <div className="flex flex-row justify-between w-full items-center">
         <div className="flex flex-col items-start justify-center h-100">
           <h1 className="font-semibold text-sm text-slate-50 leading-5">
-            KitchenCraft App
+            Take The Quiz
           </h1>
           <p className="text-xs text-center text-slate-400">
-            Craft from your Home Screen
+            For personalized recipe results
           </p>
         </div>
         <div>
           <Badge
             className="text-white dark:text-white"
             variant="success"
-            event={{ type: "DOWNLOAD_APP" }}
+            event={{ type: "START_ONBOARDING" }}
           >
-            GET
+            START
           </Badge>
         </div>
       </div>

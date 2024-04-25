@@ -32,10 +32,12 @@ import {
   EnterChefNameCard,
   EnterEmailCard,
   IsCreatingList,
+  IsInOnboarding,
   IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
   IsSelectingList,
+  OnboardingFlow,
   PersonalizationSettingsMenu,
   SearchParamsToastMessage,
   SelectListCard,
@@ -190,6 +192,7 @@ export default async function RootLayout(
                 <RegistrationDialog />
                 <SaveDialog />
                 <PersonalizationSettingsDialog />
+                <OnboardingDialog />
               </ThemeProvider>
               <Toaster />
               <SearchParamsToastMessage />
@@ -201,6 +204,23 @@ export default async function RootLayout(
     </html>
   );
 }
+
+const OnboardingDialog = () => {
+  const isMobile = getIsMobile();
+
+  return (
+    <>
+      <IsInOnboarding>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto">
+            <OnboardingFlow />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </IsInOnboarding>
+    </>
+  );
+};
 
 const PersonalizationSettingsDialog = () => {
   const isMobile = getIsMobile();
