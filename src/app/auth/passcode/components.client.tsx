@@ -4,6 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp"
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 import { CraftContext } from "@/app/context";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
@@ -13,14 +19,12 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/input/form";
 import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ChangeEventHandler,
   ClipboardEventHandler,
   useCallback,
   useContext,
@@ -115,10 +119,9 @@ export function PasscodeForm(props: {
     [onSubmit]
   );
 
-  const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+  const handleInputChange: (newValue: string) => unknown = useCallback(
     (event) => {
-      const { value } = event.target;
-      const newValue = value.toUpperCase();
+      const newValue = event.toUpperCase();
       form.setValue("token", newValue);
     },
     [form]
@@ -155,18 +158,26 @@ export function PasscodeForm(props: {
           name="token"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>Code</FormLabel>
               <FormControl>
-                <Input
-                  id="code"
-                  autoFocus={!showGMailLink}
-                  disabled={disabled}
-                  onPaste={handleOnPaste}
-                  type="text"
-                  placeholder="Enter your 5-letter code"
-                  {...field}
-                  onChange={handleInputChange}
-                />
+                    <InputOTP 
+                      id="code" 
+                      autoFocus={!showGMailLink}
+                      maxLength={5} 
+                      disabled={disabled} 
+                      {...field}
+                      onChange={handleInputChange}  
+                      onPaste={handleOnPaste}
+                      pattern={REGEXP_ONLY_DIGITS_AND_CHARS}>
+                        <InputOTPGroup>
+                          {(() => {
+                            const slots = [];
+                            for (let i = 0; i < 5; i++) {
+                              slots.push(<InputOTPSlot key={i} index={i} />);
+                            }
+                            return slots;
+                          })()}
+                        </InputOTPGroup>
+                  </InputOTP>
               </FormControl>
               <FormDescription>
                 Enter the 5-letter code you received at{" "}
