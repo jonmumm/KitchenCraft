@@ -104,6 +104,16 @@ export type ExtractType<T, TypeString> = T extends { type: infer U }
     : never
   : never;
 
+export type CamelCase<S extends string> =
+  S extends `${infer P}_${infer Q}${infer R}`
+    ? `${P}${Capitalize<CamelCase<`${Q}${R}`>>}`
+    : S;
+export type Camelize<T> = {
+  [K in keyof T as CamelCase<K & string>]: T[K] extends object
+    ? Camelize<T[K]>
+    : T[K];
+};
+
 export type AppEvent = z.infer<typeof AppEventSchema>;
 export type SystemEvent = z.infer<typeof SystemEventSchema>;
 
@@ -345,5 +355,8 @@ export type AdInstance = {
 
 export type UserPreference = z.infer<typeof UserPreferenceSchema>;
 export type UserPreferenceType = UserPreference["preferenceKey"];
+export type UserPreferences = {
+  [K in UserPreferenceType]+?: string;
+};
 
-export type RecipeList =z.infer<typeof ListSchema>;
+export type RecipeList = z.infer<typeof ListSchema>;

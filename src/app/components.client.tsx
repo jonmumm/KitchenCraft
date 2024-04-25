@@ -22,15 +22,18 @@ import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useSessionStore } from "@/hooks/useSessionStore";
+import { UserPreferenceType } from "@/types";
 import { RefreshCwIcon, XIcon } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
+  ComponentProps,
   ReactNode,
   useCallback,
   useContext,
   useEffect,
   useRef,
+  useState,
   useSyncExternalStore,
 } from "react";
 import { toast } from "sonner";
@@ -42,6 +45,7 @@ import {
 } from "./@craft/components.client";
 import { CraftContext } from "./context";
 import { CraftSnapshot } from "./machine";
+import { SessionSnapshot } from "./page-session-store";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -164,7 +168,7 @@ export const EnterChefNameCard = () => {
 export const PersonalizationSettingsMenu = () => {
   const send = useSend();
   return (
-    <Card className="py-2">
+    <div className="py-2">
       <div className="flex flex-row gap-2 justify-between items-center px-2">
         <h2 className="text-lg font-bold">Preferences</h2>
         <Button variant="outline" event={{ type: "CLOSE" }}>
@@ -172,56 +176,38 @@ export const PersonalizationSettingsMenu = () => {
         </Button>
       </div>
       <Accordion type="multiple" className="flex flex-col gap-2">
-        <AccordionItem value="ingredients" className="py-4">
+        <AccordionItem value="ingredient_preference" className="py-4">
           <AccordionTrigger className="px-4">
             What ingredients do you like to cook with?
           </AccordionTrigger>
           <AccordionContent className="px-4">
-            <Textarea
+            <PreferenceEditor
               placeholder="e.g., Chicken, Tomatoes, Basil, Tofu"
-              onChange={(event) => {
-                send({
-                  type: "CHANGE",
-                  name: "ingredients",
-                  value: event.currentTarget.value,
-                });
-              }}
+              preference="ingredientPreference"
             />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="cuisines" className="py-4">
+        <AccordionItem value="cuisine_preferences" className="py-4">
           <AccordionTrigger className="px-4">
             What are your favorite cuisines or flavors?
           </AccordionTrigger>
           <AccordionContent className="px-4 flex flex-col gap-2">
-            <Textarea
+            <PreferenceEditor
               placeholder="e.g., Italian, Mexican, Thai, Vegetarian, etc."
-              onChange={(event) => {
-                send({
-                  type: "CHANGE",
-                  name: "cuisines",
-                  value: event.currentTarget.value,
-                });
-              }}
+              preference="cuisinePreferences"
             />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="restrictions" className="py-4">
+        <AccordionItem value="dietary_restrictions" className="py-4">
           <AccordionTrigger className="px-4">
             Do you have any dietary restrictions or preferences?
           </AccordionTrigger>
           <AccordionContent className="px-4 flex flex-col gap-2">
-            <Textarea
+            <PreferenceEditor
               placeholder="e.g., Gluten-free, Dairy-free, Vegan, Low-carb, etc."
-              onChange={(event) => {
-                send({
-                  type: "CHANGE",
-                  name: "restrictions",
-                  value: event.currentTarget.value,
-                });
-              }}
+              preference="dietaryRestrictions"
             />
           </AccordionContent>
         </AccordionItem>
@@ -231,56 +217,120 @@ export const PersonalizationSettingsMenu = () => {
             What is your skill level in the kitchen?
           </AccordionTrigger>
           <AccordionContent className="px-4 flex flex-col gap-2">
-            <Textarea
+            <PreferenceEditor
               placeholder="e.g., Beginner, Intermediate, Advanced, Expert"
-              onChange={(event) => {
-                send({
-                  type: "CHANGE",
-                  name: "skill",
-                  value: event.currentTarget.value,
-                });
-              }}
+              preference="skillLevel"
             />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="time" className="py-4">
+        <AccordionItem value="time_availability" className="py-4">
           <AccordionTrigger className="px-4">
             How much time do you typically spend on preparing a meal?
           </AccordionTrigger>
           <AccordionContent className="px-4 flex flex-col gap-2">
-            <Textarea
+            <PreferenceEditor
               placeholder="e.g., Under 30 minutes, About an hour, More than 2 hours"
-              onChange={(event) => {
-                send({
-                  type: "CHANGE",
-                  name: "time",
-                  value: event.currentTarget.value,
-                });
-              }}
+              preference="timeAvailability"
             />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="equipment" className="py-4">
+        <AccordionItem value="cookingEquipment" className="py-4">
           <AccordionTrigger className="px-4">
             Are there any particular kitchen tools you love using?
           </AccordionTrigger>
           <AccordionContent className="px-4 flex flex-col gap-2">
-            <Textarea
+            <PreferenceEditor
               placeholder="e.g., Blender, Chef's knife, Stand mixer, Pressure cooker"
-              onChange={(event) => {
-                send({
-                  type: "CHANGE",
-                  name: "equipment",
-                  value: event.currentTarget.value,
-                });
-              }}
+              preference="cookingEquipment"
             />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-    </Card>
+    </div>
+  );
+};
+
+const selectIsUserPreferencesInitialized = (snapshot: SessionSnapshot) => {
+  const state = snapshot.value;
+  return (
+    state.UserPreferences !== "Uninitialized" &&
+    state.UserPreferences !== "Initializing"
+  );
+};
+
+const IsUserPreferencesInitialized = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const session$ = useSessionStore();
+  const active = useSyncExternalStore(
+    session$.subscribe,
+    () => selectIsUserPreferencesInitialized(session$.get()),
+    () => selectIsUserPreferencesInitialized(session$.get())
+  );
+
+  return active ? <>{children}</> : <></>;
+};
+
+const selectIsUserPreferencesInitializing = (snapshot: SessionSnapshot) => {
+  return !selectIsUserPreferencesInitialized(snapshot);
+};
+
+const IsInitializingUserPreferences = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const session$ = useSessionStore();
+  const active = useSyncExternalStore(
+    session$.subscribe,
+    () => selectIsUserPreferencesInitializing(session$.get()),
+    () => selectIsUserPreferencesInitializing(session$.get())
+  );
+
+  return active ? <>{children}</> : <></>;
+};
+
+const PreferenceEditor = ({
+  preference,
+  ...props
+}: { preference: UserPreferenceType } & ComponentProps<typeof Textarea>) => {
+  const send = useSend();
+  const session$ = useSessionStore();
+
+  const PreferenceTextArea = () => {
+    const [value, setValue] = useState(
+      session$.get().context.userPreferences[preference] || ""
+    );
+
+    return (
+      <Textarea
+        value={value}
+        onChange={(event) => {
+          setValue(event.currentTarget.value);
+          send({
+            type: "UPDATE_USER_PREFERENCE",
+            key: preference,
+            value: [event.currentTarget.value],
+          });
+        }}
+        {...props}
+      />
+    );
+  };
+
+  return (
+    <>
+      <IsInitializingUserPreferences>
+        <Skeleton className="w-full h-20 animate-pulse" />
+      </IsInitializingUserPreferences>
+      <IsUserPreferencesInitialized>
+        <PreferenceTextArea />
+      </IsUserPreferencesInitialized>
+    </>
   );
 };
 

@@ -5,7 +5,6 @@ import {
   ResponsiveDialogOverlay,
 } from "@/components/layout/responsive-dialog";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
-import ScrollLockComponent from "@/components/scroll-lock";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
@@ -209,14 +208,12 @@ const PersonalizationSettingsDialog = () => {
   return (
     <>
       <IsInPersonalizationSettings>
-        <ScrollLockComponent active>
-          <ResponsiveDialog open isMobile={isMobile}>
-            <ResponsiveDialogOverlay />
-            <ResponsiveDialogContent className="overflow-y-auto">
-              <PersonalizationSettingsMenu />
-            </ResponsiveDialogContent>
-          </ResponsiveDialog>
-        </ScrollLockComponent>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto">
+            <PersonalizationSettingsMenu />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
       </IsInPersonalizationSettings>
     </>
   );

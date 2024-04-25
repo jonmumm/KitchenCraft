@@ -1,4 +1,4 @@
-import { ListRecipeTable, ListTable, db } from "@/db";
+import { ListRecipeTable, ListTable, UserPreferencesTable, db } from "@/db";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { streamToObservable } from "@/lib/stream-to-observable";
@@ -203,5 +203,22 @@ export const generateListNameSuggestions = fromEventObservable(
         );
       })
     );
+  }
+);
+
+export const getUserPreferences = fromPromise(
+  async ({
+    input,
+  }: {
+    input: {
+      userId: string;
+    };
+  }) => {
+    const result = await db
+      .select()
+      .from(UserPreferencesTable)
+      .where(eq(UserPreferencesTable.userId, input.userId))
+      .execute();
+    return result;
   }
 );

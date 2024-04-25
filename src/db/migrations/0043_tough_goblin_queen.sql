@@ -1,0 +1,1 @@
+ALTER TYPE "preference_key_enum" ADD VALUE 'skill_level';

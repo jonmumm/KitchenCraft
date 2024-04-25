@@ -302,6 +302,20 @@
       "when": 1713651479700,
       "tag": "0042_moaning_sunset_bain",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1714049863816,
+      "tag": "0043_tough_goblin_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1714052980087,
+      "tag": "0044_sudden_goliath",
+      "breakpoints": true
     }
   ]
 }

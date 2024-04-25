@@ -521,14 +521,13 @@ export const NewListRecipeSchema = createInsertSchema(ListRecipeTable);
 
 // Define the enum for user preference keys
 export const PreferenceKeyEnum = pgEnum("preference_key_enum", [
-  "dietary_restrictions",
-  "cuisine_preferences",
-  "cooking_frequency",
-  "cooking_equipment",
-  "ingredient_preference",
-  "time_availability",
-  "meal_type_preferences", // Example: breakfast, lunch, dinner
-  "allergy_info", // Example: nut-free, dairy-free
+  "dietaryRestrictions",
+  "cuisinePreferences",
+  "cookingFrequency",
+  "cookingEquipment",
+  "ingredientPreference",
+  "timeAvailability",
+  "skillLevel",
 ]);
 
 export const UserPreferencesTable = pgTable(
@@ -544,7 +543,7 @@ export const UserPreferencesTable = pgTable(
     preferenceValue: jsonb("preference_value")
       .$type<string | string[]>()
       .notNull(),
-    createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
+    createdt: timestamp("created_at", { mode: "date" }).defaultNow(),
     updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow(),
   },
   (table) => ({
