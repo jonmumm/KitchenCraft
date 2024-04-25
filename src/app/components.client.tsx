@@ -17,8 +17,10 @@ import {
 import { Label } from "@/components/display/label";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
+import { Textarea } from "@/components/input/textarea";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
+import { useSend } from "@/hooks/useSend";
 import { useSessionStore } from "@/hooks/useSessionStore";
 import { RefreshCwIcon, XIcon } from "lucide-react";
 import { Inter } from "next/font/google";
@@ -159,7 +161,8 @@ export const EnterChefNameCard = () => {
   );
 };
 
-export const PersonalizationSettingsFlow = () => {
+export const PersonalizationSettingsMenu = () => {
+  const send = useSend();
   return (
     <Card className="py-2">
       <div className="flex flex-row gap-2 justify-between items-center px-2">
@@ -168,10 +171,113 @@ export const PersonalizationSettingsFlow = () => {
           <XIcon />
         </Button>
       </div>
-      <Accordion type="multiple">
-        <AccordionItem value="dietary_restrictions">
-          <AccordionTrigger>Dietary Restrictions</AccordionTrigger>
-          <AccordionContent>Hello</AccordionContent>
+      <Accordion type="multiple" className="flex flex-col gap-2">
+        <AccordionItem value="ingredients" className="py-4">
+          <AccordionTrigger className="px-4">
+            What ingredients do you like to cook with?
+          </AccordionTrigger>
+          <AccordionContent className="px-4">
+            <Textarea
+              placeholder="e.g., Chicken, Tomatoes, Basil, Tofu"
+              onChange={(event) => {
+                send({
+                  type: "CHANGE",
+                  name: "ingredients",
+                  value: event.currentTarget.value,
+                });
+              }}
+            />
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="cuisines" className="py-4">
+          <AccordionTrigger className="px-4">
+            What are your favorite cuisines or flavors?
+          </AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-2">
+            <Textarea
+              placeholder="e.g., Italian, Mexican, Thai, Vegetarian, etc."
+              onChange={(event) => {
+                send({
+                  type: "CHANGE",
+                  name: "cuisines",
+                  value: event.currentTarget.value,
+                });
+              }}
+            />
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="restrictions" className="py-4">
+          <AccordionTrigger className="px-4">
+            Do you have any dietary restrictions or preferences?
+          </AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-2">
+            <Textarea
+              placeholder="e.g., Gluten-free, Dairy-free, Vegan, Low-carb, etc."
+              onChange={(event) => {
+                send({
+                  type: "CHANGE",
+                  name: "restrictions",
+                  value: event.currentTarget.value,
+                });
+              }}
+            />
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="skill" className="py-4">
+          <AccordionTrigger className="px-4">
+            What is your skill level in the kitchen?
+          </AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-2">
+            <Textarea
+              placeholder="e.g., Beginner, Intermediate, Advanced, Expert"
+              onChange={(event) => {
+                send({
+                  type: "CHANGE",
+                  name: "skill",
+                  value: event.currentTarget.value,
+                });
+              }}
+            />
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="time" className="py-4">
+          <AccordionTrigger className="px-4">
+            How much time do you typically spend on preparing a meal?
+          </AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-2">
+            <Textarea
+              placeholder="e.g., Under 30 minutes, About an hour, More than 2 hours"
+              onChange={(event) => {
+                send({
+                  type: "CHANGE",
+                  name: "time",
+                  value: event.currentTarget.value,
+                });
+              }}
+            />
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="equipment" className="py-4">
+          <AccordionTrigger className="px-4">
+            Are there any particular kitchen tools you love using?
+          </AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-2">
+            <Textarea
+              placeholder="e.g., Blender, Chef's knife, Stand mixer, Pressure cooker"
+              onChange={(event) => {
+                send({
+                  type: "CHANGE",
+                  name: "equipment",
+                  value: event.currentTarget.value,
+                });
+              }}
+            />
+          </AccordionContent>
         </AccordionItem>
       </Accordion>
     </Card>

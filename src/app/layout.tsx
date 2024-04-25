@@ -5,6 +5,7 @@ import {
   ResponsiveDialogOverlay,
 } from "@/components/layout/responsive-dialog";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
+import ScrollLockComponent from "@/components/scroll-lock";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
@@ -36,7 +37,7 @@ import {
   IsInputtingChefName,
   IsInputtingEmail,
   IsSelectingList,
-  PersonalizationSettingsFlow,
+  PersonalizationSettingsMenu,
   SearchParamsToastMessage,
   SelectListCard,
 } from "./components.client";
@@ -208,12 +209,14 @@ const PersonalizationSettingsDialog = () => {
   return (
     <>
       <IsInPersonalizationSettings>
-        <ResponsiveDialog open isMobile={isMobile}>
-          <ResponsiveDialogOverlay />
-          <ResponsiveDialogContent>
-            <PersonalizationSettingsFlow />
-          </ResponsiveDialogContent>
-        </ResponsiveDialog>
+        <ScrollLockComponent active>
+          <ResponsiveDialog open isMobile={isMobile}>
+            <ResponsiveDialogOverlay />
+            <ResponsiveDialogContent className="overflow-y-auto">
+              <PersonalizationSettingsMenu />
+            </ResponsiveDialogContent>
+          </ResponsiveDialog>
+        </ScrollLockComponent>
       </IsInPersonalizationSettings>
     </>
   );
