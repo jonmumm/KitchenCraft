@@ -297,7 +297,7 @@ export const MediaGalleryItem = ({
           'object-contain',
           !fullscreen ? "aspect-square w-auto rounded-box" : ` h-full w-full`
         )}
-        style={{ height, objectFit: 'cover' }}
+        style={{ height, objectFit: `${!fullscreen ? 'cover' : 'contain' }` }}
         src={media.url}
         priority={index == 0}
         width={media.width}
