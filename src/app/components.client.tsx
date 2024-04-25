@@ -19,6 +19,7 @@ import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Progress } from "@/components/feedback/progress";
 import { Button } from "@/components/input/button";
 import { Textarea } from "@/components/input/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditiona.renderer";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
@@ -183,7 +184,11 @@ const OnboardingMiscQuestion = () => {
               >
                 <QuestionSubQuestion>{item.question}</QuestionSubQuestion>
                 <div className="flex items-stretch flex-row gap-2">
-                  <Button
+                  <ToggleGroup type="single">
+                    <ToggleGroupItem value={"no"}>No</ToggleGroupItem>
+                    <ToggleGroupItem value={"yes"}>Yes</ToggleGroupItem>
+                  </ToggleGroup>
+                  {/* <Button
                     variant="outline"
                     event={{
                       type: "SELECT_VALUE",
@@ -202,7 +207,7 @@ const OnboardingMiscQuestion = () => {
                     }}
                   >
                     Yes
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             );
@@ -321,7 +326,11 @@ const OnboardingEquipmentQuestion = () => {
             >
               <QuestionSubQuestion>{item.equipment}</QuestionSubQuestion>
               <div className="flex items-stretch flex-row gap-2">
-                <Button
+                <ToggleGroup type="single">
+                  <ToggleGroupItem value={"no"}>No</ToggleGroupItem>
+                  <ToggleGroupItem value={"yes"}>Yes</ToggleGroupItem>
+                </ToggleGroup>
+                {/* <Button
                   variant="outline"
                   event={{
                     type: "SELECT_VALUE",
@@ -340,7 +349,7 @@ const OnboardingEquipmentQuestion = () => {
                   }}
                 >
                   Yes
-                </Button>
+                </Button> */}
               </div>
             </div>
           ))}
