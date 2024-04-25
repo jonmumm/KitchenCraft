@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 
 import { CraftContext } from "@/app/context";
-import { Input } from "@/components/input";
+import { Input } from "@/components/ui/input-otp";
 import { Button } from "@/components/input/button";
 import {
   Form,
@@ -13,14 +13,12 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/input/form";
 import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ChangeEventHandler,
   ClipboardEventHandler,
   useCallback,
   useContext,
@@ -115,10 +113,9 @@ export function PasscodeForm(props: {
     [onSubmit]
   );
 
-  const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+  const handleInputChange: (newValue: string) => void = useCallback(
     (event) => {
-      const { value } = event.target;
-      const newValue = value.toUpperCase();
+      const newValue = event.toUpperCase();
       form.setValue("token", newValue);
     },
     [form]
@@ -155,18 +152,16 @@ export function PasscodeForm(props: {
           name="token"
           render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>Code</FormLabel>
               <FormControl>
-                <Input
-                  id="code"
-                  autoFocus={!showGMailLink}
-                  disabled={disabled}
-                  onPaste={handleOnPaste}
-                  type="text"
-                  placeholder="Enter your 5-letter code"
-                  {...field}
-                  onChange={handleInputChange}
-                />
+                    <Input 
+                      id="code" 
+                      autoFocus={!showGMailLink}
+                      maxLength={5} 
+                      disabled={disabled} 
+                      {...field}
+                      onChange={handleInputChange}  
+                      onPaste={handleOnPaste}
+                    />
               </FormControl>
               <FormDescription>
                 Enter the 5-letter code you received at{" "}
