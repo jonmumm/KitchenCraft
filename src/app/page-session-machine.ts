@@ -126,7 +126,7 @@ type Input = z.infer<typeof InputSchema>;
 
 type Context = {
   onboardingInput: {
-    mealType: string | undefined;
+    mealType?: string | undefined;
   };
   currentListSlug: string | undefined;
   recipeIdToSave: string | undefined;
