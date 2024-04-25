@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { OTPInput, OTPInputContext, RenderProps, SlotProps } from "input-otp"
+import { OTPInput, OTPInputContext, REGEXP_ONLY_DIGITS_AND_CHARS, SlotProps } from "input-otp"
 import { Dot } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -68,4 +68,52 @@ const InputOTPSeparator = React.forwardRef<
 ))
 InputOTPSeparator.displayName = "InputOTPSeparator"
 
-export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator }
+interface InputProps {
+  id: string,
+  autoFocus: boolean,
+  maxLength: number,
+  disabled: boolean,
+  onChange: (value: string) => void,
+  onPaste: React.ClipboardEventHandler<HTMLInputElement>,
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  (
+    {
+      id,
+      autoFocus,
+      maxLength,
+      disabled,
+      onChange,
+      onPaste,
+      ...restProps
+    },
+    ref
+  ) => (
+    <InputOTP
+      id={id}
+      autoFocus={autoFocus}
+      maxLength={maxLength}
+      disabled={disabled}
+      onChange={onChange}
+      onPaste={onPaste}
+      pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+      ref={ref}
+      {...restProps}
+    >
+      <InputOTPGroup>
+        {(() => {
+          const slots = [];
+          for (let i = 0; i < 5; i++) {
+            slots.push(<InputOTPSlot key={i} index={i} />);
+          }
+          return slots;
+        })()}
+      </InputOTPGroup>
+    </InputOTP>
+  )
+);
+
+Input.displayName = "Input";
+
+export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator, Input }

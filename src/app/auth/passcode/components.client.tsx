@@ -4,14 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp"
-import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 import { CraftContext } from "@/app/context";
-import { Input } from "@/components/input";
+import { Input } from "@/components/ui/input-otp";
 import { Button } from "@/components/input/button";
 import {
   Form,
@@ -119,7 +113,7 @@ export function PasscodeForm(props: {
     [onSubmit]
   );
 
-  const handleInputChange: (newValue: string) => unknown = useCallback(
+  const handleInputChange: (newValue: string) => void = useCallback(
     (event) => {
       const newValue = event.toUpperCase();
       form.setValue("token", newValue);
@@ -159,7 +153,7 @@ export function PasscodeForm(props: {
           render={({ field, fieldState }) => (
             <FormItem>
               <FormControl>
-                    <InputOTP 
+                    <Input 
                       id="code" 
                       autoFocus={!showGMailLink}
                       maxLength={5} 
@@ -167,17 +161,7 @@ export function PasscodeForm(props: {
                       {...field}
                       onChange={handleInputChange}  
                       onPaste={handleOnPaste}
-                      pattern={REGEXP_ONLY_DIGITS_AND_CHARS}>
-                        <InputOTPGroup>
-                          {(() => {
-                            const slots = [];
-                            for (let i = 0; i < 5; i++) {
-                              slots.push(<InputOTPSlot key={i} index={i} />);
-                            }
-                            return slots;
-                          })()}
-                        </InputOTPGroup>
-                  </InputOTP>
+                    />
               </FormControl>
               <FormDescription>
                 Enter the 5-letter code you received at{" "}
