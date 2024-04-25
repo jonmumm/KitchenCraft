@@ -281,8 +281,8 @@ const OnboardingIngredientsQuestion = () => {
   return (
     <QuestionContainer>
       <QuestionHeader>
-        Now, what ingredients would you like to use? Let's come up with some
-        recipe ideas!
+        Now, what ingredients would you like to use? Let&apos;s come up with
+        some recipe ideas!
       </QuestionHeader>
       <QuestionTextarea
         autoFocus
