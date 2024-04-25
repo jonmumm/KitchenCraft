@@ -309,6 +309,7 @@ const PreferenceEditor = ({
     return (
       <Textarea
         value={value}
+        className="text-lg my-2"
         onChange={(event) => {
           setValue(event.currentTarget.value);
           send({
