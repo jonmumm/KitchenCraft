@@ -46,7 +46,7 @@ export default async function Page({
     <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
       <div className="px-4 mt-8 max-w-3xl w-full mx-auto">
         <h3 className="text-muted-foreground uppercase text-xs">
-          Recommended for you
+          Community Favorites
         </h3>
       </div>
       {items.map((item, index) => {
