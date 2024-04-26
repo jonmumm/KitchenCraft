@@ -81,6 +81,7 @@ import {
   generateListNameSuggestions,
   getAllListsForUserWithRecipeCount,
   getUserPreferences,
+  listenBrowserSession,
   saveRecipeToListSlug,
 } from "./page-session-machine.actors";
 import {
@@ -111,6 +112,7 @@ const InputSchema = z.object({
   ai: z.custom<Ai>(),
   url: z.string().url(),
   initialCaller: z.custom<Caller>(),
+  browseSessionToken: z.string(),
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -149,6 +151,7 @@ type Context = {
   recipes: Record<string, PartialRecipe & { complete: boolean }>;
   generatingRecipeId: string | undefined;
   currentItemIndex: number;
+  browserSessionToken: string;
   numCompletedRecipes: number;
   numCompletedRecipeMetadata: number;
   suggestedTags: string[];
@@ -202,6 +205,7 @@ export const pageSessionMachine = setup({
     generateChefNameSuggestions,
     generateListNameSuggestions,
     getUserPreferences,
+    listenBrowserSession,
     updateChefName: fromPromise(
       async ({
         input,
@@ -631,9 +635,19 @@ export const pageSessionMachine = setup({
     undoOperations: [],
     redoOperations: [],
     listsBySlug: undefined,
+    browserSessionToken: input.browseSessionToken,
   }),
   type: "parallel",
   states: {
+    BrowserSession: {
+      invoke: {
+        src: "listenBrowserSession",
+        input: ({ context }) => ({
+          browserSessionToken: context.browserSessionToken,
+        }),
+      },
+    },
+
     UserPreferences: {
       initial: "Uninitialized",
       on: {

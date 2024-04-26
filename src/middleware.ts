@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  createBrowserSessionToken,
   createCallerToken,
+  getBrowserSessionTokenFromCookie,
   getGuestTokenFromCookies,
   parseAppInstallToken,
+  parsedBrowserSessionTokenFromCookie,
   setGuestTokenCookieHeader,
+  setSessionTokenCookieHeader
 } from "./lib/browser-session";
 import { CallerSchema } from "./schema";
 
@@ -11,6 +15,7 @@ export async function middleware(request: NextRequest) {
   const appInstallToken = request.nextUrl.searchParams.get("token");
 
   let newGuestToken: string | undefined;
+  let newBrowserSessionToken: string | undefined;
   let uniqueId;
   // let uniqueIdType: UniqueIdType | undefined;
   if (appInstallToken) {
@@ -44,10 +49,22 @@ export async function middleware(request: NextRequest) {
       uniqueId = id;
     }
   }
+
+  const requestHeaders = new Headers(request.headers);
+
+  const browserSessionToken = await getBrowserSessionTokenFromCookie();
+  const parsedBrowserSessionToken =
+    await parsedBrowserSessionTokenFromCookie();
+  if (browserSessionToken && parsedBrowserSessionToken) {
+    requestHeaders.set("x-browser-session-token", browserSessionToken);
+  } else {
+    newBrowserSessionToken = await createBrowserSessionToken(uuidv4());
+    requestHeaders.set("x-browser-session-token", newBrowserSessionToken);
+  }
+
   const pageSessionId = uuidv4();
 
   // todo only do this if actually a guest?
-  const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-guest-id", uniqueId);
   requestHeaders.set("x-page-session-id", pageSessionId);
   requestHeaders.set("x-url", request.url);
@@ -57,6 +74,10 @@ export async function middleware(request: NextRequest) {
       headers: requestHeaders,
     },
   });
+
+  if (newBrowserSessionToken) {
+    await setSessionTokenCookieHeader(res, newBrowserSessionToken);
+  }
 
   if (newGuestToken) {
     await setGuestTokenCookieHeader(res, newGuestToken);

@@ -4,8 +4,8 @@ import { Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import { SignJWT } from "jose";
-import { Ai } from "partykit-ai";
 import type * as Party from "partykit/server";
+import { Subject } from "rxjs";
 import {
   Actor,
   AnyStateMachine,
@@ -15,6 +15,7 @@ import {
   StateMachine,
   Subscription,
   createActor,
+  fromEventObservable,
 } from "xstate";
 import { z } from "zod";
 import { createCallerToken, parseCallerIdToken } from "../browser-session";
@@ -41,6 +42,21 @@ type EventMap = {
   user: UserCallerEvent;
   system: SystemCallerEvent;
 };
+
+// export const fromActorKit = <TMachine extends AnyStateMachine>(props: {
+//   type: string;
+//   caller: Caller;
+//   id: string;
+// }) => {
+//   return fromEventObservable(() => {
+//     // const responseSchema = z.object({
+//     //   connectionId: z.string(),
+//     //   token: z.string(),
+//     //   snapshot: z.custom<SnapshotFrom<Actor<TMachine>>>(),
+//     // });
+
+//   });
+// };
 
 export const createActorHTTPClient = <
   TMachine extends AnyStateMachine,
@@ -114,7 +130,6 @@ export const createMachineServer = <
   eventSchema: z.ZodSchema<Omit<EventFrom<TMachine>, "caller">>
 ) => {
   class ActorServer implements Party.Server {
-    ai: Ai;
     actor: Actor<TMachine> | undefined;
     initialSnapshotsByConnectionId: Map<
       string,
@@ -124,7 +139,6 @@ export const createMachineServer = <
     subscrptionsByConnectionId: Map<string, Subscription>;
 
     constructor(public room: Party.Room) {
-      this.ai = new Ai(room.context.ai);
       this.initialSnapshotsByConnectionId = new Map();
       this.callersByConnectionId = new Map();
       this.subscrptionsByConnectionId = new Map();
@@ -171,11 +185,14 @@ export const createMachineServer = <
           initialCaller: caller,
           ...inputJson,
         } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
+        console.log(input);
 
         this.actor = createActor(machine, {
           input,
         });
         this.actor.start();
+
+        // this.room.context.parties["session"]?.get("foo")
 
         this.callersByConnectionId.set(connectionId, caller);
         const token = await createConnectionToken(this.room.id, connectionId);

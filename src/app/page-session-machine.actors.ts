@@ -206,6 +206,22 @@ export const generateListNameSuggestions = fromEventObservable(
   }
 );
 
+export const listenBrowserSession = fromPromise(
+  async ({
+    input,
+  }: {
+    input: {
+      browserSessionToken: string;
+    };
+  }) => {
+    // todo... how do we fetch it from partykit again....
+    console.log(input);
+    return {
+      foo: "Bar",
+    };
+  }
+);
+
 export const getUserPreferences = fromPromise(
   async ({
     input,
