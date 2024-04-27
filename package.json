@@ -135,7 +135,6 @@
     "zod-to-json-schema": "^3.21.4"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240423.0",
     "@storybook/addon-essentials": "^7.4.6",
     "@storybook/addon-interactions": "^7.4.6",
     "@storybook/addon-links": "^7.4.6",

@@ -2,6 +2,6 @@ import { createMachineServer } from "@/lib/actor-kit";
 import { AppEventSchema } from "@/schema";
 import { browserSessionMachine } from "./browser-session-machine";
 
-const SessionServer = createMachineServer(browserSessionMachine, AppEventSchema);
+const BrowserSessionServer = createMachineServer(browserSessionMachine, AppEventSchema);
 
-export default SessionServer;
+export default BrowserSessionServer;
