@@ -15,6 +15,7 @@ import {
 } from "@/lib/auth/session";
 import {
   createAppInstallToken,
+  getBrowserSessionToken,
   getPageSessionId,
   getRequestUrl,
 } from "@/lib/browser-session";
@@ -113,21 +114,15 @@ export default async function RootLayout(
   const canInstallPWA = getCanInstallPWA();
   const session = await getSession();
 
-  const sessionActorClient = await getPageSessionActorClient();
+  const pageSessionActorClient = await getPageSessionActorClient();
   const pageSessionId = await getPageSessionId();
+  const browserSessionToken = await getBrowserSessionToken(); // todo maybe move this to a header?
   const url = await getRequestUrl();
-  const { snapshot, connectionId, token } = await sessionActorClient.get(
+  const { snapshot, connectionId, token } = await pageSessionActorClient.get(
     pageSessionId,
-    { url }
+    { url, browserSessionToken }
   );
   assert(snapshot, "expected snapshot");
-
-  // const reauthenticate = async (_pageSessionId: string) => {
-  //   "use server";
-  //   const uniqueId = await getUniqueId();
-  //   console.log("UNIQUEID!!!", uniqueId, _pageSessionId);
-  //   // call here....
-  // };
 
   return (
     <html lang="en" suppressHydrationWarning>

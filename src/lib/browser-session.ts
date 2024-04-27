@@ -5,14 +5,25 @@ import { serialize } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { assert } from "./utils";
 import { UserJwtPayload } from "./jwt-tokens";
+import { assert } from "./utils";
 
 // todo find something better that works on edge functions
 
 export class AuthError extends Error {}
 
 export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
+export const BROWSER_SESSION_TOKEN_COOKIE_KEY = "browser-session-token";
+
+export const createBrowserSessionToken = async (browserSessionId: string) => {
+  const token = await new SignJWT({})
+    .setProtectedHeader({ alg: "HS256" })
+    .setJti(browserSessionId)
+    .setIssuedAt()
+    .setExpirationTime("30d")
+    .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
+  return token;
+};
 
 export const createCallerToken = async (uniqueId: string, type: CallerType) => {
   const callerId = `${type}-${uniqueId}`;
@@ -64,6 +75,22 @@ export const parseAppInstallToken = async (token: string) => {
   return { email: sub, distinctId: verified.payload.jti };
 };
 
+export const setSessionTokenCookieHeader = async (
+  res: NextResponse,
+  token: string
+) => {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() + 20); // Expires 20 years from now
+  const tokenStr = serialize(BROWSER_SESSION_TOKEN_COOKIE_KEY, token, {
+    path: "/",
+    expires: date,
+    secure: true,
+    httpOnly: true,
+  });
+
+  res.headers.append("set-cookie", tokenStr);
+};
+
 export const setGuestTokenCookieHeader = async (
   res: NextResponse,
   guestToken: string
@@ -71,6 +98,8 @@ export const setGuestTokenCookieHeader = async (
   const guestTokenStr = serialize(GUEST_TOKEN_COOKIE_KEY, guestToken, {
     path: "/",
     maxAge: 60 * 60 * 24 * 60, // 60 days
+    secure: true,
+    httpOnly: true,
   });
   res.headers.append("set-cookie", guestTokenStr);
 };
@@ -94,6 +123,50 @@ export const getGuestTokenFromCookies = async () => {
     // A new one will be created
     // Probably expired...
   }
+};
+
+export const parsedBrowserSessionTokenFromCookie = async () => {
+  const cookieStore = cookies();
+  const browserSessionToken = cookieStore.get(BROWSER_SESSION_TOKEN_COOKIE_KEY)
+    ?.value;
+
+  if (!browserSessionToken) {
+    return undefined;
+  }
+
+  try {
+    const verified = await jwtVerify(
+      browserSessionToken,
+      new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
+    );
+    return verified.payload as UserJwtPayload;
+  } catch (err) {
+    return undefined;
+    // A new one will be created
+    // Probably expired...
+  }
+};
+
+export const getBrowserSessionTokenFromCookie = () => {
+  const cookieStore = cookies();
+  const browserSessionToken = cookieStore.get(BROWSER_SESSION_TOKEN_COOKIE_KEY)
+    ?.value;
+  return browserSessionToken;
+};
+
+export const getBrowserSessionToken = () => {
+  const browserSessionToken = getBrowserSessionTokenFromCookie();
+  if (browserSessionToken) {
+    return browserSessionToken;
+  }
+
+  const headerList = headers();
+  const browserSessionId = headerList.get("x-browser-session-token");
+  assert(
+    browserSessionId,
+    "expected x-browser-session-id in header but wasn't in cookies or header."
+  );
+  return browserSessionId;
 };
 
 export const getPageSessionId = () => {

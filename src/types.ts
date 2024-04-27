@@ -1,4 +1,5 @@
 import { PgTransaction } from "drizzle-orm/pg-core";
+import type * as Party from "partykit/server";
 import { Observable } from "rxjs";
 import type { z } from "zod";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
@@ -360,3 +361,9 @@ export type UserPreferences = {
 };
 
 export type RecipeList = z.infer<typeof ListSchema>;
+
+export type ServerPartySocket = Awaited<
+  ReturnType<
+    ReturnType<Party.Context["parties"]["browser_sessions"]["get"]>["socket"]
+  >
+>;

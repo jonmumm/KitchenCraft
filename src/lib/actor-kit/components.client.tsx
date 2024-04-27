@@ -1,6 +1,6 @@
 "use client";
 
-import { SessionStoreContext } from "@/app/page-session-store.context";
+import { PageSessionContext } from "@/app/page-session-store.context";
 import { env } from "@/env.public";
 import { useEventSubject } from "@/hooks/useEvents";
 import { Operation, applyPatch } from "fast-json-patch";
@@ -28,7 +28,7 @@ export const ActorProvider = (props: {
 }) => {
   const { connectionId, token, id } = props;
   const event$ = useEventSubject();
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
 
   // const LoginHandler = () => {
   //   const session = useSession();

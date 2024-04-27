@@ -1,13 +1,25 @@
 import { ListRecipeTable, ListTable, UserPreferencesTable, db } from "@/db";
+import { createCallerToken } from "@/lib/browser-session";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert } from "@/lib/utils";
-import { DbOrTransaction } from "@/types";
+import { Caller, DbOrTransaction, ServerPartySocket } from "@/types";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
-import { from, switchMap } from "rxjs";
-import { fromEventObservable, fromPromise } from "xstate";
+import { Operation, applyPatch } from "fast-json-patch";
+import { produce } from "immer";
+import { jwtVerify } from "jose";
+import type * as Party from "partykit/server";
+import { Subject, from, switchMap } from "rxjs";
+import {
+  AnyStateMachine,
+  SnapshotFrom,
+  fromEventObservable,
+  fromPromise,
+} from "xstate";
+import { z } from "zod";
+import { browserSessionMachine } from "./browser-session-machine";
 import {
   SuggestChefNamesOutputSchema,
   SuggestChefNamesStream,
@@ -205,6 +217,122 @@ export const generateListNameSuggestions = fromEventObservable(
     );
   }
 );
+
+type WithConnect<T extends string> = `${T}_CONNECT`;
+type WithUpdate<T extends string> = `${T}_UPDATE`;
+type WithDisconnect<T extends string> = `${T}_DISCONNECT`;
+type WithError<T extends string> = `${T}_ERROR`;
+
+type ActorSocketEvent<
+  TEventType extends string,
+  TMachine extends AnyStateMachine,
+> =
+  | {
+      type: WithConnect<TEventType>;
+      resultId: string;
+    }
+  | {
+      type: WithUpdate<TEventType>;
+      snapshot: SnapshotFrom<TMachine>;
+      operations: Operation[];
+    }
+  | {
+      type: WithError<TEventType>;
+    }
+  | {
+      type: WithDisconnect<TEventType>;
+    };
+
+export const initializeBrowserSessionSocket = fromPromise(
+  async ({
+    input,
+  }: {
+    input: {
+      browserSessionToken: string;
+      caller: Caller;
+      partyContext: Party.Context;
+    };
+  }) => {
+    const sessionId = (
+      await parseBrowserSessionToken(input.browserSessionToken)
+    ).payload.jti;
+    assert(sessionId, "expected session id when listening for browser session");
+    // const party = input.getBrowserSessionParty(sessionId);
+    const token = await createCallerToken(input.caller.id, input.caller.type);
+    const socket = await input.partyContext.parties
+      .browser_session!.get(sessionId)
+      .socket({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    return socket;
+  }
+);
+
+export type BrowserSessionActorSocketEvent = ActorSocketEvent<
+  "BROWSER_SESSION",
+  typeof browserSessionMachine
+>;
+
+export const listenBrowserSession = fromEventObservable(
+  ({
+    input,
+  }: {
+    input: {
+      socket: ServerPartySocket;
+    };
+  }) => {
+    const subject = new Subject<BrowserSessionActorSocketEvent>();
+    const { socket } = input;
+
+    socket.addEventListener("error", (error) => {
+      console.error("error", error);
+    });
+
+    let currentSnapshot:
+      | SnapshotFrom<typeof browserSessionMachine>
+      | undefined = undefined;
+
+    socket.addEventListener("message", (message) => {
+      assert(
+        typeof message.data === "string",
+        "expected message data to be a string"
+      );
+      console.log(message.data);
+
+      const { operations } = z
+        .object({ operations: z.array(z.custom<Operation>()) })
+        .parse(JSON.parse(message.data));
+
+      const nextSnapshot = produce(currentSnapshot || {}, (draft) => {
+        applyPatch(draft, operations);
+      });
+      console.log(nextSnapshot);
+      subject.next({
+        type: "BROWSER_SESSION_UPDATE",
+        snapshot: nextSnapshot as any,
+        operations,
+      });
+      currentSnapshot = nextSnapshot as any;
+    });
+
+    socket.addEventListener("close", () => {
+      subject.next({ type: "BROWSER_SESSION_DISCONNECT" });
+    });
+
+    return subject;
+  }
+);
+
+const parseBrowserSessionToken = async (token: string) => {
+  const verified = await jwtVerify(
+    token,
+    new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
+  );
+  assert(verified.payload.jti, "expected JTI on BrowserSessionToken");
+  return verified;
+};
 
 export const getUserPreferences = fromPromise(
   async ({

@@ -2,7 +2,7 @@
 
 import { selectIsOpen } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
-import { SessionStoreContext } from "@/app/page-session-store.context";
+import { PageSessionContext } from "@/app/page-session-store.context";
 // import { session$ } from "@/app/session-store";
 import { usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useEventHandler } from "@/hooks/useEventHandler";
@@ -124,7 +124,7 @@ const AutoResizableTextarea: React.FC<
     // const isOpen = useCraftIsOpen();
     const isPristine = usePromptIsPristine();
     const [placeholdersGenerating, setPlaceholderGenerating] = useState(false);
-    const session$ = useContext(SessionStoreContext);
+    const session$ = useContext(PageSessionContext);
 
     // hack figure out better solution for subscribing to server state
     useEffect(() => {

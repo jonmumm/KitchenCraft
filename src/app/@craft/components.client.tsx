@@ -55,8 +55,8 @@ import { z } from "zod";
 import { CraftContext } from "../context";
 import { CraftSnapshot } from "../machine";
 import {
-  SessionStoreContext,
-  SessionStoreSnapshot,
+  PageSessionContext,
+  PageSessionSnapshot,
 } from "../page-session-store.context";
 import { ShareButton } from "../recipe/components.client";
 import { buildInput, isEqual } from "../utils";
@@ -1024,7 +1024,7 @@ const emailFormSchema = z.object({
 export const EnterEmailForm = () => {
   const [disabled, setDisabled] = useState(false);
   const router = useRouter();
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
   const form = useForm({
     resolver: zodResolver(emailFormSchema),
     defaultValues: {
@@ -1111,7 +1111,7 @@ export const EnterEmailForm = () => {
 };
 
 const selectIsLoadingChefNameAvailability = (
-  snapshot: SessionStoreSnapshot
+  snapshot: PageSessionSnapshot
 ) => {
   const stateValue = snapshot.value;
   return (
@@ -1123,18 +1123,18 @@ const selectIsLoadingChefNameAvailability = (
   );
 };
 
-const selectSelectedListSlug = (snapshot: SessionStoreSnapshot) => {
+const selectSelectedListSlug = (snapshot: PageSessionSnapshot) => {
   return snapshot.context.currentListSlug;
 };
 
-const selectSelectedList = (snapshot: SessionStoreSnapshot) => {
+const selectSelectedList = (snapshot: PageSessionSnapshot) => {
   if (snapshot.context.listsBySlug && snapshot.context.currentListSlug) {
     return snapshot.context.listsBySlug[snapshot.context.currentListSlug];
   }
   return undefined;
 };
 
-const selectIsChefNameAvailable = (snapshot: SessionStoreSnapshot) => {
+const selectIsChefNameAvailable = (snapshot: PageSessionSnapshot) => {
   const stateValue = snapshot.value;
   return (
     typeof stateValue === "object" &&
@@ -1144,7 +1144,7 @@ const selectIsChefNameAvailable = (snapshot: SessionStoreSnapshot) => {
   );
 };
 
-const selectIsChefNameInputPristine = (snapshot: SessionStoreSnapshot) => {
+const selectIsChefNameInputPristine = (snapshot: PageSessionSnapshot) => {
   const stateValue = snapshot.value;
   return (
     typeof stateValue === "object" &&
@@ -1156,7 +1156,7 @@ const selectIsChefNameInputPristine = (snapshot: SessionStoreSnapshot) => {
 
 export const EnterChefNameForm = () => {
   // const [disabled, setDisabled] = useState(false);
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
   const isLoadingAvailability = useSyncExternalStore(
     session$.subscribe,
     () => {
@@ -1300,7 +1300,7 @@ export const EnterChefNameForm = () => {
 };
 
 export const EnterListNameForm = () => {
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
   const [disabled, setDisabled] = useState(false);
   const send = useSend();
 
@@ -1472,7 +1472,7 @@ const PlaceholderAnimatingInput = forwardRef<
 PlaceholderAnimatingInput.displayName = "PlaceholderAnimatingInput";
 
 export const ClearButton = () => {
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
   const session = useStore(session$);
   const disabled = buildInput(session.context).length === 0;
   return (
@@ -1491,7 +1491,7 @@ export const ClearButton = () => {
 };
 
 export const UndoButton = () => {
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
   const session = useStore(session$);
   const disabled = session.context.undoOperations.length === 0;
 

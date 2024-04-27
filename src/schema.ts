@@ -1,5 +1,6 @@
 import type { CreateMessage } from "ai";
 import { useSession } from "next-auth/react";
+import { Stub } from "partykit/server";
 import { z } from "zod";
 import {
   COOKING_TIMES,
@@ -24,11 +25,11 @@ export const CallerSchema = z.string().transform((val, ctx) => {
     callerTypeParseResult.error.issues.forEach(ctx.addIssue);
     return z.NEVER;
   }
-  const uniqueIdType = callerTypeParseResult.data;
+  const type = callerTypeParseResult.data;
 
-  const uniqueId = val.substring(val.indexOf("-") + 1);
-  if (z.string().uuid().safeParse(uniqueId).success) {
-    return { uniqueIdType, uniqueId };
+  const id = val.substring(val.indexOf("-") + 1);
+  if (z.string().uuid().safeParse(id).success) {
+    return { type, id };
   } else {
     // If not valid, add a custom issue
     ctx.addIssue({
@@ -572,6 +573,7 @@ const SearchParamsEventSchema = z.object({
 const ConnectEventSchema = z.object({
   type: z.literal("CONNECT"),
   connectionId: z.string(),
+  parties: z.record(z.custom<Stub>()),
 });
 
 const HashChangeEventSchema = z.object({
@@ -734,8 +736,8 @@ const InitAdInstancesEventSchema = z.object({
   context: AdContextSchema,
 });
 
-const GetSnapshotEventSchema = z.object({
-  type: z.literal("GET_SNAPSHOT"),
+const InitializeEventSchema = z.object({
+  type: z.literal("INITIALIZE"),
 });
 
 // const SSRLayoutEventSchema = z.object({
@@ -853,7 +855,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   PrintEventSchema,
   // SSRLayoutEventSchema,
   UpdateSessionEventSchema,
-  GetSnapshotEventSchema,
+  InitializeEventSchema,
   InitAdInstancesEventSchema,
   ViewAdInstanceEventSchema,
   PressAdInstanceEventSchema,
@@ -869,11 +871,11 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   EnablePushNotificationsEventSchema,
   ErrorEventSchema,
   DownloadAppEventShema,
-  ConnectEventSchema,
   CancelEventSchema,
   KeyDownEventSchema,
   RemixEventSchema,
   PageLoadedEventSchema,
+  ConnectEventSchema,
   SearchParamsEventSchema,
   HashChangeEventSchema,
   ShareEventSchema,

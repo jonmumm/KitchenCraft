@@ -20,7 +20,7 @@ import {
 import { ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { CraftContext } from "./context";
 import { createCraftMachine } from "./machine";
-import { SessionStoreContext } from "./page-session-store.context";
+import { PageSessionContext } from "./page-session-store.context";
 
 // export const ApplicationContext = createContext()
 
@@ -41,7 +41,7 @@ export function ApplicationProvider(props: {
       appSessionId: props.appSessionId,
     })
   ); // todo define global types here
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
 
   useEffect(() => {
     // @ts-expect-error

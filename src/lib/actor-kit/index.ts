@@ -3,8 +3,7 @@ import { AppEventSchema, SystemEventSchema } from "@/schema";
 import { Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
-import { SignJWT } from "jose";
-import { Ai } from "partykit-ai";
+import { SignJWT, jwtVerify } from "jose";
 import type * as Party from "partykit/server";
 import {
   Actor,
@@ -41,6 +40,21 @@ type EventMap = {
   user: UserCallerEvent;
   system: SystemCallerEvent;
 };
+
+// export const fromActorKit = <TMachine extends AnyStateMachine>(props: {
+//   type: string;
+//   caller: Caller;
+//   id: string;
+// }) => {
+//   return fromEventObservable(() => {
+//     // const responseSchema = z.object({
+//     //   connectionId: z.string(),
+//     //   token: z.string(),
+//     //   snapshot: z.custom<SnapshotFrom<Actor<TMachine>>>(),
+//     // });
+
+//   });
+// };
 
 export const createActorHTTPClient = <
   TMachine extends AnyStateMachine,
@@ -114,9 +128,8 @@ export const createMachineServer = <
   eventSchema: z.ZodSchema<Omit<EventFrom<TMachine>, "caller">>
 ) => {
   class ActorServer implements Party.Server {
-    ai: Ai;
     actor: Actor<TMachine> | undefined;
-    initialSnapshotsByConnectionId: Map<
+    lastSnapshotsByConnectionId: Map<
       string,
       ReturnType<Actor<TMachine>["getPersistedSnapshot"]>
     >;
@@ -124,8 +137,7 @@ export const createMachineServer = <
     subscrptionsByConnectionId: Map<string, Subscription>;
 
     constructor(public room: Party.Room) {
-      this.ai = new Ai(room.context.ai);
-      this.initialSnapshotsByConnectionId = new Map();
+      this.lastSnapshotsByConnectionId = new Map();
       this.callersByConnectionId = new Map();
       this.subscrptionsByConnectionId = new Map();
     }
@@ -139,12 +151,7 @@ export const createMachineServer = <
       const authHeader = request.headers.get("authorization");
       const callerIdToken = authHeader?.split(" ")[1];
       assert(callerIdToken, "unable to parse bearer token");
-      const { uniqueId, uniqueIdType } =
-        await parseCallerIdToken(callerIdToken);
-      const caller = {
-        id: uniqueId,
-        type: uniqueIdType,
-      } satisfies Caller;
+      const caller = await parseCallerIdToken(callerIdToken);
 
       // if (request.method === "POST") {
       //   // todo requi're a caller token before allowing this send...
@@ -168,14 +175,18 @@ export const createMachineServer = <
         const input = {
           id: this.room.id,
           storage: this.room.storage,
+          partyContext: this.room.context,
           initialCaller: caller,
           ...inputJson,
         } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
+        // console.log(input);
 
         this.actor = createActor(machine, {
           input,
         });
         this.actor.start();
+
+        // this.room.context.parties["session"]?.get("foo")
 
         this.callersByConnectionId.set(connectionId, caller);
         const token = await createConnectionToken(this.room.id, connectionId);
@@ -183,16 +194,15 @@ export const createMachineServer = <
 
         // @ts-expect-error
         this.actor.send({
-          type: "GET_SNAPSHOT",
+          type: "INITIALIZE",
           caller,
+          parties: this.room.context.parties,
         });
 
-        // Clients have 30 seconds to connect before the snapshot gets cleaned up
-        // and they must re-sync the full data
-        this.initialSnapshotsByConnectionId.set(connectionId, snapshot);
-        setTimeout(() => {
-          this.initialSnapshotsByConnectionId.delete(connectionId);
-        }, 30000);
+        // TODO add await here if the machine supports it...
+        // this would allow us to hydrate date before giving it back for SSR
+
+        this.lastSnapshotsByConnectionId.set(connectionId, snapshot);
 
         return json({
           connectionId,
@@ -200,7 +210,7 @@ export const createMachineServer = <
           snapshot,
         });
       } else if (request.method === "POST") {
-        if (uniqueIdType === "system") {
+        if (caller.type === "system") {
           const json = await request.json();
           const event = SystemCallerEventSchema.parse(json);
           // Set future events from this connection to
@@ -227,43 +237,93 @@ export const createMachineServer = <
       return notFound();
     }
 
-    async onConnect(connection: UserActorConnection) {
-      const actor = this.actor;
+    async onConnect(
+      connection: UserActorConnection,
+      context: Party.ConnectionContext
+    ) {
+      // console.log(this.room.name);
+      const authHeader = context.request.headers.get("Authorization");
+      let caller: Caller | undefined;
+      if (authHeader) {
+        const callerIdToken = authHeader?.split(" ")[1];
+        assert(callerIdToken, "unable to parse bearer token");
+        caller = await parseCallerIdToken(callerIdToken);
+        this.callersByConnectionId.set(connection.id, caller);
+      } else {
+        const searchParams = new URLSearchParams(
+          context.request.url.split("?")[1]
+        );
+        const token = searchParams.get("token");
+        assert(token, "expected token when connecting to socket");
+        const connectionId = (await parseConnectionToken(token)).payload.jti;
+        assert(
+          connectionId === connection.id,
+          "connectionId from token does not mathc connection id"
+        );
+        assert(connectionId, "expected connectionId from token");
+        const existingCaller = this.callersByConnectionId.get(connection.id);
+        caller = existingCaller;
+      }
+
+      // happens in dev all the time..
+      if (!caller) {
+        // todo: move this to onBeforeCOnnect?
+        return;
+      }
+
+      let actor = this.actor;
+      // Happens if someone directly connects to the websocket before calling a GET request
       if (!actor) {
-        // if not dev
-        // assert(actor, "expected actor to exist before websocket connection");
-        return;
+        const input = {
+          id: this.room.id,
+          storage: this.room.storage,
+          partyContext: this.room.context,
+          initialCaller: caller,
+          // ...inputJson,
+        } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
+
+        // console.log(input);
+
+        actor = createActor(machine, {
+          input,
+        });
+        actor.start();
+
+        // @ts-expect-error
+        actor.send({
+          type: "INITIALIZE",
+          caller,
+          parties: this.room.context.parties,
+        });
+
+        this.actor = actor;
       }
 
-      const initialSnapshot = this.initialSnapshotsByConnectionId.get(
-        connection.id
-      );
-
-      // Probably a re-connect... in order to subscribe need to have been
-      if (!initialSnapshot) {
-        return;
-      }
-
-      let lastSnapshot = initialSnapshot;
+      let lastSnapshot =
+        this.lastSnapshotsByConnectionId.get(connection.id) || {};
       const sendSnapshot = (e?: any) => {
         const nextSnapshot = actor.getPersistedSnapshot();
         const operations = compare(lastSnapshot, nextSnapshot);
         lastSnapshot = nextSnapshot;
         if (operations.length) {
+          // todo sanitize `refs` in context from being written out...
           connection.send(JSON.stringify({ operations }));
         }
       };
       sendSnapshot();
-      const caller = this.callersByConnectionId.get(connection.id);
+      // const caller = this.callersByConnectionId.get(connection.id);
+      const parties = this.room.context.parties;
 
       // @ts-expect-error
       actor.send({
         type: "CONNECT",
         connectionId: connection.id,
         caller,
+        parties,
       });
       const sub = actor.subscribe(sendSnapshot);
       this.subscrptionsByConnectionId.set(connection.id, sub);
+      // this.room.context.parties.get("")
     }
 
     async onMessage(message: string, sender: Party.Connection) {
@@ -298,12 +358,25 @@ const createConnectionToken = async (id: string, connectionId: string) => {
   let signJWT = new SignJWT({})
     .setProtectedHeader({ alg: "HS256" })
     .setJti(connectionId)
-    .setSubject(id)
+    .setSubject("CONNECTION")
     .setIssuedAt()
-    .setExpirationTime("5m");
+    .setExpirationTime("1d");
 
   const token = await signJWT.sign(
     new TextEncoder().encode(process.env.NEXTAUTH_SECRET) // todo parameterize this somehow and/or use diff env var
   );
   return token;
+};
+
+const parseConnectionToken = async (token: string) => {
+  const verified = await jwtVerify(
+    token,
+    new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
+  );
+  assert(verified.payload.jti, "expected JTI on connectionToken");
+  assert(
+    verified.payload.sub === "CONNECTION",
+    "expected connection token to have subject CONNECTION"
+  );
+  return verified;
 };

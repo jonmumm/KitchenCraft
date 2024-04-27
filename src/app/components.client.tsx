@@ -20,7 +20,7 @@ import { Progress } from "@/components/feedback/progress";
 import { Button } from "@/components/input/button";
 import { Textarea } from "@/components/input/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditiona.renderer";
+import { PageSessionSnapshotConditionalRenderer } from "@/components/util/page-session-snapshot-conditiona.renderer";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
@@ -455,34 +455,36 @@ const QuestionTextarea = (props: ComponentProps<typeof Textarea>) => {
 export const OnboardingFlow = () => {
   return (
     <>
-      <SessionSnapshotConditionalRenderer
+      <PageSessionSnapshotConditionalRenderer
         selector={selectIsInOnboardingMealType}
       >
         <OnboardingMealTypeQuestion />
-      </SessionSnapshotConditionalRenderer>
-      <SessionSnapshotConditionalRenderer
+      </PageSessionSnapshotConditionalRenderer>
+      <PageSessionSnapshotConditionalRenderer
         selector={selectIsInOnboardingExclusions}
       >
         <OnboardingExclusionsQuestion />
-      </SessionSnapshotConditionalRenderer>
-      <SessionSnapshotConditionalRenderer selector={selectIsInOnboardingMisc}>
+      </PageSessionSnapshotConditionalRenderer>
+      <PageSessionSnapshotConditionalRenderer
+        selector={selectIsInOnboardingMisc}
+      >
         <OnboardingMiscQuestion />
-      </SessionSnapshotConditionalRenderer>
-      <SessionSnapshotConditionalRenderer
+      </PageSessionSnapshotConditionalRenderer>
+      <PageSessionSnapshotConditionalRenderer
         selector={selectIsInOnboardingEquipment}
       >
         <OnboardingEquipmentQuestion />
-      </SessionSnapshotConditionalRenderer>
-      <SessionSnapshotConditionalRenderer
+      </PageSessionSnapshotConditionalRenderer>
+      <PageSessionSnapshotConditionalRenderer
         selector={selectIsInOnboardingIngredients}
       >
         <OnboardingIngredientsQuestion />
-      </SessionSnapshotConditionalRenderer>
-      <SessionSnapshotConditionalRenderer
+      </PageSessionSnapshotConditionalRenderer>
+      <PageSessionSnapshotConditionalRenderer
         selector={selectIsInOnboardingComplete}
       >
         <OnboardingComplete />
-      </SessionSnapshotConditionalRenderer>
+      </PageSessionSnapshotConditionalRenderer>
     </>
   );
 };
@@ -579,62 +581,62 @@ const selectIsInOnboarding = (snapshot: SessionSnapshot) => {
   return (
     typeof state.Auth === "object" &&
     typeof state.Auth.Anonymous === "object" &&
-    state.Auth.Anonymous.Onboarding !== "NotStarted"
+    state.Auth.Anonymous.Onboarding === "Open"
   );
 };
 
 const selectIsInOnboardingMealType = (snapshot: SessionSnapshot) => {
-  const state = snapshot.value;
-  return (
-    typeof state.Auth === "object" &&
-    typeof state.Auth.Anonymous === "object" &&
-    state.Auth.Anonymous.Onboarding === "MealType"
-  );
+  const session = snapshot.context.browserSessionSnapshot;
+  if (!session) {
+    return false;
+  }
+
+  return session.value.Onboarding === "MealType";
 };
 
 const selectIsInOnboardingExclusions = (snapshot: SessionSnapshot) => {
-  const state = snapshot.value;
-  return (
-    typeof state.Auth === "object" &&
-    typeof state.Auth.Anonymous === "object" &&
-    state.Auth.Anonymous.Onboarding === "Exclusions"
-  );
+  const session = snapshot.context.browserSessionSnapshot;
+  if (!session) {
+    return false;
+  }
+
+  return session.value.Onboarding === "Exclusions";
 };
 
 const selectIsInOnboardingEquipment = (snapshot: SessionSnapshot) => {
-  const state = snapshot.value;
-  return (
-    typeof state.Auth === "object" &&
-    typeof state.Auth.Anonymous === "object" &&
-    state.Auth.Anonymous.Onboarding === "Equipment"
-  );
+  const session = snapshot.context.browserSessionSnapshot;
+  if (!session) {
+    return false;
+  }
+
+  return session.value.Onboarding === "Equipment";
 };
 
 const selectIsInOnboardingMisc = (snapshot: SessionSnapshot) => {
-  const state = snapshot.value;
-  return (
-    typeof state.Auth === "object" &&
-    typeof state.Auth.Anonymous === "object" &&
-    state.Auth.Anonymous.Onboarding === "Misc"
-  );
+  const session = snapshot.context.browserSessionSnapshot;
+  if (!session) {
+    return false;
+  }
+
+  return session.value.Onboarding === "Misc";
 };
 
 const selectIsInOnboardingComplete = (snapshot: SessionSnapshot) => {
-  const state = snapshot.value;
-  return (
-    typeof state.Auth === "object" &&
-    typeof state.Auth.Anonymous === "object" &&
-    state.Auth.Anonymous.Onboarding === "Complete"
-  );
+  const session = snapshot.context.browserSessionSnapshot;
+  if (!session) {
+    return false;
+  }
+
+  return session.value.Onboarding === "Complete";
 };
 
 const selectIsInOnboardingIngredients = (snapshot: SessionSnapshot) => {
-  const state = snapshot.value;
-  return (
-    typeof state.Auth === "object" &&
-    typeof state.Auth.Anonymous === "object" &&
-    state.Auth.Anonymous.Onboarding === "Ingredients"
-  );
+  const session = snapshot.context.browserSessionSnapshot;
+  if (!session) {
+    return false;
+  }
+
+  return session.value.Onboarding === "Ingredients";
 };
 
 const selectIsUserPreferencesInitialized = (snapshot: SessionSnapshot) => {
@@ -647,12 +649,12 @@ const selectIsUserPreferencesInitialized = (snapshot: SessionSnapshot) => {
 
 export const IsInOnboarding = ({ children }: { children: ReactNode }) => {
   return (
-    <SessionSnapshotConditionalRenderer
+    <PageSessionSnapshotConditionalRenderer
       selector={selectIsInOnboarding}
-      initialValueOverride={true}
+      initialValueOverride={false}
     >
       {children}
-    </SessionSnapshotConditionalRenderer>
+    </PageSessionSnapshotConditionalRenderer>
   );
 };
 
