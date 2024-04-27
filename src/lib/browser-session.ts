@@ -27,6 +27,7 @@ export const createBrowserSessionToken = async (browserSessionId: string) => {
 
 export const createCallerToken = async (uniqueId: string, type: CallerType) => {
   const callerId = `${type}-${uniqueId}`;
+  console.log({ callerId });
   CallerSchema.parse(callerId);
   const token = await new SignJWT({})
     .setProtectedHeader({ alg: "HS256" })

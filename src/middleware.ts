@@ -36,9 +36,7 @@ export async function middleware(request: NextRequest) {
     let caller = guestToken?.jti;
 
     if (caller) {
-      console.log("caller", caller);
       const callerParse = CallerSchema.safeParse(caller);
-      console.log("caller parsed", callerParse);
       if (callerParse.success && callerParse.data.type === "guest") {
         uniqueId = callerParse.data.type;
       }

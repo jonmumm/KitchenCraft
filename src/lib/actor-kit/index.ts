@@ -148,9 +148,11 @@ export const createMachineServer = <
 
     async onRequest(request: Party.Request) {
       const connectionId = randomUUID();
-      const authHeader = request.headers.get("authorization");
+      console.log(connectionId);
+      const authHeader = request.headers.get("Authorization");
       const callerIdToken = authHeader?.split(" ")[1];
       assert(callerIdToken, "unable to parse bearer token");
+      console.log(callerIdToken);
       const caller = await parseCallerIdToken(callerIdToken);
 
       // if (request.method === "POST") {
