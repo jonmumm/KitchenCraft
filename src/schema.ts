@@ -34,7 +34,7 @@ export const CallerSchema = z.string().transform((val, ctx) => {
     // If not valid, add a custom issue
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: `Must be a valid uuid. Received '${id}'.`,
+      message: `Must be a valid uuid. Received '${id}' on value '${val}'.`,
     });
     // Return the special NEVER symbol to indicate a validation failure
     return z.NEVER;
