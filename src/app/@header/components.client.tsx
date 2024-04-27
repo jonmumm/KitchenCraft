@@ -29,7 +29,7 @@ import {
 } from "react";
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { CraftContext } from "../context";
-import { SessionStoreContext } from "../page-session-store.context";
+import { PageSessionContext } from "../page-session-store.context";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -86,13 +86,13 @@ export const BackButton = (props: {
 };
 
 const CraftAutoCompleteItem = ({ index }: { index: number }) => {
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
   const session = useStore(session$);
   return <div>{session.context.suggestedText[index]}</div>;
 };
 
 export const CraftAutoComplete = () => {
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
   const session = useStore(session$);
   const items = new Array(6).fill(0);
 

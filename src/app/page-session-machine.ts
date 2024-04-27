@@ -1,6 +1,5 @@
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { produce } from "immer";
-import { Ai } from "partykit-ai";
 
 import {
   ListRecipeTable,
@@ -32,6 +31,7 @@ import {
   PartialRecipe,
   ProductType,
   RecipeList,
+  ServerPartySocket,
   SystemEvent,
   UserPreferenceType,
   UserPreferences,
@@ -41,7 +41,8 @@ import { randomUUID } from "crypto";
 import { eq, ilike, sql } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { Operation, applyPatch, compare } from "fast-json-patch";
-import type * as Party from "partykit/server";
+import { jwtVerify } from "jose";
+import * as Party from "partykit/server";
 import { from, map, mergeMap, switchMap } from "rxjs";
 import {
   assign,
@@ -66,6 +67,7 @@ import {
   AutoSuggestTokensOutputSchema,
   AutoSuggestTokensStream,
 } from "./auto-suggest-tokens.stream";
+import { BrowserSessionSnapshot } from "./browser-session-store.types";
 import {
   FullRecipeEvent,
   FullRecipeEventBase,
@@ -77,10 +79,12 @@ import {
   InstantRecipeMetadataStream,
 } from "./instant-recipe/streams";
 import {
+  BrowserSessionActorSocketEvent,
   generateChefNameSuggestions,
   generateListNameSuggestions,
   getAllListsForUserWithRecipeCount,
   getUserPreferences,
+  initializeBrowserSessionSocket,
   listenBrowserSession,
   saveRecipeToListSlug,
 } from "./page-session-machine.actors";
@@ -109,10 +113,10 @@ type NewRecipeProductKeywordEvent = {
 const InputSchema = z.object({
   id: z.string(),
   storage: z.custom<Party.Storage>(),
-  ai: z.custom<Ai>(),
+  partyContext: z.custom<Party.Context>(),
   url: z.string().url(),
   initialCaller: z.custom<Caller>(),
-  browseSessionToken: z.string(),
+  browserSessionToken: z.string(),
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -127,6 +131,13 @@ type Input = z.infer<typeof InputSchema>;
 // }})
 
 type Context = {
+  // refs are non-serialize objects that are used within the machine but
+  // are not synced over the network
+  refs: {
+    partyStorage: Party.Storage;
+    partyContext: Party.Context;
+    browserSessionSocket: ServerPartySocket | undefined;
+  };
   onboardingInput: {
     mealType?: string | undefined;
   };
@@ -169,6 +180,7 @@ type Context = {
   history: string[];
   userPreferences: UserPreferences; // New field to store user preferences
   modifiedPreferences: Partial<Record<keyof UserPreferences, true>>;
+  browserSessionSnapshot: BrowserSessionSnapshot | undefined;
   listsBySlug:
     | Record<
         string,
@@ -197,7 +209,8 @@ export const pageSessionMachine = setup({
       | SuggestChefNamesEvent
       | SuggestListNamesEvent
       | FullRecipeEvent
-      | NewRecipeProductKeywordEvent,
+      | NewRecipeProductKeywordEvent
+      | BrowserSessionActorSocketEvent,
   },
   actors: {
     getAllListsForUserWithRecipeCount,
@@ -205,6 +218,7 @@ export const pageSessionMachine = setup({
     generateChefNameSuggestions,
     generateListNameSuggestions,
     getUserPreferences,
+    initializeBrowserSessionSocket,
     listenBrowserSession,
     updateChefName: fromPromise(
       async ({
@@ -476,7 +490,6 @@ export const pageSessionMachine = setup({
           preferences: { type: UserPreferenceType; value: string }[];
         };
       }) => {
-        console.log(input);
         await upsertUserPreferences(input.userId, input.preferences);
       }
     ),
@@ -595,6 +608,11 @@ export const pageSessionMachine = setup({
 }).createMachine({
   id: "UserAppMachine",
   context: ({ input }) => ({
+    refs: {
+      partyStorage: input.storage,
+      partyContext: input.partyContext,
+      browserSessionSocket: undefined,
+    },
     onboardingInput: {},
     pageSessionId: input.id,
     history: [input.url],
@@ -624,6 +642,7 @@ export const pageSessionMachine = setup({
     generatingRecipeId: undefined,
     suggestedTags: [],
     suggestedText: [],
+    browserSessionSnapshot: undefined,
     suggestedIngredients: [],
     suggestedTokens: [],
     // createdRecipeSlugs: [],
@@ -635,16 +654,68 @@ export const pageSessionMachine = setup({
     undoOperations: [],
     redoOperations: [],
     listsBySlug: undefined,
-    browserSessionToken: input.browseSessionToken,
+    browserSessionToken: input.browserSessionToken,
   }),
   type: "parallel",
   states: {
     BrowserSession: {
-      invoke: {
-        src: "listenBrowserSession",
-        input: ({ context }) => ({
-          browserSessionToken: context.browserSessionToken,
-        }),
+      initial: "Uninitialized",
+      states: {
+        Uninitialized: {
+          on: {
+            INITIALIZE: "Initializing",
+          },
+        },
+        Initializing: {
+          invoke: {
+            src: "initializeBrowserSessionSocket",
+            input: ({ context }) => {
+              return {
+                browserSessionToken: context.browserSessionToken,
+                partyContext: context.refs.partyContext,
+                caller: context.initialCaller,
+              };
+            },
+            onDone: {
+              target: "Running",
+              actions: assign({
+                refs: ({ context, event }) =>
+                  produce(context.refs, (draft) => {
+                    draft.browserSessionSocket = event.output;
+                  }),
+              }),
+            },
+          },
+        },
+        Running: {
+          always: {
+            actions: ({ context, event }) => {
+              if ("caller" in event) {
+                // todo need to limit this to only my caller or something?
+                context.refs.browserSessionSocket?.send(JSON.stringify(event));
+              }
+            },
+          },
+          on: {
+            BROWSER_SESSION_UPDATE: {
+              actions: assign({
+                browserSessionSnapshot: ({ event }) => event.snapshot,
+              }),
+            },
+          },
+          invoke: {
+            src: "listenBrowserSession",
+            input: ({ context }) => {
+              assert(
+                context.refs.browserSessionSocket,
+                "expected browserSessionSocket to be initialized"
+              );
+              return {
+                socket: context.refs.browserSessionSocket,
+              };
+            },
+          },
+        },
       },
     },
 
@@ -1151,7 +1222,6 @@ export const pageSessionMachine = setup({
                                   draft,
                                   "expected lists to be fetched alredy"
                                 );
-                                console.log(event.output);
                                 draft[event.output.slug] = {
                                   ...event.output,
                                   recipeCount: 1,
@@ -1817,65 +1887,17 @@ export const pageSessionMachine = setup({
           type: "parallel",
           states: {
             Onboarding: {
-              initial: "NotStarted",
-              on: {
-                CLOSE: ".NotStarted",
-              },
+              initial: "Closed",
               states: {
-                NotStarted: {
+                Closed: {
                   on: {
-                    START_ONBOARDING: "MealType",
+                    START_ONBOARDING: "Open",
                   },
                 },
-                MealType: {
+                Open: {
                   on: {
-                    SELECT_VALUE: {
-                      target: "Exclusions",
-                      guard: ({ event }) =>
-                        event.name === "onboarding:meal_type",
-                      actions: assign({
-                        onboardingInput: ({ context, event }) =>
-                          produce(context.onboardingInput, (draft) => {
-                            draft.mealType = event.value;
-                          }),
-                      }),
-                    },
+                    CLOSE: "Closed",
                   },
-                },
-                Exclusions: {
-                  on: {
-                    NEXT: "Misc",
-                    CHANGE: {
-                      target: "Exclusions",
-                      guard: ({ event }) =>
-                        event.name === "onboarding:exclusions",
-                      actions: assign(({ context, event }) =>
-                        produce(context, (draft) => {
-                          draft.userPreferences.dietaryRestrictions =
-                            event.value;
-                          draft.modifiedPreferences.dietaryRestrictions = true;
-                        })
-                      ),
-                    },
-                  },
-                },
-                Misc: {
-                  on: {
-                    NEXT: "Equipment",
-                  },
-                },
-                Equipment: {
-                  on: {
-                    NEXT: "Ingredients",
-                  },
-                },
-                Ingredients: {
-                  on: {
-                    NEXT: "Complete",
-                  },
-                },
-                Complete: {
-                  type: "final",
                 },
               },
             },
@@ -2414,7 +2436,6 @@ async function upsertUserPreferences(
   return await db
     .transaction(async (tx) => {
       for (const { type, value } of preferences) {
-        console.log(type, value);
         await tx
           .insert(UserPreferencesTable)
           .values({
@@ -2477,3 +2498,26 @@ async function upsertUserPreference(
     return { success: false, error: message };
   }
 }
+
+// const parsedBrowserSessionTokenFromCookie = async () => {
+//   try {
+//     const verified = await jwtVerify(
+//       browserSessionToken,
+//       new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
+//     );
+//     return verified.payload as UserJwtPayload;
+//   } catch (err) {
+//     return undefined;
+//     // A new one will be created
+//     // Probably expired...
+//   }
+// };
+
+const parseBrowserSessionToken = async (token: string) => {
+  const verified = await jwtVerify(
+    token,
+    new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
+  );
+  assert(verified.payload.jti, "expected JTI on BrowserSessionToken");
+  return verified;
+};

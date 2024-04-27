@@ -1,5 +1,5 @@
 import { CraftContext } from "@/app/context";
-import { SessionStoreContext } from "@/app/page-session-store.context";
+import { PageSessionContext } from "@/app/page-session-store.context";
 import { useContext } from "react";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { useSelector } from "./useSelector";
@@ -10,7 +10,7 @@ export const useCraftIsOpen = () => {
 };
 
 export const usePromptIsDirty = () => {
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => session$.get().context,
@@ -20,7 +20,7 @@ export const usePromptIsDirty = () => {
 };
 
 export const usePromptIsPristine = () => {
-  const session$ = useContext(SessionStoreContext);
+  const session$ = useContext(PageSessionContext);
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => session$.get().context,

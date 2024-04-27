@@ -8,7 +8,7 @@ interface SessionSnapshotConditionalRendererProps {
   initialValueOverride?: boolean;
 }
 
-export const SessionSnapshotConditionalRenderer = (
+export const PageSessionSnapshotConditionalRenderer = (
   props: SessionSnapshotConditionalRendererProps
 ) => {
   const session$ = useSessionStore();
