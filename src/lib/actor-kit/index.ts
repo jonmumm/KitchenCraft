@@ -302,6 +302,7 @@ export const createMachineServer = <
       let lastSnapshot =
         this.lastSnapshotsByConnectionId.get(connection.id) || {};
       const sendSnapshot = (e?: any) => {
+        assert(actor, "expected actor reference to exist");
         const nextSnapshot = actor.getPersistedSnapshot();
         const operations = compare(lastSnapshot, nextSnapshot);
         lastSnapshot = nextSnapshot;

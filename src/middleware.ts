@@ -7,7 +7,7 @@ import {
   parseAppInstallToken,
   parsedBrowserSessionTokenFromCookie,
   setGuestTokenCookieHeader,
-  setSessionTokenCookieHeader
+  setSessionTokenCookieHeader,
 } from "./lib/browser-session";
 import { CallerSchema } from "./schema";
 
@@ -37,8 +37,8 @@ export async function middleware(request: NextRequest) {
 
     if (caller) {
       const callerParse = CallerSchema.safeParse(caller);
-      if (callerParse.success && callerParse.data.uniqueIdType === "guest") {
-        uniqueId = callerParse.data.uniqueId;
+      if (callerParse.success && callerParse.data.type === "guest") {
+        uniqueId = callerParse.data.type;
       }
     }
 
@@ -53,8 +53,7 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
 
   const browserSessionToken = await getBrowserSessionTokenFromCookie();
-  const parsedBrowserSessionToken =
-    await parsedBrowserSessionTokenFromCookie();
+  const parsedBrowserSessionToken = await parsedBrowserSessionTokenFromCookie();
   if (browserSessionToken && parsedBrowserSessionToken) {
     requestHeaders.set("x-browser-session-token", browserSessionToken);
   } else {
