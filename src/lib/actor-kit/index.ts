@@ -194,7 +194,7 @@ export const createMachineServer = <
         this.callersByConnectionId.set(connectionId, caller);
         const token = await createConnectionToken(this.room.id, connectionId);
 
-        waitFor(this.actor, (state) => {
+        await waitFor(this.actor, (state) => {
           const anyState = state as SnapshotFrom<AnyStateMachine>;
           return anyState.matches({ Initialization: "Ready" });
         });

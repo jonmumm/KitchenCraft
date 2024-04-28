@@ -10,12 +10,11 @@ export default async function Page() {
 
   const browserSessionActorClient = await getBrowserSessionActorClient();
   const browserSessionId = await getBrowserSessionId();
-  const { snapshot, connectionId, token } = await browserSessionActorClient.get(
+  const { snapshot } = await browserSessionActorClient.get(
     browserSessionId,
     {}
   );
   assert(snapshot, "expected snapshot");
-  console.log(snapshot.value);
 
   switch (snapshot.value.Onboarding) {
     case "Preferences":

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { IsOnboaridngInComplete } from "./components.client";
 
 export function QuizBanner({ showInitial }: { showInitial: boolean }) {
-  console.log({ showInitial });
   return (
     <IsOnboaridngInComplete initialValue={showInitial}>
       <div className="crafting:hidden">
