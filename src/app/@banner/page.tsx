@@ -1,5 +1,5 @@
-import Banner from "./components";
+import { QuizBanner } from "./components";
 
 export default async function Page() {
-  return <Banner />;
+  return <QuizBanner />;
 }

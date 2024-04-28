@@ -43,7 +43,6 @@ export const getPageSessionActorClient = withSpan(
   cache(async () => {
     const uniqueId = await getUniqueId();
     const uniqueIdType = await getUniqueIdType();
-    console.log({ uniqueId, uniqueIdType });
 
     return createActorHTTPClient<
       typeof pageSessionMachine,
