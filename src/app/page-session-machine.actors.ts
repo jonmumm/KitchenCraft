@@ -104,7 +104,6 @@ const ensureListWithSlugExists = async (
     if (item) {
       return { success: true, listId: item.id } as const;
     }
-    console.log({ userId });
 
     // If the list does not exist, create it.
     result = await withDatabaseSpan(
@@ -299,7 +298,6 @@ export const listenBrowserSession = fromEventObservable(
         typeof message.data === "string",
         "expected message data to be a string"
       );
-      console.log(message.data);
 
       const { operations } = z
         .object({ operations: z.array(z.custom<Operation>()) })
@@ -308,7 +306,6 @@ export const listenBrowserSession = fromEventObservable(
       const nextSnapshot = produce(currentSnapshot || {}, (draft) => {
         applyPatch(draft, operations);
       });
-      console.log(nextSnapshot);
       subject.next({
         type: "BROWSER_SESSION_UPDATE",
         snapshot: nextSnapshot as any,

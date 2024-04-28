@@ -36,6 +36,14 @@ export const browserSessionMachine = setup({
     },
   }),
   states: {
+    Initialization: {
+      initial: "Ready",
+      states: {
+        Ready: {
+          type: "final",
+        },
+      },
+    },
     Onboarding: {
       initial: "NotStarted",
       on: {

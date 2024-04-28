@@ -658,13 +658,24 @@ export const pageSessionMachine = setup({
   }),
   type: "parallel",
   states: {
+    Initialization: {
+      initial: "Loading",
+      states: {
+        Loading: {
+          on: {
+            BROWSER_SESSION_UPDATE: "Ready",
+          },
+        },
+        Ready: {
+          type: "final",
+        },
+      },
+    },
     BrowserSession: {
       initial: "Uninitialized",
       states: {
         Uninitialized: {
-          on: {
-            INITIALIZE: "Initializing",
-          },
+          always: "Initializing",
         },
         Initializing: {
           invoke: {

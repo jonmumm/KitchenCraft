@@ -14,6 +14,7 @@ import {
   StateMachine,
   Subscription,
   createActor,
+  waitFor,
 } from "xstate";
 import { z } from "zod";
 import { createCallerToken, parseCallerIdToken } from "../browser-session";
@@ -148,11 +149,9 @@ export const createMachineServer = <
 
     async onRequest(request: Party.Request) {
       const connectionId = randomUUID();
-      console.log(connectionId);
       const authHeader = request.headers.get("Authorization");
       const callerIdToken = authHeader?.split(" ")[1];
       assert(callerIdToken, "unable to parse bearer token");
-      console.log(callerIdToken);
       const caller = await parseCallerIdToken(callerIdToken);
 
       // if (request.method === "POST") {
@@ -192,7 +191,6 @@ export const createMachineServer = <
 
         this.callersByConnectionId.set(connectionId, caller);
         const token = await createConnectionToken(this.room.id, connectionId);
-        const snapshot = this.actor.getPersistedSnapshot();
 
         // @ts-expect-error
         this.actor.send({
@@ -201,9 +199,19 @@ export const createMachineServer = <
           parties: this.room.context.parties,
         });
 
+        waitFor(this.actor, (state) => {
+          const anyState = state as SnapshotFrom<AnyStateMachine>;
+          const matches = anyState.matches({ Initialization: "Ready" });
+          return anyState.matches({ Initialization: "Ready" });
+        });
+        // waitFor(this.actor, ())
+
+        // todo next, maybe dont send this and just wait until the actor is initialized... if it has that as a tate...
+
         // TODO add await here if the machine supports it...
         // this would allow us to hydrate date before giving it back for SSR
 
+        const snapshot = this.actor.getPersistedSnapshot();
         this.lastSnapshotsByConnectionId.set(connectionId, snapshot);
 
         return json({
