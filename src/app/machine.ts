@@ -175,15 +175,15 @@ export const createCraftMachine = ({
       }
     }
 
-    const ingredients =
-      searchParams["ingredients"] &&
-      ingredientsParser.parseServerSide(searchParams["ingredients"]);
-    const tags =
-      searchParams["tags"] && tagsParser.parseServerSide(searchParams["tags"]);
+    // const ingredients =
+    //   searchParams["ingredients"] &&
+    //   ingredientsParser.parseServerSide(searchParams["ingredients"]);
+    // const tags =
+    //   searchParams["tags"] && tagsParser.parseServerSide(searchParams["tags"]);
 
     return {
-      ingredients: ingredients || undefined,
-      tags: tags || undefined,
+      ingredients: undefined,
+      tags: undefined,
       suggestions: null,
       substitutions: undefined,
       dietaryAlternatives: undefined,

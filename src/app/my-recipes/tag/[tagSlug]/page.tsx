@@ -1,16 +1,8 @@
-import { tagsParser } from "@/app/parsers";
 import { RecipeListItem } from "@/app/recipe/components";
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
-import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
-import { TagsCarousel } from "@/modules/tags-carousel";
-import { db } from "@/db";
-import {
-  getRecipesByTag,
-  getRecipesByTagAndCreator,
-  getTagCountsForUserCreatedRecipes,
-} from "@/db/queries";
+import { getRecipesByTagAndCreator } from "@/db/queries";
 import { getUniqueId } from "@/lib/auth/session";
 import { slugToSentence } from "@/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
