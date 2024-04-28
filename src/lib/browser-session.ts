@@ -176,6 +176,13 @@ export const getPageSessionId = () => {
   return pageSessionId;
 };
 
+export const getBrowserSessionId = () => {
+  const headerList = headers();
+  const browserSessionId = headerList.get("x-browser-session-id");
+  assert(browserSessionId, "expected x-broser-session-id in header");
+  return browserSessionId;
+};
+
 export const getRequestUrl = () => {
   const headerList = headers();
   const url = headerList.get("x-url");

@@ -367,3 +367,74 @@ export type ServerPartySocket = Awaited<
     ReturnType<Party.Context["parties"]["browser_sessions"]["get"]>["socket"]
   >
 >;
+
+export interface OnboardingInput {
+  equipment: {
+    airFryer?: boolean;
+    slowCooker?: boolean;
+    instantPot?: boolean;
+    wok?: boolean;
+    sousVide?: boolean;
+    blender?: boolean;
+    standMixer?: boolean;
+    foodProcessor?: boolean;
+    dutchOven?: boolean;
+    castIronSkillet?: boolean;
+    pressureCooker?: boolean;
+    juicer?: boolean;
+    pastaMaker?: boolean;
+    breadMaker?: boolean;
+    iceCreamMaker?: boolean;
+    electricGrill?: boolean;
+    pizzaStone?: boolean;
+    coffeeGrinder?: boolean;
+    espressoMachine?: boolean;
+    toasterOven?: boolean;
+    microwave?: boolean;
+    conventionalOven?: boolean;
+  };
+  preferences: {
+    likesSpicy?: boolean;
+    quickRecipes?: boolean;
+    outdoorGrilling?: boolean;
+    cooksWithAlcohol?: boolean;
+    vegetarian?: boolean;
+    likesSeafood?: boolean;
+    organic?: boolean;
+    cookingForKids?: boolean;
+    lowSodium?: boolean;
+    usesFreshHerbs?: boolean;
+    bakesOften?: boolean;
+    onePotMeals?: boolean;
+    enjoysInternationalCuisine?: boolean;
+    interestedInGourmet?: boolean;
+    usesDairySubstitutes?: boolean;
+    seasonalRecipes?: boolean;
+    glutenFree?: boolean;
+    vegan?: boolean;
+    highProtein?: boolean;
+    interestedInWeightLoss?: boolean;
+  };
+  favoriteIngredients: {
+    chicken?: boolean;
+    beef?: boolean;
+    pork?: boolean;
+    fish?: boolean;
+    shellfish?: boolean;
+    tofu?: boolean;
+    legumes?: boolean;
+    vegetables?: boolean;
+    leafyGreens?: boolean;
+    rootVegetables?: boolean;
+    fruits?: boolean;
+    dairy?: boolean;
+    eggs?: boolean;
+    grains?: boolean;
+    nutsAndSeeds?: boolean;
+    spices?: boolean;
+    herbs?: boolean;
+    oilsAndVinegars?: boolean;
+    sweeteners?: boolean;
+    bakingEssentials?: boolean;
+  };
+}

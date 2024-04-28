@@ -55,9 +55,12 @@ export async function middleware(request: NextRequest) {
   const browserSessionToken = await getBrowserSessionTokenFromCookie();
   const parsedBrowserSessionToken = await parsedBrowserSessionTokenFromCookie();
   if (browserSessionToken && parsedBrowserSessionToken) {
+    requestHeaders.set("x-browser-session-id", parsedBrowserSessionToken.jti);
     requestHeaders.set("x-browser-session-token", browserSessionToken);
   } else {
-    newBrowserSessionToken = await createBrowserSessionToken(uuidv4());
+    const browserSessionId = uuidv4();
+    newBrowserSessionToken = await createBrowserSessionToken(browserSessionId);
+    requestHeaders.set("x-browser-session-id", browserSessionId);
     requestHeaders.set("x-browser-session-token", newBrowserSessionToken);
   }
 

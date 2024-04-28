@@ -165,51 +165,39 @@ export const createMachineServer = <
       // }
 
       if (request.method === "GET") {
-        // console.log(request.cf);
-        const index = request.url.indexOf("?");
-        const search = index !== -1 ? request.url.substring(index + 1) : "";
-        const params = new URLSearchParams(search);
-        const inputJsonString = params.get("input");
-        assert(inputJsonString, "expected input object in query params");
-        const inputJson = JSON.parse(inputJsonString);
+        if (!this.actor) {
+          // console.log(request.cf);
+          const index = request.url.indexOf("?");
+          const search = index !== -1 ? request.url.substring(index + 1) : "";
+          const params = new URLSearchParams(search);
+          const inputJsonString = params.get("input");
+          assert(inputJsonString, "expected input object in query params");
+          const inputJson = JSON.parse(inputJsonString);
 
-        const input = {
-          id: this.room.id,
-          storage: this.room.storage,
-          partyContext: this.room.context,
-          initialCaller: caller,
-          ...inputJson,
-        } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
-        // console.log(input);
+          const input = {
+            id: this.room.id,
+            storage: this.room.storage,
+            partyContext: this.room.context,
+            initialCaller: caller,
+            ...inputJson,
+          } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
+          // console.log(input);
 
-        this.actor = createActor(machine, {
-          input,
-        });
-        this.actor.start();
+          this.actor = createActor(machine, {
+            input,
+          });
+          this.actor.start();
+        }
 
         // this.room.context.parties["session"]?.get("foo")
 
         this.callersByConnectionId.set(connectionId, caller);
         const token = await createConnectionToken(this.room.id, connectionId);
 
-        // @ts-expect-error
-        this.actor.send({
-          type: "INITIALIZE",
-          caller,
-          parties: this.room.context.parties,
-        });
-
         waitFor(this.actor, (state) => {
           const anyState = state as SnapshotFrom<AnyStateMachine>;
-          const matches = anyState.matches({ Initialization: "Ready" });
           return anyState.matches({ Initialization: "Ready" });
         });
-        // waitFor(this.actor, ())
-
-        // todo next, maybe dont send this and just wait until the actor is initialized... if it has that as a tate...
-
-        // TODO add await here if the machine supports it...
-        // this would allow us to hydrate date before giving it back for SSR
 
         const snapshot = this.actor.getPersistedSnapshot();
         this.lastSnapshotsByConnectionId.set(connectionId, snapshot);

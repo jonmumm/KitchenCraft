@@ -33,12 +33,10 @@ import {
   EnterChefNameCard,
   EnterEmailCard,
   IsCreatingList,
-  IsInOnboarding,
   IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
   IsSelectingList,
-  OnboardingFlow,
   PersonalizationSettingsMenu,
   SearchParamsToastMessage,
   SelectListCard,
@@ -116,7 +114,7 @@ export default async function RootLayout(
 
   const pageSessionActorClient = await getPageSessionActorClient();
   const pageSessionId = await getPageSessionId();
-  const browserSessionToken = await getBrowserSessionToken(); // todo maybe move this to a header?
+  const browserSessionToken = await getBrowserSessionToken();
   const url = await getRequestUrl();
   const { snapshot, connectionId, token } = await pageSessionActorClient.get(
     pageSessionId,
@@ -187,7 +185,7 @@ export default async function RootLayout(
                 <RegistrationDialog />
                 <SaveDialog />
                 <PersonalizationSettingsDialog />
-                <OnboardingDialog />
+                {/* <OnboardingDialog /> */}
               </ThemeProvider>
               <Toaster />
               <SearchParamsToastMessage />
@@ -200,22 +198,22 @@ export default async function RootLayout(
   );
 }
 
-const OnboardingDialog = () => {
-  const isMobile = getIsMobile();
+// const OnboardingDialog = () => {
+//   const isMobile = getIsMobile();
 
-  return (
-    <>
-      <IsInOnboarding>
-        <ResponsiveDialog open isMobile={isMobile}>
-          <ResponsiveDialogOverlay />
-          <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto">
-            <OnboardingFlow />
-          </ResponsiveDialogContent>
-        </ResponsiveDialog>
-      </IsInOnboarding>
-    </>
-  );
-};
+//   return (
+//     <>
+//       <IsInOnboarding>
+//         <ResponsiveDialog open isMobile={isMobile}>
+//           <ResponsiveDialogOverlay />
+//           <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto">
+//             <OnboardingFlow />
+//           </ResponsiveDialogContent>
+//         </ResponsiveDialog>
+//       </IsInOnboarding>
+//     </>
+//   );
+// };
 
 const PersonalizationSettingsDialog = () => {
   const isMobile = getIsMobile();

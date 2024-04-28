@@ -1,6 +1,5 @@
-import { AppEvent, SystemEvent, WithCaller } from "@/types";
-import { produce } from "immer";
-import { assign, setup } from "xstate";
+import { AppEvent, OnboardingInput, SystemEvent, WithCaller } from "@/types";
+import { setup } from "xstate";
 import { z } from "zod";
 
 const InputSchema = z.object({
@@ -12,9 +11,7 @@ type Input = z.infer<typeof InputSchema>;
 type BrowserSessionContext = {
   id: string;
   userId: string;
-  onboardingInput: {
-    mealType: string | undefined;
-  };
+  onboardingInput: OnboardingInput;
 };
 
 export const browserSessionMachine = setup({
@@ -24,7 +21,9 @@ export const browserSessionMachine = setup({
     events: {} as WithCaller<AppEvent> | WithCaller<SystemEvent>,
   },
   actors: {},
-  guards: {},
+  guards: {
+    didLoadOnboardingPage: ({ event }) => false,
+  },
   actions: {},
 }).createMachine({
   id: "BrowserSessionMachine",
@@ -32,7 +31,9 @@ export const browserSessionMachine = setup({
   context: ({ input }) => ({
     ...input,
     onboardingInput: {
-      mealType: undefined,
+      equipment: {},
+      preferences: {},
+      favoriteIngredients: {},
     },
   }),
   states: {
@@ -46,60 +47,46 @@ export const browserSessionMachine = setup({
     },
     Onboarding: {
       initial: "NotStarted",
-      on: {
-        CLOSE: ".NotStarted",
-      },
       states: {
         NotStarted: {
           on: {
-            START_ONBOARDING: "MealType",
-          },
-        },
-        MealType: {
-          on: {
-            SELECT_VALUE: {
-              target: "Exclusions",
-              guard: ({ event }) => event.name === "onboarding:meal_type",
-              actions: assign({
-                onboardingInput: ({ context, event }) =>
-                  produce(context.onboardingInput, (draft) => {
-                    draft.mealType = event.value;
-                  }),
-              }),
+            PAGE_LOADED: {
+              target: "Welcome",
+              guard: ({ event, context }) => {
+                return event.pathname.startsWith("/quiz");
+              },
             },
           },
         },
-        Exclusions: {
+        Welcome: {
           on: {
-            NEXT: "Misc",
-            CHANGE: {
-              target: "Exclusions",
-              guard: ({ event }) => event.name === "onboarding:exclusions",
-              // actions: assign(({ context, event }) =>
-              //   produce(context, (draft) => {
-              //     draft.userPreferences.dietaryRestrictions = event.value;
-              //     draft.modifiedPreferences.dietaryRestrictions = true;
-              //   })
-              // ),
+            PAGE_LOADED: {
+              target: "Equipment",
+              guard: ({ context, event }) => {
+                return event.pathname.startsWith("/quiz/equipment");
+              },
             },
-          },
-        },
-        Misc: {
-          on: {
-            NEXT: "Equipment",
           },
         },
         Equipment: {
           on: {
-            NEXT: "Ingredients",
+            PAGE_LOADED: {
+              target: "Preferences",
+              guard: ({ event }) =>
+                event.pathname.startsWith("/quiz/preferences"),
+            },
           },
         },
-        Ingredients: {
+        Preferences: {
           on: {
-            NEXT: "Complete",
+            PAGE_LOADED: {
+              target: "Complete",
+              guard: ({ event }) => event.pathname.startsWith("/quiz/results"),
+            },
           },
         },
         Complete: {
+          // todo update the results here...
           type: "final",
         },
       },
