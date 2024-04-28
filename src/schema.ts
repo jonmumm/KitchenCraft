@@ -832,11 +832,20 @@ const ChangeListEventSchema = z.object({
   type: z.literal("CHANGE_LIST"),
 });
 
+const VisibilityStateEnum = z.enum(["visible", "hidden", "prerender"]);
+
+// Event schema definition
+const VisibilityChangeEventSchema = z.object({
+  type: z.literal("VISIBILITY_CHANGE"),
+  visibilityState: VisibilityStateEnum,
+});
+
 export const SystemEventSchema = z.discriminatedUnion("type", [
   AuthenticateEventSchema,
 ]);
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+  VisibilityChangeEventSchema,
   ChangeListEventSchema,
   CreateListEventSchema,
   SelectListEventSchema,

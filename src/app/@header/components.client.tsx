@@ -15,7 +15,6 @@ import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
 import { useStore } from "@nanostores/react";
 import { ArrowLeftIcon, ChevronRight, Settings2Icon, XCircleIcon } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChangeEventHandler,
   ComponentProps,
@@ -30,6 +29,7 @@ import {
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { CraftContext } from "../context";
 import { PageSessionContext } from "../page-session-store.context";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -127,9 +127,9 @@ export const CraftInput = ({
 
   const send = useSend();
   const handleBlur = useCallback(() => {
+      setAutofocus(false);
     if (autoFocus && initialBlurRef.current) {
       send({ type: "BLUR_PROMPT" });
-      setAutofocus(false);
     } else if (!autoFocus) {
       send({ type: "BLUR_PROMPT" });
     }

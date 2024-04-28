@@ -89,6 +89,7 @@ export function ApplicationProvider(props: {
         <ApplicationContext.Provider value={store}>
           <CraftProvider>
             <SessionEventProviders />
+            <VisibilityEventsProvider />
             <PageLoadEventsProvider />
             <SearchParamsEventsProvider />
             <HashChangeEventsProvider />
@@ -193,6 +194,41 @@ const SessionEventProviders = () => {
     // }
     return () => {};
   }, [send, session]);
+
+  return null;
+};
+
+const VisibilityEventsProvider: React.FC = () => {
+  const send = useSend();
+  const visibilityStateRef = useRef<string>();
+
+  useEffect(() => {
+    // Ensure this code only runs in a browser environment
+    if (typeof window !== "undefined" && typeof document !== "undefined") {
+      visibilityStateRef.current = document.visibilityState;
+
+      const handleVisibilityChange = () => {
+        const currentVisibility = document.visibilityState;
+
+        if (visibilityStateRef.current !== currentVisibility) {
+          send({
+            type: "VISIBILITY_CHANGE",
+            visibilityState: currentVisibility,
+          });
+          visibilityStateRef.current = currentVisibility;
+        }
+      };
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+
+      return () => {
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
+      };
+    }
+  }, [send]);
 
   return null;
 };

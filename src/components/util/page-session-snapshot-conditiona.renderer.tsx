@@ -17,6 +17,11 @@ export const PageSessionSnapshotConditionalRenderer = (
     session$.subscribe,
     () => props.selector(session$.get()),
     () => {
+      console.log(
+        "SSR",
+        props.initialValueOverride,
+        props.selector(session$.get())
+      );
       return typeof props.initialValueOverride === "boolean"
         ? props.initialValueOverride
         : props.selector(session$.get());

@@ -4,11 +4,7 @@ import Link from "next/link";
 import { IsOnboaridngInComplete } from "./components.client";
 
 export function QuizBanner({ showInitial }: { showInitial: boolean }) {
-  // const appSessionId = getAppSessionId();
-  // const canInstallPWA = getCanInstallPWA();
-  // if (!canInstallPWA || appSessionId) {
-  //   return null;
-  // }
+  console.log({ showInitial });
   return (
     <IsOnboaridngInComplete initialValue={showInitial}>
       <div className="crafting:hidden">
