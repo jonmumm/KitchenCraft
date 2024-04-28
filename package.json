@@ -87,7 +87,6 @@
     "next": "^14.0.4",
     "next-auth": "^4.24.5",
     "next-themes": "^0.2.1",
-    "next-usequerystate": "^1.9.1",
     "observable-hooks": "^4.2.3",
     "openai": "^4.10.0",
     "partykit": "^0.0.104",

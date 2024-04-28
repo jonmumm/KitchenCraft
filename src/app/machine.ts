@@ -17,7 +17,7 @@ import {
 import { produce } from "immer";
 import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
-import { parseAsString } from "next-usequerystate";
+// import { parseAsString } from "next-usequerystate";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import {
   ActorRefFrom,
@@ -31,7 +31,6 @@ import {
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
 import { SessionSnapshot } from "./page-session-store";
-import { ingredientsParser, tagsParser } from "./parsers";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
   const params = new URLSearchParams();
@@ -130,10 +129,6 @@ export const createCraftMachine = ({
   const getSuggestionsEventSource = (input: SuggestionsInput) => {
     const params = new URLSearchParams();
     if (input.prompt) params.set("prompt", input.prompt);
-    if (input.ingredients)
-      params.set("ingredients", ingredientsParser.serialize(input.ingredients));
-    if (input.tags) params.set("tags", tagsParser.serialize(input.tags));
-
     const eventSourceUrl = `/api/suggestions?${params.toString()}`;
     return new EventSource(eventSourceUrl);
   };
@@ -166,7 +161,8 @@ export const createCraftMachine = ({
   // }
 
   const initialContext = (() => {
-    let prompt = parseAsString.parseServerSide(searchParams["prompt"]);
+    // let prompt = parseAsString.parseServerSide(searchParams["prompt"]);
+    let prompt = ""; // todo parse;
 
     // Overr-ride the prompt with whatever is in the input box if the prompt is open
     if (initialOpen && typeof document !== "undefined") {
