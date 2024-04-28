@@ -3,7 +3,7 @@ import { getProfileByUserId } from "@/db/queries";
 import { getServerSession } from "next-auth";
 import { cache } from "react";
 import { createActorHTTPClient } from "../actor-kit";
-import { getGuestId, getRequestUrl } from "../browser-session";
+import { getGuestId } from "../browser-session";
 import { withSpan } from "../observability";
 import { authOptions } from "./options";
 
@@ -43,8 +43,12 @@ export const getPageSessionActorClient = withSpan(
   cache(async () => {
     const uniqueId = await getUniqueId();
     const uniqueIdType = await getUniqueIdType();
+    console.log({ uniqueId, uniqueIdType });
 
-    return createActorHTTPClient<typeof pageSessionMachine, typeof uniqueIdType>({
+    return createActorHTTPClient<
+      typeof pageSessionMachine,
+      typeof uniqueIdType
+    >({
       type: "page_session",
       caller: {
         id: uniqueId,

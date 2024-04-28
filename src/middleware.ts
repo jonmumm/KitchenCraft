@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
     if (caller) {
       const callerParse = CallerSchema.safeParse(caller);
       if (callerParse.success && callerParse.data.type === "guest") {
-        uniqueId = callerParse.data.type;
+        uniqueId = callerParse.data.id;
       }
     }
 
