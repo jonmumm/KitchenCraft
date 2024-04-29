@@ -1,64 +1,77 @@
 "use client";
 
+// EquipmentSelection.tsx
 import { Card } from "@/components/display/card";
 import { Button } from "@/components/input/button";
 import { Checkbox } from "@/components/input/checkbox";
-import { OnboardingInput } from "@/types";
+import { useSend } from "@/hooks/useSend";
+import { formatDisplayName } from "@/lib/utils";
+import { EquipmentSettings } from "@/types";
+import { useStore } from "@nanostores/react";
+import { map } from "nanostores";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
+// Define the Zod schema for equipment settings
+
+// Create the equipment nanostore
+const $equipment = map<EquipmentSettings>({
+  airFryer: undefined,
+  slowCooker: undefined,
+  instantPot: undefined,
+  wok: undefined,
+  sousVide: undefined,
+  blender: undefined,
+  standMixer: undefined,
+  foodProcessor: undefined,
+  dutchOven: undefined,
+  castIronSkillet: undefined,
+  pressureCooker: undefined,
+  juicer: undefined,
+  pastaMaker: undefined,
+  breadMaker: undefined,
+  iceCreamMaker: undefined,
+  electricGrill: undefined,
+  pizzaStone: undefined,
+  coffeeGrinder: undefined,
+  espressoMachine: undefined,
+  toasterOven: undefined,
+  microwave: undefined,
+  conventionalOven: undefined,
+});
+
+// EquipmentCard component
+function EquipmentCard({
+  equipmentKey,
+}: {
+  equipmentKey: keyof EquipmentSettings;
+}) {
+  const equipment = useStore($equipment, { keys: [equipmentKey] });
+  const send = useSend();
+
+  const toggleEquipment = () => {
+    const value = !equipment[equipmentKey];
+    send({ type: "EQUIPMENT_CHANGE", equipment: equipmentKey, value });
+    $equipment.setKey(equipmentKey, value);
+  };
+
+  return (
+    <Card
+      className="cursor-pointer p-4 flex flex-row justify-between items-center"
+      onClick={toggleEquipment}
+    >
+      <div className="flex-1">
+        <span className="font-semibold">{formatDisplayName(equipmentKey)}</span>
+      </div>
+      <Checkbox id={equipmentKey} checked={!!equipment[equipmentKey]} />
+    </Card>
+  );
+}
+
+// Main Equipment component
 export default function Equipment() {
   const router = useRouter();
+  const equipment = useStore($equipment);
 
-  // Initialize the state for equipment as undefined based on OnboardingInput
-  const initialEquipmentState: OnboardingInput["equipment"] = {
-    airFryer: undefined,
-    slowCooker: undefined,
-    instantPot: undefined,
-    wok: undefined,
-    sousVide: undefined,
-    blender: undefined,
-    standMixer: undefined,
-    foodProcessor: undefined,
-    dutchOven: undefined,
-    castIronSkillet: undefined,
-    pressureCooker: undefined,
-    juicer: undefined,
-    pastaMaker: undefined,
-    breadMaker: undefined,
-    iceCreamMaker: undefined,
-    electricGrill: undefined,
-    pizzaStone: undefined,
-    coffeeGrinder: undefined,
-    espressoMachine: undefined,
-    toasterOven: undefined,
-    microwave: undefined,
-    conventionalOven: undefined,
-  };
-
-  const [selectedEquipment, setSelectedEquipment] = useState(
-    initialEquipmentState
-  );
-
-  // Handle the toggle of checkbox value from card click event
-  // useEventHandler("SELECT_VALUE", (event) => {
-  //   if (event.name && event.value !== undefined) {
-  //     setSelectedEquipment((prev) => ({
-  //       ...prev,
-  //       [event.name]: event.value,
-  //     }));
-  //   }
-  // });
-
-  // Function to convert camelCase to Title Case
-  const formatDisplayName = (key: string) => {
-    return key
-      .replace(/([A-Z])/g, " $1") // Insert a space before each uppercase letter
-      .replace(/^./, (str) => str.toUpperCase()) // Capitalize the first letter
-      .trim(); // Remove any leading or trailing whitespace
-  };
-
-  // Navigate to the next page
   const handleNext = () => {
     router.push("/quiz/diet");
   };
@@ -69,19 +82,11 @@ export default function Equipment() {
         Select your cooking equipment
       </h1>
       <div className="space-y-2 w-full max-w-md h-full p-4">
-        {Object.entries(selectedEquipment).map(([key, value]) => (
-          <Card
+        {Object.keys(equipment).map((key) => (
+          <EquipmentCard
             key={key}
-            className="cursor-pointer p-4 flex flex-row justify-between items-center"
-            onClick={() =>
-              setSelectedEquipment((prev) => ({ ...prev, [key]: !value }))
-            }
-          >
-            <div className="flex-1">
-              <span className="font-semibold">{formatDisplayName(key)}</span>
-            </div>
-            <Checkbox id={key} checked={!!value} />
-          </Card>
+            equipmentKey={key as keyof EquipmentSettings}
+          />
         ))}
       </div>
       <div className="sticky bottom-0 w-full p-2 flex justify-center">

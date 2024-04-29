@@ -43,6 +43,14 @@ export function sentenceToSlug(sentence: string): string {
     .replace(/^-|-$/g, "");
 }
 
+// Helper function to format display names from camcelCase keys
+export function formatDisplayName(key: string) {
+  return key
+    .replace(/([A-Z])/g, ' $1') // Insert space before each uppercase letter
+    .replace(/^./, (str) => str.toUpperCase()) // Capitalize the first letter
+    .trim();
+}
+
 export function slugToSentence(slug: string): string {
   // Replace dashes with spaces
   let sentence = slug.replace(/-/g, " ");

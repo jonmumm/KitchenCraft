@@ -130,6 +130,107 @@ export const RecipeRequiredPropsSchema = z.object({
 
 const UserIdSchema = z.string();
 
+export const EquipmentSettingsSchema = z.object({
+  airFryer: z.boolean().optional(),
+  slowCooker: z.boolean().optional(),
+  instantPot: z.boolean().optional(),
+  wok: z.boolean().optional(),
+  sousVide: z.boolean().optional(),
+  blender: z.boolean().optional(),
+  standMixer: z.boolean().optional(),
+  foodProcessor: z.boolean().optional(),
+  dutchOven: z.boolean().optional(),
+  castIronSkillet: z.boolean().optional(),
+  pressureCooker: z.boolean().optional(),
+  juicer: z.boolean().optional(),
+  pastaMaker: z.boolean().optional(),
+  breadMaker: z.boolean().optional(),
+  iceCreamMaker: z.boolean().optional(),
+  electricGrill: z.boolean().optional(),
+  pizzaStone: z.boolean().optional(),
+  coffeeGrinder: z.boolean().optional(),
+  espressoMachine: z.boolean().optional(),
+  toasterOven: z.boolean().optional(),
+  microwave: z.boolean().optional(),
+  conventionalOven: z.boolean().optional(),
+});
+
+export const DietSettingsSchema = z.object({
+  glutenFree: z.boolean().optional(),
+  vegan: z.boolean().optional(),
+  vegetarian: z.boolean().optional(),
+  lactoseIntolerant: z.boolean().optional(),
+  eggFree: z.boolean().optional(),
+  nutFree: z.boolean().optional(),
+  seafoodFree: z.boolean().optional(),
+  wheatFree: z.boolean().optional(),
+  soyFree: z.boolean().optional(),
+  lowSodium: z.boolean().optional(),
+  usesDairySubstitutes: z.boolean().optional(),
+  sugarFree: z.boolean().optional(),
+  lowCarb: z.boolean().optional(),
+  paleo: z.boolean().optional(),
+  keto: z.boolean().optional(),
+  mediterraneanDiet: z.boolean().optional(),
+  noAlcohol: z.boolean().optional(),
+  pescatarian: z.boolean().optional(),
+  flexitarian: z.boolean().optional(),
+  whole30: z.boolean().optional(),
+  diabeticFriendly: z.boolean().optional(),
+  halal: z.boolean().optional(),
+  kosher: z.boolean().optional(),
+  ayurvedic: z.boolean().optional(),
+});
+
+export const PreferenceSettingsSchema = z.object({
+  hotAndSpicyRegular: z.boolean().optional(), // "Hot and Spicy Regular" - Do you regularly include spicy foods in your meals?
+  vegetableAvoider: z.boolean().optional(), // "Vegetable Avoider" - Do you often choose to exclude vegetables from your meals?
+  dessertSkipper: z.boolean().optional(), // "Dessert Skipper" - Do you generally avoid eating desserts?
+  redMeatRegular: z.boolean().optional(), // "Red Meat Regular" - Is red meat a frequent choice in your meals?
+  seafoodSelector: z.boolean().optional(), // "Seafood Selector" - Do you specifically seek out seafood dishes?
+  herbPreference: z.boolean().optional(), // "Herb Preference" - Do you prefer dishes with a noticeable use of fresh herbs?
+  cheeseOptional: z.boolean().optional(), // "Cheese Optional" - Do you often opt out of adding cheese to dishes where it's not a main ingredient?
+  breadEssential: z.boolean().optional(), // "Bread Essential" - Is bread a must-have component in your meals?
+  nutFreePreference: z.boolean().optional(), // "Nut-Free Preference" - Do you prefer to avoid nuts in your dishes?
+  rawFoodConsumer: z.boolean().optional(), // "Raw Food Consumer" - Do you eat raw food (e.g., sushi, beef tartare, etc.)?
+});
+
+export const ExperienceLevelSchema = z.enum([
+  "beginner",
+  "intermediate",
+  "advanced",
+]);
+
+export const OnboardingInputSchema = z.object({
+  experienceLevel: ExperienceLevelSchema.optional(),
+  equipment: EquipmentSettingsSchema,
+  diet: DietSettingsSchema,
+  preferences: PreferenceSettingsSchema,
+});
+
+const EquipmentChangeEventSchema = z.object({
+  type: z.literal("EQUIPMENT_CHANGE"),
+  equipment: EquipmentSettingsSchema.keyof(),
+  value: z.boolean(),
+});
+
+const ExperienceChangeEventSchema = z.object({
+  type: z.literal("EXPERIENCE_CHANGE"),
+  experience: ExperienceLevelSchema,
+});
+
+const DietChangeEventSchema = z.object({
+  type: z.literal("DIET_CHANGE"),
+  dietType: DietSettingsSchema.keyof(),
+  value: z.boolean(),
+});
+
+const PreferenceChangeEventSchema = z.object({
+  type: z.literal("PREFERENCE_CHANGE"),
+  preference: PreferenceSettingsSchema.keyof(),
+  value: z.boolean().optional(),
+});
+
 export const SuggestionPredictionInputSchema = z
   .object({
     ingredients: z.array(z.string()).optional(),
@@ -845,6 +946,10 @@ export const SystemEventSchema = z.discriminatedUnion("type", [
 ]);
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ExperienceChangeEventSchema,
+  EquipmentChangeEventSchema,
+  DietChangeEventSchema,
+  PreferenceChangeEventSchema,
   VisibilityChangeEventSchema,
   ChangeListEventSchema,
   CreateListEventSchema,

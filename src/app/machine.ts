@@ -1,18 +1,12 @@
 import {
-  GeneratorObervableEvent,
-  eventSourceToGenerator,
+  GeneratorObervableEvent
 } from "@/lib/generator";
 import { assert, isMobile } from "@/lib/utils";
 import {
-  InstantRecipeMetadataPredictionOutputSchema,
-  SuggestionPredictionOutputSchema,
-} from "@/schema";
-import {
   AppEvent,
   InstantRecipeMetadataPredictionOutput,
-  InstantRecipeMetdataInput,
   SuggestionPredictionOutput,
-  SuggestionsInput,
+  SuggestionsInput
 } from "@/types";
 import { produce } from "immer";
 import { ReadableAtom } from "nanostores";
@@ -24,9 +18,8 @@ import {
   SnapshotFrom,
   and,
   assign,
-  fromEventObservable,
   fromPromise,
-  setup,
+  setup
 } from "xstate";
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
@@ -70,95 +63,12 @@ export const createCraftMachine = ({
   session$: ReadableAtom<SessionSnapshot>;
   token: string;
 }) => {
-  const instantRecipeMetadataGenerator = fromEventObservable(
-    ({ input }: { input: InstantRecipeMetdataInput }) => {
-      const source = getInstantRecipeMetadataEventSource(input);
-      return eventSourceToGenerator(
-        source,
-        "INSTANT_RECIPE_METADATA",
-        InstantRecipeMetadataPredictionOutputSchema
-      );
-    }
-  );
-  const suggestionsGenerator = fromEventObservable(
-    ({ input }: { input: SuggestionsInput }) => {
-      const source = getSuggestionsEventSource(input);
-      return eventSourceToGenerator(
-        source,
-        "SUGGESTION",
-        SuggestionPredictionOutputSchema
-      );
-    }
-  );
-
-  const remixSuggestionsGenerator = fromEventObservable(
-    ({ input }: { input: { slug: string } }) => {
-      const source = getRemixSuggestionsEventSource(input);
-      return eventSourceToGenerator(
-        source,
-        "REMIX_SUGGESTIONS",
-        SuggestionPredictionOutputSchema
-      );
-    }
-  );
-
-  // const createNewInstantRecipe = fromPromise(
-  //   async ({
-  //     input,
-  //   }: {
-  //     input: { instantRecipeResultId: string; prompt: string };
-  //   }) => {
-  //     return await serverActions.createNewInstantRecipe(
-  //       input.prompt,
-  //       input.instantRecipeResultId
-  //     );
-  //   }
-  // );
-  // const createNewRecipeFromSuggestion = fromPromise(
-  //   async ({
-  //     input,
-  //   }: {
-  //     input: { suggestionsResultId: string; index: number };
-  //   }) =>
-  //     await serverActions.createNewRecipeFromSuggestion(
-  //       input.suggestionsResultId,
-  //       input.index
-  //     )
-  // );
-
-  const getSuggestionsEventSource = (input: SuggestionsInput) => {
-    const params = new URLSearchParams();
-    if (input.prompt) params.set("prompt", input.prompt);
-    const eventSourceUrl = `/api/suggestions?${params.toString()}`;
-    return new EventSource(eventSourceUrl);
-  };
-
-  const getRemixSuggestionsEventSource = (input: { slug: string }) => {
-    const params = new URLSearchParams();
-
-    const eventSourceUrl = `/api/recipe/${input.slug}/remix-suggestions`;
-    return new EventSource(eventSourceUrl);
-  };
-
   const initialOpen =
     searchParams["crafting"] === "1" ||
     (typeof document !== "undefined" &&
       document.body.classList.contains("crafting"))
       ? "True"
       : "False";
-
-  // if (typeof window !== "undefined" && initialOpen) {
-  //   const queryParams = new URLSearchParams(window.location.search);
-  //   queryParams.set("crafting", "1");
-  //   const paramString = queryParams.toString();
-
-  //   // Construct the new URL
-  //   const newUrl =
-  //     paramString !== ""
-  //       ? window.location.pathname + "?" + paramString
-  //       : window.location.pathname;
-  //   router.replace(newUrl);
-  // }
 
   const initialContext = (() => {
     // let prompt = parseAsString.parseServerSide(searchParams["prompt"]);
@@ -196,9 +106,9 @@ export const createCraftMachine = ({
     } satisfies Context;
   })();
 
-  const initialPromptState = session$.get().context.prompt?.length
-    ? "Dirty"
-    : "Pristine";
+  // const initialPromptState = session$.get().context.prompt?.length
+  //   ? "Dirty"
+  //   : "Pristine";
 
   const waitForSessionValue = fromPromise(
     async ({
@@ -353,9 +263,6 @@ export const createCraftMachine = ({
     },
     actors: {
       placeholderMachine,
-      instantRecipeMetadataGenerator,
-      suggestionsGenerator,
-      remixSuggestionsGenerator,
       waitForSessionValue,
       // createNewInstantRecipe,
       // createNewRecipeFromSuggestion,
@@ -406,33 +313,6 @@ export const createCraftMachine = ({
       },
       type: "parallel",
       states: {
-        // TokenState: {
-        //   on: {
-        //     CLEAR: {
-        //       guard: ({ event }) => !!event.all,
-        //       actions: assign({
-        //         tokens: [],
-        //       }),
-        //     },
-        //     REMOVE_TOKEN: {
-        //       actions: assign({
-        //         prompt: "",
-        //         // currentItemIndex: 0,
-        //         tokens: ({ context, event }) => [
-        //           ...context.tokens.filter((token) => token !== event.token),
-        //         ],
-        //       }),
-        //     },
-        //     ADD_TOKEN: {
-        //       actions: assign({
-        //         tokens: ({ context, event }) => [
-        //           ...context.tokens,
-        //           event.token,
-        //         ],
-        //       }),
-        //     },
-        //   },
-        // },
         Auth: {
           initial: !session ? "Anonymous" : "LoggedIn",
           on: {

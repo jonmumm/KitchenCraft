@@ -30,11 +30,13 @@ import {
   CreateMessageInputSchema,
   CreateRecipeInputSchema,
   CuisineSchema,
+  DietSettingsSchema,
   DietaryAlternativesInputSchema,
   DietaryAlternativesPredictionInputSchema,
   DishTypeSchema,
   EquipmentAdaptationsInputSchema,
   EquipmentAdaptationsPredictionInputSchema,
+  EquipmentSettingsSchema,
   FAQsPredictionInputSchema,
   GeneratorTypeSchema,
   IdeasPredictionOutputSchema,
@@ -54,6 +56,8 @@ import {
   ModifyRecipeScalePredictionInputSchema,
   NewInstantRecipePredictionInputSchema,
   NewRecipeFromSuggestionsPredictionInputSchema,
+  OnboardingInputSchema,
+  PreferenceSettingsSchema,
   ProfileSlugSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
@@ -368,72 +372,8 @@ export type ServerPartySocket = Awaited<
   >
 >;
 
-export interface OnboardingInput {
-  experienceLevel?: "beginner" | "intermediate" | "advanced";
-  equipment: {
-    airFryer?: boolean;
-    slowCooker?: boolean;
-    instantPot?: boolean;
-    wok?: boolean;
-    sousVide?: boolean;
-    blender?: boolean;
-    standMixer?: boolean;
-    foodProcessor?: boolean;
-    dutchOven?: boolean;
-    castIronSkillet?: boolean;
-    pressureCooker?: boolean;
-    juicer?: boolean;
-    pastaMaker?: boolean;
-    breadMaker?: boolean;
-    iceCreamMaker?: boolean;
-    electricGrill?: boolean;
-    pizzaStone?: boolean;
-    coffeeGrinder?: boolean;
-    espressoMachine?: boolean;
-    toasterOven?: boolean;
-    microwave?: boolean;
-    conventionalOven?: boolean;
-  };
-  diet: {
-    glutenFree?: boolean;
-    vegan?: boolean;
-    vegetarian?: boolean;
-    lactoseIntolerant?: boolean;
-    eggFree?: boolean;
-    nutFree?: boolean;
-    seafoodFree?: boolean;
-    wheatFree?: boolean;
-    soyFree?: boolean;
-    lowSodium?: boolean;
-    usesDairySubstitutes?: boolean;
-    sugarFree?: boolean;
-    lowCarb?: boolean;
-    paleo?: boolean;
-    keto?: boolean;
-    mediterraneanDiet?: boolean;
-    pescatarian?: boolean;
-    flexitarian?: boolean;
-    whole30?: boolean;
-    diabeticFriendly?: boolean;
-    halal?: boolean;
-    kosher?: boolean;
-    ayurvedic?: boolean;
-  };
-  preferences: {
-    outdoorGrilling?: boolean;
-    quickRecipes?: boolean;
-    onePotMeals?: boolean;
-    cooksWithAlcohol?: boolean;
-    seasonalRecipes?: boolean;
-    bakesOften?: boolean;
-    interestedInGourmet?: boolean;
-    likesSpicy?: boolean;
-    likesSeafood?: boolean;
-    preferOrganic?: boolean;
-    usesFreshHerbs?: boolean;
-    highProtein?: boolean;
-    interestedInWeightLoss?: boolean;
-    farmToTable?: boolean;
-    noProcessedFoods?: boolean;
-  };
-}
+export type OnboardingInput = z.infer<typeof OnboardingInputSchema>;
+
+export type EquipmentSettings = z.infer<typeof EquipmentSettingsSchema>;
+export type DietSettings = z.infer<typeof DietSettingsSchema>;
+export type PreferenceSettings = z.infer<typeof PreferenceSettingsSchema>;
