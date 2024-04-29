@@ -46,7 +46,7 @@ export default function Experience() {
           </Button>
           <div>
             <CardTitle>Intermediate</CardTitle>
-            <CardDescription>Comfortable with basic recipes</CardDescription>
+            <CardDescription>I'm comfortable with many recipes</CardDescription>
           </div>
         </ExperienceCard>
         <ExperienceCard onClick={handleCTA} data-value="advanced">
