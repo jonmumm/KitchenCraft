@@ -369,7 +369,7 @@ export type ServerPartySocket = Awaited<
 >;
 
 export interface OnboardingInput {
-  experienceLevel?: "beginner" | "intermediate" | "advanced",
+  experienceLevel?: "beginner" | "intermediate" | "advanced";
   equipment: {
     airFryer?: boolean;
     slowCooker?: boolean;
@@ -394,76 +394,46 @@ export interface OnboardingInput {
     microwave?: boolean;
     conventionalOven?: boolean;
   };
-  preferences: {
-    likesSpicy?: boolean;
-    quickRecipes?: boolean;
-    outdoorGrilling?: boolean;
-    cooksWithAlcohol?: boolean;
-    vegetarian?: boolean;
-    likesSeafood?: boolean;
-    preferOrganic?: boolean;
-    cookingForKids?: boolean;
-    lowSodium?: boolean;
-    usesFreshHerbs?: boolean;
-    bakesOften?: boolean;
-    onePotMeals?: boolean;
-    interestedInGourmet?: boolean;
-    usesDairySubstitutes?: boolean;
-    seasonalRecipes?: boolean;
+  diet: {
     glutenFree?: boolean;
     vegan?: boolean;
-    highProtein?: boolean;
-    interestedInWeightLoss?: boolean;
+    vegetarian?: boolean;
+    lactoseIntolerant?: boolean;
+    eggFree?: boolean;
+    nutFree?: boolean;
+    seafoodFree?: boolean;
+    wheatFree?: boolean;
+    soyFree?: boolean;
+    lowSodium?: boolean;
+    usesDairySubstitutes?: boolean;
+    sugarFree?: boolean;
     lowCarb?: boolean;
     paleo?: boolean;
     keto?: boolean;
     mediterraneanDiet?: boolean;
-    sugarFree?: boolean;
-    highFiber?: boolean;
-    farmToTable?: boolean;
-    nutFree?: boolean;
     pescatarian?: boolean;
     flexitarian?: boolean;
     whole30?: boolean;
-    noProcessedFoods?: boolean;
     diabeticFriendly?: boolean;
-    lactoseIntolerant?: boolean;
-    ayurvedic?: boolean;
     halal?: boolean;
     kosher?: boolean;
+    ayurvedic?: boolean;
   };
-  favoriteCuisines: {
-    Italian?: boolean;
-    Mexican?: boolean;
-    Chinese?: boolean;
-    Japanese?: boolean;
-    Indian?: boolean;
-    Thai?: boolean;
-    French?: boolean;
-    Greek?: boolean;
-    Spanish?: boolean;
-    Korean?: boolean;
-    Vietnamese?: boolean;
-    Lebanese?: boolean;
-    Turkish?: boolean;
-    Brazilian?: boolean;
-    South_African?: boolean;
-    Ethiopian?: boolean;
-    Filipino?: boolean;
-    Jamaican?: boolean;
-    British?: boolean;
-    German?: boolean;
-    Persian?: boolean;
-    Russian?: boolean;
-    Moroccan?: boolean;
-    Swedish?: boolean;
-    Hungarian?: boolean;
-    Polish?: boolean;
-    Indonesian?: boolean;
-    Cuban?: boolean;
-    Peruvian?: boolean;
-    Malaysian?: boolean;
+  preferences: {
+    outdoorGrilling?: boolean;
+    quickRecipes?: boolean;
+    onePotMeals?: boolean;
+    cooksWithAlcohol?: boolean;
+    seasonalRecipes?: boolean;
+    bakesOften?: boolean;
+    interestedInGourmet?: boolean;
+    likesSpicy?: boolean;
+    likesSeafood?: boolean;
+    preferOrganic?: boolean;
+    usesFreshHerbs?: boolean;
+    highProtein?: boolean;
+    interestedInWeightLoss?: boolean;
+    farmToTable?: boolean;
+    noProcessedFoods?: boolean;
   };
 }
-
-

@@ -1,5 +1,6 @@
 "use client";
 
+import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { OnboardingInput } from "@/types";
@@ -9,32 +10,25 @@ import { useState } from "react";
 export default function Preferences() {
   const router = useRouter();
 
-  // Initialize the state for preferences as undefined based on OnboardingInput
   const initialPreferencesState: OnboardingInput["preferences"] = {
-    likesSpicy: undefined,
-    quickRecipes: undefined,
     outdoorGrilling: undefined,
+    quickRecipes: undefined,
+    onePotMeals: undefined,
     cooksWithAlcohol: undefined,
-    vegetarian: undefined,
+    seasonalRecipes: undefined,
+    bakesOften: undefined,
+    interestedInGourmet: undefined,
+    likesSpicy: undefined,
     likesSeafood: undefined,
     preferOrganic: undefined,
-    cookingForKids: undefined,
-    lowSodium: undefined,
     usesFreshHerbs: undefined,
-    bakesOften: undefined,
-    onePotMeals: undefined,
-    interestedInGourmet: undefined,
-    usesDairySubstitutes: undefined,
-    seasonalRecipes: undefined,
-    glutenFree: undefined,
-    vegan: undefined,
     highProtein: undefined,
     interestedInWeightLoss: undefined,
+    farmToTable: undefined,
+    noProcessedFoods: undefined,
   };
 
-  const [selectedPreferences, setSelectedPreferences] = useState(
-    initialPreferencesState
-  );
+  const [selectedPreferences, setSelectedPreferences] = useState(initialPreferencesState);
 
   // Handle preference selection changes
   const handleSelectPreference = (
@@ -49,7 +43,6 @@ export default function Preferences() {
 
   // Navigate to the next page or submit the data
   const handleCTA = () => {
-    // You might want to process the collected data here or move to another page
     console.log(selectedPreferences); // Example action
     router.push("/quiz/results");
   };
@@ -58,25 +51,21 @@ export default function Preferences() {
   const preferencesDisplayNames: {
     [key in keyof OnboardingInput["preferences"]]: string;
   } = {
-    likesSpicy: "Do you like spicy food?",
-    quickRecipes: "Do you prefer quick recipes (under 30 minutes)?",
-    outdoorGrilling: "Is outdoor grilling an option?",
+    outdoorGrilling: "Is outdoor grilling an option for you?",
+    quickRecipes: "Do you prefer quick recipes?",
+    onePotMeals: "Do you prefer one-pot meals?",
     cooksWithAlcohol: "Do you cook with alcohol?",
-    vegetarian: "Do you prefer vegetarian meals?",
+    seasonalRecipes: "Do you follow seasonal recipes?",
+    bakesOften: "Do you bake often?",
+    interestedInGourmet: "Are you interested in gourmet cooking?",
+    likesSpicy: "Do you like spicy food?",
     likesSeafood: "Do you like seafood?",
     preferOrganic: "Do you prefer organic ingredients?",
-    cookingForKids: "Are you cooking for kids?",
-    lowSodium: "Do you need low-sodium recipes?",
     usesFreshHerbs: "Do you prefer using fresh herbs?",
-    bakesOften: "Do you bake often?",
-    onePotMeals: "Do you prefer one-pot meals?",
-    interestedInGourmet: "Are you interested in gourmet cooking?",
-    usesDairySubstitutes: "Do you use dairy substitutes?",
-    seasonalRecipes: "Do you follow seasonal recipes?",
-    glutenFree: "Prefer gluten-free recipes?",
-    vegan: "Are vegan meals a preference?",
     highProtein: "Do you focus on high-protein meals?",
     interestedInWeightLoss: "Interested in weight loss recipes?",
+    farmToTable: "Do you prefer farm-to-table ingredients?",
+    noProcessedFoods: "Do you avoid processed foods?",
   };
 
   return (

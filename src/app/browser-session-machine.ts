@@ -34,7 +34,7 @@ export const browserSessionMachine = setup({
       experienceLevel: undefined,
       equipment: {},
       preferences: {},
-      favoriteCuisines: {},
+      diet: {},
     },
   }),
   states: {
@@ -72,7 +72,7 @@ export const browserSessionMachine = setup({
         Experience: {
           on: {
             PAGE_LOADED: {
-              target: "Cuisines",
+              target: "Equipment",
               guard: ({ event }) =>
                 event.pathname.startsWith("/quiz/equipment"),
             },
@@ -81,12 +81,12 @@ export const browserSessionMachine = setup({
         Equipment: {
           on: {
             PAGE_LOADED: {
-              target: "Cuisines",
-              guard: ({ event }) => event.pathname.startsWith("/quiz/cuisines"),
+              target: "Diet",
+              guard: ({ event }) => event.pathname.startsWith("/quiz/diet"),
             },
           },
         },
-        Cuisines: {
+        Diet: {
           on: {
             PAGE_LOADED: {
               target: "Preferences",

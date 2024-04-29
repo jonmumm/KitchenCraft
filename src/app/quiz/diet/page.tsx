@@ -3,60 +3,41 @@
 import { Card } from "@/components/display/card";
 import { Button } from "@/components/input/button";
 import { Checkbox } from "@/components/input/checkbox";
-import { useEventHandler } from "@/hooks/useEventHandler";
 import { OnboardingInput } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function Equipment() {
+export default function Diet() {
   const router = useRouter();
 
-  // Initialize the state for equipment as undefined based on OnboardingInput
-  const initialCuisinesState: OnboardingInput["favoriteCuisines"] = {
-    Italian: undefined,
-    Mexican: undefined,
-    Chinese: undefined,
-    Japanese: undefined,
-    Indian: undefined,
-    Thai: undefined,
-    French: undefined,
-    Greek: undefined,
-    Spanish: undefined,
-    Korean: undefined,
-    Vietnamese: undefined,
-    Lebanese: undefined,
-    Turkish: undefined,
-    Brazilian: undefined,
-    South_African: undefined,
-    Ethiopian: undefined,
-    Filipino: undefined,
-    Jamaican: undefined,
-    British: undefined,
-    German: undefined,
-    Persian: undefined,
-    Russian: undefined,
-    Moroccan: undefined,
-    Swedish: undefined,
-    Hungarian: undefined,
-    Polish: undefined,
-    Indonesian: undefined,
-    Cuban: undefined,
-    Peruvian: undefined,
-    Malaysian: undefined,
+  // Initialize the state for diet as undefined based on OnboardingInput
+  const initialDietState: OnboardingInput["diet"] = {
+    glutenFree: undefined,
+    vegan: undefined,
+    vegetarian: undefined,
+    lactoseIntolerant: undefined,
+    eggFree: undefined,
+    nutFree: undefined,
+    seafoodFree: undefined,
+    wheatFree: undefined,
+    soyFree: undefined,
+    lowSodium: undefined,
+    usesDairySubstitutes: undefined,
+    sugarFree: undefined,
+    lowCarb: undefined,
+    paleo: undefined,
+    keto: undefined,
+    mediterraneanDiet: undefined,
+    pescatarian: undefined,
+    flexitarian: undefined,
+    whole30: undefined,
+    diabeticFriendly: undefined,
+    halal: undefined,
+    kosher: undefined,
+    ayurvedic: undefined,
   };
 
-  const [selectedCuisines, setSelectedCuisines] =
-    useState(initialCuisinesState);
-
-  // Handle the toggle of checkbox value from card click event
-  useEventHandler("SELECT_VALUE", (event) => {
-    if (event.name && event.value !== undefined) {
-      setSelectedCuisines((prev) => ({
-        ...prev,
-        [event.name]: event.value,
-      }));
-    }
-  });
+  const [selectedDiet, setSelectedDiet] = useState(initialDietState);
 
   // Function to convert camelCase to Title Case
   const formatDisplayName = (key: string) => {
@@ -66,21 +47,32 @@ export default function Equipment() {
       .trim(); // Remove any leading or trailing whitespace
   };
 
+  // Handle the toggle of checkbox value from card click event
+  const handleToggleDietOption = (key: keyof OnboardingInput["diet"]) => {
+    setSelectedDiet((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
   // Navigate to the next page
   const handleNext = () => {
+    console.log(selectedDiet); // Optionally log the selected options
     router.push("/quiz/preferences");
   };
 
   return (
     <div className="flex flex-col items-center justify-center relative">
-      <h1 className="text-xl font-bold px-4 text-center text-balance">What cuisines do you like?</h1>
+      <h1 className="text-xl font-bold px-4 text-center">
+        Select Your Dietary Preferences
+      </h1>
       <div className="space-y-2 w-full max-w-md h-full p-4">
-        {Object.entries(selectedCuisines).map(([key, value]) => (
+        {Object.entries(selectedDiet).map(([key, value]) => (
           <Card
             key={key}
             className="cursor-pointer p-4 flex flex-row justify-between items-center"
             onClick={() =>
-              setSelectedCuisines((prev) => ({ ...prev, [key]: !value }))
+              handleToggleDietOption(key as keyof OnboardingInput["diet"])
             }
           >
             <div className="flex-1">

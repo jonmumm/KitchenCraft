@@ -14,19 +14,16 @@ export default function Results() {
   }, [router]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <div className="text-center animate-pulse">
-        <h1 className="text-4xl font-bold mb-4">
-          Personalizing Your KitchenCraft Experience
+    <div className="flex flex-col items-center justify-center h-full my-20">
+      <div className="text-center animate-pulse px-4">
+        <h1 className="text-xl font-bold mb-4">
+          AI Personalization in Progress
         </h1>
-        <p className="text-lg">
+        <p className="text-sm">
           Thank you for sharing your preferences! We&apos;re now tailoring your
           account to ensure you get the most out of KitchenCraft.
         </p>
       </div>
-      <p className="text-sm mt-4">
-        Preparing your personalized recommendations...
-      </p>
     </div>
   );
 }

@@ -37,7 +37,9 @@ export default function Equipment() {
     conventionalOven: undefined,
   };
 
-  const [selectedEquipment, setSelectedEquipment] = useState(initialEquipmentState);
+  const [selectedEquipment, setSelectedEquipment] = useState(
+    initialEquipmentState
+  );
 
   // Handle the toggle of checkbox value from card click event
   useEventHandler("SELECT_VALUE", (event) => {
@@ -59,12 +61,14 @@ export default function Equipment() {
 
   // Navigate to the next page
   const handleNext = () => {
-    router.push("/quiz/cuisines");
+    router.push("/quiz/diet");
   };
 
   return (
     <div className="flex flex-col items-center justify-center relative">
-      <h1 className="text-xl font-bold px-4 text-center text-balance">Select your cooking equipment</h1>
+      <h1 className="text-xl font-bold px-4 text-center text-balance">
+        Select your cooking equipment
+      </h1>
       <div className="space-y-2 w-full max-w-md h-full p-4">
         {Object.entries(selectedEquipment).map(([key, value]) => (
           <Card
