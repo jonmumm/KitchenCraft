@@ -69,7 +69,7 @@ export default function Experience() {
                 {level === "beginner"
                   ? "I need guidance"
                   : level === "intermediate"
-                  ? "Comfortable with basic recipes"
+                  ? "I'm comfortable with many recipes"
                   : "I experiment with complex recipes"}
               </CardDescription>
             </div>
