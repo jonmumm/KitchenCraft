@@ -31,9 +31,10 @@ export const browserSessionMachine = setup({
   context: ({ input }) => ({
     ...input,
     onboardingInput: {
+      experienceLevel: undefined,
       equipment: {},
       preferences: {},
-      favoriteIngredients: {},
+      favoriteCuisines: {},
     },
   }),
   states: {
@@ -61,14 +62,31 @@ export const browserSessionMachine = setup({
         Welcome: {
           on: {
             PAGE_LOADED: {
-              target: "Equipment",
+              target: "Experience",
               guard: ({ context, event }) => {
-                return event.pathname.startsWith("/quiz/equipment");
+                return event.pathname.startsWith("/quiz/experience");
               },
             },
           },
         },
+        Experience: {
+          on: {
+            PAGE_LOADED: {
+              target: "Cuisines",
+              guard: ({ event }) =>
+                event.pathname.startsWith("/quiz/equipment"),
+            },
+          },
+        },
         Equipment: {
+          on: {
+            PAGE_LOADED: {
+              target: "Cuisines",
+              guard: ({ event }) => event.pathname.startsWith("/quiz/cuisines"),
+            },
+          },
+        },
+        Cuisines: {
           on: {
             PAGE_LOADED: {
               target: "Preferences",

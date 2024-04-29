@@ -12,37 +12,46 @@ export default function Equipment() {
   const router = useRouter();
 
   // Initialize the state for equipment as undefined based on OnboardingInput
-  const initialEquipmentState: OnboardingInput["equipment"] = {
-    airFryer: undefined,
-    slowCooker: undefined,
-    instantPot: undefined,
-    wok: undefined,
-    sousVide: undefined,
-    blender: undefined,
-    standMixer: undefined,
-    foodProcessor: undefined,
-    dutchOven: undefined,
-    castIronSkillet: undefined,
-    pressureCooker: undefined,
-    juicer: undefined,
-    pastaMaker: undefined,
-    breadMaker: undefined,
-    iceCreamMaker: undefined,
-    electricGrill: undefined,
-    pizzaStone: undefined,
-    coffeeGrinder: undefined,
-    espressoMachine: undefined,
-    toasterOven: undefined,
-    microwave: undefined,
-    conventionalOven: undefined,
+  const initialCuisinesState: OnboardingInput["favoriteCuisines"] = {
+    Italian: undefined,
+    Mexican: undefined,
+    Chinese: undefined,
+    Japanese: undefined,
+    Indian: undefined,
+    Thai: undefined,
+    French: undefined,
+    Greek: undefined,
+    Spanish: undefined,
+    Korean: undefined,
+    Vietnamese: undefined,
+    Lebanese: undefined,
+    Turkish: undefined,
+    Brazilian: undefined,
+    South_African: undefined,
+    Ethiopian: undefined,
+    Filipino: undefined,
+    Jamaican: undefined,
+    British: undefined,
+    German: undefined,
+    Persian: undefined,
+    Russian: undefined,
+    Moroccan: undefined,
+    Swedish: undefined,
+    Hungarian: undefined,
+    Polish: undefined,
+    Indonesian: undefined,
+    Cuban: undefined,
+    Peruvian: undefined,
+    Malaysian: undefined,
   };
 
-  const [selectedEquipment, setSelectedEquipment] = useState(initialEquipmentState);
+  const [selectedCuisines, setSelectedCuisines] =
+    useState(initialCuisinesState);
 
   // Handle the toggle of checkbox value from card click event
   useEventHandler("SELECT_VALUE", (event) => {
     if (event.name && event.value !== undefined) {
-      setSelectedEquipment((prev) => ({
+      setSelectedCuisines((prev) => ({
         ...prev,
         [event.name]: event.value,
       }));
@@ -59,19 +68,19 @@ export default function Equipment() {
 
   // Navigate to the next page
   const handleNext = () => {
-    router.push("/quiz/cuisines");
+    router.push("/quiz/preferences");
   };
 
   return (
     <div className="flex flex-col items-center justify-center relative">
-      <h1 className="text-xl font-bold px-4 text-center text-balance">Select your cooking equipment</h1>
+      <h1 className="text-xl font-bold px-4 text-center text-balance">What cuisines do you like?</h1>
       <div className="space-y-2 w-full max-w-md h-full p-4">
-        {Object.entries(selectedEquipment).map(([key, value]) => (
+        {Object.entries(selectedCuisines).map(([key, value]) => (
           <Card
             key={key}
             className="cursor-pointer p-4 flex flex-row justify-between items-center"
             onClick={() =>
-              setSelectedEquipment((prev) => ({ ...prev, [key]: !value }))
+              setSelectedCuisines((prev) => ({ ...prev, [key]: !value }))
             }
           >
             <div className="flex-1">

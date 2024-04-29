@@ -369,6 +369,7 @@ export type ServerPartySocket = Awaited<
 >;
 
 export interface OnboardingInput {
+  experienceLevel?: "beginner" | "intermediate" | "advanced",
   equipment: {
     airFryer?: boolean;
     slowCooker?: boolean;
@@ -400,13 +401,12 @@ export interface OnboardingInput {
     cooksWithAlcohol?: boolean;
     vegetarian?: boolean;
     likesSeafood?: boolean;
-    organic?: boolean;
+    preferOrganic?: boolean;
     cookingForKids?: boolean;
     lowSodium?: boolean;
     usesFreshHerbs?: boolean;
     bakesOften?: boolean;
     onePotMeals?: boolean;
-    enjoysInternationalCuisine?: boolean;
     interestedInGourmet?: boolean;
     usesDairySubstitutes?: boolean;
     seasonalRecipes?: boolean;
@@ -414,27 +414,56 @@ export interface OnboardingInput {
     vegan?: boolean;
     highProtein?: boolean;
     interestedInWeightLoss?: boolean;
+    lowCarb?: boolean;
+    paleo?: boolean;
+    keto?: boolean;
+    mediterraneanDiet?: boolean;
+    sugarFree?: boolean;
+    highFiber?: boolean;
+    farmToTable?: boolean;
+    nutFree?: boolean;
+    pescatarian?: boolean;
+    flexitarian?: boolean;
+    whole30?: boolean;
+    noProcessedFoods?: boolean;
+    diabeticFriendly?: boolean;
+    lactoseIntolerant?: boolean;
+    ayurvedic?: boolean;
+    halal?: boolean;
+    kosher?: boolean;
   };
-  favoriteIngredients: {
-    chicken?: boolean;
-    beef?: boolean;
-    pork?: boolean;
-    fish?: boolean;
-    shellfish?: boolean;
-    tofu?: boolean;
-    legumes?: boolean;
-    vegetables?: boolean;
-    leafyGreens?: boolean;
-    rootVegetables?: boolean;
-    fruits?: boolean;
-    dairy?: boolean;
-    eggs?: boolean;
-    grains?: boolean;
-    nutsAndSeeds?: boolean;
-    spices?: boolean;
-    herbs?: boolean;
-    oilsAndVinegars?: boolean;
-    sweeteners?: boolean;
-    bakingEssentials?: boolean;
+  favoriteCuisines: {
+    Italian?: boolean;
+    Mexican?: boolean;
+    Chinese?: boolean;
+    Japanese?: boolean;
+    Indian?: boolean;
+    Thai?: boolean;
+    French?: boolean;
+    Greek?: boolean;
+    Spanish?: boolean;
+    Korean?: boolean;
+    Vietnamese?: boolean;
+    Lebanese?: boolean;
+    Turkish?: boolean;
+    Brazilian?: boolean;
+    South_African?: boolean;
+    Ethiopian?: boolean;
+    Filipino?: boolean;
+    Jamaican?: boolean;
+    British?: boolean;
+    German?: boolean;
+    Persian?: boolean;
+    Russian?: boolean;
+    Moroccan?: boolean;
+    Swedish?: boolean;
+    Hungarian?: boolean;
+    Polish?: boolean;
+    Indonesian?: boolean;
+    Cuban?: boolean;
+    Peruvian?: boolean;
+    Malaysian?: boolean;
   };
 }
+
+
