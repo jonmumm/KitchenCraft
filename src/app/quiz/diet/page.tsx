@@ -64,7 +64,7 @@ export default function Diet() {
   return (
     <div className="flex flex-col items-center justify-center relative">
       <h1 className="text-xl font-bold px-4 text-center">
-        Select Your Dietary Preferences
+        Which of these apply to you?
       </h1>
       <div className="space-y-2 w-full max-w-md h-full p-4">
         {Object.entries(selectedDiet).map(([key, value]) => (
