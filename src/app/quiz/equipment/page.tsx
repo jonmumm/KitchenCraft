@@ -3,7 +3,6 @@
 import { Card } from "@/components/display/card";
 import { Button } from "@/components/input/button";
 import { Checkbox } from "@/components/input/checkbox";
-import { useEventHandler } from "@/hooks/useEventHandler";
 import { OnboardingInput } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -42,14 +41,14 @@ export default function Equipment() {
   );
 
   // Handle the toggle of checkbox value from card click event
-  useEventHandler("SELECT_VALUE", (event) => {
-    if (event.name && event.value !== undefined) {
-      setSelectedEquipment((prev) => ({
-        ...prev,
-        [event.name]: event.value,
-      }));
-    }
-  });
+  // useEventHandler("SELECT_VALUE", (event) => {
+  //   if (event.name && event.value !== undefined) {
+  //     setSelectedEquipment((prev) => ({
+  //       ...prev,
+  //       [event.name]: event.value,
+  //     }));
+  //   }
+  // });
 
   // Function to convert camelCase to Title Case
   const formatDisplayName = (key: string) => {
@@ -79,9 +78,7 @@ export default function Equipment() {
             }
           >
             <div className="flex-1">
-              <label htmlFor={key} className="font-semibold">
-                {formatDisplayName(key)}
-              </label>
+              <span className="font-semibold">{formatDisplayName(key)}</span>
             </div>
             <Checkbox id={key} checked={!!value} />
           </Card>

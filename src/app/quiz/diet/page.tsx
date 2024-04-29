@@ -76,9 +76,9 @@ export default function Diet() {
             }
           >
             <div className="flex-1">
-              <label htmlFor={key} className="font-semibold">
+              <span className="font-semibold">
                 {formatDisplayName(key)}
-              </label>
+              </span>
             </div>
             <Checkbox id={key} checked={!!value} />
           </Card>
