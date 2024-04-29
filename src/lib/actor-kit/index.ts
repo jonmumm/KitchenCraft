@@ -1,5 +1,5 @@
 import { json, notFound } from "@/lib/actor-kit/utils/response";
-import { AppEventSchema, SystemEventSchema } from "@/schema";
+import { AppEventSchema, RequestInfoSchema, SystemEventSchema } from "@/schema";
 import { Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
@@ -313,13 +313,22 @@ export const createMachineServer = <
       // const caller = this.callersByConnectionId.get(connection.id);
       const parties = this.room.context.parties;
 
+      let requestInfo: z.infer<typeof RequestInfoSchema> | undefined;
+      if (context.request.cf) {
+        const result = RequestInfoSchema.safeParse(context.request.cf);
+        if (result.success) {
+          requestInfo = result.data;
+        }
+      }
       // @ts-expect-error
       actor.send({
         type: "CONNECT",
         connectionId: connection.id,
         caller,
+        requestInfo,
         parties,
       });
+
       const sub = actor.subscribe(sendSnapshot);
       this.subscrptionsByConnectionId.set(connection.id, sub);
       // this.room.context.parties.get("")

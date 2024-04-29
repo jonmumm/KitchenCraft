@@ -24,7 +24,9 @@ import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder
 import { ChefNameSchema, ListNameSchema } from "@/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
+import { Label } from "@radix-ui/react-label";
 import {
+  CarrotIcon,
   ClockIcon,
   MoveLeftIcon,
   PlusCircleIcon,
@@ -39,6 +41,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  FC,
   ReactNode,
   forwardRef,
   useCallback,
@@ -50,10 +53,12 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { twc } from "react-twc";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
 import { CraftContext } from "../context";
 import { CraftSnapshot } from "../machine";
+import { SessionStoreSnapshot } from "../page-session-store-provider";
 import {
   PageSessionContext,
   PageSessionSnapshot,
@@ -1110,9 +1115,7 @@ export const EnterEmailForm = () => {
   );
 };
 
-const selectIsLoadingChefNameAvailability = (
-  snapshot: PageSessionSnapshot
-) => {
+const selectIsLoadingChefNameAvailability = (snapshot: PageSessionSnapshot) => {
   const stateValue = snapshot.value;
   return (
     typeof stateValue === "object" &&
@@ -1775,4 +1778,114 @@ export const SaveRecipeBadge = () => {
       </Card>
     </Link>
   );
+};
+
+export const Container = twc.div`flex flex-col gap-2 h-full mx-auto w-full`;
+export const Section = twc.div`flex flex-col gap-1`;
+interface SectionLabelProps {
+  icon: React.ElementType; // This type is used for components passed as props
+  title: string;
+}
+
+export const SectionLabel: FC<SectionLabelProps> = ({ icon: Icon, title }) => {
+  return (
+    <Label className="text-xs text-muted-foreground uppercase font-semibold px-4 flex flex-row gap-1">
+      <Icon size={14} />
+      {title}
+    </Label>
+  );
+};
+
+export const BadgeList = ({ children }: { children: ReactNode }) => {
+  return <div className="px-4 flex flex-row gap-2 flex-wrap">{children}</div>;
+};
+
+const selectSuggestedIngredients = (snapshot: SessionStoreSnapshot) => {
+  return (
+    snapshot.context.browserSessionSnapshot?.context.suggestedIngredients || []
+  );
+};
+
+const IngredientsLabel = () => {
+  return <SectionLabel icon={CarrotIcon} title={"Ingredients"} />;
+};
+
+export const SuggestedIngredientsSection = () => {
+  const items = new Array(20).fill(0);
+  const session$ = useSessionStore();
+  const ingredients = useSyncExternalStore(
+    session$.subscribe,
+    () => selectSuggestedIngredients(session$.get()),
+    () => selectSuggestedIngredients(session$.get())
+  );
+
+  return (
+    <CraftEmpty>
+      <Section className="max-w-3xl mx-auto">
+        <IngredientsLabel />
+        <BadgeList>
+          {items.map((item, index) => {
+            return (
+              <Badge
+                variant="outline"
+                className="carousel-item flex flex-row gap-1"
+                key={index}
+                event={{ type: "ADD_TOKEN", token: ingredients[index]! }}
+              >
+                {ingredients[index] ? (
+                  <>{ingredients[index]}</>
+                ) : (
+                  <Skeleton className="w-8 h-4 animate-pulse" />
+                )}
+              </Badge>
+            );
+          })}
+        </BadgeList>
+      </Section>
+    </CraftEmpty>
+  );
+};
+
+const selectSuggestedTags = (snapshot: SessionStoreSnapshot) => {
+  return snapshot.context.browserSessionSnapshot?.context.suggestedTags || [];
+};
+
+export const SuggestedTagsSection = () => {
+  const items = new Array(20).fill(0);
+  const session$ = useSessionStore();
+  const tags = useSyncExternalStore(
+    session$.subscribe,
+    () => selectSuggestedTags(session$.get()),
+    () => selectSuggestedTags(session$.get())
+  );
+
+  return (
+    <CraftEmpty>
+      <Section className="max-w-3xl mx-auto">
+        <TagsLabel />
+        <BadgeList>
+          {items.map((item, index) => {
+            return (
+              <Badge
+                variant="outline"
+                className="carousel-item flex flex-row gap-1"
+                key={index}
+                event={{ type: "ADD_TOKEN", token: tags[index]! }}
+              >
+                {tags[index] ? (
+                  <>{tags[index]}</>
+                ) : (
+                  <Skeleton className="w-8 h-4 animate-pulse" />
+                )}
+              </Badge>
+            );
+          })}
+        </BadgeList>
+      </Section>
+    </CraftEmpty>
+  );
+};
+
+const TagsLabel = () => {
+  return <SectionLabel icon={TagIcon} title="Tags" />;
 };

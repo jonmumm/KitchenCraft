@@ -6,17 +6,15 @@ import ClientOnly from "@/components/util/client-only";
 import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
 import {
-  CarrotIcon,
-  HeartIcon,
   Loader2Icon,
   MoveRightIcon,
   PlusCircleIcon,
   ShareIcon,
   TagIcon,
 } from "lucide-react";
-import { FC, ReactNode } from "react";
-import { twc } from "react-twc";
+import { ReactNode } from "react";
 import {
+  Container,
   CraftCarousel,
   CraftEmpty,
   CraftNotEmpty,
@@ -24,13 +22,14 @@ import {
   CraftReadyToSave,
   PrevButton,
   SaveRecipeBadge,
+  Section,
+  SectionLabel,
+  SuggestedIngredientsSection,
   SuggestedRecipeCards,
+  SuggestedTagsSection,
   // SuggestedTagBadge,
   SuggestedTokenBadge,
 } from "./components.client";
-
-const Container = twc.div`flex flex-col gap-2 h-full mx-auto w-full`;
-const Section = twc.div`flex flex-col gap-1`;
 
 const TRENDING_INGREDIENTS = [
   "Quinoa",
@@ -68,34 +67,6 @@ const TRENDING_INGREDIENTS = [
 
 const BadgeList = ({ children }: { children: ReactNode }) => {
   return <div className="px-4 flex flex-row gap-2 flex-wrap">{children}</div>;
-};
-
-const IngredientsLabel = () => {
-  return <SectionLabel icon={CarrotIcon} title={"Ingredients"} />;
-};
-
-const TrendingIngredientsSection = () => {
-  return (
-    <CraftEmpty>
-      <Section className="max-w-3xl mx-auto">
-        <IngredientsLabel />
-        <BadgeList>
-          {TRENDING_INGREDIENTS.map((ingredient) => {
-            return (
-              <Badge
-                variant="secondary"
-                className="carousel-item flex flex-row gap-1"
-                key={ingredient}
-                event={{ type: "ADD_TOKEN", token: ingredient }}
-              >
-                {ingredient}
-              </Badge>
-            );
-          })}
-        </BadgeList>
-      </Section>
-    </CraftEmpty>
-  );
 };
 
 const QuickAddSection = () => {
@@ -228,20 +199,6 @@ const TrendingTagsSection = () => {
   );
 };
 
-interface SectionLabelProps {
-  icon: React.ElementType; // This type is used for components passed as props
-  title: string;
-}
-
-const SectionLabel: FC<SectionLabelProps> = ({ icon: Icon, title }) => {
-  return (
-    <Label className="text-xs text-muted-foreground uppercase font-semibold px-4 flex flex-row gap-1">
-      <Icon size={14} />
-      {title}
-    </Label>
-  );
-};
-
 const TagsLabel = () => {
   return <SectionLabel icon={TagIcon} title="Tags" />;
 };
@@ -252,8 +209,9 @@ export const NewRecipeResultsView = () => {
       <Container className="gap-4 flex-1">
         <QuickAddSection />
         <SuggestedRecipesSection />
-        <TrendingIngredientsSection />
-        <TrendingTagsSection />
+        <SuggestedIngredientsSection />
+        <SuggestedTagsSection />
+        {/* <TrendingTagsSection /> */}
       </Container>
       <Footer>
         <ClientOnly>

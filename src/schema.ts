@@ -680,10 +680,37 @@ const SearchParamsEventSchema = z.object({
   searchParams: z.record(z.string(), z.string()),
 });
 
+const BotManagementSchema = z.object({
+  corporateProxy: z.boolean(),
+  verifiedBot: z.boolean(),
+  jsDetection: z.object({
+    passed: z.boolean(),
+  }),
+  staticResource: z.boolean(),
+  detectionIds: z.record(z.any()), // Assuming detectionIds can have any structure
+  score: z.number(),
+});
+
+export const RequestInfoSchema = z.object({
+  longitude: z.string(),
+  latitude: z.string(),
+  continent: z.string(),
+  country: z.string(),
+  city: z.string(),
+  timezone: z.string(),
+  postalCode: z.string(),
+  region: z.string(),
+  regionCode: z.string(),
+  metroCode: z.string(),
+  botManagement: BotManagementSchema,
+});
+
 // Sent when a user first connects to the websocket
 const ConnectEventSchema = z.object({
   type: z.literal("CONNECT"),
   connectionId: z.string(),
+  requestInfo: RequestInfoSchema.optional(),
+  // request: z.custom<ConnectionContext["request"]>(),
   parties: z.record(z.custom<Stub>()),
 });
 
