@@ -5,11 +5,13 @@ import { Card } from "@/components/display/card";
 import { Button } from "@/components/input/button";
 import { Checkbox } from "@/components/input/checkbox";
 import { useSend } from "@/hooks/useSend";
+import { useSessionStore } from "@/hooks/useSessionStore";
 import { formatDisplayName } from "@/lib/utils";
 import { EquipmentSettings } from "@/types";
 import { useStore } from "@nanostores/react";
 import { map } from "nanostores";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 // Define the Zod schema for equipment settings
 
@@ -39,7 +41,6 @@ const $equipment = map<EquipmentSettings>({
   conventionalOven: undefined,
 });
 
-// EquipmentCard component
 function EquipmentCard({
   equipmentKey,
 }: {
@@ -47,11 +48,18 @@ function EquipmentCard({
 }) {
   const equipment = useStore($equipment, { keys: [equipmentKey] });
   const send = useSend();
+  const session = useSessionStore();
+  const [checked, setChecked] = useState(
+    !!session.get().context.browserSessionSnapshot?.context.equipment[
+      equipmentKey
+    ]
+  );
 
   const toggleEquipment = () => {
     const value = !equipment[equipmentKey];
     send({ type: "EQUIPMENT_CHANGE", equipment: equipmentKey, value });
     $equipment.setKey(equipmentKey, value);
+    setChecked(true);
   };
 
   return (
@@ -62,7 +70,7 @@ function EquipmentCard({
       <div className="flex-1">
         <span className="font-semibold">{formatDisplayName(equipmentKey)}</span>
       </div>
-      <Checkbox id={equipmentKey} checked={!!equipment[equipmentKey]} />
+      <Checkbox id={equipmentKey} checked={checked} />
     </Card>
   );
 }

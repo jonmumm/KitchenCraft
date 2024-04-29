@@ -1,5 +1,14 @@
-import { AppEvent, OnboardingInput, SystemEvent, WithCaller } from "@/types";
-import { setup } from "xstate";
+import {
+  AppEvent,
+  DietSettings,
+  EquipmentSettings,
+  ExperienceLevel,
+  PreferenceSettings,
+  SystemEvent,
+  WithCaller,
+} from "@/types";
+import { produce } from "immer";
+import { assign, setup } from "xstate";
 import { z } from "zod";
 
 const InputSchema = z.object({
@@ -11,7 +20,10 @@ type Input = z.infer<typeof InputSchema>;
 type BrowserSessionContext = {
   id: string;
   userId: string;
-  onboardingInput: OnboardingInput;
+  experienceLevel?: ExperienceLevel;
+  equipment: EquipmentSettings;
+  diet: DietSettings;
+  preferences: PreferenceSettings;
 };
 
 export const browserSessionMachine = setup({
@@ -30,13 +42,41 @@ export const browserSessionMachine = setup({
   type: "parallel",
   context: ({ input }) => ({
     ...input,
-    onboardingInput: {
-      experienceLevel: undefined,
-      equipment: {},
-      preferences: {},
-      diet: {},
-    },
+    equipment: {},
+    preferences: {},
+    diet: {},
   }),
+  on: {
+    EXPERIENCE_CHANGE: {
+      actions: assign({
+        experienceLevel: ({ event, context }) => event.experience,
+      }),
+    },
+    EQUIPMENT_CHANGE: {
+      actions: assign({
+        equipment: ({ event, context }) =>
+          produce(context.equipment, (draft) => {
+            draft[event.equipment] = event.value;
+          }),
+      }),
+    },
+    DIET_CHANGE: {
+      actions: assign({
+        diet: ({ event, context }) =>
+          produce(context.diet, (draft) => {
+            draft[event.dietType] = event.value;
+          }),
+      }),
+    },
+    PREFERENCE_CHANGE: {
+      actions: assign({
+        preferences: ({ event, context }) =>
+          produce(context.preferences, (draft) => {
+            draft[event.preference] = event.value;
+          }),
+      }),
+    },
+  },
   states: {
     Initialization: {
       initial: "Ready",

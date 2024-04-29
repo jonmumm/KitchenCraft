@@ -3,10 +3,12 @@
 import { Button } from "@/components/input/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useSend } from "@/hooks/useSend";
+import { useSessionStore } from "@/hooks/useSessionStore";
 import { PreferenceSettings } from "@/types"; // Import PreferenceSettings type
 import { useStore } from "@nanostores/react";
 import { map } from "nanostores";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 // Create the preferences nanostore
 const $preferences = map<PreferenceSettings>({
@@ -27,14 +29,12 @@ const preferencesDisplayNames: {
   [key in keyof PreferenceSettings]: string;
 } = {
   hotAndSpicyRegular: "Do you regularly include spicy foods in your meals?",
-  vegetableAvoider:
-    "Do you often choose to exclude vegetables from your meals?",
+  vegetableAvoider: "Do you often choose to exclude vegetables from your meals?",
   dessertSkipper: "Do you generally avoid eating desserts?",
   redMeatRegular: "Is red meat a frequent choice in your meals?",
   seafoodSelector: "Do you specifically seek out seafood dishes?",
   herbPreference: "Do you prefer dishes with a noticeable use of fresh herbs?",
-  cheeseOptional:
-    "Do you often opt out of adding cheese to dishes where it's not a main ingredient?",
+  cheeseOptional: "Do you often opt out of adding cheese to dishes where it's not a main ingredient?",
   breadEssential: "Is bread a must-have component in your meals?",
   nutFreePreference: "Do you prefer to avoid nuts in your dishes?",
   rawFoodConsumer: "Do you eat raw food (e.g., sushi, beef tartare, etc.)?",
@@ -47,17 +47,22 @@ function PreferenceCard({
   preferenceKey: keyof PreferenceSettings;
 }) {
   const preferences = useStore($preferences);
+  const session = useSessionStore();
+  const [toggleValue, setToggleValue] = useState(() => {
+    const sessionValue = session.get().context.browserSessionSnapshot?.context.preferences[preferenceKey];
+    return typeof sessionValue !== 'undefined' ? sessionValue ? 'yes' : 'no' : undefined;
+  });
   const send = useSend();
 
   const handleToggle = (value: boolean) => {
-    const newValue =
-      $preferences.get()[preferenceKey] === value ? undefined : value;
+    const newValue = toggleValue === (value ? 'yes' : 'no') ? undefined : value;
     send({
       type: "PREFERENCE_CHANGE",
       preference: preferenceKey,
       value: newValue,
     });
     $preferences.setKey(preferenceKey, newValue);
+    setToggleValue(newValue ? 'yes' : 'no');
   };
 
   return (
@@ -69,14 +74,8 @@ function PreferenceCard({
       </div>
       <ToggleGroup
         type="single"
-        value={
-          typeof preferences[preferenceKey] !== "undefined"
-            ? preferences[preferenceKey]
-              ? "yes"
-              : "no"
-            : undefined
-        }
-        onValueChange={(value) => handleToggle(value === "yes")}
+        value={toggleValue}
+        onValueChange={(value) => handleToggle(value === 'yes')}
       >
         <ToggleGroupItem value="no">No</ToggleGroupItem>
         <ToggleGroupItem value="yes">Yes</ToggleGroupItem>

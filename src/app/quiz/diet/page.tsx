@@ -4,11 +4,13 @@ import { Card } from "@/components/display/card";
 import { Button } from "@/components/input/button";
 import { Checkbox } from "@/components/input/checkbox";
 import { useSend } from "@/hooks/useSend";
+import { useSessionStore } from "@/hooks/useSessionStore";
 import { formatDisplayName } from "@/lib/utils"; // Assuming this utility is already implemented
 import { DietSettings } from "@/types"; // Import DietSettings type
 import { useStore } from "@nanostores/react";
 import { map } from "nanostores";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 // Create the diet nanostore
 const $diet = map<DietSettings>({
@@ -38,15 +40,25 @@ const $diet = map<DietSettings>({
   ayurvedic: undefined,
 });
 
-// DietCard component
-function DietCard({ dietKey }: { dietKey: keyof DietSettings }) {
+function DietCard({
+  dietKey,
+}: {
+  dietKey: keyof DietSettings;
+}) {
   const diet = useStore($diet, { keys: [dietKey] });
   const send = useSend();
+  const session = useSessionStore();
+  const [checked, setChecked] = useState(
+    !!session.get().context.browserSessionSnapshot?.context.diet[
+      dietKey
+    ]
+  );
 
   const toggleDiet = () => {
     const value = !diet[dietKey];
     send({ type: "DIET_CHANGE", dietType: dietKey, value });
-    $diet.setKey(dietKey, !diet[dietKey]);
+    $diet.setKey(dietKey, value);
+    setChecked(value);
   };
 
   return (
@@ -57,7 +69,7 @@ function DietCard({ dietKey }: { dietKey: keyof DietSettings }) {
       <div className="flex-1">
         <span className="font-semibold">{formatDisplayName(dietKey)}</span>
       </div>
-      <Checkbox id={dietKey} checked={!!diet[dietKey]} />
+      <Checkbox id={dietKey} checked={checked} />
     </Card>
   );
 }
@@ -78,7 +90,10 @@ export default function Diet() {
       </h1>
       <div className="space-y-2 w-full max-w-md h-full p-4">
         {Object.keys(diet).map((key) => (
-          <DietCard key={key} dietKey={key as keyof DietSettings} />
+          <DietCard
+            key={key}
+            dietKey={key as keyof DietSettings}
+          />
         ))}
       </div>
       <div className="sticky bottom-0 w-full p-2 flex justify-center">
