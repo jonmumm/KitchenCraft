@@ -8,7 +8,7 @@ export default function Welcome() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push("/quiz/equipment");
+      router.push("/quiz/experience");
     }, 3000); // Delay for the animation
     return () => clearTimeout(timer);
   }, [router]);
