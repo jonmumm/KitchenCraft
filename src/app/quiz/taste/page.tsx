@@ -3,17 +3,17 @@
 import { Button } from "@/components/input/button";
 import { PreferenceCard } from "@/components/settings/preference-card";
 import { $preferences } from "@/stores/settings";
-import { PreferenceSettings } from "@/types"; // Import PreferenceSettings type
+import { TasteSettings } from "@/types"; // Import PreferenceSettings type
 import { useStore } from "@nanostores/react";
 import { useRouter } from "next/navigation";
 
 // Main Preferences component
-export default function Preferences() {
+export default function Taste() {
   const router = useRouter();
   const preferences = useStore($preferences);
 
   const handleNext = () => {
-    router.push("/quiz/results"); // Adjust the navigation route as necessary
+    router.push("/quiz/diet"); // Adjust the navigation route as necessary
   };
 
   return (
@@ -25,7 +25,7 @@ export default function Preferences() {
         {Object.keys(preferences).map((key) => (
           <PreferenceCard
             key={key}
-            preferenceKey={key as keyof PreferenceSettings}
+            preferenceKey={key as keyof TasteSettings}
           />
         ))}
       </div>

@@ -1,5 +1,5 @@
 import StepsIndicator from "../components";
 
 export default async function Page() {
-  return <StepsIndicator currentStep="Preferences" />;
+  return <StepsIndicator currentStep="Taste" />;
 }

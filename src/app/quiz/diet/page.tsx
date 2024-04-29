@@ -12,7 +12,7 @@ export default function Diet() {
   const diet = useStore($diet);
 
   const handleNext = () => {
-    router.push("/quiz/preferences");
+    router.push("/quiz/equipment");
   };
 
   return (

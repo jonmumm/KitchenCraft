@@ -3,7 +3,7 @@ import {
   DietSettings,
   EquipmentSettings,
   ExperienceLevel,
-  PreferenceSettings,
+  TasteSettings,
   SystemEvent,
   WithCaller,
 } from "@/types";
@@ -23,7 +23,7 @@ type BrowserSessionContext = {
   experienceLevel?: ExperienceLevel;
   equipment: EquipmentSettings;
   diet: DietSettings;
-  preferences: PreferenceSettings;
+  preferences: TasteSettings;
 };
 
 export const browserSessionMachine = setup({
@@ -112,13 +112,12 @@ export const browserSessionMachine = setup({
         Experience: {
           on: {
             PAGE_LOADED: {
-              target: "Equipment",
-              guard: ({ event }) =>
-                event.pathname.startsWith("/quiz/equipment"),
+              target: "Taste",
+              guard: ({ event }) => event.pathname.startsWith("/quiz/taste"),
             },
           },
         },
-        Equipment: {
+        Taste: {
           on: {
             PAGE_LOADED: {
               target: "Diet",
@@ -129,13 +128,13 @@ export const browserSessionMachine = setup({
         Diet: {
           on: {
             PAGE_LOADED: {
-              target: "Preferences",
+              target: "Equipment",
               guard: ({ event }) =>
-                event.pathname.startsWith("/quiz/preferences"),
+                event.pathname.startsWith("/quiz/equipment"),
             },
           },
         },
-        Preferences: {
+        Equipment: {
           on: {
             PAGE_LOADED: {
               target: "Complete",

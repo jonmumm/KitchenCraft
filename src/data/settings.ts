@@ -1,18 +1,26 @@
-import { PreferenceSettings } from "@/types";
+import { TasteSettings } from "@/types";
 
 export const preferencesDisplayNames: {
-  [key in keyof PreferenceSettings]: string;
+  [key in keyof TasteSettings]: string;
 } = {
-  hotAndSpicyRegular: "Do you regularly include spicy foods in your meals?",
-  vegetableAvoider:
-    "Do you often choose to exclude vegetables from your meals?",
-  dessertSkipper: "Do you generally avoid eating desserts?",
-  redMeatRegular: "Is red meat a frequent choice in your meals?",
-  seafoodSelector: "Do you specifically seek out seafood dishes?",
-  herbPreference: "Do you prefer dishes with a noticeable use of fresh herbs?",
-  cheeseOptional:
-    "Do you often opt out of adding cheese to dishes where it's not a main ingredient?",
-  breadEssential: "Is bread a must-have component in your meals?",
-  nutFreePreference: "Do you prefer to avoid nuts in your dishes?",
-  rawFoodConsumer: "Do you eat raw food (e.g., sushi, beef tartare, etc.)?",
+  preferSaltyOverSweet: "Prefer salty over sweet snacks?",
+  preferChocolateyOverFruity: "Prefer chocolatey over fruity desserts?",
+  enjoyRawOnions: "Enjoy raw onions in dishes?",
+  needSpicyElements: "Need spicy elements in meals?",
+  preferBlackCoffee: "Prefer black coffee over sweetened?",
+  likeLemonInBeverages: "Like lemon in beverages?",
+  favorBoldCheeses: "Favor bold cheeses over mild?",
+  preferHeavilySeasoned: "Prefer heavily seasoned dishes?",
+  enjoyBitterFoods: "Enjoy bitter foods like dark chocolate?",
+  preferRawVegetables: "Prefer raw vegetables over cooked?",
+  breadBetterWithButterOrOil: "Bread better with butter or oil?",
+  preferCreamyOverChunkySoups: "Prefer creamy over chunky soups?",
+  chooseRiceOverPotatoes: "Choose rice over potatoes as a side?",
+  preferScrambledOverFriedEggs: "Prefer scrambled eggs over fried?",
+  likeGrilledFishOverFried: "Like grilled fish over fried?",
+  preferFruitAsSnack: "Prefer fruit as a snack rather than in meals?",
+  dessertBetterWarm: "Dessert better warm than cold?",
+  enjoyGingerInFood: "Enjoy the taste of ginger in food?",
+  saladAppealingWithoutDressing: "Salad appealing without dressing?",
+  preferPastaWithRedSauce: "Prefer pasta with red sauce over white?",
 };

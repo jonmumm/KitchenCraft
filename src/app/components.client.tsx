@@ -33,7 +33,7 @@ import { $diet, $equipment, $preferences } from "@/stores/settings";
 import {
   DietSettings,
   EquipmentSettings,
-  PreferenceSettings,
+  TasteSettings,
   UserPreferenceType,
 } from "@/types";
 import { useStore } from "@nanostores/react";
@@ -550,7 +550,7 @@ export const PersonalizationSettingsMenu = () => {
             {Object.keys(preferences).map((key) => (
               <PreferenceCard
                 key={key}
-                preferenceKey={key as keyof PreferenceSettings}
+                preferenceKey={key as keyof TasteSettings}
               />
             ))}
           </AccordionContent>

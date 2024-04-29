@@ -4,15 +4,14 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { preferencesDisplayNames } from "@/data/settings";
 import { useSend } from "@/hooks/useSend";
 import { useSessionStore } from "@/hooks/useSessionStore";
-import { $experienceLevel, $preferences } from "@/stores/settings";
-import { PreferenceSettings } from "@/types"; // Import PreferenceSettings type
-import { useStore } from "@nanostores/react";
+import { $preferences } from "@/stores/settings";
+import { TasteSettings } from "@/types"; // Import PreferenceSettings type
 import { useState } from "react";
 
 export function PreferenceCard({
   preferenceKey,
 }: {
-  preferenceKey: keyof PreferenceSettings;
+  preferenceKey: keyof TasteSettings;
 }) {
   const session = useSessionStore();
   const [toggleValue, setToggleValue] = useState(() => {

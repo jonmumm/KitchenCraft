@@ -13,13 +13,13 @@ export default function Equipment() {
   const equipment = useStore($equipment);
 
   const handleNext = () => {
-    router.push("/quiz/diet");
+    router.push("/quiz/results");
   };
 
   return (
     <div className="flex flex-col items-center justify-center relative">
       <h1 className="text-xl font-bold px-4 text-center text-balance">
-        Select your cooking equipment
+        Which do you own?
       </h1>
       <div className="space-y-2 w-full max-w-md h-full p-4">
         {Object.keys(equipment).map((key) => (

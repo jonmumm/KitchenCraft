@@ -2,7 +2,7 @@ import {
   DietSettings,
   EquipmentSettings,
   ExperienceLevel,
-  PreferenceSettings,
+  TasteSettings,
 } from "@/types";
 import { atom, map } from "nanostores";
 
@@ -58,17 +58,28 @@ export const $diet = map<DietSettings>({
   ayurvedic: undefined,
 });
 
-export const $preferences = map<PreferenceSettings>({
-  hotAndSpicyRegular: undefined,
-  vegetableAvoider: undefined,
-  dessertSkipper: undefined,
-  redMeatRegular: undefined,
-  seafoodSelector: undefined,
-  herbPreference: undefined,
-  cheeseOptional: undefined,
-  breadEssential: undefined,
-  nutFreePreference: undefined,
-  rawFoodConsumer: undefined,
+export const $preferences = map<TasteSettings>({
+  preferSaltyOverSweet: undefined,
+  preferChocolateyOverFruity: undefined,
+  enjoyRawOnions: undefined,
+  needSpicyElements: undefined,
+  preferBlackCoffee: undefined,
+  likeLemonInBeverages: undefined,
+  favorBoldCheeses: undefined,
+  preferHeavilySeasoned: undefined,
+  enjoyBitterFoods: undefined,
+  preferRawVegetables: undefined,
+  breadBetterWithButterOrOil: undefined,
+  preferCreamyOverChunkySoups: undefined,
+  chooseRiceOverPotatoes: undefined,
+  preferScrambledOverFriedEggs: undefined,
+  likeGrilledFishOverFried: undefined,
+  preferFruitAsSnack: undefined,
+  dessertBetterWarm: undefined,
+  enjoyGingerInFood: undefined,
+  saladAppealingWithoutDressing: undefined,
+  preferPastaWithRedSauce: undefined,
 });
+
 
 export const $experienceLevel = atom<ExperienceLevel | undefined>(undefined);

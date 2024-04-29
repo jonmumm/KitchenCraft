@@ -58,7 +58,7 @@ import {
   NewInstantRecipePredictionInputSchema,
   NewRecipeFromSuggestionsPredictionInputSchema,
   OnboardingInputSchema,
-  PreferenceSettingsSchema,
+  TasteSettingsSchema,
   ProfileSlugSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
@@ -378,4 +378,4 @@ export type OnboardingInput = z.infer<typeof OnboardingInputSchema>;
 export type ExperienceLevel = z.infer<typeof ExperienceLevelSchema>;
 export type EquipmentSettings = z.infer<typeof EquipmentSettingsSchema>;
 export type DietSettings = z.infer<typeof DietSettingsSchema>;
-export type PreferenceSettings = z.infer<typeof PreferenceSettingsSchema>;
+export type TasteSettings = z.infer<typeof TasteSettingsSchema>;

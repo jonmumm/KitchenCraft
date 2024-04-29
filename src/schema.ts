@@ -182,17 +182,27 @@ export const DietSettingsSchema = z.object({
   ayurvedic: z.boolean().optional(),
 });
 
-export const PreferenceSettingsSchema = z.object({
-  hotAndSpicyRegular: z.boolean().optional(), // "Hot and Spicy Regular" - Do you regularly include spicy foods in your meals?
-  vegetableAvoider: z.boolean().optional(), // "Vegetable Avoider" - Do you often choose to exclude vegetables from your meals?
-  dessertSkipper: z.boolean().optional(), // "Dessert Skipper" - Do you generally avoid eating desserts?
-  redMeatRegular: z.boolean().optional(), // "Red Meat Regular" - Is red meat a frequent choice in your meals?
-  seafoodSelector: z.boolean().optional(), // "Seafood Selector" - Do you specifically seek out seafood dishes?
-  herbPreference: z.boolean().optional(), // "Herb Preference" - Do you prefer dishes with a noticeable use of fresh herbs?
-  cheeseOptional: z.boolean().optional(), // "Cheese Optional" - Do you often opt out of adding cheese to dishes where it's not a main ingredient?
-  breadEssential: z.boolean().optional(), // "Bread Essential" - Is bread a must-have component in your meals?
-  nutFreePreference: z.boolean().optional(), // "Nut-Free Preference" - Do you prefer to avoid nuts in your dishes?
-  rawFoodConsumer: z.boolean().optional(), // "Raw Food Consumer" - Do you eat raw food (e.g., sushi, beef tartare, etc.)?
+export const TasteSettingsSchema = z.object({
+  preferSaltyOverSweet: z.boolean().optional(), // "Prefer salty over sweet snacks?"
+  preferChocolateyOverFruity: z.boolean().optional(), // "Prefer chocolatey over fruity desserts?"
+  enjoyRawOnions: z.boolean().optional(), // "Enjoy raw onions in dishes?"
+  needSpicyElements: z.boolean().optional(), // "Need spicy elements in meals?"
+  preferBlackCoffee: z.boolean().optional(), // "Prefer black coffee over sweetened?"
+  likeLemonInBeverages: z.boolean().optional(), // "Like lemon in beverages?"
+  favorBoldCheeses: z.boolean().optional(), // "Favor bold cheeses over mild?"
+  preferHeavilySeasoned: z.boolean().optional(), // "Prefer heavily seasoned dishes?"
+  enjoyBitterFoods: z.boolean().optional(), // "Enjoy bitter foods like dark chocolate?"
+  preferRawVegetables: z.boolean().optional(), // "Prefer raw vegetables over cooked?"
+  breadBetterWithButterOrOil: z.boolean().optional(), // "Bread better with butter or oil?"
+  preferCreamyOverChunkySoups: z.boolean().optional(), // "Prefer creamy over chunky soups?"
+  chooseRiceOverPotatoes: z.boolean().optional(), // "Choose rice over potatoes as a side?"
+  preferScrambledOverFriedEggs: z.boolean().optional(), // "Prefer scrambled eggs over fried?"
+  likeGrilledFishOverFried: z.boolean().optional(), // "Like grilled fish over fried?"
+  preferFruitAsSnack: z.boolean().optional(), // "Prefer fruit as a snack rather than in meals?"
+  dessertBetterWarm: z.boolean().optional(), // "Dessert better warm than cold?"
+  enjoyGingerInFood: z.boolean().optional(), // "Enjoy the taste of ginger in food?"
+  saladAppealingWithoutDressing: z.boolean().optional(), // "Salad appealing without dressing?"
+  preferPastaWithRedSauce: z.boolean().optional(), // "Prefer pasta with red sauce over white?"
 });
 
 export const ExperienceLevelSchema = z.enum([
@@ -205,7 +215,7 @@ export const OnboardingInputSchema = z.object({
   experienceLevel: ExperienceLevelSchema.optional(),
   equipment: EquipmentSettingsSchema,
   diet: DietSettingsSchema,
-  preferences: PreferenceSettingsSchema,
+  preferences: TasteSettingsSchema,
 });
 
 const EquipmentChangeEventSchema = z.object({
@@ -227,7 +237,7 @@ const DietChangeEventSchema = z.object({
 
 const PreferenceChangeEventSchema = z.object({
   type: z.literal("PREFERENCE_CHANGE"),
-  preference: PreferenceSettingsSchema.keyof(),
+  preference: TasteSettingsSchema.keyof(),
   value: z.boolean().optional(),
 });
 

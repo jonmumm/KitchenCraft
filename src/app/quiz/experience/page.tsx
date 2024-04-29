@@ -33,13 +33,13 @@ export default function Experience() {
     setSelectedExperience(experience);
     $experienceLevel.set(experience);
     send({ type: "EXPERIENCE_CHANGE", experience });
-    router.push("/quiz/equipment");
+    router.push("/quiz/taste");
   };
 
   const handleNext = () => {
     assert(selectedExperience, "expected experience to be selected");
     send({ type: "EXPERIENCE_CHANGE", experience: selectedExperience });
-    router.push("/quiz/equipment");
+    router.push("/quiz/taste");
   };
 
   return (
