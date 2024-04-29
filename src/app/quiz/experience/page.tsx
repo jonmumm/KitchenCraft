@@ -51,7 +51,7 @@ export default function Experience() {
             onClick={handleCTA}
             data-value={level}
             className={`w-full max-w-xl mx-auto p-5 items-center justify-start flex flex-row gap-3 cursor-pointer ${
-              selectedExperience === level ? "border-4 border-blue-500" : ""
+              selectedExperience === level ? "border-2 border-blue-500" : ""
             }`}
           >
             <Button size="icon" variant="outline">
