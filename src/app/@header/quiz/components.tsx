@@ -1,5 +1,8 @@
 import { Separator } from "@/components/display/separator";
+import { sentenceToSlug } from "@/lib/utils";
+import Link from "next/link";
 import React from "react";
+import { twc } from "react-twc";
 
 type StepsIndicatorProps = {
   currentStep?: "Experience" | "Equipment" | "Diet" | "Preferences";
@@ -16,18 +19,22 @@ const StepsIndicator: React.FC<StepsIndicatorProps> = ({ currentStep }) => {
   return (
     <>
       <ul className="steps text-xs text-muted-foreground my-4">
-        {steps.map((step) => (
-          <li
-            key={step}
-            className={`step ${
-              isStepPastOrDone(step)
-                ? "step-neutral text-foreground font-semibold"
-                : ""
-            }`}
-          >
-            {step}
-          </li>
-        ))}
+        {steps.map((step) => {
+          const isDone = isStepPastOrDone(step);
+          const Component = isDone ? twc(Link)`` : twc.li``;
+
+          return (
+            <Component
+              href={`/quiz/${sentenceToSlug(step)}`}
+              key={step}
+              className={`step ${
+                isDone ? "step-neutral text-foreground font-semibold" : ""
+              }`}
+            >
+              {step}
+            </Component>
+          );
+        })}
       </ul>
       <Separator className="mb-4" />
     </>
