@@ -37,6 +37,7 @@ import {
   EquipmentAdaptationsInputSchema,
   EquipmentAdaptationsPredictionInputSchema,
   EquipmentSettingsSchema,
+  ExperienceLevelSchema,
   FAQsPredictionInputSchema,
   GeneratorTypeSchema,
   IdeasPredictionOutputSchema,
@@ -374,6 +375,7 @@ export type ServerPartySocket = Awaited<
 
 export type OnboardingInput = z.infer<typeof OnboardingInputSchema>;
 
+export type ExperienceLevel = z.infer<typeof ExperienceLevelSchema>;
 export type EquipmentSettings = z.infer<typeof EquipmentSettingsSchema>;
 export type DietSettings = z.infer<typeof DietSettingsSchema>;
 export type PreferenceSettings = z.infer<typeof PreferenceSettingsSchema>;
