@@ -77,7 +77,7 @@ function PreferenceCard({
   return (
     <div className="flex flex-row justify-between items-center gap-4">
       <div className="flex-1">
-        <label className="font-semibold">
+        <label className="font-normal">
           {preferencesDisplayNames[preferenceKey]}
         </label>
       </div>
