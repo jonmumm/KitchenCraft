@@ -8,8 +8,8 @@ type StepsIndicatorProps = {
 const steps = ["Experience", "Equipment", "Diet", "Preferences"];
 
 const StepsIndicator: React.FC<StepsIndicatorProps> = ({ currentStep }) => {
-  // Function to determine if the step should be highlighted as primary
-  const isStepPrimary = (step: string) => {
+  // Function to determine if the step should be highlighted
+  const isStepPastOrDone = (step: string) => {
     return currentStep && steps.indexOf(step) <= steps.indexOf(currentStep);
   };
 
@@ -20,8 +20,8 @@ const StepsIndicator: React.FC<StepsIndicatorProps> = ({ currentStep }) => {
           <li
             key={step}
             className={`step ${
-              isStepPrimary(step)
-                ? "step-primary text-foreground font-semibold"
+              isStepPastOrDone(step)
+                ? "step-neutral text-foreground font-semibold"
                 : ""
             }`}
           >
