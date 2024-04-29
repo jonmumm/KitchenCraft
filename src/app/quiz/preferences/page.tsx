@@ -1,13 +1,12 @@
 "use client";
 
 import { Button } from "@/components/input/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useSend } from "@/hooks/useSend";
-import { useSessionStore } from "@/hooks/useSessionStore";
+import { PreferenceCard } from "@/components/settings/preference-card";
+import { $preferences } from "@/stores/settings";
 import { PreferenceSettings } from "@/types"; // Import PreferenceSettings type
 import { useStore } from "@nanostores/react";
-import { map } from "nanostores";
 import { useRouter } from "next/navigation";
+<<<<<<< HEAD
 import { useState } from "react";
 
 // Create the preferences nanostore
@@ -92,6 +91,8 @@ function PreferenceCard({
     </div>
   );
 }
+=======
+>>>>>>> d3c6fcc (enable settings edting after quiz)
 
 // Main Preferences component
 export default function Preferences() {

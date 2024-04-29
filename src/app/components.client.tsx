@@ -19,13 +19,24 @@ import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Progress } from "@/components/feedback/progress";
 import { Button } from "@/components/input/button";
 import { Textarea } from "@/components/input/textarea";
+import { DietCard } from "@/components/settings/diet-card";
+import { EquipmentCard } from "@/components/settings/equipment-card";
+import { ExperienceCard } from "@/components/settings/experience-card";
+import { PreferenceCard } from "@/components/settings/preference-card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageSessionSnapshotConditionalRenderer } from "@/components/util/page-session-snapshot-conditiona.renderer";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useSessionStore } from "@/hooks/useSessionStore";
-import { UserPreferenceType } from "@/types";
+import { $diet, $equipment, $preferences } from "@/stores/settings";
+import {
+  DietSettings,
+  EquipmentSettings,
+  PreferenceSettings,
+  UserPreferenceType,
+} from "@/types";
+import { useStore } from "@nanostores/react";
 import { RefreshCwIcon, XIcon } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -490,7 +501,10 @@ const QuestionTextarea = (props: ComponentProps<typeof Textarea>) => {
 // };
 
 export const PersonalizationSettingsMenu = () => {
-  const send = useSend();
+  const equipment = useStore($equipment);
+  const diet = useStore($diet);
+  const preferences = useStore($preferences);
+
   return (
     <div className="py-2">
       <div className="flex flex-row gap-2 justify-between items-center px-2">
@@ -501,74 +515,44 @@ export const PersonalizationSettingsMenu = () => {
       </div>
       <Accordion type="multiple" className="flex flex-col gap-2">
         <AccordionItem value="ingredient_preference" className="py-4">
-          <AccordionTrigger className="px-4">
-            What ingredients do you like to cook with?
-          </AccordionTrigger>
-          <AccordionContent className="px-4">
-            <PreferenceEditor
-              placeholder="e.g., Chicken, Tomatoes, Basil, Tofu"
-              preference="ingredientPreference"
-            />
+          <AccordionTrigger className="px-4">Experience</AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-2">
+            <ExperienceCard level="beginner" />
+            <ExperienceCard level="intermediate" />
+            <ExperienceCard level="advanced" />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="cuisine_preferences" className="py-4">
-          <AccordionTrigger className="px-4">
-            What are your favorite cuisines or flavors?
-          </AccordionTrigger>
+        <AccordionItem value="equipment" className="py-4">
+          <AccordionTrigger className="px-4">Equipment</AccordionTrigger>
           <AccordionContent className="px-4 flex flex-col gap-2">
-            <PreferenceEditor
-              placeholder="e.g., Italian, Mexican, Thai, Vegetarian, etc."
-              preference="cuisinePreferences"
-            />
+            {Object.keys(equipment).map((key) => (
+              <EquipmentCard
+                key={key}
+                equipmentKey={key as keyof EquipmentSettings}
+              />
+            ))}
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="dietary_restrictions" className="py-4">
-          <AccordionTrigger className="px-4">
-            Do you have any dietary restrictions or preferences?
-          </AccordionTrigger>
+        <AccordionItem value="diet" className="py-4">
+          <AccordionTrigger className="px-4">Diet</AccordionTrigger>
           <AccordionContent className="px-4 flex flex-col gap-2">
-            <PreferenceEditor
-              placeholder="e.g., Gluten-free, Dairy-free, Vegan, Low-carb, etc."
-              preference="dietaryRestrictions"
-            />
+            {Object.keys(diet).map((key) => (
+              <DietCard key={key} dietKey={key as keyof DietSettings} />
+            ))}
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="skill" className="py-4">
-          <AccordionTrigger className="px-4">
-            What is your skill level in the kitchen?
-          </AccordionTrigger>
+        <AccordionItem value="preferences" className="py-4">
+          <AccordionTrigger className="px-4">Preferences</AccordionTrigger>
           <AccordionContent className="px-4 flex flex-col gap-2">
-            <PreferenceEditor
-              placeholder="e.g., Beginner, Intermediate, Advanced, Expert"
-              preference="skillLevel"
-            />
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="time_availability" className="py-4">
-          <AccordionTrigger className="px-4">
-            How much time do you typically spend on preparing a meal?
-          </AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-2">
-            <PreferenceEditor
-              placeholder="e.g., Under 30 minutes, About an hour, More than 2 hours"
-              preference="timeAvailability"
-            />
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="cookingEquipment" className="py-4">
-          <AccordionTrigger className="px-4">
-            Are there any particular kitchen tools you love using?
-          </AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-2">
-            <PreferenceEditor
-              placeholder="e.g., Blender, Chef's knife, Stand mixer, Pressure cooker"
-              preference="cookingEquipment"
-            />
+            {Object.keys(preferences).map((key) => (
+              <PreferenceCard
+                key={key}
+                preferenceKey={key as keyof PreferenceSettings}
+              />
+            ))}
           </AccordionContent>
         </AccordionItem>
       </Accordion>

@@ -7,6 +7,8 @@ import { useSend } from "@/hooks/useSend";
 import { useSessionStore } from "@/hooks/useSessionStore";
 import { assert } from "@/lib/utils";
 import { ExperienceLevelSchema } from "@/schema";
+import { $experienceLevel } from "@/stores/settings";
+import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MouseEventHandler, useState } from "react";
 
@@ -29,6 +31,7 @@ export default function Experience() {
     );
     assert(experience, "expected experience");
     setSelectedExperience(experience);
+    $experienceLevel.set(experience);
     send({ type: "EXPERIENCE_CHANGE", experience });
     router.push("/quiz/equipment");
   };
@@ -79,10 +82,11 @@ export default function Experience() {
       {showCTA && (
         <div className="sticky bottom-0 w-full p-2 flex justify-center">
           <Button
-            className="mt-6 font-bold py-2 px-4 rounded w-full mb-6 shadow-xl"
+            className="mt-6 font-bold py-2 px-4 rounded w-full mb-6 max-w-xl shadow-xl transitioning:opacity-50"
             onClick={handleNext}
           >
-            Next
+            <span className="transitioning:hidden">Next</span>
+            <Loader2Icon className="transitioning:block hidden animate-spin" />
           </Button>
         </div>
       )}

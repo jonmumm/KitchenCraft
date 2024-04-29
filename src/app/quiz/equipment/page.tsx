@@ -1,81 +1,13 @@
 "use client";
 
-// EquipmentSelection.tsx
-import { Card } from "@/components/display/card";
 import { Button } from "@/components/input/button";
-import { Checkbox } from "@/components/input/checkbox";
-import { useSend } from "@/hooks/useSend";
-import { useSessionStore } from "@/hooks/useSessionStore";
-import { formatDisplayName } from "@/lib/utils";
+import { EquipmentCard } from "@/components/settings/equipment-card";
+import { $equipment } from "@/stores/settings";
 import { EquipmentSettings } from "@/types";
 import { useStore } from "@nanostores/react";
-import { map } from "nanostores";
+import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
-// Define the Zod schema for equipment settings
-
-// Create the equipment nanostore
-const $equipment = map<EquipmentSettings>({
-  airFryer: undefined,
-  slowCooker: undefined,
-  instantPot: undefined,
-  wok: undefined,
-  sousVide: undefined,
-  blender: undefined,
-  standMixer: undefined,
-  foodProcessor: undefined,
-  dutchOven: undefined,
-  castIronSkillet: undefined,
-  pressureCooker: undefined,
-  juicer: undefined,
-  pastaMaker: undefined,
-  breadMaker: undefined,
-  iceCreamMaker: undefined,
-  electricGrill: undefined,
-  pizzaStone: undefined,
-  coffeeGrinder: undefined,
-  espressoMachine: undefined,
-  toasterOven: undefined,
-  microwave: undefined,
-  conventionalOven: undefined,
-});
-
-function EquipmentCard({
-  equipmentKey,
-}: {
-  equipmentKey: keyof EquipmentSettings;
-}) {
-  const equipment = useStore($equipment, { keys: [equipmentKey] });
-  const send = useSend();
-  const session = useSessionStore();
-  const [checked, setChecked] = useState(
-    !!session.get().context.browserSessionSnapshot?.context.equipment[
-      equipmentKey
-    ]
-  );
-
-  const toggleEquipment = () => {
-    const value = !equipment[equipmentKey];
-    send({ type: "EQUIPMENT_CHANGE", equipment: equipmentKey, value });
-    $equipment.setKey(equipmentKey, value);
-    setChecked(true);
-  };
-
-  return (
-    <Card
-      className="cursor-pointer p-4 flex flex-row justify-between items-center"
-      onClick={toggleEquipment}
-    >
-      <div className="flex-1">
-        <span className="font-semibold">{formatDisplayName(equipmentKey)}</span>
-      </div>
-      <Checkbox id={equipmentKey} checked={checked} />
-    </Card>
-  );
-}
-
-// Main Equipment component
 export default function Equipment() {
   const router = useRouter();
   const equipment = useStore($equipment);
@@ -99,10 +31,11 @@ export default function Equipment() {
       </div>
       <div className="sticky bottom-0 w-full p-2 flex justify-center">
         <Button
-          className="mt-6 font-bold py-2 px-4 rounded w-full mb-6 sticky max-w-xl shadow-xl"
+          className="mt-6 font-bold py-2 px-4 rounded w-full mb-6 max-w-xl shadow-xl transitioning:opacity-50"
           onClick={handleNext}
         >
-          Next
+          <span className="transitioning:hidden">Next</span>
+          <Loader2Icon className="transitioning:block hidden animate-spin" />
         </Button>
       </div>
     </div>
