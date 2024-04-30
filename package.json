@@ -150,6 +150,7 @@
     "@types/eventsource": "^1.1.12",
     "@types/js-yaml": "^4.0.6",
     "@types/jsonwebtoken": "^9.0.3",
+    "@types/luxon": "^3.4.2",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
