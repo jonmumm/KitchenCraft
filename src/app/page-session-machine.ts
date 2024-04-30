@@ -1916,6 +1916,12 @@ export const pageSessionMachine = setup({
                             context.previousSuggestedChefnames,
                           prompt: context.prompt,
                           tokens: context.tokens,
+                          personalizationContext: context.browserSessionSnapshot
+                            ?.context
+                            ? getPersonalizationContext(
+                                context.browserSessionSnapshot.context
+                              )
+                            : undefined,
                           selectedRecipe: {
                             name: recipe.name,
                             description: recipe.description,
