@@ -1818,28 +1818,38 @@ export const SuggestedIngredientsSection = () => {
     () => selectSuggestedIngredients(session$.get()),
     () => selectSuggestedIngredients(session$.get())
   );
+  const isGenerating = useSyncExternalStore(
+    session$.subscribe,
+    () => selectIsGeneratingSuggestedIngredients(session$.get()),
+    () => selectIsGeneratingSuggestedIngredients(session$.get())
+  );
 
   return (
     <CraftEmpty>
       <Section className="max-w-3xl mx-auto">
         <IngredientsLabel />
         <BadgeList>
-          {items.map((item, index) => {
-            return (
-              <Badge
-                variant="outline"
-                className="carousel-item flex flex-row gap-1"
-                key={index}
-                event={{ type: "ADD_TOKEN", token: ingredients[index]! }}
-              >
-                {ingredients[index] ? (
-                  <>{ingredients[index]}</>
-                ) : (
-                  <Skeleton className="w-8 h-4 animate-pulse" />
-                )}
-              </Badge>
-            );
-          })}
+          {items
+            .filter(
+              (_, index) =>
+                (!ingredients.length && !isGenerating) || index < ingredients.length
+            )
+            .map((item, index) => {
+              return (
+                <Badge
+                  variant="outline"
+                  className="carousel-item flex flex-row gap-1"
+                  key={index}
+                  event={{ type: "ADD_TOKEN", token: ingredients[index]! }}
+                >
+                  {ingredients[index] ? (
+                    <>{ingredients[index]}</>
+                  ) : (
+                    <Skeleton className="w-8 h-4 animate-pulse" />
+                  )}
+                </Badge>
+              );
+            })}
         </BadgeList>
       </Section>
     </CraftEmpty>
@@ -1850,6 +1860,26 @@ const selectSuggestedTags = (snapshot: SessionStoreSnapshot) => {
   return snapshot.context.browserSessionSnapshot?.context.suggestedTags || [];
 };
 
+const selectIsGeneratingSuggestedIngredients = (
+  snapshot: SessionStoreSnapshot
+) => {
+  const value = snapshot.context.browserSessionSnapshot?.value;
+  return (
+    typeof value?.Suggestions === "object" &&
+    typeof value.Suggestions.Ingredients === "string" &&
+    value.Suggestions.Ingredients === "Running"
+  );
+};
+
+const selectIsGeneratingSuggestedTags = (snapshot: SessionStoreSnapshot) => {
+  const value = snapshot.context.browserSessionSnapshot?.value;
+  return (
+    typeof value?.Suggestions === "object" &&
+    typeof value.Suggestions.Tags === "string" &&
+    value.Suggestions.Tags === "Running"
+  );
+};
+
 export const SuggestedTagsSection = () => {
   const items = new Array(20).fill(0);
   const session$ = useSessionStore();
@@ -1858,28 +1888,38 @@ export const SuggestedTagsSection = () => {
     () => selectSuggestedTags(session$.get()),
     () => selectSuggestedTags(session$.get())
   );
+  const isGenerating = useSyncExternalStore(
+    session$.subscribe,
+    () => selectIsGeneratingSuggestedTags(session$.get()),
+    () => selectIsGeneratingSuggestedTags(session$.get())
+  );
 
   return (
     <CraftEmpty>
       <Section className="max-w-3xl mx-auto">
         <TagsLabel />
         <BadgeList>
-          {items.map((item, index) => {
-            return (
-              <Badge
-                variant="outline"
-                className="carousel-item flex flex-row gap-1"
-                key={index}
-                event={{ type: "ADD_TOKEN", token: tags[index]! }}
-              >
-                {tags[index] ? (
-                  <>{tags[index]}</>
-                ) : (
-                  <Skeleton className="w-8 h-4 animate-pulse" />
-                )}
-              </Badge>
-            );
-          })}
+          {items
+            .filter(
+              (_, index) =>
+                (!tags.length && !isGenerating) || index < tags.length
+            )
+            .map((_, index) => {
+              return (
+                <Badge
+                  variant="outline"
+                  className="carousel-item flex flex-row gap-1"
+                  key={index}
+                  event={{ type: "ADD_TOKEN", token: tags[index]! }}
+                >
+                  {tags[index] ? (
+                    <>{tags[index]}</>
+                  ) : (
+                    <Skeleton className="w-8 h-4 animate-pulse" />
+                  )}
+                </Badge>
+              );
+            })}
         </BadgeList>
       </Section>
     </CraftEmpty>
