@@ -226,7 +226,7 @@ const AutoResizableTextarea: React.FC<
         intervalIdRef.current = setInterval(typeText, 100);
 
         return clearTimers;
-      }, []);
+      }, [placeholders]);
 
       useEffect(() => {
         if (placeholders && placeholders.length) {
