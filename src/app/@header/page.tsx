@@ -1,5 +1,7 @@
 import { Badge } from "@/components/display/badge";
 import { Button } from "@/components/input/button";
+import { DateTime } from "luxon";
+
 import {
   SheetContent,
   SheetOverlay,
@@ -9,7 +11,7 @@ import { TypeLogo } from "@/components/logo";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
-import { getIsMobile } from "@/lib/headers";
+import { getIsMobile, getTimezone } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import { ChefHatIcon, GripVerticalIcon, Loader2Icon } from "lucide-react";
 import { MainMenu } from "../menu/components";
@@ -63,9 +65,7 @@ export default async function Page({}) {
         >
           <TypeLogo className="h-20 crafting:hidden" />
           <div className="flex flex-col gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
-            <h2 className="text-2xl font-medium crafting:hidden">
-              What&apos;s for dinner?
-            </h2>
+            <PromptHeader />
             <p className="crafting:hidden text-muted-foreground text-sm mb-2">
               ⚡️ Instantly create personalized recipes.
             </p>
@@ -93,3 +93,23 @@ export default async function Page({}) {
     </>
   );
 }
+
+const PromptHeader = () => {
+  const timezone = getTimezone(); // Make sure this function returns a valid timezone string
+  const currentTime = DateTime.now().setZone(timezone);
+  const hour = currentTime.hour;
+  console.log(hour, timezone, currentTime);
+
+  let greeting;
+  if (hour >= 4 && hour < 9) {
+    greeting = "What's for breakfast?";
+  } else if (hour >= 9 && hour < 14) {
+    greeting = "What's for lunch?";
+  } else if (hour >= 14 && hour < 22) {
+    greeting = "What's for dinner?";
+  } else {
+    greeting = "Looking for a snack?";
+  }
+
+  return <h2 className="text-2xl font-medium crafting:hidden">{greeting}</h2>;
+};

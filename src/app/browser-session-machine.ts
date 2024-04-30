@@ -234,7 +234,6 @@ export const browserSessionMachine = setup({
       on: {
         HEART_BEAT: {
           actions: assign(({ context, event }) => {
-            console.log(event);
             return produce(context, (draft) => {
               const cf = event?.cf;
 

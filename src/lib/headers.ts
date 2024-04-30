@@ -2,6 +2,7 @@ import { env } from "@/env.public";
 import Bowser from "bowser";
 import { headers } from "next/headers";
 import { parseCookie } from "./coookieStore";
+import { assert } from "./utils";
 
 export const getOrigin = () => {
   const headersList = headers();
@@ -58,4 +59,11 @@ export const getAppSessionId = () => {
 export const getIsMobile = () => {
   const browser = getBrowser();
   return browser.getPlatformType() === "mobile";
+};
+
+export const getTimezone = () => {
+  const headerList = headers();
+  const timezone = headerList.get("x-timezone");
+  assert(timezone, "expected timezone in ehader");
+  return timezone;
 };

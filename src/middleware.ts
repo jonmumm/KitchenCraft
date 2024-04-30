@@ -70,6 +70,10 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-guest-id", uniqueId);
   requestHeaders.set("x-page-session-id", pageSessionId);
   requestHeaders.set("x-url", request.url);
+  requestHeaders.set(
+    "x-timezone",
+    request.headers.get("x-vercel-ip-timezone") || "America/Los_Angeles"
+  );
 
   const res = NextResponse.next({
     request: {
