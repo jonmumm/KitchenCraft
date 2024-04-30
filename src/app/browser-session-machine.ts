@@ -185,8 +185,13 @@ export const browserSessionMachine = setup({
     Connections: {
       on: {
         CONNECT: {
+          guard: ({ event }) => {
+            console.log("RI", event.requestInfo);
+            return !!event.requestInfo;
+          },
           actions: assign(({ context, event }) => {
             return produce(context, (draft) => {
+              console.log(event);
               if (event.requestInfo?.continent) {
                 draft.continent = event.requestInfo?.continent;
               }
@@ -258,6 +263,7 @@ export const browserSessionMachine = setup({
               invoke: {
                 src: "generateIngredientSuggestions",
                 input: ({ context }) => {
+                  console.log("RUNNING!");
                   assert(context.timezone, "expected timezone");
                   const personalizationContext =
                     getPersonalizationContext(context);

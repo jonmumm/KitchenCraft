@@ -148,6 +148,7 @@ export const createMachineServer = <
     }
 
     async onRequest(request: Party.Request) {
+      console.log(request.cf);
       const connectionId = randomUUID();
       const authHeader = request.headers.get("Authorization");
       const callerIdToken = authHeader?.split(" ")[1];
@@ -317,9 +318,15 @@ export const createMachineServer = <
       if (context.request.cf) {
         const result = RequestInfoSchema.safeParse(context.request.cf);
         if (result.success) {
+          // console.log({ requestInfo });
           requestInfo = result.data;
+        } else {
+          // Error parsing cloudflare
+          // Shouldnt happen frequently
+          console.error(result.error);
         }
       }
+      // console.log(context.request.cf, requestInfo);
       // @ts-expect-error
       actor.send({
         type: "CONNECT",
