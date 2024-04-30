@@ -98,7 +98,6 @@ const PromptHeader = () => {
   const timezone = getTimezone(); // Make sure this function returns a valid timezone string
   const currentTime = DateTime.now().setZone(timezone);
   const hour = currentTime.hour;
-  console.log(hour, timezone, currentTime);
 
   let greeting;
   if (hour >= 4 && hour < 9) {

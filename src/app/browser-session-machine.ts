@@ -150,7 +150,7 @@ export const browserSessionMachine = setup({
     diet: {},
     suggestedIngredients: [],
     suggestedTags: [],
-    lastRunPersonalizaitonContext: undefined,
+    lastRunPersonalizationContext: undefined,
     suggestedPlaceholders: [],
     suggestedTokens: [],
   }),
@@ -273,7 +273,7 @@ export const browserSessionMachine = setup({
                 draft.timezone = cf.timezone;
               }
 
-              draft.lastRunPersonalizaitonContext =
+              draft.lastRunPersonalizationContext =
                 getPersonalizationContext(draft);
             });
           }),
@@ -284,14 +284,14 @@ export const browserSessionMachine = setup({
       type: "parallel",
       // this is probably runnin a little too frequently
       always: {
-        target: [".Ingredients.Running", ".Tags.Running"],
+        target: [".Ingredients.Running", ".Tags.Running", ".Placeholders.Running", ".Tokens.Running"],
         actions: assign({
-          lastRunPersonalizaitonContext: ({ context }) =>
+          lastRunPersonalizationContext: ({ context }) =>
             getPersonalizationContext(context),
         }),
         guard: ({ context }) =>
-          !!context.lastRunPersonalizaitonContext &&
-          context.lastRunPersonalizaitonContext !==
+          !!context.lastRunPersonalizationContext &&
+          context.lastRunPersonalizationContext !==
             getPersonalizationContext(context),
       },
       states: {

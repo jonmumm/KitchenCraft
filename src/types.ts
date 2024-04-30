@@ -403,7 +403,7 @@ export type BrowserSessionContext = {
   regionCode?: string;
   suggestedIngredients: Array<string>;
   suggestedTags: Array<string>;
-  lastRunPersonalizaitonContext: string | undefined; // todo put this on the store instead of context?
+  lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
 };
