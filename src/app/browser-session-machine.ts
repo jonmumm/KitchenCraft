@@ -220,6 +220,9 @@ export const browserSessionMachine = setup({
               if (event.requestInfo?.timezone) {
                 draft.timezone = event.requestInfo.timezone;
               }
+
+              draft.lastRunPersonalizaitonContext =
+                getPersonalizationContext(draft);
             });
           }),
         },
