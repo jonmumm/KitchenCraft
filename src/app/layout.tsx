@@ -223,7 +223,7 @@ const PersonalizationSettingsDialog = () => {
       <IsInPersonalizationSettings>
         <ResponsiveDialog open isMobile={isMobile}>
           <ResponsiveDialogOverlay />
-          <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto">
+          <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
             <PersonalizationSettingsMenu />
           </ResponsiveDialogContent>
         </ResponsiveDialog>

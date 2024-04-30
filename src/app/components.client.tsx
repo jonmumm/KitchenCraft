@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/display/card";
 import { Label } from "@/components/display/label";
+import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Progress } from "@/components/feedback/progress";
 import { Button } from "@/components/input/button";
@@ -506,26 +507,27 @@ export const PersonalizationSettingsMenu = () => {
   const preferences = useStore($preferences);
 
   return (
-    <div className="py-2">
-      <div className="flex flex-row gap-2 justify-between items-center px-2">
-        <h2 className="text-lg font-bold">Preferences</h2>
-        <Button variant="outline" event={{ type: "CLOSE" }}>
+    <div className="relative">
+      <div className="flex flex-row gap-2 justify-between items-center px-4 sticky top-0 w-full py-4 bg-white shadow-sm">
+        <h2 className="text-xl font-bold">Preferences</h2>
+        <Button variant="secondary" event={{ type: "CLOSE" }} autoFocus={false}>
           <XIcon />
         </Button>
       </div>
-      <Accordion type="multiple" className="flex flex-col gap-2">
-        <AccordionItem value="ingredient_preference" className="py-4">
-          <AccordionTrigger className="px-4">Experience</AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-2">
+      <Separator />
+      <Accordion type="multiple" className="flex flex-col gap-1">
+        <AccordionItem value="ingredient_preference">
+          <AccordionTrigger className="p-4">Experience</AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-3">
             <ExperienceCard level="beginner" />
             <ExperienceCard level="intermediate" />
             <ExperienceCard level="advanced" />
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="equipment" className="py-4">
-          <AccordionTrigger className="px-4">Equipment</AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-2">
+        <AccordionItem value="equipment">
+          <AccordionTrigger className="p-4">Equipment</AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-3">
             {Object.keys(equipment).map((key) => (
               <EquipmentCard
                 key={key}
@@ -535,18 +537,18 @@ export const PersonalizationSettingsMenu = () => {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="diet" className="py-4">
-          <AccordionTrigger className="px-4">Diet</AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-2">
+        <AccordionItem value="diet">
+          <AccordionTrigger className="p-4">Diet</AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-3">
             {Object.keys(diet).map((key) => (
               <DietCard key={key} dietKey={key as keyof DietSettings} />
             ))}
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="preferences" className="py-4">
-          <AccordionTrigger className="px-4">Preferences</AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-2">
+        <AccordionItem value="taste">
+          <AccordionTrigger className="p-4">Taste</AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-3">
             {Object.keys(preferences).map((key) => (
               <PreferenceCard
                 key={key}

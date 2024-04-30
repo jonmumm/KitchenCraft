@@ -30,7 +30,7 @@ export async function Footer({
 
   return (
     <ReactiveFooter className="fixed z-20 bottom-0 left-0 right-0 flex rounded-b-none lg:hidden crafting:hidden">
-      <div className="bg-card w-full border-t-2 border-solid border-slate-300 dark:border-slate-700 standalone:pb-4">
+      <div className="bg-card w-full border-t-2 border-solid border-slate-200 dark:border-slate-800 standalone:pb-4">
         <div className="flex flex-row gap-2 justify-center w-full">
           <NavigationLink href="/" className="basis-36 min-w-0">
             <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1">
