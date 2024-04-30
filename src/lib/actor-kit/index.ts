@@ -4,6 +4,7 @@ import { Caller } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import { SignJWT, jwtVerify } from "jose";
+import { headers } from "next/headers";
 import type * as Party from "partykit/server";
 import {
   Actor,
@@ -66,6 +67,16 @@ export const createActorHTTPClient = <
 }) => {
   const get = async (id: string, input: Record<string, string>) => {
     const token = await createCallerToken(props.caller.id, props.caller.type);
+    const forwardedFor = headers().get("x-forwarded-for");
+    const ip =
+      forwardedFor && forwardedFor !== "::1" ? forwardedFor : "127.0.0.1";
+    // if (forwardedFor !== "::1") {
+
+    // }
+    // const headerLiser = headers();
+    // const ip =
+    //   request.headers["x-forwarded-for"] || request.connection.remoteAddress;
+    // console.log(ip);
     const resp = await fetch(
       `${API_SERVER_URL}/parties/${props.type}/${id}?input=${encodeURIComponent(
         JSON.stringify(input)
@@ -74,6 +85,7 @@ export const createActorHTTPClient = <
         next: { revalidate: 0 },
         headers: {
           Authorization: `Bearer ${token}`,
+          "X-Forwarded-For": ip,
         },
       }
     );
@@ -148,6 +160,7 @@ export const createMachineServer = <
     }
 
     async onRequest(request: Party.Request) {
+      console.log(request.cf, request.headers.get("x-forwarded-for"));
       const connectionId = randomUUID();
       const authHeader = request.headers.get("Authorization");
       const callerIdToken = authHeader?.split(" ")[1];

@@ -65,6 +65,8 @@ export async function middleware(request: NextRequest) {
   }
 
   const pageSessionId = uuidv4();
+  // const forwardedFor = request.headers.get("x-forwarded-for");
+  // requestHeaders.set("x-forwarded-for", forwardedFor || "127.0.0.1");
 
   // todo only do this if actually a guest?
   requestHeaders.set("x-guest-id", uniqueId);
