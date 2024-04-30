@@ -12,6 +12,7 @@ import {
 } from "@/db";
 import { NewRecipe } from "@/db/types";
 import { getErrorMessage } from "@/lib/error";
+import { getPersonalizationContext } from "@/lib/llmContext";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
 import { assert, sentenceToSlug } from "@/lib/utils";
@@ -1993,6 +1994,12 @@ export const pageSessionMachine = setup({
                         email: context.email,
                         previousSuggestions: context.previousSuggestedChefnames,
                         prompt: context.prompt,
+                        personalizationContext: context.browserSessionSnapshot
+                          ?.context
+                          ? getPersonalizationContext(
+                              context.browserSessionSnapshot.context
+                            )
+                          : undefined,
                         tokens: context.tokens,
                         selectedRecipe: {
                           name: recipe.name,

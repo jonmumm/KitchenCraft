@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
       type: "system",
     },
   });
+  console.log([{ pageSessionId, connectionId }]);
   await client.send(pageSessionId, {
     type: "AUTHENTICATE",
     connectionId,

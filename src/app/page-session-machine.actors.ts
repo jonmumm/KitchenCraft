@@ -178,6 +178,7 @@ export const generateChefNameSuggestions = fromEventObservable(
       prompt: string;
       tokens: string[];
       selectedRecipe: { name: string; description: string };
+      personalizationContext: string | undefined;
     };
   }) => {
     const tokenStream = new SuggestChefNamesStream();

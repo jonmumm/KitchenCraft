@@ -14,6 +14,7 @@ export type SuggestChefNamesEvent = StreamObservableEvent<
 export class SuggestChefNamesStream extends TokenStream<{
   email: string;
   previousSuggestions: string[];
+  personalizationContext: string | undefined;
   prompt: string;
   tokens: string[];
   selectedRecipe: {
@@ -26,16 +27,27 @@ export class SuggestChefNamesStream extends TokenStream<{
     previousSuggestions: string[];
     prompt: string;
     selectedRecipe: { name: string; description: string };
+    personalizationContext: string | undefined;
   }): Promise<string> {
-    const previousSuggestionsText = input.previousSuggestions.length > 0
-      ? "Previous Suggestions: " + input.previousSuggestions.join(", ")
-      : "";
-    const promptText = input.prompt ? "Prompt: " + input.prompt : "No specific prompt provided.";
+    const previousSuggestionsText =
+      input.previousSuggestions.length > 0
+        ? "Previous Suggestions: " + input.previousSuggestions.join(", ")
+        : "";
+    const promptText = input.prompt
+      ? "Prompt: " + input.prompt
+      : "No specific prompt provided.";
     const recipeText = `Selected Recipe - Name: ${input.selectedRecipe.name}, Description: ${input.selectedRecipe.description}`;
 
     return `Email: ${input.email}${
       previousSuggestionsText ? ", " + previousSuggestionsText : ""
-    }, ${promptText}, ${recipeText}`;
+    }, ${promptText}, ${recipeText}
+
+    ${
+      input.personalizationContext
+        ? `Extra Info: ${input.personalizationContext}`
+        : ``
+    }
+    `;
   }
 
   protected async getSystemMessage(input: {
@@ -45,10 +57,16 @@ export class SuggestChefNamesStream extends TokenStream<{
     tokens: string[];
     selectedRecipe: { name: string; description: string };
   }): Promise<string> {
-    const previousSuggestionsText = input.previousSuggestions.length > 0
-      ? "Considering the previous suggestions provided: " + input.previousSuggestions.join(", ") + "."
-      : "";
-    const tokenText = input.tokens.length > 0 ? "Using tokens: " + input.tokens.join(", ") + "." : "No tokens provided.";
+    const previousSuggestionsText =
+      input.previousSuggestions.length > 0
+        ? "Considering the previous suggestions provided: " +
+          input.previousSuggestions.join(", ") +
+          "."
+        : "";
+    const tokenText =
+      input.tokens.length > 0
+        ? "Using tokens: " + input.tokens.join(", ") + "."
+        : "No tokens provided.";
     const recipeInspirationText = `While the suggested profile nicknames should be catchy and memorable, they should not overemphasize any specific ingredient or dish. Instead, aim for creativity and personal flair, reflecting a diverse range of culinary interests.`;
 
     const TEMPLATE = `Generate six personalized nicknames suitable for a recipe app profile, based on the user's email address and ${previousSuggestionsText} ${tokenText} ${recipeInspirationText} The nicknames should incorporate elements of the email (ignoring the domain), use random numbers, and you can use underscores for readability. Reflect a variety of styles seen in usernames like [Adjective][Noun] (e.g., BakingJohn), [Flavor/Ingredient][Descriptor] (e.g., VanillaTony), [Region/City][Chef/Cook] (e.g., denver_cook_smith, TokyoChef) or another style. Aim for a mix of camelcase (70% of the time) and full lower case with underscores (30% of the time).

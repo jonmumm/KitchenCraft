@@ -219,6 +219,7 @@ export const createMachineServer = <
         if (caller.type === "system") {
           const json = await request.json();
           const event = SystemCallerEventSchema.parse(json);
+          console.log(json);
           // Set future events from this connection to
           // come from the userId
           if (event.type === "AUTHENTICATE") {
@@ -386,7 +387,7 @@ const createConnectionToken = async (id: string, connectionId: string) => {
   let signJWT = new SignJWT({})
     .setProtectedHeader({ alg: "HS256" })
     .setJti(connectionId)
-    .setSubject("CONNECTION")
+    .setSubject(id)
     .setIssuedAt()
     .setExpirationTime("1d");
 
@@ -402,9 +403,5 @@ const parseConnectionToken = async (token: string) => {
     new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
   );
   assert(verified.payload.jti, "expected JTI on connectionToken");
-  assert(
-    verified.payload.sub === "CONNECTION",
-    "expected connection token to have subject CONNECTION"
-  );
   return verified;
 };
