@@ -1260,54 +1260,6 @@ export const pageSessionMachine = setup({
           type: "parallel",
           on: {
             CLEAR: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle"],
-            // PREV: [
-            //   {
-            //     target: [
-            //       ".Placeholder.Generating",
-            //       ".Tokens.Generating",
-            //       ".Recipes.Generating",
-            //     ],
-            //     actions: [
-            //       "resetSuggestions",
-            //       assign({
-            //         inputHash: ({ context, event }) => {
-            //           return generateUrlSafeHash(buildInput(context));
-            //         },
-            //       }),
-            //     ],
-            //     guard: "shouldRunInput",
-            //   },
-            //   {
-            //     target: [
-            //       ".Placeholder.Idle",
-            //       ".Tokens.Idle",
-            //       ".Recipes.Idle",
-            //       // ".CurrentRecipe.Idle",
-            //     ],
-            //     guard: ({ context }) => {
-            //       const hash = generateUrlSafeHash(
-            //         buildInput({
-            //           prompt: context.prompt,
-            //           tokens: context.tokens,
-            //         })
-            //       );
-
-            //       const patch =
-            //         context.undoOperations[context.undoOperations.length - 1];
-            //       assert(patch, "expected patch");
-            //       const nextContext = produce(context, (draft) => {
-            //         applyPatch(draft, patch);
-            //       });
-            //       const nextInput = buildInput(nextContext);
-
-            //       return !nextInput.length;
-            //     },
-            //     actions: assign({
-            //       inputHash: undefined,
-            //       generatingRecipeId: undefined,
-            //     }),
-            //   },
-            // ],
             REMOVE_TOKEN: [
               {
                 target: [
