@@ -133,11 +133,11 @@ export async function MainMenu({ className }: { className?: string }) {
                 href={`/@${profileSlug}`}
                 className="text-muted-foreground text-xs"
               >
-                <span>Inactive</span>
+                <span>Free Account</span>
               </Link>
             </div>
           </div>
-          <div className="flex flex-row gap-8 items-center justify-around">
+          {/* <div className="flex flex-row gap-8 items-center justify-around">
             <div className="flex flex-row justify-around gap-8">
               <div className="flex flex-col gap-1 items-center">
                 <Link href="/leaderboard">
@@ -190,9 +190,9 @@ export async function MainMenu({ className }: { className?: string }) {
                 </Label>
               </div>
             </div>
-          </div>
+          </div> */}
           {/* {canInstallPWA && <AppInstall />} */}
-          <Separator />
+          {/* <Separator /> */}
           <div className="flex flex-row items-center justify-between w-full gap-3">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
               Email
@@ -201,8 +201,9 @@ export async function MainMenu({ className }: { className?: string }) {
               <span className="truncate">{email}</span>
             </div>
           </div>
-
           <Separator />
+
+          {/* <Separator />
           <AsyncRenderFirstValue
             observable={combineLatest([
               usage$,
@@ -243,7 +244,7 @@ export async function MainMenu({ className }: { className?: string }) {
               );
             }}
             fallback={<Skeleton className="h-12 w-full" />}
-          />
+          /> */}
           <div className="flex flex-row gap-3 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
               Subscription
