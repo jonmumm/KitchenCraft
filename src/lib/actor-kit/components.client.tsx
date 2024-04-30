@@ -3,10 +3,10 @@
 import { PageSessionContext } from "@/app/page-session-store.context";
 import { env } from "@/env.public";
 import { useEventSubject } from "@/hooks/useEvents";
+import { AppEvent } from "@/types";
 import { Operation, applyPatch } from "fast-json-patch";
 import { produce } from "immer";
 import { atom } from "nanostores";
-import { useSession } from "next-auth/react";
 import PartySocket from "partysocket";
 import {
   ReactNode,
@@ -16,6 +16,7 @@ import {
   useRef,
 } from "react";
 import { z } from "zod";
+import { noop } from "../utils";
 
 const initialized$ = atom(false);
 
@@ -64,6 +65,16 @@ export const ActorProvider = (props: {
       query: { token },
       debug: true,
     });
+
+    fetch(
+      `https://${env.KITCHENCRAFT_API_HOST}/parties/page_session/${id}?token=${token}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          type: "HEART_BEAT",
+        } satisfies AppEvent),
+      }
+    ).then(noop);
 
     event$.subscribe((event) => {
       try {

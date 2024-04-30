@@ -1,6 +1,6 @@
 import { json, notFound } from "@/lib/actor-kit/utils/response";
 import { AppEventSchema, RequestInfoSchema, SystemEventSchema } from "@/schema";
-import { Caller } from "@/types";
+import { AppEvent, Caller, WithCaller, WithCloudFlareProps } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import { SignJWT, jwtVerify } from "jose";
@@ -150,19 +150,27 @@ export const createMachineServer = <
     async onRequest(request: Party.Request) {
       const connectionId = randomUUID();
       const authHeader = request.headers.get("Authorization");
-      const callerIdToken = authHeader?.split(" ")[1];
-      assert(callerIdToken, "unable to parse bearer token");
-      const caller = await parseCallerIdToken(callerIdToken);
+      const callerToken = authHeader?.split(" ")[1];
+      let caller: Caller | undefined;
 
-      // if (request.method === "POST") {
-      //   // todo requi're a caller token before allowing this send...
-      //   // dont thinkw e use this anywhere yet
-      //   const json = await request.json();
-      //   const event = eventSchema.parse(json);
-      //   // @ts-expect-error
-      //   this.actor.send(Object.assign(event, { caller }));
-      //   return ok();
-      // }
+      const index = request.url.indexOf("?");
+      const search = index !== -1 ? request.url.substring(index + 1) : "";
+      const params = new URLSearchParams(search);
+      const connectionToken = params.get("token");
+
+      if (callerToken) {
+        caller = await parseCallerIdToken(callerToken);
+      } else if (connectionToken) {
+        const connectionId = (await parseConnectionToken(connectionToken))
+          .payload.jti;
+        assert(
+          connectionId,
+          "expected connectionId when parsing connection token"
+        );
+        const existingCaller = this.callersByConnectionId.get(connectionId);
+        caller = existingCaller;
+      }
+      assert(caller, "expected caller to be set");
 
       if (request.method === "GET") {
         if (!this.actor) {
@@ -222,11 +230,23 @@ export const createMachineServer = <
 
           // @ts-expect-error
           this.actor.send(Object.assign(event, { caller: { type: "system" } }));
+        } else {
+          const json = await request.json();
+          const event = AppEventSchema.parse(json);
+
+          // hack to add cf to HEART_BEAT events
+          // tried adding it to all events but xstate
+          // seemed to be stripping out the cf prop
+          // when not on a specific event
+          const payload = Object.assign(event, {
+            caller,
+            cf: request.cf,
+          }) satisfies WithCloudFlareProps<WithCaller<AppEvent>>;
+          assert(this.actor, "expected actor when sending post event");
+
+          // @ts-expect-error
+          this.actor.send(payload);
         }
-
-        // todo handle events from clients directly here...
-        // todo wait until no pending events left on it before we return...
-
         return json({
           status: "ok",
         });

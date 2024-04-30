@@ -15,6 +15,7 @@ import {
   RecipeSchema,
   UserPreferenceSchema,
 } from "./db";
+import { CloudFlareProps } from "./types";
 
 export const CallerIdTypeSchema = z.enum(["user", "guest", "system"]);
 
@@ -978,11 +979,17 @@ const VisibilityChangeEventSchema = z.object({
   visibilityState: VisibilityStateEnum,
 });
 
+const HeartBeatEventSchema = z.object({
+  type: z.literal("HEART_BEAT"),
+  cf: z.custom<CloudFlareProps>().optional(),
+});
+
 export const SystemEventSchema = z.discriminatedUnion("type", [
   AuthenticateEventSchema,
 ]);
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+  HeartBeatEventSchema,
   ExperienceChangeEventSchema,
   EquipmentChangeEventSchema,
   DietChangeEventSchema,

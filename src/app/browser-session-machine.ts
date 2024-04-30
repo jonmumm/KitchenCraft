@@ -184,41 +184,46 @@ export const browserSessionMachine = setup({
     },
     Connections: {
       on: {
-        CONNECT: {
+        HEART_BEAT: {
           actions: assign(({ context, event }) => {
+            console.log(event);
             return produce(context, (draft) => {
-              if (event.requestInfo?.continent) {
-                draft.continent = event.requestInfo?.continent;
+              const cf = event?.cf;
+
+              if (typeof cf?.continent === "string") {
+                draft.continent = cf.continent;
               }
-              if (event.requestInfo?.latitude && event.requestInfo.longitude) {
+              if (
+                typeof cf?.latitude === "string" &&
+                typeof cf.longitude === "string"
+              ) {
                 draft.gps = {
-                  latitude: event.requestInfo.latitude,
-                  longitude: event.requestInfo.longitude,
+                  latitude: cf.latitude,
+                  longitude: cf.longitude,
                 };
               }
-
-              if (event.requestInfo?.postalCode) {
-                draft.postalCode = event.requestInfo.postalCode;
+              if (typeof cf?.postalCode === "string") {
+                draft.postalCode = cf.postalCode;
               }
 
-              if (event.requestInfo?.country) {
-                draft.country = event.requestInfo.country;
+              if (typeof cf?.country === "string") {
+                draft.country = cf.country;
               }
 
-              if (event.requestInfo?.region) {
-                draft.region = event.requestInfo.region;
+              if (typeof cf?.region === "string") {
+                draft.region = cf.region;
               }
 
-              if (event.requestInfo?.regionCode) {
-                draft.regionCode = event.requestInfo.regionCode;
+              if (typeof cf?.regionCode === "string") {
+                draft.regionCode = cf.regionCode;
               }
 
-              if (event.requestInfo?.city) {
-                draft.city = event.requestInfo.city;
+              if (typeof cf?.city === "string") {
+                draft.city = cf.city;
               }
 
-              if (event.requestInfo?.timezone) {
-                draft.timezone = event.requestInfo.timezone;
+              if (typeof cf?.timezone === "string") {
+                draft.timezone = cf.timezone;
               }
 
               draft.lastRunPersonalizaitonContext =
@@ -248,9 +253,9 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                CONNECT: {
+                HEART_BEAT: {
                   target: "Running",
-                  guard: ({ event }) => !!event.requestInfo,
+                  guard: ({ event }) => !!event.cf,
                 },
               },
             },
@@ -277,9 +282,11 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                CONNECT: {
+                HEART_BEAT: {
                   target: "Running",
-                  guard: ({ event }) => !!event.requestInfo,
+                  guard: ({ event }) => {
+                    return !!event.cf;
+                  },
                 },
               },
             },

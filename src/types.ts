@@ -58,7 +58,6 @@ import {
   NewInstantRecipePredictionInputSchema,
   NewRecipeFromSuggestionsPredictionInputSchema,
   OnboardingInputSchema,
-  TasteSettingsSchema,
   ProfileSlugSchema,
   RecipeAttributeSchema,
   RecipeAttributesSchema,
@@ -93,6 +92,7 @@ import {
   SuggestionsInputSchema,
   SystemEventSchema,
   SystemMessageSchema,
+  TasteSettingsSchema,
   TechniqueSchema,
   TempRecipeSchema,
   TipsAndTricksPredictionInputSchema,
@@ -120,12 +120,15 @@ export type Camelize<T> = {
     : T[K];
 };
 
+export type CloudFlareProps = Party.Request["cf"];
+
 export type AppEvent = z.infer<typeof AppEventSchema>;
 export type SystemEvent = z.infer<typeof SystemEventSchema>;
 
 export type CallerType = z.infer<typeof CallerIdTypeSchema>;
 export type Caller = { id: string; type: CallerType };
 export type WithCaller<T> = T & { caller: Caller };
+export type WithCloudFlareProps<T> = T & { cf?: CloudFlareProps };
 export type Ingredient = (typeof ingredients)[0];
 
 export type TempRecipe = z.infer<typeof TempRecipeSchema>;

@@ -657,6 +657,13 @@ export const pageSessionMachine = setup({
     browserSessionToken: input.browserSessionToken,
   }),
   type: "parallel",
+  on: {
+    HEART_BEAT: {
+      actions: ({ event }) => {
+        console.log(event);
+      },
+    },
+  },
   states: {
     Initialization: {
       initial: "Loading",
@@ -852,86 +859,6 @@ export const pageSessionMachine = setup({
         },
       },
     },
-
-    // Ads: {
-    //   type: "parallel",
-    //   states: {
-    //     Pipeline: {
-    //       on: {
-    //         NEW_RECIPE_PRODUCT_KEYWORD: {
-    //           actions: assign(({ context, event }) => {
-    //             console.log(event.keyword);
-    //             return {};
-    //           }),
-    //         },
-    //       },
-    //     },
-    //     Instances: {
-    //       on: {
-    //         INIT_AD_INSTANCES: {
-    //           actions: assign(({ context, event }) =>
-    //             produce(context, (draft) => {
-    //               event.ids.forEach((id) => {
-    //                 draft.adInstances[id] = {
-    //                   id,
-    //                   context: event.context,
-    //                 };
-    //               });
-    //             })
-    //           ),
-    //         },
-    //         PRESS_AD_INSTANCE: {
-    //           actions: assign({
-    //             viewedAdInstanceIds: ({ context, event }) => [
-    //               ...context.viewedAdInstanceIds,
-    //               event.adInstanceId,
-    //             ],
-    //           }),
-    //         },
-    //         VIEW_AD_INSTANCE: {
-    //           actions: assign({
-    //             viewedAdInstanceIds: ({ context, event }) => [
-    //               ...context.viewedAdInstanceIds,
-    //               event.adInstanceId,
-    //             ],
-    //           }),
-    //         },
-    //       },
-    //     },
-    //     Initialization: {
-    //       initial: "Idle",
-    //       states: {
-    //         Idle: {
-    //           on: {
-    //             INIT_AD_INSTANCES: [
-    //               {
-    //                 guard: ({ event }) => event.context.type === "recipe",
-    //                 actions: spawnChild("initializeRecipeAds", {
-    //                   input: ({ context, event }) => {
-    //                     assert(
-    //                       event.type === "INIT_AD_INSTANCES",
-    //                       "expected event INIT_AD_INSTANCES"
-    //                     );
-    //                     assert(
-    //                       event.context.type === "recipe",
-    //                       "expected recipe context"
-    //                     );
-
-    //                     return {
-    //                       ids: event.ids,
-    //                       context: event.context,
-    //                       productIdViewCounts: context.productIdViewCounts,
-    //                     };
-    //                   },
-    //                 }),
-    //               },
-    //             ],
-    //           },
-    //         },
-    //       },
-    //     },
-    //   },
-    // },
 
     Craft: {
       type: "parallel",
