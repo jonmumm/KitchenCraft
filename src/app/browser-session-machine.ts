@@ -1,13 +1,10 @@
-import { preferencesDisplayNames } from "@/data/settings";
+import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert } from "@/lib/utils";
 import {
   AppEvent,
-  DietSettings,
-  EquipmentSettings,
-  ExperienceLevel,
+  BrowserSessionContext,
   SystemEvent,
-  TasteSettings,
   WithCaller,
 } from "@/types";
 import { produce } from "immer";
@@ -20,39 +17,26 @@ import {
   SuggestIngredientsOutputSchema,
 } from "./suggest-ingredients.stream";
 import {
+  SuggestPlaceholderEvent,
+  SuggestPlaceholderOutputSchema,
+  SuggestPlaceholderStream,
+} from "./suggest-placeholder.stream";
+import {
   SuggestTagsEvent,
   SuggestTagsOutputSchema,
   SuggestTagsStream,
 } from "./suggest-tags.stream";
+import {
+  SuggestTokensEvent,
+  SuggestTokensOutputSchema,
+  SuggestTokensStream,
+} from "./suggest-tokens.stream";
 
 const InputSchema = z.object({
   id: z.string(),
   userId: z.string(),
 });
 type Input = z.infer<typeof InputSchema>;
-
-type BrowserSessionContext = {
-  id: string;
-  userId: string;
-  experienceLevel?: ExperienceLevel;
-  equipment: EquipmentSettings;
-  diet: DietSettings;
-  preferences: TasteSettings;
-  timezone?: string;
-  country?: string;
-  continent?: string;
-  city?: string;
-  postalCode?: string;
-  gps?: {
-    latitude: string;
-    longitude: string;
-  };
-  region?: string;
-  regionCode?: string;
-  suggestedIngredients: Array<string>;
-  suggestedTags: Array<string>;
-  lastRunPersonalizaitonContext: string | undefined; // todo put this on the store instead of context?
-};
 
 export const browserSessionMachine = setup({
   types: {
@@ -62,9 +46,53 @@ export const browserSessionMachine = setup({
       | WithCaller<AppEvent>
       | WithCaller<SystemEvent>
       | SuggestTagsEvent
+      | SuggestPlaceholderEvent
+      | SuggestTokensEvent
       | SuggestIngredientsEvent,
   },
   actors: {
+    generatePlaceholders: fromEventObservable(
+      ({
+        input,
+      }: {
+        input: {
+          personalizationContext: string;
+          timeContext: string;
+        };
+      }) => {
+        const tokenStream = new SuggestPlaceholderStream();
+        return from(tokenStream.getStream(input)).pipe(
+          switchMap((stream) => {
+            return streamToObservable(
+              stream,
+              "SUGGEST_PLACEHOLDERS",
+              SuggestPlaceholderOutputSchema
+            );
+          })
+        );
+      }
+    ),
+    generateTokenSuggestions: fromEventObservable(
+      ({
+        input,
+      }: {
+        input: {
+          personalizationContext: string;
+          timeContext: string;
+        };
+      }) => {
+        const tokenStream = new SuggestTokensStream();
+        return from(tokenStream.getStream(input)).pipe(
+          switchMap((stream) => {
+            return streamToObservable(
+              stream,
+              "SUGGEST_TOKENS",
+              SuggestTokensOutputSchema
+            );
+          })
+        );
+      }
+    ),
     generateTagSuggestions: fromEventObservable(
       ({
         input,
@@ -123,6 +151,8 @@ export const browserSessionMachine = setup({
     suggestedIngredients: [],
     suggestedTags: [],
     lastRunPersonalizaitonContext: undefined,
+    suggestedPlaceholders: [],
+    suggestedTokens: [],
   }),
   on: {
     EXPERIENCE_CHANGE: {
@@ -154,11 +184,29 @@ export const browserSessionMachine = setup({
           }),
       }),
     },
+    SUGGEST_PLACEHOLDERS_COMPLETE: {
+      actions: assign(({ context, event }) =>
+        produce(context, (draft) => {
+          if (event.data.items) {
+            draft.suggestedPlaceholders = event.data.items;
+          }
+        })
+      ),
+    },
     SUGGEST_TAGS_PROGRESS: {
       actions: assign(({ context, event }) =>
         produce(context, (draft) => {
           if (event.data.tags) {
             draft.suggestedTags = event.data.tags;
+          }
+        })
+      ),
+    },
+    SUGGEST_TOKENS_PROGRESS: {
+      actions: assign(({ context, event }) =>
+        produce(context, (draft) => {
+          if (event.data.tokens) {
+            draft.suggestedTokens = event.data.tokens;
           }
         })
       ),
@@ -308,6 +356,68 @@ export const browserSessionMachine = setup({
             },
           },
         },
+        Placeholders: {
+          initial: "Idle",
+          states: {
+            Idle: {
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event }) => {
+                    return !!event.cf;
+                  },
+                },
+              },
+            },
+            Running: {
+              invoke: {
+                src: "generatePlaceholders",
+                input: ({ context }) => {
+                  assert(context.timezone, "expected timezone");
+                  const personalizationContext =
+                    getPersonalizationContext(context);
+
+                  return {
+                    personalizationContext,
+                    timeContext: getTimeContext(context.timezone),
+                  };
+                },
+                onDone: "Idle",
+              },
+            },
+          },
+        },
+        Tokens: {
+          initial: "Idle",
+          states: {
+            Idle: {
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event }) => {
+                    return !!event.cf;
+                  },
+                },
+              },
+            },
+            Running: {
+              invoke: {
+                src: "generateTokenSuggestions",
+                input: ({ context }) => {
+                  assert(context.timezone, "expected timezone");
+                  const personalizationContext =
+                    getPersonalizationContext(context);
+
+                  return {
+                    personalizationContext,
+                    timeContext: getTimeContext(context.timezone),
+                  };
+                },
+                onDone: "Idle",
+              },
+            },
+          },
+        },
       },
     },
     Onboarding: {
@@ -374,107 +484,3 @@ export const browserSessionMachine = setup({
     },
   },
 });
-
-type PersonalizationOptions = Pick<
-  BrowserSessionContext,
-  | "experienceLevel"
-  | "equipment"
-  | "diet"
-  | "preferences"
-  | "country"
-  | "region"
-  | "city"
-  | "timezone"
->;
-
-function getTimeContext(timezone: string): string {
-  const now = new Date();
-
-  const optionsDate: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: timezone,
-  };
-  const formattedDate = new Intl.DateTimeFormat("en-US", optionsDate).format(
-    now
-  );
-
-  const optionsTime: Intl.DateTimeFormatOptions = {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: timezone,
-  };
-  const formattedTime = new Intl.DateTimeFormat("en-US", optionsTime).format(
-    now
-  );
-
-  const optionsDayOfWeek: Intl.DateTimeFormatOptions = {
-    weekday: "long",
-    timeZone: timezone,
-  };
-  const dayOfWeek = new Intl.DateTimeFormat("en-US", optionsDayOfWeek).format(
-    now
-  );
-
-  return `Date: ${formattedDate}\nTime of Day: ${formattedTime}\nDay of Week: ${dayOfWeek}`;
-}
-
-function getPersonalizationContext(options: PersonalizationOptions): string {
-  let context: string[] = [];
-
-  if (options.experienceLevel) {
-    context.push(`Experience Level: ${options.experienceLevel}`);
-  }
-
-  if (options.equipment) {
-    const equipmentKeys = Object.keys(options.equipment) as Array<
-      keyof typeof options.equipment
-    >;
-    const availableEquipment = equipmentKeys.filter(
-      (key) => options.equipment[key]
-    );
-    if (availableEquipment.length > 0) {
-      context.push(`Available Equipment: ${availableEquipment.join(", ")}`);
-    }
-  }
-
-  if (options.diet) {
-    const dietKeys = Object.keys(options.diet) as Array<
-      keyof typeof options.diet
-    >;
-    const dietaryRestrictions = dietKeys.filter((key) => options.diet[key]);
-    if (dietaryRestrictions.length > 0) {
-      context.push(`Dietary Restrictions: ${dietaryRestrictions.join(", ")}`);
-    }
-  }
-
-  if (options.preferences) {
-    const tasteKeys = Object.keys(options.preferences) as Array<
-      keyof typeof options.preferences
-    >;
-    const tastePreferences = tasteKeys.filter(
-      (key) => options.preferences[key] !== undefined
-    ); // Changed to check for undefined
-    if (tastePreferences.length > 0) {
-      const preferenceDescriptions = tastePreferences.map((key) => {
-        const setting = options.preferences[key];
-        return `${preferencesDisplayNames[key]}: ${setting ? "Yes" : "No"}`; // Show Yes/No based on boolean
-      });
-      context.push(`Taste Preferences: ${preferenceDescriptions.join(", ")}`);
-    }
-  }
-
-  if (options.city || options.country || options.timezone) {
-    context.push(
-      `Location: ${[options.city, options.region, options.country]
-        .filter(Boolean)
-        .join(", ")}${
-        options.timezone ? ", Timezone: " + options.timezone : ""
-      }`
-    );
-  }
-
-  return context.join("\n");
-}

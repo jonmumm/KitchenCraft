@@ -14,6 +14,7 @@ import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import { ChefHatIcon, GripVerticalIcon, Loader2Icon } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
+import { HomepageSuggestedTokens } from "./components.client";
 
 export default async function Page({}) {
   const userId = await getCurrentUserId();
@@ -57,7 +58,9 @@ export default async function Page({}) {
             </SheetContent>
           </MenuSheet>
         </div>
-        <div className={`flex flex-col h-full justify-between p-4 max-w-3xl mx-auto`}>
+        <div
+          className={`flex flex-col h-full justify-between p-4 max-w-3xl mx-auto`}
+        >
           <TypeLogo className="h-20 crafting:hidden" />
           <div className="flex flex-col gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
             <h2 className="text-2xl font-medium crafting:hidden">
@@ -69,9 +72,18 @@ export default async function Page({}) {
             <div className="flex flex-row gap-1 items-center">
               <CraftCTA initialAutoFocus={!getIsMobile()} />
               <div className="hidden crafting:block">
-                <Button variant={"ghost"} className="ml-2 px-2 text-xs" event={{ type: "CLOSE" }}>
+                <Button
+                  variant={"ghost"}
+                  className="ml-2 px-2 text-xs"
+                  event={{ type: "CLOSE" }}
+                >
                   CLOSE
                 </Button>
+              </div>
+            </div>
+            <div className="crafting:hidden mt-4">
+              <div className="flex flex-row gap-2 items-center flex-wrap">
+                <HomepageSuggestedTokens />
               </div>
             </div>
           </div>
@@ -80,4 +92,4 @@ export default async function Page({}) {
       {/* <KeyboardToggle /> */}
     </>
   );
-};
+}

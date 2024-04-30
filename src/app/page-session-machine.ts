@@ -1830,6 +1830,7 @@ export const pageSessionMachine = setup({
                 Closed: {
                   on: {
                     START_ONBOARDING: "Open",
+                    ADD_TOKEN: "Open",
                   },
                 },
                 Open: {

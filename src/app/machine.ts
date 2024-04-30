@@ -1,12 +1,10 @@
-import {
-  GeneratorObervableEvent
-} from "@/lib/generator";
+import { GeneratorObervableEvent } from "@/lib/generator";
 import { assert, isMobile } from "@/lib/utils";
 import {
   AppEvent,
   InstantRecipeMetadataPredictionOutput,
   SuggestionPredictionOutput,
-  SuggestionsInput
+  SuggestionsInput,
 } from "@/types";
 import { produce } from "immer";
 import { ReadableAtom } from "nanostores";
@@ -19,7 +17,7 @@ import {
   and,
   assign,
   fromPromise,
-  setup
+  setup,
 } from "xstate";
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
@@ -152,42 +150,6 @@ export const createCraftMachine = ({
     }
   );
 
-  const placeholderMachine = setup({
-    types: {
-      input: {} as {
-        ref: HTMLTextAreaElement;
-      },
-      context: {} as {
-        currentCharIndex: number; // the end index for which characters are visible in the current placeholder string
-        placeholders: string[]; // the list of placeholder strings to rotate through
-      },
-      events: {} as AppEvent,
-    },
-  }).createMachine({
-    id: "PlaceholderMachine",
-    context: ({ input }) => {
-      return {
-        currentCharIndex: 0,
-        placeholders: [],
-      };
-    },
-    // context: {
-    //   currentCharIndex: 0,
-    //   currentItemIndex: 0,
-    //   // placeholders: ({ input } => Input.)
-    // },
-    initial: "Empty",
-    states: {
-      Empty: {
-        always: "Animating",
-      },
-      Animating: {
-        after: {},
-      },
-      Complete: {},
-    },
-  });
-
   return setup({
     types: {
       context: {} as Context,
@@ -262,7 +224,6 @@ export const createCraftMachine = ({
       },
     },
     actors: {
-      placeholderMachine,
       waitForSessionValue,
       // createNewInstantRecipe,
       // createNewRecipeFromSuggestion,
@@ -575,6 +536,7 @@ export const createCraftMachine = ({
         Open: {
           initial: initialOpen,
           on: {
+            ADD_TOKEN: ".True",
             SET_INPUT: {
               target: ".True",
               actions: [

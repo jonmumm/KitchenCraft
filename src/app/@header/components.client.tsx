@@ -7,14 +7,24 @@ declare global {
   }
 }
 
+import { Badge } from "@/components/display/badge";
+import { Skeleton } from "@/components/display/skeleton";
 import AutoResizableTextarea from "@/components/input/auto-resizable-textarea";
 import { Button } from "@/components/input/button";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
+import { useSessionStore } from "@/hooks/useSessionStore";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
+import { AppEvent } from "@/types";
 import { useStore } from "@nanostores/react";
-import { ArrowLeftIcon, ChevronRight, Settings2Icon, XCircleIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ChevronRight,
+  Settings2Icon,
+  XCircleIcon,
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChangeEventHandler,
   ComponentProps,
@@ -25,11 +35,12 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { CraftContext } from "../context";
+import { SessionSnapshot } from "../page-session-store";
 import { PageSessionContext } from "../page-session-store.context";
-import { useRouter, useSearchParams } from "next/navigation";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -127,7 +138,7 @@ export const CraftInput = ({
 
   const send = useSend();
   const handleBlur = useCallback(() => {
-      setAutofocus(false);
+    setAutofocus(false);
     if (autoFocus && initialBlurRef.current) {
       send({ type: "BLUR_PROMPT" });
     } else if (!autoFocus) {
@@ -305,4 +316,51 @@ export const KeyboardToggle = () => {
     return () => document.removeEventListener("keydown", down);
   }, [send]);
   return null;
+};
+
+const selectSuggestedTokens = (snapshot: SessionSnapshot) => {
+  return snapshot.context.browserSessionSnapshot?.context.suggestedTokens || [];
+};
+
+export const HomepageSuggestedTokens = () => {
+  const items = new Array(6).fill(0);
+  const session$ = useSessionStore();
+  const tokens = useSyncExternalStore(
+    session$.subscribe,
+    () => selectSuggestedTokens(session$.get()),
+    () => selectSuggestedTokens(session$.get())
+  );
+  const hasTokens = !!tokens.length;
+
+  return (
+    <>
+      {items
+        .filter((_, idx) => !hasTokens || idx < tokens.length)
+        .map((_, idx) => {
+          const token = tokens[idx];
+          const eventProps = token
+            ? {
+                event: {
+                  type: "ADD_TOKEN",
+                  token,
+                } satisfies AppEvent,
+              }
+            : {};
+          return (
+            <div key={idx}>
+              <Badge
+                className={cn(
+                  "cursor-pointer",
+                  tokens[idx] ? "" : "animate-pulse"
+                )}
+                variant="outline"
+                {...eventProps}
+              >
+                {token ? <>{token}</> : <Skeleton className="w-8 h-4" />}
+              </Badge>
+            </div>
+          );
+        })}
+    </>
+  );
 };

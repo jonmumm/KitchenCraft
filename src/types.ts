@@ -382,3 +382,28 @@ export type ExperienceLevel = z.infer<typeof ExperienceLevelSchema>;
 export type EquipmentSettings = z.infer<typeof EquipmentSettingsSchema>;
 export type DietSettings = z.infer<typeof DietSettingsSchema>;
 export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
+
+export type BrowserSessionContext = {
+  id: string;
+  userId: string;
+  experienceLevel?: ExperienceLevel;
+  equipment: EquipmentSettings;
+  diet: DietSettings;
+  preferences: TasteSettings;
+  timezone?: string;
+  country?: string;
+  continent?: string;
+  city?: string;
+  postalCode?: string;
+  gps?: {
+    latitude: string;
+    longitude: string;
+  };
+  region?: string;
+  regionCode?: string;
+  suggestedIngredients: Array<string>;
+  suggestedTags: Array<string>;
+  lastRunPersonalizaitonContext: string | undefined; // todo put this on the store instead of context?
+  suggestedPlaceholders: Array<string>;
+  suggestedTokens: Array<string>;
+};

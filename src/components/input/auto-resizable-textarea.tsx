@@ -2,6 +2,7 @@
 
 import { selectIsOpen } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
+import { SessionSnapshot } from "@/app/page-session-store";
 import { PageSessionContext } from "@/app/page-session-store.context";
 // import { session$ } from "@/app/session-store";
 import { usePromptIsPristine } from "@/hooks/useCraftIsOpen";
@@ -21,7 +22,9 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
+import { createSelector } from "reselect";
 
 type Size = "xs" | "sm" | "md" | "lg"; // Extend with more sizes as needed
 
@@ -162,13 +165,17 @@ const AutoResizableTextarea: React.FC<
       const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
       const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
+      const placeholders = useSyncExternalStore(
+        session$.subscribe,
+        () => selectPromptPlaceholders(session$.get()),
+        () => selectPromptPlaceholders(session$.get())
+      );
+
       const animatePlaceholder = useCallback(() => {
-        const sentences = produce(
-          session$.get().context.placeholders,
-          (draft) => {
-            shuffle(draft);
-          }
-        );
+        assert(placeholders, "expected placehodlers");
+        const sentences = produce(placeholders, (draft) => {
+          shuffle(draft);
+        });
         let currentSentenceIndex = 0;
         let typing = true;
         let currentText = "";
@@ -222,14 +229,16 @@ const AutoResizableTextarea: React.FC<
       }, []);
 
       useEffect(() => {
-        const cleanup = animatePlaceholder();
-        return () => {
-          cleanup();
-          if (ref.current) {
-            ref.current.placeholder = "";
-          }
-        };
-      }, [animatePlaceholder]);
+        if (placeholders && placeholders.length) {
+          const cleanup = animatePlaceholder();
+          return () => {
+            cleanup();
+            if (ref.current) {
+              ref.current.placeholder = "";
+            }
+          };
+        }
+      }, [animatePlaceholder, placeholders]);
 
       return null;
     };
@@ -306,3 +315,28 @@ export default AutoResizableTextarea;
 //   "Incorporate a new protein",
 //   "Simplify to five ingredients",
 // ];
+
+const selectInProgressSuggestedPlaceholders = (snapshot: SessionSnapshot) => {
+  return snapshot.context.placeholders;
+};
+
+const selectEmptyStateSuggestedPlaceholders = (snapshot: SessionSnapshot) => {
+  return snapshot.context.browserSessionSnapshot?.context.suggestedPlaceholders;
+};
+
+const selectHasTokens = (snapshot: SessionSnapshot) => {
+  return !!snapshot.context.tokens.length;
+};
+
+const selectPromptPlaceholders = createSelector(
+  selectEmptyStateSuggestedPlaceholders,
+  selectInProgressSuggestedPlaceholders,
+  selectHasTokens,
+  (emptyStatePlaceholders, inProgressPlaceholders, hasTokens) => {
+    if (hasTokens) {
+      return inProgressPlaceholders;
+    } else {
+      return emptyStatePlaceholders;
+    }
+  }
+);
