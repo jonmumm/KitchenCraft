@@ -88,33 +88,21 @@ export const ActorProvider = (props: {
       }
     });
 
-    const initMessageListener = () => {
-      socket.addEventListener("message", (message: MessageEvent<string>) => {
-        const { operations } = z
-          .object({ operations: z.array(z.custom<Operation>()) })
-          .parse(JSON.parse(message.data));
+    socket.addEventListener("message", (message: MessageEvent<string>) => {
+      const { operations } = z
+        .object({ operations: z.array(z.custom<Operation>()) })
+        .parse(JSON.parse(message.data));
 
-        // applyPatch(snapshot, operations);
-        // session$.set(produceWithPatches(session$.get()))
-        const nextState = produce(session$.get(), (draft) => {
-          applyPatch(draft, operations);
-        });
-        // console.log(session$.get(), nextState);
-        session$.set(nextState);
+      // applyPatch(snapshot, operations);
+      // session$.set(produceWithPatches(session$.get()))
+      const nextState = produce(session$.get(), (draft) => {
+        applyPatch(draft, operations);
       });
-    };
-
-    // socket.addEventListener("open", () => {
-
-    // });
-    initMessageListener();
-
-    socket.addEventListener("close", () => {
-      console.log("socket closed");
-      socket.addEventListener("open", () => {
-        initMessageListener();
-      });
+      // console.log(session$.get(), nextState);
+      session$.set(nextState);
     });
+
+    socket.addEventListener("close", () => {});
 
     socket.addEventListener("error", (error) => {
       console.error("Socket ERror", error);
