@@ -38,4 +38,5 @@ export const ContextSchema = z.object({
   instantRecipeResultId: z.string().optional(),
   instantRecipeMetadata:
     InstantRecipeMetadataPredictionOutputSchema.partial().optional(),
+  socketToastId: z.union([z.string(), z.number()]).optional(),
 });

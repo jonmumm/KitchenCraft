@@ -984,11 +984,32 @@ const HeartBeatEventSchema = z.object({
   cf: z.custom<CloudFlareProps>().optional(),
 });
 
+const SocketConnectingEventSchema = z.object({
+  type: z.literal("SOCKET_CONNECTING"),
+});
+
+const SocketOpenEventSchema = z.object({
+  type: z.literal("SOCKET_OPEN"),
+});
+
+const SocketCloseEventSchema = z.object({
+  type: z.literal("SOCKET_CLOSE"),
+});
+
+const SocketErrorEventSchema = z.object({
+  type: z.literal("SOCKET_ERROR"),
+  error: z.string(),
+});
+
 export const SystemEventSchema = z.discriminatedUnion("type", [
   AuthenticateEventSchema,
 ]);
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+  SocketOpenEventSchema,
+  SocketConnectingEventSchema,
+  SocketCloseEventSchema,
+  SocketErrorEventSchema,
   HeartBeatEventSchema,
   ExperienceChangeEventSchema,
   EquipmentChangeEventSchema,

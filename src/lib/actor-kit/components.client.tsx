@@ -3,22 +3,16 @@
 import { PageSessionContext } from "@/app/page-session-store.context";
 import { env } from "@/env.public";
 import { useEventSubject } from "@/hooks/useEvents";
+import { useSend } from "@/hooks/useSend";
+import { socket$ } from "@/stores/socket";
 import { AppEvent } from "@/types";
 import { Operation, applyPatch } from "fast-json-patch";
 import { produce } from "immer";
-import { atom } from "nanostores";
 import PartySocket from "partysocket";
-import {
-  ReactNode,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-} from "react";
+import { ReactNode, useContext, useLayoutEffect } from "react";
 import { z } from "zod";
+import { getErrorMessage } from "../error";
 import { noop } from "../utils";
-
-const initialized$ = atom(false);
 
 export const ActorProvider = (props: {
   id: string;
@@ -30,32 +24,12 @@ export const ActorProvider = (props: {
   const { connectionId, token, id } = props;
   const event$ = useEventSubject();
   const session$ = useContext(PageSessionContext);
-
-  // const LoginHandler = () => {
-  //   const session = useSession();
-  //   // Store the previous session for comparison
-  //   const previousSession = usePrevious(session);
-
-  //   // useEffect(() => {
-  //   //   // Check if there was a transition from unauthenticated to authenticated
-  //   //   if (
-  //   //     previousSession?.status === "unauthenticated" &&
-  //   //     session.status === "authenticated"
-  //   //   ) {
-  //   //     props.reauthenticate().catch((error) => {
-  //   //       console.error("Reauthentication failed:", error);
-  //   //     });
-  //   //   }
-  //   // }, [session, previousSession, props.reauthenticate]);
-
-  //   return null;
-  // };
+  const send = useSend();
 
   useLayoutEffect(() => {
-    if (initialized$.get()) {
+    if (socket$.get()) {
       return;
     }
-    initialized$.set(true);
 
     const socket = new PartySocket({
       host: env.KITCHENCRAFT_API_HOST,
@@ -65,6 +39,8 @@ export const ActorProvider = (props: {
       query: { token },
       debug: true,
     });
+    socket$.set(socket);
+    send({ type: "SOCKET_CONNECTING" });
 
     fetch(
       `https://${env.KITCHENCRAFT_API_HOST}/parties/page_session/${id}?token=${token}`,
@@ -102,12 +78,26 @@ export const ActorProvider = (props: {
       session$.set(nextState);
     });
 
-    socket.addEventListener("close", () => {});
+    socket.addEventListener("open", () => {
+      send({ type: "SOCKET_OPEN" });
+    });
+
+    socket.addEventListener("connecting", () => {
+      send({ type: "SOCKET_CONNECTING" });
+    });
+
+    setTimeout(() => {
+      send({ type: "SOCKET_CLOSE" });
+    }, 7000);
+
+    socket.addEventListener("close", () => {
+      send({ type: "SOCKET_CLOSE" });
+    });
 
     socket.addEventListener("error", (error) => {
-      console.error("Socket ERror", error);
+      send({ type: "SOCKET_ERROR", error: getErrorMessage(error) });
     });
-  }, [connectionId, token, id, event$, session$]);
+  }, [send, connectionId, token, id, event$, session$]);
 
   return (
     <>
@@ -116,13 +106,3 @@ export const ActorProvider = (props: {
     </>
   );
 };
-
-function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
-
-  useEffect(() => {
-    ref.current = value;
-  }, [value]); // Only re-run if value changes
-
-  return ref.current; // Return previous value (happens before update in useEffect above)
-}

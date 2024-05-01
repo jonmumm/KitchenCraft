@@ -10,7 +10,9 @@ import { produce } from "immer";
 import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
+import { socket$ } from "@/stores/socket";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { toast } from "sonner";
 import {
   ActorRefFrom,
   SnapshotFrom,
@@ -274,6 +276,64 @@ export const createCraftMachine = ({
       },
       type: "parallel",
       states: {
+        Socket: {
+          initial: "Uninitialized",
+          on: {
+            SOCKET_ERROR: ".Error",
+            SOCKET_CLOSE: ".Closed",
+            SOCKET_OPEN: ".Open",
+            SOCKET_CONNECTING: ".Connecting",
+          },
+          states: {
+            Uninitialized: {},
+            Connecting: {},
+            Open: {
+              entry: assign({
+                socketToastId: ({ context }) => {
+                  if (context.socketToastId) {
+                    toast.dismiss(context.socketToastId);
+                  }
+                  return undefined;
+                },
+              }),
+            },
+            Closed: {
+              entry: assign({
+                socketToastId: () =>
+                  toast.warning("Connection closed. Press to reload", {
+                    duration: undefined,
+                    action: {
+                      label: "Reload",
+                      onClick: () => window.location.reload(),
+                    },
+                  }),
+              }),
+              on: {
+                VISIBILITY_CHANGE: {
+                  actions: ({ event }) => {
+                    if (event.visibilityState === "visible") {
+                      const socket = socket$.get();
+                      assert(socket, "expected socket on visibility change");
+                      socket.reconnect();
+                    }
+                  },
+                },
+              },
+            },
+            Error: {
+              entry: assign({
+                socketToastId: () =>
+                  toast.error("There was an error with the connection.", {
+                    duration: undefined,
+                    action: {
+                      label: "Reload",
+                      onClick: () => window.location.reload(),
+                    },
+                  }),
+              }),
+            },
+          },
+        },
         Auth: {
           initial: !session ? "Anonymous" : "LoggedIn",
           on: {
