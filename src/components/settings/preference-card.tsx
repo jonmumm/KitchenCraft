@@ -27,15 +27,15 @@ export function PreferenceCard({
   });
   const send = useSend();
 
-  const handleToggle = (value: boolean) => {
-    const newValue = toggleValue === (value ? "yes" : "no") ? undefined : value;
+  const handleToggle = (value: string) => {
+    let newValue = value === '' ? null : value === 'yes' ? true : false;
     send({
       type: "PREFERENCE_CHANGE",
       preference: preferenceKey,
-      value: newValue,
+      ...(typeof newValue === "boolean" && { value: newValue }),
     });
     $preferences.setKey(preferenceKey, newValue);
-    setToggleValue(newValue ? "yes" : "no");
+    setToggleValue(value);
   };
 
   return (
@@ -48,7 +48,7 @@ export function PreferenceCard({
       <ToggleGroup
         type="single"
         value={toggleValue}
-        onValueChange={(value) => handleToggle(value === "yes")}
+        onValueChange={(value) => handleToggle(value)}
       >
         <ToggleGroupItem variant="outline" value="no">
           No
