@@ -284,7 +284,12 @@ export const browserSessionMachine = setup({
       type: "parallel",
       // this is probably runnin a little too frequently
       always: {
-        target: [".Ingredients.Running", ".Tags.Running", ".Placeholders.Running", ".Tokens.Running"],
+        target: [
+          ".Ingredients.Running",
+          ".Tags.Running",
+          ".Placeholders.Running",
+          ".Tokens.Running",
+        ],
         actions: assign({
           lastRunPersonalizationContext: ({ context }) =>
             getPersonalizationContext(context),
@@ -302,7 +307,8 @@ export const browserSessionMachine = setup({
               on: {
                 HEART_BEAT: {
                   target: "Running",
-                  guard: ({ event }) => !!event.cf,
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
                 },
               },
             },
@@ -331,9 +337,8 @@ export const browserSessionMachine = setup({
               on: {
                 HEART_BEAT: {
                   target: "Running",
-                  guard: ({ event }) => {
-                    return !!event.cf;
-                  },
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
                 },
               },
             },
@@ -362,9 +367,8 @@ export const browserSessionMachine = setup({
               on: {
                 HEART_BEAT: {
                   target: "Running",
-                  guard: ({ event }) => {
-                    return !!event.cf;
-                  },
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
                 },
               },
             },
@@ -393,9 +397,8 @@ export const browserSessionMachine = setup({
               on: {
                 HEART_BEAT: {
                   target: "Running",
-                  guard: ({ event }) => {
-                    return !!event.cf;
-                  },
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
                 },
               },
             },
