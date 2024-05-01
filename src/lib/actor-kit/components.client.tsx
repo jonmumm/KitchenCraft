@@ -86,10 +86,6 @@ export const ActorProvider = (props: {
       send({ type: "SOCKET_CONNECTING" });
     });
 
-    setTimeout(() => {
-      send({ type: "SOCKET_CLOSE" });
-    }, 7000);
-
     socket.addEventListener("close", () => {
       send({ type: "SOCKET_CLOSE" });
     });
