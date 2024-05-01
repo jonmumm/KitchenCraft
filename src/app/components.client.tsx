@@ -508,7 +508,7 @@ export const PersonalizationSettingsMenu = () => {
 
   return (
     <div className="relative">
-      <div className="flex flex-row gap-2 justify-between items-center px-4 sticky top-0 w-full py-4 bg-white shadow-sm z-10">
+      <div className="flex flex-row gap-2 justify-between items-center px-4 sticky top-0 w-full py-4 bg-card shadow-sm z-10">
         <h2 className="text-xl font-bold">Preferences</h2>
         <Button variant="secondary" event={{ type: "CLOSE" }} autoFocus={false}>
           <XIcon />
