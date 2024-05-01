@@ -658,13 +658,6 @@ export const pageSessionMachine = setup({
     browserSessionToken: input.browserSessionToken,
   }),
   type: "parallel",
-  on: {
-    HEART_BEAT: {
-      actions: ({ event }) => {
-        console.log(event);
-      },
-    },
-  },
   states: {
     Initialization: {
       initial: "Loading",
