@@ -13,7 +13,7 @@ export default function Taste() {
   const preferences = useStore($preferences);
 
   const handleNext = () => {
-    router.push("/quiz/diet"); // Adjust the navigation route as necessary
+    router.push("/quiz/shopping"); // Adjust the navigation route as necessary
   };
 
   return (

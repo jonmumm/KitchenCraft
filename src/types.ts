@@ -387,6 +387,9 @@ export type BrowserSessionContext = {
   id: string;
   userId: string;
   experienceLevel?: ExperienceLevel;
+  groceryStores?: string;
+  shoppingFrequency?: string;
+  typicalGroceries?: string;
   equipment: EquipmentSettings;
   diet: DietSettings;
   preferences: TasteSettings;

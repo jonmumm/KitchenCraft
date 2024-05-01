@@ -63,6 +63,7 @@ import { CraftContext } from "./context";
 import { EQUIPMENT_ITEMS, MISC_ONBORADING_QUESTIONS } from "./data";
 import { CraftSnapshot } from "./machine";
 import { SessionSnapshot } from "./page-session-store";
+import { GroceryQuestions } from "@/components/settings/grocery";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -516,12 +517,19 @@ export const PersonalizationSettingsMenu = () => {
       </div>
       <Separator />
       <Accordion type="multiple" className="flex flex-col gap-1">
-        <AccordionItem value="ingredient_preference">
+        <AccordionItem value="experience">
           <AccordionTrigger className="p-4">Experience</AccordionTrigger>
           <AccordionContent className="px-4 flex flex-col gap-3">
             <ExperienceCard level="beginner" />
             <ExperienceCard level="intermediate" />
             <ExperienceCard level="advanced" />
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="shopping">
+          <AccordionTrigger className="p-4">Shopping</AccordionTrigger>
+          <AccordionContent className="px-4 flex flex-col gap-3">
+            <GroceryQuestions />
           </AccordionContent>
         </AccordionItem>
 

@@ -3,6 +3,9 @@ import { BrowserSessionContext } from "@/types";
 
 type PersonalizationOptions = Pick<
   BrowserSessionContext,
+  | "shoppingFrequency"
+  | "groceryStores"
+  | "typicalGroceries"
   | "experienceLevel"
   | "equipment"
   | "diet"
@@ -51,6 +54,20 @@ export function getPersonalizationContext(
   options: PersonalizationOptions
 ): string {
   let context: string[] = [];
+
+  if (options.shoppingFrequency) {
+    context.push(`Shopping Frequency: ${options.shoppingFrequency}`);
+  }
+
+  if (options.groceryStores) {
+    context.push(
+      `Frequent Grocery Stores: ${options.groceryStores}`
+    );
+  }
+
+  if (options.typicalGroceries) {
+    context.push(`Typical Groceries: ${options.typicalGroceries}`);
+  }
 
   if (options.experienceLevel) {
     context.push(`Experience Level: ${options.experienceLevel}`);

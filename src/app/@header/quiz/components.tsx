@@ -5,10 +5,10 @@ import React from "react";
 import { twc } from "react-twc";
 
 type StepsIndicatorProps = {
-  currentStep?: "Experience" | "Taste" | "Diet" | "Equipment";
+  currentStep?: "Experience" | "Taste" | "Shopping" | "Diet" | "Equipment";
 };
 
-const steps = ["Experience", "Taste", "Diet", "Equipment"];
+const steps = ["Experience", "Taste", "Shopping", "Diet", "Equipment"];
 
 const StepsIndicator: React.FC<StepsIndicatorProps> = ({ currentStep }) => {
   // Function to determine if the step should be highlighted

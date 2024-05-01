@@ -155,9 +155,12 @@ export const browserSessionMachine = setup({
     suggestedTokens: [],
   }),
   on: {
+    CHANGE: [{
+      guard: ({ event }) => event.name === "shoppingFrequency"
+    }],
     EXPERIENCE_CHANGE: {
       actions: assign({
-        experienceLevel: ({ event, context }) => event.experience,
+        experienceLevel: ({ event }) => event.experience,
       }),
     },
     EQUIPMENT_CHANGE: {
@@ -454,6 +457,14 @@ export const browserSessionMachine = setup({
           },
         },
         Taste: {
+          on: {
+            PAGE_LOADED: {
+              target: "Shopping",
+              guard: ({ event }) => event.pathname.startsWith("/quiz/shopping"),
+            },
+          },
+        },
+        Shopping: {
           on: {
             PAGE_LOADED: {
               target: "Diet",
