@@ -301,8 +301,6 @@ export const createMachineServer = <
           // ...inputJson,
         } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
 
-        // console.log(input);
-
         actor = createActor(machine, {
           input,
         });
@@ -329,6 +327,7 @@ export const createMachineServer = <
           // todo sanitize `refs` in context from being written out...
           connection.send(JSON.stringify({ operations }));
         }
+        this.lastSnapshotsByConnectionId.set(connection.id, nextSnapshot);
       };
       sendSnapshot();
       // const caller = this.callersByConnectionId.get(connection.id);
