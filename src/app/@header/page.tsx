@@ -105,7 +105,7 @@ const PromptHeader = () => {
     greeting = "What's for breakfast?";
   } else if (hour >= 9 && hour < 14) {
     greeting = "What's for lunch?";
-  } else if (hour >= 14 && hour < 22) {
+  } else if (hour >= 14 && hour < 20) {
     greeting = "What's for dinner?";
   } else {
     greeting = "Looking for a snack?";
