@@ -301,7 +301,7 @@ export const createCraftMachine = ({
               entry: assign({
                 socketToastId: () =>
                   toast.warning("Connection closed. Press to reload", {
-                    duration: undefined,
+                    dismissible: false,
                     action: {
                       label: "Reload",
                       onClick: () => window.location.reload(),
@@ -324,7 +324,7 @@ export const createCraftMachine = ({
               entry: assign({
                 socketToastId: () =>
                   toast.error("There was an error with the connection.", {
-                    duration: undefined,
+                    dismissible: false,
                     action: {
                       label: "Reload",
                       onClick: () => window.location.reload(),
