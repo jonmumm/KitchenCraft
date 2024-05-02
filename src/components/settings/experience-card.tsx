@@ -3,7 +3,7 @@ import { Card, CardDescription, CardTitle } from "@/components/display/card";
 import { Button } from "@/components/input/button";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSend } from "@/hooks/useSend";
-import { useSessionStore } from "@/hooks/useSessionStore";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { ExperienceLevel } from "@/types";
 import React, { useState } from "react";
 
@@ -13,7 +13,7 @@ interface ExperienceCardProps {
 
 export const ExperienceCard: React.FC<ExperienceCardProps> = ({ level }) => {
   const send = useSend();
-  const session = useSessionStore();
+  const session = usePageSessionStore();
 
   // Fetch initial experience level from the session
   const [selected, setSelected] = useState(() => {

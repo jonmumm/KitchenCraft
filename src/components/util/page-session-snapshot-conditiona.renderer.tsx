@@ -1,5 +1,5 @@
 import { SessionSnapshot } from "@/app/page-session-store";
-import { useSessionStore } from "@/hooks/useSessionStore";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { ReactNode, useSyncExternalStore } from "react";
 
 interface SessionSnapshotConditionalRendererProps {
@@ -11,7 +11,7 @@ interface SessionSnapshotConditionalRendererProps {
 export const PageSessionSnapshotConditionalRenderer = (
   props: SessionSnapshotConditionalRendererProps
 ) => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
 
   const active = useSyncExternalStore(
     session$.subscribe,

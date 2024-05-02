@@ -18,7 +18,7 @@ import {
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { useSessionStore } from "@/hooks/useSessionStore";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, ListNameSchema } from "@/schema";
@@ -365,14 +365,14 @@ export const SuggestedRecipeCards = () => {
 };
 
 const usePromptLength = () => {
-  const session = useSessionStore();
+  const session = usePageSessionStore();
   const [length, setLength] = useState(session.get().context.prompt.length);
   useEventHandler("SET_INPUT", ({ value }) => setLength(value.length));
   return length;
 };
 
 const useNumTokens = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
 
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
@@ -387,7 +387,7 @@ const useNumTokens = () => {
 };
 
 const useTokens = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
 
   // return session$.get().context.tokens;
   return useSyncExternalStoreWithSelector(
@@ -408,7 +408,7 @@ const useTokens = () => {
 };
 
 const useNumCompletedRecipes = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   return useSyncExternalStore(
     session$.subscribe,
     () => {
@@ -421,7 +421,7 @@ const useNumCompletedRecipes = () => {
 };
 
 const useSuggestedRecipeSlugAtIndex = (index: number) => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => {
@@ -438,7 +438,7 @@ const useSuggestedRecipeSlugAtIndex = (index: number) => {
 };
 
 const useCurrentRecipeSlug = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => {
@@ -456,7 +456,7 @@ const useCurrentRecipeSlug = () => {
 };
 
 const useNumCards = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => {
@@ -494,7 +494,7 @@ const useNumCards = () => {
 // };
 
 const useChefName = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => {
@@ -508,7 +508,7 @@ const useChefName = () => {
 };
 
 const useCurrentItemIndex = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => {
@@ -522,7 +522,7 @@ const useCurrentItemIndex = () => {
 };
 
 const useRecipeAtIndex = (index: number) => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
     () => {
@@ -562,7 +562,7 @@ const useRecipeAtIndex = (index: number) => {
 };
 
 const useCurrentRecipe = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const session = useStore(session$);
   // const recipeId =
   //   session.context.suggestedRecipes[session.context.currentItemIndex];
@@ -686,7 +686,7 @@ export const SuggestedTokenBadge = ({
   const isTyping = useSelector(actor, (state) =>
     state.matches({ Typing: "True" })
   );
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const session = useStore(session$);
   const isGenerating = session.value.Craft.Generators.Tokens === "Generating";
   const token = session.context.suggestedTokens[index];
@@ -813,7 +813,7 @@ const Tags = ({ index }: { index: number }) => {
   const items = new Array(3).fill(0);
 
   const Tag = (props: { index: number }) => {
-    const session$ = useSessionStore();
+    const session$ = usePageSessionStore();
     const session = useStore(session$);
     const recipeId = session.context.suggestedRecipes[index];
     if (!recipeId || !session.context.recipes[recipeId]) {
@@ -860,7 +860,7 @@ const Tags = ({ index }: { index: number }) => {
 };
 
 const Yield = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const session = useStore(session$);
   const recipeId =
     session.context.suggestedRecipes[session.context.currentItemIndex];
@@ -1743,7 +1743,7 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
 export const SaveRecipeBadge = () => {
   const actor = useContext(CraftContext);
   const chefname = useChefName();
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   // const selectedListSlug, useSyncExternalStore(session$.subscribe, selectSelectedListSlug, selectIsChefNameAvailable)
   const selectedList = useSyncExternalStore(
     session$.subscribe,
@@ -1812,7 +1812,7 @@ const IngredientsLabel = () => {
 
 export const SuggestedIngredientsSection = () => {
   const items = new Array(20).fill(0);
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const ingredients = useSyncExternalStore(
     session$.subscribe,
     () => selectSuggestedIngredients(session$.get()),
@@ -1882,7 +1882,7 @@ const selectIsGeneratingSuggestedTags = (snapshot: SessionStoreSnapshot) => {
 
 export const SuggestedTagsSection = () => {
   const items = new Array(20).fill(0);
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const tags = useSyncExternalStore(
     session$.subscribe,
     () => selectSuggestedTags(session$.get()),

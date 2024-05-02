@@ -4,7 +4,7 @@
 import { Card } from "@/components/display/card";
 import { Checkbox } from "@/components/input/checkbox";
 import { useSend } from "@/hooks/useSend";
-import { useSessionStore } from "@/hooks/useSessionStore";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { formatDisplayName } from "@/lib/utils";
 import { $diet } from "@/stores/settings";
 import { DietSettings } from "@/types";
@@ -14,7 +14,7 @@ import { useState } from "react";
 export function DietCard({ dietKey }: { dietKey: keyof DietSettings }) {
   const diet = useStore($diet, { keys: [dietKey] });
   const send = useSend();
-  const session = useSessionStore();
+  const session = usePageSessionStore();
   const [checked, setChecked] = useState(
     !!session.get().context.browserSessionSnapshot?.context.diet[dietKey]
   );

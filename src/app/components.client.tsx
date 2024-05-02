@@ -14,22 +14,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/display/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/display/collapsible";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Progress } from "@/components/feedback/progress";
+import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
 import { Textarea } from "@/components/input/textarea";
+import { TypeLogo } from "@/components/logo";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
 import { ExperienceCard } from "@/components/settings/experience-card";
+import { GroceryQuestions } from "@/components/settings/grocery";
 import { PreferenceCard } from "@/components/settings/preference-card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageSessionSnapshotConditionalRenderer } from "@/components/util/page-session-snapshot-conditiona.renderer";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { useSessionStore } from "@/hooks/useSessionStore";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import {
   DietSettings,
@@ -38,7 +46,7 @@ import {
   UserPreferenceType,
 } from "@/types";
 import { useStore } from "@nanostores/react";
-import { RefreshCwIcon, XIcon } from "lucide-react";
+import { ChevronsUpDown, RefreshCwIcon, XIcon } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -63,7 +71,6 @@ import { CraftContext } from "./context";
 import { EQUIPMENT_ITEMS, MISC_ONBORADING_QUESTIONS } from "./data";
 import { CraftSnapshot } from "./machine";
 import { SessionSnapshot } from "./page-session-store";
-import { GroceryQuestions } from "@/components/settings/grocery";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -657,7 +664,7 @@ const IsUserPreferencesInitialized = ({
 }: {
   children: ReactNode;
 }) => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const active = useSyncExternalStore(
     session$.subscribe,
     () => selectIsUserPreferencesInitialized(session$.get()),
@@ -676,7 +683,7 @@ const IsInitializingUserPreferences = ({
 }: {
   children: ReactNode;
 }) => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const active = useSyncExternalStore(
     session$.subscribe,
     () => selectIsUserPreferencesInitializing(session$.get()),
@@ -691,7 +698,7 @@ const PreferenceEditor = ({
   ...props
 }: { preference: UserPreferenceType } & ComponentProps<typeof Textarea>) => {
   const send = useSend();
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
 
   const PreferenceTextArea = () => {
     const [value, setValue] = useState(
@@ -724,6 +731,87 @@ const PreferenceEditor = ({
         <PreferenceTextArea />
       </IsUserPreferencesInitialized>
     </>
+  );
+};
+
+export const UpgradeAccountCard = () => {
+  return (
+    <Card>
+      <CardHeader className="relative">
+        <TypeLogo className="h-20" />
+        <div className="absolute right-0 top-0">
+          <Button event={{ type: "CANCEL" }} variant="ghost" autoFocus={false}>
+            <XIcon />
+          </Button>
+        </div>
+        <div className="flex flex-row gap-1 items-center justify-between">
+          <div className="flex flex-col gap-1 w-full">
+            <CardTitle className="text-center">All Access</CardTitle>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="px-4">
+          <Label className="text-muted-foreground">Included benefits</Label>
+          <ul className="list-disc pl-6 flex flex-col gap-2 my-4">
+            <li>
+              <span role="img" aria-label="Infinity">
+                ♾️
+              </span>{" "}
+              Unlimited creation
+            </li>
+            <li>
+              <span role="img" aria-label="Cloud">
+                ☁️
+              </span>{" "}
+              Unlimited storage
+            </li>
+            <li>
+              <span role="img" aria-label="Advanced preferences">
+                ✨
+              </span>{" "}
+              Advanced personalization
+            </li>
+          </ul>
+          <div className="text-center">
+            <span className="font-bold">$2 per week</span> after 7-day trial.
+          </div>
+          <Card className="p-2 my-3">
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <div className="flex flex-row gap-1 items-center justify-between pl-3">
+                  <Label className="text-left leading-4">
+                    Share benefits w/ up to 4 people
+                  </Label>
+                  <Button variant="ghost" size="sm" className="w-9 p-0">
+                    <ChevronsUpDown className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Label className="text-muted-foreground">Email address</Label>
+                <div className="flex flex-col gap-2">
+                  <Input type="email" />
+                  <Input type="email" />
+                  <Input type="email" />
+                  <Input type="email" />
+                </div>
+                <CardDescription className="mt-2">
+                  Enter emails for up to 4 people you would like to also receive
+                  KtichenCraft All Access as part of your subscription.
+                </CardDescription>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+          <Button size="lg" className="w-full">
+            Try 7 Days Free
+          </Button>
+          <p className="text-center text-semibold text-sm mt-1">
+            Cancel or pause anytime.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -762,18 +850,18 @@ export const IsInPersonalizationSettings = (props: { children: ReactNode }) => {
 };
 
 export const IsInputtingChefName = (props: { children: ReactNode }) => {
-  const session$ = useSessionStore();
+  const store = usePageSessionStore();
 
   const selector = useCallback(() => {
-    const stateValue = session$.get().value;
+    const stateValue = store.get().value;
     return (
       typeof stateValue.Auth === "object" &&
       typeof stateValue.Auth.Registering === "object" &&
       !!stateValue.Auth.Registering.InputtingChefName
     );
-  }, []);
+  }, [store]);
 
-  const active = useSyncExternalStore(session$.subscribe, selector, selector);
+  const active = useSyncExternalStore(store.subscribe, selector, selector);
   return active ? <>{props.children}</> : null;
 };
 
@@ -799,8 +887,25 @@ export const IsCreatingList = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
+export const IsUpgradingAccount = (props: { children: ReactNode }) => {
+  // const session$ = usePageSessionStore();
+  // const selector = useCallback(() => {
+  //   const stateValue = session$.get().value;
+  //   const val =
+  //     typeof stateValue.Auth === "object" &&
+  //     typeof stateValue.Auth.Registering === "object" &&
+  //     !!stateValue.Auth.Registering.InputtingEmail;
+  //   return val;
+  // }, [session$]);
+
+  // const active = useSyncExternalStore(session$.subscribe, selector, selector);
+  const active = false;
+
+  return active ? <>{props.children}</> : null;
+};
+
 export const IsInputtingEmail = (props: { children: ReactNode }) => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const selector = useCallback(() => {
     const stateValue = session$.get().value;
     const val =
@@ -808,7 +913,7 @@ export const IsInputtingEmail = (props: { children: ReactNode }) => {
       typeof stateValue.Auth.Registering === "object" &&
       !!stateValue.Auth.Registering.InputtingEmail;
     return val;
-  }, []);
+  }, [session$]);
 
   const active = useSyncExternalStore(session$.subscribe, selector, selector);
 
@@ -816,7 +921,7 @@ export const IsInputtingEmail = (props: { children: ReactNode }) => {
 };
 
 const useIsLoadingRecipeLists = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
 
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
@@ -835,7 +940,7 @@ const useIsLoadingRecipeLists = () => {
 };
 
 const useSortedRecipeLists = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
 
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
@@ -855,7 +960,7 @@ const useSortedRecipeLists = () => {
 };
 
 const useSuggestedListNames = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
 
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
@@ -870,7 +975,7 @@ const useSuggestedListNames = () => {
 };
 
 const useSuggestedChefnames = () => {
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
 
   return useSyncExternalStoreWithSelector(
     session$.subscribe,

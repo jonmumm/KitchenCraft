@@ -13,7 +13,7 @@ import AutoResizableTextarea from "@/components/input/auto-resizable-textarea";
 import { Button } from "@/components/input/button";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { useSessionStore } from "@/hooks/useSessionStore";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
@@ -324,7 +324,7 @@ const selectSuggestedTokens = (snapshot: SessionSnapshot) => {
 
 export const HomepageSuggestedTokens = () => {
   const items = new Array(6).fill(0);
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const tokens = useSyncExternalStore(
     session$.subscribe,
     () => selectSuggestedTokens(session$.get()),

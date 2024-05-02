@@ -37,9 +37,11 @@ import {
   IsInputtingChefName,
   IsInputtingEmail,
   IsSelectingList,
+  IsUpgradingAccount,
   PersonalizationSettingsMenu,
   SearchParamsToastMessage,
   SelectListCard,
+  UpgradeAccountCard,
 } from "./components.client";
 import { SessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
@@ -185,6 +187,7 @@ export default async function RootLayout(
                 <RegistrationDialog />
                 <SaveDialog />
                 <PersonalizationSettingsDialog />
+                <UpgradeAccountDialog />
                 {/* <OnboardingDialog /> */}
               </ThemeProvider>
               <Toaster />
@@ -228,6 +231,22 @@ const PersonalizationSettingsDialog = () => {
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </IsInPersonalizationSettings>
+    </>
+  );
+};
+
+const UpgradeAccountDialog = () => {
+  const isMobile = getIsMobile();
+  return (
+    <>
+      <IsUpgradingAccount>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent>
+            <UpgradeAccountCard />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </IsUpgradingAccount>
     </>
   );
 };

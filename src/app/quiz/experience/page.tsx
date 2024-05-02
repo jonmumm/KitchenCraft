@@ -4,7 +4,7 @@ import { Card, CardDescription, CardTitle } from "@/components/display/card";
 import { Button } from "@/components/input/button";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useSend } from "@/hooks/useSend";
-import { useSessionStore } from "@/hooks/useSessionStore";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { assert } from "@/lib/utils";
 import { ExperienceLevelSchema } from "@/schema";
 import { $experienceLevel } from "@/stores/settings";
@@ -15,7 +15,7 @@ import { MouseEventHandler, useState } from "react";
 export default function Experience() {
   const router = useRouter();
   const send = useSend();
-  const session$ = useSessionStore();
+  const session$ = usePageSessionStore();
   const [selectedExperience, setSelectedExperience] = useState(
     session$.get().context.browserSessionSnapshot?.context.experienceLevel
   );

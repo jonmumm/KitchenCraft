@@ -299,14 +299,18 @@ export const createCraftMachine = ({
             },
             Closed: {
               entry: assign({
-                socketToastId: () =>
-                  toast.warning("Connection closed. Press to reload", {
+                socketToastId: ({ context }) => {
+                  if (context.socketToastId) {
+                    toast.dismiss(context.socketToastId);
+                  }
+                  return toast.warning("Connection closed. Press to reload", {
                     dismissible: false,
                     action: {
                       label: "Reload",
                       onClick: () => window.location.reload(),
                     },
-                  }),
+                  });
+                },
               }),
               on: {
                 VISIBILITY_CHANGE: {
@@ -322,14 +326,21 @@ export const createCraftMachine = ({
             },
             Error: {
               entry: assign({
-                socketToastId: () =>
-                  toast.error("There was an error with the connection.", {
-                    dismissible: false,
-                    action: {
-                      label: "Reload",
-                      onClick: () => window.location.reload(),
-                    },
-                  }),
+                socketToastId: ({ context }) => {
+                  if (context.socketToastId) {
+                    toast.dismiss(context.socketToastId);
+                  }
+                  return toast.error(
+                    "There was an error with the connection.",
+                    {
+                      dismissible: false,
+                      action: {
+                        label: "Reload",
+                        onClick: () => window.location.reload(),
+                      },
+                    }
+                  );
+                },
               }),
             },
           },

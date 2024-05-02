@@ -4,7 +4,7 @@
 import { Card } from "@/components/display/card";
 import { Checkbox } from "@/components/input/checkbox";
 import { useSend } from "@/hooks/useSend";
-import { useSessionStore } from "@/hooks/useSessionStore";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { formatDisplayName } from "@/lib/utils";
 import { $equipment } from "@/stores/settings";
 import { EquipmentSettings } from "@/types";
@@ -21,7 +21,7 @@ export function EquipmentCard({
 }) {
   const equipment = useStore($equipment, { keys: [equipmentKey] });
   const send = useSend();
-  const session = useSessionStore();
+  const session = usePageSessionStore();
   const [checked, setChecked] = useState(
     !!session.get().context.browserSessionSnapshot?.context.equipment[
       equipmentKey
