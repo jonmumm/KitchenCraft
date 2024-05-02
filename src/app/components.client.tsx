@@ -744,9 +744,12 @@ export const UpgradeAccountCard = () => {
             <XIcon />
           </Button>
         </div>
-        <div className="flex flex-row gap-1 items-center justify-between">
+        <div className="flex flex-row gap-1 items-center justify-between pt-4">
           <div className="flex flex-col gap-1 w-full">
             <CardTitle className="text-center">All Access</CardTitle>
+            <CardDescription className="text-center">
+              Your personal AI cookbook.
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -788,8 +791,12 @@ export const UpgradeAccountCard = () => {
                   </Button>
                 </div>
               </CollapsibleTrigger>
-              <CollapsibleContent>
-                <Label className="text-muted-foreground">Email address</Label>
+              <CollapsibleContent className="p-2">
+                <p className="text-muted-foreground mb-4">
+                  Inspire your friends and family to cook with unlimited, personalized, easy
+                  to create recipes.
+                </p>
+                <Label className="text-muted-foreground">Email addresses (optional)</Label>
                 <div className="flex flex-col gap-2">
                   <Input type="email" />
                   <Input type="email" />
@@ -797,8 +804,7 @@ export const UpgradeAccountCard = () => {
                   <Input type="email" />
                 </div>
                 <CardDescription className="mt-2">
-                  Enter emails for up to 4 people you would like to also receive
-                  KtichenCraft All Access as part of your subscription.
+                  Enter emails for up to 4 people you would like to receive benefits.
                 </CardDescription>
               </CollapsibleContent>
             </Collapsible>
