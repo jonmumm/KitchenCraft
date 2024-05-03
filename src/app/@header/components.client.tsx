@@ -39,7 +39,7 @@ import {
 } from "react";
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { CraftContext } from "../context";
-import { SessionSnapshot } from "../page-session-store";
+import { PageSessionSnapshot } from "../page-session-store";
 import { PageSessionContext } from "../page-session-store.context";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
@@ -318,7 +318,7 @@ export const KeyboardToggle = () => {
   return null;
 };
 
-const selectSuggestedTokens = (snapshot: SessionSnapshot) => {
+const selectSuggestedTokens = (snapshot: PageSessionSnapshot) => {
   return snapshot.context.browserSessionSnapshot?.context.suggestedTokens || [];
 };
 

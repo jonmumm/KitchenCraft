@@ -2,7 +2,7 @@
 
 import { selectIsOpen } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
-import { SessionSnapshot } from "@/app/page-session-store";
+import { PageSessionSnapshot } from "@/app/page-session-store";
 import { PageSessionContext } from "@/app/page-session-store.context";
 // import { session$ } from "@/app/session-store";
 import { usePromptIsPristine } from "@/hooks/useCraftIsOpen";
@@ -316,15 +316,15 @@ export default AutoResizableTextarea;
 //   "Simplify to five ingredients",
 // ];
 
-const selectInProgressSuggestedPlaceholders = (snapshot: SessionSnapshot) => {
+const selectInProgressSuggestedPlaceholders = (snapshot: PageSessionSnapshot) => {
   return snapshot.context.placeholders;
 };
 
-const selectEmptyStateSuggestedPlaceholders = (snapshot: SessionSnapshot) => {
+const selectEmptyStateSuggestedPlaceholders = (snapshot: PageSessionSnapshot) => {
   return snapshot.context.browserSessionSnapshot?.context.suggestedPlaceholders;
 };
 
-const selectHasTokens = (snapshot: SessionSnapshot) => {
+const selectHasTokens = (snapshot: PageSessionSnapshot) => {
   return !!snapshot.context.tokens.length;
 };
 

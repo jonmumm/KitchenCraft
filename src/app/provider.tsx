@@ -36,19 +36,19 @@ export function ApplicationProvider(props: {
   appSessionId: string | undefined;
   token: string;
 }) {
-  const [store] = useState(
+  const [app$] = useState(
     map<{ appSessionId: string | undefined } & unknown>({
       appSessionId: props.appSessionId,
     })
   ); // todo define global types here
-  const session$ = useContext(PageSessionContext);
+  const store = useContext(PageSessionContext);
 
   useEffect(() => {
     // @ts-expect-error
-    window.app$ = store;
+    window.app$ = app$;
     // @ts-expect-error
-    window.session$ = session$;
-  }, [store, session$]);
+    window.store = store;
+  }, [app$, store]);
   // const [permission, setPermission] = useState(() => {
   //   Notification.requestPermission();
 
@@ -68,7 +68,7 @@ export function ApplicationProvider(props: {
         send,
         initialPath: pathname,
         session: props.session,
-        session$,
+        store,
         token: props.token,
       })
     );
@@ -86,7 +86,7 @@ export function ApplicationProvider(props: {
   return (
     <ServiceWorkerProvider>
       <SessionProvider session={props.session}>
-        <ApplicationContext.Provider value={store}>
+        <ApplicationContext.Provider value={app$}>
           <CraftProvider>
             <SessionEventProviders />
             <VisibilityEventsProvider />

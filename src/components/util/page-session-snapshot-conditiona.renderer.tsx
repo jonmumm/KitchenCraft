@@ -1,9 +1,9 @@
-import { SessionSnapshot } from "@/app/page-session-store";
+import { PageSessionSnapshot } from "@/app/page-session-store";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { ReactNode, useSyncExternalStore } from "react";
 
 interface SessionSnapshotConditionalRendererProps {
-  selector: (snapshot: SessionSnapshot) => boolean;
+  selector: (snapshot: PageSessionSnapshot) => boolean;
   children: ReactNode;
   initialValueOverride?: boolean;
 }

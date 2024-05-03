@@ -16,9 +16,9 @@ import {
   FormMessage,
 } from "@/components/input/form";
 import { useEventHandler } from "@/hooks/useEventHandler";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, ListNameSchema } from "@/schema";
@@ -28,6 +28,7 @@ import { Label } from "@radix-ui/react-label";
 import {
   CarrotIcon,
   ClockIcon,
+  ExternalLinkIcon,
   MoveLeftIcon,
   PlusCircleIcon,
   PrinterIcon,
@@ -1762,11 +1763,12 @@ export const SaveRecipeBadge = () => {
       )}
     >
       <Card className="shadow-xl p-3 flex flex-row gap-2 items-center text-sm">
-        <div className="flex flex-row gap-1 text-s items-center flex-1">
+        <div className="flex flex-row gap-1 text-s items-center flex-1 border-r-2 border-solid border-slate-950 dark:border-slate-50">
           <span className="text-muted-foreground">Added to</span>{" "}
           <span className="truncate max-w-full">
             {selectedList?.name || "My Cookbook"}
           </span>
+          <ExternalLinkIcon className="mr-2" size={15} />
         </div>
         <Button
           event={{ type: "CHANGE_LIST" }}
@@ -1832,7 +1834,8 @@ export const SuggestedIngredientsSection = () => {
           {items
             .filter(
               (_, index) =>
-                (!ingredients.length && !isGenerating) || index < ingredients.length
+                (!ingredients.length && !isGenerating) ||
+                index < ingredients.length
             )
             .map((item, index) => {
               return (

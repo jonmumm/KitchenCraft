@@ -70,7 +70,7 @@ import {
 import { CraftContext } from "./context";
 import { EQUIPMENT_ITEMS, MISC_ONBORADING_QUESTIONS } from "./data";
 import { CraftSnapshot } from "./machine";
-import { SessionSnapshot } from "./page-session-store";
+import { PageSessionSnapshot } from "./page-session-store";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -577,7 +577,7 @@ export const PersonalizationSettingsMenu = () => {
   );
 };
 
-const selectIsInOnboarding = (snapshot: SessionSnapshot) => {
+const selectIsInOnboarding = (snapshot: PageSessionSnapshot) => {
   const state = snapshot.value;
   return (
     typeof state.Auth === "object" &&
@@ -604,7 +604,7 @@ const selectIsInOnboarding = (snapshot: SessionSnapshot) => {
 //   return session.value.Onboarding === "Exclusions";
 // };
 
-const selectIsInOnboardingEquipment = (snapshot: SessionSnapshot) => {
+const selectIsInOnboardingEquipment = (snapshot: PageSessionSnapshot) => {
   const session = snapshot.context.browserSessionSnapshot;
   if (!session) {
     return false;
@@ -622,7 +622,7 @@ const selectIsInOnboardingEquipment = (snapshot: SessionSnapshot) => {
 //   return session.value.Onboarding === "Misc";
 // };
 
-const selectIsInOnboardingComplete = (snapshot: SessionSnapshot) => {
+const selectIsInOnboardingComplete = (snapshot: PageSessionSnapshot) => {
   const session = snapshot.context.browserSessionSnapshot;
   if (!session) {
     return false;
@@ -640,7 +640,7 @@ const selectIsInOnboardingComplete = (snapshot: SessionSnapshot) => {
 //   return session.value.Onboarding === "Ingredients";
 // };
 
-const selectIsUserPreferencesInitialized = (snapshot: SessionSnapshot) => {
+const selectIsUserPreferencesInitialized = (snapshot: PageSessionSnapshot) => {
   const state = snapshot.value;
   return (
     state.UserPreferences !== "Uninitialized" &&
@@ -674,7 +674,7 @@ const IsUserPreferencesInitialized = ({
   return active ? <>{children}</> : <></>;
 };
 
-const selectIsUserPreferencesInitializing = (snapshot: SessionSnapshot) => {
+const selectIsUserPreferencesInitializing = (snapshot: PageSessionSnapshot) => {
   return !selectIsUserPreferencesInitialized(snapshot);
 };
 

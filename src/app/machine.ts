@@ -23,7 +23,7 @@ import {
 } from "xstate";
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
-import { SessionSnapshot } from "./page-session-store";
+import { PageSessionSnapshot } from "./page-session-store";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
   const params = new URLSearchParams();
@@ -52,7 +52,7 @@ export const createCraftMachine = ({
   initialPath,
   send,
   session,
-  session$,
+  store,
   token,
 }: {
   searchParams: Record<string, string>;
@@ -60,7 +60,7 @@ export const createCraftMachine = ({
   initialPath: string;
   send: (event: AppEvent) => void;
   session: Session | null;
-  session$: ReadableAtom<SessionSnapshot>;
+  store: ReadableAtom<PageSessionSnapshot>;
   token: string;
 }) => {
   const initialOpen =
@@ -106,7 +106,7 @@ export const createCraftMachine = ({
     } satisfies Context;
   })();
 
-  // const initialPromptState = session$.get().context.prompt?.length
+  // const initialPromptState = store.get().context.prompt?.length
   //   ? "Dirty"
   //   : "Pristine";
 
@@ -115,12 +115,12 @@ export const createCraftMachine = ({
       input,
     }: {
       input: {
-        selector: (snapshot: SessionSnapshot) => boolean;
+        selector: (snapshot: PageSessionSnapshot) => boolean;
         timeoutMs: number;
       };
     }) => {
       return new Promise<void>((resolve, reject) => {
-        const snapshot = session$.get();
+        const snapshot = store.get();
         const { selector } = input;
 
         const value = selector(snapshot);
@@ -136,7 +136,7 @@ export const createCraftMachine = ({
           }
         }, input.timeoutMs);
 
-        const unsub = session$.subscribe((snapshot) => {
+        const unsub = store.subscribe((snapshot) => {
           const value = selector(snapshot);
           if (value) {
             returned = true;
@@ -145,10 +145,10 @@ export const createCraftMachine = ({
           }
         });
       });
-      // session$.subscribe(input.selector, () => {
+      // store.subscribe(input.selector, () => {
 
       // })
-      // session$
+      // store
     }
   );
 
@@ -233,9 +233,9 @@ export const createCraftMachine = ({
       //   () =>
       //     new Promise((resolve) => {
       //       const initialNumSlugs =
-      //         session$.get().context.createdRecipeSlugs.length;
+      //         store.get().context.createdRecipeSlugs.length;
       //       // todo: timeout?
-      //       const unsub = session$.listen((state) => {
+      //       const unsub = store.listen((state) => {
       //         console.log(state);
       //         if (initialNumSlugs !== state.context.createdRecipeSlugs.length) {
       //           resolve(null);
@@ -248,7 +248,7 @@ export const createCraftMachine = ({
     },
     guards: {
       hasValidChefName: ({ context }) => {
-        const stateValue = session$.get().value;
+        const stateValue = store.get().value;
         return (
           typeof stateValue.Profile &&
           !!stateValue.Profile.Available &&
@@ -411,7 +411,7 @@ export const createCraftMachine = ({
                           {
                             target: ".Added",
                             guard: () =>
-                              !!session$.get().context.currentListSlug,
+                              !!store.get().context.currentListSlug,
                           },
                           {
                             target: "True",
@@ -421,7 +421,7 @@ export const createCraftMachine = ({
                                   currentItemIndex,
                                   suggestedRecipes,
                                   recipes,
-                                } = session$.get().context;
+                                } = store.get().context;
                                 const recipeId =
                                   suggestedRecipes[currentItemIndex];
                                 assert(
@@ -705,7 +705,7 @@ export const createCraftMachine = ({
                   {
                     guard: ({ event, context }) => {
                       const didPressEnter = event.keyboardEvent.key === "Enter";
-                      const prompt = session$.get().context.prompt;
+                      const prompt = store.get().context.prompt;
                       return didPressEnter && !!prompt && !!prompt.length;
                     },
                     actions: [
