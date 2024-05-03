@@ -12,7 +12,7 @@ import {
 } from "@/db";
 import { NewRecipe } from "@/db/types";
 import { getErrorMessage } from "@/lib/error";
-import { getPersonalizationContext } from "@/lib/llmContext";
+import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
 import { assert, sentenceToSlug } from "@/lib/utils";
@@ -375,6 +375,8 @@ export const pageSessionMachine = setup({
           prompt: string;
           tokens: string[];
           previousRejections: PartialRecipe[];
+          personalizationContext: string | undefined;
+          timeContext: string | undefined;
         };
       }) => {
         const tokenStream = new InstantRecipeMetadataStream();
@@ -398,6 +400,8 @@ export const pageSessionMachine = setup({
           tokens: string[];
           name: string;
           description: string;
+          personalizationContext: string | undefined;
+          timeContext: string | undefined;
         };
       }) => {
         const tokenStream = new FullRecipeStream();
@@ -1538,6 +1542,19 @@ export const pageSessionMachine = setup({
                                 prompt: context.prompt,
                                 tokens: context.tokens,
                                 previousRejections,
+                                timeContext: context.browserSessionSnapshot
+                                  ?.context?.timezone
+                                  ? getTimeContext(
+                                      context.browserSessionSnapshot.context
+                                        .timezone
+                                    )
+                                  : undefined,
+                                personalizationContext: context
+                                  .browserSessionSnapshot?.context
+                                  ? getPersonalizationContext(
+                                      context.browserSessionSnapshot.context
+                                    )
+                                  : undefined,
                               };
                             },
                             src: "generateRecipeMetadata",
@@ -1675,6 +1692,19 @@ export const pageSessionMachine = setup({
                                 tokens: context.tokens,
                                 name,
                                 description,
+                                timeContext: context.browserSessionSnapshot
+                                  ?.context?.timezone
+                                  ? getTimeContext(
+                                      context.browserSessionSnapshot.context
+                                        .timezone
+                                    )
+                                  : undefined,
+                                personalizationContext: context
+                                  .browserSessionSnapshot?.context
+                                  ? getPersonalizationContext(
+                                      context.browserSessionSnapshot.context
+                                    )
+                                  : undefined,
                               };
                             },
                             src: "generateFullRecipe",

@@ -9,6 +9,8 @@ export type FullRecipeStreamInput = {
   tokens: string[];
   name: string;
   description: string;
+  personalizationContext: string | undefined;
+  timeContext: string | undefined;
 };
 
 export const FullRecipeEventBase = "FULL_RECIPE";
@@ -19,11 +21,15 @@ export type FullRecipeEvent = StreamObservableEvent<
 >;
 
 export class FullRecipeStream extends TokenStream<FullRecipeStreamInput> {
-  protected async getUserMessage(input: FullRecipeStreamInput): Promise<string> {
+  protected async getUserMessage(
+    input: FullRecipeStreamInput
+  ): Promise<string> {
     return NEW_RECIPE_USER_PROMPT_TEMPLATE(input);
   }
 
-  protected async getSystemMessage(input: FullRecipeStreamInput): Promise<string> {
+  protected async getSystemMessage(
+    input: FullRecipeStreamInput
+  ): Promise<string> {
     return NEW_RECIPE_TEMPLATE(input);
   }
 
@@ -46,6 +52,11 @@ const NEW_RECIPE_TEMPLATE = (
 ) => `You are an expert chef assistant. The user will provider the name and description for a recipe.
 
 Come up with a recipe recipe that matches the users prompt following the format and examples below. The instruction steps must include again the ingredient quantity. Format it in YAML and include nothing else in the response.
+
+Keep in mind the users personal preferences: ${
+  input.personalizationContext ? input.personalizationContext : ""
+}
+${input.timeContext ? input.timeContext : ""}
 
 Format: ${FORMAT_INSTRUCTIONS}
 

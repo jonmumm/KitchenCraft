@@ -9,6 +9,8 @@ type Input = {
   prompt: string;
   tokens: string[];
   previousRejections: PartialRecipe[];
+  personalizationContext: string;
+  timeContext: string;
 };
 
 export const InstantRecipeMetadataEventBase = "INSTANT_RECIPE_METADATA";
@@ -22,6 +24,8 @@ export class InstantRecipeMetadataStream extends TokenStream<InstantRecipeMetada
   protected async getUserMessage(input: Input): Promise<string> {
     const message =
       buildInput(input) +
+      `${input.personalizationContext ? input.personalizationContext : ""}` +
+      `${input.timeContext ? input.timeContext : ""}` +
       (input.previousRejections.length
         ? `
         
@@ -89,6 +93,12 @@ Response:
 name: Quick Chicken Broccoli Stir-Fry
 description: Tender chicken stir-fried with fresh broccoli and garlic, seasoned with soy sauce and served over fluffy white rice.
 \`\`\`;
+
+${
+  input.personalizationContext
+    ? "Consider the user's provided personalized preference inputs."
+    : ""
+}
 
 Ensure the response is a yaml code block.
 `;
