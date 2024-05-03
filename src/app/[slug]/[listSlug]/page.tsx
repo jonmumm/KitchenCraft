@@ -77,7 +77,6 @@ export default async function Page(props: {
     listUserId,
     props.params.listSlug
   );
-  console.log(recipes);
 
   return (
     <div className="flex flex-col max-w-3xl mx-auto gap-3 px-4">
