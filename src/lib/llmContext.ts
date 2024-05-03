@@ -1,5 +1,6 @@
 import { preferencesDisplayNames } from "@/data/settings";
 import { BrowserSessionContext } from "@/types";
+import { formatDisplayName } from "./utils";
 
 type PersonalizationOptions = Pick<
   BrowserSessionContext,
@@ -60,9 +61,7 @@ export function getPersonalizationContext(
   }
 
   if (options.groceryStores) {
-    context.push(
-      `Frequent Grocery Stores: ${options.groceryStores}`
-    );
+    context.push(`Frequent Grocery Stores: ${options.groceryStores}`);
   }
 
   if (options.typicalGroceries) {
@@ -77,9 +76,9 @@ export function getPersonalizationContext(
     const equipmentKeys = Object.keys(options.equipment) as Array<
       keyof typeof options.equipment
     >;
-    const availableEquipment = equipmentKeys.filter(
-      (key) => options.equipment[key]
-    );
+    const availableEquipment = equipmentKeys
+      .filter((key) => options.equipment[key])
+      .map(formatDisplayName);
     if (availableEquipment.length > 0) {
       context.push(`Available Equipment: ${availableEquipment.join(", ")}`);
     }
@@ -89,7 +88,7 @@ export function getPersonalizationContext(
     const dietKeys = Object.keys(options.diet) as Array<
       keyof typeof options.diet
     >;
-    const dietaryRestrictions = dietKeys.filter((key) => options.diet[key]);
+    const dietaryRestrictions = dietKeys.filter((key) => options.diet[key]).map(formatDisplayName);
     if (dietaryRestrictions.length > 0) {
       context.push(`Dietary Restrictions: ${dietaryRestrictions.join(", ")}`);
     }
