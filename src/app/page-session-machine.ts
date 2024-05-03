@@ -303,7 +303,7 @@ export const pageSessionMachine = setup({
           const list = result[0];
           assert(list, "expected list to be created");
 
-          tx.insert(ListRecipeTable).values({
+          await tx.insert(ListRecipeTable).values({
             userId: input.userId,
             listId: list.id,
             recipeId: input.recipeIdToAdd,
