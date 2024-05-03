@@ -176,6 +176,21 @@ export const getFirstMediaForRecipe = async (recipeSlug: string) => {
     .then((res) => res[0]); // Return the first result
 };
 
+export const getListBySlug = async (props: {
+  slug: string;
+  userId: string;
+}) => {
+  const query = db
+    .select()
+    .from(ListTable)
+    .where(
+      and(eq(ListTable.slug, props.slug), eq(ListTable.createdBy, props.userId))
+    );
+  return await withDatabaseSpan(query, "getListBySlug")
+    .execute()
+    .then((res) => res[0]); // Return the first result
+};
+
 export const getRecipesByListSlug = async (
   dbOrTransaction: DbOrTransaction,
   userId: string,
@@ -211,7 +226,13 @@ export const getRecipesByListSlug = async (
       slug: RecipesTable.slug,
       name: RecipesTable.name,
       description: RecipesTable.description,
+      yield: RecipesTable.yield,
+      instructions: RecipesTable.instructions,
+      ingredients: RecipesTable.ingredients,
+      cookTime: RecipesTable.cookTime,
+      activeTime: RecipesTable.activeTime,
       totalTime: RecipesTable.totalTime,
+      tags: RecipesTable.tags,
       prompt: RecipesTable.prompt,
       createdBy: RecipesTable.createdBy,
       createdAt: RecipesTable.createdAt,
