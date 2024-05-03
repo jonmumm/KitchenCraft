@@ -1744,12 +1744,12 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
 export const SaveRecipeBadge = () => {
   const actor = useContext(CraftContext);
   const chefname = useChefName();
-  const session$ = usePageSessionStore();
+  const store = usePageSessionStore();
   // const selectedListSlug, useSyncExternalStore(session$.subscribe, selectSelectedListSlug, selectIsChefNameAvailable)
   const selectedList = useSyncExternalStore(
-    session$.subscribe,
-    () => selectSelectedList(session$.get()),
-    () => selectSelectedList(session$.get())
+    store.subscribe,
+    () => selectSelectedList(store.get()),
+    () => selectSelectedList(store.get())
   );
   const isShowing = useSelector(actor, selectIsShowingAddedRecipe);
 

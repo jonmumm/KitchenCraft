@@ -79,7 +79,7 @@ export default async function Page(props: {
   );
 
   return (
-    <div className="flex flex-col max-w-3xl mx-auto gap-3 px-4">
+    <div className="flex flex-col max-w-3xl mx-auto gap-3 px-4 mb-6">
       <h1 className="text-center text-xl font-bold">{list.name}</h1>
       <p className="text-muted-foreground text-xs text-center">
         by{" "}
