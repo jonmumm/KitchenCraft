@@ -4,6 +4,7 @@ import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import NavigationLink from "@/components/navigation/navigation-link";
+import { getRecentRecipes } from "@/db/queries";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
 import { MediaGalleryProvider } from "@/modules/media-gallery/components";
 import {
@@ -13,21 +14,27 @@ import {
 } from "@/modules/media-gallery/components.client";
 import {
   ArrowBigUpDashIcon,
-  AxeIcon,
   ChefHatIcon,
   ChevronRightIcon,
   Loader2Icon,
   TimerIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { getHotRecipes, getRecentRecipesByUser } from "../../db/queries";
+import {
+  getBestRecipes,
+  getHotRecipes,
+  getRecentRecipesByProfile,
+  getRecentRecipesByUser,
+} from "../../db/queries";
 import { upvoteById } from "../recipe/actions";
 import { RecipePropsProvider } from "./context";
 
 type Recipes =
   | Awaited<ReturnType<typeof getHotRecipes>>[0]
+  | Awaited<ReturnType<typeof getBestRecipes>>[0]
+  | Awaited<ReturnType<typeof getRecentRecipes>>[0]
+  | Awaited<ReturnType<typeof getRecentRecipesByProfile>>[0]
   | Awaited<ReturnType<typeof getRecentRecipesByUser>>[0];
 
 interface RecipeListItemProps {
