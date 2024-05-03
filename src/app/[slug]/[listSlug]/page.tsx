@@ -119,7 +119,7 @@ interface RecipeListItemProps {
   index: number;
 }
 
-export const RecipeListItem = ({ recipe, index }: RecipeListItemProps) => {
+const RecipeListItem = ({ recipe, index }: RecipeListItemProps) => {
   const href = `/recipe/${recipe.slug}`;
 
   return (
