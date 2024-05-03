@@ -22,9 +22,10 @@ export type InstantRecipeMetadataEvent = StreamObservableEvent<
 
 export class InstantRecipeMetadataStream extends TokenStream<InstantRecipeMetadataPredictionInput> {
   protected async getUserMessage(input: Input): Promise<string> {
-    const message =
-      buildInput(input) +
-      `${input.personalizationContext ? input.personalizationContext : ""}` +
+    const message = `Prompt: `;
+    buildInput(input) +
+      `
+      ${input.personalizationContext ? input.personalizationContext : ""}` +
       `${input.timeContext ? input.timeContext : ""}` +
       (input.previousRejections.length
         ? `
@@ -96,7 +97,7 @@ description: Tender chicken stir-fried with fresh broccoli and garlic, seasoned 
 
 ${
   input.personalizationContext
-    ? "Consider the user's provided personalized preference inputs."
+    ? "Lightly consider the user's provided personalized preference inputs, but don't overindex on them and focus more on the prompt to generate new ideas."
     : ""
 }
 
