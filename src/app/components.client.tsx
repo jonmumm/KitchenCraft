@@ -775,6 +775,12 @@ export const UpgradeAccountCard = () => {
               </span>{" "}
               Advanced personalization
             </li>
+            <li>
+              <span role="img" aria-label="Personal digests">
+               🗞️ 
+              </span>{" "}
+              Weekly personal digests
+            </li>
           </ul>
           <div className="text-center">
             <span className="font-bold">$2 per week</span> after 7-day trial.

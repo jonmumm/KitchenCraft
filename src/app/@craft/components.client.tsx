@@ -1127,10 +1127,6 @@ const selectIsLoadingChefNameAvailability = (snapshot: PageSessionSnapshot) => {
   );
 };
 
-const selectSelectedListSlug = (snapshot: PageSessionSnapshot) => {
-  return snapshot.context.currentListSlug;
-};
-
 const selectSelectedList = (snapshot: PageSessionSnapshot) => {
   if (snapshot.context.listsBySlug && snapshot.context.currentListSlug) {
     return snapshot.context.listsBySlug[snapshot.context.currentListSlug];
