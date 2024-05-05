@@ -155,9 +155,11 @@ export const browserSessionMachine = setup({
     suggestedTokens: [],
   }),
   on: {
-    CHANGE: [{
-      guard: ({ event }) => event.name === "shoppingFrequency"
-    }],
+    CHANGE: [
+      {
+        guard: ({ event }) => event.name === "shoppingFrequency",
+      },
+    ],
     EXPERIENCE_CHANGE: {
       actions: assign({
         experienceLevel: ({ event }) => event.experience,
@@ -286,22 +288,22 @@ export const browserSessionMachine = setup({
     Suggestions: {
       type: "parallel",
       // this is probably runnin a little too frequently
-      always: {
-        target: [
-          ".Ingredients.Running",
-          ".Tags.Running",
-          ".Placeholders.Running",
-          ".Tokens.Running",
-        ],
-        actions: assign({
-          lastRunPersonalizationContext: ({ context }) =>
-            getPersonalizationContext(context),
-        }),
-        guard: ({ context }) =>
-          !!context.lastRunPersonalizationContext &&
-          context.lastRunPersonalizationContext !==
-            getPersonalizationContext(context),
-      },
+      // always: {
+      //   target: [
+      //     ".Ingredients.Running",
+      //     ".Tags.Running",
+      //     ".Placeholders.Running",
+      //     ".Tokens.Running",
+      //   ],
+      //   actions: assign({
+      //     lastRunPersonalizationContext: ({ context }) =>
+      //       getPersonalizationContext(context),
+      //   }),
+      //   guard: ({ context }) =>
+      //     !!context.lastRunPersonalizationContext &&
+      //     context.lastRunPersonalizationContext !==
+      //       getPersonalizationContext(context),
+      // },
       states: {
         Ingredients: {
           initial: "Idle",

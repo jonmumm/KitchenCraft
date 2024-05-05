@@ -85,11 +85,11 @@ export default async function Page({}) {
         </div>
       </div>
       {/* <div className="mx-auto w-full h-[50vh] crafting:h-auto relative"> */}
-      <div className="crafting:hidden mt-2 mb-8 max-w-3xl mx-auto px-4">
+      {/* <div className="crafting:hidden mt-2 mb-8 max-w-3xl mx-auto px-4">
         <div className="flex flex-row gap-1 items-center flex-wrap">
           <HomepageSuggestedTokens />
         </div>
-      </div>
+      </div> */}
       {/* <KeyboardToggle /> */}
     </>
   );
