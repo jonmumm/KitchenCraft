@@ -1,3 +1,4 @@
+import { IterableReadableStream } from "@langchain/core/dist/utils/stream";
 import { nanoid } from "ai";
 import jsYaml from "js-yaml";
 import { Observable, Subject } from "rxjs";
@@ -33,7 +34,7 @@ export function streamToObservable<
   TOutput extends z.ZodRawShape,
   TPartialOutput extends z.infer<partialUtil.DeepPartial<z.ZodObject<TOutput>>>,
 >(
-  tokenStream: AsyncIterable<string>, // Changed from EventSource to AsyncIterable<string>
+  tokenStream: IterableReadableStream<string>, // Changed from EventSource to AsyncIterable<string>
   streamType: TStreamType,
   schema: z.ZodObject<TOutput>
 ): Observable<StreamObservableEvent<TStreamType, TOutput>> {

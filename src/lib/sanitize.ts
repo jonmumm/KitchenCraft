@@ -28,10 +28,11 @@ export function sanitizeOutput(response: string): string {
   yamlContent = yamlContent.trim();
 
   // If no YAML block start delimiter was found, return a specific message
-  if (!foundYamlBlock) {
-    return "No YAML block found in the response.";
+  if (foundYamlBlock) {
+    // Return the accumulated YAML content (which may be an empty string if the block had no content)
+    return yamlContent;
+  } else {
+    // if we couldnt parse yaml, just return the whole block
+    return response.trim();
   }
-
-  // Return the accumulated YAML content (which may be an empty string if the block had no content)
-  return yamlContent;
 }

@@ -1,7 +1,9 @@
+import { privateEnv } from "@/env.secrets";
+import { ChatOpenAI } from "@langchain/openai";
+
+import { StringOutputParser } from "@langchain/core/output_parsers";
 import { trace } from "@opentelemetry/api";
-import { ChatOpenAI } from "langchain/chat_models/openai";
 import { IterableReadableStream } from "langchain/dist/util/stream";
-import { StringOutputParser } from "langchain/schema/output_parser";
 import { z } from "zod";
 import { getErrorMessage } from "./error";
 import { kv } from "./kv";
@@ -22,22 +24,10 @@ export abstract class TokenStream<T> {
     return 1;
   }
 
-  public async getStream(input: T): Promise<AsyncIterable<string>> {
+  public getStream(input: T) {
     const tokens = this.getDefaultTokens();
     return this.getOpenAIStream(input, tokens);
   }
-
-  // public async getStreamFromCache(): Promise<AsyncIterable<string>> {
-  //   assert(this.cacheKey, "expected cacheKey");
-  //   const status = await this.getStatus();
-
-  //   console.log("status", status);
-  //   if (status === "running") {
-  //     return this.getRunningStream();
-  //   } else {
-  //     return this.getCompletedStream();
-  //   }
-  // }
 
   async *getRunningStream(): AsyncIterable<string> {
     if (!this.cacheKey) {
@@ -97,10 +87,6 @@ export abstract class TokenStream<T> {
     );
   }
 
-  // If there is a cache key, writes the stream to redis by rpushing each
-  // chunk to a listen `stream:${cacheKey}`.
-  // This allows the stream to be ready by other requests in parallel
-  // by polling the list
   private async handleStream(
     rawStream: IterableReadableStream<string>
   ): Promise<AsyncIterable<string>> {
@@ -151,32 +137,52 @@ export abstract class TokenStream<T> {
     }
   }
 
-  protected async getOpenAIStream(
-    input: T,
-    tokens: number
-  ): Promise<AsyncIterable<string>> {
+  protected async getOpenAIStream(input: T, tokens: number) {
     const outputParser = new StringOutputParser();
-    const chat = new ChatOpenAI({
+
+    const model = new ChatOpenAI({
       temperature: this.getTemperature(),
       maxTokens: tokens,
-      modelName: "gpt-3.5-turbo-0125",
+      azureOpenAIApiKey: privateEnv.AZURE_OPENAI_API_KEY, // In Node.js defaults to process.env.AZURE_OPENAI_API_KEY
+      azureOpenAIApiVersion: "2024-02-01", // In Node.js defaults to process.env.AZURE_OPENAI_API_VERSION
+      azureOpenAIApiInstanceName: privateEnv.AZURE_OPENAI_INSTANCE_NAME, // In Node.js defaults to process.env.AZURE_OPENAI_API_INSTANCE_NAME
+      azureOpenAIApiDeploymentName: privateEnv.AZURE_OPENAI_DEPLOYMENT_NAME, // In Node.js defaults to process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME
     });
+
+    // const chat = new ChatOpenAI({
+    //   temperature: this.getTemperature(),
+    //   maxTokens: tokens,
+    //   modelName: "gpt-3.5-turbo-0125",
+    // });
     const userMessage = await this.getUserMessage(input);
     const systemMessage = await this.getSystemMessage(input);
 
     const streamSpan = trace.getTracer("default").startSpan("OpenAIStream");
 
     try {
-      const rawStream = await chat.pipe(outputParser).stream([
+      return model.pipe(outputParser).stream([
         ["system", systemMessage],
         ["user", userMessage],
       ]);
-
-      return this.handleStream(rawStream);
     } catch (error) {
       streamSpan.recordException(getErrorMessage(error));
       streamSpan.end();
       throw error;
     }
+
+    // todo update the below commented code to match the docs
+
+    // try {
+    //   const rawStream = await model.pipe(outputParser).stream([
+    //     ["system", systemMessage],
+    //     ["user", userMessage],
+    //   ]);
+
+    //   return this.handleStream(rawStream);
+    // } catch (error) {
+    //   streamSpan.recordException(getErrorMessage(error));
+    //   streamSpan.end();
+    //   throw error;
+    // }
   }
 }
