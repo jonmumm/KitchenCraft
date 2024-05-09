@@ -309,13 +309,13 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   HEART_BEAT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !!event.cf && !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
               invoke: {
@@ -339,13 +339,13 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   HEART_BEAT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !!event.cf && !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
               invoke: {
@@ -369,13 +369,13 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   HEART_BEAT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !!event.cf && !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
               invoke: {
@@ -399,13 +399,13 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   HEART_BEAT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !!event.cf && !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
               invoke: {
