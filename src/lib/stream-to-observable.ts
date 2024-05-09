@@ -65,6 +65,7 @@ export function streamToObservable<
         const outputRaw = charArray.join("");
         const outputSanitized = sanitizeOutput(outputRaw);
         let outputYaml;
+
         try {
           outputYaml = jsYaml.load(outputSanitized);
         } catch (ex) {

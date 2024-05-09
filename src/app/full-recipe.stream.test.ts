@@ -21,6 +21,7 @@ describe("FullRecipeStream", () => {
     const outputJSON = jsYaml.load(outputSanitized);
 
     const result = RecipePredictionOutputSchema.safeParse(outputJSON);
+
     expect(result.success).toBe(true);
     result.success && console.log(result.data);
   }
