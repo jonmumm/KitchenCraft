@@ -10,6 +10,8 @@ import { ExperienceLevelSchema } from "@/schema";
 import { $experienceLevel } from "@/stores/settings";
 import { Loader2Icon } from "lucide-react";
 import { ChefHat } from "lucide-react";
+import { CookingPot } from "lucide-react";
+import { Cookie } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MouseEventHandler, useState } from "react";
 
