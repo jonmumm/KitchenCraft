@@ -53,4 +53,34 @@ describe("AutoSuggestTokensStream", () => {
     });
     expect(data?.tokens.length).toBeGreaterThan(0);
   });
+
+  it("should handle punctuation and special characters in the prompt", async () => {
+    const data = await validateOutput({ prompt: "what's for dinner?" });
+    expect(data?.tokens.length).toBeGreaterThan(0);
+  });
+
+  it("should return relevant tokens for prompts with numbers", async () => {
+    const data = await validateOutput({ prompt: "10 easy snack ideas" });
+    expect(data?.tokens.length).toBeGreaterThan(0);
+  });
+
+  it("should handle variations in capitalization and white spaces", async () => {
+    const data = await validateOutput({ prompt: "  Healthy  Lunch  Options" });
+    expect(data?.tokens.length).toBeGreaterThan(0);
+  });
+
+  it("should return relevant tokens for prompts in different languages", async () => {
+    const data = await validateOutput({ prompt: "idées de plats végétaliens" });
+    expect(data?.tokens.length).toBeGreaterThan(0);
+  });
+
+  it("should handle prompts with a combination of words and numbers", async () => {
+    const data = await validateOutput({ prompt: "top 5 desserts" });
+    expect(data?.tokens.length).toBeGreaterThan(0);
+  });
+
+  it("should return relevant tokens for prompts with abbreviations", async () => {
+    const data = await validateOutput({ prompt: "DIY snack ideas" });
+    expect(data?.tokens.length).toBeGreaterThan(0);
+  });
 });

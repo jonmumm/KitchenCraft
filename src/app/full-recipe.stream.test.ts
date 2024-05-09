@@ -23,7 +23,6 @@ describe("FullRecipeStream", () => {
     const result = RecipePredictionOutputSchema.safeParse(outputJSON);
 
     expect(result.success).toBe(true);
-    result.success && console.log(result.data);
   }
 
   it("should complete successfully for a vegan breakfast", async () => {
