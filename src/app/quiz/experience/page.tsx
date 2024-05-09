@@ -9,6 +9,7 @@ import { assert } from "@/lib/utils";
 import { ExperienceLevelSchema } from "@/schema";
 import { $experienceLevel } from "@/stores/settings";
 import { Loader2Icon } from "lucide-react";
+import { ChefHat } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MouseEventHandler, useState } from "react";
 
@@ -57,13 +58,12 @@ export default function Experience() {
               selectedExperience === level ? "border-2 border-blue-500" : ""
             }`}
           >
-            <Button size="icon" variant="outline">
-              {level === "beginner"
-                ? "👶"
-                : level === "intermediate"
-                ? "👨‍🍳"
-                : "🧑‍🔬"}
-            </Button>
+            {level === "beginner"
+              ? <Cookie size={32}/>
+              : level === "intermediate"
+              ? <CookingPot size={32} />
+              : <ChefHat size={32}/>}
+
             <div>
               <CardTitle>
                 {level.charAt(0).toUpperCase() + level.slice(1)}
