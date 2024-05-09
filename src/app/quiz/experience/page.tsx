@@ -60,11 +60,11 @@ export default function Experience() {
               selectedExperience === level ? "border-2 border-blue-500" : ""
             }`}
           >
-            {level === "beginner"
-              ? <Cookie size={32}/>
-              : level === "intermediate"
-              ? <CookingPot size={32} />
-              : <ChefHat size={32}/>}
+            {(
+                level === "beginner" ? <Cookie size={32} /> :
+                level === "intermediate" ? <CookingPot size={32} /> :
+                <ChefHat size={32} />
+            )}
 
             <div>
               <CardTitle>
