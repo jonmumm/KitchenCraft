@@ -1759,12 +1759,17 @@ export const SaveRecipeBadge = () => {
       )}
     >
       <Card className="shadow-xl p-3 flex flex-row gap-2 items-center text-sm">
-        <div className="flex flex-row gap-1 text-s items-center flex-1 border-r-2 border-solid border-slate-950 dark:border-slate-50">
+        <div
+          style={{ borderRightWidth: "1px" }}
+          className="text-s border-solid dark:border-slate-950 border-slate-50"
+        >
           <span className="text-muted-foreground">Added to</span>{" "}
-          <span className="truncate max-w-full">
-            {selectedList?.name || "My Cookbook"}
+          <span className="whitespace-nowrap inline-flex gap-1 items-center">
+            <span className="truncate max-w-full">
+              {selectedList?.name || "My Cookbook"}
+            </span>
+            <ExternalLinkIcon className="mr-2" size={15} />
           </span>
-          <ExternalLinkIcon className="mr-2" size={15} />
         </div>
         <Button
           event={{ type: "CHANGE_LIST" }}

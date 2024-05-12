@@ -46,7 +46,7 @@ import {
   UserPreferenceType,
 } from "@/types";
 import { useStore } from "@nanostores/react";
-import { ChevronsUpDown, RefreshCwIcon, XIcon } from "lucide-react";
+import { ChevronsUpDown, HeartIcon, RefreshCwIcon, XIcon } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -777,7 +777,7 @@ export const UpgradeAccountCard = () => {
             </li>
             <li>
               <span role="img" aria-label="Personal digests">
-               🗞️ 
+                🗞️
               </span>{" "}
               Weekly personal digests
             </li>
@@ -799,10 +799,12 @@ export const UpgradeAccountCard = () => {
               </CollapsibleTrigger>
               <CollapsibleContent className="p-2">
                 <p className="text-muted-foreground mb-4">
-                  Inspire your friends and family to cook with unlimited, personalized, easy
-                  to create recipes.
+                  Inspire your friends and family to cook with unlimited,
+                  personalized, easy to create recipes.
                 </p>
-                <Label className="text-muted-foreground">Email addresses (optional)</Label>
+                <Label className="text-muted-foreground">
+                  Email addresses (optional)
+                </Label>
                 <div className="flex flex-col gap-2">
                   <Input type="email" />
                   <Input type="email" />
@@ -810,7 +812,8 @@ export const UpgradeAccountCard = () => {
                   <Input type="email" />
                 </div>
                 <CardDescription className="mt-2">
-                  Enter emails for up to 4 people you would like to receive benefits.
+                  Enter emails for up to 4 people you would like to receive
+                  benefits.
                 </CardDescription>
               </CollapsibleContent>
             </Collapsible>
@@ -965,7 +968,7 @@ const useSortedRecipeLists = () => {
     (listsBySlug) =>
       listsBySlug
         ? Object.values(listsBySlug)
-            .filter(({ slug }) => slug !== "my-cookbook")
+            .filter(({ slug }) => slug !== "liked" && slug !== "make-later")
             .toSorted((a, b) => (a.createdAt > b.createdAt ? -1 : 1))
         : []
   );
@@ -1002,49 +1005,8 @@ const useSuggestedChefnames = () => {
 };
 
 export const SelectListCard = () => {
-  const SuggestedLists = () => {
-    const suggestedListNames = useSuggestedListNames();
-    const items = new Array(6).fill("");
-
-    return (
-      <div className="carousel carousel-center max-w-[100vw] space-x-2 pl-2 pr-4">
-        {items.map((item, index) => {
-          const name = suggestedListNames[index];
-
-          return (
-            <Card
-              key={index}
-              className="p-4 flex gap-1 items-center justify-between cursor-pointer carousel-item w-72"
-              event={{ type: "SELECT_LIST", listSlug: "my-cookbook" }}
-            >
-              <div className="grid gap-1">
-                <h4 className="font-semibold">
-                  {name ? (
-                    <>✨ {name}</>
-                  ) : (
-                    <SkeletonSentence className="h-6" numWords={2} />
-                  )}
-                </h4>
-              </div>
-              {name ? (
-                <Button size="sm" variant="outline">
-                  Create
-                </Button>
-              ) : (
-                <Button size="sm" variant="outline">
-                  <Skeleton className="h-4 w-10" />
-                </Button>
-              )}
-            </Card>
-          );
-        })}
-      </div>
-    );
-  };
-
   const RecentLists = () => {
     const lists = useSortedRecipeLists();
-    console.log({ lists });
     const isLoading = useIsLoadingRecipeLists();
     const items = new Array(6).fill("");
 
@@ -1146,9 +1108,11 @@ export const SelectListCard = () => {
         >
           + Create List
         </Button>
-        <MyCookbookCard />
+        <Separator />
+        <LikedRecipesCard />
+        <MakeLaterCard />
       </div>
-      <div className="mt-4">
+      <div className="mt-1">
         <Label className="uppercase text-xs text-muted-foreground mx-4">
           Recent
         </Label>
@@ -1228,16 +1192,35 @@ export const CreateNewListCard = () => {
   );
 };
 
-const MyCookbookCard = () => {
+const LikedRecipesCard = () => {
   return (
     <Card
       className="p-4 flex items-center justify-between cursor-pointer"
-      event={{ type: "SELECT_LIST", listSlug: "my-cookbook" }}
+      event={{ type: "SELECT_LIST", listSlug: "liked" }}
     >
       <div className="grid gap-2">
-        <h4 className="font-semibold">My Cookbook</h4>
+        <h4 className="font-semibold">Liked Recipes</h4>
         <p className="text-xs text-muted-foreground">
-          Your personal collection of recipes.
+          Recipes you have{" "}
+          <HeartIcon size={14} className="inline -translate-y-0.5" />
+          &apos;d.
+        </p>
+      </div>
+      <Button size="sm">Select</Button>
+    </Card>
+  );
+};
+
+const MakeLaterCard = () => {
+  return (
+    <Card
+      className="p-4 flex gap-2 items-center justify-between cursor-pointer"
+      event={{ type: "SELECT_LIST", listSlug: "make-later" }}
+    >
+      <div className="grid gap-2">
+        <h4 className="font-semibold">Make Later</h4>
+        <p className="text-xs text-muted-foreground">
+          Recipes you want to remember to make some time
         </p>
       </div>
       <Button size="sm">Select</Button>

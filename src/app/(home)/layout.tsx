@@ -21,7 +21,7 @@ import { getSession } from "@/lib/auth/session";
 import { formatDuration, shuffle, timeAgo } from "@/lib/utils";
 import {
   getProfileByUserId,
-  getRecentRecipesByUser,
+  getRecentLikedRecipesByUser,
   getSortedMediaForMultipleRecipes,
 } from "../../db/queries";
 import LayoutClient, { HomeTabs } from "./layout.client";
@@ -119,7 +119,7 @@ const MyRecipes = ({ userId }: { userId: string }) => {
   };
 
   const RecipeList = async () => {
-    const recipes = await getRecentRecipesByUser(db, userId);
+    const recipes = await getRecentLikedRecipesByUser(db, userId);
     const slugs = recipes.map((recipe) => recipe.slug);
     const quotes = shuffle(quoteList);
     const mediaBySlug = slugs.length

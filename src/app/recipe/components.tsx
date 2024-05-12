@@ -25,7 +25,7 @@ import {
   getBestRecipes,
   getHotRecipes,
   getRecentRecipesByProfile,
-  getRecentRecipesByUser,
+  getRecentLikedRecipesByUser,
 } from "../../db/queries";
 import { upvoteById } from "../recipe/actions";
 import { RecipePropsProvider } from "./context";
@@ -35,7 +35,7 @@ type Recipes =
   | Awaited<ReturnType<typeof getBestRecipes>>[0]
   | Awaited<ReturnType<typeof getRecentRecipes>>[0]
   | Awaited<ReturnType<typeof getRecentRecipesByProfile>>[0]
-  | Awaited<ReturnType<typeof getRecentRecipesByUser>>[0];
+  | Awaited<ReturnType<typeof getRecentLikedRecipesByUser>>[0];
 
 interface RecipeListItemProps {
   recipe: Recipes; // Define RecipeType according to your data structure

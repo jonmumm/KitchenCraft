@@ -266,11 +266,11 @@ export const getRecipesByListSlug = async (
   return await withDatabaseSpan(query, "getRecipesByListSlug").execute();
 };
 
-export const getRecentRecipesByUser = async (
+export const getRecentLikedRecipesByUser = async (
   dbOrTransaction: DbOrTransaction,
   userId: string
 ) => {
-  return getRecipesByListSlug(dbOrTransaction, userId, "my-cookbook");
+  return getRecipesByListSlug(dbOrTransaction, userId, "liked");
 };
 
 export const getRecentRecipesByCreator = async (createdBy: string) => {
