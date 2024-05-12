@@ -1199,7 +1199,7 @@ const LikedRecipesCard = () => {
       event={{ type: "SELECT_LIST", listSlug: "liked" }}
     >
       <div className="grid gap-2">
-        <h4 className="font-semibold">Liked Recipes</h4>
+        <h4 className="font-semibold">Liked</h4>
         <p className="text-xs text-muted-foreground">
           Recipes you have{" "}
           <HeartIcon size={14} className="inline -translate-y-0.5" />

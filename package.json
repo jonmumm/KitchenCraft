@@ -163,7 +163,7 @@
     "@types/web-push": "^3.6.3",
     "autoprefixer": "latest",
     "daisyui": "^4.4.10",
-    "drizzle-kit": "^0.20.17",
+    "drizzle-kit": "^0.21.1",
     "eslint": "latest",
     "eslint-config-next": "^14.0.4",
     "eslint-config-prettier": "^9.0.0",

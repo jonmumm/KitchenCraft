@@ -8,7 +8,6 @@ import {
   RecipesTable,
   UserPreferencesTable,
   UsersTable,
-  db,
 } from "@/db";
 import { NewRecipe } from "@/db/types";
 import { getErrorMessage } from "@/lib/error";
@@ -38,9 +37,11 @@ import {
   UserPreferences,
   WithCaller,
 } from "@/types";
+import { sql } from "@vercel/postgres";
 import { randomUUID } from "crypto";
-import { eq, ilike, sql } from "drizzle-orm";
+import { eq, ilike, sql as sqlFN } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
+import { drizzle } from "drizzle-orm/vercel-postgres";
 import { Operation, applyPatch, compare } from "fast-json-patch";
 import { jwtVerify } from "jose";
 import * as Party from "partykit/server";
@@ -87,7 +88,7 @@ import {
   getUserPreferences,
   initializeBrowserSessionSocket,
   listenBrowserSession,
-  saveRecipeToListSlug,
+  saveRecipeToListName,
 } from "./page-session-machine.actors";
 import {
   RecipeProductsEventBase,
@@ -97,6 +98,13 @@ import {
 import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { buildInput, generateUrlSafeHash } from "./utils";
+
+type ListsBySlugRecord = Record<
+  string,
+  Pick<RecipeList, "name" | "slug" | "createdAt"> & {
+    recipeCount: number;
+  }
+>;
 
 // const autoSuggestionOutputSchemas = {
 //   tags: InstantRecipeMetadataPredictionOutputSchema,
@@ -182,14 +190,7 @@ type Context = {
   userPreferences: UserPreferences; // New field to store user preferences
   modifiedPreferences: Partial<Record<keyof UserPreferences, true>>;
   browserSessionSnapshot: BrowserSessionSnapshot | undefined;
-  listsBySlug:
-    | Record<
-        string,
-        Pick<RecipeList, "id" | "name" | "slug" | "createdAt"> & {
-          recipeCount: number;
-        }
-      >
-    | undefined;
+  listsBySlug: ListsBySlugRecord | undefined;
 };
 
 export const pageSessionMachine = setup({
@@ -215,7 +216,7 @@ export const pageSessionMachine = setup({
   },
   actors: {
     getAllListsForUserWithRecipeCount,
-    saveRecipeToListSlug,
+    saveRecipeToListName,
     generateChefNameSuggestions,
     generateListNameSuggestions,
     getUserPreferences,
@@ -349,6 +350,7 @@ export const pageSessionMachine = setup({
           createdAt: new Date(),
         } satisfies NewRecipe;
 
+        const db = drizzle(sql);
         await db.insert(RecipesTable).values(finalRecipe);
         return recipe.slug;
       }
@@ -604,6 +606,39 @@ export const pageSessionMachine = setup({
     }),
     assighChefName: assign(({ context }) => {
       return context;
+    }),
+    assignListSelection: assign({
+      currentListSlug: ({ event }) => {
+        assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
+        return event.listSlug;
+      },
+      listsBySlug: ({ event, context }) =>
+        produce(context.listsBySlug, (draft) => {
+          assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
+          const defaultLists = {
+            liked: {
+              name: "Liked",
+              slug: "liked",
+            },
+            "make-later": {
+              name: "Make Later",
+              slug: "make-later",
+            },
+          } as Record<string, { name: string; slug: string }>;
+
+          const defaultList = defaultLists[event.listSlug];
+          if (!draft) {
+            draft = {};
+          }
+
+          if (defaultList) {
+            draft[event.listSlug] = {
+              ...defaultList,
+              createdAt: new Date().toISOString() as unknown as Date,
+              recipeCount: 1,
+            };
+          }
+        }),
     }),
   },
 }).createMachine({
@@ -1039,7 +1074,7 @@ export const pageSessionMachine = setup({
                 guard: ({ event, context }) =>
                   event.caller.type === "user" && !!context.currentListSlug,
                 actions: [
-                  spawnChild("saveRecipeToListSlug", {
+                  spawnChild("saveRecipeToListName", {
                     input: ({ context, event }) => {
                       assert("caller" in event, "expected caller");
                       assert(
@@ -1056,10 +1091,19 @@ export const pageSessionMachine = setup({
                         "expected currentListSlug"
                       );
 
+                      // const list = context.listsBySlug?[context.currentListSlug];
+                      assert(
+                        context.listsBySlug,
+                        "expected listsBySlug to be loaded"
+                      );
+                      const currentList =
+                        context.listsBySlug[context.currentListSlug];
+                      assert(currentList, "expected currentList");
+
                       return {
                         recipeId,
                         userId,
-                        listSlug: context.currentListSlug,
+                        listName: currentList.name,
                       };
                     },
                   }),
@@ -1084,12 +1128,52 @@ export const pageSessionMachine = setup({
             True: {
               type: "parallel",
               on: {
-                SELECT_LIST: {
-                  target: "False",
-                  actions: assign({
-                    currentListSlug: ({ event }) => event.listSlug,
-                  }),
-                },
+                SELECT_LIST: [
+                  {
+                    target: "False",
+                    guard: ({ event }) => event.caller.type === "user",
+                    actions: [
+                      "assignListSelection",
+                      spawnChild("saveRecipeToListName", {
+                        input: ({ context, event }) => {
+                          assert("caller" in event, "expected caller");
+                          assert(
+                            event.caller.type === "user",
+                            "expected caller to be user"
+                          );
+                          const userId = event.caller.id;
+
+                          const recipeId =
+                            context.suggestedRecipes[context.currentItemIndex];
+                          assert(recipeId, "expected recipeId");
+                          assert(
+                            context.currentListSlug,
+                            "expected currentListSlug"
+                          );
+
+                          // const list = context.listsBySlug?[context.currentListSlug];
+                          assert(
+                            context.listsBySlug,
+                            "expected listsBySlug to be loaded"
+                          );
+                          const currentList =
+                            context.listsBySlug[context.currentListSlug];
+                          assert(currentList, "expected currentList");
+
+                          return {
+                            recipeId,
+                            userId,
+                            listName: currentList.name,
+                          };
+                        },
+                      }),
+                    ],
+                  },
+                  {
+                    target: "False",
+                    actions: "assignListSelection",
+                  },
+                ],
                 CANCEL: "False",
                 CHANGE: {
                   guard: "didChangeListNameInput",
@@ -1763,7 +1847,7 @@ export const pageSessionMachine = setup({
         },
         Anonymous: {
           on: {
-            SAVE: {
+            SELECT_LIST: {
               target: "Registering",
             },
           },
@@ -1995,7 +2079,7 @@ export const pageSessionMachine = setup({
                         return { chefname, userId: event.userId };
                       },
                     }),
-                    spawnChild("saveRecipeToListSlug", {
+                    spawnChild("saveRecipeToListName", {
                       input: ({ context, event }) => {
                         assert(
                           event.type === "AUTHENTICATE",
@@ -2005,11 +2089,18 @@ export const pageSessionMachine = setup({
                           context.recipeIdToSave,
                           "expected recipeId to save"
                         );
+                        assert(
+                          context.currentListSlug,
+                          "expected currentListSlug to be set"
+                        );
+                        const currentList =
+                          context.listsBySlug?.[context.currentListSlug];
+                        assert(currentList, "expected currentList to be set");
 
                         return {
                           recipeId: context.recipeIdToSave,
                           userId: event.userId,
-                          listSlug: "my-cookbook",
+                          listName: currentList.name,
                         };
                       },
                     }),
@@ -2260,43 +2351,8 @@ const getCurrentRecipeCreateInput = ({ context }: { context: Context }) => {
   };
 };
 
-const createListRecipe = async (
-  dbOrTransaction: DbOrTransaction,
-  userId: string,
-  recipeId: string,
-  listId: string
-) => {
-  const queryRunner =
-    dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
-
-  try {
-    const result = await withDatabaseSpan(
-      queryRunner
-        .insert(ListRecipeTable)
-        .values({
-          userId: userId,
-          recipeId: recipeId,
-          listId: listId,
-          addedAt: sql`NOW()`, // Automatically set the added time to now
-        })
-        // Handling potential unique constraint violation
-        .onConflictDoNothing({
-          target: [ListRecipeTable.listId, ListRecipeTable.recipeId],
-        }),
-      "createListRecipe"
-    ).execute();
-
-    if (result.count === 0) {
-      throw new Error("This recipe is already in the list.");
-    }
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: getErrorMessage(error) };
-  }
-};
-
 const getChefNameByUserId = async (userId: string) => {
+  const db = drizzle(sql);
   const query = db
     .select({
       profileSlug: ProfileTable.profileSlug,
@@ -2310,6 +2366,7 @@ const getChefNameByUserId = async (userId: string) => {
 };
 
 const getProfileBySlug = async (profileSlug: string) => {
+  const db = drizzle(sql);
   const query = db
     .select({
       profileSlug: ProfileTable.profileSlug,
@@ -2330,6 +2387,7 @@ async function upsertUserPreferences(
   preferences: { type: UserPreferenceType; value: string }[]
 ) {
   // Start a transaction
+  const db = drizzle(sql);
   return await db
     .transaction(async (tx) => {
       for (const { type, value } of preferences) {
@@ -2347,7 +2405,7 @@ async function upsertUserPreferences(
             ],
             set: {
               preferenceValue: value,
-              updatedAt: sql`NOW()`, // Update the timestamp to the current time
+              updatedAt: sqlFN`NOW()`, // Update the timestamp to the current time
             },
           })
           .execute();
@@ -2369,6 +2427,7 @@ async function upsertUserPreference(
   value: string | string[]
 ) {
   try {
+    const db = drizzle(sql);
     const result = await db
       .insert(UserPreferencesTable)
       .values({
@@ -2383,7 +2442,7 @@ async function upsertUserPreference(
         ],
         set: {
           preferenceValue: value,
-          updatedAt: sql`NOW()`, // Update the timestamp to the current time
+          updatedAt: sqlFN`NOW()`, // Update the timestamp to the current time
         },
       })
       .execute();
