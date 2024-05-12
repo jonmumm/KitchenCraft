@@ -48,7 +48,7 @@ export class InstantRecipeMetadataStream extends TokenStream<InstantRecipeMetada
   }
 
   protected getDefaultTokens(): number {
-    return 2048;
+    return 100;
   }
 }
 

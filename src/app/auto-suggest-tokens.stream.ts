@@ -944,6 +944,6 @@ Be inspired from but not limited to the the lists below.
   }
 
   protected getDefaultTokens(): number {
-    return 1024;
+    return 64;
   }
 }
