@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
-import { getProfileLifetimePoints, getRecentRecipesByUser } from "@/db/queries";
+import { getProfileLifetimePoints, getRecentLikedRecipesByUser } from "@/db/queries";
 import { formatJoinDateStr } from "@/lib/utils";
 import { ChefHatIcon } from "lucide-react";
 import { RecipeListItem } from "../recipe/components";
@@ -26,7 +26,7 @@ export default async function Page() {
     redirect("/auth/signin");
   }
   const userId = session.user.id;
-  const recipes$ = from(getRecentRecipesByUser(db, userId)).pipe(shareReplay(1));
+  const recipes$ = from(getRecentLikedRecipesByUser(db, userId)).pipe(shareReplay(1));
 
   // Rest of your existing components like Username, Points, ClaimDate etc.
   const quotaLimit$ = of(3);

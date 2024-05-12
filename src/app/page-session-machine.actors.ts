@@ -1,12 +1,14 @@
-import { ListRecipeTable, ListTable, UserPreferencesTable, db } from "@/db";
+import { ListRecipeTable, ListTable, UserPreferencesTable } from "@/db";
 import { createCallerToken } from "@/lib/browser-session";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { streamToObservable } from "@/lib/stream-to-observable";
-import { assert } from "@/lib/utils";
+import { assert, formatDisplayName, sentenceToSlug } from "@/lib/utils";
 import { Caller, DbOrTransaction, ServerPartySocket } from "@/types";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { sql } from "@vercel/postgres";
+import { and, desc, eq, sql as sqlFN } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
+import { drizzle } from "drizzle-orm/vercel-postgres";
 import { Operation, applyPatch } from "fast-json-patch";
 import { produce } from "immer";
 import { jwtVerify } from "jose";
@@ -32,13 +34,14 @@ import {
 export const getAllListsForUserWithRecipeCount = fromPromise(
   async ({ input }: { input: { userId: string } }) => {
     try {
+      const db = drizzle(sql);
       const result = await db
         .select({
           id: ListTable.id,
           name: ListTable.name,
           slug: ListTable.slug,
           createdAt: ListTable.createdAt,
-          recipeCount: sql<number>`COUNT(${ListRecipeTable.recipeId})`,
+          recipeCount: sqlFN<number>`COUNT(${ListRecipeTable.recipeId})`,
         })
         .from(ListTable)
         .leftJoin(ListRecipeTable, eq(ListTable.id, ListRecipeTable.listId))
@@ -55,35 +58,39 @@ export const getAllListsForUserWithRecipeCount = fromPromise(
   }
 );
 
-export const saveRecipeToListSlug = fromPromise(
+export const saveRecipeToListName = fromPromise(
   async ({
     input,
   }: {
     input: {
       recipeId: string;
       userId: string;
-      listSlug: string;
+      listName: string;
     };
   }) => {
-    const result = await ensureListWithSlugExists(
+    const db = drizzle(sql);
+    const result = await ensureListWithNameExists(
       db,
       input.userId,
-      input.listSlug
+      input.listName
     );
     if (result.error) {
       console.error(result.error);
     }
+    debugger;
     assert(result.success, "expected to get listId");
 
     await createListRecipe(db, input.userId, input.recipeId, result.listId);
   }
 );
 
-const ensureListWithSlugExists = async (
+const ensureListWithNameExists = async (
   dbOrTransaction: DbOrTransaction,
   userId: string,
-  slug: string
+  name: string
 ) => {
+  const slug = sentenceToSlug(name);
+  const db = drizzle(sql);
   const queryRunner =
     dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
@@ -106,15 +113,15 @@ const ensureListWithSlugExists = async (
     }
 
     // If the list does not exist, create it.
-    result = await withDatabaseSpan(
-      queryRunner.insert(ListTable).values({
-        slug: "my-cookbook",
-        name: "My Cookbook",
+    result = await queryRunner
+      .insert(ListTable)
+      .values({
+        slug: slug,
+        name: formatDisplayName(slug),
         createdBy: userId,
-        createdAt: sql`NOW()`, // Automatically set the creation time to now
-      }),
-      "createMyCookbook"
-    ).execute();
+        createdAt: sqlFN`NOW()`, // Automatically set the creation time to now
+      })
+      .returning({ id: ListTable.id });
 
     item = result[0];
 
@@ -122,7 +129,7 @@ const ensureListWithSlugExists = async (
       console.error(result);
       return {
         success: false,
-        error: "was not able to insert my-cookbook list",
+        error: "was not able to insert list",
       } as const;
     }
 
@@ -138,6 +145,7 @@ const createListRecipe = async (
   recipeId: string,
   listId: string
 ) => {
+  const db = drizzle(sql);
   const queryRunner =
     dbOrTransaction instanceof PgTransaction ? dbOrTransaction : db;
 
@@ -149,7 +157,7 @@ const createListRecipe = async (
           userId: userId,
           recipeId: recipeId,
           listId: listId,
-          addedAt: sql`NOW()`, // Automatically set the added time to now
+          addedAt: sqlFN`NOW()`, // Automatically set the added time to now
         })
         // Handling potential unique constraint violation
         .onConflictDoNothing({
@@ -340,6 +348,7 @@ export const getUserPreferences = fromPromise(
       userId: string;
     };
   }) => {
+    const db = drizzle(sql);
     const result = await db
       .select()
       .from(UserPreferencesTable)
