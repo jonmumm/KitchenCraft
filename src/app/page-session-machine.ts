@@ -1,6 +1,7 @@
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { produce } from "immer";
 
+import { captureEvent } from "@/actions/capturePostHogEvent";
 import {
   ListRecipeTable,
   ListTable,
@@ -22,6 +23,7 @@ import {
   RecipeProductsPredictionOutputSchema,
 } from "@/schema";
 import {
+  ActorSocketEvent,
   AdContext,
   AdInstance,
   AppEvent,
@@ -39,13 +41,14 @@ import {
 } from "@/types";
 import { sql } from "@vercel/postgres";
 import { randomUUID } from "crypto";
-import { eq, ilike, sql as sqlFN } from "drizzle-orm";
+import { desc, eq, ilike, sql as sqlFN } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 import { Operation, applyPatch, compare } from "fast-json-patch";
 import { jwtVerify } from "jose";
 import * as Party from "partykit/server";
-import { from, map, mergeMap, switchMap } from "rxjs";
+import { Subject, from, map, mergeMap, switchMap } from "rxjs";
 import {
+  SnapshotFrom,
   assign,
   fromEventObservable,
   fromPromise,
@@ -53,6 +56,13 @@ import {
   spawnChild,
 } from "xstate";
 import { z } from "zod";
+import {
+  generateChefNameSuggestions,
+  generateListNameSuggestions,
+  getUserPreferences,
+  initializeBrowserSessionSocket,
+  saveRecipeToListName,
+} from "../actors/shared";
 import { AutoSuggestIngredientEvent } from "./auto-suggest-ingredients.stream";
 import {
   AutoSuggestPlaceholderEvent,
@@ -68,6 +78,7 @@ import {
   AutoSuggestTokensOutputSchema,
   AutoSuggestTokensStream,
 } from "./auto-suggest-tokens.stream";
+import { BrowserSessionMachine } from "./browser-session-machine";
 import { BrowserSessionSnapshot } from "./browser-session-store.types";
 import {
   FullRecipeEvent,
@@ -79,16 +90,6 @@ import {
   InstantRecipeMetadataEventBase,
   InstantRecipeMetadataStream,
 } from "./instant-recipe/streams";
-import {
-  BrowserSessionActorSocketEvent,
-  generateChefNameSuggestions,
-  generateListNameSuggestions,
-  getAllListsForUserWithRecipeCount,
-  getUserPreferences,
-  initializeBrowserSessionSocket,
-  listenBrowserSession,
-  saveRecipeToListName,
-} from "./page-session-machine.actors";
 import {
   RecipeProductsEventBase,
   RecipeProductsTokenStream,
@@ -128,17 +129,7 @@ const InputSchema = z.object({
 });
 type Input = z.infer<typeof InputSchema>;
 
-// type AutoSuggestRecipeEvent = StreamObservableEvent<
-//   "RECIPE",
-//   z.infer<typeof autoSuggestIngredientsOutputSchema>
-// >;
-
-// const adTargetingMachine = setup({}).createMachine({id: "AdTargetingMachine",
-// states:{
-
-// }})
-
-type Context = {
+export type PageSessionContext = {
   // refs are non-serialize objects that are used within the machine but
   // are not synced over the network
   refs: {
@@ -192,27 +183,108 @@ type Context = {
   listsBySlug: ListsBySlugRecord | undefined;
 };
 
+type BrowserSessionActorSocketEvent = ActorSocketEvent<
+  "BROWSER_SESSION",
+  BrowserSessionMachine
+>;
+
+const listenBrowserSession = fromEventObservable(
+  ({
+    input,
+  }: {
+    input: {
+      socket: ServerPartySocket;
+    };
+  }) => {
+    const subject = new Subject<BrowserSessionActorSocketEvent>();
+    const { socket } = input;
+
+    socket.addEventListener("error", (error) => {
+      console.error("error", error);
+    });
+
+    let currentSnapshot: SnapshotFrom<BrowserSessionMachine> | undefined =
+      undefined;
+
+    socket.addEventListener("message", (message) => {
+      assert(
+        typeof message.data === "string",
+        "expected message data to be a string"
+      );
+
+      const { operations } = z
+        .object({ operations: z.array(z.custom<Operation>()) })
+        .parse(JSON.parse(message.data));
+
+      const nextSnapshot = produce(currentSnapshot || {}, (draft) => {
+        applyPatch(draft, operations);
+      });
+      subject.next({
+        type: "BROWSER_SESSION_UPDATE",
+        snapshot: nextSnapshot as any,
+        operations,
+      });
+      currentSnapshot = nextSnapshot as any;
+    });
+
+    socket.addEventListener("close", () => {
+      subject.next({ type: "BROWSER_SESSION_DISCONNECT" });
+    });
+
+    return subject;
+  }
+);
+
+const getAllListsForUserWithRecipeCount = fromPromise(
+  async ({ input }: { input: { userId: string } }) => {
+    try {
+      const db = drizzle(sql);
+      const result = await db
+        .select({
+          id: ListTable.id,
+          name: ListTable.name,
+          slug: ListTable.slug,
+          createdAt: ListTable.createdAt,
+          recipeCount: sqlFN<number>`COUNT(${ListRecipeTable.recipeId})`,
+        })
+        .from(ListTable)
+        .leftJoin(ListRecipeTable, eq(ListTable.id, ListRecipeTable.listId))
+        .where(eq(ListTable.createdBy, input.userId))
+        .groupBy(ListTable.id)
+        .orderBy(desc(ListTable.createdAt))
+        .execute();
+
+      return { success: true, result };
+    } catch (error) {
+      console.error("Error retrieving lists with recipe count:", error);
+      return { success: false, error: getErrorMessage(error) };
+    }
+  }
+);
+
+export type PageSessionEvent = WithPostHogClient<
+  | WithCaller<AppEvent>
+  | WithCaller<SystemEvent>
+  | AutoSuggestTagEvent
+  | AutoSuggestIngredientEvent
+  | AutoSuggestRecipesEvent
+  | AutoSuggestTextEvent
+  | AutoSuggestTokensEvent
+  | AutoSuggestPlaceholderEvent
+  | InstantRecipeMetadataEvent
+  | SuggestRecipeProductsEvent
+  | SuggestChefNamesEvent
+  | SuggestListNamesEvent
+  | FullRecipeEvent
+  | NewRecipeProductKeywordEvent
+  | BrowserSessionActorSocketEvent
+>;
+
 export const pageSessionMachine = setup({
   types: {
     input: {} as Input,
-    context: {} as Context,
-    events: {} as WithPostHogClient<
-      | WithCaller<AppEvent>
-      | WithCaller<SystemEvent>
-      | AutoSuggestTagEvent
-      | AutoSuggestIngredientEvent
-      | AutoSuggestRecipesEvent
-      | AutoSuggestTextEvent
-      | AutoSuggestTokensEvent
-      | AutoSuggestPlaceholderEvent
-      | InstantRecipeMetadataEvent
-      | SuggestRecipeProductsEvent
-      | SuggestChefNamesEvent
-      | SuggestListNamesEvent
-      | FullRecipeEvent
-      | NewRecipeProductKeywordEvent
-      | BrowserSessionActorSocketEvent
-    >,
+    context: {} as PageSessionContext,
+    events: {} as PageSessionEvent,
   },
   actors: {
     getAllListsForUserWithRecipeCount,
@@ -1462,6 +1534,13 @@ export const pageSessionMachine = setup({
                       }),
                     },
                   },
+                  entry: ({ context }) =>
+                    captureEvent(context.uniqueId, {
+                      type: "LLM_CALL",
+                      properties: {
+                        llmType: "PLACEHOLDER",
+                      },
+                    }),
                   invoke: {
                     input: ({ context }) => ({
                       prompt: context.prompt.length
@@ -1489,6 +1568,13 @@ export const pageSessionMachine = setup({
                   },
                 },
                 Generating: {
+                  entry: ({ context }) =>
+                    captureEvent(context.uniqueId, {
+                      type: "LLM_CALL",
+                      properties: {
+                        llmType: "AUTO_SUGGEST_TOKENS",
+                      },
+                    }),
                   on: {
                     AUTO_SUGGEST_TOKENS_PROGRESS: {
                       actions: assign({
@@ -1546,6 +1632,13 @@ export const pageSessionMachine = setup({
                           entry: console.error,
                         },
                         Generating: {
+                          entry: ({ context }) =>
+                            captureEvent(context.uniqueId, {
+                              type: "LLM_CALL",
+                              properties: {
+                                llmType: InstantRecipeMetadataEventBase,
+                              },
+                            }),
                           on: {
                             INSTANT_RECIPE_METADATA_START: {
                               actions: assign(({ context, event }) =>
@@ -1707,6 +1800,13 @@ export const pageSessionMachine = setup({
                           },
                         },
                         Generating: {
+                          entry: ({ context }) =>
+                            captureEvent(context.uniqueId, {
+                              type: "LLM_CALL",
+                              properties: {
+                                llmType: FullRecipeEventBase,
+                              },
+                            }),
                           invoke: {
                             onDone: [
                               {
@@ -2343,7 +2443,11 @@ const findNextUncompletedRecipe = ({
   return undefined;
 };
 
-const getCurrentRecipeCreateInput = ({ context }: { context: Context }) => {
+const getCurrentRecipeCreateInput = ({
+  context,
+}: {
+  context: PageSessionContext;
+}) => {
   assert(context.generatingRecipeId, "expected currentRecipeId");
   let recipe = context.recipes[context.generatingRecipeId];
   assert(recipe, "expected currentRecipe");

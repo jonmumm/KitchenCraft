@@ -1,34 +1,25 @@
+import { captureEvent } from "@/actions/capturePostHogEvent";
 import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert } from "@/lib/utils";
-import {
-  AppEvent,
-  BrowserSessionContext,
-  SystemEvent,
-  WithCaller,
-  WithPostHogClient,
-} from "@/types";
+import { BrowserSessionContext, BrowserSessionEvent } from "@/types";
 import { produce } from "immer";
 import { from, switchMap } from "rxjs";
 import { assign, fromEventObservable, setup } from "xstate";
 import { z } from "zod";
 import {
   SuggestIngredientStream,
-  SuggestIngredientsEvent,
   SuggestIngredientsOutputSchema,
 } from "./suggest-ingredients.stream";
 import {
-  SuggestPlaceholderEvent,
   SuggestPlaceholderOutputSchema,
   SuggestPlaceholderStream,
 } from "./suggest-placeholder.stream";
 import {
-  SuggestTagsEvent,
   SuggestTagsOutputSchema,
   SuggestTagsStream,
 } from "./suggest-tags.stream";
 import {
-  SuggestTokensEvent,
   SuggestTokensOutputSchema,
   SuggestTokensStream,
 } from "./suggest-tokens.stream";
@@ -43,13 +34,7 @@ export const browserSessionMachine = setup({
   types: {
     input: {} as Input,
     context: {} as BrowserSessionContext,
-    events: {} as
-      | WithPostHogClient<WithCaller<AppEvent>>
-      | WithPostHogClient<WithCaller<SystemEvent>>
-      | SuggestTagsEvent
-      | SuggestPlaceholderEvent
-      | SuggestTokensEvent
-      | SuggestIngredientsEvent,
+    events: {} as BrowserSessionEvent,
   },
   actors: {
     generatePlaceholders: fromEventObservable(
@@ -310,15 +295,22 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   HEART_BEAT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !!event.cf && !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
+              entry: ({ context }) =>
+                captureEvent(context.userId, {
+                  type: "LLM_CALL",
+                  properties: {
+                    llmType: "SUGGEST_INGREDIENTS",
+                  },
+                }),
               invoke: {
                 src: "generateIngredientSuggestions",
                 input: ({ context }) => {
@@ -340,15 +332,22 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   HEART_BEAT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !!event.cf && !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
+              entry: ({ context }) =>
+                captureEvent(context.userId, {
+                  type: "LLM_CALL",
+                  properties: {
+                    llmType: "SUGGEST_TAGS",
+                  },
+                }),
               invoke: {
                 src: "generateTagSuggestions",
                 input: ({ context }) => {
@@ -370,15 +369,22 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   HEART_BEAT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !!event.cf && !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
+              entry: ({ context }) =>
+                captureEvent(context.userId, {
+                  type: "LLM_CALL",
+                  properties: {
+                    llmType: "SUGGEST_PLACEHOLDERS",
+                  },
+                }),
               invoke: {
                 src: "generatePlaceholders",
                 input: ({ context }) => {
@@ -400,15 +406,22 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   HEART_BEAT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !!event.cf && !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !!event.cf && !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
+              entry: ({ context }) =>
+                captureEvent(context.userId, {
+                  type: "LLM_CALL",
+                  properties: {
+                    llmType: "SUGGEST_TOKENS",
+                  },
+                }),
               invoke: {
                 src: "generateTokenSuggestions",
                 input: ({ context }) => {
@@ -442,16 +455,6 @@ export const browserSessionMachine = setup({
           },
         },
         Welcome: {
-          entry: ({ event }) => {
-            console.log(event);
-            if ("postHogClient" in event && "caller" in event) {
-              console.log("ONBOSTART", event.caller.id);
-              event.postHogClient.capture({
-                distinctId: event.caller.id,
-                event: "ONBOARDING_START",
-              });
-            }
-          },
           on: {
             PAGE_LOADED: {
               target: "Experience",
@@ -510,3 +513,5 @@ export const browserSessionMachine = setup({
     },
   },
 });
+
+export type BrowserSessionMachine = typeof browserSessionMachine;

@@ -1,13 +1,6 @@
-import { env } from "@/env.public";
 import { json, notFound } from "@/lib/actor-kit/utils/response";
 import { AppEventSchema, RequestInfoSchema, SystemEventSchema } from "@/schema";
-import {
-  AppEvent,
-  Caller,
-  WithCaller,
-  WithCloudFlareProps,
-  WithPostHogClient,
-} from "@/types";
+import { AppEvent, Caller, WithCaller, WithCloudFlareProps } from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import { SignJWT, jwtVerify } from "jose";
@@ -143,17 +136,11 @@ export const createMachineServer = <
     >;
     callersByConnectionId: Map<string, Caller>;
     subscrptionsByConnectionId: Map<string, Subscription>;
-    postHogClient: PostHog;
 
     constructor(public room: Party.Room) {
       this.lastSnapshotsByConnectionId = new Map();
       this.callersByConnectionId = new Map();
       this.subscrptionsByConnectionId = new Map();
-      this.postHogClient = new PostHog(env.POSTHOG_CLIENT_KEY, {
-        host: "https://us.i.posthog.com",
-        flushAt: 1,
-        flushInterval: 0,
-      });
     }
 
     onStart() {
@@ -249,7 +236,6 @@ export const createMachineServer = <
           this.actor.send(
             Object.assign(event, {
               caller: { type: "system" },
-              postHogClient: this.postHogClient,
             }) as any
           );
         } else {
@@ -263,10 +249,7 @@ export const createMachineServer = <
           const payload = Object.assign(event, {
             caller,
             cf: request.cf,
-            postHogClient: this.postHogClient,
-          }) satisfies WithPostHogClient<
-            WithCloudFlareProps<WithCaller<AppEvent>>
-          >;
+          }) satisfies WithCloudFlareProps<WithCaller<AppEvent>>;
           assert(this.actor, "expected actor when sending post event");
 
           // @ts-expect-error
@@ -371,7 +354,6 @@ export const createMachineServer = <
         caller,
         requestInfo,
         parties,
-        postHogClient: this.postHogClient,
       });
 
       const sub = actor.subscribe(sendSnapshot);
@@ -388,7 +370,6 @@ export const createMachineServer = <
           this.actor.send(
             Object.assign(event, {
               caller,
-              postHogClient: this.postHogClient,
             }) as any
           );
         }

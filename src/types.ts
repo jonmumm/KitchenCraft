@@ -1,9 +1,15 @@
 import { PgTransaction } from "drizzle-orm/pg-core";
+import { Operation } from "fast-json-patch";
 import type * as Party from "partykit/server";
 import { PostHog } from "posthog-node";
 import { Observable } from "rxjs";
+import { AnyStateMachine, SnapshotFrom } from "xstate";
 import type { z } from "zod";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
+import { SuggestIngredientsEvent } from "./app/suggest-ingredients.stream";
+import { SuggestPlaceholderEvent } from "./app/suggest-placeholder.stream";
+import { SuggestTagsEvent } from "./app/suggest-tags.stream";
+import { SuggestTokensEvent } from "./app/suggest-tokens.stream";
 import ingredients from "./data/ingredients.json";
 import {
   AffiliateProductSchema,
@@ -385,6 +391,14 @@ export type EquipmentSettings = z.infer<typeof EquipmentSettingsSchema>;
 export type DietSettings = z.infer<typeof DietSettingsSchema>;
 export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
 
+export type BrowserSessionEvent =
+  | WithPostHogClient<WithCaller<AppEvent>>
+  | WithPostHogClient<WithCaller<SystemEvent>>
+  | SuggestTagsEvent
+  | SuggestPlaceholderEvent
+  | SuggestTokensEvent
+  | SuggestIngredientsEvent;
+
 export type BrowserSessionContext = {
   id: string;
   userId: string;
@@ -412,3 +426,28 @@ export type BrowserSessionContext = {
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
 };
+
+type WithConnect<T extends string> = `${T}_CONNECT`;
+type WithUpdate<T extends string> = `${T}_UPDATE`;
+type WithDisconnect<T extends string> = `${T}_DISCONNECT`;
+type WithError<T extends string> = `${T}_ERROR`;
+
+export type ActorSocketEvent<
+  TEventType extends string,
+  TMachine extends AnyStateMachine,
+> =
+  | {
+      type: WithConnect<TEventType>;
+      resultId: string;
+    }
+  | {
+      type: WithUpdate<TEventType>;
+      snapshot: SnapshotFrom<TMachine>;
+      operations: Operation[];
+    }
+  | {
+      type: WithError<TEventType>;
+    }
+  | {
+      type: WithDisconnect<TEventType>;
+    };

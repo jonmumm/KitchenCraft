@@ -4,59 +4,23 @@ import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert, formatDisplayName, sentenceToSlug } from "@/lib/utils";
-import { Caller, DbOrTransaction, ServerPartySocket } from "@/types";
+import { Caller, DbOrTransaction } from "@/types";
 import { sql } from "@vercel/postgres";
-import { and, desc, eq, sql as sqlFN } from "drizzle-orm";
+import { and, eq, sql as sqlFN } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { drizzle } from "drizzle-orm/vercel-postgres";
-import { Operation, applyPatch } from "fast-json-patch";
-import { produce } from "immer";
 import { jwtVerify } from "jose";
 import type * as Party from "partykit/server";
-import { Subject, from, switchMap } from "rxjs";
-import {
-  AnyStateMachine,
-  SnapshotFrom,
-  fromEventObservable,
-  fromPromise,
-} from "xstate";
-import { z } from "zod";
-import { browserSessionMachine } from "./browser-session-machine";
+import { from, switchMap } from "rxjs";
+import { fromEventObservable, fromPromise } from "xstate";
 import {
   SuggestChefNamesOutputSchema,
   SuggestChefNamesStream,
-} from "./suggest-chef-names-stream";
+} from "../app/suggest-chef-names-stream";
 import {
   SuggestListNamesOutputSchema,
   SuggestListNamesStream,
-} from "./suggest-list-names-stream";
-
-export const getAllListsForUserWithRecipeCount = fromPromise(
-  async ({ input }: { input: { userId: string } }) => {
-    try {
-      const db = drizzle(sql);
-      const result = await db
-        .select({
-          id: ListTable.id,
-          name: ListTable.name,
-          slug: ListTable.slug,
-          createdAt: ListTable.createdAt,
-          recipeCount: sqlFN<number>`COUNT(${ListRecipeTable.recipeId})`,
-        })
-        .from(ListTable)
-        .leftJoin(ListRecipeTable, eq(ListTable.id, ListRecipeTable.listId))
-        .where(eq(ListTable.createdBy, input.userId))
-        .groupBy(ListTable.id)
-        .orderBy(desc(ListTable.createdAt))
-        .execute();
-
-      return { success: true, result };
-    } catch (error) {
-      console.error("Error retrieving lists with recipe count:", error);
-      return { success: false, error: getErrorMessage(error) };
-    }
-  }
-);
+} from "../app/suggest-list-names-stream";
 
 export const saveRecipeToListName = fromPromise(
   async ({
@@ -226,31 +190,6 @@ export const generateListNameSuggestions = fromEventObservable(
   }
 );
 
-type WithConnect<T extends string> = `${T}_CONNECT`;
-type WithUpdate<T extends string> = `${T}_UPDATE`;
-type WithDisconnect<T extends string> = `${T}_DISCONNECT`;
-type WithError<T extends string> = `${T}_ERROR`;
-
-type ActorSocketEvent<
-  TEventType extends string,
-  TMachine extends AnyStateMachine,
-> =
-  | {
-      type: WithConnect<TEventType>;
-      resultId: string;
-    }
-  | {
-      type: WithUpdate<TEventType>;
-      snapshot: SnapshotFrom<TMachine>;
-      operations: Operation[];
-    }
-  | {
-      type: WithError<TEventType>;
-    }
-  | {
-      type: WithDisconnect<TEventType>;
-    };
-
 export const initializeBrowserSessionSocket = fromPromise(
   async ({
     input,
@@ -275,59 +214,6 @@ export const initializeBrowserSessionSocket = fromPromise(
         },
       });
     return socket;
-  }
-);
-
-export type BrowserSessionActorSocketEvent = ActorSocketEvent<
-  "BROWSER_SESSION",
-  typeof browserSessionMachine
->;
-
-export const listenBrowserSession = fromEventObservable(
-  ({
-    input,
-  }: {
-    input: {
-      socket: ServerPartySocket;
-    };
-  }) => {
-    const subject = new Subject<BrowserSessionActorSocketEvent>();
-    const { socket } = input;
-
-    socket.addEventListener("error", (error) => {
-      console.error("error", error);
-    });
-
-    let currentSnapshot:
-      | SnapshotFrom<typeof browserSessionMachine>
-      | undefined = undefined;
-
-    socket.addEventListener("message", (message) => {
-      assert(
-        typeof message.data === "string",
-        "expected message data to be a string"
-      );
-
-      const { operations } = z
-        .object({ operations: z.array(z.custom<Operation>()) })
-        .parse(JSON.parse(message.data));
-
-      const nextSnapshot = produce(currentSnapshot || {}, (draft) => {
-        applyPatch(draft, operations);
-      });
-      subject.next({
-        type: "BROWSER_SESSION_UPDATE",
-        snapshot: nextSnapshot as any,
-        operations,
-      });
-      currentSnapshot = nextSnapshot as any;
-    });
-
-    socket.addEventListener("close", () => {
-      subject.next({ type: "BROWSER_SESSION_DISCONNECT" });
-    });
-
-    return subject;
   }
 );
 
