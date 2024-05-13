@@ -392,8 +392,8 @@ export type DietSettings = z.infer<typeof DietSettingsSchema>;
 export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
 
 export type BrowserSessionEvent =
-  | WithPostHogClient<WithCaller<AppEvent>>
-  | WithPostHogClient<WithCaller<SystemEvent>>
+  | WithCaller<AppEvent>
+  | WithCaller<SystemEvent>
   | SuggestTagsEvent
   | SuggestPlaceholderEvent
   | SuggestTokensEvent

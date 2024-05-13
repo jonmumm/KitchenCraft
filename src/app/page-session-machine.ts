@@ -36,8 +36,7 @@ import {
   SystemEvent,
   UserPreferenceType,
   UserPreferences,
-  WithCaller,
-  WithPostHogClient,
+  WithCaller
 } from "@/types";
 import { sql } from "@vercel/postgres";
 import { randomUUID } from "crypto";
@@ -262,7 +261,7 @@ const getAllListsForUserWithRecipeCount = fromPromise(
   }
 );
 
-export type PageSessionEvent = WithPostHogClient<
+export type PageSessionEvent =
   | WithCaller<AppEvent>
   | WithCaller<SystemEvent>
   | AutoSuggestTagEvent
@@ -277,8 +276,7 @@ export type PageSessionEvent = WithPostHogClient<
   | SuggestListNamesEvent
   | FullRecipeEvent
   | NewRecipeProductKeywordEvent
-  | BrowserSessionActorSocketEvent
->;
+  | BrowserSessionActorSocketEvent;
 
 export const pageSessionMachine = setup({
   types: {
