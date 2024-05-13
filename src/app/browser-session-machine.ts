@@ -6,6 +6,7 @@ import {
   BrowserSessionContext,
   SystemEvent,
   WithCaller,
+  WithPostHogClient,
 } from "@/types";
 import { produce } from "immer";
 import { from, switchMap } from "rxjs";
@@ -43,8 +44,8 @@ export const browserSessionMachine = setup({
     input: {} as Input,
     context: {} as BrowserSessionContext,
     events: {} as
-      | WithCaller<AppEvent>
-      | WithCaller<SystemEvent>
+      | WithPostHogClient<WithCaller<AppEvent>>
+      | WithPostHogClient<WithCaller<SystemEvent>>
       | SuggestTagsEvent
       | SuggestPlaceholderEvent
       | SuggestTokensEvent
@@ -441,10 +442,20 @@ export const browserSessionMachine = setup({
           },
         },
         Welcome: {
+          entry: ({ event }) => {
+            console.log(event);
+            if ("postHogClient" in event && "caller" in event) {
+              console.log("ONBOSTART", event.caller.id);
+              event.postHogClient.capture({
+                distinctId: event.caller.id,
+                event: "ONBOARDING_START",
+              });
+            }
+          },
           on: {
             PAGE_LOADED: {
               target: "Experience",
-              guard: ({ context, event }) => {
+              guard: ({ event }) => {
                 return event.pathname.startsWith("/quiz/experience");
               },
             },

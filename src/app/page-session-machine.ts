@@ -26,7 +26,6 @@ import {
   AdInstance,
   AppEvent,
   Caller,
-  DbOrTransaction,
   ExtractType,
   PartialRecipe,
   ProductType,
@@ -36,11 +35,11 @@ import {
   UserPreferenceType,
   UserPreferences,
   WithCaller,
+  WithPostHogClient,
 } from "@/types";
 import { sql } from "@vercel/postgres";
 import { randomUUID } from "crypto";
 import { eq, ilike, sql as sqlFN } from "drizzle-orm";
-import { PgTransaction } from "drizzle-orm/pg-core";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 import { Operation, applyPatch, compare } from "fast-json-patch";
 import { jwtVerify } from "jose";
@@ -197,7 +196,7 @@ export const pageSessionMachine = setup({
   types: {
     input: {} as Input,
     context: {} as Context,
-    events: {} as
+    events: {} as WithPostHogClient<
       | WithCaller<AppEvent>
       | WithCaller<SystemEvent>
       | AutoSuggestTagEvent
@@ -212,7 +211,8 @@ export const pageSessionMachine = setup({
       | SuggestListNamesEvent
       | FullRecipeEvent
       | NewRecipeProductKeywordEvent
-      | BrowserSessionActorSocketEvent,
+      | BrowserSessionActorSocketEvent
+    >,
   },
   actors: {
     getAllListsForUserWithRecipeCount,
@@ -231,6 +231,7 @@ export const pageSessionMachine = setup({
           userId: string;
         };
       }) => {
+        const db = drizzle(sql);
         return await db
           .update(ProfileTable)
           .set({ profileSlug: input.chefname })
@@ -268,6 +269,7 @@ export const pageSessionMachine = setup({
           email: string;
         };
       }) => {
+        const db = drizzle(sql);
         return !(
           await db
             .select()
@@ -287,6 +289,7 @@ export const pageSessionMachine = setup({
           recipeIdToAdd: string;
         };
       }) => {
+        const db = drizzle(sql);
         return await db.transaction(async (tx) => {
           const result = await tx
             .insert(ListTable)
@@ -430,6 +433,7 @@ export const pageSessionMachine = setup({
     ),
     initializeRecipeAds: fromEventObservable(
       ({ input }: { input: { context: ExtractType<AdContext, "recipe"> } }) => {
+        const db = drizzle(sql);
         const getRecipes = db
           .select()
           .from(RecipesTable)

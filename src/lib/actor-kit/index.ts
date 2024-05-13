@@ -1,10 +1,18 @@
+import { env } from "@/env.public";
 import { json, notFound } from "@/lib/actor-kit/utils/response";
 import { AppEventSchema, RequestInfoSchema, SystemEventSchema } from "@/schema";
-import { AppEvent, Caller, WithCaller, WithCloudFlareProps } from "@/types";
+import {
+  AppEvent,
+  Caller,
+  WithCaller,
+  WithCloudFlareProps,
+  WithPostHogClient,
+} from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import { SignJWT, jwtVerify } from "jose";
 import type * as Party from "partykit/server";
+import { PostHog } from "posthog-node";
 import {
   Actor,
   AnyStateMachine,
@@ -21,12 +29,11 @@ import { createCallerToken, parseCallerIdToken } from "../browser-session";
 import { assert } from "../utils";
 import { API_SERVER_URL } from "./constants";
 
-type UserActorConnectionState = {
-  id: string;
-  userId: string;
+type ActorConnectionState = {
+  postHogClient: PostHog;
 };
 
-type UserActorConnection = Party.Connection<UserActorConnectionState>;
+type ActorConnection = Party.Connection<ActorConnectionState>;
 
 const GuestCallerEventSchema = AppEventSchema;
 const UserCallerEventSchema = AppEventSchema;
@@ -136,11 +143,17 @@ export const createMachineServer = <
     >;
     callersByConnectionId: Map<string, Caller>;
     subscrptionsByConnectionId: Map<string, Subscription>;
+    postHogClient: PostHog;
 
     constructor(public room: Party.Room) {
       this.lastSnapshotsByConnectionId = new Map();
       this.callersByConnectionId = new Map();
       this.subscrptionsByConnectionId = new Map();
+      this.postHogClient = new PostHog(env.POSTHOG_CLIENT_KEY, {
+        host: "https://us.i.posthog.com",
+        flushAt: 1,
+        flushInterval: 0,
+      });
     }
 
     onStart() {
@@ -229,8 +242,16 @@ export const createMachineServer = <
             });
           }
 
-          // @ts-expect-error
-          this.actor.send(Object.assign(event, { caller: { type: "system" } }));
+          assert(
+            this.actor,
+            "expected actor to be defined when sending POST event"
+          );
+          this.actor.send(
+            Object.assign(event, {
+              caller: { type: "system" },
+              postHogClient: this.postHogClient,
+            }) as any
+          );
         } else {
           const json = await request.json();
           const event = AppEventSchema.parse(json);
@@ -242,7 +263,10 @@ export const createMachineServer = <
           const payload = Object.assign(event, {
             caller,
             cf: request.cf,
-          }) satisfies WithCloudFlareProps<WithCaller<AppEvent>>;
+            postHogClient: this.postHogClient,
+          }) satisfies WithPostHogClient<
+            WithCloudFlareProps<WithCaller<AppEvent>>
+          >;
           assert(this.actor, "expected actor when sending post event");
 
           // @ts-expect-error
@@ -257,7 +281,7 @@ export const createMachineServer = <
     }
 
     async onConnect(
-      connection: UserActorConnection,
+      connection: ActorConnection,
       context: Party.ConnectionContext
     ) {
       // console.log(this.room.name);
@@ -347,6 +371,7 @@ export const createMachineServer = <
         caller,
         requestInfo,
         parties,
+        postHogClient: this.postHogClient,
       });
 
       const sub = actor.subscribe(sendSnapshot);
@@ -359,23 +384,24 @@ export const createMachineServer = <
         const event = eventSchema.parse(JSON.parse(message));
         const caller = this.callersByConnectionId.get(sender.id);
         if (caller) {
-          // todo idk how to do this
-          // @ts-expect-error
-          this.actor.send(Object.assign(event, { caller }));
+          assert(this.actor, "expected actor when sending message");
+          this.actor.send(
+            Object.assign(event, {
+              caller,
+              postHogClient: this.postHogClient,
+            }) as any
+          );
         }
-
-        // console.log("kit", event);
       } catch (ex) {
         console.warn("Error parsing event from client", ex);
       }
     }
 
-    async onClose(connection: Party.Connection) {
+    async onClose(connection: ActorConnection) {
       const sub = this.subscrptionsByConnectionId.get(connection.id);
       if (sub) {
         sub.unsubscribe();
       }
-      // assert(sub, "expected sub on close");
     }
   }
 

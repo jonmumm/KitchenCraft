@@ -1,10 +1,11 @@
 import { AppEvent } from "@/types";
 import { atom } from "nanostores";
-import { useSession } from "next-auth/react";
 import posthog from "posthog-js";
 import { useLayoutEffect, useRef, useState } from "react";
 import { filter } from "rxjs";
+import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { useEvents } from "./useEvents";
+import { usePageSessionStore } from "./usePageSessionStore";
 
 const EVENTS_LOG_LEVEL_DEBUG = new Set([
   "SET_INPUT",
@@ -17,24 +18,38 @@ const isEventDebugLogLevel = (event: AppEvent) =>
 
 export const usePosthogAnalytics = (posthogClientKey: string) => {
   const didSendInitialRef = useRef(false);
-  const session = useSession();
+  // const session = useSession();
+  const store = usePageSessionStore();
   const event$ = useEvents();
+
+  const session$ = usePageSessionStore();
+  const uniqueId = useSyncExternalStoreWithSelector(
+    session$.subscribe,
+    () => {
+      return session$.get().context;
+    },
+    () => {
+      return session$.get().context;
+    },
+    (context) => {
+      return context.uniqueId;
+    }
+  );
 
   const [client] = useState(() => {
     const client = posthog.init(posthogClientKey, {
       api_host: "https://app.posthog.com",
+      bootstrap: {
+        distinctID: session$.get().context.uniqueId,
+      },
     });
 
     return client;
   });
 
   useLayoutEffect(() => {
-    if (session.status === "authenticated") {
-      const { email, name } = session.data.user;
-      // todo were probably caling this multiple times
-      posthog.identify(session.data.user.id, { email, name });
-    }
-  }, [session]);
+    posthog.identify(uniqueId);
+  }, [uniqueId]);
 
   useLayoutEffect(() => {
     if (!client || initialized$.get()) {

@@ -3,11 +3,9 @@ import { ChatOpenAI } from "@langchain/openai";
 
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { trace } from "@opentelemetry/api";
-import { IterableReadableStream } from "langchain/dist/util/stream";
 import { z } from "zod";
 import { getErrorMessage } from "./error";
 import { kv } from "./kv";
-import { assert } from "./utils";
 
 export abstract class TokenStream<T> {
   private cacheKey: string | undefined;
@@ -87,56 +85,6 @@ export abstract class TokenStream<T> {
     );
   }
 
-  private async handleStream(
-    rawStream: IterableReadableStream<string>
-  ): Promise<AsyncIterable<string>> {
-    const cacheKey = this.cacheKey;
-    const statusKey = this.getStatusKey();
-
-    // Shared array for batch processing
-    let batch: string[] = [];
-
-    // Flag to indicate stream completion
-    let streamEnded = false;
-
-    // Batch processing function running in its own loop
-    const processStreamInBatches = async () => {
-      assert(cacheKey, "expected cacheKey");
-      await kv.set(statusKey, "running");
-
-      while (!streamEnded || batch.length > 0) {
-        if (batch.length > 0) {
-          const batchToProcess = batch.splice(0, batch.length); // Copy and clear the batch
-          await kv.rpush(cacheKey, ...batchToProcess);
-        }
-        await new Promise((resolve) => setTimeout(resolve, 10)); // Wait for 10 ms before checking the batch again, todo may not need this
-      }
-      await kv.set(statusKey, "done"); // Set the status to "done" when the stream and batch processing are complete
-    };
-
-    async function* writeStream() {
-      assert(cacheKey, "expected cacheKey");
-
-      for await (const chunk of rawStream) {
-        batch.push(chunk);
-        yield chunk;
-      }
-
-      streamEnded = true;
-    }
-
-    if (cacheKey) {
-      // Start the batch processing function
-      processStreamInBatches();
-
-      // Process the stream
-      return writeStream.bind(this)();
-    } else {
-      // If there's no cacheKey, return the raw stream as is
-      return rawStream as AsyncIterable<string>;
-    }
-  }
-
   protected async getOpenAIStream(input: T, tokens: number) {
     const outputParser = new StringOutputParser();
 
@@ -169,20 +117,5 @@ export abstract class TokenStream<T> {
       streamSpan.end();
       throw error;
     }
-
-    // todo update the below commented code to match the docs
-
-    // try {
-    //   const rawStream = await model.pipe(outputParser).stream([
-    //     ["system", systemMessage],
-    //     ["user", userMessage],
-    //   ]);
-
-    //   return this.handleStream(rawStream);
-    // } catch (error) {
-    //   streamSpan.recordException(getErrorMessage(error));
-    //   streamSpan.end();
-    //   throw error;
-    // }
   }
 }

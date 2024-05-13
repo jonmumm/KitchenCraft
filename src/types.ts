@@ -1,5 +1,6 @@
 import { PgTransaction } from "drizzle-orm/pg-core";
 import type * as Party from "partykit/server";
+import { PostHog } from "posthog-node";
 import { Observable } from "rxjs";
 import type { z } from "zod";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
@@ -129,6 +130,7 @@ export type CallerType = z.infer<typeof CallerIdTypeSchema>;
 export type Caller = { id: string; type: CallerType };
 export type WithCaller<T> = T & { caller: Caller };
 export type WithCloudFlareProps<T> = T & { cf?: CloudFlareProps };
+export type WithPostHogClient<T> = T & { postHogClient: PostHog };
 export type Ingredient = (typeof ingredients)[0];
 
 export type TempRecipe = z.infer<typeof TempRecipeSchema>;
