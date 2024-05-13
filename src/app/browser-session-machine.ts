@@ -296,10 +296,10 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                HEART_BEAT: {
+                CONNECT: {
                   target: "Running",
                   guard: ({ event, context }) =>
-                    !!event.cf && !context.lastRunPersonalizationContext,
+                    !context.lastRunPersonalizationContext,
                 },
               },
             },
@@ -333,10 +333,10 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                HEART_BEAT: {
+                CONNECT: {
                   target: "Running",
                   guard: ({ event, context }) =>
-                    !!event.cf && !context.lastRunPersonalizationContext,
+                    !context.lastRunPersonalizationContext,
                 },
               },
             },
@@ -370,10 +370,10 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                HEART_BEAT: {
+                CONNECT: {
                   target: "Running",
                   guard: ({ event, context }) =>
-                    !!event.cf && !context.lastRunPersonalizationContext,
+                    !context.lastRunPersonalizationContext,
                 },
               },
             },
@@ -407,10 +407,10 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                HEART_BEAT: {
+                CONNECT: {
                   target: "Running",
                   guard: ({ event, context }) =>
-                    !!event.cf && !context.lastRunPersonalizationContext,
+                    !context.lastRunPersonalizationContext,
                 },
               },
             },
