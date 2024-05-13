@@ -30,7 +30,7 @@ import {
   TimerIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 const NUM_PLACEHOLDER_RECIPES = 30;
 
@@ -43,7 +43,8 @@ export default async function Page(props: {
 
   const profileParse = ProfileSlugSchema.safeParse(slug);
   if (!profileParse.success) {
-    redirect("/");
+    // Handle case where profile does not exist
+    notFound();
   }
   const profileSlug = profileParse.data.slice(1);
 
@@ -56,7 +57,7 @@ export default async function Page(props: {
 
   if (profile.length === 0) {
     // Handle case where profile does not exist
-    redirect("/");
+    notFound();
   }
   const listUserId = profile[0]?.userId;
   assert(listUserId, "expected listUserId");
@@ -67,8 +68,7 @@ export default async function Page(props: {
     userId: listUserId,
   });
   if (!list) {
-    // Handle case where list does not exist
-    redirect("/");
+    notFound();
   }
 
   // Now, fetch the recipes in the list

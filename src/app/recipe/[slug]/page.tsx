@@ -32,18 +32,15 @@ import {
 } from "@/modules/media-gallery/components.client";
 import {
   AxeIcon,
-  BackpackIcon,
   CameraIcon,
   ClockIcon,
   GitForkIcon,
-  LibraryIcon,
   LightbulbIcon,
   MessageSquareIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   StarIcon,
   TagIcon,
-  UtensilsCrossedIcon,
 } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -52,7 +49,6 @@ import { Suspense } from "react";
 import { ShareButton } from "../components.client";
 import { SaveButton, TipsAndTricksContent } from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
-import { AffiliateProductCarousel } from "./products/components";
 import { Rating } from "./rating/components.client";
 import {
   getCurrentUserRatingBySlug,
