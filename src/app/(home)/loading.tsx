@@ -8,11 +8,9 @@ export default function Loading() {
           Community Favorites
         </h3>
       </div>
-      <div>
-        {new Array(8).fill(0).map((_, index) => {
-          return <RecipeListItemLoading key={index} index={index} />;
-        })}
-      </div>
+      {new Array(8).fill(0).map((_, index) => {
+        return <RecipeListItemLoading key={index} index={index} />;
+      })}
     </div>
   );
 }

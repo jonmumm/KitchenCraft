@@ -1,7 +1,5 @@
-import { Separator } from "@/components/display/separator";
 import { getSession } from "@/lib/auth/session";
 import { getHotRecipes } from "../../db/queries";
-import { AffiliateProductCarousel } from "../recipe/[slug]/products/components";
 import { RecipeListItem } from "../recipe/components";
 
 export default async function Page({
@@ -64,20 +62,21 @@ export default async function Page({
             />
           );
         } else if (item.type === "ad") {
-          return (
-            <>
-              <div className="relative h-96">
-                <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
-                  {/* <AdCard key={item.id} adInstanceId={item.id} index={index} /> */}
-                  <AffiliateProductCarousel
-                  // slug={slug}
-                  // productType={"equipment"}
-                  />
-                </div>
-              </div>
-              <Separator className="block md:hidden" />
-            </>
-          );
+          return <></>;
+          // return (
+          //   <>
+          //     <div className="relative h-96">
+          //       <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
+          //         {/* <AdCard key={item.id} adInstanceId={item.id} index={index} /> */}
+          //         <AffiliateProductCarousel
+          //         // slug={slug}
+          //         // productType={"equipment"}
+          //         />
+          //       </div>
+          //     </div>
+          //     <Separator className="block md:hidden" />
+          //   </>
+          // );
         }
       })}
     </div>
