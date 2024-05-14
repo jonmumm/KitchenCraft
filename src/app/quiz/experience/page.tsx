@@ -61,9 +61,9 @@ export default function Experience() {
             }`}
           >
             {(
-                level === "beginner" ? <Cookie size={32} /> :
-                level === "intermediate" ? <CookingPot size={32} /> :
-                <ChefHat size={32} />
+                level === "beginner" ? <Cookie /> :
+                level === "intermediate" ? <CookingPot /> :
+                <ChefHat />
             )}
 
             <div>
