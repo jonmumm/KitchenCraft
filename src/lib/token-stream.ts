@@ -91,10 +91,11 @@ export abstract class TokenStream<T> {
     const model = new ChatOpenAI({
       temperature: this.getTemperature(),
       maxTokens: tokens,
-      azureOpenAIApiKey: privateEnv.AZURE_OPENAI_API_KEY, // In Node.js defaults to process.env.AZURE_OPENAI_API_KEY
-      azureOpenAIApiVersion: "2024-02-01", // In Node.js defaults to process.env.AZURE_OPENAI_API_VERSION
-      azureOpenAIApiInstanceName: privateEnv.AZURE_OPENAI_INSTANCE_NAME, // In Node.js defaults to process.env.AZURE_OPENAI_API_INSTANCE_NAME
-      azureOpenAIApiDeploymentName: privateEnv.AZURE_OPENAI_DEPLOYMENT_NAME, // In Node.js defaults to process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME
+      model: "gpt-3.5-turbo-0125"
+      // azureOpenAIApiKey: privateEnv.AZURE_OPENAI_API_KEY, // In Node.js defaults to process.env.AZURE_OPENAI_API_KEY
+      // azureOpenAIApiVersion: "2024-02-01", // In Node.js defaults to process.env.AZURE_OPENAI_API_VERSION
+      // azureOpenAIApiInstanceName: privateEnv.AZURE_OPENAI_INSTANCE_NAME, // In Node.js defaults to process.env.AZURE_OPENAI_API_INSTANCE_NAME
+      // azureOpenAIApiDeploymentName: privateEnv.AZURE_OPENAI_DEPLOYMENT_NAME, // In Node.js defaults to process.env.AZURE_OPENAI_API_DEPLOYMENT_NAME
     });
 
     // const chat = new ChatOpenAI({

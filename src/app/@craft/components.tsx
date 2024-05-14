@@ -14,14 +14,12 @@ import {
 } from "lucide-react";
 import { ReactNode } from "react";
 import {
-  AddedRecipesCarousel,
   Container,
   CraftEmpty,
   CraftNotEmpty,
   CraftNotReadyToSave,
   CraftReadyToSave,
   LoadMoreCard,
-  SaveRecipeBadge,
   Section,
   SectionLabel,
   SuggestedIngredientsSection,
@@ -206,7 +204,7 @@ const TagsLabel = () => {
 export const NewRecipeResultsView = () => {
   return (
     <>
-      <Container className="gap-4 flex-1">
+      <Container className="gap-4 flex-1 mt-4">
         <QuickAddSection />
         <SuggestedRecipesSection />
         <SuggestedIngredientsSection />
@@ -223,7 +221,7 @@ export const NewRecipeResultsView = () => {
                 {/* <UndoButton /> */}
                 {/* <PrevButton /> */}
                 {/* <SaveRecipeBadge /> */}
-                <AddedRecipesCarousel />
+                {/* <AddedRecipeCard /> */}
                 {/* <CraftSaving>
                   <Badge variant="secondary" className="shadow-xl">
                     Saving <span>My Recipe clanem</span>

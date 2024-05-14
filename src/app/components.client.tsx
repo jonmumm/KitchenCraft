@@ -1257,3 +1257,11 @@ function formatCreateTime(createdAt: Date | string | number): string {
     day: "numeric",
   });
 }
+
+export const CraftStickyHeader = ({ children }: { children: ReactNode }) => {
+  return (
+    <div className="crafting:sticky top-0 crafting:z-50 bg-white dark:bg-current crafting:shadow-xl crafting:rounded-b-xl">
+      {children}
+    </div>
+  );
+};

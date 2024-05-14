@@ -29,7 +29,7 @@ export default async function Page({}) {
   const profile = userId ? await getProfileByUserId(userId) : undefined;
   return (
     <>
-      <div className="mx-auto w-full h-[50vh] crafting:h-auto relative">
+      <div className="mx-auto w-full h-[40vh] crafting:h-auto relative">
         <div className="hidden crafting:hidden absolute right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
           <NavigationLink
             href={

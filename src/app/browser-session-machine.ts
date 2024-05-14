@@ -295,13 +295,13 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   CONNECT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
               entry: ({ context }) =>
@@ -332,13 +332,13 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   CONNECT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
               entry: ({ context }) =>
@@ -369,13 +369,13 @@ export const browserSessionMachine = setup({
           initial: "Idle",
           states: {
             Idle: {
-              // on: {
-              //   CONNECT: {
-              //     target: "Running",
-              //     guard: ({ event, context }) =>
-              //       !context.lastRunPersonalizationContext,
-              //   },
-              // },
+              on: {
+                HEART_BEAT: {
+                  target: "Running",
+                  guard: ({ event, context }) =>
+                    !context.lastRunPersonalizationContext,
+                },
+              },
             },
             Running: {
               entry: ({ context }) =>

@@ -6,7 +6,6 @@ import {
   SuggestionPredictionOutput,
   SuggestionsInput,
 } from "@/types";
-import { produce } from "immer";
 import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
@@ -399,104 +398,103 @@ export const createCraftMachine = ({
                 },
               },
             },
-            LoggedIn: {
-              type: "parallel",
-              states: {
-                Adding: {
-                  initial: "False",
-                  states: {
-                    False: {
-                      initial: "Pristine",
-                      on: {
-                        CHANGE_LIST: {
-                          target: "True",
-                        },
-                        SAVE: [
-                          {
-                            target: ".Added",
-                            guard: () => !!store.get().context.currentListSlug,
-                          },
-                          {
-                            target: "True",
-                            actions: assign(({ context }) =>
-                              produce(context, (draft) => {
-                                const {
-                                  currentItemIndex,
-                                  suggestedRecipes,
-                                  recipes,
-                                } = store.get().context;
-                                const recipeId =
-                                  suggestedRecipes[currentItemIndex];
-                                assert(
-                                  recipeId,
-                                  "expected recipeId when adding to list"
-                                );
-                                const recipe = recipes[recipeId];
-                                assert(
-                                  recipe,
-                                  "expected recipe when adding to list"
-                                );
-                                assert(
-                                  recipe.slug,
-                                  "expected recipe slug when adding to list"
-                                );
-                                draft.savedRecipeSlugs.push(recipe.slug);
-                              })
-                            ),
-                          },
-                        ],
-                      },
-                      states: {
-                        Pristine: {},
-                        Added: {
-                          id: "RecipeAdded",
-                          on: {
-                            NEXT: "Pristine",
-                            PREV: "Pristine",
-                            SCROLL_INDEX: "Pristine",
-                            CLEAR: "Pristine",
-                          },
-                        },
-                      },
-                    },
-                    True: {
-                      type: "parallel",
-                      on: {
-                        SELECT_LIST: "#RecipeAdded",
-                        CANCEL: "False",
-                        SUBMIT: "#RecipeAdded",
-                      },
-                      states: {
-                        ListCreating: {
-                          initial: "False",
-                          states: {
-                            False: {
-                              on: {
-                                CREATE_LIST: "True",
-                              },
-                            },
-                            True: {},
-                          },
-                        },
-                        // Lists: {
-                        //   invoke: {
-                        //     src: "waitForSessionValue",
-                        //     input: {
-                        //       selector(snapshot) {
-                        //         return !!snapshot.context.currentListSlug;
-                        //       },
-                        //       timeoutMs: 10000,
-                        //     },
-                        //   },
-                        // },
-                      },
-                    },
-                  },
-                },
-              },
-            },
+            LoggedIn: {},
           },
         },
+        // type: "parallel",
+        // states: {
+        //   Adding: {
+        //     initial: "False",
+        //     states: {
+        //       False: {
+        //         initial: "Pristine",
+        //         on: {
+        //           CHANGE_LIST: {
+        //             target: "True",
+        //           },
+        //           SAVE: [
+        //             {
+        //               target: ".Added",
+        //               guard: () => !!store.get().context.currentListSlug,
+        //             },
+        //             {
+        //               target: "True",
+        //               actions: assign(({ context }) =>
+        //                 produce(context, (draft) => {
+        //                   const {
+        //                     currentItemIndex,
+        //                     suggestedRecipes,
+        //                     recipes,
+        //                   } = store.get().context;
+        //                   const recipeId =
+        //                     suggestedRecipes[currentItemIndex];
+        //                   assert(
+        //                     recipeId,
+        //                     "expected recipeId when adding to list"
+        //                   );
+        //                   const recipe = recipes[recipeId];
+        //                   assert(
+        //                     recipe,
+        //                     "expected recipe when adding to list"
+        //                   );
+        //                   assert(
+        //                     recipe.slug,
+        //                     "expected recipe slug when adding to list"
+        //                   );
+        //                   draft.savedRecipeSlugs.push(recipe.slug);
+        //                 })
+        //               ),
+        //             },
+        //           ],
+        //         },
+        //         states: {
+        //           Pristine: {},
+        //           Added: {
+        //             id: "RecipeAdded",
+        //             on: {
+        //               NEXT: "Pristine",
+        //               PREV: "Pristine",
+        //               SCROLL_INDEX: "Pristine",
+        //               CLEAR: "Pristine",
+        //             },
+        //           },
+        //         },
+        //       },
+        //       True: {
+        //         type: "parallel",
+        //         on: {
+        //           SELECT_LIST: "#RecipeAdded",
+        //           CANCEL: "False",
+        //           SUBMIT: "#RecipeAdded",
+        //         },
+        //         states: {
+        //           ListCreating: {
+        //             initial: "False",
+        //             states: {
+        //               False: {
+        //                 on: {
+        //                   CREATE_LIST: "True",
+        //                 },
+        //               },
+        //               True: {},
+        //             },
+        //           },
+        //           // Lists: {
+        //           //   invoke: {
+        //           //     src: "waitForSessionValue",
+        //           //     input: {
+        //           //       selector(snapshot) {
+        //           //         return !!snapshot.context.currentListSlug;
+        //           //       },
+        //           //       timeoutMs: 10000,
+        //           //     },
+        //           //   },
+        //           // },
+        //         },
+        //       },
+        //     },
+        //   },
+        // },
         Typing: {
           initial: "False",
           states: {
@@ -625,6 +623,20 @@ export const createCraftMachine = ({
                 //   },
                 // },
               ],
+            },
+            ADD_TO_LIST: {
+              actions: () => {
+                toast.message("Added to list", {
+                  description: "Tuesday Chicken Ideas",
+                  action: {
+                    label: "View",
+                    onClick: () => {
+                      console.log("HI");
+                      // event$.set({ type: "VIEW_LIST" });
+                    },
+                  },
+                });
+              },
             },
           },
           states: {

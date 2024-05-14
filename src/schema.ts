@@ -80,9 +80,9 @@ export const SecretsEnvironmentSchema = z.object({
   GOOGLE_CUSTOM_SEARCH_API_KEY: z.string(),
   GOOGLE_CUSTOM_SEARCH_ENGINE_ID: z.string(),
   VAPID_PRIVATE_KEY: z.string(),
-  AZURE_OPENAI_API_KEY: z.string(),
-  AZURE_OPENAI_DEPLOYMENT_NAME: z.string(),
-  AZURE_OPENAI_INSTANCE_NAME: z.string(),
+  // AZURE_OPENAI_API_KEY: z.string(),
+  // AZURE_OPENAI_DEPLOYMENT_NAME: z.string(),
+  // AZURE_OPENAI_INSTANCE_NAME: z.string(),
 });
 
 export const PublicEnvironmentSchema = z.object({
@@ -612,14 +612,8 @@ const CloseEventSchema = z.object({
   type: z.literal("CLOSE"),
 });
 
-
-const AddToEventSchema = z.object({
-  type: z.literal("ADD_TO"),
-  opts: z
-    .object({
-      asNew: z.boolean(),
-    })
-    .optional(),
+const AddToListEventSchema = z.object({
+  type: z.literal("ADD_TO_LIST"),
 });
 
 const SaveEventSchema = z.object({
@@ -1097,6 +1091,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ModifyRecipeScaleEventSchema,
   ModifyRecipeDietaryEventSchema,
   SaveEventSchema,
+  AddToListEventSchema,
   CloseEventSchema,
   NewRecipeEventSchema,
   ModifyEventSchema,

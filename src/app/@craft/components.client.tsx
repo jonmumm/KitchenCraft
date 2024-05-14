@@ -32,16 +32,15 @@ import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
 import {
   CarrotIcon,
-  ChevronsUpDownIcon,
+  ChevronDownIcon,
   ClockIcon,
-  ExternalLinkIcon,
   MoveLeftIcon,
   PlusCircleIcon,
   PrinterIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   TagIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
@@ -64,7 +63,6 @@ import { twc } from "react-twc";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
 import { CraftContext } from "../context";
-import { CraftSnapshot } from "../machine";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { SessionStoreSnapshot } from "../page-session-store-provider";
 import { PageSessionContext } from "../page-session-store.context";
@@ -144,8 +142,8 @@ export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
   return numTokens || promptLength !== 0 ? <>{children}</> : null;
 };
 
-const selectIsShowingAddedRecipe = (state: CraftSnapshot) =>
-  state.matches({ Auth: { LoggedIn: { Adding: { False: "Added" } } } });
+// const selectIsShowingAddedRecipe = (state: CraftSnapshot) =>
+//   state.matches({ Auth: { LoggedIn: { Adding: { False: "Added" } } } });
 
 const VisibilityControl = ({
   visible,
@@ -604,9 +602,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const [isExpanded, setIsExpanded] = useState(index === 0);
 
   return (
-    <Card className="carousel-item relative flex flex-col">
+    <Card className="carousel-item relative flex flex-col w-full">
       <div className="flex flex-col p-4">
-        <div className="flex flex-row gap-1 w-full">
+        <div className="flex flex-row gap-2 w-full">
           <div className="flex flex-col gap-2 w-full">
             <CardTitle className="flex flex-row items-center gap-2">
               {index + 1}.{" "}
@@ -627,7 +625,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             )}
           </div>
           <div className="flex flex-col gap-1 items-center">
-            <SaveButton slug={recipe?.slug} />
+            <AddButton slug={recipe?.slug} />
             <ShareButton
               slug={recipe?.slug}
               name={recipe?.name!}
@@ -640,15 +638,17 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       <Separator />
       <Collapsible
         open={isExpanded}
+        className="overflow-hidden"
         onOpenChange={(value) => {
           setIsExpanded(value);
         }}
       >
         {!isExpanded && (
           <CollapsibleTrigger asChild>
-            <div className="flex flex-row gap-1 items-center justify-center text-s py-2">
-              <Label className="text-muted-foreground">View Full Recipe</Label>
-              <ChevronsUpDownIcon />
+            <div className="flex flex-row gap-1 items-center justify-center text-s py-3 cursor-pointer">
+              <Badge variant="secondary">
+                View Full <ChevronDownIcon className="ml-1" size={14} />
+              </Badge>
             </div>
           </CollapsibleTrigger>
         )}
@@ -699,6 +699,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <div className="py-2">
             <Tags index={index} />
           </div>
+          <Separator />
         </CollapsibleContent>
       </Collapsible>
     </Card>
@@ -1653,7 +1654,7 @@ const PrintButton = ({ slug }: { slug?: string }) => {
   );
 };
 
-const SaveButton = ({ slug }: { slug?: string }) => {
+const AddButton = ({ slug }: { slug?: string }) => {
   // const actor = useContext(CraftContext);
 
   // const selectIsFilled = useCallback(
@@ -1671,7 +1672,7 @@ const SaveButton = ({ slug }: { slug?: string }) => {
   return (
     <div className="flex flex-row justify-center w-full">
       {slug ? (
-        <Button event={{ type: "SAVE" }}>
+        <Button event={{ type: "ADD_TO_LIST" }}>
           <PlusCircleIcon />
         </Button>
       ) : (
@@ -1766,82 +1767,40 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const AddedRecipesCarousel = () => {
-  // const selectedListSlug, useSyncExternalStore(session$.subscribe, selectSelectedListSlug, selectIsChefNameAvailable)
-  const isShowing = true;
+// export const AddedRecipeCard = () => {
+//   // const selectedListSlug, useSyncExternalStore(session$.subscribe, selectSelectedListSlug, sele)
+//   const actor = useContext(CraftContext);
+//   // const isShowing = useSelector(actor, selectIsShowingAddedRecipe);
+//   const isShowing = true;
 
-  return (
-    <Link
-      href={`/`}
-      target="_blank"
-      className={cn(
-        "flex-1 flex justify-center items-center transition-all",
-        !isShowing ? "translate-y-96" : "pointer-events-auto"
-      )}
-    >
-      <Card className="shadow-xl p-3 flex flex-row gap-2 items-center text-sm">
-        <div
-          style={{ borderRightWidth: "1px" }}
-          className="text-s border-solid dark:border-slate-950 border-slate-50"
-        >
-          <span className="text-muted-foreground">Added to</span>{" "}
-          <span className="whitespace-nowrap inline-flex gap-1 items-center">
-            <span className="truncate max-w-full mr-2">Tuesday Chicken Ideas</span>
-          </span>
-        </div>
-        <Button variant="ghost" className="underline p-0 h-fit">
-          View
-        </Button>
-      </Card>
-    </Link>
-  );
-};
-
-export const SaveRecipeBadge = () => {
-  const actor = useContext(CraftContext);
-  const chefname = useChefName();
-  const store = usePageSessionStore();
-  // const selectedListSlug, useSyncExternalStore(session$.subscribe, selectSelectedListSlug, selectIsChefNameAvailable)
-  const selectedList = useSyncExternalStore(
-    store.subscribe,
-    () => selectSelectedList(store.get()),
-    () => selectSelectedList(store.get())
-  );
-  const isShowing = useSelector(actor, selectIsShowingAddedRecipe);
-
-  return (
-    <Link
-      href={`/@${chefname}/${selectedList?.slug}`}
-      target="_blank"
-      className={cn(
-        "flex-1 flex justify-center items-center transition-all",
-        !isShowing ? "translate-y-96" : "pointer-events-auto"
-      )}
-    >
-      <Card className="shadow-xl p-3 flex flex-row gap-2 items-center text-sm">
-        <div
-          style={{ borderRightWidth: "1px" }}
-          className="text-s border-solid dark:border-slate-950 border-slate-50"
-        >
-          <span className="text-muted-foreground">Added to</span>{" "}
-          <span className="whitespace-nowrap inline-flex gap-1 items-center">
-            <span className="truncate max-w-full">
-              {selectedList?.name || "My Cookbook"}
-            </span>
-            <ExternalLinkIcon className="mr-2" size={15} />
-          </span>
-        </div>
-        <Button
-          event={{ type: "CHANGE_LIST" }}
-          variant="ghost"
-          className="underline p-0 h-fit"
-        >
-          Change
-        </Button>
-      </Card>
-    </Link>
-  );
-};
+//   return (
+//     <Link
+//       href={`/`}
+//       target="_blank"
+//       className={cn(
+//         "flex-1 flex justify-center items-center transition-all",
+//         !isShowing ? "translate-y-96" : "pointer-events-auto"
+//       )}
+//     >
+//       <Card className="shadow-xl p-3 flex flex-row gap-2 items-center text-sm">
+//         <div
+//           style={{ borderRightWidth: "1px" }}
+//           className="text-s border-solid dark:border-slate-950 border-slate-50"
+//         >
+//           <span className="text-muted-foreground">Added to</span>{" "}
+//           <span className="whitespace-nowrap inline-flex gap-1 items-center">
+//             <span className="truncate max-w-full mr-2">
+//               Tuesday Chicken Ideas
+//             </span>
+//           </span>
+//         </div>
+//         <Button variant="ghost" className="underline p-0 h-fit">
+//           View
+//         </Button>
+//       </Card>
+//     </Link>
+//   );
+// };
 
 export const Container = twc.div`flex flex-col gap-2 h-full mx-auto w-full`;
 export const Section = twc.div`flex flex-col gap-1`;

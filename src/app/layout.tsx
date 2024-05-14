@@ -29,6 +29,7 @@ import { Toaster } from "sonner";
 import "../styles/globals.css";
 import {
   Body,
+  CraftStickyHeader,
   CreateNewListCard,
   EnterChefNameCard,
   EnterEmailCard,
@@ -176,7 +177,7 @@ export default async function RootLayout(
               >
                 <div className="min-h-screen flex flex-col">
                   <div>{banner}</div>
-                  <div>{header}</div>
+                  <CraftStickyHeader>{header}</CraftStickyHeader>
                   <div className="crafting:hidden">{children}</div>
                   <div className="flex-1 hidden crafting:flex flex-col">
                     {craft}
