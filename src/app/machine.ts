@@ -23,7 +23,7 @@ import {
 } from "xstate";
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
-import { PageSessionSnapshot } from "./page-session-store";
+import { PageSessionSnapshot } from "./page-session-machine";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
   const params = new URLSearchParams();
@@ -217,12 +217,16 @@ export const createCraftMachine = ({
       },
       focusInput: () => {
         const element = document.querySelector<HTMLTextAreaElement>("#prompt");
-        assert(element, "exlected prompt element");
+        assert(element, "expected prompt element");
 
-        if (element.value.length) {
-          element.selectionStart = element.selectionEnd = element.value.length;
+        // Check if the element is already in focus
+        if (document.activeElement !== element) {
+          if (element.value.length) {
+            element.selectionStart = element.selectionEnd =
+              element.value.length;
+          }
+          element.focus();
         }
-        element.focus();
       },
     },
     actors: {
@@ -410,8 +414,7 @@ export const createCraftMachine = ({
                         SAVE: [
                           {
                             target: ".Added",
-                            guard: () =>
-                              !!store.get().context.currentListSlug,
+                            guard: () => !!store.get().context.currentListSlug,
                           },
                           {
                             target: "True",
@@ -611,16 +614,16 @@ export const createCraftMachine = ({
             SET_INPUT: {
               target: ".True",
               actions: [
-                {
-                  type: "replaceQueryParameters",
-                  params({ event }) {
-                    return {
-                      paramSet: {
-                        prompt: event.value,
-                      },
-                    };
-                  },
-                },
+                // {
+                //   type: "replaceQueryParameters",
+                //   params({ event }) {
+                //     return {
+                //       paramSet: {
+                //         prompt: event.value,
+                //       },
+                //     };
+                //   },
+                // },
               ],
             },
           },
@@ -633,21 +636,21 @@ export const createCraftMachine = ({
                   //   window.scrollTo(0, 0);
                   // }, 200);
                 },
-                {
-                  type: "replaceQueryParameters",
-                  params({ event }) {
-                    if (event.type === "SET_INPUT") {
-                      const prompt = event.value ? { prompt: event.value } : {};
-                      return {
-                        paramSet: {
-                          crafting: "1",
-                          ...prompt,
-                        },
-                      };
-                    }
-                    return { paramSet: {} };
-                  },
-                },
+                // {
+                //   type: "replaceQueryParameters",
+                //   params({ event }) {
+                //     if (event.type === "SET_INPUT") {
+                //       const prompt = event.value ? { prompt: event.value } : {};
+                //       return {
+                //         paramSet: {
+                //           crafting: "1",
+                //           ...prompt,
+                //         },
+                //       };
+                //     }
+                //     return { paramSet: {} };
+                //   },
+                // },
                 {
                   type: "focusInput",
                 },
@@ -832,16 +835,16 @@ export const createCraftMachine = ({
                   //   prompt.blur();
                   // }
                 },
-                {
-                  type: "replaceQueryParameters",
-                  params() {
-                    return {
-                      paramSet: {
-                        crafting: undefined,
-                      },
-                    };
-                  },
-                },
+                // {
+                //   type: "replaceQueryParameters",
+                //   params() {
+                //     return {
+                //       paramSet: {
+                //         crafting: undefined,
+                //       },
+                //     };
+                //   },
+                // },
                 // assign({
                 //   currentItemIndex: () => {
                 //     return 0;

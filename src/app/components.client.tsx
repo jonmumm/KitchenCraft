@@ -70,7 +70,7 @@ import {
 import { CraftContext } from "./context";
 import { EQUIPMENT_ITEMS, MISC_ONBORADING_QUESTIONS } from "./data";
 import { CraftSnapshot } from "./machine";
-import { PageSessionSnapshot } from "./page-session-store";
+import { PageSessionSnapshot } from "./page-session-machine";
 
 const inter = Inter({ subsets: ["latin"] });
 

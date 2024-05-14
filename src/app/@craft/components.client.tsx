@@ -59,11 +59,9 @@ import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-s
 import { z } from "zod";
 import { CraftContext } from "../context";
 import { CraftSnapshot } from "../machine";
+import { PageSessionSnapshot } from "../page-session-machine";
 import { SessionStoreSnapshot } from "../page-session-store-provider";
-import {
-  PageSessionContext,
-  PageSessionSnapshot,
-} from "../page-session-store.context";
+import { PageSessionContext } from "../page-session-store.context";
 import { ShareButton } from "../recipe/components.client";
 import { buildInput, isEqual } from "../utils";
 // import {

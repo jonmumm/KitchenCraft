@@ -2,11 +2,12 @@
 
 import { selectIsOpen } from "@/app/@craft/selectors";
 import { CraftContext } from "@/app/context";
-import { PageSessionSnapshot } from "@/app/page-session-store";
+import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { PageSessionContext } from "@/app/page-session-store.context";
 // import { session$ } from "@/app/session-store";
 import { usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useEventHandler } from "@/hooks/useEventHandler";
+import { usePageSessionStoreMatchesState } from "@/hooks/usePageSessionStoreMatchesState";
 import { useSelectorCallback } from "@/hooks/useSelectorCallback";
 import { useSend } from "@/hooks/useSend";
 import { assert, shuffle } from "@/lib/utils";
@@ -21,8 +22,7 @@ import React, {
   useContext,
   useEffect,
   useRef,
-  useState,
-  useSyncExternalStore,
+  useSyncExternalStore
 } from "react";
 import { createSelector } from "reselect";
 
@@ -123,21 +123,6 @@ const AutoResizableTextarea: React.FC<
   };
 
   const Textarea = () => {
-    // const actor = useContext(CraftContext);
-    // const isOpen = useCraftIsOpen();
-    const isPristine = usePromptIsPristine();
-    const [placeholdersGenerating, setPlaceholderGenerating] = useState(false);
-    const session$ = useContext(PageSessionContext);
-
-    // hack figure out better solution for subscribing to server state
-    useEffect(() => {
-      return session$.subscribe((state) => {
-        setPlaceholderGenerating(
-          state.value.Craft.Generators.Placeholder === "Generating"
-        );
-      });
-    }, [setPlaceholderGenerating, session$]);
-
     // const value = useSelector(actor, (state) => state.context.prompt);
     const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
       (e) => {
@@ -162,90 +147,124 @@ const AutoResizableTextarea: React.FC<
     );
 
     const PlaceholderAnimation = () => {
-      const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
-      const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+      const isPristine = usePromptIsPristine();
+      // const [placeholdersGenerating, setPlaceholderGenerating] =
+      //   useState(false);
+      const session$ = useContext(PageSessionContext);
+      const placeholdersGenerating = usePageSessionStoreMatchesState({
+        Craft: { Generators: { Placeholder: "Generating" } },
+      });
+      console.log({ placeholdersGenerating });
 
-      const placeholders = useSyncExternalStore(
-        session$.subscribe,
-        () => selectPromptPlaceholders(session$.get()),
-        () => selectPromptPlaceholders(session$.get())
-      );
+      // const placeholderGenerating = useSyncExternalStoreWithSelector(
+      //   session$.subscribe,
+      //   () => {
+      //     return session$.get().context;
+      //   },
+      //   () => session$.get().context,
+      //   ({ tokens }) => {
+      //     return tokens;
+      //   },
+      // );
 
-      const animatePlaceholder = useCallback(() => {
-        assert(placeholders, "expected placehodlers");
-        const sentences = produce(placeholders, (draft) => {
-          shuffle(draft);
-        });
-        let currentSentenceIndex = 0;
-        let typing = true;
-        let currentText = "";
+      const Animation = () => {
+        const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+        const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+        const session$ = useContext(PageSessionContext);
 
-        const clearTimers = () => {
-          if (intervalIdRef.current) {
-            clearInterval(intervalIdRef.current);
-            intervalIdRef.current = null;
-          }
-          if (timeoutIdRef.current) {
-            clearTimeout(timeoutIdRef.current);
-            timeoutIdRef.current = null;
-          }
-        };
+        // hack figure out better solution for subscribing to server state
+        // useEffect(() => {
+        //   return session$.subscribe((state) => {
+        //     setPlaceholderGenerating(
+        //       state.value.Craft.Generators.Placeholder === "Generating"
+        //     );
+        //   });
+        // }, [session$]);
 
-        const typeText = () => {
-          const sentence = sentences[currentSentenceIndex];
-          assert(sentence, "expected sentence");
-          if (typing) {
-            if (currentText.length < sentence.length) {
-              currentText = sentence.slice(0, currentText.length + 1);
-            } else {
-              if (!timeoutIdRef.current) {
-                timeoutIdRef.current = setTimeout(() => {
-                  typing = false;
-                  timeoutIdRef.current = null;
-                  typeText(); // Immediately proceed to deletion
-                }, 1000);
-              }
+        const placeholders = useSyncExternalStore(
+          session$.subscribe,
+          () => selectPromptPlaceholders(session$.get()),
+          () => selectPromptPlaceholders(session$.get())
+        );
+
+        const animatePlaceholder = useCallback(() => {
+          assert(placeholders, "expected placehodlers");
+          const sentences = produce(placeholders, (draft) => {
+            shuffle(draft);
+          });
+          let currentSentenceIndex = 0;
+          let typing = true;
+          let currentText = "";
+
+          const clearTimers = () => {
+            if (intervalIdRef.current) {
+              clearInterval(intervalIdRef.current);
+              intervalIdRef.current = null;
             }
-          } else {
-            if (currentText.length > 0) {
-              currentText = currentText.slice(0, -1);
-            } else {
-              typing = true;
-              currentSentenceIndex =
-                (currentSentenceIndex + 1) % sentences.length;
-              typeText(); // Reset typing immediately for the next sentence
-            }
-          }
-
-          if (ref.current) {
-            ref.current.placeholder = currentText;
-          }
-        };
-
-        clearTimers();
-        intervalIdRef.current = setInterval(typeText, 100);
-
-        return clearTimers;
-      }, [placeholders]);
-
-      useEffect(() => {
-        if (placeholders && placeholders.length) {
-          const cleanup = animatePlaceholder();
-          return () => {
-            cleanup();
-            if (ref.current) {
-              ref.current.placeholder = "";
+            if (timeoutIdRef.current) {
+              clearTimeout(timeoutIdRef.current);
+              timeoutIdRef.current = null;
             }
           };
-        }
-      }, [animatePlaceholder, placeholders]);
 
-      return null;
+          const typeText = () => {
+            const sentence = sentences[currentSentenceIndex];
+            assert(sentence, "expected sentence");
+            if (typing) {
+              if (currentText.length < sentence.length) {
+                currentText = sentence.slice(0, currentText.length + 1);
+              } else {
+                if (!timeoutIdRef.current) {
+                  timeoutIdRef.current = setTimeout(() => {
+                    typing = false;
+                    timeoutIdRef.current = null;
+                    typeText(); // Immediately proceed to deletion
+                  }, 1000);
+                }
+              }
+            } else {
+              if (currentText.length > 0) {
+                currentText = currentText.slice(0, -1);
+              } else {
+                typing = true;
+                currentSentenceIndex =
+                  (currentSentenceIndex + 1) % sentences.length;
+                typeText(); // Reset typing immediately for the next sentence
+              }
+            }
+
+            if (ref.current) {
+              ref.current.placeholder = currentText;
+            }
+          };
+
+          clearTimers();
+          intervalIdRef.current = setInterval(typeText, 100);
+
+          return clearTimers;
+        }, [placeholders]);
+
+        useEffect(() => {
+          if (placeholders && placeholders.length) {
+            const cleanup = animatePlaceholder();
+            return () => {
+              cleanup();
+              if (ref.current) {
+                ref.current.placeholder = "";
+              }
+            };
+          }
+        }, [animatePlaceholder, placeholders]);
+
+        return null;
+      };
+
+      return <>{isPristine && !placeholdersGenerating && <Animation />}</>;
     };
 
     return (
       <>
-        {isPristine && !placeholdersGenerating && <PlaceholderAnimation />}
+        <PlaceholderAnimation />
         <textarea
           suppressHydrationWarning
           ref={ref}
@@ -316,11 +335,15 @@ export default AutoResizableTextarea;
 //   "Simplify to five ingredients",
 // ];
 
-const selectInProgressSuggestedPlaceholders = (snapshot: PageSessionSnapshot) => {
+const selectInProgressSuggestedPlaceholders = (
+  snapshot: PageSessionSnapshot
+) => {
   return snapshot.context.placeholders;
 };
 
-const selectEmptyStateSuggestedPlaceholders = (snapshot: PageSessionSnapshot) => {
+const selectEmptyStateSuggestedPlaceholders = (
+  snapshot: PageSessionSnapshot
+) => {
   return snapshot.context.browserSessionSnapshot?.context.suggestedPlaceholders;
 };
 

@@ -1,4 +1,4 @@
-import { PageSessionSnapshot } from "@/app/page-session-store";
+import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { ReactNode, useSyncExternalStore } from "react";
 

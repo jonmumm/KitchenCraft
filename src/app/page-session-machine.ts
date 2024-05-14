@@ -48,6 +48,7 @@ import * as Party from "partykit/server";
 import { Subject, from, map, mergeMap, switchMap } from "rxjs";
 import {
   SnapshotFrom,
+  StateValueFrom,
   assign,
   fromEventObservable,
   fromPromise,
@@ -2345,6 +2346,24 @@ export const pageSessionMachine = setup({
     // },
   },
 });
+
+export type PageSessionMachine = typeof pageSessionMachine;
+export type PageSessionSnapshot = SnapshotFrom<PageSessionMachine>;
+export type PageSessionState = StateValueFrom<PageSessionMachine>;
+
+// import { PlayerState } from "@/app/player-machine";
+// import { ClientContext } from "@/context/client-context";
+// import { matchesState } from "xstate";
+
+// export const usePlayerSnapshotMatchesState = (matchedState: PlayerState) => {
+//   return ClientContext.useSelector((state) => {
+//     const { playerSnapshot } = state.context;
+//     if (!playerSnapshot) {
+//       return false;
+//     }
+//     return matchesState(matchedState, playerSnapshot.value);
+//   });
+// };
 
 const defaultPlaceholders = [
   "3 eggs",

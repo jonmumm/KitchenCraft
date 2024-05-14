@@ -11,9 +11,9 @@ import { Badge } from "@/components/display/badge";
 import { Skeleton } from "@/components/display/skeleton";
 import AutoResizableTextarea from "@/components/input/auto-resizable-textarea";
 import { Button } from "@/components/input/button";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
@@ -24,7 +24,7 @@ import {
   Settings2Icon,
   XCircleIcon,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   ChangeEventHandler,
   ComponentProps,
@@ -39,7 +39,7 @@ import {
 } from "react";
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { CraftContext } from "../context";
-import { PageSessionSnapshot } from "../page-session-store";
+import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
@@ -125,15 +125,14 @@ export const CraftInput = ({
   initialAutoFocus?: boolean;
   className?: string;
 }) => {
-  const initialParam = useSearchParams();
   const initialBlurRef = useRef(false);
   const initialFocusRef = useRef(false);
-  const [initialValue] = useState(initialParam.get("prompt") || "");
+  const [initialValue] = useState("");
   const actor = useContext(CraftContext);
+  console.log("input");
 
   const [autoFocus, setAutofocus] = useState(
-    actor.getSnapshot().value.Hydration === "Waiting" &&
-      (initialParam.get("crafting") === "1" || initialAutoFocus)
+    actor.getSnapshot().value.Hydration === "Waiting" && initialAutoFocus
   );
 
   const send = useSend();
@@ -173,8 +172,10 @@ export const CraftInput = ({
     const inputElement = document.getElementById("prompt");
     if (!inputElement) return;
 
+    const isMobile = !initialAutoFocus;
+
     // Set opacity to 0 to prevent automatic scrolling
-    inputElement.style.opacity = "0";
+    if (isMobile) inputElement.style.opacity = "0";
     window.scrollTo(0, 0);
 
     // requestAnimationFrame(() => {
@@ -184,16 +185,16 @@ export const CraftInput = ({
     // Hack
     // Doing it with 0 and RAF don't work
     setTimeout(() => {
-      inputElement.style.opacity = "1";
+      if (isMobile) inputElement.style.opacity = "1";
       window.scrollTo(0, 0);
-    }, 500); // Adjust timing as needed
+    }, 350); // Adjust timing as needed
 
     if (autoFocus && initialFocusRef.current) {
       initialFocusRef.current = true;
       return;
     }
     send({ type: "FOCUS_PROMPT" });
-  }, [send, autoFocus, initialFocusRef]);
+  }, [send, autoFocus, initialFocusRef, initialAutoFocus]);
 
   const PromptCarrot = () => {
     const actor = useContext(CraftContext);
