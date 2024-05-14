@@ -14,13 +14,13 @@ import {
 } from "lucide-react";
 import { ReactNode } from "react";
 import {
+  AddedRecipesCarousel,
   Container,
-  CraftCarousel,
   CraftEmpty,
   CraftNotEmpty,
   CraftNotReadyToSave,
   CraftReadyToSave,
-  PrevButton,
+  LoadMoreCard,
   SaveRecipeBadge,
   Section,
   SectionLabel,
@@ -221,8 +221,9 @@ export const NewRecipeResultsView = () => {
                 {/* <CloseButton /> */}
                 {/* <ClearButton /> */}
                 {/* <UndoButton /> */}
-                <PrevButton />
-                <SaveRecipeBadge />
+                {/* <PrevButton /> */}
+                {/* <SaveRecipeBadge /> */}
+                <AddedRecipesCarousel />
                 {/* <CraftSaving>
                   <Badge variant="secondary" className="shadow-xl">
                     Saving <span>My Recipe clanem</span>
@@ -232,7 +233,7 @@ export const NewRecipeResultsView = () => {
                 {/* <GoToButton /> */}
                 {/* <ShareButton /> */}
                 {/* <LikeButton /> */}
-                <NextButton />
+                {/* <NextButton /> */}
               </div>
             </div>
           </CraftNotEmpty>
@@ -286,8 +287,9 @@ const SuggestedRecipesSection = () => {
 
   return (
     <CraftNotEmpty>
-      <CraftCarousel>
+      <div className="flex flex-col gap-3 items-center px-4">
         <SuggestedRecipeCards />
+        <LoadMoreCard />
         {/* {items.map((item, index) => {
           return (
             <Card key={index} className="carousel-item w-4/5">
@@ -295,7 +297,7 @@ const SuggestedRecipesSection = () => {
             </Card>
           );
         })} */}
-      </CraftCarousel>
+      </div>
     </CraftNotEmpty>
   );
 

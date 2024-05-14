@@ -604,8 +604,22 @@ const RemoveIngredientEventSchema = z.object({
   ingredient: z.string(),
 });
 
+const ViewListEventSchema = z.object({
+  type: z.literal("VIEW_LIST"),
+});
+
 const CloseEventSchema = z.object({
   type: z.literal("CLOSE"),
+});
+
+
+const AddToEventSchema = z.object({
+  type: z.literal("ADD_TO"),
+  opts: z
+    .object({
+      asNew: z.boolean(),
+    })
+    .optional(),
 });
 
 const SaveEventSchema = z.object({
@@ -1008,7 +1022,13 @@ export const SystemEventSchema = z.discriminatedUnion("type", [
   AuthenticateEventSchema,
 ]);
 
+const LoadMoreEventSchema = z.object({
+  type: z.literal("LOAD_MORE"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ViewListEventSchema,
+  LoadMoreEventSchema,
   SocketOpenEventSchema,
   SocketConnectingEventSchema,
   SocketCloseEventSchema,

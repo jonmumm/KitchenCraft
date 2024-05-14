@@ -14,9 +14,11 @@ import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
 import { cn } from "@/lib/utils";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import {
+  ArrowLeftIcon,
   ChefHatIcon,
   ChevronRightIcon,
   GripVerticalIcon,
+  ListIcon,
   Loader2Icon,
 } from "lucide-react";
 import Link from "next/link";
@@ -68,49 +70,59 @@ export async function HeaderWithInput({
           </div>
           <div className="flex flex-row gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
             {/* <CraftHeading /> */}
+            <Button variant={"ghost"} event={{ type: "CLOSE" }}>
+              <ArrowLeftIcon />
+            </Button>
             <CraftCTA />
           </div>
           <div className="hidden crafting:block">
-            <Button variant={"ghost"} event={{ type: "CLOSE" }}>
+            <Button variant={"ghost"} event={{ type: "VIEW_LIST" }}>
+              <ListIcon />
+            </Button>
+            {/* <Button variant={"ghost"} event={{ type: "CLOSE" }}>
               Close
-            </Button>
+            </Button> */}
           </div>
-      <div className="hidden crafting:hidden right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
-        <NavigationLink
-          href={
-            profile?.profileSlug ? `/@${profile.profileSlug}` : `/my-cookbook`
-          }
-          className="hidden lg:block crafting:hidden"
-        >
-          <div className="flex flex-row gap-1 items-center">
-            <div className="flex flex-row gap-1">
-              <Badge
-                variant="outline"
-                className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
-              >
-                <ChefHatIcon className="transitioning:hidden" />
-                <Loader2Icon className="hidden transitioning:block animate-spin" />
-                <span>
-                  {profile?.profileSlug ? profile.profileSlug : "My Cookbook"}
-                </span>
-              </Badge>
-            </div>
+          <div className="hidden crafting:hidden right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
+            <NavigationLink
+              href={
+                profile?.profileSlug
+                  ? `/@${profile.profileSlug}`
+                  : `/my-cookbook`
+              }
+              className="hidden lg:block crafting:hidden"
+            >
+              <div className="flex flex-row gap-1 items-center">
+                <div className="flex flex-row gap-1">
+                  <Badge
+                    variant="outline"
+                    className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
+                  >
+                    <ChefHatIcon className="transitioning:hidden" />
+                    <Loader2Icon className="hidden transitioning:block animate-spin" />
+                    <span>
+                      {profile?.profileSlug
+                        ? profile.profileSlug
+                        : "My Cookbook"}
+                    </span>
+                  </Badge>
+                </div>
+              </div>
+            </NavigationLink>
+            <MenuSheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <GripVerticalIcon />
+                </Button>
+              </SheetTrigger>
+              <SheetOverlay />
+              <SheetContent side="right" className="p-4">
+                <div className="flex flex-col gap-2 py-4">
+                  <MainMenu />
+                </div>
+              </SheetContent>
+            </MenuSheet>
           </div>
-        </NavigationLink>
-        <MenuSheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <GripVerticalIcon />
-            </Button>
-          </SheetTrigger>
-          <SheetOverlay />
-          <SheetContent side="right" className="p-4">
-            <div className="flex flex-col gap-2 py-4">
-              <MainMenu />
-            </div>
-          </SheetContent>
-        </MenuSheet>
-      </div>
           {/* <Link href="/leaderboard" className="hidden lg:block crafting:hidden">
             <Button variant="ghost">
               <TrophyIcon />

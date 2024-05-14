@@ -2,6 +2,11 @@
 
 import { Badge } from "@/components/display/badge";
 import { Card, CardDescription, CardTitle } from "@/components/display/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/display/collapsible";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Input } from "@/components/input";
@@ -27,6 +32,7 @@ import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
 import {
   CarrotIcon,
+  ChevronsUpDownIcon,
   ClockIcon,
   ExternalLinkIcon,
   MoveLeftIcon,
@@ -352,7 +358,7 @@ export const AddedTokens = () => {
 
 export const SuggestedRecipeCards = () => {
   const numCards = useNumCards();
-  const items = new Array(numCards).fill(numCards);
+  const items = new Array(Math.max(numCards, 6)).fill(0);
 
   return (
     <>
@@ -360,6 +366,17 @@ export const SuggestedRecipeCards = () => {
         return <SuggestedRecipeCard key={index} index={index} />;
       })}
     </>
+  );
+};
+
+export const LoadMoreCard = () => {
+  return (
+    <Card
+      eventOnView={{ type: "LOAD_MORE" }}
+      className="flex items-center justify-center cursor-pointer w-full p-8 mx-4"
+    >
+      Load More
+    </Card>
   );
 };
 
@@ -520,7 +537,7 @@ const useCurrentItemIndex = () => {
   );
 };
 
-const useRecipeAtIndex = (index: number) => {
+const useSuggestedRecipeAtIndex = (index: number) => {
   const session$ = usePageSessionStore();
   return useSyncExternalStoreWithSelector(
     session$.subscribe,
@@ -583,10 +600,11 @@ const useCurrentRecipe = () => {
 };
 
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
-  const recipe = useRecipeAtIndex(index);
+  const recipe = useSuggestedRecipeAtIndex(index);
+  const [isExpanded, setIsExpanded] = useState(index === 0);
 
   return (
-    <Card className="carousel-item w-[90vw] md:w-4/5 relative flex flex-col">
+    <Card className="carousel-item relative flex flex-col">
       <div className="flex flex-col p-4">
         <div className="flex flex-row gap-1 w-full">
           <div className="flex flex-col gap-2 w-full">
@@ -618,59 +636,72 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             <PrintButton slug={recipe?.slug} />
           </div>
         </div>
-        <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
-          <span>Yields</span>
-          <span>
-            <Yield />
-          </span>
-        </div>
       </div>
       <Separator />
-      <div>
-        <Times
-          activeTime={recipe?.activeTime}
-          totalTime={recipe?.totalTime}
-          cookTime={recipe?.cookTime}
-        />
-        {/* <SkeletonSentence className="h-4" numWords={12} /> */}
-      </div>
-      <Separator />
-      <div className="px-5">
-        <div className="flex flex-row justify-between gap-1 items-center py-4">
-          <h3 className="uppercase text-xs font-bold text-accent-foreground">
-            Ingredients
-          </h3>
-          <ShoppingBasketIcon />
-        </div>
-        <div className="mb-4 flex flex-col gap-2">
-          <ul className="list-disc pl-5 flex flex-col gap-2">
-            <Ingredients index={index} />
-          </ul>
-        </div>
-      </div>
-      <Separator />
-      <div className="px-5">
-        <div className="flex flex-row justify-between gap-1 items-center py-4">
-          <h3 className="uppercase text-xs font-bold text-accent-foreground">
-            Instructions
-          </h3>
-          <ScrollIcon />
-        </div>
-        <div className="mb-4 flex flex-col gap-2">
-          <ol className="list-decimal pl-5 flex flex-col gap-2">
-            <Instructions index={index} />
-          </ol>
-        </div>
-      </div>
-      <Separator />
-      <div className="py-2">
-        <Tags index={index} />
-      </div>
-      {/* <Button className="w-full">
-          Continue Generating <ChevronsDownIcon size={16} />
-        </Button> */}
+      <Collapsible
+        open={isExpanded}
+        onOpenChange={(value) => {
+          setIsExpanded(value);
+        }}
+      >
+        {!isExpanded && (
+          <CollapsibleTrigger asChild>
+            <div className="flex flex-row gap-1 items-center justify-center text-s py-2">
+              <Label className="text-muted-foreground">View Full Recipe</Label>
+              <ChevronsUpDownIcon />
+            </div>
+          </CollapsibleTrigger>
+        )}
+        <CollapsibleContent>
+          <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2">
+            <span>Yields</span>
+            <span>
+              <Yield />
+            </span>
+          </div>
+          <Separator />
+          <div>
+            <Times
+              activeTime={recipe?.activeTime}
+              totalTime={recipe?.totalTime}
+              cookTime={recipe?.cookTime}
+            />
+          </div>
+          <Separator />
+          <div className="px-5">
+            <div className="flex flex-row justify-between gap-1 items-center py-4">
+              <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                Ingredients
+              </h3>
+              <ShoppingBasketIcon />
+            </div>
+            <div className="mb-4 flex flex-col gap-2">
+              <ul className="list-disc pl-5 flex flex-col gap-2">
+                <Ingredients index={index} />
+              </ul>
+            </div>
+          </div>
+          <Separator />
+          <div className="px-5">
+            <div className="flex flex-row justify-between gap-1 items-center py-4">
+              <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                Instructions
+              </h3>
+              <ScrollIcon />
+            </div>
+            <div className="mb-4 flex flex-col gap-2">
+              <ol className="list-decimal pl-5 flex flex-col gap-2">
+                <Instructions index={index} />
+              </ol>
+            </div>
+          </div>
+          <Separator />
+          <div className="py-2">
+            <Tags index={index} />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
-    // </SwipeableCard>
   );
 };
 
@@ -945,7 +976,7 @@ const Times = ({
 
 function Ingredients({ index }: { index: number }) {
   const NUM_LINE_PLACEHOLDERS = 5;
-  const recipe = useRecipeAtIndex(index);
+  const recipe = useSuggestedRecipeAtIndex(index);
   const numIngredients = recipe?.ingredients?.length || 0;
   const numCompletedRecipes = useNumCompletedRecipes();
   const items = new Array(
@@ -956,7 +987,7 @@ function Ingredients({ index }: { index: number }) {
 
   const Item = (props: { index: number }) => {
     const showPlaceholder = props.index < NUM_LINE_PLACEHOLDERS;
-    const recipe = useRecipeAtIndex(index);
+    const recipe = useSuggestedRecipeAtIndex(index);
     if (!recipe || !recipe.ingredients || !recipe.ingredients[props.index]) {
       return showPlaceholder ? (
         <SkeletonSentence
@@ -980,7 +1011,7 @@ function Ingredients({ index }: { index: number }) {
 
 function Instructions({ index }: { index: number }) {
   const NUM_LINE_PLACEHOLDERS = 5;
-  const recipe = useRecipeAtIndex(index);
+  const recipe = useSuggestedRecipeAtIndex(index);
   const numInstructions = recipe?.instructions?.length || 0;
   const numCompletedRecipes = useNumCompletedRecipes();
   const items = new Array(
@@ -991,7 +1022,7 @@ function Instructions({ index }: { index: number }) {
 
   const Item = (props: { index: number }) => {
     const showPlaceholder = props.index < NUM_LINE_PLACEHOLDERS;
-    const recipe = useRecipeAtIndex(index);
+    const recipe = useSuggestedRecipeAtIndex(index);
     if (!recipe || !recipe.instructions || !recipe.instructions[props.index]) {
       return showPlaceholder ? (
         <SkeletonSentence
@@ -1732,6 +1763,37 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
     >
       {children}
     </div>
+  );
+};
+
+export const AddedRecipesCarousel = () => {
+  // const selectedListSlug, useSyncExternalStore(session$.subscribe, selectSelectedListSlug, selectIsChefNameAvailable)
+  const isShowing = true;
+
+  return (
+    <Link
+      href={`/`}
+      target="_blank"
+      className={cn(
+        "flex-1 flex justify-center items-center transition-all",
+        !isShowing ? "translate-y-96" : "pointer-events-auto"
+      )}
+    >
+      <Card className="shadow-xl p-3 flex flex-row gap-2 items-center text-sm">
+        <div
+          style={{ borderRightWidth: "1px" }}
+          className="text-s border-solid dark:border-slate-950 border-slate-50"
+        >
+          <span className="text-muted-foreground">Added to</span>{" "}
+          <span className="whitespace-nowrap inline-flex gap-1 items-center">
+            <span className="truncate max-w-full mr-2">Tuesday Chicken Ideas</span>
+          </span>
+        </div>
+        <Button variant="ghost" className="underline p-0 h-fit">
+          View
+        </Button>
+      </Card>
+    </Link>
   );
 };
 

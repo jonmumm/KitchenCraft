@@ -13,7 +13,13 @@ import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile, getTimezone } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import { ChefHatIcon, GripVerticalIcon, Loader2Icon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ChefHatIcon,
+  GripVerticalIcon,
+  ListIcon,
+  Loader2Icon,
+} from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
 import { HomepageSuggestedTokens } from "./components.client";
@@ -70,14 +76,22 @@ export default async function Page({}) {
               ⚡️ Instantly create personalized recipes.
             </p>
             <div className="flex flex-row gap-1 items-center">
-              <CraftCTA initialAutoFocus={!getIsMobile()} />
               <div className="hidden crafting:block">
+                <Button variant={"ghost"} event={{ type: "CLOSE" }} size="icon">
+                  <ArrowLeftIcon />
+                </Button>
+              </div>
+              <CraftCTA initialAutoFocus={!getIsMobile()} />
+              <div className="hidden crafting:block indicator">
+                <span className="indicator-item badge badge-neutral p-1 text-xs">
+                  1
+                </span>
                 <Button
                   variant={"ghost"}
-                  className="ml-2 px-2 text-xs"
-                  event={{ type: "CLOSE" }}
+                  event={{ type: "VIEW_LIST" }}
+                  size="icon"
                 >
-                  CLOSE
+                  <ListIcon />
                 </Button>
               </div>
             </div>
