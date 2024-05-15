@@ -902,11 +902,10 @@ const Tags = ({ index }: { index: number }) => {
   );
 };
 
-const Yield = ({ index }) => {
+const Yield = ({ index }: { index: number }) => {
   const session$ = usePageSessionStore();
   const session = useStore(session$);
-  const recipeId =
-    session.context.suggestedRecipes[index];
+  const recipeId = session.context.suggestedRecipes[index];
   if (!recipeId) {
     return (
       <div className="flex flex-row gap-1">
