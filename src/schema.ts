@@ -614,6 +614,7 @@ const CloseEventSchema = z.object({
 
 const AddToListEventSchema = z.object({
   type: z.literal("ADD_TO_LIST"),
+  id: z.string(),
 });
 
 const SaveEventSchema = z.object({
@@ -1020,7 +1021,13 @@ const LoadMoreEventSchema = z.object({
   type: z.literal("LOAD_MORE"),
 });
 
+const ViewRecipeEventSchema = z.object({
+  type: z.literal("VIEW_RECIPE"),
+  id: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ViewRecipeEventSchema,
   ViewListEventSchema,
   LoadMoreEventSchema,
   SocketOpenEventSchema,
@@ -1154,6 +1161,29 @@ const TimeDurationSchema = z.string().regex(/^PT(\d+H)?(\d+M)?$/);
 //   ingredients: z.array(z.string()),
 //   instructions: z.array(z.string()),
 // });
+
+export const InstantRecipePredictionOutputSchema = z.object({
+  recipe: z.object({
+    name: z.string(),
+    description: z.string(),
+    activeTime: TimeDurationSchema,
+    cookTime: TimeDurationSchema,
+    totalTime: TimeDurationSchema,
+    yield: z.string(),
+    tags: z.array(z.string()),
+    ingredients: z.array(z.string()),
+    instructions: z.array(z.string()),
+  }),
+});
+
+export const RecipeIdeasMetadataPredictionOutputSchema = z.object({
+  ideas: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+    })
+  ),
+});
 
 export const RecipePredictionOutputSchema = z.object({
   recipe: z.object({

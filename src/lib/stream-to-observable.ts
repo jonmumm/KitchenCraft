@@ -18,14 +18,16 @@ export type StreamObservableEvent<
 > =
   | {
       type: WithStart<TEventType>;
-      resultId: string;
+      id: string;
     }
   | {
       type: WithProgress<TEventType>;
+      id: string;
       data: DeepPartial<TOutput>;
     }
   | {
       type: WithComplete<TEventType>;
+      id: string;
       data: TOutput;
     };
 
@@ -36,8 +38,10 @@ export function streamToObservable<
 >(
   tokenStream: IterableReadableStream<string>, // Changed from EventSource to AsyncIterable<string>
   streamType: TStreamType,
-  schema: z.ZodObject<TOutput>
+  schema: z.ZodObject<TOutput>,
+  id?: string
 ): Observable<StreamObservableEvent<TStreamType, TOutput>> {
+  const _id = id || nanoid();
   const subject = new Subject<
     | StreamObservableEvent<TStreamType, TOutput>
     | { type: "$$xstate.error"; error: Error; outputRaw: string }
@@ -53,7 +57,7 @@ export function streamToObservable<
         if (!started) {
           subject.next({
             type: `${streamType}_START`,
-            resultId: nanoid(),
+            id: _id,
           });
           started = true;
         }
@@ -76,6 +80,7 @@ export function streamToObservable<
         if (outputParse.success) {
           subject.next({
             type: `${streamType}_PROGRESS`,
+            id: _id,
             data: outputParse.data as TPartialOutput,
           });
         }
@@ -88,6 +93,7 @@ export function streamToObservable<
       if (outputParse.success) {
         subject.next({
           type: `${streamType}_COMPLETE`,
+          id: _id,
           data: outputParse.data as unknown as TOutput,
         });
       } else {

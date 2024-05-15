@@ -40,7 +40,7 @@ import {
   ScrollIcon,
   ShoppingBasketIcon,
   TagIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
@@ -356,7 +356,7 @@ export const AddedTokens = () => {
 
 export const SuggestedRecipeCards = () => {
   const numCards = useNumCards();
-  const items = new Array(Math.max(numCards, 6)).fill(0);
+  const items = new Array(numCards).fill(0);
 
   return (
     <>
@@ -600,6 +600,18 @@ const useCurrentRecipe = () => {
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const recipe = useSuggestedRecipeAtIndex(index);
   const [isExpanded, setIsExpanded] = useState(index === 0);
+  const send = useSend();
+
+  const handleOpenChange = useCallback(
+    (value: boolean) => {
+      setIsExpanded(value);
+
+      if (value && recipe?.id) {
+        send({ type: "VIEW_RECIPE", id: recipe.id });
+      }
+    },
+    [setIsExpanded, send, recipe?.id]
+  );
 
   return (
     <Card className="carousel-item relative flex flex-col w-full">
@@ -624,30 +636,30 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               </div>
             )}
           </div>
-          <div className="flex flex-col gap-1 items-center">
-            <AddButton slug={recipe?.slug} />
-            <ShareButton
-              slug={recipe?.slug}
-              name={recipe?.name!}
-              description={recipe?.description!}
-            />
-            <PrintButton slug={recipe?.slug} />
-          </div>
+          {isExpanded && recipe?.metadataComplete && (
+            <div className="flex flex-col gap-1 items-center">
+              <AddButton id={recipe?.id} />
+              <ShareButton
+                slug={recipe?.slug}
+                name={recipe?.name!}
+                description={recipe?.description!}
+              />
+              <PrintButton slug={recipe?.slug} />
+            </div>
+          )}
         </div>
       </div>
       <Separator />
       <Collapsible
         open={isExpanded}
         className="overflow-hidden"
-        onOpenChange={(value) => {
-          setIsExpanded(value);
-        }}
+        onOpenChange={handleOpenChange}
       >
         {!isExpanded && (
           <CollapsibleTrigger asChild>
             <div className="flex flex-row gap-1 items-center justify-center text-s py-3 cursor-pointer">
               <Badge variant="secondary">
-                View Full <ChevronDownIcon className="ml-1" size={14} />
+                View <ChevronDownIcon className="ml-1" size={14} />
               </Badge>
             </div>
           </CollapsibleTrigger>
@@ -656,7 +668,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2">
             <span>Yields</span>
             <span>
-              <Yield />
+              <Yield index={index} />
             </span>
           </div>
           <Separator />
@@ -890,11 +902,11 @@ const Tags = ({ index }: { index: number }) => {
   );
 };
 
-const Yield = () => {
+const Yield = ({ index }) => {
   const session$ = usePageSessionStore();
   const session = useStore(session$);
   const recipeId =
-    session.context.suggestedRecipes[session.context.currentItemIndex];
+    session.context.suggestedRecipes[index];
   if (!recipeId) {
     return (
       <div className="flex flex-row gap-1">
@@ -1654,7 +1666,7 @@ const PrintButton = ({ slug }: { slug?: string }) => {
   );
 };
 
-const AddButton = ({ slug }: { slug?: string }) => {
+const AddButton = ({ id }: { id: string | undefined }) => {
   // const actor = useContext(CraftContext);
 
   // const selectIsFilled = useCallback(
@@ -1671,8 +1683,8 @@ const AddButton = ({ slug }: { slug?: string }) => {
 
   return (
     <div className="flex flex-row justify-center w-full">
-      {slug ? (
-        <Button event={{ type: "ADD_TO_LIST" }}>
+      {id ? (
+        <Button event={{ type: "ADD_TO_LIST", id }}>
           <PlusCircleIcon />
         </Button>
       ) : (

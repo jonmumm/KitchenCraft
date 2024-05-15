@@ -1260,7 +1260,10 @@ function formatCreateTime(createdAt: Date | string | number): string {
 
 export const CraftStickyHeader = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="crafting:sticky top-0 crafting:z-50 bg-white dark:bg-current crafting:shadow-xl crafting:rounded-b-xl">
+    <div
+      className="crafting:sticky top-0 crafting:z-50 bg-white dark:bg-slate-950 crafting:shadow-xl crafting:rounded-b-xl border-b-transparent crafting:border-slate-300 crafting:dark:border-slate-700"
+      style={{ borderBottomWidth: "1px" }}
+    >
       {children}
     </div>
   );

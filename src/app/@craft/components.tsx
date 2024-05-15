@@ -287,7 +287,7 @@ const SuggestedRecipesSection = () => {
     <CraftNotEmpty>
       <div className="flex flex-col gap-3 items-center px-4">
         <SuggestedRecipeCards />
-        <LoadMoreCard />
+        {/* <LoadMoreCard /> */}
         {/* {items.map((item, index) => {
           return (
             <Card key={index} className="carousel-item w-4/5">
