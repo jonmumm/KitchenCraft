@@ -170,6 +170,7 @@ export type PageSessionContext = {
       complete: boolean;
       metadataComplete: boolean;
       started: boolean;
+      fullStarted: boolean;
     }
   >;
   generatingRecipeId: string | undefined;
@@ -1549,6 +1550,7 @@ export const pageSessionMachine = setup({
                           id,
                           versionId: 0,
                           started: false,
+                          fullStarted: false,
                           complete: false,
                           metadataComplete: false,
                         };
@@ -1558,36 +1560,34 @@ export const pageSessionMachine = setup({
                   initial: "InstantRecipe",
                   on: {
                     VIEW_RECIPE: {
-                      actions: spawnChild("generateFullRecipe", {
-                        input: ({ context, event }) => {
-                          assert(
-                            event.type === "VIEW_RECIPE",
-                            "expected event to be view recipe"
-                          );
-
-                          const recipe = context.recipes[event.id];
-                          assert(
-                            recipe?.name,
-                            "expected recipe to have name when generating full recipe"
-                          );
-                          assert(
-                            recipe.description,
-                            "expected recipe to have description when generating full recipe"
-                          );
-                          assert(recipe.id, "expected recipe to have an id");
-
-                          return {
-                            prompt: context.prompt,
-                            tokens: context.tokens,
-                            id: recipe.id,
-                            name: recipe.name,
-                            description: recipe.description,
-                          };
-                        },
-                      }),
-                    },
-                    FULL_RECIPE_PROGRESS: {
                       actions: [
+                        spawnChild("generateFullRecipe", {
+                          input: ({ context, event }) => {
+                            assert(
+                              event.type === "VIEW_RECIPE",
+                              "expected event to be view recipe"
+                            );
+
+                            const recipe = context.recipes[event.id];
+                            assert(
+                              recipe?.name,
+                              "expected recipe to have name when generating full recipe"
+                            );
+                            assert(
+                              recipe.description,
+                              "expected recipe to have description when generating full recipe"
+                            );
+                            assert(recipe.id, "expected recipe to have an id");
+
+                            return {
+                              prompt: context.prompt,
+                              tokens: context.tokens,
+                              id: recipe.id,
+                              name: recipe.name,
+                              description: recipe.description,
+                            };
+                          },
+                        }),
                         assign(({ context, event }) =>
                           produce(context, (draft) => {
                             const recipe = draft.recipes[event.id];
@@ -1595,17 +1595,23 @@ export const pageSessionMachine = setup({
                               recipe,
                               "expected recipe when updating recipe progress"
                             );
-                            const metadataComplete =
-                              recipe.metadataComplete ||
-                              !!event.data.recipe?.yield;
                             draft.recipes[event.id] = {
                               ...recipe,
-                              metadataComplete,
-                              ...event.data.recipe,
+                              fullStarted: true,
                             };
                           })
                         ),
                       ],
+
+                      guard: ({ context, event }) => {
+                        const recipe = context.recipes?.[event.id];
+                        assert(
+                          recipe,
+                          "expected recipe to exist when viewing full"
+                        );
+
+                        return !recipe.fullStarted;
+                      },
                     },
                     FULL_RECIPE_COMPLETE: {
                       actions: [
