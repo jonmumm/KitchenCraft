@@ -686,14 +686,14 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           )}
           <CollapsibleContent>
             {isExpanded && recipe?.metadataComplete && (
-              <div className="flex flex-row gap-1 p-2">
-                <Button variant="ghost" className="flex-1">
+              <div className="flex flex-row gap-1 p-2 max-w-xl mx-auto justify-center">
+                <Button variant="ghost" className="flex-2">
                   Share <ShareIcon className="ml-2" />
                 </Button>
-                <Button className="flex-2">
+                <Button className="flex-1">
                   Add <PlusCircleIcon className="ml-2" />
                 </Button>
-                <Button variant="ghost" className="flex-1">
+                <Button variant="ghost" className="flex-2">
                   Print <PrinterIcon className="ml-2" />
                 </Button>
                 {/* <AddButton id={recipe?.id} />
@@ -773,9 +773,7 @@ const CarouselContainer = ({
   return (
     <div
       style={isFocused ? { zIndex: 65 } : {}}
-      className={cn(
-        isFocused ? "absolute inset-0 mb-16" : "max-w-xl w-full",
-      )}
+      className={cn(isFocused ? "absolute inset-0 mb-16" : "max-w-xl w-full")}
     >
       <ScrollLockComponent
         active={isFocused}
