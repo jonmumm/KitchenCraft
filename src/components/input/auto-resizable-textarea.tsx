@@ -11,6 +11,7 @@ import { usePageSessionStoreMatchesState } from "@/hooks/usePageSessionStoreMatc
 import { useSelectorCallback } from "@/hooks/useSelectorCallback";
 import { useSend } from "@/hooks/useSend";
 import { assert, shuffle } from "@/lib/utils";
+import { ExtractAppEvent } from "@/types";
 import { produce } from "immer";
 
 import React, {
@@ -22,7 +23,7 @@ import React, {
   useContext,
   useEffect,
   useRef,
-  useSyncExternalStore
+  useSyncExternalStore,
 } from "react";
 import { createSelector } from "reselect";
 
@@ -68,7 +69,8 @@ const AutoResizableTextarea: React.FC<
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    textarea.style.height = "28px"; // the h-7 line-height value, todo make dynamic
+    const minHeight = "86px";
+    textarea.style.height = minHeight; // todo should be dynamicd?
 
     // Resize logic
     const computedStyle = window.getComputedStyle(textarea);
@@ -86,8 +88,24 @@ const AutoResizableTextarea: React.FC<
     }, 0);
   });
   useEventHandler("CLEAR", resizeTextarea);
-  useEventHandler("ADD_TOKEN", resizeTextarea);
-  useEventHandler("REMOVE_TOKEN", resizeTextarea);
+  const onAddToken = useCallback(
+    (event: ExtractAppEvent<"ADD_TOKEN">) => {
+      const currentValue = textareaRef.current?.value || "";
+
+      let nextValue;
+      if (currentValue.length) {
+        nextValue = currentValue + `, ${event.token}`;
+      } else {
+        nextValue = event.token;
+      }
+      if (textareaRef.current) {
+        textareaRef.current.value = nextValue;
+      }
+      resizeTextarea();
+    },
+    [resizeTextarea]
+  );
+  useEventHandler("ADD_TOKEN", onAddToken);
 
   useEffect(() => {
     resizeTextarea();
@@ -124,8 +142,21 @@ const AutoResizableTextarea: React.FC<
 
   const Textarea = () => {
     // const value = useSelector(actor, (state) => state.context.prompt);
+
+    // const handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> =
+    //   useCallback((e) => {
+    //     alert(e.key);
+    //     if (e.key === "Enter") {
+    //       alert("ENTER!");
+    //       e.preventDefault();
+    //       e.currentTarget.blur(); // Close the keyboard
+    //     }
+    //   }, []);
+
     const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
       (e) => {
+        // alert(e.nativeEvent.key);
+        console.log(e.nativeEvent);
         onChange && onChange(e);
         resizeTextarea();
       },
@@ -148,24 +179,9 @@ const AutoResizableTextarea: React.FC<
 
     const PlaceholderAnimation = () => {
       const isPristine = usePromptIsPristine();
-      // const [placeholdersGenerating, setPlaceholderGenerating] =
-      //   useState(false);
-      const session$ = useContext(PageSessionContext);
       const placeholdersGenerating = usePageSessionStoreMatchesState({
         Craft: { Generators: { Placeholder: "Generating" } },
       });
-      console.log({ placeholdersGenerating });
-
-      // const placeholderGenerating = useSyncExternalStoreWithSelector(
-      //   session$.subscribe,
-      //   () => {
-      //     return session$.get().context;
-      //   },
-      //   () => session$.get().context,
-      //   ({ tokens }) => {
-      //     return tokens;
-      //   },
-      // );
 
       const Animation = () => {
         const intervalIdRef = useRef<NodeJS.Timeout | null>(null);

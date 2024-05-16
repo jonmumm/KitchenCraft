@@ -102,7 +102,7 @@ import {
 } from "./recipe/[slug]/products/recipe-products-stream";
 import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
-import { buildInput, generateUrlSafeHash } from "./utils";
+import { buildInput } from "./utils";
 
 type ListsBySlugRecord = Record<
   string,
@@ -155,7 +155,6 @@ export type PageSessionContext = {
   initialCaller: Caller;
   createdBy?: string;
   prompt: string;
-  inputHash: string | undefined;
   chefname: string | undefined;
   email: string | undefined;
   previousSuggestedChefnames: string[];
@@ -642,53 +641,6 @@ export const pageSessionMachine = setup({
       Object.values(context.adInstances).map((item) => item.product);
       return false;
     },
-    shouldRunInput: ({ context, event }) => {
-      if (event.type === "ADD_TOKEN") {
-        const hash = generateUrlSafeHash(
-          buildInput({
-            prompt: event.token,
-            tokens: context.tokens,
-          })
-        );
-        return hash !== context.inputHash;
-        // } else if (event.type === "SET_INPUT") {
-        //   return true;
-      }
-
-      if (event.type === "UNDO") {
-        const hash = generateUrlSafeHash(
-          buildInput({
-            prompt: context.prompt,
-            tokens: context.tokens,
-          })
-        );
-
-        const patch = context.undoOperations[context.undoOperations.length - 1];
-        assert(patch, "expected patch");
-        const nextContext = produce(context, (draft) => {
-          applyPatch(draft, patch);
-        });
-
-        const nextHash = generateUrlSafeHash(buildInput(nextContext));
-        const nextInput = buildInput(nextContext);
-
-        return !!nextInput.length && hash !== nextHash;
-      }
-
-      if (event.type === "REMOVE_TOKEN") {
-        const input = buildInput({
-          prompt: event.token,
-          tokens: context.tokens.filter((token) => token !== event.token),
-        });
-        return !!input.length;
-      }
-
-      if (event.type === "NEW_RECIPE") {
-        return !!event.prompt?.length || !!event.tokens?.length;
-      }
-
-      assert(false, "unhandled event type: " + event.type);
-    },
   },
   actions: {
     resetSuggestions: assign({
@@ -792,7 +744,6 @@ export const pageSessionMachine = setup({
     numCompletedRecipes: 0,
     numCompletedRecipeMetadata: 0,
     tokens: [],
-    inputHash: undefined,
     recipes: {},
     suggestedRecipes: [],
     generatingRecipeId: undefined,
@@ -1058,7 +1009,6 @@ export const pageSessionMachine = setup({
                   assign({
                     prompt: "",
                     tokens: [],
-                    inputHash: undefined,
                     undoOperations: ({ context, event }) => [
                       ...context.undoOperations,
                       compare(
@@ -1082,7 +1032,6 @@ export const pageSessionMachine = setup({
                   "resetSuggestions",
                   assign({
                     prompt: "",
-                    inputHash: undefined,
                     undoOperations: ({ context, event }) => [
                       ...context.undoOperations,
                       compare(
@@ -1141,25 +1090,17 @@ export const pageSessionMachine = setup({
             ADD_TOKEN: {
               actions: [
                 assign({
-                  tokens: ({ context, event }) => [
-                    ...context.tokens,
-                    event.token,
-                  ],
-                  undoOperations: ({ context, event }) => [
-                    ...context.undoOperations,
-                    compare(
-                      {
-                        prompt: context.prompt,
-                        tokens: [...context.tokens, event.token],
-                        currentItemIndex: context.currentItemIndex,
-                      },
-                      {
-                        prompt: context.prompt,
-                        tokens: context.tokens,
-                        currentItemIndex: context.currentItemIndex,
-                      }
-                    ),
-                  ],
+                  prompt: ({ context, event }) => {
+                    const currentValue = context.prompt;
+
+                    let nextValue;
+                    if (currentValue.length) {
+                      nextValue = currentValue + `, ${event.token}`;
+                    } else {
+                      nextValue = event.token;
+                    }
+                    return nextValue;
+                  },
                 }),
               ],
             },
@@ -1168,13 +1109,6 @@ export const pageSessionMachine = setup({
                 "resetSuggestions",
                 assign({
                   prompt: ({ event }) => event.value,
-                  inputHash: ({ event, context }) =>
-                    generateUrlSafeHash(
-                      buildInput({
-                        prompt: event.value,
-                        tokens: context.tokens,
-                      })
-                    ),
                 }),
               ],
             },
@@ -1457,61 +1391,15 @@ export const pageSessionMachine = setup({
           type: "parallel",
           on: {
             CLEAR: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle"],
-            REMOVE_TOKEN: [
-              {
-                target: [
-                  ".Placeholder.Generating",
-                  ".Tokens.Generating",
-                  ".Recipes.Generating",
-                ],
-                actions: [
-                  "resetSuggestions",
-                  assign({
-                    inputHash: ({ context, event }) => {
-                      return generateUrlSafeHash(
-                        buildInput({
-                          prompt: context.prompt,
-                          tokens: context.tokens.filter(
-                            (token) => token !== event.token
-                          ),
-                        })
-                      );
-                    },
-                  }),
-                ],
-                guard: "shouldRunInput",
-              },
-              {
-                target: [
-                  ".Placeholder.Idle",
-                  ".Tokens.Idle",
-                  ".Recipes.Idle",
-                  // ".CurrentRecipe.Idle",
-                ],
-                actions: assign({
-                  inputHash: undefined,
-                }),
-              },
-            ],
             NEW_RECIPE: {
               target: [
                 ".Placeholder.Generating",
                 ".Tokens.Generating",
                 ".Recipes.Generating",
               ],
-              actions: [
-                "resetSuggestions",
-                assign({
-                  inputHash: ({ context, event }) => {
-                    const input = buildInput({
-                      prompt: context.prompt,
-                      tokens: context.tokens,
-                    });
-                    return generateUrlSafeHash(input);
-                  },
-                }),
-              ],
-              guard: "shouldRunInput",
+              actions: ["resetSuggestions"],
+              guard: ({ event }) =>
+                !!event.prompt?.length || !!event.tokens?.length,
             },
             ADD_TOKEN: {
               target: [
@@ -1519,19 +1407,7 @@ export const pageSessionMachine = setup({
                 ".Tokens.Generating",
                 ".Recipes.Generating",
               ],
-              actions: [
-                "resetSuggestions",
-                assign({
-                  inputHash: ({ context, event }) =>
-                    generateUrlSafeHash(
-                      buildInput({
-                        prompt: context.prompt,
-                        tokens: context.tokens,
-                      })
-                    ),
-                }),
-              ],
-              guard: "shouldRunInput",
+              actions: ["resetSuggestions"],
             },
             SET_INPUT: [
               {

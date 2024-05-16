@@ -20,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
+import ScrollLockComponent from "@/components/scroll-lock";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
@@ -32,13 +33,17 @@ import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
 import {
   CarrotIcon,
-  ChevronDownIcon,
   ClockIcon,
+  ExpandIcon,
+  Loader2Icon,
   MoveLeftIcon,
   PlusCircleIcon,
+  PlusIcon,
   PrinterIcon,
   ScrollIcon,
+  ShareIcon,
   ShoppingBasketIcon,
+  ShrinkIcon,
   TagIcon,
   XIcon,
 } from "lucide-react";
@@ -63,12 +68,12 @@ import { twc } from "react-twc";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
 import { CraftContext } from "../context";
+import { CraftSnapshot } from "../machine";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { SessionStoreSnapshot } from "../page-session-store-provider";
 import { PageSessionContext } from "../page-session-store.context";
-import { ShareButton } from "../recipe/components.client";
 import { buildInput, isEqual } from "../utils";
-// import {
+import { useCraftContext } from "./hooks";
 //   selectIsCreating,
 //   selectIsRemixing,
 //   selectPromptLength,
@@ -135,11 +140,8 @@ export const CraftNotOpen = ({ children }: { children: ReactNode }) => {
 };
 
 export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
   const promptLength = usePromptLength();
-  const numTokens = useNumTokens();
-
-  return numTokens || promptLength !== 0 ? <>{children}</> : null;
+  return promptLength !== 0 ? <>{children}</> : null;
 };
 
 // const selectIsShowingAddedRecipe = (state: CraftSnapshot) =>
@@ -379,10 +381,12 @@ export const LoadMoreCard = () => {
 };
 
 const usePromptLength = () => {
-  const session = usePageSessionStore();
-  const [length, setLength] = useState(session.get().context.prompt.length);
-  useEventHandler("SET_INPUT", ({ value }) => setLength(value.length));
-  return length;
+  const actor = useContext(CraftContext);
+  const promptLength = useSelector(
+    actor,
+    (state) => state.context.prompt.length
+  );
+  return promptLength;
 };
 
 const useNumTokens = () => {
@@ -554,39 +558,11 @@ const useSuggestedRecipeAtIndex = (index: number) => {
       return recipe;
     }
   );
-
-  // const session = useStore(session$);
-  // // const recipeId =
-  // //   session.context.suggestedRecipes[session.context.currentItemIndex];
-  // // if (!recipeId) {
-  // //   return null;
-  // // }
-  // // const recipe = session.context.recipes[recipeId];
-  // // if (!recipe) {
-  // //   return null;
-  // // }
-  // const recipeId =
-  //   session.context.suggestedRecipes[session.context.currentItemIndex];
-  // if (!recipeId) {
-  //   return null;
-  // }
-
-  // const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
-  // return recipe;
 };
 
 const useCurrentRecipe = () => {
   const session$ = usePageSessionStore();
   const session = useStore(session$);
-  // const recipeId =
-  //   session.context.suggestedRecipes[session.context.currentItemIndex];
-  // if (!recipeId) {
-  //   return null;
-  // }
-  // const recipe = session.context.recipes[recipeId];
-  // if (!recipe) {
-  //   return null;
-  // }
   const recipeId =
     session.context.suggestedRecipes[session.context.currentItemIndex];
   if (!recipeId) {
@@ -599,122 +575,213 @@ const useCurrentRecipe = () => {
 
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const recipe = useSuggestedRecipeAtIndex(index);
-  const [isExpanded, setIsExpanded] = useState(index === 0);
+
+  const actor = useCraftContext();
+  const selectIsFocused = useCallback(
+    (state: CraftSnapshot) => {
+      return !!recipe?.id && state.context.focusedRecipeId === recipe.id;
+    },
+    [recipe?.id]
+  );
+  const isFocused = useSelector(actor, selectIsFocused);
+  const isExpanded = isFocused;
   const send = useSend();
 
   const handleOpenChange = useCallback(
     (value: boolean) => {
-      setIsExpanded(value);
-
       if (value && recipe?.id) {
         send({ type: "VIEW_RECIPE", id: recipe.id });
       }
     },
-    [setIsExpanded, send, recipe?.id]
+    [send, recipe?.id]
   );
 
   return (
-    <Card className="carousel-item relative flex flex-col w-full">
-      <div className="flex flex-col p-4">
-        <div className="flex flex-row gap-2 w-full">
-          <div className="flex flex-col gap-2 w-full">
-            <CardTitle className="flex flex-row items-center gap-2">
-              {index + 1}.{" "}
-              {recipe?.name ? (
-                <p className="flex-1">{recipe.name}</p>
+    <CarouselContainer index={index}>
+      <Card
+        className={cn(
+          "carousel-item relative flex flex-col w-full",
+          isFocused ? "mb-24" : ""
+        )}
+      >
+        <div className="flex flex-col p-4">
+          <div className="flex flex-row gap-2 w-full">
+            <div className="flex flex-col gap-2 w-full">
+              <CardTitle className="flex flex-row items-center gap-2">
+                {index + 1}.{" "}
+                {recipe?.name ? (
+                  <p className="flex-1">{recipe.name}</p>
+                ) : (
+                  <div className="flex-1 flex flex-row gap-2">
+                    <SkeletonSentence className="h-7" numWords={4} />
+                  </div>
+                )}
+              </CardTitle>
+              {recipe?.description ? (
+                <CardDescription>{recipe.description}</CardDescription>
               ) : (
-                <div className="flex-1 flex flex-row gap-2">
-                  <SkeletonSentence className="h-7" numWords={4} />
+                <div className="flex-1">
+                  <SkeletonSentence className="h-4" numWords={12} />
                 </div>
               )}
-            </CardTitle>
-            {recipe?.description ? (
-              <CardDescription>{recipe.description}</CardDescription>
-            ) : (
-              <div className="flex-1">
-                <SkeletonSentence className="h-4" numWords={12} />
+              {isExpanded && (
+                <div className="text-muted-foreground text-xs flex flex-row gap-2">
+                  <span>Yields</span>
+                  <span>
+                    <Yield index={index} />
+                  </span>
+                </div>
+              )}
+            </div>
+            {isExpanded && recipe?.id && recipe.name && (
+              <div className="flex flex-col gap-1 items-center">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  event={{ type: "EXIT" }}
+                >
+                  <ShrinkIcon />
+                </Button>
+              </div>
+            )}
+            {!isExpanded && recipe?.id && recipe.name && (
+              <div className="flex flex-col gap-1 items-center">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  event={{ type: "VIEW_RECIPE", id: recipe.id }}
+                >
+                  <ExpandIcon />
+                </Button>
               </div>
             )}
           </div>
-          {isExpanded && recipe?.metadataComplete && (
-            <div className="flex flex-col gap-1 items-center">
-              <AddButton id={recipe?.id} />
-              <ShareButton
-                slug={recipe?.slug}
-                name={recipe?.name!}
-                description={recipe?.description!}
-              />
-              <PrintButton slug={recipe?.slug} />
-            </div>
-          )}
         </div>
-      </div>
-      <Separator />
-      <Collapsible
-        open={isExpanded}
-        className="overflow-hidden"
-        onOpenChange={handleOpenChange}
+        <Separator />
+        <Collapsible
+          open={isFocused}
+          className="overflow-hidden"
+          onOpenChange={handleOpenChange}
+        >
+          {!isExpanded && (
+            <CollapsibleTrigger asChild disabled={!recipe?.name}>
+              <div className="flex flex-row gap-1 items-center justify-center text-s py-3 cursor-pointer">
+                {recipe?.id && recipe.name ? (
+                  <Badge
+                    variant="secondary"
+                    event={{ type: "ADD_TO_LIST", id: recipe.id }}
+                  >
+                    Add <PlusIcon className="ml-1" size={14} />
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">
+                    <span className="text-muted-foreground flex flex-row gap-1">
+                      <span>Generating</span>
+                      <Loader2Icon size={16} className="animate-spin" />
+                    </span>
+                  </Badge>
+                )}
+              </div>
+            </CollapsibleTrigger>
+          )}
+          <CollapsibleContent>
+            {isExpanded && recipe?.metadataComplete && (
+              <div className="flex flex-row gap-1 p-2">
+                <Button variant="ghost" className="flex-1">
+                  Share <ShareIcon className="ml-2" />
+                </Button>
+                <Button className="flex-2">
+                  Add <PlusCircleIcon className="ml-2" />
+                </Button>
+                <Button variant="ghost" className="flex-1">
+                  Print <PrinterIcon className="ml-2" />
+                </Button>
+                {/* <AddButton id={recipe?.id} />
+                <ShareButton
+                  slug={recipe?.slug}
+                  name={recipe?.name!}
+                  description={recipe?.description!}
+                />
+                <PrintButton slug={recipe?.slug} /> */}
+              </div>
+            )}
+            {/* <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2"></div> */}
+            <Separator />
+            <div>
+              <Times
+                activeTime={recipe?.activeTime}
+                totalTime={recipe?.totalTime}
+                cookTime={recipe?.cookTime}
+              />
+            </div>
+            <Separator />
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Ingredients
+                </h3>
+                <ShoppingBasketIcon />
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <ul className="list-disc pl-5 flex flex-col gap-2">
+                  <Ingredients index={index} />
+                </ul>
+              </div>
+            </div>
+            <Separator />
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Instructions
+                </h3>
+                <ScrollIcon />
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <ol className="list-decimal pl-5 flex flex-col gap-2">
+                  <Instructions index={index} />
+                </ol>
+              </div>
+            </div>
+            <Separator />
+            <div className="py-2">
+              <Tags index={index} />
+            </div>
+            <Separator />
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+    </CarouselContainer>
+  );
+};
+
+const CarouselContainer = ({
+  children,
+  index,
+}: {
+  children: ReactNode;
+  index: number;
+}) => {
+  const recipe = useSuggestedRecipeAtIndex(index);
+  const actor = useCraftContext();
+  const selectIsFocused = useCallback(
+    (state: CraftSnapshot) => {
+      return !!recipe?.id && state.context.focusedRecipeId === recipe.id;
+    },
+    [recipe?.id]
+  );
+  const isFocused = useSelector(actor, selectIsFocused);
+  return (
+    <div
+      style={isFocused ? { zIndex: 65 } : {}}
+      className={isFocused ? "absolute inset-0 mb-16" : ""}
+    >
+      <ScrollLockComponent
+        active={isFocused}
+        className={isFocused ? "p-4" : ""}
       >
-        {!isExpanded && (
-          <CollapsibleTrigger asChild>
-            <div className="flex flex-row gap-1 items-center justify-center text-s py-3 cursor-pointer">
-              <Badge variant="secondary">
-                View <ChevronDownIcon className="ml-1" size={14} />
-              </Badge>
-            </div>
-          </CollapsibleTrigger>
-        )}
-        <CollapsibleContent>
-          <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2">
-            <span>Yields</span>
-            <span>
-              <Yield index={index} />
-            </span>
-          </div>
-          <Separator />
-          <div>
-            <Times
-              activeTime={recipe?.activeTime}
-              totalTime={recipe?.totalTime}
-              cookTime={recipe?.cookTime}
-            />
-          </div>
-          <Separator />
-          <div className="px-5">
-            <div className="flex flex-row justify-between gap-1 items-center py-4">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Ingredients
-              </h3>
-              <ShoppingBasketIcon />
-            </div>
-            <div className="mb-4 flex flex-col gap-2">
-              <ul className="list-disc pl-5 flex flex-col gap-2">
-                <Ingredients index={index} />
-              </ul>
-            </div>
-          </div>
-          <Separator />
-          <div className="px-5">
-            <div className="flex flex-row justify-between gap-1 items-center py-4">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Instructions
-              </h3>
-              <ScrollIcon />
-            </div>
-            <div className="mb-4 flex flex-col gap-2">
-              <ol className="list-decimal pl-5 flex flex-col gap-2">
-                <Instructions index={index} />
-              </ol>
-            </div>
-          </div>
-          <Separator />
-          <div className="py-2">
-            <Tags index={index} />
-          </div>
-          <Separator />
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
+        {children}
+      </ScrollLockComponent>
+    </div>
   );
 };
 

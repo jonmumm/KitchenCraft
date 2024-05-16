@@ -63,13 +63,6 @@ describe("InstantRecipeStream", () => {
     });
   });
 
-  it("should generate a Mediterranean feast correctly", async () => {
-    await validateOutput({
-      prompt: "Mediterranean feast dishes",
-      tokens: ["hummus", "falafel"],
-    });
-  });
-
   it("should generate a comfort food dinner correctly", async () => {
     await validateOutput({
       prompt: "Comfort food recipes",

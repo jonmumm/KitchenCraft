@@ -139,6 +139,11 @@ export type WithCloudFlareProps<T> = T & { cf?: CloudFlareProps };
 export type WithPostHogClient<T> = T & { postHogClient: PostHog };
 export type Ingredient = (typeof ingredients)[0];
 
+export type ExtractAppEvent<T extends AppEvent["type"]> = Extract<
+  AppEvent,
+  { type: T }
+>;
+
 export type TempRecipe = z.infer<typeof TempRecipeSchema>;
 export type DishType = z.infer<typeof DishTypeSchema>;
 export type CookingTime = z.infer<typeof CookingTimeSchema>;

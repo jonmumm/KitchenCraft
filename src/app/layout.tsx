@@ -29,6 +29,7 @@ import { Toaster } from "sonner";
 import "../styles/globals.css";
 import {
   Body,
+  CarouselOverlay,
   CraftStickyHeader,
   CreateNewListCard,
   EnterChefNameCard,
@@ -189,6 +190,7 @@ export default async function RootLayout(
                 <SaveDialog />
                 <PersonalizationSettingsDialog />
                 <UpgradeAccountDialog />
+                <CarouselOverlay />
                 {/* <OnboardingDialog /> */}
               </ThemeProvider>
               <Toaster />

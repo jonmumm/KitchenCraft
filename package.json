@@ -20,6 +20,7 @@
     "@ducanh2912/next-pwa": "^10.1.0",
     "@hookform/resolvers": "^3.3.2",
     "@langchain/azure-openai": "^0.0.8",
+    "@langchain/cloudflare": "^0.0.5",
     "@langchain/community": "^0.0.55",
     "@langchain/groq": "^0.0.9",
     "@langchain/openai": "^0.0.28",

@@ -116,6 +116,10 @@ export const CraftAutoComplete = () => {
   );
 };
 
+const selectPrompt = (snapshot: PageSessionSnapshot) => {
+  return snapshot.context.prompt;
+};
+
 export const CraftInput = ({
   commandBadge,
   initialAutoFocus,
@@ -127,9 +131,9 @@ export const CraftInput = ({
 }) => {
   const initialBlurRef = useRef(false);
   const initialFocusRef = useRef(false);
-  const [initialValue] = useState("");
+  const store = usePageSessionStore();
+  const [initialValue] = useState(selectPrompt(store.get()));
   const actor = useContext(CraftContext);
-  console.log("input");
 
   const [autoFocus, setAutofocus] = useState(
     actor.getSnapshot().value.Hydration === "Waiting" && initialAutoFocus
@@ -205,8 +209,8 @@ export const CraftInput = ({
     return (
       <ChevronRight
         className={cn(
-          isOpen ? "w-0" : "w-4",
-          "ml-4 h-4 shrink-0 opacity-50 self-start mt-1.5"
+          isOpen ? "w-0 ml-1" : "w-4 ml-4",
+          "h-4 shrink-0 opacity-50 self-start mt-1.5"
         )}
       />
     );
@@ -248,7 +252,7 @@ export const CraftInput = ({
       <CraftNotEmpty>
         <XCircleIcon
           onClick={handleClear}
-          className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 active:opacity-30 cursor-pointer"
+          className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 active:opacity-30 cursor-pointer sticky bottom-0"
         />
       </CraftNotEmpty>
       <script
@@ -362,6 +366,29 @@ export const HomepageSuggestedTokens = () => {
             </div>
           );
         })}
+    </>
+  );
+};
+
+const selectNumItemsInList = (snapshot: PageSessionSnapshot) => {
+  return snapshot.context.currentListRecipeIds.length;
+};
+
+export const ListIndicator = () => {
+  const store = usePageSessionStore();
+  const numItemsInList = useSyncExternalStore(
+    store.subscribe,
+    () => selectNumItemsInList(store.get()),
+    () => selectNumItemsInList(store.get())
+  );
+
+  return (
+    <>
+      {numItemsInList !== 0 && (
+        <span className="indicator-item badge badge-neutral p-1 text-xs">
+          {numItemsInList}
+        </span>
+      )}
     </>
   );
 };

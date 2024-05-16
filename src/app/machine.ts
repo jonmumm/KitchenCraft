@@ -91,14 +91,15 @@ export const createCraftMachine = ({
     //   searchParams["tags"] && tagsParser.parseServerSide(searchParams["tags"]);
 
     return {
+      prompt,
       ingredients: undefined,
       tags: undefined,
       suggestions: null,
+      focusedRecipeId: undefined,
       substitutions: undefined,
       dietaryAlternatives: undefined,
       savedRecipeSlugs: [],
       equipmentAdaptations: undefined,
-      submittedInputHash: undefined,
       currentRecipeUrl: undefined,
       scrollItemIndex: 0,
       token,
@@ -401,100 +402,6 @@ export const createCraftMachine = ({
             LoggedIn: {},
           },
         },
-        // type: "parallel",
-        // states: {
-        //   Adding: {
-        //     initial: "False",
-        //     states: {
-        //       False: {
-        //         initial: "Pristine",
-        //         on: {
-        //           CHANGE_LIST: {
-        //             target: "True",
-        //           },
-        //           SAVE: [
-        //             {
-        //               target: ".Added",
-        //               guard: () => !!store.get().context.currentListSlug,
-        //             },
-        //             {
-        //               target: "True",
-        //               actions: assign(({ context }) =>
-        //                 produce(context, (draft) => {
-        //                   const {
-        //                     currentItemIndex,
-        //                     suggestedRecipes,
-        //                     recipes,
-        //                   } = store.get().context;
-        //                   const recipeId =
-        //                     suggestedRecipes[currentItemIndex];
-        //                   assert(
-        //                     recipeId,
-        //                     "expected recipeId when adding to list"
-        //                   );
-        //                   const recipe = recipes[recipeId];
-        //                   assert(
-        //                     recipe,
-        //                     "expected recipe when adding to list"
-        //                   );
-        //                   assert(
-        //                     recipe.slug,
-        //                     "expected recipe slug when adding to list"
-        //                   );
-        //                   draft.savedRecipeSlugs.push(recipe.slug);
-        //                 })
-        //               ),
-        //             },
-        //           ],
-        //         },
-        //         states: {
-        //           Pristine: {},
-        //           Added: {
-        //             id: "RecipeAdded",
-        //             on: {
-        //               NEXT: "Pristine",
-        //               PREV: "Pristine",
-        //               SCROLL_INDEX: "Pristine",
-        //               CLEAR: "Pristine",
-        //             },
-        //           },
-        //         },
-        //       },
-        //       True: {
-        //         type: "parallel",
-        //         on: {
-        //           SELECT_LIST: "#RecipeAdded",
-        //           CANCEL: "False",
-        //           SUBMIT: "#RecipeAdded",
-        //         },
-        //         states: {
-        //           ListCreating: {
-        //             initial: "False",
-        //             states: {
-        //               False: {
-        //                 on: {
-        //                   CREATE_LIST: "True",
-        //                 },
-        //               },
-        //               True: {},
-        //             },
-        //           },
-        //           // Lists: {
-        //           //   invoke: {
-        //           //     src: "waitForSessionValue",
-        //           //     input: {
-        //           //       selector(snapshot) {
-        //           //         return !!snapshot.context.currentListSlug;
-        //           //       },
-        //           //       timeoutMs: 10000,
-        //           //     },
-        //           //   },
-        //           // },
-        //         },
-        //       },
-        //     },
-        //   },
-        // },
         Typing: {
           initial: "False",
           states: {
@@ -515,6 +422,30 @@ export const createCraftMachine = ({
                   reenter: true,
                 },
               },
+            },
+          },
+        },
+        Input: {
+          on: {
+            SET_INPUT: {
+              actions: assign({
+                prompt: ({ event }) => event.value,
+              }),
+            },
+            ADD_TOKEN: {
+              actions: assign({
+                prompt: ({ context, event }) => {
+                  const currentValue = context.prompt;
+
+                  let nextValue;
+                  if (currentValue.length) {
+                    nextValue = currentValue + `, ${event.token}`;
+                  } else {
+                    nextValue = event.token;
+                  }
+                  return nextValue;
+                },
+              }),
             },
           },
         },
@@ -578,6 +509,9 @@ export const createCraftMachine = ({
                     };
                   },
                 },
+                assign({
+                  prompt: "",
+                }),
               ],
             },
           },
@@ -936,6 +870,30 @@ export const createCraftMachine = ({
               actions: assign({
                 scrollItemIndex: ({ event }) => event.index,
               }),
+            },
+          },
+
+          initial: "Closed",
+          states: {
+            Closed: {
+              on: {
+                VIEW_RECIPE: {
+                  target: "Open",
+                  actions: assign({
+                    focusedRecipeId: ({ event }) => event.id,
+                  }),
+                },
+              },
+            },
+            Open: {
+              on: {
+                EXIT: {
+                  target: "Closed",
+                  actions: assign({
+                    focusedRecipeId: () => undefined,
+                  }),
+                },
+              },
             },
           },
         },

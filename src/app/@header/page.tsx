@@ -14,7 +14,6 @@ import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile, getTimezone } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import {
-  ArrowLeftIcon,
   ChefHatIcon,
   GripVerticalIcon,
   ListIcon,
@@ -22,11 +21,12 @@ import {
 } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
-import { HomepageSuggestedTokens } from "./components.client";
+import { HomepageSuggestedTokens, ListIndicator } from "./components.client";
 
 export default async function Page({}) {
   const userId = await getCurrentUserId();
   const profile = userId ? await getProfileByUserId(userId) : undefined;
+
   return (
     <>
       <div className="mx-auto w-full h-[40vh] crafting:h-auto relative">
@@ -67,32 +67,34 @@ export default async function Page({}) {
           </MenuSheet>
         </div>
         <div
-          className={`flex flex-col h-full justify-between p-4 max-w-3xl mx-auto`}
+          className={`flex flex-col h-full justify-between p-2 max-w-3xl mx-auto`}
         >
           <TypeLogo className="h-20 crafting:hidden" />
           <div className="flex flex-col gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
             <PromptHeader />
-            <p className="crafting:hidden text-muted-foreground text-sm mb-2">
+            <p className="crafting:hidden text-muted-foreground text-sm mb-2 px-2">
               ⚡️ Instantly create personalized recipes.
             </p>
-            <div className="flex flex-row gap-1 items-center">
-              <div className="hidden crafting:block">
-                <Button variant={"ghost"} event={{ type: "CLOSE" }} size="icon">
-                  <ArrowLeftIcon />
-                </Button>
-              </div>
+            <div className="flex flex-row gap-2 items-center">
               <CraftCTA initialAutoFocus={!getIsMobile()} />
-              <div className="hidden crafting:block indicator">
-                <span className="indicator-item badge badge-neutral p-1 text-xs">
-                  1
-                </span>
+              <div className="hidden crafting:flex flex-col gap-3 items-center">
                 <Button
                   variant={"ghost"}
-                  event={{ type: "VIEW_LIST" }}
-                  size="icon"
+                  event={{ type: "CLOSE" }}
+                  className="text-xs text-semibold"
                 >
-                  <ListIcon />
+                  CLOSE
                 </Button>
+                <div className="indicator">
+                  <ListIndicator />
+                  <Button
+                    variant={"outline"}
+                    event={{ type: "VIEW_LIST" }}
+                    size="icon"
+                  >
+                    <ListIcon />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -125,5 +127,5 @@ const PromptHeader = () => {
     greeting = "Looking for a snack?";
   }
 
-  return <h2 className="text-2xl font-medium crafting:hidden">{greeting}</h2>;
+  return <h2 className="text-2xl font-medium crafting:hidden px-2">{greeting}</h2>;
 };

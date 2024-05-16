@@ -67,6 +67,7 @@ import {
   EnterEmailForm,
   EnterListNameForm,
 } from "./@craft/components.client";
+import { useCraftContext } from "./@craft/hooks";
 import { CraftContext } from "./context";
 import { EQUIPMENT_ITEMS, MISC_ONBORADING_QUESTIONS } from "./data";
 import { CraftSnapshot } from "./machine";
@@ -880,14 +881,14 @@ export const IsInputtingChefName = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
-const selectIsCreatingList = (state: CraftSnapshot) =>
-  state.matches({
-    Auth: { LoggedIn: { Adding: { True: { ListCreating: "True" } } } },
-  });
+const selectIsCreatingList = (state: CraftSnapshot) => false;
+// state.matches({
+//   Auth: { LoggedIn: { Adding: { True: { ListCreating: "True" } } } },
+// });
 
-const selectIsSelectingList = (state: CraftSnapshot) =>
-  state.matches({ Auth: { LoggedIn: { Adding: "True" } } }) &&
-  !selectIsCreatingList(state);
+const selectIsSelectingList = (state: CraftSnapshot) => false;
+// state.matches({ Auth: { LoggedIn: { Adding: "True" } } }) &&
+// !selectIsCreatingList(state);
 
 export const IsSelectingList = (props: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
@@ -1266,5 +1267,20 @@ export const CraftStickyHeader = ({ children }: { children: ReactNode }) => {
     >
       {children}
     </div>
+  );
+};
+
+export const CarouselOverlay = () => {
+  const actor = useCraftContext();
+  const isCarouselOpen = useSelector(actor, (state) =>
+    state.matches({ Carousel: "Open" })
+  );
+  return isCarouselOpen ? (
+    <div
+      style={{ zIndex: 60 }}
+      className="bg-black opacity-60 absolute inset-0"
+    ></div>
+  ) : (
+    <></>
   );
 };

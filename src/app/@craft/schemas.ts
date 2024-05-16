@@ -14,7 +14,8 @@ export const ContextSchema = z.object({
   savedRecipeSlugs: z.array(z.string()),
   currentRecipeUrl: z.string().optional(),
   currentRemixSlug: z.string().optional(),
-  // prompt: z.string().optional(),
+  focusedRecipeId: z.string(). optional(),
+  prompt: z.string(),
   ingredients: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   selection: z
@@ -33,7 +34,6 @@ export const ContextSchema = z.object({
   dietaryAlternatives: IdeasPredictionPartialOutputSchema.shape.ideas,
   // scrollViewRef: z.custom<RefObject<HTMLDivElement>>(),
   // resultId: z.string().nullable(),
-  submittedInputHash: z.string().optional(),
   suggestionsResultId: z.string().optional(),
   instantRecipeResultId: z.string().optional(),
   instantRecipeMetadata:

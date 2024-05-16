@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { ReactNode, forwardRef, useEffect, useRef } from "react";
 
 export const useScrollLock = (isActive: boolean) => {
@@ -26,14 +27,17 @@ export const useScrollLock = (isActive: boolean) => {
 
 const ScrollLockComponent = forwardRef<
   HTMLDivElement,
-  { children: ReactNode; active: boolean }
->(({ children, active }, ref) => {
+  { children: ReactNode; active: boolean; className?: string }
+>(({ children, active, className }, ref) => {
   useScrollLock(active);
 
   return (
     <div
       ref={ref}
-      className={active ? `overflow-auto h-screen pointer-events-auto` : ``}
+      className={cn(
+        active ? `overflow-auto h-screen pointer-events-auto` : ``,
+        className
+      )}
     >
       {children}
     </div>

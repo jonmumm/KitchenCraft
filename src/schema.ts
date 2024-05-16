@@ -80,9 +80,9 @@ export const SecretsEnvironmentSchema = z.object({
   GOOGLE_CUSTOM_SEARCH_API_KEY: z.string(),
   GOOGLE_CUSTOM_SEARCH_ENGINE_ID: z.string(),
   VAPID_PRIVATE_KEY: z.string(),
-  AZURE_OPENAI_API_KEY: z.string(),
-  AZURE_OPENAI_DEPLOYMENT_NAME: z.string(),
-  AZURE_OPENAI_INSTANCE_NAME: z.string(),
+  // AZURE_OPENAI_API_KEY: z.string(),
+  // AZURE_OPENAI_DEPLOYMENT_NAME: z.string(),
+  // AZURE_OPENAI_INSTANCE_NAME: z.string(),
 });
 
 export const PublicEnvironmentSchema = z.object({
@@ -1026,7 +1026,12 @@ const ViewRecipeEventSchema = z.object({
   id: z.string(),
 });
 
+const ExitEventSchema = z.object({
+  type: z.literal("EXIT"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ExitEventSchema,
   ViewRecipeEventSchema,
   ViewListEventSchema,
   LoadMoreEventSchema,

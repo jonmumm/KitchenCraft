@@ -161,7 +161,7 @@ export const CraftCTA = ({
 
   return (
     <>
-      <div className="w-full relative shadow-xl rounded-3xl flex flex-col border-2 border-muted py-2 focus-within:border-blue-500 active:border-blue-300 gap-2">
+      <div className="w-full relative shadow-xl rounded-xl py-2 flex flex-col border-2 border-muted focus-within:border-blue-500 active:border-blue-300 gap-2">
         {/* <CraftPromptNotEmpty>
         <CraftAutoComplete />
       </CraftPromptNotEmpty> */}
