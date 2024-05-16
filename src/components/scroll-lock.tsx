@@ -35,7 +35,7 @@ const ScrollLockComponent = forwardRef<
     <div
       ref={ref}
       className={cn(
-        active ? `overflow-auto h-screen pointer-events-auto` : ``,
+        active ? `overflow-y-auto overflow-x-hidden h-screen pointer-events-auto` : ``,
         className
       )}
     >

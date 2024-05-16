@@ -773,7 +773,9 @@ const CarouselContainer = ({
   return (
     <div
       style={isFocused ? { zIndex: 65 } : {}}
-      className={isFocused ? "absolute inset-0 mb-16" : ""}
+      className={cn(
+        isFocused ? "absolute inset-0 mb-16" : "max-w-xl w-full",
+      )}
     >
       <ScrollLockComponent
         active={isFocused}
