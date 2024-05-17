@@ -10,6 +10,7 @@ import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
 import { socket$ } from "@/stores/socket";
+import { produce } from "immer";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { toast } from "sonner";
 import {
@@ -22,6 +23,7 @@ import {
 } from "xstate";
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
+import { AddedToListToast } from "./added-to-list-toast";
 import { PageSessionSnapshot } from "./page-session-machine";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
@@ -100,6 +102,7 @@ export const createCraftMachine = ({
       dietaryAlternatives: undefined,
       savedRecipeSlugs: [],
       equipmentAdaptations: undefined,
+      currentListRecipeIds: [],
       currentRecipeUrl: undefined,
       scrollItemIndex: 0,
       token,
@@ -425,6 +428,24 @@ export const createCraftMachine = ({
             },
           },
         },
+        List: {
+          on: {
+            ADD_TO_LIST: {
+              guard: ({ context, event }) => !context.currentListRecipeIds.includes(event.id),
+              actions: [
+                () => {
+                  toast(<AddedToListToast />);
+                },
+                assign({
+                  currentListRecipeIds: ({ context, event }) =>
+                    produce(context.currentListRecipeIds, (draft) => {
+                      draft.push(event.id);
+                    }),
+                }),
+              ],
+            },
+          },
+        },
         Input: {
           on: {
             SET_INPUT: {
@@ -515,29 +536,6 @@ export const createCraftMachine = ({
               ],
             },
           },
-          // states: {
-          //   Dirty: {
-          //     entry: () => {
-          //       document.body.classList.add("prompt-dirty");
-          //       document.body.classList.remove("prompt-pristine");
-          //     },
-          //     always: {
-          //       target: "Pristine",
-          //       guard: ({ context }) =>
-          //         !context.prompt || context.prompt === "",
-          //     },
-          //   },
-          //   Pristine: {
-          //     entry: () => {
-          //       document.body.classList.remove("prompt-dirty");
-          //       document.body.classList.add("prompt-pristine");
-          //     },
-          //     always: {
-          //       target: "Dirty",
-          //       guard: ({ context }) => !!context.prompt?.length,
-          //     },
-          //   },
-          // },
         },
         Open: {
           initial: initialOpen,
@@ -545,32 +543,6 @@ export const createCraftMachine = ({
             ADD_TOKEN: ".True",
             SET_INPUT: {
               target: ".True",
-              actions: [
-                // {
-                //   type: "replaceQueryParameters",
-                //   params({ event }) {
-                //     return {
-                //       paramSet: {
-                //         prompt: event.value,
-                //       },
-                //     };
-                //   },
-                // },
-              ],
-            },
-            ADD_TO_LIST: {
-              actions: () => {
-                toast.message("Added to list", {
-                  description: "Tuesday Chicken Ideas",
-                  action: {
-                    label: "View",
-                    onClick: () => {
-                      console.log("HI");
-                      // event$.set({ type: "VIEW_LIST" });
-                    },
-                  },
-                });
-              },
             },
           },
           states: {
@@ -854,7 +826,7 @@ export const createCraftMachine = ({
             },
           },
         },
-        Carousel: {
+        RecipeDetail: {
           on: {
             PREV: {
               actions: assign({

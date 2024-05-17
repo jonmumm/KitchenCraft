@@ -47,7 +47,7 @@ export const ActorProvider = (props: {
       {
         method: "POST",
         body: JSON.stringify({
-          type: "HEART_BEAT",
+          type: "HEARTBEAT",
         } satisfies AppEvent),
       }
     ).then(noop);

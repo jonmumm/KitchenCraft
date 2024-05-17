@@ -991,8 +991,8 @@ const VisibilityChangeEventSchema = z.object({
   visibilityState: VisibilityStateEnum,
 });
 
-const HeartBeatEventSchema = z.object({
-  type: z.literal("HEART_BEAT"),
+const HeartbeatEventSchema = z.object({
+  type: z.literal("HEARTBEAT"),
   cf: z.custom<CloudFlareProps>().optional(),
 });
 
@@ -1039,7 +1039,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   SocketConnectingEventSchema,
   SocketCloseEventSchema,
   SocketErrorEventSchema,
-  HeartBeatEventSchema,
+  HeartbeatEventSchema,
   ExperienceChangeEventSchema,
   EquipmentChangeEventSchema,
   DietChangeEventSchema,

@@ -38,7 +38,9 @@ import {
   useSyncExternalStore,
 } from "react";
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
+import { useCraftContext } from "../@craft/hooks";
 import { CraftContext } from "../context";
+import { CraftSnapshot } from "../machine";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
 
@@ -370,17 +372,13 @@ export const HomepageSuggestedTokens = () => {
   );
 };
 
-const selectNumItemsInList = (snapshot: PageSessionSnapshot) => {
+const selectNumItemsInList = (snapshot: CraftSnapshot) => {
   return snapshot.context.currentListRecipeIds.length;
 };
 
 export const ListIndicator = () => {
-  const store = usePageSessionStore();
-  const numItemsInList = useSyncExternalStore(
-    store.subscribe,
-    () => selectNumItemsInList(store.get()),
-    () => selectNumItemsInList(store.get())
-  );
+  const actor = useCraftContext();
+  const numItemsInList = useSelector(actor, selectNumItemsInList);
 
   return (
     <>

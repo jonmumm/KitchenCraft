@@ -31,6 +31,7 @@ import { ChefNameSchema, ListNameSchema } from "@/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
+import { Portal } from "@radix-ui/react-portal";
 import {
   CarrotIcon,
   ClockIcon,
@@ -67,6 +68,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { twc } from "react-twc";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
+import { RecipeDetailOverlay } from "../components.client";
 import { CraftContext } from "../context";
 import { CraftSnapshot } from "../machine";
 import { PageSessionSnapshot } from "../page-session-machine";
@@ -438,41 +440,6 @@ const useNumCompletedRecipes = () => {
   );
 };
 
-const useSuggestedRecipeSlugAtIndex = (index: number) => {
-  const session$ = usePageSessionStore();
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context;
-    },
-    () => {
-      return session$.get().context;
-    },
-    (context) => {
-      const recipeId = context.suggestedRecipes[index];
-      return !!recipeId ? context.recipes[recipeId]?.slug : undefined;
-    }
-  );
-};
-
-const useCurrentRecipeSlug = () => {
-  const session$ = usePageSessionStore();
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context;
-    },
-    () => {
-      return session$.get().context;
-    },
-    (context) => {
-      const recipeId = context.suggestedRecipes[context.currentItemIndex];
-
-      return !!recipeId ? context.recipes[recipeId]?.slug : undefined;
-    }
-  );
-};
-
 const useNumCards = () => {
   const session$ = usePageSessionStore();
   return useSyncExternalStoreWithSelector(
@@ -597,7 +564,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   );
 
   return (
-    <CarouselContainer index={index}>
+    <RecipeDetailContainer index={index}>
       <Card
         className={cn(
           "carousel-item relative flex flex-col w-full",
@@ -750,11 +717,11 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           </CollapsibleContent>
         </Collapsible>
       </Card>
-    </CarouselContainer>
+    </RecipeDetailContainer>
   );
 };
 
-const CarouselContainer = ({
+const RecipeDetailContainer = ({
   children,
   index,
 }: {
@@ -775,6 +742,11 @@ const CarouselContainer = ({
       style={isFocused ? { zIndex: 65 } : {}}
       className={cn(isFocused ? "absolute inset-0 mb-16" : "max-w-xl w-full")}
     >
+      {isFocused && (
+        <Portal>
+          <RecipeDetailOverlay />
+        </Portal>
+      )}
       <ScrollLockComponent
         active={isFocused}
         className={isFocused ? "p-4" : ""}

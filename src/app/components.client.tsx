@@ -1270,12 +1270,12 @@ export const CraftStickyHeader = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const CarouselOverlay = () => {
+export const RecipeDetailOverlay = () => {
   const actor = useCraftContext();
-  const isCarouselOpen = useSelector(actor, (state) =>
-    state.matches({ Carousel: "Open" })
+  const isRecipeDetail = useSelector(actor, (state) =>
+    state.matches({ RecipeDetail: "Open" })
   );
-  return isCarouselOpen ? (
+  return isRecipeDetail ? (
     <div
       style={{ zIndex: 60 }}
       className="bg-black opacity-60 absolute inset-0"

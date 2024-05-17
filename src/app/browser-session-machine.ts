@@ -223,7 +223,7 @@ export const browserSessionMachine = setup({
     },
     Connections: {
       on: {
-        HEART_BEAT: {
+        HEARTBEAT: {
           actions: assign(({ context, event }) => {
             return produce(context, (draft) => {
               const cf = event?.cf;
@@ -296,7 +296,7 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                HEART_BEAT: {
+                HEARTBEAT: {
                   target: "Running",
                   guard: ({ event, context }) =>
                     !context.lastRunPersonalizationContext,
@@ -333,7 +333,7 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                HEART_BEAT: {
+                HEARTBEAT: {
                   target: "Running",
                   guard: ({ event, context }) =>
                     !context.lastRunPersonalizationContext,
@@ -370,7 +370,7 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                HEART_BEAT: {
+                HEARTBEAT: {
                   target: "Running",
                   guard: ({ event, context }) =>
                     !context.lastRunPersonalizationContext,
@@ -407,7 +407,7 @@ export const browserSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                HEART_BEAT: {
+                HEARTBEAT: {
                   target: "Running",
                   guard: ({ event, context }) =>
                     !context.lastRunPersonalizationContext,
