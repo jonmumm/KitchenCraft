@@ -17,11 +17,17 @@ export class SuggestTokensStream extends TokenStream<{
   timeContext: string;
   personalizationContext: string;
 }> {
-  protected async getUserMessage(input: { timeContext: string, personalizationContext: string }): Promise<string> {
-    return `${input.timeContext}`;
+  protected async getUserMessage(input: {
+    timeContext: string;
+    personalizationContext: string;
+  }): Promise<string> {
+    return `${input.timeContext} ${input.personalizationContext}`;
   }
 
-  protected async getSystemMessage(_: { timeContext: string, personalizationContext: string }): Promise<string> {
+  protected async getSystemMessage(_: {
+    timeContext: string;
+    personalizationContext: string;
+  }): Promise<string> {
     const TEMPLATE = `
 Given the provided context about the current datetime, user's preferences and geographical information, suggest a set of word tokens to be displayed back to the user as buttons they can tap to initiate a prompt describing requirements for a recipe. Suggestions should be primarily ingredients, but also include things like kitchen equipment, cooking techniques, measurements, unit preferences, timing preferences, serving size preferences, among other things.
 
