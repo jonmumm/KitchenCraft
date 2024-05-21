@@ -48,7 +48,6 @@ import { SessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
 import "./styles.css";
 
-export const runtime = "edge";
 export const revalidate = 0;
 
 const APP_NAME = "KitchenCraft";
