@@ -39,12 +39,10 @@ import {
   Loader2Icon,
   MoveLeftIcon,
   PlusCircleIcon,
-  PlusIcon,
   PrinterIcon,
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  ShrinkIcon,
   TagIcon,
   XIcon,
 } from "lucide-react";
@@ -568,8 +566,13 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       <Card
         className={cn(
           "carousel-item relative flex flex-col w-full",
-          isFocused ? "mb-24" : ""
+          isExpanded ? "mb-24" : "cursor-pointer"
         )}
+        {...(!isExpanded && recipe?.id
+          ? {
+              event: { type: "VIEW_RECIPE", id: recipe.id },
+            }
+          : {})}
       >
         <div className="flex flex-col p-4">
           <div className="flex flex-row gap-2 w-full">
@@ -607,7 +610,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                   variant="secondary"
                   event={{ type: "EXIT" }}
                 >
-                  <ShrinkIcon />
+                  <XIcon />
                 </Button>
               </div>
             )}
@@ -615,10 +618,11 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               <div className="flex flex-col gap-1 items-center">
                 <Button
                   size="icon"
-                  variant="secondary"
-                  event={{ type: "VIEW_RECIPE", id: recipe.id }}
+                  variant="outline"
+                  event={{ type: "ADD_TO_LIST", id: recipe.id }}
                 >
-                  <ExpandIcon />
+                  <PlusCircleIcon />
+                  {/* <ExpandIcon /> */}
                 </Button>
               </div>
             )}
@@ -636,9 +640,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 {recipe?.id && recipe.name ? (
                   <Badge
                     variant="secondary"
-                    event={{ type: "ADD_TO_LIST", id: recipe.id }}
+                    event={{ type: "VIEW_RECIPE", id: recipe.id }}
                   >
-                    Add <PlusIcon className="ml-1" size={14} />
+                    View <ExpandIcon className="ml-1" size={14} />
                   </Badge>
                 ) : (
                   <Badge variant="secondary">
