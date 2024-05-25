@@ -6,6 +6,7 @@ import {
   SheetOverlay,
   SheetTrigger,
 } from "@/components/layout/sheet";
+import { ListIndicator } from "@/components/list-indicator";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
@@ -14,6 +15,7 @@ import {
   ChefHatIcon,
   GripVerticalIcon,
   HomeIcon,
+  ListIcon,
   Loader2Icon,
 } from "lucide-react";
 import { MainMenu } from "../menu/components";
@@ -42,23 +44,34 @@ export async function Footer({
             </Card>
           </NavigationLink>
           {/* // todo make dynamic */}
-          <NavigationLink
-            href={slug ? `/@${slug}` : "/my-cookbook"}
-            className="basis-36 min-w-0"
-          >
-            <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 px-2 gap-1">
-              <ChefHatIcon className="transitioning:hidden" />
-              <Loader2Icon className="hidden transitioning:block animate-spin" />
-              <FooterTabTitle isActive={currentTab === "profile"}>
-                {slug ? slug : "My Cookbook"}
-              </FooterTabTitle>
+          <div className="basis-36 min-w-0">
+            <Card
+              event={{ type: "VIEW_LIST" }}
+              className="flex flex-col items-center justify-center border-none shadow-none py-2 px-2 gap-1"
+            >
+              <div className="indicator">
+                <ListIndicator />
+                <ListIcon />
+              </div>
+              {/* <div className="indicator">
+      <ListIndicator />
+      <Badge
+        variant={"outline"}
+        event={{ type: "VIEW_LIST" }}
+        className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
+      >
+        <ListIcon className="mr-2" />
+        My Recipes
+      </Badge>
+    </div> */}
+              <FooterTabTitle isActive={false}>My Recipes</FooterTabTitle>
             </Card>
-          </NavigationLink>
+          </div>
           <MenuSheet>
             <SheetTrigger asChild>
               <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 gap-1 basis-36 min-w-0">
-                <GripVerticalIcon />
-                <FooterTabTitle isActive={false}>Menu</FooterTabTitle>
+                <ChefHatIcon />
+                <FooterTabTitle isActive={false}>Account</FooterTabTitle>
               </Card>
             </SheetTrigger>
             <SheetOverlay />

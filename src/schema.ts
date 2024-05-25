@@ -617,6 +617,11 @@ const AddToListEventSchema = z.object({
   id: z.string(),
 });
 
+const RemoveFromListEventSchema = z.object({
+  type: z.literal("REMOVE_FROM_LIST"),
+  id: z.string(),
+});
+
 const SaveEventSchema = z.object({
   type: z.literal("SAVE"),
   opts: z
@@ -1104,6 +1109,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ModifyRecipeDietaryEventSchema,
   SaveEventSchema,
   AddToListEventSchema,
+  RemoveFromListEventSchema,
   CloseEventSchema,
   NewRecipeEventSchema,
   ModifyEventSchema,

@@ -22,6 +22,7 @@ import {
 } from "@/components/input/form";
 import ScrollLockComponent from "@/components/scroll-lock";
 import { useEventHandler } from "@/hooks/useEventHandler";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
@@ -37,6 +38,7 @@ import {
   ClockIcon,
   ExpandIcon,
   Loader2Icon,
+  MinusCircleIcon,
   MoveLeftIcon,
   PlusCircleIcon,
   PrinterIcon,
@@ -44,7 +46,7 @@ import {
   ShareIcon,
   ShoppingBasketIcon,
   TagIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
@@ -551,6 +553,13 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const isFocused = useSelector(actor, selectIsFocused);
   const isExpanded = isFocused;
   const send = useSend();
+  const isAdded = usePageSessionSelector(
+    (state) =>
+      recipe?.id &&
+      state.context.browserSessionSnapshot?.context.currentListRecipeIds.includes(
+        recipe.id!
+      )
+  );
 
   const handleOpenChange = useCallback(
     (value: boolean) => {
@@ -566,7 +575,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       <Card
         className={cn(
           "carousel-item relative flex flex-col w-full",
-          isExpanded ? "mb-24" : "cursor-pointer"
+          isExpanded ? "mb-24" : recipe?.id ? "cursor-pointer" : ""
         )}
         {...(!isExpanded && recipe?.id
           ? {
@@ -615,15 +624,23 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               </div>
             )}
             {!isExpanded && recipe?.id && recipe.name && (
-              <div className="flex flex-col gap-1 items-center">
-                <Button
-                  size="icon"
-                  variant="outline"
-                  event={{ type: "ADD_TO_LIST", id: recipe.id }}
-                >
-                  <PlusCircleIcon />
-                  {/* <ExpandIcon /> */}
-                </Button>
+              <div className="flex flex-col justify-center">
+                {!isAdded ? (
+                  <Button
+                    size="icon"
+                    event={{ type: "ADD_TO_LIST", id: recipe.id }}
+                  >
+                    <PlusCircleIcon />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                  >
+                    <MinusCircleIcon />
+                  </Button>
+                )}
               </div>
             )}
           </div>

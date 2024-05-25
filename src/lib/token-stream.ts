@@ -1,4 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+
+
 
 import { privateEnv } from "@/env.secrets";
 import { StringOutputParser } from "@langchain/core/output_parsers";

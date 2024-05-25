@@ -13,7 +13,6 @@ export const ContextSchema = z.object({
   scrollItemIndex: z.number(),
   savedRecipeSlugs: z.array(z.string()),
   currentRecipeUrl: z.string().optional(),
-  currentListRecipeIds: z.array(z.string()),
   currentRemixSlug: z.string().optional(),
   focusedRecipeId: z.string().optional(),
   prompt: z.string(),

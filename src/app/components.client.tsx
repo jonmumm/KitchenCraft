@@ -27,6 +27,7 @@ import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
 import { Textarea } from "@/components/input/textarea";
 import { TypeLogo } from "@/components/logo";
+import { useScrollLock } from "@/components/scroll-lock";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
 import { ExperienceCard } from "@/components/settings/experience-card";
@@ -35,9 +36,11 @@ import { PreferenceCard } from "@/components/settings/preference-card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageSessionSnapshotConditionalRenderer } from "@/components/util/page-session-snapshot-conditiona.renderer";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
+import { selectCurrentListRecipeIds } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import {
   DietSettings,
@@ -46,7 +49,17 @@ import {
   UserPreferenceType,
 } from "@/types";
 import { useStore } from "@nanostores/react";
-import { ChevronsUpDown, HeartIcon, RefreshCwIcon, XIcon } from "lucide-react";
+import { Portal } from "@radix-ui/react-portal";
+import {
+  ArrowLeftIcon,
+  ChevronLeftIcon,
+  ChevronsUpDown,
+  HeartIcon,
+  RefreshCwIcon,
+  SaveIcon,
+  ShareIcon,
+  XIcon,
+} from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -510,6 +523,147 @@ const QuestionTextarea = (props: ComponentProps<typeof Textarea>) => {
 //   );
 // };
 
+const ListRecipeCard = twc(Card)`carousel-item`;
+
+const CurrentListCarouselItem = ({
+  id,
+  index,
+}: {
+  id: string;
+  index: number;
+}) => {
+  const recipe = useListRecipeAtIndex(index);
+
+  const isActive = usePageSessionSelector(
+    (state) => state.context.currentListRecipeIndex === index
+  );
+  console.log({ isActive });
+
+  return (
+    <Card className="carousel-item w-4/5" style={{ maxHeight: "100%" }}>
+      <div className="flex flex-col gap-2 w-full">
+        <CardTitle className="flex flex-row items-center gap-2">
+          {index + 1}.{" "}
+          {recipe?.name ? (
+            <p className="flex-1">{recipe.name}</p>
+          ) : (
+            <div className="flex-1 flex flex-row gap-2">
+              <SkeletonSentence className="h-7" numWords={4} />
+            </div>
+          )}
+        </CardTitle>
+        {recipe?.description ? (
+          <CardDescription>{recipe.description}</CardDescription>
+        ) : (
+          <div className="flex-1">
+            <SkeletonSentence className="h-4" numWords={12} />
+          </div>
+        )}
+        <div
+          style={{ height: "4000px", background: "black" }}
+          className="text-muted-foreground text-xs flex flex-row gap-2"
+        >
+          <span>Yields</span>
+          <span>
+            <Yield recipeId={recipe?.id} />
+          </span>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+const Yield = ({ recipeId }: { recipeId?: string }) => {
+  const val = usePageSessionSelector((state) =>
+    recipeId ? state.context.recipes?.[recipeId]?.yield : undefined
+  );
+  if (!recipeId) {
+    return (
+      <div className="flex flex-row gap-1">
+        <Skeleton className="w-4 h-4" />
+        <Skeleton className="w-10 h-4" />
+      </div>
+    );
+  }
+  if (!val) {
+    return (
+      <div className="flex flex-row gap-1">
+        <Skeleton className="w-4 h-4" />
+        <Skeleton className="w-10 h-4" />
+      </div>
+    );
+  }
+
+  return <>{val}</>;
+};
+
+const useListRecipeAtIndex = (index: number) => {
+  return usePageSessionSelector(
+    (state) =>
+      state.context.recipes?.[
+        state.context.browserSessionSnapshot?.context.currentListRecipeIds[
+          index
+        ] || -1
+      ]
+  );
+};
+
+export const CurrentListCarousel = () => {
+  // useScrollLock(true);
+  const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
+  useScrollLock(true);
+
+  return (
+    <Portal>
+      <div className="absolute inset-0 z-70 flex flex-col gap-2 py-2">
+        <Button
+          size="icon"
+          variant="ghost"
+          event={{ type: "PREV" }}
+          autoFocus={false}
+          className="absolute left-4 top-1/2"
+        >
+          <ChevronLeftIcon />
+        </Button>
+
+        <div className="flex flex-row gap-4 justify-start items-center px-4 sticky top-0 w-full max-w-3xl mx-auto">
+          <Button
+            size="icon"
+            variant="ghost"
+            event={{ type: "EXIT" }}
+            autoFocus={false}
+          >
+            <ArrowLeftIcon />
+          </Button>
+          <h2 className="text-xl font-bold">Tuesday Taco Ideas</h2>
+        </div>
+        {/* <div className="carousel carousel-center space-x-2 pl-2 pr-8"> */}
+        <div className="carousel pl-4 carousel-center md:pl-[20%] space-x-2 pr-8 flex-1">
+          {recipeIds.map((id, index) => (
+            <CurrentListCarouselItem key={id} id={id} index={index} />
+          ))}
+        </div>
+        <div className="flex flex-row items-center justify-center gap-2">
+          <Button>
+            Save List <SaveIcon className="ml-1" />
+          </Button>
+          <Button variant="outline">
+            Share
+            <ShareIcon />
+          </Button>
+        </div>
+      </div>
+      <Overlay />
+    </Portal>
+  );
+};
+
+const Overlay = () => {
+  return (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-60"></div>
+  );
+};
+
 export const PersonalizationSettingsMenu = () => {
   const equipment = useStore($equipment);
   const diet = useStore($diet);
@@ -854,6 +1008,15 @@ export const EnterEmailCard = () => {
       </CardContent>
     </Card>
   );
+};
+
+export const IsInCurrentListView = (props: { children: ReactNode }) => {
+  const actor = useContext(CraftContext);
+  const active = useSelector(actor, (state) =>
+    state.matches({ ListView: { Open: "True" } })
+  );
+
+  return active ? <>{props.children}</> : null;
 };
 
 export const IsInPersonalizationSettings = (props: { children: ReactNode }) => {

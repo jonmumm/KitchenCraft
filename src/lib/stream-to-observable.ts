@@ -14,7 +14,7 @@ type WithComplete<T extends string> = `${T}_COMPLETE`;
 
 export type StreamObservableEvent<
   TEventType extends string,
-  TOutput extends object,
+  TOutput extends object | string,
 > =
   | {
       type: WithStart<TEventType>;
