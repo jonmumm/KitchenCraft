@@ -818,6 +818,7 @@ export const createCraftMachine = ({
                 },
                 True: {
                   on: {
+                    NEW_RECIPE: "False",
                     EXIT: "False",
                   },
                 },

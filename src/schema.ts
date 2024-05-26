@@ -668,6 +668,10 @@ const ModifyRecipeIngredientsEventSchema = z.object({
 const ToggleEventSchema = z.object({
   type: z.literal("TOGGLE"),
 });
+
+const ClearListEventSchema = z.object({
+  type: z.literal("CLEAR_LIST"),
+});
 const ClearEventSchema = z.object({
   type: z.literal("CLEAR"),
   all: z.boolean().optional(),
@@ -1098,6 +1102,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   SignInEventSchema,
   SignOutEventSchema,
   ClearEventSchema,
+  ClearListEventSchema,
   ToggleEventSchema,
   CreateNewRecipeEventSchema,
   SuggestRecipesEventSchema,

@@ -22,10 +22,11 @@ import {
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
-import { Progress } from "@/components/feedback/progress";
+import { Ingredients } from "@/components/ingredients";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
-import { Textarea } from "@/components/input/textarea";
+import { Instructions } from "@/components/instructions";
+import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
 import { useScrollLock } from "@/components/scroll-lock";
 import { DietCard } from "@/components/settings/diet-card";
@@ -33,43 +34,40 @@ import { EquipmentCard } from "@/components/settings/equipment-card";
 import { ExperienceCard } from "@/components/settings/experience-card";
 import { GroceryQuestions } from "@/components/settings/grocery";
 import { PreferenceCard } from "@/components/settings/preference-card";
+import { Tags } from "@/components/tags";
+import { Times } from "@/components/times";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageSessionSnapshotConditionalRenderer } from "@/components/util/page-session-snapshot-conditiona.renderer";
+import { Yield } from "@/components/yield";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
-import { useSend } from "@/hooks/useSend";
 import { selectCurrentListRecipeIds } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
-import {
-  DietSettings,
-  EquipmentSettings,
-  TasteSettings,
-  UserPreferenceType,
-} from "@/types";
+import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
 import { useStore } from "@nanostores/react";
 import { Portal } from "@radix-ui/react-portal";
 import {
-  ArrowLeftIcon,
   ChevronLeftIcon,
+  ChevronRightIcon,
   ChevronsUpDown,
   HeartIcon,
   RefreshCwIcon,
   SaveIcon,
+  ScrollIcon,
   ShareIcon,
+  ShoppingBasketIcon,
   XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  ComponentProps,
   ReactNode,
   useCallback,
   useContext,
   useEffect,
   useRef,
-  useState,
   useSyncExternalStore,
 } from "react";
 import { twc } from "react-twc";
@@ -82,7 +80,7 @@ import {
 } from "./@craft/components.client";
 import { useCraftContext } from "./@craft/hooks";
 import { CraftContext } from "./context";
-import { EQUIPMENT_ITEMS, MISC_ONBORADING_QUESTIONS } from "./data";
+import { MISC_ONBORADING_QUESTIONS } from "./data";
 import { CraftSnapshot } from "./machine";
 import { PageSessionSnapshot } from "./page-session-machine";
 
@@ -255,275 +253,8 @@ const OnboardingMiscQuestion = () => {
   );
 };
 
-const OnboardingExclusionsQuestion = () => {
-  const send = useSend();
-  const [empty, setEmpty] = useState(true);
-
-  return (
-    <QuestionContainer>
-      <Progress value={40} />
-      <QuestionHeader>
-        Do you have any dietary restrictions or ingredients you would like to
-        exclude from recipes?
-      </QuestionHeader>
-      <QuestionTextarea
-        autoFocus
-        placeholder="(e.g. nut allergies, no eggs, no dairy, vegan, gluten-free, keto)"
-        onChange={(event) => {
-          send({
-            type: "CHANGE",
-            name: "onboarding:exclusions",
-            value: event.currentTarget.value,
-          });
-          event.currentTarget.value.length ? setEmpty(false) : setEmpty(true);
-        }}
-      />
-      <Button
-        event={{
-          type: "NEXT",
-        }}
-      >
-        {empty ? <>No, Skip</> : <>Next</>}
-      </Button>
-    </QuestionContainer>
-  );
-  // return (
-  //   <div className="py-2">
-  //     <div className="flex flex-row gap-2 justify-between items-center px-2">
-  //       <h2 className="text-lg font-bold">Exclusions</h2>
-  //       <Button variant="outline" event={{ type: "CLOSE" }}>
-  //         <XIcon />
-  //       </Button>
-  //     </div>
-  //     <Button event={{ type: "NEXT" }} />
-  //   </div>
-  // );
-};
-
-const OnboardingComplete = () => {
-  return (
-    <div className="py-2">
-      <div className="flex flex-row gap-2 justify-between items-center px-2">
-        <h2 className="text-lg font-bold">Complete</h2>
-        <Button variant="outline" event={{ type: "CLOSE" }}>
-          <XIcon />
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const OnboardingIngredientsQuestion = () => {
-  const send = useSend();
-  const [empty, setEmpty] = useState(true);
-
-  return (
-    <QuestionContainer>
-      <QuestionHeader>
-        Now, what ingredients would you like to use? Let&apos;s come up with
-        some recipe ideas!
-      </QuestionHeader>
-      <QuestionTextarea
-        autoFocus
-        placeholder="(e.g., chicken, avocado, quinoa)"
-        onChange={(event) => {
-          send({
-            type: "CHANGE",
-            name: "onboarding:preferred_ingredients",
-            value: event.currentTarget.value,
-          });
-          event.currentTarget.value.length ? setEmpty(false) : setEmpty(true);
-        }}
-      />
-      <Button
-        disabled={empty}
-        event={{
-          type: "NEXT",
-        }}
-      >
-        Get Personalized Recipes
-      </Button>
-    </QuestionContainer>
-  );
-};
-
-const OnboardingEquipmentQuestion = () => {
-  return (
-    <div className="py-2">
-      <div className="flex flex-col gap-4 justify-between items-center px-2">
-        <QuestionHeader>Do you have any of these?</QuestionHeader>
-        <div className="flex flex-col gap-2 w-full">
-          {EQUIPMENT_ITEMS.map((item) => (
-            <div
-              key={item.id}
-              className="w-full flex items-center justify-between"
-            >
-              <QuestionSubQuestion>{item.equipment}</QuestionSubQuestion>
-              <div className="flex items-stretch flex-row gap-2">
-                <ToggleGroup type="single">
-                  <ToggleGroupItem value={"no"}>No</ToggleGroupItem>
-                  <ToggleGroupItem value={"yes"}>Yes</ToggleGroupItem>
-                </ToggleGroup>
-                {/* <Button
-                  variant="outline"
-                  event={{
-                    type: "SELECT_VALUE",
-                    name: `onboarding:equipment:${item.id}`,
-                    value: "no",
-                  }}
-                >
-                  No
-                </Button>
-                <Button
-                  variant="outline"
-                  event={{
-                    type: "SELECT_VALUE",
-                    name: `onboarding:equipment:${item.id}`,
-                    value: "yes",
-                  }}
-                >
-                  Yes
-                </Button> */}
-              </div>
-            </div>
-          ))}
-        </div>
-        <Button className="w-full" size="lg" event={{ type: "NEXT" }}>
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const QuestionContainer = twc.div`px-2 flex flex-col gap-2 py-2`;
 const QuestionHeader = twc.h2`text-lg font-bold`;
 const QuestionSubQuestion = twc.h3`text-md font-semibold`;
-const QuestionExamples = twc.div`text-sm text-muted-foreground`;
-
-const OnboardingMealTypeQuestion = () => {
-  return (
-    <QuestionContainer>
-      <Progress value={20} />
-      <QuestionHeader>
-        What kind of recipe would you like to make?
-      </QuestionHeader>
-      <Button
-        variant="outline"
-        event={{
-          type: "SELECT_VALUE",
-          name: "onboarding:meal_type",
-          value: "Breakfast",
-        }}
-      >
-        Breakfast
-      </Button>
-      <Button
-        variant="outline"
-        event={{
-          type: "SELECT_VALUE",
-          name: "onboarding:meal_type",
-          value: "Lunch",
-        }}
-      >
-        Lunch
-      </Button>
-      <Button
-        variant="outline"
-        event={{
-          type: "SELECT_VALUE",
-          name: "onboarding:meal_type",
-          value: "Lunch",
-        }}
-      >
-        Dinner
-      </Button>
-      <Button
-        variant="outline"
-        event={{
-          type: "SELECT_VALUE",
-          name: "onboarding:meal_type",
-          value: "Snack",
-        }}
-      >
-        Snack
-      </Button>
-      <Button
-        variant="outline"
-        event={{
-          type: "SELECT_VALUE",
-          name: "onboarding:meal_type",
-          value: "Appetizer",
-        }}
-      >
-        Appetizer
-      </Button>
-      <Button
-        variant="outline"
-        event={{
-          type: "SELECT_VALUE",
-          name: "onboarding:meal_type",
-          value: "Side",
-        }}
-      >
-        Side
-      </Button>
-      <Button
-        variant="outline"
-        event={{
-          type: "SELECT_VALUE",
-          name: "onboarding:meal_type",
-          value: "Dessert",
-        }}
-      >
-        Dessert
-      </Button>
-    </QuestionContainer>
-  );
-};
-
-const QuestionTextarea = (props: ComponentProps<typeof Textarea>) => {
-  return <Textarea className="text-lg my-2" {...props} />;
-};
-
-// export const OnboardingFlow = () => {
-//   return (
-//     <>
-//       <PageSessionSnapshotConditionalRenderer
-//         selector={selectIsInOnboardingMealType}
-//       >
-//         <OnboardingMealTypeQuestion />
-//       </PageSessionSnapshotConditionalRenderer>
-//       <PageSessionSnapshotConditionalRenderer
-//         selector={selectIsInOnboardingExclusions}
-//       >
-//         <OnboardingExclusionsQuestion />
-//       </PageSessionSnapshotConditionalRenderer>
-//       <PageSessionSnapshotConditionalRenderer
-//         selector={selectIsInOnboardingMisc}
-//       >
-//         <OnboardingMiscQuestion />
-//       </PageSessionSnapshotConditionalRenderer>
-//       <PageSessionSnapshotConditionalRenderer
-//         selector={selectIsInOnboardingEquipment}
-//       >
-//         <OnboardingEquipmentQuestion />
-//       </PageSessionSnapshotConditionalRenderer>
-//       <PageSessionSnapshotConditionalRenderer
-//         selector={selectIsInOnboardingIngredients}
-//       >
-//         <OnboardingIngredientsQuestion />
-//       </PageSessionSnapshotConditionalRenderer>
-//       <PageSessionSnapshotConditionalRenderer
-//         selector={selectIsInOnboardingComplete}
-//       >
-//         <OnboardingComplete />
-//       </PageSessionSnapshotConditionalRenderer>
-//     </>
-//   );
-// };
-
-const ListRecipeCard = twc(Card)`carousel-item`;
 
 const CurrentListCarouselItem = ({
   id,
@@ -534,67 +265,79 @@ const CurrentListCarouselItem = ({
 }) => {
   const recipe = useListRecipeAtIndex(index);
 
-  const isActive = usePageSessionSelector(
-    (state) => state.context.currentListRecipeIndex === index
-  );
-  console.log({ isActive });
-
   return (
-    <Card className="carousel-item w-4/5" style={{ maxHeight: "100%" }}>
-      <div className="flex flex-col gap-2 w-full">
-        <CardTitle className="flex flex-row items-center gap-2">
-          {index + 1}.{" "}
-          {recipe?.name ? (
-            <p className="flex-1">{recipe.name}</p>
+    <Card className="carousel-item h-100 w-[90vw] md:w-[45vw]">
+      <ScrollArea>
+        <div className="h-fit flex flex-col gap-2 p-2 py-4">
+          <CardTitle className="flex flex-row items-center gap-2 px-2">
+            {index + 1}.{" "}
+            {recipe?.name ? (
+              <p className="flex-1">{recipe.name}</p>
+            ) : (
+              <div className="flex-1 flex flex-row gap-2">
+                <SkeletonSentence className="h-7" numWords={4} />
+              </div>
+            )}
+          </CardTitle>
+          {recipe?.description ? (
+            <CardDescription className="px-2">
+              {recipe.description}
+            </CardDescription>
           ) : (
-            <div className="flex-1 flex flex-row gap-2">
-              <SkeletonSentence className="h-7" numWords={4} />
+            <div className="flex-1">
+              <SkeletonSentence className="h-4" numWords={12} />
             </div>
           )}
-        </CardTitle>
-        {recipe?.description ? (
-          <CardDescription>{recipe.description}</CardDescription>
-        ) : (
-          <div className="flex-1">
-            <SkeletonSentence className="h-4" numWords={12} />
+          <div className="text-muted-foreground text-xs flex flex-row gap-2 px-2">
+            <span>Yields</span>
+            <span>
+              <Yield recipeId={recipe?.id} />
+            </span>
           </div>
-        )}
-        <div
-          style={{ height: "4000px", background: "black" }}
-          className="text-muted-foreground text-xs flex flex-row gap-2"
-        >
-          <span>Yields</span>
-          <span>
-            <Yield recipeId={recipe?.id} />
-          </span>
         </div>
-      </div>
+        <Separator />
+        <div>
+          <Times
+            activeTime={recipe?.activeTime}
+            totalTime={recipe?.totalTime}
+            cookTime={recipe?.cookTime}
+          />
+        </div>
+        <Separator />
+        <div className="px-5">
+          <div className="flex flex-row justify-between gap-1 items-center py-4">
+            <h3 className="uppercase text-xs font-bold text-accent-foreground">
+              Ingredients
+            </h3>
+            <ShoppingBasketIcon />
+          </div>
+          <div className="mb-4 flex flex-col gap-2">
+            <ul className="list-disc pl-5 flex flex-col gap-2">
+              <Ingredients recipeId={recipe?.id} />
+            </ul>
+          </div>
+        </div>
+        <Separator />
+        <div className="px-5">
+          <div className="flex flex-row justify-between gap-1 items-center py-4">
+            <h3 className="uppercase text-xs font-bold text-accent-foreground">
+              Instructions
+            </h3>
+            <ScrollIcon />
+          </div>
+          <div className="mb-4 flex flex-col gap-2">
+            <ol className="list-decimal pl-5 flex flex-col gap-2">
+              <Instructions recipeId={recipe?.id} />
+            </ol>
+          </div>
+        </div>
+        <Separator />
+        <div className="py-2">
+          <Tags recipeId={recipe?.id} />
+        </div>
+      </ScrollArea>
     </Card>
   );
-};
-
-const Yield = ({ recipeId }: { recipeId?: string }) => {
-  const val = usePageSessionSelector((state) =>
-    recipeId ? state.context.recipes?.[recipeId]?.yield : undefined
-  );
-  if (!recipeId) {
-    return (
-      <div className="flex flex-row gap-1">
-        <Skeleton className="w-4 h-4" />
-        <Skeleton className="w-10 h-4" />
-      </div>
-    );
-  }
-  if (!val) {
-    return (
-      <div className="flex flex-row gap-1">
-        <Skeleton className="w-4 h-4" />
-        <Skeleton className="w-10 h-4" />
-      </div>
-    );
-  }
-
-  return <>{val}</>;
 };
 
 const useListRecipeAtIndex = (index: number) => {
@@ -616,40 +359,78 @@ export const CurrentListCarousel = () => {
   return (
     <Portal>
       <div className="absolute inset-0 z-70 flex flex-col gap-2 py-2">
-        <Button
-          size="icon"
-          variant="ghost"
-          event={{ type: "PREV" }}
-          autoFocus={false}
-          className="absolute left-4 top-1/2"
-        >
-          <ChevronLeftIcon />
-        </Button>
-
-        <div className="flex flex-row gap-4 justify-start items-center px-4 sticky top-0 w-full max-w-3xl mx-auto">
+        <CurrentListHasPreviousRecipes>
           <Button
             size="icon"
+            variant="secondary"
+            event={{ type: "PREV" }}
+            autoFocus={false}
+            className="absolute left-2 bottom-2 shadow-xl z-80"
+          >
+            <ChevronLeftIcon />
+          </Button>
+        </CurrentListHasPreviousRecipes>
+        <CurrentListHasNextRecipes>
+          <Button
+            size="icon"
+            variant="secondary"
+            event={{ type: "PREV" }}
+            autoFocus={false}
+            className="absolute right-2 bottom-2 shadow-xl z-80"
+          >
+            <ChevronRightIcon />
+          </Button>
+        </CurrentListHasNextRecipes>
+
+        <div className="flex flex-row gap-1 justify-start items-center px-4 sticky top-0 w-full max-w-3xl mx-auto">
+          <Button
+            variant="ghost"
+            event={{ type: "CLEAR_LIST" }}
+            autoFocus={false}
+            className="text-xs text-semibold"
+          >
+            CLEAR
+          </Button>
+          <Badge
+            variant="secondary"
+            className="flex-1 justify-center text-center text-lg font-bold"
+          >
+            My Recipes
+          </Badge>
+          <Button
             variant="ghost"
             event={{ type: "EXIT" }}
             autoFocus={false}
+            className="text-xs text-semibold"
           >
-            <ArrowLeftIcon />
+            CLOSE
           </Button>
-          <h2 className="text-xl font-bold">Tuesday Taco Ideas</h2>
         </div>
         {/* <div className="carousel carousel-center space-x-2 pl-2 pr-8"> */}
-        <div className="carousel pl-4 carousel-center md:pl-[20%] space-x-2 pr-8 flex-1">
-          {recipeIds.map((id, index) => (
-            <CurrentListCarouselItem key={id} id={id} index={index} />
-          ))}
-        </div>
+        <HasCurrentListItems>
+          <div className="carousel pl-4 carousel-center md:pl-[20%] space-x-2 pr-8 flex-1">
+            {recipeIds.map((id, index) => (
+              <CurrentListCarouselItem key={id} id={id} index={index} />
+            ))}
+          </div>
+        </HasCurrentListItems>
+        <CurrentListEmpty>
+          <div className="px-4 flex-1">
+            <Card className="h-full w-full flex flex-col gap-2 items-center justify-center">
+              <div>No recipes added yet.</div>
+              <Badge event={{ type: "NEW_RECIPE" }} variant="secondary">
+                Cook one up.
+              </Badge>
+            </Card>
+          </div>
+        </CurrentListEmpty>
         <div className="flex flex-row items-center justify-center gap-2">
           <Button>
             Save List <SaveIcon className="ml-1" />
           </Button>
           <Button variant="outline">
             Share
-            <ShareIcon />
+            <ShareIcon className="ml-1" />
           </Button>
         </div>
       </div>
@@ -741,60 +522,6 @@ const selectIsInOnboarding = (snapshot: PageSessionSnapshot) => {
   );
 };
 
-// const selectIsInOnboardingMealType = (snapshot: SessionSnapshot) => {
-//   const session = snapshot.context.browserSessionSnapshot;
-//   if (!session) {
-//     return false;
-//   }
-
-//   return session.value.Onboarding === "MealType";
-// };
-
-// const selectIsInOnboardingExclusions = (snapshot: SessionSnapshot) => {
-//   const session = snapshot.context.browserSessionSnapshot;
-//   if (!session) {
-//     return false;
-//   }
-
-//   return session.value.Onboarding === "Exclusions";
-// };
-
-const selectIsInOnboardingEquipment = (snapshot: PageSessionSnapshot) => {
-  const session = snapshot.context.browserSessionSnapshot;
-  if (!session) {
-    return false;
-  }
-
-  return session.value.Onboarding === "Equipment";
-};
-
-// const selectIsInOnboardingMisc = (snapshot: SessionSnapshot) => {
-//   const session = snapshot.context.browserSessionSnapshot;
-//   if (!session) {
-//     return false;
-//   }
-
-//   return session.value.Onboarding === "Misc";
-// };
-
-const selectIsInOnboardingComplete = (snapshot: PageSessionSnapshot) => {
-  const session = snapshot.context.browserSessionSnapshot;
-  if (!session) {
-    return false;
-  }
-
-  return session.value.Onboarding === "Complete";
-};
-
-// const selectIsInOnboardingIngredients = (snapshot: SessionSnapshot) => {
-//   const session = snapshot.context.browserSessionSnapshot;
-//   if (!session) {
-//     return false;
-//   }
-
-//   return session.value.Onboarding === "Ingredients";
-// };
-
 const selectIsUserPreferencesInitialized = (snapshot: PageSessionSnapshot) => {
   const state = snapshot.value;
   return (
@@ -846,47 +573,6 @@ const IsInitializingUserPreferences = ({
   );
 
   return active ? <>{children}</> : <></>;
-};
-
-const PreferenceEditor = ({
-  preference,
-  ...props
-}: { preference: UserPreferenceType } & ComponentProps<typeof Textarea>) => {
-  const send = useSend();
-  const session$ = usePageSessionStore();
-
-  const PreferenceTextArea = () => {
-    const [value, setValue] = useState(
-      session$.get().context.userPreferences[preference] || ""
-    );
-
-    return (
-      <Textarea
-        value={value}
-        className="text-lg my-2"
-        onChange={(event) => {
-          setValue(event.currentTarget.value);
-          send({
-            type: "UPDATE_USER_PREFERENCE",
-            key: preference,
-            value: [event.currentTarget.value],
-          });
-        }}
-        {...props}
-      />
-    );
-  };
-
-  return (
-    <>
-      <IsInitializingUserPreferences>
-        <Skeleton className="w-full h-20 animate-pulse" />
-      </IsInitializingUserPreferences>
-      <IsUserPreferencesInitialized>
-        <PreferenceTextArea />
-      </IsUserPreferencesInitialized>
-    </>
-  );
 };
 
 export const UpgradeAccountCard = () => {
@@ -1446,4 +1132,28 @@ export const RecipeDetailOverlay = () => {
   ) : (
     <></>
   );
+};
+
+const CurrentListHasNextRecipes = ({ children }: { children: ReactNode }) => {
+  return <>{children}</>;
+};
+
+const CurrentListHasPreviousRecipes = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  return <>{children}</>;
+};
+
+const CurrentListEmpty = ({ children }: { children: ReactNode }) => {
+  const recipe = useListRecipeAtIndex(0);
+
+  return !recipe ? <>{children}</> : <></>;
+};
+
+const HasCurrentListItems = ({ children }: { children: ReactNode }) => {
+  const recipe = useListRecipeAtIndex(0);
+
+  return !!recipe ? <>{children}</> : <></>;
 };
