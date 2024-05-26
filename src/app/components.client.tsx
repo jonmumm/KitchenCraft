@@ -396,6 +396,9 @@ export const CurrentListCarousel = () => {
             className="flex-1 justify-center text-center text-lg font-bold"
           >
             My Recipes
+            <span className="ml-1 text-sm bg-slate-300 dark:bg-slate-700 px-1 rounded">
+              <CurrentListCount />
+            </span>
           </Badge>
           <Button
             variant="ghost"
@@ -1157,4 +1160,13 @@ const HasCurrentListItems = ({ children }: { children: ReactNode }) => {
   const recipe = useListRecipeAtIndex(0);
 
   return !!recipe ? <>{children}</> : <></>;
+};
+
+const CurrentListCount = () => {
+  const count = usePageSessionSelector(
+    (state) =>
+      state.context.browserSessionSnapshot?.context.currentListRecipeIds
+        ?.length || 0
+  );
+  return <>{count}</>;
 };
