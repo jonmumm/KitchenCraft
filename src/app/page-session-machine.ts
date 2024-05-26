@@ -69,8 +69,6 @@ import { AutoSuggestTagEvent } from "./auto-suggest-tags.stream";
 import { AutoSuggestTextEvent } from "./auto-suggest-text.stream";
 import {
   AutoSuggestTokensEvent,
-  AutoSuggestTokensEventBase,
-  AutoSuggestTokensOutputSchema,
   AutoSuggestTokensStream,
 } from "./auto-suggest-tokens.stream";
 import { BrowserSessionMachine } from "./browser-session-machine";
@@ -513,18 +511,8 @@ export const pageSessionMachine = setup({
       }) => new FullRecipeStream(input.id).getObservable(input)
     ),
     generateTokens: fromEventObservable(
-      ({ input }: { input: { prompt: string } }) => {
-        const tokenStream = new AutoSuggestTokensStream();
-        return from(tokenStream.getStream(input)).pipe(
-          switchMap((stream) => {
-            return streamToObservable(
-              stream,
-              AutoSuggestTokensEventBase,
-              AutoSuggestTokensOutputSchema
-            );
-          })
-        );
-      }
+      ({ input }: { input: { prompt: string } }) =>
+        new AutoSuggestTokensStream().getObservable(input)
     ),
     initializeRecipeAds: fromEventObservable(
       ({ input }: { input: { context: ExtractType<AdContext, "recipe"> } }) => {

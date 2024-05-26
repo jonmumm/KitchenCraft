@@ -1,30 +1,38 @@
-import { sanitizeOutput } from "@/lib/sanitize";
-import jsYaml from "js-yaml";
+import { Observable } from "rxjs";
 import { describe, expect, it } from "vitest";
 import {
+  AutoSuggestTokensEvent,
+  AutoSuggestTokensOutput,
   AutoSuggestTokensOutputSchema,
   AutoSuggestTokensStream,
 } from "./auto-suggest-tokens.stream";
 
-// Mocking a function to simulate processing of the token stream
-async function processStream(stream: AsyncIterable<string>) {
-  const tokens = [];
-  for await (const token of stream) {
-    tokens.push(token);
-  }
-  return tokens.join("");
-}
-
 describe("AutoSuggestTokensStream", () => {
-  // Helper function to validate output against the AutoSuggestTokensOutputSchema
-  async function validateOutput(userInput: { prompt: string }) {
-    const tokenStream = new AutoSuggestTokensStream();
-    const stream = await tokenStream.getStream(userInput);
-    const outputRaw = await processStream(stream);
-    const outputSanitized = sanitizeOutput(outputRaw);
-    const outputJSON = jsYaml.load(outputSanitized);
+  async function processStream(
+    observable: Observable<AutoSuggestTokensEvent>
+  ): Promise<AutoSuggestTokensOutput> {
+    return new Promise((resolve, reject) => {
+      let completeData: AutoSuggestTokensOutput | null = null;
+      observable.subscribe({
+        next: (event: AutoSuggestTokensEvent) => {
+          if (event.type === "AUTO_SUGGEST_TOKENS_COMPLETE") {
+            completeData = event.data;
+            resolve(event.data);
+          }
+        },
+        error: (err: any) => reject(err),
+      });
+    });
+  }
 
-    const result = AutoSuggestTokensOutputSchema.safeParse(outputJSON);
+  async function validateOutput(input: { prompt: string }) {
+    const tokenStream = new AutoSuggestTokensStream();
+    const observableStream = tokenStream.getObservable(
+      input
+    ) as Observable<AutoSuggestTokensEvent>;
+    const outputData = await processStream(observableStream);
+
+    const result = AutoSuggestTokensOutputSchema.safeParse(outputData);
     expect(result.success).toBe(true);
     return result.success ? result.data : null;
   }

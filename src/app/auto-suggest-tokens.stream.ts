@@ -1,34 +1,47 @@
 import { StreamObservableEvent } from "@/lib/stream-to-observable";
-import { TokenStream } from "@/lib/token-stream";
-import { z } from "zod";
+import { StructuredObjectStream } from "@/lib/structured-object-stream";
+import { z, ZodSchema } from "zod";
 
 export const AutoSuggestTokensOutputSchema = z.object({
   tokens: z.array(z.string()),
 });
 
-export const AutoSuggestTokensEventBase = "AUTO_SUGGEST_TOKENS";
+export type AutoSuggestTokensOutput = z.infer<typeof AutoSuggestTokensOutputSchema>;
+
+export const AUTO_SUGGEST_TOKENS = "AUTO_SUGGEST_TOKENS";
 
 export type AutoSuggestTokensEvent = StreamObservableEvent<
-  typeof AutoSuggestTokensEventBase,
-  z.infer<typeof AutoSuggestTokensOutputSchema>
+  typeof AUTO_SUGGEST_TOKENS,
+  AutoSuggestTokensOutput
 >;
 
-export class AutoSuggestTokensStream extends TokenStream<{
-  prompt: string;
-}> {
+export class AutoSuggestTokensStream extends StructuredObjectStream<
+  { prompt: string },
+  AutoSuggestTokensOutput
+> {
+  protected getSchema(): ZodSchema {
+    return AutoSuggestTokensOutputSchema;
+  }
+
   protected async getUserMessage(input: { prompt: string }): Promise<string> {
     return input.prompt;
   }
 
   protected async getSystemMessage(_: { prompt: string }): Promise<string> {
-    const TEMPLATE = `
-Suggest a set of word tokens to be displayed back to the user as buttons they can tap to append to their prompt describing requirements for a recipe. Suggestions should be primarily ingredients, but also include things like kitchen equipment, cooking techniques, measurements, unit preferences, timing preferences, serving size preferences, among other things.
+    return TEMPLATE;
+  }
+
+  protected getName(): string {
+    return AUTO_SUGGEST_TOKENS;
+  }
+}
+
+const TEMPLATE = `
+Suggest a set of up to 8 word tokens to be displayed back to the user as buttons they can tap to append to their prompt describing requirements for a recipe. Suggestions should be primarily ingredients, but also include things like kitchen equipment, cooking techniques, measurements, unit preferences, timing preferences, serving size preferences, among other things.
 
 Do not include back any tokens that are already well represented in the user's prompt already—include back tokens that will help inspire the recipe creator to expand their horizons.
 
 Do not include any of the same ingredients that are in the user prompt.
-
-Format the response in YAML with a single key 'tokens' and then the list of tokens. Return back at least 6 tokens and at most 12. Return nothing else but the formatted YAML.
     
 Be inspired from but not limited to the the lists below.
 
@@ -939,11 +952,3 @@ Be inspired from but not limited to the the lists below.
   ]
 }
 `;
-
-    return TEMPLATE;
-  }
-
-  protected getDefaultTokens(): number {
-    return 64;
-  }
-}
