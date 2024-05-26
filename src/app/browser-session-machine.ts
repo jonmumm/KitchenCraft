@@ -11,19 +11,12 @@ import {
   SuggestIngredientStream,
   SuggestIngredientsOutputSchema,
 } from "./suggest-ingredients.stream";
-import {
-  SuggestPlaceholderOutputSchema,
-  SuggestPlaceholderStream,
-} from "./suggest-placeholder.stream";
+import { SuggestPlaceholderStream } from "./suggest-placeholder.stream";
 import {
   SuggestTagsOutputSchema,
   SuggestTagsStream,
 } from "./suggest-tags.stream";
-import {
-  SuggestTokensOutputSchema,
-  SuggestTokensStream,
-} from "./suggest-tokens.stream";
-import { generateListNameSuggestions } from "@/actors/shared";
+import { SuggestTokensStream } from "./suggest-tokens.stream";
 
 const InputSchema = z.object({
   id: z.string(),
@@ -38,27 +31,6 @@ export const browserSessionMachine = setup({
     events: {} as BrowserSessionEvent,
   },
   actors: {
-    // generateListNameSuggestions: fromEventObservable(
-    //   ({
-    //     input,
-    //   }: {
-    //     input: {
-    //       personalizationContext: string;
-    //       timeContext: string;
-    //     };
-    //   }) => {
-    //     const tokenStream = new SuggestPlaceholderStream();
-    //     return from(tokenStream.getStream(input)).pipe(
-    //       switchMap((stream) => {
-    //         return streamToObservable(
-    //           stream,
-    //           "SUGGEST_PLACEHOLDERS",
-    //           SuggestPlaceholderOutputSchema
-    //         );
-    //       })
-    //     );
-    //   }
-    // ),
     generatePlaceholders: fromEventObservable(
       ({
         input,
@@ -67,18 +39,7 @@ export const browserSessionMachine = setup({
           personalizationContext: string;
           timeContext: string;
         };
-      }) => {
-        const tokenStream = new SuggestPlaceholderStream();
-        return from(tokenStream.getStream(input)).pipe(
-          switchMap((stream) => {
-            return streamToObservable(
-              stream,
-              "SUGGEST_PLACEHOLDERS",
-              SuggestPlaceholderOutputSchema
-            );
-          })
-        );
-      }
+      }) => new SuggestPlaceholderStream().getObservable(input)
     ),
     generateTokenSuggestions: fromEventObservable(
       ({
@@ -88,18 +49,7 @@ export const browserSessionMachine = setup({
           personalizationContext: string;
           timeContext: string;
         };
-      }) => {
-        const tokenStream = new SuggestTokensStream();
-        return from(tokenStream.getStream(input)).pipe(
-          switchMap((stream) => {
-            return streamToObservable(
-              stream,
-              "SUGGEST_TOKENS",
-              SuggestTokensOutputSchema
-            );
-          })
-        );
-      }
+      }) => new SuggestTokensStream().getObservable(input)
     ),
     generateTagSuggestions: fromEventObservable(
       ({

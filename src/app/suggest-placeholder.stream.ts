@@ -1,20 +1,28 @@
 import { StreamObservableEvent } from "@/lib/stream-to-observable";
-import { TokenStream } from "@/lib/token-stream";
-import { z } from "zod";
+import { StructuredObjectStream } from "@/lib/structured-object-stream";
+import { z, ZodSchema } from "zod";
 
 export const SuggestPlaceholderOutputSchema = z.object({
   items: z.array(z.string()),
 });
 
+export type SuggestPlaceholderOutput = z.infer<typeof SuggestPlaceholderOutputSchema>;
+
+export const SUGGEST_PLACEHOLDERS = "SUGGEST_PLACEHOLDERS";
+
 export type SuggestPlaceholderEvent = StreamObservableEvent<
-  "SUGGEST_PLACEHOLDERS",
-  z.infer<typeof SuggestPlaceholderOutputSchema>
+  typeof SUGGEST_PLACEHOLDERS,
+  SuggestPlaceholderOutput
 >;
 
-export class SuggestPlaceholderStream extends TokenStream<{
-  timeContext: string;
-  personalizationContext: string;
-}> {
+export class SuggestPlaceholderStream extends StructuredObjectStream<
+  { timeContext: string; personalizationContext: string },
+  SuggestPlaceholderOutput
+> {
+  protected getSchema(): ZodSchema {
+    return SuggestPlaceholderOutputSchema;
+  }
+
   protected async getUserMessage(input: {
     timeContext: string;
     personalizationContext: string;
@@ -86,13 +94,11 @@ export class SuggestPlaceholderStream extends TokenStream<{
 "eggplant, tomato, ricotta"
 "cucumber, dill, yogurt"
 
-Return a list of 6 suggestions to be animated through as the input placeholder text. The suggestions should help guide the user to further ideate/refine the recipe they are crafting.
-
-Format the response in YAML with a single key "items" and then the list of text strings to show as autocomplete suggestions. Return nothing else but the formatted YAML.`;
+Return a list of 6 suggestions to be animated through as the input placeholder text. The suggestions should help guide the user to help spark ideas and encourage input.`;
     return TEMPLATE;
   }
 
-  protected getDefaultTokens(): number {
-    return 1024;
+  protected getName(): string {
+    return SUGGEST_PLACEHOLDERS;
   }
 }

@@ -1,22 +1,32 @@
 import { StreamObservableEvent } from "@/lib/stream-to-observable";
-import { TokenStream } from "@/lib/token-stream";
-import { z } from "zod";
+import { StructuredObjectStream } from "@/lib/structured-object-stream";
+import { ZodSchema, z } from "zod";
 
 export const SuggestTokensOutputSchema = z.object({
   tokens: z.array(z.string()),
 });
 
-export const SuggestTokensEventBase = "SUGGEST_TOKENS";
+export type SuggestTokensOutput = z.infer<typeof SuggestTokensOutputSchema>;
+
+export const SUGGEST_TOKENS = "SUGGEST_TOKENS";
 
 export type SuggestTokensEvent = StreamObservableEvent<
-  typeof SuggestTokensEventBase,
-  z.infer<typeof SuggestTokensOutputSchema>
+  typeof SUGGEST_TOKENS,
+  SuggestTokensOutput
 >;
 
-export class SuggestTokensStream extends TokenStream<{
-  timeContext: string;
-  personalizationContext: string;
-}> {
+export class SuggestTokensStream extends StructuredObjectStream<
+  { timeContext: string; personalizationContext: string },
+  SuggestTokensOutput
+> {
+  protected getSchema(): ZodSchema {
+    return SuggestTokensOutputSchema;
+  }
+
+  protected getName(): string {
+    return SUGGEST_TOKENS;
+  }
+
   protected async getUserMessage(input: {
     timeContext: string;
     personalizationContext: string;
@@ -946,9 +956,5 @@ Be inspired from but not limited to the the lists below.
 `;
 
     return TEMPLATE;
-  }
-
-  protected getDefaultTokens(): number {
-    return 1024;
   }
 }
