@@ -1,4 +1,3 @@
-import { AutoSuggestTokensEventBase } from "@/app/auto-suggest-tokens.stream";
 import { InstantRecipeMetadataEventBase } from "@/app/instant-recipe/streams";
 import { env } from "@/env.public";
 import { noop } from "@/lib/utils";
@@ -14,7 +13,7 @@ const PostHogServerSentEventSchema = z.discriminatedUnion("type", [
         "PLACEHOLDER",
         InstantRecipeMetadataEventBase,
         "FULL_RECIPE",
-        AutoSuggestTokensEventBase,
+        "AUTO_SUGGEST_TOKENS",
         "SUGGEST_CHEF_NAMES",
         "SUGGEST_PLACEHOLDERS",
         "SUGGEST_TOKENS",
