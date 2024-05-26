@@ -1,36 +1,47 @@
-import { sanitizeOutput } from "@/lib/sanitize";
-import { RecipeIdeasMetadataPredictionOutputSchema } from "@/schema";
-import jsYaml from "js-yaml";
+import { assert } from "@/lib/utils";
+import { Observable } from "rxjs";
 import { describe, expect, it } from "vitest";
 import {
+  RecipeIdeasMetadataEvent,
+  RecipeIdeasMetadataOutput,
+  RecipeIdeasMetadataOutputSchema,
   RecipeIdeasMetadataStream,
   RecipeIdeasMetadataStreamInput,
 } from "./recipe-ideas-metadata.stream";
 
 describe("RecipeIdeasMetadataStream", () => {
-  async function processStream(stream: AsyncIterable<string>) {
-    const charArray = [];
-    for await (const chunk of stream) {
-      charArray.push(chunk);
-    }
-    return charArray.join("");
+  async function processStream(
+    observable: Observable<RecipeIdeasMetadataEvent>
+  ): Promise<RecipeIdeasMetadataOutput> {
+    return new Promise((resolve, reject) => {
+      let completeData: RecipeIdeasMetadataOutput | null = null;
+      observable.subscribe({
+        next: (event: RecipeIdeasMetadataEvent) => {
+          if (event.type === "RECIPE_IDEAS_METADATA_COMPLETE") {
+            completeData = event.data;
+            resolve(event.data);
+          }
+        },
+        error: (err: any) => reject(err),
+      });
+    });
   }
 
   async function validateOutput(input: RecipeIdeasMetadataStreamInput) {
-    const tokenStream = new RecipeIdeasMetadataStream();
-    const stream = await tokenStream.getStream(input);
-    const outputRaw = await processStream(stream);
-    const outputSanitized = sanitizeOutput(outputRaw);
-    const outputJSON = jsYaml.load(outputSanitized);
+    const recipeStream = new RecipeIdeasMetadataStream();
+    const observableStream = recipeStream.getObservable(
+      input
+    ) as Observable<RecipeIdeasMetadataEvent>;
+    const outputData = await processStream(observableStream);
 
-    const result =
-      RecipeIdeasMetadataPredictionOutputSchema.safeParse(outputJSON);
-    expect(result.success).toBe(true);
-    // expect(result.data.recipes.length).toBe(5); // Check if five recipe ideas are generated
-    // result.data.recipes.forEach(recipe => {
-    //   expect(recipe.name).toBeDefined();
-    //   expect(recipe.description).toBeDefined();
-    // });
+    const result = RecipeIdeasMetadataOutputSchema.safeParse(outputData);
+    assert(result.success, "expected result to be success");
+    // Uncomment the lines below if you want to check the number of ideas and their properties
+    expect(result.data.ideas.length).toBe(5); // Check if five recipe ideas are generated
+    result.data.ideas.forEach((recipe) => {
+      expect(recipe.name).toBeDefined();
+      expect(recipe.description).toBeDefined();
+    });
   }
 
   it("should generate related recipe ideas for a salad prompt", async () => {

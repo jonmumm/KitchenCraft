@@ -18,7 +18,6 @@ import { getSlug } from "@/lib/slug";
 import { assert, sentenceToSlug } from "@/lib/utils";
 import {
   ListNameSchema,
-  RecipeIdeasMetadataPredictionOutputSchema,
   RecipePredictionOutputSchema,
   RecipeProductsPredictionOutputSchema,
 } from "@/schema";
@@ -91,7 +90,6 @@ import {
 } from "./instant-recipe.stream";
 import {
   RecipeIdeasMetadataEvent,
-  RecipeIdeasMetadataEventBase,
   RecipeIdeasMetadataStream,
 } from "./recipe-ideas-metadata.stream";
 import {
@@ -496,18 +494,7 @@ export const pageSessionMachine = setup({
             ingredients: string[];
           };
         };
-      }) => {
-        const tokenStream = new RecipeIdeasMetadataStream();
-        return from(tokenStream.getStream(input)).pipe(
-          switchMap((stream) => {
-            return streamToObservable(
-              stream,
-              RecipeIdeasMetadataEventBase,
-              RecipeIdeasMetadataPredictionOutputSchema
-            );
-          })
-        );
-      }
+      }) => new RecipeIdeasMetadataStream().getObservable(input)
     ),
     generateInstantRecipe: fromEventObservable(
       ({
