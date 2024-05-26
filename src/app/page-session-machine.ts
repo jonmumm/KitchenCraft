@@ -1526,7 +1526,7 @@ export const pageSessionMachine = setup({
                       });
                     })
                   ),
-                  initial: "InstantRecipe",
+                  type: "parallel",
                   on: {
                     ADD_TO_LIST: {
                       actions: [
@@ -1698,7 +1698,6 @@ export const pageSessionMachine = setup({
                   states: {
                     InstantRecipe: {
                       initial: "Generating",
-                      onDone: "Metadata",
                       states: {
                         Generating: {
                           on: {
@@ -1804,8 +1803,16 @@ export const pageSessionMachine = setup({
                       },
                     },
                     Metadata: {
-                      initial: "Generating",
+                      initial: "Idle",
                       states: {
+                        Idle: {
+                          on: {
+                            INSTANT_RECIPE_PROGRESS: {
+                              target: "Generating",
+                              guard: ({ event }) => !!event.data.yield,
+                            },
+                          },
+                        },
                         Generating: {
                           on: {
                             RECIPE_IDEAS_METADATA_START: {
@@ -1898,9 +1905,7 @@ export const pageSessionMachine = setup({
                               }
 
                               assert(
-                                recipe?.name &&
-                                  recipe?.description &&
-                                  recipe.ingredients?.length,
+                                recipe?.name && recipe?.description,
                                 "expected instant recipe to exist"
                               );
 
@@ -1910,7 +1915,7 @@ export const pageSessionMachine = setup({
                                 instantRecipe: {
                                   name: recipe.name,
                                   description: recipe.description,
-                                  ingredients: recipe.ingredients,
+                                  ingredients: recipe.ingredients || [],
                                 },
                               };
                             },
@@ -1926,314 +1931,6 @@ export const pageSessionMachine = setup({
                         },
                       },
                     },
-                    // Metdata: {
-                    //   initial:
-                    // }
-                    // NameAndDescription: {
-                    //   initial: "Generating",
-                    //   description:
-                    //     "Continously generates name and description metadata for recipes up until currentItemIndex + 6",
-                    //   states: {
-                    //     Waiting: {
-                    //       always: {
-                    //         target: "Generating",
-                    //         guard: ({ context }) =>
-                    //           context.currentItemIndex + 6 >
-                    //           context.suggestedRecipes.length,
-                    //       },
-                    //     },
-                    //     Error: {
-                    //       entry: console.error,
-                    //     },
-                    //     Generating: {
-                    //       entry: ({ context }) =>
-                    //         captureEvent(context.uniqueId, {
-                    //           type: "LLM_CALL",
-                    //           properties: {
-                    //             llmType: InstantRecipeMetadataEventBase,
-                    //           },
-                    //         }),
-                    //       on: {
-                    //         INSTANT_RECIPE_METADATA_START: {
-                    //           actions: assign(({ context, event }) =>
-                    //             produce(context, (draft) => {
-                    //               const id = randomUUID();
-                    //               draft.suggestedRecipes.push(id);
-                    //               draft.recipes[id] = {
-                    //                 id,
-                    //                 versionId: 0,
-                    //                 complete: false,
-                    //               };
-                    //             })
-                    //           ),
-                    //         },
-                    //         INSTANT_RECIPE_METADATA_PROGRESS: {
-                    //           actions: [
-                    //             assign(({ context, event }) =>
-                    //               produce(context, (draft) => {
-                    //                 const currentRecipeId =
-                    //                   context.suggestedRecipes[
-                    //                     context.suggestedRecipes.length - 1
-                    //                   ];
-                    //                 assert(
-                    //                   currentRecipeId,
-                    //                   "expected currentRecipeId"
-                    //                 );
-                    //                 const recipe =
-                    //                   draft.recipes[currentRecipeId];
-                    //                 assert(recipe, "expected recipe");
-                    //                 draft.recipes[currentRecipeId] = {
-                    //                   ...recipe,
-                    //                   ...event.data,
-                    //                 };
-                    //               })
-                    //             ),
-                    //           ],
-                    //         },
-                    //         INSTANT_RECIPE_METADATA_COMPLETE: {
-                    //           target: "Waiting",
-                    //           actions: [
-                    //             // todo dry: up
-                    //             assign(({ context, event }) =>
-                    //               produce(context, (draft) => {
-                    //                 const currentRecipeId =
-                    //                   context.suggestedRecipes[
-                    //                     context.suggestedRecipes.length - 1
-                    //                   ];
-                    //                 assert(
-                    //                   currentRecipeId,
-                    //                   "expected currentRecipeId"
-                    //                 );
-                    //                 const recipe =
-                    //                   draft.recipes[currentRecipeId];
-                    //                 assert(recipe, "expected recipe");
-                    //                 draft.recipes[currentRecipeId] = {
-                    //                   ...recipe,
-                    //                   ...event.data,
-                    //                   // slug:
-                    //                 };
-                    //                 draft.numCompletedRecipeMetadata =
-                    //                   context.numCompletedRecipeMetadata + 1;
-                    //               })
-                    //             ),
-                    //           ],
-                    //         },
-                    //         // AUTO_SUGGEST_RECIPES_COMPLETE: {
-                    //         //   actions: "updateNumCompleted",
-                    //         // },
-                    //       },
-                    //       invoke: {
-                    //         onError: "Error",
-                    //         input: ({ context, event }) => {
-                    //           const previousRejections =
-                    //             context.suggestedRecipes.map(
-                    //               (id) => context.recipes[id]!
-                    //             );
-                    //           return {
-                    //             prompt: context.prompt,
-                    //             tokens: context.tokens,
-                    //             previousRejections,
-                    //           };
-                    //         },
-                    //         src: "generateRecipeMetadata",
-                    //       },
-                    //     },
-                    //   },
-                    // },
-                    // FullRecipe: {
-                    //   initial: "Waiting",
-                    //   on: {
-                    //     SCROLL_INDEX: [
-                    //       {
-                    //         target: ".Generating",
-                    //         guard: ({ event, context }) => {
-                    //           const nextId = findNextUncompletedRecipe({
-                    //             ...context,
-                    //             currentItemIndex: event.index,
-                    //           });
-                    //           return (
-                    //             !!nextId &&
-                    //             nextId !== context.generatingRecipeId
-                    //           );
-                    //         },
-                    //         actions: assign({
-                    //           generatingRecipeId: ({ context }) =>
-                    //             findNextUncompletedRecipe(context),
-                    //         }),
-                    //       },
-                    //     ],
-                    //     NEXT: [
-                    //       {
-                    //         target: ".Generating",
-                    //         guard: ({ context }) => {
-                    //           const nextId = findNextUncompletedRecipe({
-                    //             ...context,
-                    //             currentItemIndex: context.currentItemIndex + 1,
-                    //           });
-                    //           return (
-                    //             !!nextId &&
-                    //             nextId !== context.generatingRecipeId
-                    //           );
-                    //         },
-                    //         actions: assign({
-                    //           generatingRecipeId: ({ context }) =>
-                    //             findNextUncompletedRecipe(context),
-                    //         }),
-                    //       },
-                    //     ],
-                    //   },
-                    //   states: {
-                    //     Waiting: {
-                    //       on: {
-                    //         INSTANT_RECIPE_METADATA_COMPLETE: [
-                    //           {
-                    //             target: "Generating",
-                    //             guard: ({ context }) => {
-                    //               const nextId = findNextUncompletedRecipe({
-                    //                 ...context,
-                    //                 numCompletedRecipeMetadata:
-                    //                   context.numCompletedRecipeMetadata + 1,
-                    //               });
-                    //               return (
-                    //                 !!nextId &&
-                    //                 nextId !== context.generatingRecipeId
-                    //               );
-                    //             },
-                    //             actions: assign({
-                    //               generatingRecipeId: ({ context }) => {
-                    //                 const next = findNextUncompletedRecipe({
-                    //                   ...context,
-                    //                   numCompletedRecipeMetadata:
-                    //                     context.numCompletedRecipeMetadata + 1,
-                    //                 });
-                    //                 return next;
-                    //               },
-                    //             }),
-                    //           },
-                    //         ],
-                    //       },
-                    //     },
-                    //     Generating: {
-                    //       entry: ({ context }) =>
-                    //         captureEvent(context.uniqueId, {
-                    //           type: "LLM_CALL",
-                    //           properties: {
-                    //             llmType: FullRecipeEventBase,
-                    //           },
-                    //         }),
-                    //       invoke: {
-                    //         onDone: [
-                    //           {
-                    //             target: "Generating",
-                    //             guard: ({ context }) => {
-                    //               assert(
-                    //                 context.generatingRecipeId,
-                    //                 "expected generatingRecipeId"
-                    //               );
-                    //               return !!findNextUncompletedRecipe(context);
-                    //             },
-                    //             actions: [
-                    //               // todo: dry up get input with below
-                    //               spawnChild("createNewRecipe", {
-                    //                 input: ({ context }) =>
-                    //                   getCurrentRecipeCreateInput({ context }),
-                    //               }),
-                    //               assign({
-                    //                 generatingRecipeId: ({ context }) => {
-                    //                   assert(
-                    //                     context.generatingRecipeId,
-                    //                     "expected generatingRecipeId"
-                    //                   );
-                    //                   const next =
-                    //                     findNextUncompletedRecipe(context);
-                    //                   return next;
-                    //                 },
-                    //               }),
-                    //             ],
-                    //             reenter: true,
-                    //           },
-                    //           {
-                    //             target: "Waiting",
-                    //             actions: spawnChild("createNewRecipe", {
-                    //               input: ({ context }) =>
-                    //                 getCurrentRecipeCreateInput({ context }),
-                    //             }),
-                    //           },
-                    //         ],
-                    //         input: ({ context, event }) => {
-                    //           assert(
-                    //             context.generatingRecipeId,
-                    //             "expected generatingRecipeId"
-                    //           );
-                    //           const recipe =
-                    //             context.recipes[context.generatingRecipeId];
-                    //           assert(recipe, "expected recipe");
-                    //           const { name, description } = recipe;
-                    //           assert(name, "expected name");
-                    //           assert(description, "expected description");
-
-                    //           return {
-                    //             prompt: context.prompt,
-                    //             tokens: context.tokens,
-                    //             name,
-                    //             description,
-                    //           };
-                    //         },
-                    //         src: "generateFullRecipe",
-                    //       },
-                    //       on: {
-                    //         FULL_RECIPE_PROGRESS: {
-                    //           actions: assign(({ context, event }) => {
-                    //             const { generatingRecipeId } = context;
-                    //             assert(
-                    //               generatingRecipeId,
-                    //               "expected generatingRecipeId"
-                    //             );
-                    //             const recipe =
-                    //               context.recipes[generatingRecipeId];
-                    //             assert(recipe, "expected recipe");
-                    //             return produce(context, (draft) => {
-                    //               draft.recipes[generatingRecipeId] = {
-                    //                 ...recipe,
-                    //                 ...event.data.recipe,
-                    //               };
-                    //               //
-                    //             });
-                    //           }),
-                    //         },
-                    //         FULL_RECIPE_COMPLETE: {
-                    //           actions: assign(({ context, event }) => {
-                    //             const { generatingRecipeId } = context;
-                    //             assert(
-                    //               generatingRecipeId,
-                    //               "expected generatingRecipeId"
-                    //             );
-                    //             const recipe =
-                    //               context.recipes[generatingRecipeId];
-                    //             // console.log(
-                    //             //   "COKMPELTE RECIPE",
-                    //             //   context.numCompletedRecipes,
-                    //             //   context.numCompletedRecipeMetadata
-                    //             // );
-                    //             return produce(context, (draft) => {
-                    //               assert(recipe, "expected recipe");
-                    //               draft.recipes[generatingRecipeId] = {
-                    //                 ...recipe,
-                    //                 ...event.data.recipe,
-                    //                 slug: getSlug({
-                    //                   id: generatingRecipeId,
-                    //                   name: recipe.name!,
-                    //                 }),
-                    //                 complete: true,
-                    //               };
-                    //               draft.numCompletedRecipes++;
-                    //             });
-                    //           }),
-                    //         },
-                    //       },
-                    //     },
-                    //   },
-                    // },
                   },
                 },
               },
