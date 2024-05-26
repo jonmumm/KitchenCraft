@@ -1,30 +1,41 @@
-import { sanitizeOutput } from "@/lib/sanitize";
-import { InstantRecipePredictionOutputSchema } from "@/schema";
-import jsYaml from "js-yaml";
+import { Observable } from "rxjs";
 import { describe, expect, it } from "vitest";
 import {
+  InstantRecipeEvent,
+  InstantRecipeOutput,
+  InstantRecipeOutputSchema,
   InstantRecipeStream,
   InstantRecipeStreamInput,
 } from "./instant-recipe.stream";
 
 describe("InstantRecipeStream", () => {
-  async function processStream(stream: AsyncIterable<string>) {
-    const charArray = [];
-    for await (const chunk of stream) {
-      charArray.push(chunk);
-    }
-    return charArray.join("");
+  async function processStream(
+    observable: Observable<InstantRecipeEvent>
+  ): Promise<InstantRecipeOutput> {
+    return new Promise((resolve, reject) => {
+      let completeData: InstantRecipeOutput | null = null;
+      observable.subscribe({
+        next: (event: InstantRecipeEvent) => {
+          if (event.type === "INSTANT_RECIPE_COMPLETE") {
+            completeData = event.data;
+            console.log(event);
+            resolve(event.data);
+          }
+        },
+        error: (err: any) => reject(err),
+      });
+    });
   }
 
   async function validateOutput(input: InstantRecipeStreamInput) {
-    const tokenStream = new InstantRecipeStream();
-    const stream = await tokenStream.getStream(input);
-    const outputRaw = await processStream(stream);
-    const outputSanitized = sanitizeOutput(outputRaw);
-    const outputJSON = jsYaml.load(outputSanitized);
+    const recipeStream = new InstantRecipeStream();
+    const observableStream = recipeStream.getObservable(
+      input
+    ) as Observable<InstantRecipeEvent>;
+    const outputData = await processStream(observableStream);
 
-    const result = InstantRecipePredictionOutputSchema.safeParse(outputJSON);
-
+    console.log(outputData);
+    const result = InstantRecipeOutputSchema.safeParse(outputData);
     expect(result.success).toBe(true);
   }
 

@@ -17,7 +17,6 @@ import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
 import { assert, sentenceToSlug } from "@/lib/utils";
 import {
-  InstantRecipePredictionOutputSchema,
   ListNameSchema,
   RecipeIdeasMetadataPredictionOutputSchema,
   RecipePredictionOutputSchema,
@@ -88,7 +87,6 @@ import {
 } from "./full-recipe.stream";
 import {
   InstantRecipeEvent,
-  InstantRecipeEventBase,
   InstantRecipeStream,
 } from "./instant-recipe.stream";
 import {
@@ -520,19 +518,7 @@ export const pageSessionMachine = setup({
           tokens: string[];
           recipeId: string;
         };
-      }) => {
-        const tokenStream = new InstantRecipeStream();
-        return from(tokenStream.getStream(input)).pipe(
-          switchMap((stream) => {
-            return streamToObservable(
-              stream,
-              InstantRecipeEventBase,
-              InstantRecipePredictionOutputSchema,
-              input.recipeId
-            );
-          })
-        );
-      }
+      }) => new InstantRecipeStream(input.recipeId).getObservable(input)
     ),
     generateFullRecipe: fromEventObservable(
       ({
@@ -1770,11 +1756,11 @@ export const pageSessionMachine = setup({
                                     );
                                     const metadataComplete =
                                       recipe.metadataComplete ||
-                                      !!event.data.recipe?.yield;
+                                      !!event.data.yield;
                                     draft.recipes[event.id] = {
                                       ...recipe,
                                       metadataComplete,
-                                      ...event.data.recipe,
+                                      ...event.data,
                                     };
                                   })
                                 ),
@@ -1789,7 +1775,7 @@ export const pageSessionMachine = setup({
                                     assert(recipe.name, "expected recipe name");
                                     draft.recipes[event.id] = {
                                       ...recipe,
-                                      ...event.data.recipe,
+                                      ...event.data,
                                       slug: getSlug({
                                         id: recipe.id,
                                         name: recipe.name,
