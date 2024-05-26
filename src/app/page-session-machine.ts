@@ -1080,16 +1080,16 @@ export const pageSessionMachine = setup({
                 ],
               },
             ],
-            NEW_RECIPE: {
-              actions: [
-                "resetSuggestions",
-                assign({
-                  tokens: ({ event }) => event.tokens || [],
-                  prompt: ({ event }) => event.prompt || "",
-                  currentItemIndex: 0,
-                }),
-              ],
-            },
+            // NEW_RECIPE: {
+            //   actions: [
+            //     "resetSuggestions",
+            //     assign({
+            //       tokens: ({ event }) => event.tokens || [],
+            //       prompt: ({ event }) => event.prompt || "",
+            //       currentItemIndex: 0,
+            //     }),
+            //   ],
+            // },
             REMOVE_TOKEN: {
               actions: [
                 "resetSuggestions",

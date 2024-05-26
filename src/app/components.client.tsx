@@ -424,13 +424,14 @@ export const CurrentListCarousel = () => {
             </Card>
           </div>
         </CurrentListEmpty>
-        <div className="flex flex-row items-center justify-center gap-2">
+        <div className="flex flex-row items-center justify-center gap-1">
           <Button>
-            Save List <SaveIcon className="ml-1" />
+            <SaveIcon size={18} className="mr-1" />
+            Save to...
           </Button>
           <Button variant="outline">
+            <ShareIcon size={18} className="mr-1" />
             Share
-            <ShareIcon className="ml-1" />
           </Button>
         </div>
       </div>
