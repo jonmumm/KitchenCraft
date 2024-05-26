@@ -51,7 +51,7 @@ import {
   ShareIcon,
   ShoppingBasketIcon,
   TagIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
@@ -562,7 +562,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       <Card
         className={cn(
           "carousel-item relative flex flex-col w-full",
-          isExpanded ? "mb-24" : recipe?.id ? "cursor-pointer" : ""
+          recipe?.id ? "cursor-pointer" : ""
         )}
         {...(!isExpanded && recipe?.id
           ? {
@@ -739,6 +739,14 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           </CollapsibleContent>
         </Collapsible>
       </Card>
+
+      {isExpanded && (
+        <div className="mt-2 mb-24 flex flex-col items-center">
+          <Badge event={{ type: "EXIT" }}>
+            Close <XIcon size={14} className="ml-1" />
+          </Badge>
+        </div>
+      )}
     </RecipeDetailContainer>
   );
 };
