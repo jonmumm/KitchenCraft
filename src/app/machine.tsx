@@ -10,7 +10,6 @@ import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
 import { socket$ } from "@/stores/socket";
-import { produce } from "immer";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { toast } from "sonner";
 import {
@@ -23,7 +22,6 @@ import {
 } from "xstate";
 import { z } from "zod";
 import { ContextSchema } from "./@craft/schemas";
-import { AddedToListToast } from "./added-to-list-toast";
 import { PageSessionSnapshot } from "./page-session-machine";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
@@ -102,7 +100,6 @@ export const createCraftMachine = ({
       dietaryAlternatives: undefined,
       savedRecipeSlugs: [],
       equipmentAdaptations: undefined,
-      currentListRecipeIds: [],
       currentRecipeUrl: undefined,
       scrollItemIndex: 0,
       token,
@@ -425,24 +422,6 @@ export const createCraftMachine = ({
                   reenter: true,
                 },
               },
-            },
-          },
-        },
-        List: {
-          on: {
-            ADD_TO_LIST: {
-              guard: ({ context, event }) => !context.currentListRecipeIds.includes(event.id),
-              actions: [
-                () => {
-                  toast(<AddedToListToast />);
-                },
-                assign({
-                  currentListRecipeIds: ({ context, event }) =>
-                    produce(context.currentListRecipeIds, (draft) => {
-                      draft.push(event.id);
-                    }),
-                }),
-              ],
             },
           },
         },
@@ -821,6 +800,27 @@ export const createCraftMachine = ({
                 HYDRATE_INPUT: {
                   target: "True",
                   guard: and(["isInputFocused", "isMobile"]),
+                },
+              },
+            },
+          },
+        },
+        ListView: {
+          type: "parallel",
+          states: {
+            Open: {
+              initial: "False",
+              states: {
+                False: {
+                  on: {
+                    VIEW_LIST: "True",
+                  },
+                },
+                True: {
+                  on: {
+                    NEW_RECIPE: "False",
+                    EXIT: "False",
+                  },
                 },
               },
             },

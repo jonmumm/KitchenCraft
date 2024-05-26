@@ -23,6 +23,7 @@ import {
   SuggestTokensOutputSchema,
   SuggestTokensStream,
 } from "./suggest-tokens.stream";
+import { generateListNameSuggestions } from "@/actors/shared";
 
 const InputSchema = z.object({
   id: z.string(),
@@ -37,6 +38,27 @@ export const browserSessionMachine = setup({
     events: {} as BrowserSessionEvent,
   },
   actors: {
+    // generateListNameSuggestions: fromEventObservable(
+    //   ({
+    //     input,
+    //   }: {
+    //     input: {
+    //       personalizationContext: string;
+    //       timeContext: string;
+    //     };
+    //   }) => {
+    //     const tokenStream = new SuggestPlaceholderStream();
+    //     return from(tokenStream.getStream(input)).pipe(
+    //       switchMap((stream) => {
+    //         return streamToObservable(
+    //           stream,
+    //           "SUGGEST_PLACEHOLDERS",
+    //           SuggestPlaceholderOutputSchema
+    //         );
+    //       })
+    //     );
+    //   }
+    // ),
     generatePlaceholders: fromEventObservable(
       ({
         input,
@@ -134,6 +156,7 @@ export const browserSessionMachine = setup({
     equipment: {},
     preferences: {},
     diet: {},
+    currentListRecipeIds: [],
     suggestedIngredients: [],
     suggestedTags: [],
     lastRunPersonalizationContext: undefined,
@@ -267,6 +290,28 @@ export const browserSessionMachine = setup({
               draft.lastRunPersonalizationContext =
                 getPersonalizationContext(draft);
             });
+          }),
+        },
+      },
+    },
+    List: {
+      on: {
+        ADD_TO_LIST: {
+          guard: ({ context, event }) =>
+            !context.currentListRecipeIds.includes(event.id),
+          actions: [
+            assign({
+              currentListRecipeIds: ({ context, event }) =>
+                produce(context.currentListRecipeIds, (draft) => {
+                  draft.push(event.id);
+                }),
+            }),
+          ],
+        },
+        REMOVE_FROM_LIST: {
+          actions: assign({
+            currentListRecipeIds: ({ context, event }) =>
+              context.currentListRecipeIds.filter((item) => item !== event.id),
           }),
         },
       },

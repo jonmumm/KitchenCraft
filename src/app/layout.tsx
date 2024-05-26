@@ -31,9 +31,11 @@ import {
   Body,
   CraftStickyHeader,
   CreateNewListCard,
+  CurrentListCarousel,
   EnterChefNameCard,
   EnterEmailCard,
   IsCreatingList,
+  IsInCurrentListView,
   IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
@@ -47,7 +49,6 @@ import {
 import { SessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
 import "./styles.css";
-
 export const revalidate = 0;
 
 const APP_NAME = "KitchenCraft";
@@ -191,6 +192,7 @@ export default async function RootLayout(
                 <SaveDialog />
                 <PersonalizationSettingsDialog />
                 <UpgradeAccountDialog />
+                <CurrentListDialog />
                 {/* <OnboardingDialog /> */}
               </ThemeProvider>
               <Toaster />
@@ -234,6 +236,18 @@ const PersonalizationSettingsDialog = () => {
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </IsInPersonalizationSettings>
+    </>
+  );
+};
+
+const CurrentListDialog = () => {
+  const isMobile = getIsMobile();
+
+  return (
+    <>
+      <IsInCurrentListView>
+        <CurrentListCarousel />
+      </IsInCurrentListView>
     </>
   );
 };

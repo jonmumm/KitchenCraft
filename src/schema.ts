@@ -617,6 +617,11 @@ const AddToListEventSchema = z.object({
   id: z.string(),
 });
 
+const RemoveFromListEventSchema = z.object({
+  type: z.literal("REMOVE_FROM_LIST"),
+  id: z.string(),
+});
+
 const SaveEventSchema = z.object({
   type: z.literal("SAVE"),
   opts: z
@@ -662,6 +667,10 @@ const ModifyRecipeIngredientsEventSchema = z.object({
 });
 const ToggleEventSchema = z.object({
   type: z.literal("TOGGLE"),
+});
+
+const ClearListEventSchema = z.object({
+  type: z.literal("CLEAR_LIST"),
 });
 const ClearEventSchema = z.object({
   type: z.literal("CLEAR"),
@@ -1093,6 +1102,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   SignInEventSchema,
   SignOutEventSchema,
   ClearEventSchema,
+  ClearListEventSchema,
   ToggleEventSchema,
   CreateNewRecipeEventSchema,
   SuggestRecipesEventSchema,
@@ -1104,6 +1114,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ModifyRecipeDietaryEventSchema,
   SaveEventSchema,
   AddToListEventSchema,
+  RemoveFromListEventSchema,
   CloseEventSchema,
   NewRecipeEventSchema,
   ModifyEventSchema,

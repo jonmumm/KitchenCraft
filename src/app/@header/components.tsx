@@ -24,7 +24,7 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AddedTokens, HasTokens } from "../@craft/components.client";
-import { BackButton, CraftInput, KeyboardToggle } from "./components.client";
+import { BackButton, CraftInput, CurrentListBadge, KeyboardToggle } from "./components.client";
 
 export async function HeaderWithInput({
   className,
@@ -248,7 +248,8 @@ export default function BasicHeader({
         >
           <div className="flex flex-row gap-1 items-center">
             <div className="flex flex-row gap-1">
-              <Badge
+              <CurrentListBadge />
+              {/* <Badge
                 variant="outline"
                 className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
               >
@@ -257,14 +258,15 @@ export default function BasicHeader({
                 <span>
                   {profile?.profileSlug ? profile.profileSlug : "My Cookbook"}
                 </span>
-              </Badge>
+              </Badge> */}
             </div>
           </div>
         </NavigationLink>
         <MenuSheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
-              <GripVerticalIcon />
+              <ChefHatIcon />
+              Account
             </Button>
           </SheetTrigger>
           <SheetOverlay />

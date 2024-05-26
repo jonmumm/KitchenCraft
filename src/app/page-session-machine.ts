@@ -14,6 +14,7 @@ import { NewRecipe } from "@/db/types";
 import { getErrorMessage } from "@/lib/error";
 import { getPersonalizationContext } from "@/lib/llmContext";
 import { withDatabaseSpan } from "@/lib/observability";
+import { getSlug } from "@/lib/slug";
 import { assert, sentenceToSlug } from "@/lib/utils";
 import {
   InstantRecipePredictionOutputSchema,
@@ -40,7 +41,7 @@ import {
 } from "@/types";
 import { sql } from "@vercel/postgres";
 import { randomUUID } from "crypto";
-import { desc, eq, ilike, sql as sqlFN } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, max, sql as sqlFN } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 import { Operation, applyPatch, compare } from "fast-json-patch";
 import { jwtVerify } from "jose";
@@ -147,7 +148,6 @@ export type PageSessionContext = {
   };
   currentListSlug: string | undefined;
   currentListId: string | undefined;
-  currentListRecipeIds: string[];
   recipeIdToSave: string | undefined;
   pageSessionId: string;
   uniqueId: string;
@@ -175,6 +175,7 @@ export type PageSessionContext = {
   >;
   generatingRecipeId: string | undefined;
   currentItemIndex: number;
+  currentListRecipeIndex: number;
   browserSessionToken: string;
   numCompletedRecipes: number;
   numCompletedRecipeMetadata: number;
@@ -322,6 +323,33 @@ export const pageSessionMachine = setup({
           .update(ProfileTable)
           .set({ profileSlug: input.chefname })
           .where(eq(ProfileTable.userId, input.userId));
+      }
+    ),
+    getRecipes: fromPromise(
+      async ({ input }: { input: { recipeIds: string[] } }) => {
+        const db = drizzle(sql);
+
+        const maxVersionSubquery = db
+          .select({
+            recipeId: RecipesTable.id,
+            maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
+          })
+          .from(RecipesTable)
+          .groupBy(RecipesTable.id)
+          .as("maxVersionSubquery"); // Naming the subquery
+
+        const recipes = await db
+          .select()
+          .from(RecipesTable)
+          .innerJoin(
+            maxVersionSubquery,
+            and(
+              eq(RecipesTable.id, maxVersionSubquery.recipeId),
+              eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+            )
+          )
+          .where(inArray(RecipesTable.id, input.recipeIds));
+        return recipes;
       }
     ),
     getChefName: fromPromise(
@@ -721,6 +749,7 @@ export const pageSessionMachine = setup({
       browserSessionSocket: undefined,
     },
     onboardingInput: {},
+    currentListRecipeIndex: 0,
     pageSessionId: input.id,
     history: [input.url],
     uniqueId: input.initialCaller.id,
@@ -741,7 +770,6 @@ export const pageSessionMachine = setup({
     currentItemIndex: 0,
     currentListSlug: undefined,
     currentListId: undefined,
-    currentListRecipeIds: [],
     numCompletedRecipes: 0,
     numCompletedRecipeMetadata: 0,
     tokens: [],
@@ -1545,12 +1573,12 @@ export const pageSessionMachine = setup({
                         randomUUID(),
                       ];
 
-                      draft.suggestedRecipes.forEach((id) => {
+                      draft.suggestedRecipes.forEach((id, index) => {
                         draft.recipes[id] = {
                           id,
                           versionId: 0,
-                          started: false,
-                          fullStarted: false,
+                          started: index === 0,
+                          fullStarted: index === 0,
                           complete: false,
                           metadataComplete: false,
                         };
@@ -1559,6 +1587,60 @@ export const pageSessionMachine = setup({
                   ),
                   initial: "InstantRecipe",
                   on: {
+                    ADD_TO_LIST: {
+                      actions: [
+                        spawnChild("generateFullRecipe", {
+                          input: ({ context, event }) => {
+                            assert(
+                              event.type === "ADD_TO_LIST",
+                              "expected event to be ADD_TO_LIST"
+                            );
+
+                            const recipe = context.recipes[event.id];
+                            assert(
+                              recipe?.name,
+                              "expected recipe to have name when generating full recipe"
+                            );
+                            assert(
+                              recipe.description,
+                              "expected recipe to have description when generating full recipe"
+                            );
+                            assert(recipe.id, "expected recipe to have an id");
+
+                            return {
+                              prompt: context.prompt,
+                              tokens: context.tokens,
+                              id: recipe.id,
+                              name: recipe.name,
+                              description: recipe.description,
+                            };
+                          },
+                        }),
+                        assign(({ context, event }) =>
+                          produce(context, (draft) => {
+                            const recipe = draft.recipes[event.id];
+                            assert(
+                              recipe,
+                              "expected recipe when updating recipe progress"
+                            );
+                            draft.recipes[event.id] = {
+                              ...recipe,
+                              fullStarted: true,
+                            };
+                          })
+                        ),
+                      ],
+
+                      guard: ({ context, event }) => {
+                        const recipe = context.recipes?.[event.id];
+                        assert(
+                          recipe,
+                          "expected recipe to exist when viewing full"
+                        );
+
+                        return !recipe.fullStarted;
+                      },
+                    },
                     VIEW_RECIPE: {
                       actions: [
                         spawnChild("generateFullRecipe", {
@@ -1619,13 +1701,39 @@ export const pageSessionMachine = setup({
                           produce(context, (draft) => {
                             const recipe = draft.recipes[event.id];
                             assert(recipe, "expected recipe");
+                            assert(recipe.name, "expected recipe name");
                             draft.recipes[event.id] = {
                               ...recipe,
                               ...event.data.recipe,
+                              slug: getSlug({
+                                id: recipe.id,
+                                name: recipe.name,
+                              }),
                               complete: true,
                             };
                           })
                         ),
+                        spawnChild("createNewRecipe", {
+                          input: ({ context, event }) => {
+                            assert(
+                              event.type === "FULL_RECIPE_COMPLETE",
+                              "expected recipe to be created"
+                            );
+                            const recipe = context.recipes[event.id];
+
+                            assert(
+                              recipe,
+                              "expected recipe with id when reating"
+                            );
+
+                            return {
+                              recipe,
+                              prompt: context.prompt,
+                              tokens: context.tokens,
+                              createdBy: context.uniqueId,
+                            };
+                          },
+                        }),
                       ],
                     },
                   },
@@ -1674,19 +1782,44 @@ export const pageSessionMachine = setup({
                             },
                             INSTANT_RECIPE_COMPLETE: {
                               actions: [
-                                // todo dry: up
                                 assign(({ context, event }) =>
                                   produce(context, (draft) => {
                                     const recipe = draft.recipes[event.id];
                                     assert(recipe, "expected recipe");
+                                    assert(recipe.name, "expected recipe name");
                                     draft.recipes[event.id] = {
                                       ...recipe,
                                       ...event.data.recipe,
+                                      slug: getSlug({
+                                        id: recipe.id,
+                                        name: recipe.name,
+                                      }),
                                       metadataComplete: true,
                                       complete: true,
                                     };
                                   })
                                 ),
+                                spawnChild("createNewRecipe", {
+                                  input: ({ context, event }) => {
+                                    assert(
+                                      event.type === "INSTANT_RECIPE_COMPLETE",
+                                      "expected INSTANT_RECIPE_COMPLETE event"
+                                    );
+                                    const recipe = context.recipes[event.id];
+
+                                    assert(
+                                      recipe,
+                                      "expected recipe with id when reating"
+                                    );
+
+                                    return {
+                                      recipe,
+                                      prompt: context.prompt,
+                                      tokens: context.tokens,
+                                      createdBy: context.uniqueId,
+                                    };
+                                  },
+                                }),
                               ],
                             },
                           },
@@ -1739,7 +1872,6 @@ export const pageSessionMachine = setup({
                             RECIPE_IDEAS_METADATA_PROGRESS: {
                               actions: assign(({ context, event }) =>
                                 produce(context, (draft) => {
-                                  console.log(event);
                                   context.suggestedRecipes
                                     .slice(1)
                                     .forEach((id, index) => {
@@ -1784,7 +1916,7 @@ export const pageSessionMachine = setup({
                             },
                           },
                           invoke: {
-                            input: ({ context, event }) => {
+                            input: ({ context }) => {
                               assert(
                                 context.suggestedRecipes.length === 6,
                                 "expected there to be 6 suggested recipeIds when generating recipe idea metadata"
@@ -1796,6 +1928,17 @@ export const pageSessionMachine = setup({
                                 "expected instantRecipeId when generating recipe ideas"
                               );
                               const recipe = context.recipes[instantRecipeId];
+
+                              if (
+                                !(
+                                  recipe?.name &&
+                                  recipe?.description &&
+                                  recipe.ingredients?.length
+                                )
+                              ) {
+                                debugger;
+                              }
+
                               assert(
                                 recipe?.name &&
                                   recipe?.description &&
@@ -2525,39 +2668,60 @@ export const pageSessionMachine = setup({
         },
       },
     },
-    // Settings: {
-    //   type: "parallel",
-    //   states: {
-    //     Open: {
-    //       initial: "False",
-    //       states: {
-    //         False: {
-    //           on: {
-    //             OPEN_SETTINGS: "True",
-    //           },
-    //         },
-    //         True: {
-    //           on: {
-    //             CLOSE: {
-    //               target: "False",
-    //               // actions: spawnChild("updateUserPreferences", {
-    //               //   input: ({ context, event }) => {
-    //               //     assert(event.type === "CLOSE", "expected close event");
-    //               //     return {
-    //               //       userId: event.caller.id
-    //               //       preferences:
-    //               //     }
-    //               //     // context.
-    //               //     // context.userPreferences
-    //               //   }
-    //               // })
-    //             }
-    //           },
-    //         },
-    //       },
-    //     },
-    //   },
-    // },
+    List: {
+      type: "parallel",
+      states: {
+        Data: {
+          initial: "Idle",
+          states: {
+            Idle: {
+              on: {
+                VIEW_LIST: {
+                  target: "Loading",
+                  guard: ({ context }) => {
+                    return !!context.browserSessionSnapshot?.context.currentListRecipeIds.filter(
+                      (id) => !context.recipes[id]
+                    ).length;
+                  },
+                },
+              },
+            },
+            Loading: {
+              invoke: {
+                src: "getRecipes",
+                input: ({ context }) => {
+                  console.log("loading");
+                  return {
+                    recipeIds:
+                      context.browserSessionSnapshot?.context.currentListRecipeIds.filter(
+                        (id) => !context.recipes[id]
+                      )!,
+                  };
+                },
+                onDone: {
+                  target: "Complete",
+                  actions: assign(({ context, event }) => {
+                    console.log("GOT RECIPES", event);
+                    return produce(context, (draft) => {
+                      event.output.forEach(({ recipe }) => {
+                        draft.recipes[recipe.id] = {
+                          ...recipe,
+                          complete: true,
+                          started: true,
+                          metadataComplete: true,
+                          fullStarted: true,
+                        };
+                      });
+                    });
+                  }),
+                },
+              },
+            },
+            Complete: {},
+          },
+        },
+      },
+    },
   },
 });
 

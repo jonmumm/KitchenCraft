@@ -20,31 +20,36 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
+import { PopoverContent, PopoverTrigger } from "@/components/layout/popover";
 import ScrollLockComponent from "@/components/scroll-lock";
+import { Times } from "@/components/times";
 import { useEventHandler } from "@/hooks/useEventHandler";
+import { useNumCompletedRecipes } from "@/hooks/useNumCompletedRecipes";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { assert, cn, formatDuration, sentenceToSlug } from "@/lib/utils";
+import { useSuggestedRecipeAtIndex } from "@/hooks/useSuggestedRecipeAtIndex";
+import { assert, cn, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, ListNameSchema } from "@/schema";
+import { ExtractAppEvent } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
+import { Popover } from "@radix-ui/react-popover";
 import { Portal } from "@radix-ui/react-portal";
 import {
   CarrotIcon,
-  ClockIcon,
   ExpandIcon,
   Loader2Icon,
+  MinusCircleIcon,
   MoveLeftIcon,
   PlusCircleIcon,
-  PlusIcon,
   PrinterIcon,
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  ShrinkIcon,
   TagIcon,
   XIcon,
 } from "lucide-react";
@@ -427,19 +432,6 @@ const useTokens = () => {
   // return context.tokens;
 };
 
-const useNumCompletedRecipes = () => {
-  const session$ = usePageSessionStore();
-  return useSyncExternalStore(
-    session$.subscribe,
-    () => {
-      return session$.get().context.numCompletedRecipes;
-    },
-    () => {
-      return session$.get().context.numCompletedRecipes;
-    }
-  );
-};
-
 const useNumCards = () => {
   const session$ = usePageSessionStore();
   return useSyncExternalStoreWithSelector(
@@ -506,27 +498,6 @@ const useCurrentItemIndex = () => {
   );
 };
 
-const useSuggestedRecipeAtIndex = (index: number) => {
-  const session$ = usePageSessionStore();
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context;
-    },
-    () => {
-      return session$.get().context;
-    },
-    (context) => {
-      const id = context.suggestedRecipes[index];
-      if (!id) {
-        return undefined;
-      }
-      const recipe = context.recipes[id];
-      return recipe;
-    }
-  );
-};
-
 const useCurrentRecipe = () => {
   const session$ = usePageSessionStore();
   const session = useStore(session$);
@@ -553,6 +524,13 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const isFocused = useSelector(actor, selectIsFocused);
   const isExpanded = isFocused;
   const send = useSend();
+  const isAdded = usePageSessionSelector(
+    (state) =>
+      recipe?.id &&
+      state.context.browserSessionSnapshot?.context.currentListRecipeIds.includes(
+        recipe.id!
+      )
+  );
 
   const handleOpenChange = useCallback(
     (value: boolean) => {
@@ -563,13 +541,34 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
     [send, recipe?.id]
   );
 
+  const [wasJustAdded, setWasJustAdded] = useState(false);
+
+  const onAddToList = useCallback(
+    (event: ExtractAppEvent<"ADD_TO_LIST">) => {
+      if (event.id === recipe?.id) {
+        setWasJustAdded(true);
+        setTimeout(() => {
+          setWasJustAdded(false);
+        }, 2500);
+      }
+    },
+    [setWasJustAdded, recipe]
+  );
+
+  useEventHandler("ADD_TO_LIST", onAddToList);
+
   return (
     <RecipeDetailContainer index={index}>
       <Card
         className={cn(
           "carousel-item relative flex flex-col w-full",
-          isFocused ? "mb-24" : ""
+          recipe?.id ? "cursor-pointer" : ""
         )}
+        {...(!isExpanded && recipe?.id
+          ? {
+              event: { type: "VIEW_RECIPE", id: recipe.id },
+            }
+          : {})}
       >
         <div className="flex flex-col p-4">
           <div className="flex flex-row gap-2 w-full">
@@ -607,19 +606,42 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                   variant="secondary"
                   event={{ type: "EXIT" }}
                 >
-                  <ShrinkIcon />
+                  <XIcon />
                 </Button>
               </div>
             )}
             {!isExpanded && recipe?.id && recipe.name && (
-              <div className="flex flex-col gap-1 items-center">
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  event={{ type: "VIEW_RECIPE", id: recipe.id }}
-                >
-                  <ExpandIcon />
-                </Button>
+              <div className="flex flex-col justify-center">
+                {!isAdded ? (
+                  <Button
+                    size="icon"
+                    event={{ type: "ADD_TO_LIST", id: recipe.id }}
+                  >
+                    <PlusCircleIcon />
+                  </Button>
+                ) : (
+                  <Popover open={wasJustAdded}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                      >
+                        <MinusCircleIcon />
+                      </Button>
+                    </PopoverTrigger>
+                    {wasJustAdded && (
+                      <PopoverContent
+                        side="top"
+                        className="w-fit px-2 py-1 text-xs text-center z-40"
+                      >
+                        Added to
+                        <br />
+                        <span className="font-medium">My Recipes</span>
+                      </PopoverContent>
+                    )}
+                  </Popover>
+                )}
               </div>
             )}
           </div>
@@ -636,9 +658,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 {recipe?.id && recipe.name ? (
                   <Badge
                     variant="secondary"
-                    event={{ type: "ADD_TO_LIST", id: recipe.id }}
+                    event={{ type: "VIEW_RECIPE", id: recipe.id }}
                   >
-                    Add <PlusIcon className="ml-1" size={14} />
+                    View <ExpandIcon className="ml-1" size={14} />
                   </Badge>
                 ) : (
                   <Badge variant="secondary">
@@ -717,6 +739,14 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           </CollapsibleContent>
         </Collapsible>
       </Card>
+
+      {isExpanded && (
+        <div className="mt-2 mb-24 flex flex-col items-center">
+          <Badge event={{ type: "EXIT" }}>
+            Close <XIcon size={14} className="ml-1" />
+          </Badge>
+        </div>
+      )}
     </RecipeDetailContainer>
   );
 };
@@ -964,65 +994,6 @@ const Yield = ({ index }: { index: number }) => {
   }
 
   return <>{val}</>;
-};
-
-const Times = ({
-  cookTime,
-  totalTime,
-  activeTime,
-}: {
-  cookTime?: string;
-  totalTime?: string;
-  activeTime?: string;
-}) => {
-  // const store = useContext(RecipeViewerContext);
-  // const { prepTime, cookTime, totalTime } = useStore(store, {
-  //   keys: ["prepTime", "cookTime", "totalTime"],
-  // });
-
-  const ActiveTime = () => {
-    return <>{formatDuration(activeTime)}</>;
-  };
-
-  const CookTime = () => {
-    return <>{formatDuration(cookTime)}</>;
-  };
-
-  const TotalTime = () => {
-    return <>{formatDuration(totalTime)}</>;
-  };
-
-  return (
-    <div className="flex flex-row gap-2 px-5 py-2 items-center justify-center">
-      <ClockIcon size={16} className="h-5" />
-      <div className="flex flex-row gap-1">
-        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
-          <span className="font-normal">Cook </span>
-          {cookTime ? (
-            <CookTime />
-          ) : (
-            <Skeleton className="w-5 h-4 bg-slate-500" />
-          )}
-        </Badge>
-        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
-          <span className="font-normal">Active </span>
-          {activeTime ? (
-            <ActiveTime />
-          ) : (
-            <Skeleton className="w-5 h-4 bg-slate-500" />
-          )}
-        </Badge>
-        <Badge variant="secondary" className="inline-flex flex-row gap-1 px-2">
-          <span className="font-normal">Total </span>
-          {totalTime ? (
-            <TotalTime />
-          ) : (
-            <Skeleton className="w-5 h-4 bg-slate-500" />
-          )}
-        </Badge>
-      </div>
-    </div>
-  );
 };
 
 function Ingredients({ index }: { index: number }) {
@@ -1703,52 +1674,6 @@ const PrintButton = ({ slug }: { slug?: string }) => {
     </div>
   );
 };
-
-const AddButton = ({ id }: { id: string | undefined }) => {
-  // const actor = useContext(CraftContext);
-
-  // const selectIsFilled = useCallback(
-  //   (state: CraftSnapshot) => {
-  //     if (!slug) {
-  //       return false;
-  //     }
-
-  //     return state.context.savedRecipeSlugs.includes(slug);
-  //   },
-  //   [slug]
-  // );
-  // const isFilled = useSelector(actor, selectIsFilled);
-
-  return (
-    <div className="flex flex-row justify-center w-full">
-      {id ? (
-        <Button event={{ type: "ADD_TO_LIST", id }}>
-          <PlusCircleIcon />
-        </Button>
-      ) : (
-        <Button disabled>
-          <PlusCircleIcon className="animate-pulse" />
-        </Button>
-      )}
-    </div>
-  );
-};
-
-// const ShareButton = ({ slug }: { slug?: string }) => {
-//   return (
-//     <>
-//       {slug ? (
-//         <Button variant="outline" event={{ type: "SHARE", slug }}>
-//           <ShareIcon />
-//         </Button>
-//       ) : (
-//         <Button variant="outline" disabled>
-//           <Loader2Icon className="animate-spin" />
-//         </Button>
-//       )}
-//     </>
-//   );
-// };
 
 export const CraftCarousel = ({ children }: { children: ReactNode }) => {
   const carouselRef = useRef<HTMLDivElement | null>(null);

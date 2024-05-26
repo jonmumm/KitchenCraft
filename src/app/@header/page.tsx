@@ -1,7 +1,7 @@
-import { Badge } from "@/components/display/badge";
 import { Button } from "@/components/input/button";
 import { DateTime } from "luxon";
 
+import { Badge } from "@/components/display/badge";
 import {
   SheetContent,
   SheetOverlay,
@@ -13,15 +13,15 @@ import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile, getTimezone } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import {
-  ChefHatIcon,
-  GripVerticalIcon,
-  ListIcon,
-  Loader2Icon,
-} from "lucide-react";
+import { ChefHatIcon } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
-import { HomepageSuggestedTokens, ListIndicator } from "./components.client";
+import {
+  CurrentListBadge,
+  CurrentListButton,
+  HomepageSuggestedTokens,
+} from "./components.client";
+import { Separator } from "@/components/display/separator";
 
 export default async function Page({}) {
   const userId = await getCurrentUserId();
@@ -39,7 +39,8 @@ export default async function Page({}) {
           >
             <div className="flex flex-row gap-1 items-center">
               <div className="flex flex-row gap-1">
-                <Badge
+                <CurrentListBadge />
+                {/* <Badge
                   variant="outline"
                   className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
                 >
@@ -48,15 +49,34 @@ export default async function Page({}) {
                   <span>
                     {profile?.profileSlug ? profile.profileSlug : "My Cookbook"}
                   </span>
-                </Badge>
+                </Badge> */}
               </div>
             </div>
           </NavigationLink>
+          <Separator orientation="vertical" />
           <MenuSheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <GripVerticalIcon />
-              </Button>
+              <Badge
+                variant={"secondary"}
+                className="text-md font-semibold whitespace-nowrap cursor-pointer bg-transparent"
+              >
+                <ChefHatIcon className="mr-1" />
+                Account
+              </Badge>
+              {/* <Button variant="ghost" className="rounded"
+              
+              
+              >
+                <ChefHatIcon />
+                {/* <div className="flex flex-col items-center justify-center">
+                  <span className="block">A</span>
+                  <span className="block">c</span>
+                  <span className="block">c</span>
+                  <span className="block">o</span>
+                  <span className="block">u</span>
+                  <span className="block">n</span>
+                  <span className="block">t</span>
+                </div> */}
             </SheetTrigger>
             <SheetOverlay />
             <SheetContent side="right" className="p-4">
@@ -85,16 +105,7 @@ export default async function Page({}) {
                 >
                   CLOSE
                 </Button>
-                <div className="indicator">
-                  <ListIndicator />
-                  <Button
-                    variant={"outline"}
-                    event={{ type: "VIEW_LIST" }}
-                    size="icon"
-                  >
-                    <ListIcon />
-                  </Button>
-                </div>
+                <CurrentListButton />
               </div>
             </div>
           </div>
@@ -127,5 +138,7 @@ const PromptHeader = () => {
     greeting = "Looking for a snack?";
   }
 
-  return <h2 className="text-2xl font-medium crafting:hidden px-2">{greeting}</h2>;
+  return (
+    <h2 className="text-2xl font-medium crafting:hidden px-2">{greeting}</h2>
+  );
 };

@@ -17,7 +17,7 @@ export const EventLink = ({
       e.preventDefault();
       e.stopPropagation();
     },
-    [event]
+    [event, send]
   );
 
   return (

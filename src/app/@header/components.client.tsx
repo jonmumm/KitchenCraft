@@ -11,6 +11,7 @@ import { Badge } from "@/components/display/badge";
 import { Skeleton } from "@/components/display/skeleton";
 import AutoResizableTextarea from "@/components/input/auto-resizable-textarea";
 import { Button } from "@/components/input/button";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
@@ -21,6 +22,7 @@ import { useStore } from "@nanostores/react";
 import {
   ArrowLeftIcon,
   ChevronRight,
+  ListIcon,
   Settings2Icon,
   XCircleIcon,
 } from "lucide-react";
@@ -38,11 +40,10 @@ import {
   useSyncExternalStore,
 } from "react";
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
-import { useCraftContext } from "../@craft/hooks";
 import { CraftContext } from "../context";
-import { CraftSnapshot } from "../machine";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
+import { ListIndicator } from "@/components/list-indicator";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -372,21 +373,31 @@ export const HomepageSuggestedTokens = () => {
   );
 };
 
-const selectNumItemsInList = (snapshot: CraftSnapshot) => {
-  return snapshot.context.currentListRecipeIds.length;
-};
 
-export const ListIndicator = () => {
-  const actor = useCraftContext();
-  const numItemsInList = useSelector(actor, selectNumItemsInList);
-
+export const CurrentListBadge = () => {
   return (
-    <>
-      {numItemsInList !== 0 && (
-        <span className="indicator-item badge badge-neutral p-1 text-xs">
-          {numItemsInList}
-        </span>
-      )}
-    </>
+    <div className="indicator">
+      <ListIndicator />
+      <Badge
+        variant={"outline"}
+        event={{ type: "VIEW_LIST" }}
+        className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
+      >
+        <ListIcon className="mr-2" />
+        My Recipes
+      </Badge>
+    </div>
   );
 };
+
+export const CurrentListButton = () => {
+  return (
+    <div className="indicator">
+      <ListIndicator />
+      <Button variant={"outline"} event={{ type: "VIEW_LIST" }} size="icon">
+        <ListIcon />
+      </Button>
+    </div>
+  );
+};
+
