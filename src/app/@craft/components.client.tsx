@@ -9,6 +9,7 @@ import {
 } from "@/components/display/collapsible";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
+import { Ingredients } from "@/components/ingredients";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
 import {
@@ -20,11 +21,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
+import { Instructions } from "@/components/instructions";
 import { PopoverContent, PopoverTrigger } from "@/components/layout/popover";
 import ScrollLockComponent from "@/components/scroll-lock";
+import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
+import { Yield } from "@/components/yield";
 import { useEventHandler } from "@/hooks/useEventHandler";
-import { useNumCompletedRecipes } from "@/hooks/useNumCompletedRecipes";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
@@ -55,7 +58,6 @@ import {
 } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FC,
@@ -594,7 +596,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 <div className="text-muted-foreground text-xs flex flex-row gap-2">
                   <span>Yields</span>
                   <span>
-                    <Yield index={index} />
+                    <Yield recipeId={recipe?.id} />
                   </span>
                 </div>
               )}
@@ -713,7 +715,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               </div>
               <div className="mb-4 flex flex-col gap-2">
                 <ul className="list-disc pl-5 flex flex-col gap-2">
-                  <Ingredients index={index} />
+                  <Ingredients recipeId={recipe?.id} />
                 </ul>
               </div>
             </div>
@@ -727,13 +729,13 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               </div>
               <div className="mb-4 flex flex-col gap-2">
                 <ol className="list-decimal pl-5 flex flex-col gap-2">
-                  <Instructions index={index} />
+                  <Instructions recipeId={recipe?.id} />
                 </ol>
               </div>
             </div>
             <Separator />
             <div className="py-2">
-              <Tags index={index} />
+              <Tags recipeId={recipe?.id} />
             </div>
             <Separator />
           </CollapsibleContent>
@@ -920,151 +922,6 @@ export const SuggestedTokenBadge = ({
 //     </Badge>
 //   );
 // };
-
-const Tags = ({ index }: { index: number }) => {
-  const items = new Array(3).fill(0);
-
-  const Tag = (props: { index: number }) => {
-    const session$ = usePageSessionStore();
-    const session = useStore(session$);
-    const recipeId = session.context.suggestedRecipes[index];
-    if (!recipeId || !session.context.recipes[recipeId]) {
-      return (
-        <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
-          <Skeleton className="w-8 h-4" />
-        </Badge>
-      );
-    }
-    const recipe = session.context.recipes[recipeId]!;
-    const tag = recipe.tags?.[props.index];
-    if (!tag) {
-      return (
-        <Badge variant="outline" className="inline-flex flex-row gap-1 px-2">
-          <Skeleton className="w-8 h-4" />
-        </Badge>
-      );
-    }
-    return (
-      <>
-        {tag ? (
-          <Link href={`/tag/${sentenceToSlug(tag)}`}>
-            <Badge
-              variant="outline"
-              className="inline-flex flex-row gap-1 px-2"
-            >
-              {tag}
-            </Badge>
-          </Link>
-        ) : null}
-      </>
-    );
-  };
-
-  return (
-    <div className="flex flex-row flex-wrap gap-2 px-5 px-y hidden-print items-center justify-center">
-      <TagIcon size={16} className="h-5" />
-      {items.map((_, ind) => {
-        return <Tag key={ind} index={ind} />;
-      })}
-      {/* <AddTagButton /> */}
-    </div>
-  );
-};
-
-const Yield = ({ index }: { index: number }) => {
-  const session$ = usePageSessionStore();
-  const session = useStore(session$);
-  const recipeId = session.context.suggestedRecipes[index];
-  if (!recipeId) {
-    return (
-      <div className="flex flex-row gap-1">
-        <Skeleton className="w-4 h-4" />
-        <Skeleton className="w-10 h-4" />
-      </div>
-    );
-  }
-  const val = session.context.recipes[recipeId]?.yield;
-  if (!val) {
-    return (
-      <div className="flex flex-row gap-1">
-        <Skeleton className="w-4 h-4" />
-        <Skeleton className="w-10 h-4" />
-      </div>
-    );
-  }
-
-  return <>{val}</>;
-};
-
-function Ingredients({ index }: { index: number }) {
-  const NUM_LINE_PLACEHOLDERS = 5;
-  const recipe = useSuggestedRecipeAtIndex(index);
-  const numIngredients = recipe?.ingredients?.length || 0;
-  const numCompletedRecipes = useNumCompletedRecipes();
-  const items = new Array(
-    numCompletedRecipes < index + 1 && !recipe?.instructions?.length
-      ? Math.max(numIngredients, NUM_LINE_PLACEHOLDERS)
-      : numIngredients
-  ).fill(0);
-
-  const Item = (props: { index: number }) => {
-    const showPlaceholder = props.index < NUM_LINE_PLACEHOLDERS;
-    const recipe = useSuggestedRecipeAtIndex(index);
-    if (!recipe || !recipe.ingredients || !recipe.ingredients[props.index]) {
-      return showPlaceholder ? (
-        <SkeletonSentence
-          className="h-7"
-          numWords={Math.round(Math.random()) + 3}
-        />
-      ) : null;
-    }
-
-    return <li>{recipe.ingredients[props.index]}</li>;
-  };
-
-  return (
-    <>
-      {items.map((_, index) => {
-        return <Item key={index} index={index} />;
-      })}
-    </>
-  );
-}
-
-function Instructions({ index }: { index: number }) {
-  const NUM_LINE_PLACEHOLDERS = 5;
-  const recipe = useSuggestedRecipeAtIndex(index);
-  const numInstructions = recipe?.instructions?.length || 0;
-  const numCompletedRecipes = useNumCompletedRecipes();
-  const items = new Array(
-    numCompletedRecipes < index + 1
-      ? Math.max(numInstructions, NUM_LINE_PLACEHOLDERS)
-      : numInstructions
-  ).fill(0);
-
-  const Item = (props: { index: number }) => {
-    const showPlaceholder = props.index < NUM_LINE_PLACEHOLDERS;
-    const recipe = useSuggestedRecipeAtIndex(index);
-    if (!recipe || !recipe.instructions || !recipe.instructions[props.index]) {
-      return showPlaceholder ? (
-        <SkeletonSentence
-          className="h-7"
-          numWords={Math.round(Math.random()) + 3}
-        />
-      ) : null;
-    }
-
-    return <li>{recipe.instructions[props.index]}</li>;
-  };
-
-  return (
-    <>
-      {items.map((_, index) => {
-        return <Item key={index} index={index} />;
-      })}
-    </>
-  );
-}
 
 const chefNameFormSchema = z.object({
   chefname: ChefNameSchema,
@@ -1741,41 +1598,6 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
     </div>
   );
 };
-
-// export const AddedRecipeCard = () => {
-//   // const selectedListSlug, useSyncExternalStore(session$.subscribe, selectSelectedListSlug, sele)
-//   const actor = useContext(CraftContext);
-//   // const isShowing = useSelector(actor, selectIsShowingAddedRecipe);
-//   const isShowing = true;
-
-//   return (
-//     <Link
-//       href={`/`}
-//       target="_blank"
-//       className={cn(
-//         "flex-1 flex justify-center items-center transition-all",
-//         !isShowing ? "translate-y-96" : "pointer-events-auto"
-//       )}
-//     >
-//       <Card className="shadow-xl p-3 flex flex-row gap-2 items-center text-sm">
-//         <div
-//           style={{ borderRightWidth: "1px" }}
-//           className="text-s border-solid dark:border-slate-950 border-slate-50"
-//         >
-//           <span className="text-muted-foreground">Added to</span>{" "}
-//           <span className="whitespace-nowrap inline-flex gap-1 items-center">
-//             <span className="truncate max-w-full mr-2">
-//               Tuesday Chicken Ideas
-//             </span>
-//           </span>
-//         </div>
-//         <Button variant="ghost" className="underline p-0 h-fit">
-//           View
-//         </Button>
-//       </Card>
-//     </Link>
-//   );
-// };
 
 export const Container = twc.div`flex flex-col gap-2 h-full mx-auto w-full`;
 export const Section = twc.div`flex flex-col gap-1`;

@@ -4,7 +4,13 @@ import { Badge } from "./display/badge";
 import { Skeleton } from "./display/skeleton";
 
 export const Tags = ({ recipeId }: { recipeId?: string }) => {
-  const items = new Array(3).fill(0);
+  const isComplete = usePageSessionSelector((state) =>
+    recipeId ? state.context.recipes?.[recipeId]?.complete : undefined
+  );
+  const numTags = usePageSessionSelector((state) =>
+    recipeId ? state.context.recipes?.[recipeId]?.tags?.length || 0 : 0
+  );
+  const items = new Array(!isComplete ? Math.max(numTags, 3) : numTags).fill(0);
 
   const Tag = (props: { index: number }) => {
     // const session$ = usePageSessionStore();
