@@ -16,11 +16,7 @@ import { getPersonalizationContext } from "@/lib/llmContext";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
 import { assert, sentenceToSlug } from "@/lib/utils";
-import {
-  ListNameSchema,
-  RecipePredictionOutputSchema,
-  RecipeProductsPredictionOutputSchema,
-} from "@/schema";
+import { ListNameSchema, RecipeProductsPredictionOutputSchema } from "@/schema";
 import {
   ActorSocketEvent,
   AdContext,
@@ -79,11 +75,7 @@ import {
 } from "./auto-suggest-tokens.stream";
 import { BrowserSessionMachine } from "./browser-session-machine";
 import { BrowserSessionSnapshot } from "./browser-session-store.types";
-import {
-  FullRecipeEvent,
-  FullRecipeEventBase,
-  FullRecipeStream,
-} from "./full-recipe.stream";
+import { FullRecipeEvent, FullRecipeStream } from "./full-recipe.stream";
 import {
   InstantRecipeEvent,
   InstantRecipeStream,
@@ -518,19 +510,7 @@ export const pageSessionMachine = setup({
           description: string;
           id: string;
         };
-      }) => {
-        const tokenStream = new FullRecipeStream();
-        return from(tokenStream.getStream(input)).pipe(
-          switchMap((stream) => {
-            return streamToObservable(
-              stream,
-              FullRecipeEventBase,
-              RecipePredictionOutputSchema,
-              input.id
-            );
-          })
-        );
-      }
+      }) => new FullRecipeStream(input.id).getObservable(input)
     ),
     generateTokens: fromEventObservable(
       ({ input }: { input: { prompt: string } }) => {
@@ -1677,7 +1657,7 @@ export const pageSessionMachine = setup({
                             assert(recipe.name, "expected recipe name");
                             draft.recipes[event.id] = {
                               ...recipe,
-                              ...event.data.recipe,
+                              ...event.data,
                               slug: getSlug({
                                 id: recipe.id,
                                 name: recipe.name,
@@ -1707,6 +1687,23 @@ export const pageSessionMachine = setup({
                             };
                           },
                         }),
+                      ],
+                    },
+                    FULL_RECIPE_PROGRESS: {
+                      actions: [
+                        assign(({ context, event }) =>
+                          produce(context, (draft) => {
+                            const recipe = draft.recipes[event.id];
+                            assert(
+                              recipe,
+                              "expected recipe when updating full recipe progress"
+                            );
+                            draft.recipes[event.id] = {
+                              ...recipe,
+                              ...event.data,
+                            };
+                          })
+                        ),
                       ],
                     },
                   },

@@ -1,5 +1,4 @@
 import { AutoSuggestTokensEventBase } from "@/app/auto-suggest-tokens.stream";
-import { FullRecipeEventBase } from "@/app/full-recipe.stream";
 import { InstantRecipeMetadataEventBase } from "@/app/instant-recipe/streams";
 import { env } from "@/env.public";
 import { noop } from "@/lib/utils";
@@ -14,7 +13,7 @@ const PostHogServerSentEventSchema = z.discriminatedUnion("type", [
       llmType: z.enum([
         "PLACEHOLDER",
         InstantRecipeMetadataEventBase,
-        FullRecipeEventBase,
+        "FULL_RECIPE",
         AutoSuggestTokensEventBase,
         "SUGGEST_CHEF_NAMES",
         "SUGGEST_PLACEHOLDERS",

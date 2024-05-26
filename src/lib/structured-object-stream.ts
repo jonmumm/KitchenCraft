@@ -54,7 +54,6 @@ export abstract class StructuredObjectStream<
 
     (async () => {
       try {
-        console.log("START");
         subject.next({
           type: `${eventType}_START` as WithStart<string>,
           id: this.id,
@@ -66,11 +65,9 @@ export abstract class StructuredObjectStream<
           prompt: await this.getUserMessage(input),
           schema,
         });
-        console.log("START 2");
 
         let partialObject: DeepPartial<TOutput>;
         for await (const _partialObject of objectStream.partialObjectStream) {
-          console.log(_partialObject);
           subject.next({
             type: `${eventType}_PROGRESS` as WithProgress<string>,
             id: this.id,

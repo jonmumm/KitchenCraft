@@ -1,27 +1,37 @@
-import { sanitizeOutput } from "@/lib/sanitize";
-import { RecipePredictionOutputSchema } from "@/schema";
-import jsYaml from "js-yaml";
+import { Observable } from "rxjs";
 import { describe, expect, it } from "vitest";
-import { FullRecipeStream, FullRecipeStreamInput } from "./full-recipe.stream";
+import {
+  FullRecipeEvent,
+  RecipeOutput,
+  RecipeOutputSchema,
+  FullRecipeStream,
+  FullRecipeStreamInput,
+} from "./full-recipe.stream";
 
 describe("FullRecipeStream", () => {
-  async function processStream(stream: AsyncIterable<string>) {
-    const charArray = [];
-    for await (const chunk of stream) {
-      charArray.push(chunk);
-    }
-    return charArray.join("");
+  async function processStream(
+    observable: Observable<FullRecipeEvent>
+  ): Promise<RecipeOutput> {
+    return new Promise((resolve, reject) => {
+      let completeData: RecipeOutput | null = null;
+      observable.subscribe({
+        next: (event: FullRecipeEvent) => {
+          if (event.type === "FULL_RECIPE_COMPLETE") {
+            completeData = event.data;
+            resolve(event.data);
+          }
+        },
+        error: (err: any) => reject(err),
+      });
+    });
   }
 
   async function validateOutput(input: FullRecipeStreamInput) {
-    const tokenStream = new FullRecipeStream();
-    const stream = await tokenStream.getStream(input);
-    const outputRaw = await processStream(stream);
-    const outputSanitized = sanitizeOutput(outputRaw);
-    const outputJSON = jsYaml.load(outputSanitized);
+    const recipeStream = new FullRecipeStream();
+    const observableStream = recipeStream.getObservable(input) as Observable<FullRecipeEvent>;
+    const outputData = await processStream(observableStream);
 
-    const result = RecipePredictionOutputSchema.safeParse(outputJSON);
-
+    const result = RecipeOutputSchema.safeParse(outputData);
     expect(result.success).toBe(true);
   }
 
