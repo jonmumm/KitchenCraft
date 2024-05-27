@@ -677,14 +677,40 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           )}
           <CollapsibleContent>
             {isExpanded && recipe?.metadataComplete && (
-              <div className="flex flex-row gap-1 p-2 max-w-xl mx-auto justify-center">
+              <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
                 <ShareButton slug={recipe.slug} name={recipe.name} />
-                <Button className="flex-1">
-                  Add <PlusCircleIcon className="ml-2" />
-                </Button>
-                <Button variant="ghost" className="flex-2">
-                  Print <PrinterIcon className="ml-2" />
-                </Button>
+                {!isAdded ? (
+                  <Button
+                    size="icon"
+                    className="flex-1"
+                    event={{ type: "ADD_TO_LIST", id: recipe.id }}
+                  >
+                    Add <PlusCircleIcon className="ml-2" />
+                  </Button>
+                ) : (
+                  <Popover open={wasJustAdded}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                      >
+                        Remove <MinusCircleIcon className="ml-2" />
+                      </Button>
+                    </PopoverTrigger>
+                    {wasJustAdded && (
+                      <PopoverContent
+                        side="top"
+                        className="w-fit px-2 py-1 text-xs text-center z-90"
+                      >
+                        Added to
+                        <br />
+                        <span className="font-medium">My Recipes</span>
+                      </PopoverContent>
+                    )}
+                  </Popover>
+                )}
+                <PrintButton slug={recipe?.slug} />
               </div>
             )}
             {/* <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2"></div> */}
@@ -1507,21 +1533,21 @@ export function waitFor<T>(
   });
 }
 
-const PrintButton = ({ slug }: { slug?: string }) => {
-  return (
-    <div className="flex flex-row justify-center w-full">
-      {slug ? (
-        <Button variant="outline" event={{ type: "PRINT" }}>
-          <PrinterIcon />
-        </Button>
-      ) : (
-        <Button variant="outline" disabled>
-          <PrinterIcon className="animate-pulse" />
-        </Button>
-      )}
-    </div>
-  );
-};
+// const PrintButton = ({ slug }: { slug?: string }) => {
+//   return (
+//     <div className="flex flex-row justify-center w-full">
+//       {slug ? (
+//         <Button variant="outline" event={{ type: "PRINT" }}>
+//           <PrinterIcon />
+//         </Button>
+//       ) : (
+//         <Button variant="outline" disabled>
+//           <PrinterIcon className="animate-pulse" />
+//         </Button>
+//       )}
+//     </div>
+//   );
+// };
 
 export const CraftCarousel = ({ children }: { children: ReactNode }) => {
   const carouselRef = useRef<HTMLDivElement | null>(null);
@@ -1741,12 +1767,32 @@ const TagsLabel = () => {
   return <SectionLabel icon={TagIcon} title="Tags" />;
 };
 
+const PrintButton = ({ slug }: { slug?: string }) => {
+  if (!slug) {
+    return (
+      <Button variant="ghost" disabled className="flex-2">
+        Print <PrinterIcon className="ml-2" />
+      </Button>
+    );
+  }
+
+  return (
+    // <Link
+    //   className="flex-2"
+    //   href={`${window.location.origin}/recipe/${slug}?print=true`}
+    //   target="_blank"
+    // >
+    <Button variant="ghost">
+      Print <PrinterIcon className="ml-2" />
+    </Button>
+  );
+};
+
 const ShareButton = ({ slug, name }: { slug?: string; name?: string }) => {
   const [showCopied, setShowCopied] = useState(false);
   const send = useSend();
 
   const handlePressCopy = useCallback(() => {
-    console.log("RESS");
     if (!slug) {
       return;
     }
@@ -1776,7 +1822,6 @@ const ShareButton = ({ slug, name }: { slug?: string; name?: string }) => {
       }, 3000);
     }
   }, [setShowCopied, slug, send, name]);
-  console.log(slug, name);
 
   if (!slug) {
     return (
@@ -1788,7 +1833,7 @@ const ShareButton = ({ slug, name }: { slug?: string; name?: string }) => {
 
   return (
     <div className="flex-2">
-      <Popover open={showCopied} onOpenChange={handlePressCopy} >
+      <Popover open={showCopied} onOpenChange={handlePressCopy}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
@@ -1798,7 +1843,9 @@ const ShareButton = ({ slug, name }: { slug?: string; name?: string }) => {
             Share <ShareIcon className="ml-2" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-fit px-2 py-1 z-90">URL Copied!</PopoverContent>
+        <PopoverContent className="w-fit px-2 py-1 z-90">
+          URL Copied!
+        </PopoverContent>
       </Popover>
     </div>
   );
