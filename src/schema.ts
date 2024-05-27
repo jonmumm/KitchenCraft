@@ -497,8 +497,7 @@ const SelectResultEventSchema = z.object({
 
 const SelectRecipeEventSchema = z.object({
   type: z.literal("SELECT_RECIPE"),
-  name: z.string(),
-  description: z.string(),
+  id: z.string(),
 });
 
 const SetUsernameEventSchema = z.object({

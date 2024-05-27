@@ -25,6 +25,13 @@ import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Ingredients } from "@/components/ingredients";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
 import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
@@ -43,6 +50,7 @@ import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
+import { useSend } from "@/hooks/useSend";
 import { selectCurrentListRecipeIds } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
@@ -351,7 +359,7 @@ const useListRecipeAtIndex = (index: number) => {
   );
 };
 
-export const CurrentListCarousel = () => {
+export const CurrentListScreen = () => {
   // useScrollLock(true);
   const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
   useScrollLock(true);
@@ -374,7 +382,7 @@ export const CurrentListCarousel = () => {
           <Button
             size="icon"
             variant="secondary"
-            event={{ type: "PREV" }}
+            event={{ type: "NEXT" }}
             autoFocus={false}
             className="absolute right-2 bottom-2 shadow-xl z-80"
           >
@@ -391,15 +399,22 @@ export const CurrentListCarousel = () => {
           >
             CLEAR
           </Button>
-          <Badge
-            variant="secondary"
-            className="flex-1 justify-center text-center text-lg font-bold"
-          >
-            My Recipes
-            <span className="ml-1 text-sm bg-slate-300 dark:bg-slate-700 px-1 rounded">
-              <CurrentListCount />
-            </span>
-          </Badge>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex-1">
+              <Badge
+                variant="secondary"
+                className="flex gap-2 justify-center text-center text-lg font-bold w-full"
+              >
+                My Recipes
+                <span className="ml-1 text-sm bg-slate-300 dark:bg-slate-700 px-1 rounded">
+                  <CurrentListCount />
+                </span>
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="z-90">
+              <CurrentListDropDownMenuRadioGroup />
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="ghost"
             event={{ type: "EXIT" }}
@@ -411,18 +426,19 @@ export const CurrentListCarousel = () => {
         </div>
         {/* <div className="carousel carousel-center space-x-2 pl-2 pr-8"> */}
         <HasCurrentListItems>
-          <div className="carousel pl-4 carousel-center md:pl-[20%] space-x-2 pr-8 flex-1">
+          <CurrentListCarousel>
             {recipeIds.map((id, index) => (
               <CurrentListCarouselItem key={id} id={id} index={index} />
             ))}
-          </div>
+          </CurrentListCarousel>
         </HasCurrentListItems>
         <CurrentListEmpty>
           <div className="px-4 flex-1">
             <Card className="h-full w-full flex flex-col gap-2 items-center justify-center">
               <div>No recipes added yet.</div>
               <Badge event={{ type: "NEW_RECIPE" }} variant="secondary">
-                Cook one up.
+                Craft one up.
+                <ChevronRightIcon className="ml-1" size={14} />
               </Badge>
             </Card>
           </div>
@@ -1169,4 +1185,113 @@ const CurrentListCount = () => {
         ?.length || 0
   );
   return <>{count}</>;
+};
+
+const CurrentListDropDownMenuRadioGroup = () => {
+  const send = useSend();
+  const handleValueChange = useCallback(
+    (id: string) => {
+      if (id !== "-1") {
+        send({ type: "SELECT_RECIPE", id });
+      }
+    },
+    [send]
+  );
+
+  const actor = useCraftContext();
+  const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
+  const items = new Array(Math.max(recipeIds.length, 5)).fill(0);
+  const currentValue = useSelector(actor, (state) => {
+    return recipeIds[state.context.scrollItemIndex];
+  });
+
+  const Item = ({ index }: { index: number }) => {
+    const recipe = useListRecipeAtIndex(index);
+
+    if (!recipe?.id) {
+      return (
+        <DropdownMenuRadioItem value={"-1"}>
+          <SkeletonSentence numWords={4} className="h-3 py-3 animate-none" />
+        </DropdownMenuRadioItem>
+      );
+    }
+
+    return (
+      <DropdownMenuRadioItem className="max-w-[80vw]" value={recipe?.id}>
+        {recipe?.name ? <>{recipe.name}</> : <></>}
+      </DropdownMenuRadioItem>
+    );
+  };
+
+  return (
+    <DropdownMenuRadioGroup
+      value={currentValue}
+      onValueChange={handleValueChange}
+    >
+      {items.map((_, index) => (
+        <div key={index}>
+          <Item index={index} />
+          {index !== items.length - 1 && <Separator />}
+        </div>
+      ))}
+    </DropdownMenuRadioGroup>
+  );
+};
+
+export const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
+  const actor = useCraftContext();
+  const ref = useRef<HTMLDivElement>(null);
+  const isScrollingRef = useRef(false);
+
+  const ScrollManager = () => {
+    const scrollItemIndex = useSelector(
+      actor,
+      (state) => state.context.scrollItemIndex
+    );
+
+    useEffect(() => {
+      if (ref.current && !isScrollingRef.current) {
+        const child = ref.current.children[scrollItemIndex];
+        if (child) {
+          child.scrollIntoView({ behavior: "smooth", inline: "center" });
+        }
+      }
+      isScrollingRef.current = false;
+    }, [scrollItemIndex]);
+
+    const handleScroll = useCallback(() => {
+      if (!isScrollingRef.current && ref.current) {
+        const scrollLeft = ref.current.scrollLeft;
+        const childWidth = ref.current.children[0]?.clientWidth || 1;
+        const newIndex = Math.round(scrollLeft / childWidth);
+
+        if (newIndex !== scrollItemIndex) {
+          // Update the state machine with the new index
+          actor.send({ type: "SCROLL_INDEX", index: newIndex });
+        }
+      }
+    }, [scrollItemIndex]);
+
+    useEffect(() => {
+      const carousel = ref.current;
+      if (carousel) {
+        carousel.addEventListener("scroll", handleScroll);
+        return () => {
+          carousel.removeEventListener("scroll", handleScroll);
+        };
+      }
+    }, [scrollItemIndex, handleScroll]);
+
+    return null;
+  };
+
+  return (
+    <div
+      ref={ref}
+      className="carousel pl-4 carousel-center md:pl-[20%] space-x-2 pr-8 flex-1"
+    >
+      <ScrollManager />
+      {children}
+    </div>
+  );
 };

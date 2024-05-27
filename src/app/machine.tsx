@@ -807,6 +807,38 @@ export const createCraftMachine = ({
         },
         ListView: {
           type: "parallel",
+          on: {
+            PREV: {
+              actions: assign({
+                scrollItemIndex: ({ context }) => context.scrollItemIndex - 1,
+              }),
+            },
+            NEXT: {
+              actions: assign({
+                scrollItemIndex: ({ context }) => context.scrollItemIndex + 1,
+              }),
+            },
+            SCROLL_INDEX: {
+              actions: assign({
+                scrollItemIndex: ({ event }) => event.index,
+              }),
+            },
+            SELECT_RECIPE: {
+              actions: assign({
+                scrollItemIndex: ({ event }) => {
+                  return (
+                    store
+                      .get()
+                      .context.browserSessionSnapshot?.context.currentListRecipeIds.indexOf(
+                        event.id
+                      ) || -1
+                  );
+                },
+                // scrollItemIndex: ({ event }) => event.index,
+                // pageSession$.get().context.browserSessionSnapshot.context.currentListRecipeIds
+              }),
+            },
+          },
           states: {
             Open: {
               initial: "False",
@@ -827,24 +859,6 @@ export const createCraftMachine = ({
           },
         },
         RecipeDetail: {
-          on: {
-            PREV: {
-              actions: assign({
-                scrollItemIndex: ({ context }) => context.scrollItemIndex - 1,
-              }),
-            },
-            NEXT: {
-              actions: assign({
-                scrollItemIndex: ({ context }) => context.scrollItemIndex + 1,
-              }),
-            },
-            SCROLL_INDEX: {
-              actions: assign({
-                scrollItemIndex: ({ event }) => event.index,
-              }),
-            },
-          },
-
           initial: "Closed",
           states: {
             Closed: {

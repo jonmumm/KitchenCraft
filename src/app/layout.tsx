@@ -31,7 +31,7 @@ import {
   Body,
   CraftStickyHeader,
   CreateNewListCard,
-  CurrentListCarousel,
+  CurrentListScreen,
   EnterChefNameCard,
   EnterEmailCard,
   IsCreatingList,
@@ -246,7 +246,7 @@ const CurrentListDialog = () => {
   return (
     <>
       <IsInCurrentListView>
-        <CurrentListCarousel />
+        <CurrentListScreen />
       </IsInCurrentListView>
     </>
   );

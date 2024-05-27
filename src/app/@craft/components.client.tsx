@@ -678,22 +678,13 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <CollapsibleContent>
             {isExpanded && recipe?.metadataComplete && (
               <div className="flex flex-row gap-1 p-2 max-w-xl mx-auto justify-center">
-                <Button variant="ghost" className="flex-2">
-                  Share <ShareIcon className="ml-2" />
-                </Button>
+                <ShareButton slug={recipe.slug} name={recipe.name} />
                 <Button className="flex-1">
                   Add <PlusCircleIcon className="ml-2" />
                 </Button>
                 <Button variant="ghost" className="flex-2">
                   Print <PrinterIcon className="ml-2" />
                 </Button>
-                {/* <AddButton id={recipe?.id} />
-                <ShareButton
-                  slug={recipe?.slug}
-                  name={recipe?.name!}
-                  description={recipe?.description!}
-                />
-                <PrintButton slug={recipe?.slug} /> */}
               </div>
             )}
             {/* <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2"></div> */}
@@ -1748,4 +1739,67 @@ export const SuggestedTagsSection = () => {
 
 const TagsLabel = () => {
   return <SectionLabel icon={TagIcon} title="Tags" />;
+};
+
+const ShareButton = ({ slug, name }: { slug?: string; name?: string }) => {
+  const [showCopied, setShowCopied] = useState(false);
+  const send = useSend();
+
+  const handlePressCopy = useCallback(() => {
+    console.log("RESS");
+    if (!slug) {
+      return;
+    }
+
+    const { origin } = window.location;
+    const url = `${origin}/recipe/${slug}`;
+
+    if ("share" in navigator) {
+      navigator
+        .share({
+          title: name,
+          url,
+        })
+        .then(() => {
+          send({ type: "SHARE_COMPLETE", slug });
+        })
+        .catch(() => {
+          send({ type: "SHARE_CANCEL", slug });
+        });
+    } else if ("clipboard" in navigator) {
+      // @ts-ignore
+      navigator.clipboard.writeText(url);
+
+      setShowCopied(true);
+      setTimeout(() => {
+        setShowCopied(false);
+      }, 3000);
+    }
+  }, [setShowCopied, slug, send, name]);
+  console.log(slug, name);
+
+  if (!slug) {
+    return (
+      <Button variant="ghost" className="flex-2" disabled>
+        Share <ShareIcon className="ml-2" />
+      </Button>
+    );
+  }
+
+  return (
+    <div className="flex-2">
+      <Popover open={showCopied} onOpenChange={handlePressCopy} >
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            className="w-full"
+            event={{ type: "SHARE", slug }}
+          >
+            Share <ShareIcon className="ml-2" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-fit px-2 py-1 z-90">URL Copied!</PopoverContent>
+      </Popover>
+    </div>
+  );
 };
