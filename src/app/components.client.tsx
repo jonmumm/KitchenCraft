@@ -377,10 +377,9 @@ export const CurrentListScreen = () => {
         <CurrentListHasPreviousRecipes>
           <Button
             size="icon"
-            variant="secondary"
             event={{ type: "PREV" }}
             autoFocus={false}
-            className="absolute left-2 bottom-2 shadow-xl z-80"
+            className="absolute left-2 bottom-2 md:bottom-1/2 shadow-xl z-80"
           >
             <ChevronLeftIcon />
           </Button>
@@ -388,28 +387,27 @@ export const CurrentListScreen = () => {
         <CurrentListHasNextRecipes>
           <Button
             size="icon"
-            variant="secondary"
             event={{ type: "NEXT" }}
             autoFocus={false}
-            className="absolute right-2 bottom-2 shadow-xl z-80"
+            className="absolute right-2 bottom-2 md:bottom-1/2 shadow-xl z-80"
           >
             <ChevronRightIcon />
           </Button>
         </CurrentListHasNextRecipes>
 
-        <div className="flex flex-row gap-1 justify-start items-center px-4 sticky top-0 w-full max-w-3xl mx-auto">
+        <div className="flex flex-row gap-2 justify-between items-center px-2 sticky top-0 w-full max-w-3xl mx-auto">
           <Badge
             variant="secondary"
             event={{ type: "CLEAR_LIST" }}
-            className="text-xs text-semibold"
+            className="text-xs text-semibold shadow-md"
           >
             CLEAR
           </Badge>
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex-1">
+            <DropdownMenuTrigger className="flex-1 flex justify-center">
               <Badge
                 variant="default"
-                className="flex gap-2 justify-between text-center text-lg font-bold w-full"
+                className="flex gap-2 justify-between text-center text-lg font-bold max-w-52 w-full"
               >
                 <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
                   <CurrentListCount />
@@ -425,7 +423,7 @@ export const CurrentListScreen = () => {
           <Badge
             variant="secondary"
             event={{ type: "EXIT" }}
-            className="text-xs text-semibold"
+            className="text-xs text-semibold shadow-md"
           >
             CLOSE
           </Badge>
@@ -1212,7 +1210,7 @@ const MyRecipeListsRadioGroup = () => {
       onValueChange={handleValueChange}
     >
       <RecipeListRadioItem value="selected">
-        <div className="flex flex-row gap-2 w-52">
+        <div className="flex flex-row gap-2 w-56">
           <span className="flex-1">
             <span className="mr-1">✅</span> Selected
           </span>
@@ -1222,7 +1220,7 @@ const MyRecipeListsRadioGroup = () => {
         </div>
       </RecipeListRadioItem>
       <RecipeListRadioItem value="make-later">
-        <div className="flex flex-row gap-2 w-52">
+        <div className="flex flex-row gap-2 w-56">
           <span className="flex-1">
             <span className="mr-1">⏰</span> Make Later
           </span>
@@ -1232,7 +1230,7 @@ const MyRecipeListsRadioGroup = () => {
         </div>
       </RecipeListRadioItem>
       <RecipeListRadioItem value="make-later">
-        <div className="flex flex-row gap-2 w-52">
+        <div className="flex flex-row gap-2 w-56">
           <span className="flex-1">
             <span className="mr-1">⭐️</span> Favorites
           </span>
@@ -1243,11 +1241,14 @@ const MyRecipeListsRadioGroup = () => {
       </RecipeListRadioItem>
       <Separator />
       <div className="flex items-center justify-center py-2">
-
-      <Badge variant="outline">
-        Create New List
-        <PlusCircleIcon className="ml-1" />
-      </Badge>
+        <Badge
+          variant="outline"
+          className="cursor-pointer"
+          event={{ type: "CREATE_LIST" }}
+        >
+          Create New List
+          <PlusCircleIcon className="ml-1" />
+        </Badge>
       </div>
     </DropdownMenuRadioGroup>
   );
