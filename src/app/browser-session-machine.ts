@@ -246,7 +246,7 @@ export const browserSessionMachine = setup({
     },
     List: {
       on: {
-        ADD_TO_LIST: {
+        SELECT_RECIPE: {
           guard: ({ context, event }) =>
             !context.currentListRecipeIds.includes(event.id),
           actions: [

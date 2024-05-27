@@ -1528,13 +1528,13 @@ export const pageSessionMachine = setup({
                   ),
                   type: "parallel",
                   on: {
-                    ADD_TO_LIST: {
+                    SELECT_RECIPE: {
                       actions: [
                         spawnChild("generateFullRecipe", {
                           input: ({ context, event }) => {
                             assert(
-                              event.type === "ADD_TO_LIST",
-                              "expected event to be ADD_TO_LIST"
+                              event.type === "SELECT_RECIPE",
+                              "expected event to be SELECT_RECIPE"
                             );
 
                             const recipe = context.recipes[event.id];

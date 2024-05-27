@@ -23,7 +23,7 @@ const EventTrigger: ForwardRefRenderFunction<
     e.preventDefault();
     e.stopPropagation();
     // Add any additional logic if needed
-  }, []);
+  }, [event, send]);
 
   return (
     <Comp onClick={handleClick} ref={ref as any} {...props}>

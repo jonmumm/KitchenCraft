@@ -12,6 +12,7 @@ import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Ingredients } from "@/components/ingredients";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
+import EventTrigger from "@/components/input/event-trigger";
 import {
   Form,
   FormControl,
@@ -46,15 +47,14 @@ import {
   CarrotIcon,
   ExpandIcon,
   Loader2Icon,
-  MinusCircleIcon,
   MoveLeftIcon,
-  PlusCircleIcon,
+  PlusIcon,
   PrinterIcon,
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
   TagIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
@@ -526,7 +526,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const isFocused = useSelector(actor, selectIsFocused);
   const isExpanded = isFocused;
   const send = useSend();
-  const isAdded = usePageSessionSelector(
+  const isSelected = usePageSessionSelector(
     (state) =>
       recipe?.id &&
       state.context.browserSessionSnapshot?.context.currentListRecipeIds.includes(
@@ -543,36 +543,39 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
     [send, recipe?.id]
   );
 
-  const [wasJustAdded, setWasJustAdded] = useState(false);
+  const [wasJustSelected, setWasJustSelected] = useState(false);
 
-  const onAddToList = useCallback(
-    (event: ExtractAppEvent<"ADD_TO_LIST">) => {
+  const onSelectRecipe = useCallback(
+    (event: ExtractAppEvent<"SELECT_RECIPE">) => {
       if (event.id === recipe?.id) {
-        setWasJustAdded(true);
+        setWasJustSelected(true);
         setTimeout(() => {
-          setWasJustAdded(false);
+          setWasJustSelected(false);
         }, 2500);
       }
     },
-    [setWasJustAdded, recipe]
+    [setWasJustSelected, recipe]
   );
 
-  useEventHandler("ADD_TO_LIST", onAddToList);
+  useEventHandler("SELECT_RECIPE", onSelectRecipe);
 
   return (
     <RecipeDetailContainer index={index}>
       <Card
         className={cn(
           "carousel-item relative flex flex-col w-full",
-          recipe?.id ? "cursor-pointer" : ""
+          !isExpanded && isSelected
+            ? "border-purple-500 border-2 border-solid shadow-xl"
+            : ""
         )}
-        {...(!isExpanded && recipe?.id
-          ? {
-              event: { type: "VIEW_RECIPE", id: recipe.id },
-            }
-          : {})}
       >
-        <div className="flex flex-col p-4">
+        <EventTrigger
+          event={{ type: "VIEW_RECIPE", id: recipe?.id! }}
+          className={cn(
+            "flex flex-col p-4",
+            recipe?.id ? "cursor-pointer" : ""
+          )}
+        >
           <div className="flex flex-row gap-2 w-full">
             <div className="flex flex-col gap-2 w-full">
               <CardTitle className="flex flex-row items-center gap-2">
@@ -614,40 +617,17 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             )}
             {!isExpanded && recipe?.id && recipe.name && (
               <div className="flex flex-col justify-center">
-                {!isAdded ? (
-                  <Button
-                    size="icon"
-                    event={{ type: "ADD_TO_LIST", id: recipe.id }}
-                  >
-                    <PlusCircleIcon />
-                  </Button>
-                ) : (
-                  <Popover open={wasJustAdded}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
-                      >
-                        <MinusCircleIcon />
-                      </Button>
-                    </PopoverTrigger>
-                    {wasJustAdded && (
-                      <PopoverContent
-                        side="top"
-                        className="w-fit px-2 py-1 text-xs text-center z-40"
-                      >
-                        Added to
-                        <br />
-                        <span className="font-medium">My Recipes</span>
-                      </PopoverContent>
-                    )}
-                  </Popover>
-                )}
+                <Button
+                  size="icon"
+                  variant="outline"
+                  event={{ type: "VIEW_RECIPE", id: recipe.id }}
+                >
+                  <ExpandIcon />
+                </Button>
               </div>
             )}
           </div>
-        </div>
+        </EventTrigger>
         <Separator />
         <Collapsible
           open={isFocused}
@@ -658,12 +638,21 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             <CollapsibleTrigger asChild disabled={!recipe?.name}>
               <div className="flex flex-row gap-1 items-center justify-center text-s py-3 cursor-pointer">
                 {recipe?.id && recipe.name ? (
-                  <Badge
-                    variant="secondary"
-                    event={{ type: "VIEW_RECIPE", id: recipe.id }}
-                  >
-                    View <ExpandIcon className="ml-1" size={14} />
-                  </Badge>
+                  !isSelected ? (
+                    <Badge
+                      variant="secondary"
+                      event={{ type: "SELECT_RECIPE", id: recipe.id }}
+                    >
+                      Select <PlusIcon className="ml-1" size={14} />
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="secondary"
+                      event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                    >
+                      Unselect <XIcon className="ml-1" size={14} />
+                    </Badge>
+                  )
                 ) : (
                   <Badge variant="secondary">
                     <span className="text-muted-foreground flex flex-row gap-1">
@@ -679,36 +668,22 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             {isExpanded && recipe?.metadataComplete && (
               <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
                 <ShareButton slug={recipe.slug} name={recipe.name} />
-                {!isAdded ? (
+                {!isSelected ? (
                   <Button
                     size="icon"
-                    className="flex-1"
-                    event={{ type: "ADD_TO_LIST", id: recipe.id }}
+                    className="flex-1 bg-purple-600 dark:bg-purple-400"
+                    event={{ type: "SELECT_RECIPE", id: recipe.id }}
                   >
-                    Add <PlusCircleIcon className="ml-2" />
+                    Select <PlusIcon className="ml-2" />
                   </Button>
                 ) : (
-                  <Popover open={wasJustAdded}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="flex-1"
-                        event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
-                      >
-                        Remove <MinusCircleIcon className="ml-2" />
-                      </Button>
-                    </PopoverTrigger>
-                    {wasJustAdded && (
-                      <PopoverContent
-                        side="top"
-                        className="w-fit px-2 py-1 text-xs text-center z-90"
-                      >
-                        Added to
-                        <br />
-                        <span className="font-medium">My Recipes</span>
-                      </PopoverContent>
-                    )}
-                  </Popover>
+                  <Button
+                    variant="ghost"
+                    className="flex-1"
+                    event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                  >
+                    Unselect <XIcon className="ml-2" />
+                  </Button>
                 )}
                 <PrintButton slug={recipe?.slug} />
               </div>

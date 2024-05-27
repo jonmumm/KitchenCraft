@@ -15,21 +15,21 @@ const selectNumItemsInList = (snapshot: PageSessionSnapshot) => {
 
 export const ListIndicator = () => {
   const numItemsInList = usePageSessionSelector(selectNumItemsInList);
-  const [justAdded, setJustAdded] = useState(false);
+  const [justSelected, setWasJustSelected] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const onAddToList = useCallback(() => {
-    setJustAdded(true);
+  const onSelectRecipe = useCallback(() => {
+    setWasJustSelected(true);
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
     timerRef.current = setTimeout(() => {
-      setJustAdded(false);
+      setWasJustSelected(false);
       timerRef.current = null;
     }, 1500);
-  }, [setJustAdded, timerRef]);
+  }, [setWasJustSelected, timerRef]);
 
-  useEventHandler("ADD_TO_LIST", onAddToList);
+  useEventHandler("SELECT_RECIPE", onSelectRecipe);
 
   return (
     <>
@@ -37,8 +37,8 @@ export const ListIndicator = () => {
         <span className={"indicator-item"}>
           <span
             className={cn(
-              "badge badge-neutral p-1 text-xs",
-              justAdded ? "animate-bounce" : ""
+              "badge bg-purple-500 text-white p-1 text-xs",
+              justSelected ? "animate-bounce" : ""
             )}
           >
             {numItemsInList}

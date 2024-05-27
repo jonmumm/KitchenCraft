@@ -29,7 +29,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
@@ -51,18 +50,23 @@ import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
+import { cn } from "@/lib/utils";
 import { selectCurrentListRecipeIds } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
 import { useStore } from "@nanostores/react";
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
 import {
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsUpDown,
+  Circle,
   HeartIcon,
+  PlusCircleIcon,
+  PlusIcon,
   RefreshCwIcon,
-  SaveIcon,
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
@@ -71,7 +75,10 @@ import {
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
+  ComponentPropsWithoutRef,
+  ElementRef,
   ReactNode,
+  forwardRef,
   useCallback,
   useContext,
   useEffect,
@@ -391,38 +398,37 @@ export const CurrentListScreen = () => {
         </CurrentListHasNextRecipes>
 
         <div className="flex flex-row gap-1 justify-start items-center px-4 sticky top-0 w-full max-w-3xl mx-auto">
-          <Button
-            variant="ghost"
+          <Badge
+            variant="secondary"
             event={{ type: "CLEAR_LIST" }}
-            autoFocus={false}
             className="text-xs text-semibold"
           >
             CLEAR
-          </Button>
+          </Badge>
           <DropdownMenu>
             <DropdownMenuTrigger className="flex-1">
               <Badge
-                variant="secondary"
-                className="flex gap-2 justify-center text-center text-lg font-bold w-full"
+                variant="default"
+                className="flex gap-2 justify-between text-center text-lg font-bold w-full"
               >
-                My Recipes
-                <span className="ml-1 text-sm bg-slate-300 dark:bg-slate-700 px-1 rounded">
+                <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
                   <CurrentListCount />
                 </span>
+                <span>Selected</span>
+                <ChevronDownIcon />
               </Badge>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="z-90">
-              <CurrentListDropDownMenuRadioGroup />
+              <MyRecipeListsRadioGroup />
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            variant="ghost"
+          <Badge
+            variant="secondary"
             event={{ type: "EXIT" }}
-            autoFocus={false}
             className="text-xs text-semibold"
           >
             CLOSE
-          </Button>
+          </Badge>
         </div>
         {/* <div className="carousel carousel-center space-x-2 pl-2 pr-8"> */}
         <HasCurrentListItems>
@@ -445,8 +451,8 @@ export const CurrentListScreen = () => {
         </CurrentListEmpty>
         <div className="flex flex-row items-center justify-center gap-1">
           <Button>
-            <SaveIcon size={18} className="mr-1" />
-            Save to...
+            <PlusIcon size={18} className="mr-1" />
+            Add to...
           </Button>
           <Button variant="outline">
             <ShareIcon size={18} className="mr-1" />
@@ -1187,56 +1193,87 @@ const CurrentListCount = () => {
   return <>{count}</>;
 };
 
-const CurrentListDropDownMenuRadioGroup = () => {
+const MyRecipeListsRadioGroup = () => {
   const send = useSend();
   const handleValueChange = useCallback(
-    (id: string) => {
-      if (id !== "-1") {
-        send({ type: "SELECT_RECIPE", id });
-      }
+    (listSlug: string) => {
+      send({ type: "SELECT_LIST", listSlug });
     },
     [send]
   );
 
   const actor = useCraftContext();
   const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
-  const items = new Array(Math.max(recipeIds.length, 5)).fill(0);
-  const currentValue = useSelector(actor, (state) => {
-    return recipeIds[state.context.scrollItemIndex];
-  });
-
-  const Item = ({ index }: { index: number }) => {
-    const recipe = useListRecipeAtIndex(index);
-
-    if (!recipe?.id) {
-      return (
-        <DropdownMenuRadioItem value={"-1"}>
-          <SkeletonSentence numWords={4} className="h-3 py-3 animate-none" />
-        </DropdownMenuRadioItem>
-      );
-    }
-
-    return (
-      <DropdownMenuRadioItem className="max-w-[80vw]" value={recipe?.id}>
-        {recipe?.name ? <>{recipe.name}</> : <></>}
-      </DropdownMenuRadioItem>
-    );
-  };
 
   return (
     <DropdownMenuRadioGroup
-      value={currentValue}
+      value={"selected"}
+      className="w-full"
       onValueChange={handleValueChange}
     >
-      {items.map((_, index) => (
-        <div key={index}>
-          <Item index={index} />
-          {index !== items.length - 1 && <Separator />}
+      <RecipeListRadioItem value="selected">
+        <div className="flex flex-row gap-2 w-52">
+          <span className="flex-1">
+            <span className="mr-1">✅</span> Selected
+          </span>
+          <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
+            <CurrentListCount />
+          </span>
         </div>
-      ))}
+      </RecipeListRadioItem>
+      <RecipeListRadioItem value="make-later">
+        <div className="flex flex-row gap-2 w-52">
+          <span className="flex-1">
+            <span className="mr-1">⏰</span> Make Later
+          </span>
+          <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+            0
+          </span>
+        </div>
+      </RecipeListRadioItem>
+      <RecipeListRadioItem value="make-later">
+        <div className="flex flex-row gap-2 w-52">
+          <span className="flex-1">
+            <span className="mr-1">⭐️</span> Favorites
+          </span>
+          <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+            0
+          </span>
+        </div>
+      </RecipeListRadioItem>
+      <Separator />
+      <div className="flex items-center justify-center py-2">
+
+      <Badge variant="outline">
+        Create New List
+        <PlusCircleIcon className="ml-1" />
+      </Badge>
+      </div>
     </DropdownMenuRadioGroup>
   );
 };
+
+const RecipeListRadioItem = forwardRef<
+  ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
+  ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
+>(({ className, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.RadioItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <Circle className="h-2 w-2 fill-current" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+  </DropdownMenuPrimitive.RadioItem>
+));
+RecipeListRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName;
 
 export const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
   const actor = useCraftContext();

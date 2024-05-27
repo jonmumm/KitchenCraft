@@ -23,7 +23,7 @@ export const currentListMachine = setup({
     recipeIds: [],
   }),
   on: {
-    ADD_TO_LIST: {
+    SELECT_RECIPE: {
       actions: assign({
         recipeIds: ({ context, event }) =>
           produce(context.recipeIds, (draft) => {
