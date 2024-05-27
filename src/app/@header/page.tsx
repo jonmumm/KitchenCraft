@@ -2,6 +2,7 @@ import { Button } from "@/components/input/button";
 import { DateTime } from "luxon";
 
 import { Badge } from "@/components/display/badge";
+import { Separator } from "@/components/display/separator";
 import {
   SheetContent,
   SheetOverlay,
@@ -21,7 +22,6 @@ import {
   CurrentListButton,
   HomepageSuggestedTokens,
 } from "./components.client";
-import { Separator } from "@/components/display/separator";
 
 export default async function Page({}) {
   const userId = await getCurrentUserId();
@@ -55,7 +55,7 @@ export default async function Page({}) {
           </NavigationLink>
           <Separator orientation="vertical" />
           <MenuSheet>
-            <SheetTrigger asChild>
+            <SheetTrigger>
               <Badge
                 variant={"secondary"}
                 className="text-md font-semibold whitespace-nowrap cursor-pointer bg-transparent"
