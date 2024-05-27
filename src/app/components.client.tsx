@@ -378,8 +378,9 @@ export const CurrentListScreen = () => {
           <Button
             size="icon"
             event={{ type: "PREV" }}
+            variant="outline"
             autoFocus={false}
-            className="absolute left-2 bottom-2 md:bottom-1/2 shadow-xl z-80"
+            className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-2xl shadow-xl z-80"
           >
             <ChevronLeftIcon />
           </Button>
@@ -388,8 +389,9 @@ export const CurrentListScreen = () => {
           <Button
             size="icon"
             event={{ type: "NEXT" }}
+            variant="outline"
             autoFocus={false}
-            className="absolute right-2 bottom-2 md:bottom-1/2 shadow-xl z-80"
+            className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-2xl shadow-xl z-80"
           >
             <ChevronRightIcon />
           </Button>
@@ -447,14 +449,14 @@ export const CurrentListScreen = () => {
             </Card>
           </div>
         </CurrentListEmpty>
-        <div className="flex flex-row items-center justify-center gap-1">
-          <Button>
-            <PlusIcon size={18} className="mr-1" />
-            Add to...
-          </Button>
+        <div className="flex flex-row items-center justify-center gap-2">
           <Button variant="outline">
             <ShareIcon size={18} className="mr-1" />
             Share
+          </Button>
+          <Button>
+            <PlusIcon size={18} className="mr-1" />
+            Add to...
           </Button>
         </div>
       </div>
