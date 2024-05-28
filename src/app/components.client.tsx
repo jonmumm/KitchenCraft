@@ -71,6 +71,7 @@ import {
   ChevronRightIcon,
   ChevronsUpDown,
   Circle,
+  ExternalLinkIcon,
   HeartIcon,
   PlusCircleIcon,
   PlusIcon,
@@ -81,6 +82,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   ComponentPropsWithoutRef,
@@ -300,8 +302,8 @@ const CurrentListCarouselItem = ({
     <div className="embla__slide max-h-100 mr-2 first:ml-2 relative">
       <Card className="absolute inset-0 overflow-y-auto">
         <ScrollArea>
-          <div className="h-fit flex flex-col gap-2 p-2 py-4">
-            <CardTitle className="flex flex-row items-center gap-2 px-2">
+          <div className="h-fit flex flex-col gap-2 py-4">
+            <CardTitle className="flex flex-row items-center gap-2 px-4">
               {index + 1}.{" "}
               {recipe?.name ? (
                 <p className="flex-1">{recipe.name}</p>
@@ -310,9 +312,20 @@ const CurrentListCarouselItem = ({
                   <SkeletonSentence className="h-7" numWords={4} />
                 </div>
               )}
+              {recipe?.slug ? (
+                <Link href={`/recipe/${recipe.slug}`} target="_blank">
+                  <Button size="icon" variant="outline" autoFocus={false}>
+                    <ExternalLinkIcon />
+                  </Button>
+                </Link>
+              ) : (
+                <Button size="icon" variant="outline" autoFocus={false} disabled>
+                  <ExternalLinkIcon />
+                </Button>
+              )}
             </CardTitle>
             {recipe?.description ? (
-              <CardDescription className="px-2">
+              <CardDescription className="px-4">
                 {recipe.description}
               </CardDescription>
             ) : (
@@ -320,7 +333,7 @@ const CurrentListCarouselItem = ({
                 <SkeletonSentence className="h-4" numWords={12} />
               </div>
             )}
-            <div className="text-muted-foreground text-xs flex flex-row gap-2 px-2">
+            <div className="text-muted-foreground text-xs flex flex-row gap-2 px-4">
               <span>Yields</span>
               <span>
                 <Yield recipeId={recipe?.id} />
@@ -342,7 +355,7 @@ const CurrentListCarouselItem = ({
                   </Button>
                 ) : (
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     className="flex-1"
                     event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
                   >
