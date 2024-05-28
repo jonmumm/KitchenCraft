@@ -35,12 +35,14 @@ import {
 import { Instructions } from "@/components/instructions";
 import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
+import { PrintButton } from "@/components/print-button";
 import { useScrollLock } from "@/components/scroll-lock";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
 import { ExperienceCard } from "@/components/settings/experience-card";
 import { GroceryQuestions } from "@/components/settings/grocery";
 import { PreferenceCard } from "@/components/settings/preference-card";
+import { ShareButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -64,7 +66,6 @@ import {
   ChevronRightIcon,
   ChevronsUpDown,
   Circle,
-  ExternalLinkIcon,
   HeartIcon,
   PlusCircleIcon,
   PlusIcon,
@@ -72,10 +73,9 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   ComponentPropsWithoutRef,
@@ -282,12 +282,19 @@ const CurrentListCarouselItem = ({
   index: number;
 }) => {
   const recipe = useListRecipeAtIndex(index);
+  const isSelected = usePageSessionSelector(
+    (state) =>
+      recipe?.id &&
+      state.context.browserSessionSnapshot?.context.currentListRecipeIds.includes(
+        recipe.id!
+      )
+  );
 
   return (
     <Card className="carousel-item max-h-100 w-[90vw] md:max-w-3xl">
       <ScrollArea>
         <div className="h-fit flex flex-col gap-2 p-2 py-4">
-        <CardTitle className="flex flex-row items-center gap-2 px-2">
+          <CardTitle className="flex flex-row items-center gap-2 px-2">
             {index + 1}.{" "}
             {recipe?.name ? (
               <p className="flex-1">{recipe.name}</p>
@@ -314,6 +321,32 @@ const CurrentListCarouselItem = ({
           </div>
         </div>
         <Separator />
+        {recipe?.slug && (
+          <>
+            <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
+              <ShareButton slug={recipe.slug} name={recipe.name} />
+              {!isSelected ? (
+                <Button
+                  size="icon"
+                  className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
+                  event={{ type: "SELECT_RECIPE", id: recipe.id }}
+                >
+                  Select <PlusIcon className="ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="flex-1"
+                  event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                >
+                  Unselect <XIcon className="ml-2" />
+                </Button>
+              )}
+              <PrintButton slug={recipe?.slug} />
+            </div>
+            <Separator />
+          </>
+        )}
         <div>
           <Times
             activeTime={recipe?.activeTime}

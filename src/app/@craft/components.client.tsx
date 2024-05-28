@@ -87,6 +87,8 @@ import { SessionStoreSnapshot } from "../page-session-store-provider";
 import { PageSessionContext } from "../page-session-store.context";
 import { buildInput, isEqual } from "../utils";
 import { useCraftContext } from "./hooks";
+import { ShareButton } from "@/components/share-button";
+import { PrintButton } from "@/components/print-button";
 //   selectIsCreating,
 //   selectIsRemixing,
 //   selectPromptLength,
@@ -1764,90 +1766,4 @@ const TagsLabel = () => {
   return <SectionLabel icon={TagIcon} title="Tags" />;
 };
 
-const PrintButton = ({ slug }: { slug?: string }) => {
-  const handleClick = useCallback(() => {
-    openAndPrintURL(`${window.location.origin}/recipe/${slug}`);
-  }, [slug]);
 
-  if (!slug) {
-    return (
-      <Button variant="ghost" disabled className="flex-2">
-        Print <PrinterIcon className="ml-2" />
-      </Button>
-    );
-  }
-
-  return (
-    // <Link
-    //   className="flex-2"
-    //   href={`${window.location.origin}/recipe/${slug}?print=true`}
-    //   target="_blank"
-    // >
-    <Button variant="ghost" onClick={handleClick}>
-      Print <PrinterIcon className="ml-2" />
-    </Button>
-  );
-};
-
-const ShareButton = ({ slug, name }: { slug?: string; name?: string }) => {
-  const [showCopied, setShowCopied] = useState(false);
-  const send = useSend();
-
-  const handlePressCopy = useCallback(() => {
-    if (!slug) {
-      return;
-    }
-
-    const { origin } = window.location;
-    const url = `${origin}/recipe/${slug}`;
-
-    if ("share" in navigator) {
-      navigator
-        .share({
-          title: name,
-          url,
-        })
-        .then(() => {
-          send({ type: "SHARE_COMPLETE", slug });
-        })
-        .catch(() => {
-          send({ type: "SHARE_CANCEL", slug });
-        });
-    } else if ("clipboard" in navigator) {
-      // @ts-ignore
-      navigator.clipboard.writeText(url);
-
-      setShowCopied(true);
-      setTimeout(() => {
-        setShowCopied(false);
-      }, 3000);
-    }
-  }, [setShowCopied, slug, send, name]);
-
-  if (!slug) {
-    return (
-      <Button variant="ghost" className="flex-2" disabled>
-        Share <ShareIcon className="ml-2" />
-      </Button>
-    );
-  }
-
-  return (
-    <div className="flex-2">
-      <Popover open={showCopied} onOpenChange={handlePressCopy}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            className="w-full"
-            event={{ type: "SHARE", slug }}
-          >
-            Share <ShareIcon className="ml-2" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-fit px-2 py-1 z-90">
-          URL Copied!
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-};
