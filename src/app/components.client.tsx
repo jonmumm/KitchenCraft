@@ -1239,10 +1239,14 @@ const CurrentListHasPreviousRecipes = ({
       carouselAPI.on("slidesInView", onStoreChange);
       carouselAPI.on("slidesChanged", onStoreChange);
       carouselAPI.on("slideFocus", onStoreChange);
+      carouselAPI.on("scroll", onStoreChange);
+      carouselAPI.on("settle", onStoreChange);
       return () => {
         carouselAPI.off("slidesInView", onStoreChange);
         carouselAPI.off("slidesChanged", onStoreChange);
         carouselAPI.off("slideFocus", onStoreChange);
+        carouselAPI.off("scroll", onStoreChange);
+        carouselAPI.off("settle", onStoreChange);
       };
     },
     () => {
