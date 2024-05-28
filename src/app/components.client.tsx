@@ -297,8 +297,8 @@ const CurrentListCarouselItem = ({
   );
 
   return (
-    <div className="embla__slide max-h-100 p-3 relative">
-      <Card className="absolute inset-3 overflow-y-auto">
+    <div className="embla__slide max-h-100 mr-2 first:ml-2 relative">
+      <Card className="absolute inset-0 overflow-y-auto">
         <ScrollArea>
           <div className="h-fit flex flex-col gap-2 p-2 py-4">
             <CardTitle className="flex flex-row items-center gap-2 px-2">
