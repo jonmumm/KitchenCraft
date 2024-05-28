@@ -5,3 +5,7 @@ export const selectCurrentListRecipeIds = (state: PageSessionSnapshot) => {
     state.context.browserSessionSnapshot?.context.currentListRecipeIds || []
   );
 };
+
+export const selectCurrentListCount = (state: PageSessionSnapshot) =>
+  state.context.browserSessionSnapshot?.context.currentListRecipeIds?.length ||
+  0;

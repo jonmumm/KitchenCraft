@@ -1,5 +1,6 @@
 "use client";
 
+import { CurrentListCount } from "@/components/current-list-count";
 import {
   Accordion,
   AccordionContent,
@@ -451,12 +452,12 @@ export const CurrentListScreen = () => {
         </CurrentListEmpty>
         <div className="flex flex-row items-center justify-center gap-2">
           <Button variant="outline">
-            <ShareIcon size={18} className="mr-1" />
-            Share
+            <ShareIcon className="mr-1" />
+            Share (<CurrentListCount />)
           </Button>
           <Button>
-            <PlusIcon size={18} className="mr-1" />
-            Add to...
+            <PlusIcon className="mr-1" />
+            Add (<CurrentListCount />) to...
           </Button>
         </div>
       </div>
@@ -1182,15 +1183,6 @@ const HasCurrentListItems = ({ children }: { children: ReactNode }) => {
   const recipe = useListRecipeAtIndex(0);
 
   return !!recipe ? <>{children}</> : <></>;
-};
-
-const CurrentListCount = () => {
-  const count = usePageSessionSelector(
-    (state) =>
-      state.context.browserSessionSnapshot?.context.currentListRecipeIds
-        ?.length || 0
-  );
-  return <>{count}</>;
 };
 
 const MyRecipeListsRadioGroup = () => {
