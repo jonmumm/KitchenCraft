@@ -34,6 +34,7 @@ import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useSuggestedRecipeAtIndex } from "@/hooks/useSuggestedRecipeAtIndex";
+import { openAndPrintURL } from "@/lib/print";
 import { assert, cn, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, ListNameSchema } from "@/schema";
@@ -692,7 +693,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 {!isSelected ? (
                   <Button
                     size="icon"
-                    className="flex-1 bg-purple-600 dark:bg-purple-400"
+                    className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
                     event={{ type: "SELECT_RECIPE", id: recipe.id }}
                   >
                     Select <PlusIcon className="ml-2" />
@@ -1764,6 +1765,10 @@ const TagsLabel = () => {
 };
 
 const PrintButton = ({ slug }: { slug?: string }) => {
+  const handleClick = useCallback(() => {
+    openAndPrintURL(`${window.location.origin}/recipe/${slug}`);
+  }, [slug]);
+
   if (!slug) {
     return (
       <Button variant="ghost" disabled className="flex-2">
@@ -1778,7 +1783,7 @@ const PrintButton = ({ slug }: { slug?: string }) => {
     //   href={`${window.location.origin}/recipe/${slug}?print=true`}
     //   target="_blank"
     // >
-    <Button variant="ghost">
+    <Button variant="ghost" onClick={handleClick}>
       Print <PrinterIcon className="ml-2" />
     </Button>
   );
