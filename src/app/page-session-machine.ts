@@ -16,14 +16,12 @@ import { getPersonalizationContext } from "@/lib/llmContext";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
 import { assert, sentenceToSlug } from "@/lib/utils";
-import { ListNameSchema, RecipeProductsPredictionOutputSchema } from "@/schema";
+import { ListNameSchema } from "@/schema";
 import {
   ActorSocketEvent,
-  AdContext,
   AdInstance,
   AppEvent,
   Caller,
-  ExtractType,
   PartialRecipe,
   ProductType,
   RecipeList,
@@ -33,14 +31,13 @@ import {
   UserPreferences,
   WithCaller,
 } from "@/types";
-import { createClient, sql } from "@vercel/postgres";
+import { createClient } from "@vercel/postgres";
 import { randomUUID } from "crypto";
 import { and, desc, eq, ilike, inArray, max, sql as sqlFN } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 import { Operation, applyPatch, compare } from "fast-json-patch";
-import { jwtVerify } from "jose";
 import * as Party from "partykit/server";
-import { Subject, from, map, mergeMap, switchMap } from "rxjs";
+import { Subject, from, switchMap } from "rxjs";
 import {
   SnapshotFrom,
   StateValueFrom,
@@ -82,11 +79,7 @@ import {
   RecipeIdeasMetadataEvent,
   RecipeIdeasMetadataStream,
 } from "./recipe-ideas-metadata.stream";
-import {
-  RecipeProductsEventBase,
-  RecipeProductsTokenStream,
-  SuggestRecipeProductsEvent,
-} from "./recipe/[slug]/products/recipe-products-stream";
+import { SuggestRecipeProductsEvent } from "./recipe/[slug]/products/recipe-products-stream";
 import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { buildInput } from "./utils";
@@ -238,8 +231,10 @@ const listenBrowserSession = fromEventObservable(
 
 const getAllListsForUserWithRecipeCount = fromPromise(
   async ({ input }: { input: { userId: string } }) => {
+    const client = createClient();
+    await client.connect();
+    const db = drizzle(client);
     try {
-      const db = drizzle(sql);
       const result = await db
         .select({
           id: ListTable.id,
@@ -259,6 +254,8 @@ const getAllListsForUserWithRecipeCount = fromPromise(
     } catch (error) {
       console.error("Error retrieving lists with recipe count:", error);
       return { success: false, error: getErrorMessage(error) };
+    } finally {
+      await client.end();
     }
   }
 );
@@ -304,11 +301,17 @@ export const pageSessionMachine = setup({
           userId: string;
         };
       }) => {
-        const db = drizzle(sql);
-        return await db
-          .update(ProfileTable)
-          .set({ profileSlug: input.chefname })
-          .where(eq(ProfileTable.userId, input.userId));
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          return await db
+            .update(ProfileTable)
+            .set({ profileSlug: input.chefname })
+            .where(eq(ProfileTable.userId, input.userId));
+        } finally {
+          await client.end();
+        }
       }
     ),
     getRecipes: fromPromise(
@@ -376,13 +379,19 @@ export const pageSessionMachine = setup({
           email: string;
         };
       }) => {
-        const db = drizzle(sql);
-        return !(
-          await db
-            .select()
-            .from(UsersTable)
-            .where(eq(UsersTable.email, input.email))
-        )[0];
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          return !(
+            await db
+              .select()
+              .from(UsersTable)
+              .where(eq(UsersTable.email, input.email))
+          )[0];
+        } finally {
+          await client.end();
+        }
       }
     ),
     createNewList: fromPromise(
@@ -395,32 +404,38 @@ export const pageSessionMachine = setup({
           recipeIdToAdd: string;
         };
       }) => {
-        const db = drizzle(sql);
-        return await db.transaction(async (tx) => {
-          const result = await tx
-            .insert(ListTable)
-            .values({
-              name: input.listName,
-              slug: sentenceToSlug(input.listName),
-              createdBy: input.userId,
-            })
-            .returning({
-              id: ListTable.id,
-              name: ListTable.name,
-              slug: ListTable.slug,
-              createdAt: ListTable.createdAt,
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          return await db.transaction(async (tx) => {
+            const result = await tx
+              .insert(ListTable)
+              .values({
+                name: input.listName,
+                slug: sentenceToSlug(input.listName),
+                createdBy: input.userId,
+              })
+              .returning({
+                id: ListTable.id,
+                name: ListTable.name,
+                slug: ListTable.slug,
+                createdAt: ListTable.createdAt,
+              });
+            const list = result[0];
+            assert(list, "expected list to be created");
+
+            await tx.insert(ListRecipeTable).values({
+              userId: input.userId,
+              listId: list.id,
+              recipeId: input.recipeIdToAdd,
             });
-          const list = result[0];
-          assert(list, "expected list to be created");
 
-          await tx.insert(ListRecipeTable).values({
-            userId: input.userId,
-            listId: list.id,
-            recipeId: input.recipeIdToAdd,
+            return list;
           });
-
-          return list;
-        });
+        } finally {
+          await client.end();
+        }
       }
     ),
     createNewRecipe: fromPromise(
@@ -459,9 +474,15 @@ export const pageSessionMachine = setup({
           createdAt: new Date(),
         } satisfies NewRecipe;
 
-        const db = drizzle(sql);
-        await db.insert(RecipesTable).values(finalRecipe);
-        return recipe.slug;
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          await db.insert(RecipesTable).values(finalRecipe);
+          return recipe.slug;
+        } finally {
+          await client.end();
+        }
       }
     ),
     generatePlaceholders: fromEventObservable(
@@ -521,63 +542,63 @@ export const pageSessionMachine = setup({
       ({ input }: { input: { prompt: string } }) =>
         new AutoSuggestTokensStream().getObservable(input)
     ),
-    initializeRecipeAds: fromEventObservable(
-      ({ input }: { input: { context: ExtractType<AdContext, "recipe"> } }) => {
-        const db = drizzle(sql);
-        const getRecipes = db
-          .select()
-          .from(RecipesTable)
-          .where(eq(RecipesTable.slug, input.context.slug))
-          .execute();
-        const lastKeywords = new Set();
+    // initializeRecipeAds: fromEventObservable(
+    //   ({ input }: { input: { context: ExtractType<AdContext, "recipe"> } }) => {
+    //     const db = drizzle(sql);
+    //     const getRecipes = db
+    //       .select()
+    //       .from(RecipesTable)
+    //       .where(eq(RecipesTable.slug, input.context.slug))
+    //       .execute();
+    //     const lastKeywords = new Set();
 
-        return from(getRecipes).pipe(
-          map((recipes) => {
-            const recipe = recipes[0];
-            assert(recipe, "expected recipe");
-            return recipe;
-          }),
-          switchMap(async (recipe) => {
-            const tokenStream = new RecipeProductsTokenStream();
-            return await tokenStream.getStream({
-              type: input.context.productType,
-              recipe,
-            });
-          }),
-          switchMap((stream) => {
-            return streamToObservable(
-              stream,
-              RecipeProductsEventBase,
-              RecipeProductsPredictionOutputSchema
-            );
-          }),
-          mergeMap((event) => {
-            if (
-              event.type === "SUGGEST_RECIPE_PRODUCTS_PROGRESS" &&
-              Array.isArray(event.data.queries)
-            ) {
-              const newKeywords = event.data.queries
-                .slice(0, event.data.queries.length - 1)
-                .filter((keyword) => !lastKeywords.has(keyword));
-              newKeywords.forEach((keyword) => lastKeywords.add(keyword)); // Update state
+    //     return from(getRecipes).pipe(
+    //       map((recipes) => {
+    //         const recipe = recipes[0];
+    //         assert(recipe, "expected recipe");
+    //         return recipe;
+    //       }),
+    //       switchMap(async (recipe) => {
+    //         const tokenStream = new RecipeProductsTokenStream();
+    //         return await tokenStream.getStream({
+    //           type: input.context.productType,
+    //           recipe,
+    //         });
+    //       }),
+    //       switchMap((stream) => {
+    //         return streamToObservable(
+    //           stream,
+    //           RecipeProductsEventBase,
+    //           RecipeProductsPredictionOutputSchema
+    //         );
+    //       }),
+    //       mergeMap((event) => {
+    //         if (
+    //           event.type === "SUGGEST_RECIPE_PRODUCTS_PROGRESS" &&
+    //           Array.isArray(event.data.queries)
+    //         ) {
+    //           const newKeywords = event.data.queries
+    //             .slice(0, event.data.queries.length - 1)
+    //             .filter((keyword) => !lastKeywords.has(keyword));
+    //           newKeywords.forEach((keyword) => lastKeywords.add(keyword)); // Update state
 
-              // // Map new keywords to events and emit them immediately
-              return newKeywords.map((keyword) => ({
-                type: "NEW_RECIPE_PRODUCT_KEYWORD",
-                keyword: keyword,
-                productType: input.context.productType,
-                slug: input.context.slug,
-              }));
-            } else if (event.type === "SUGGEST_RECIPE_PRODUCTS_COMPLETE") {
-              // Handle completion if needed. For now, return an empty array to emit nothing.
-              return [];
-            }
-            // Return an empty array for any other event types to emit nothing.
-            return [];
-          })
-        );
-      }
-    ),
+    //           // // Map new keywords to events and emit them immediately
+    //           return newKeywords.map((keyword) => ({
+    //             type: "NEW_RECIPE_PRODUCT_KEYWORD",
+    //             keyword: keyword,
+    //             productType: input.context.productType,
+    //             slug: input.context.slug,
+    //           }));
+    //         } else if (event.type === "SUGGEST_RECIPE_PRODUCTS_COMPLETE") {
+    //           // Handle completion if needed. For now, return an empty array to emit nothing.
+    //           return [];
+    //         }
+    //         // Return an empty array for any other event types to emit nothing.
+    //         return [];
+    //       })
+    //     );
+    //   }
+    // ),
     updateUserPreferences: fromPromise(
       async ({
         input,
@@ -2516,34 +2537,46 @@ const getCurrentRecipeCreateInput = ({
 };
 
 const getChefNameByUserId = async (userId: string) => {
-  const db = drizzle(sql);
-  const query = db
-    .select({
-      profileSlug: ProfileTable.profileSlug,
-    })
-    .from(ProfileTable)
-    .where(eq(ProfileTable.userId, userId));
+  const client = createClient();
+  await client.connect();
+  const db = drizzle(client);
+  try {
+    const query = db
+      .select({
+        profileSlug: ProfileTable.profileSlug,
+      })
+      .from(ProfileTable)
+      .where(eq(ProfileTable.userId, userId));
 
-  return await withDatabaseSpan(query, "getChefNameByUserId")
-    .execute()
-    .then((res) => res[0]?.profileSlug); // Return the first (and expectedly only) result
+    return await withDatabaseSpan(query, "getChefNameByUserId")
+      .execute()
+      .then((res) => res[0]?.profileSlug); // Return the first (and expectedly only) result
+  } finally {
+    await client.end();
+  }
 };
 
 const getProfileBySlug = async (profileSlug: string) => {
-  const db = drizzle(sql);
-  const query = db
-    .select({
-      profileSlug: ProfileTable.profileSlug,
-      activated: ProfileTable.activated,
-      mediaId: ProfileTable.mediaId,
-      userId: ProfileTable.userId,
-      createdAt: ProfileTable.createdAt,
-    })
-    .from(ProfileTable)
-    .where(ilike(ProfileTable.profileSlug, profileSlug)); // Filter by the given profile slug
-  return await withDatabaseSpan(query, "getProfileBySlug")
-    .execute()
-    .then((res) => res[0]); // Return the first (and expectedly only) result
+  const client = createClient();
+  await client.connect();
+  const db = drizzle(client);
+  try {
+    const query = db
+      .select({
+        profileSlug: ProfileTable.profileSlug,
+        activated: ProfileTable.activated,
+        mediaId: ProfileTable.mediaId,
+        userId: ProfileTable.userId,
+        createdAt: ProfileTable.createdAt,
+      })
+      .from(ProfileTable)
+      .where(ilike(ProfileTable.profileSlug, profileSlug)); // Filter by the given profile slug
+    return await withDatabaseSpan(query, "getProfileBySlug")
+      .execute()
+      .then((res) => res[0]); // Return the first (and expectedly only) result
+  } finally {
+    await client.end();
+  }
 };
 
 async function upsertUserPreferences(
@@ -2551,96 +2584,45 @@ async function upsertUserPreferences(
   preferences: { type: UserPreferenceType; value: string }[]
 ) {
   // Start a transaction
-  const db = drizzle(sql);
-  return await db
-    .transaction(async (tx) => {
-      for (const { type, value } of preferences) {
-        await tx
-          .insert(UserPreferencesTable)
-          .values({
-            userId: userId,
-            preferenceKey: type,
-            preferenceValue: [value],
-          })
-          .onConflictDoUpdate({
-            target: [
-              UserPreferencesTable.userId,
-              UserPreferencesTable.preferenceKey,
-            ],
-            set: {
-              preferenceValue: value,
-              updatedAt: sqlFN`NOW()`, // Update the timestamp to the current time
-            },
-          })
-          .execute();
-      }
-
-      // All updates are successful, commit is implicit if no errors occur
-      return { success: true }; // You can also return specific data or results if needed
-    })
-    .catch((error) => {
-      console.error("Error upserting user preferences:", error);
-      const message = getErrorMessage(error); // Handle the error message appropriately
-      return { success: false, error: message };
-    });
-}
-
-async function upsertUserPreference(
-  userId: string,
-  key: UserPreferenceType,
-  value: string | string[]
-) {
+  const client = createClient();
+  await client.connect();
+  const db = drizzle(client);
   try {
-    const db = drizzle(sql);
-    const result = await db
-      .insert(UserPreferencesTable)
-      .values({
-        userId: userId,
-        preferenceKey: key,
-        preferenceValue: value,
-      })
-      .onConflictDoUpdate({
-        target: [
-          UserPreferencesTable.userId,
-          UserPreferencesTable.preferenceKey,
-        ],
-        set: {
-          preferenceValue: value,
-          updatedAt: sqlFN`NOW()`, // Update the timestamp to the current time
-        },
-      })
-      .execute();
+    return await db
+      .transaction(async (tx) => {
+        for (const { type, value } of preferences) {
+          await tx
+            .insert(UserPreferencesTable)
+            .values({
+              userId: userId,
+              preferenceKey: type,
+              preferenceValue: [value],
+            })
+            .onConflictDoUpdate({
+              target: [
+                UserPreferencesTable.userId,
+                UserPreferencesTable.preferenceKey,
+              ],
+              set: {
+                preferenceValue: value,
+                updatedAt: sqlFN`NOW()`, // Update the timestamp to the current time
+              },
+            })
+            .execute();
+        }
 
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("Error upserting user preference:", error);
-    const message = getErrorMessage(error);
-    return { success: false, error: message };
+        // All updates are successful, commit is implicit if no errors occur
+        return { success: true }; // You can also return specific data or results if needed
+      })
+      .catch((error) => {
+        console.error("Error upserting user preferences:", error);
+        const message = getErrorMessage(error); // Handle the error message appropriately
+        return { success: false, error: message };
+      });
+  } finally {
+    await client.end();
   }
 }
-
-// const parsedBrowserSessionTokenFromCookie = async () => {
-//   try {
-//     const verified = await jwtVerify(
-//       browserSessionToken,
-//       new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
-//     );
-//     return verified.payload as UserJwtPayload;
-//   } catch (err) {
-//     return undefined;
-//     // A new one will be created
-//     // Probably expired...
-//   }
-// };
-
-const parseBrowserSessionToken = async (token: string) => {
-  const verified = await jwtVerify(
-    token,
-    new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
-  );
-  assert(verified.payload.jti, "expected JTI on BrowserSessionToken");
-  return verified;
-};
 
 const defaultLists = {
   liked: {
