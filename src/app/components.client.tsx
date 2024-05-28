@@ -444,7 +444,7 @@ export const CurrentListScreen = () => {
         <div className="flex flex-row gap-2 justify-between items-center px-2 sticky top-0 w-full max-w-3xl mx-auto">
           <Badge
             variant="secondary"
-            event={{ type: "CLEAR_LIST" }}
+            event={{ type: "CLEAR_SELECTION" }}
             className="text-xs text-semibold shadow-md bg-card"
           >
             CLEAR

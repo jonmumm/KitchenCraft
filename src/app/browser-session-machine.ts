@@ -246,6 +246,13 @@ export const browserSessionMachine = setup({
     },
     List: {
       on: {
+        CLEAR_SELECTION: {
+          actions: [
+            assign({
+              selectedRecipeIds: () => [],
+            }),
+          ],
+        },
         SELECT_RECIPE: {
           guard: ({ context, event }) =>
             !context.selectedRecipeIds.includes(event.id),

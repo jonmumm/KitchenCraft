@@ -779,6 +779,11 @@ const DownloadAppEventShema = z.object({
   type: z.literal("DOWNLOAD_APP"),
 });
 
+
+const ClearSelectionEventSchema = z.object({
+  type: z.literal("CLEAR_SELECTION"),
+});
+
 const CancelEventSchema = z.object({
   type: z.literal("CANCEL"),
 });
@@ -1098,6 +1103,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ErrorEventSchema,
   DownloadAppEventShema,
   CancelEventSchema,
+  ClearSelectionEventSchema,
   KeyDownEventSchema,
   RemixEventSchema,
   PageLoadedEventSchema,
