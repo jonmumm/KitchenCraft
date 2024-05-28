@@ -485,7 +485,7 @@ export const CurrentListScreen = () => {
         </HasSelectedRecipes>
         <NoRecipesSelected>
           <div className="px-4 flex-1">
-            <Card className="h-full w-full flex flex-col gap-2 items-center justify-center">
+            <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
               <div>No recipes selected.</div>
               <Badge event={{ type: "NEW_RECIPE" }} variant="secondary">
                 Craft one up.
