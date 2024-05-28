@@ -2328,14 +2328,19 @@ export const pageSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                BROWSER_SESSION_UPDATE: {
-                  target: "Loading",
-                  guard: ({ context, event }) => {
-                    return !!event.snapshot.context.selectedRecipeIds.filter(
-                      (id) => !context.recipes[id]
-                    ).length;
+                BROWSER_SESSION_UPDATE: [
+                  {
+                    target: "Loading",
+                    guard: ({ context, event }) => {
+                      return !!event.snapshot.context.selectedRecipeIds.filter(
+                        (id) => !context.recipes[id]
+                      ).length;
+                    },
                   },
-                },
+                  {
+                    target: "Complete",
+                  },
+                ],
               },
             },
             Loading: {
