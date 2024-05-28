@@ -442,13 +442,23 @@ export const CurrentListScreen = () => {
         </CurrentListHasNextRecipes>
 
         <div className="flex flex-row gap-2 justify-between items-center px-2 sticky top-0 w-full max-w-3xl mx-auto">
-          <Badge
-            variant="secondary"
-            event={{ type: "CLEAR_SELECTION" }}
-            className="text-xs text-semibold shadow-md bg-card"
-          >
-            CLEAR
-          </Badge>
+          <NoRecipesSelected>
+            <Badge
+              variant="secondary"
+              className="text-xs text-semibold bg-card opacity-60"
+            >
+              CLEAR
+            </Badge>
+          </NoRecipesSelected>
+          <HasSelectedRecipes>
+            <Badge
+              variant="secondary"
+              event={{ type: "CLEAR_SELECTION" }}
+              className="text-xs text-semibold shadow-md bg-card"
+            >
+              CLEAR
+            </Badge>
+          </HasSelectedRecipes>
           <DropdownMenu>
             <DropdownMenuTrigger className="flex-1 flex justify-center">
               <Badge
@@ -487,22 +497,40 @@ export const CurrentListScreen = () => {
           <div className="px-4 flex-1">
             <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
               <div>No recipes selected.</div>
-              <Badge event={{ type: "NEW_RECIPE" }} variant="secondary">
-                Craft one up.
-                <ChevronRightIcon className="ml-1" size={14} />
+              <Badge
+                event={{ type: "NEW_RECIPE" }}
+                variant="secondary"
+                className="shadow-md"
+              >
+                Craft one up.<span className="ml-1">🧪</span>
               </Badge>
             </Card>
           </div>
         </NoRecipesSelected>
         <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
-          <Button className="shadow-md">
-            <ShareIcon className="mr-1" />
-            Share (<CurrentListCount />)
-          </Button>
-          <Button className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white">
-            <PlusIcon className="mr-1" />
-            Add (<CurrentListCount />) to...
-          </Button>
+          <HasSelectedRecipes>
+            <Button className="shadow-md">
+              <ShareIcon className="mr-1" />
+              Share (<CurrentListCount />)
+            </Button>
+            <Button className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white">
+              <PlusIcon className="mr-1" />
+              Add (<CurrentListCount />) to...
+            </Button>
+          </HasSelectedRecipes>
+          <NoRecipesSelected>
+            <Button className="shadow-md" disabled>
+              <ShareIcon className="mr-1" />
+              Share (<CurrentListCount />)
+            </Button>
+            <Button
+              className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white"
+              disabled
+            >
+              <PlusIcon className="mr-1" />
+              Add (<CurrentListCount />) to...
+            </Button>
+          </NoRecipesSelected>
         </div>
       </div>
       <Overlay />
@@ -1295,7 +1323,7 @@ const MyRecipeListsRadioGroup = () => {
       className="w-full"
       onValueChange={handleValueChange}
     >
-      <RecipeListRadioItem value="selected">
+      <RecipeListRadioItem value="selected" className="py-4">
         <div className="flex flex-row gap-2 w-56">
           <span className="flex-1">
             <span className="mr-1">✅</span> Selected
@@ -1305,7 +1333,8 @@ const MyRecipeListsRadioGroup = () => {
           </span>
         </div>
       </RecipeListRadioItem>
-      <RecipeListRadioItem value="make-later">
+      <Separator className="my-1" />
+      <RecipeListRadioItem value="make-later" className="py-4">
         <div className="flex flex-row gap-2 w-56">
           <span className="flex-1">
             <span className="mr-1">⏰</span> Make Later
@@ -1315,7 +1344,7 @@ const MyRecipeListsRadioGroup = () => {
           </span>
         </div>
       </RecipeListRadioItem>
-      <RecipeListRadioItem value="make-later">
+      <RecipeListRadioItem value="make-later" className="py-4">
         <div className="flex flex-row gap-2 w-56">
           <span className="flex-1">
             <span className="mr-1">⭐️</span> Favorites
@@ -1325,7 +1354,7 @@ const MyRecipeListsRadioGroup = () => {
           </span>
         </div>
       </RecipeListRadioItem>
-      <Separator />
+      <Separator className="my-1" />
       <div className="flex items-center justify-center py-2">
         <Badge
           variant="outline"
@@ -1347,7 +1376,7 @@ const RecipeListRadioItem = forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent data-[state=checked]:bg-slate-100 focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}
