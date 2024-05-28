@@ -424,7 +424,7 @@ export const CurrentListScreen = () => {
             event={{ type: "PREV" }}
             variant="outline"
             autoFocus={false}
-            className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full shadow-xl z-80 md:bg-blue-500 md:text-white"
+            className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full md:shadow-xl z-80 md:bg-blue-500 md:text-white"
           >
             <ChevronLeftIcon />
           </Button>
@@ -435,7 +435,7 @@ export const CurrentListScreen = () => {
             event={{ type: "NEXT" }}
             variant="outline"
             autoFocus={false}
-            className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full shadow-xl z-80 md:bg-blue-500 md:text-white"
+            className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full md:shadow-xl z-80 md:bg-blue-500 md:text-white"
           >
             <ChevronRightIcon />
           </Button>
@@ -494,12 +494,12 @@ export const CurrentListScreen = () => {
             </Card>
           </div>
         </NoRecipesSelected>
-        <div className="flex flex-row items-center justify-center gap-2">
-          <Button variant="outline">
+        <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
+          <Button className="shadow-md">
             <ShareIcon className="mr-1" />
             Share (<CurrentListCount />)
           </Button>
-          <Button>
+          <Button className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white">
             <PlusIcon className="mr-1" />
             Add (<CurrentListCount />) to...
           </Button>
