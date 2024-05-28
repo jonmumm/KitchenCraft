@@ -64,6 +64,7 @@ import {
   ChevronRightIcon,
   ChevronsUpDown,
   Circle,
+  ExternalLinkIcon,
   HeartIcon,
   PlusCircleIcon,
   PlusIcon,
@@ -71,9 +72,10 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { Inter } from "next/font/google";
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   ComponentPropsWithoutRef,
@@ -282,10 +284,10 @@ const CurrentListCarouselItem = ({
   const recipe = useListRecipeAtIndex(index);
 
   return (
-    <Card className="carousel-item max-h-100 w-[90vw] md:w-[50vw]">
+    <Card className="carousel-item max-h-100 w-[90vw] md:max-w-3xl">
       <ScrollArea>
         <div className="h-fit flex flex-col gap-2 p-2 py-4">
-          <CardTitle className="flex flex-row items-center gap-2 px-2">
+        <CardTitle className="flex flex-row items-center gap-2 px-2">
             {index + 1}.{" "}
             {recipe?.name ? (
               <p className="flex-1">{recipe.name}</p>
@@ -381,7 +383,7 @@ export const CurrentListScreen = () => {
             event={{ type: "PREV" }}
             variant="outline"
             autoFocus={false}
-            className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-2xl shadow-xl z-80"
+            className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full shadow-xl z-80 md:bg-blue-500"
           >
             <ChevronLeftIcon />
           </Button>
@@ -392,7 +394,7 @@ export const CurrentListScreen = () => {
             event={{ type: "NEXT" }}
             variant="outline"
             autoFocus={false}
-            className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-2xl shadow-xl z-80"
+            className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full shadow-xl z-80 md:bg-blue-500"
           >
             <ChevronRightIcon />
           </Button>
@@ -428,7 +430,6 @@ export const CurrentListScreen = () => {
             event={{ type: "EXIT" }}
             className="text-xs text-semibold shadow-md"
           >
-
             CLOSE
           </Badge>
         </div>

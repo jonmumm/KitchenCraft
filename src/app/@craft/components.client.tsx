@@ -566,7 +566,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
     <RecipeDetailContainer index={index}>
       <Card
         className={cn(
-          "carousel-item relative flex flex-col w-full max-w-xl mx-auto",
+          "carousel-item relative flex flex-col w-full max-w-3xl mx-auto",
           !isExpanded && isSelected
             ? "border-purple-500 border-2 border-solid shadow-xl"
             : ""
@@ -756,7 +756,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       </Card>
 
       {isExpanded && (
-        <div className="mt-2 mb-24 flex flex-col items-center">
+        <div className="mt-4 mb-24 flex flex-col items-center">
           <Badge event={{ type: "EXIT" }}>
             Close <XIcon size={14} className="ml-1" />
           </Badge>
