@@ -2380,10 +2380,7 @@ export const pageSessionMachine = setup({
                   target: "Complete",
                   actions: assign(({ context, event }) => {
                     return produce(context, (draft) => {
-                      console.log("prorudcing");
                       event.output.forEach(({ recipe }) => {
-                        console.log("no thpapening?");
-                        // Don't over write existing ones
                         if (!draft.recipes[recipe.id]) {
                           draft.recipes[recipe.id] = {
                             ...recipe,
