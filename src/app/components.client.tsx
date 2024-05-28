@@ -282,7 +282,7 @@ const CurrentListCarouselItem = ({
   const recipe = useListRecipeAtIndex(index);
 
   return (
-    <Card className="carousel-item h-100 w-[90vw] md:w-[45vw]">
+    <Card className="carousel-item max-h-100 w-[90vw] md:w-[50vw]">
       <ScrollArea>
         <div className="h-fit flex flex-col gap-2 p-2 py-4">
           <CardTitle className="flex flex-row items-center gap-2 px-2">
@@ -428,6 +428,7 @@ export const CurrentListScreen = () => {
             event={{ type: "EXIT" }}
             className="text-xs text-semibold shadow-md"
           >
+
             CLOSE
           </Badge>
         </div>
@@ -442,7 +443,7 @@ export const CurrentListScreen = () => {
         <CurrentListEmpty>
           <div className="px-4 flex-1">
             <Card className="h-full w-full flex flex-col gap-2 items-center justify-center">
-              <div>No recipes added yet.</div>
+              <div>No recipes selected.</div>
               <Badge event={{ type: "NEW_RECIPE" }} variant="secondary">
                 Craft one up.
                 <ChevronRightIcon className="ml-1" size={14} />

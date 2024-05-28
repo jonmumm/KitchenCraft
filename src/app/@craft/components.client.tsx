@@ -46,6 +46,7 @@ import { Portal } from "@radix-ui/react-portal";
 import {
   CarrotIcon,
   ExpandIcon,
+  ExternalLinkIcon,
   Loader2Icon,
   MoveLeftIcon,
   PlusIcon,
@@ -54,10 +55,12 @@ import {
   ShareIcon,
   ShoppingBasketIcon,
   TagIcon,
-  XIcon
+  XCircleIcon,
+  XIcon,
 } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FC,
@@ -563,7 +566,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
     <RecipeDetailContainer index={index}>
       <Card
         className={cn(
-          "carousel-item relative flex flex-col w-full",
+          "carousel-item relative flex flex-col w-full max-w-xl mx-auto",
           !isExpanded && isSelected
             ? "border-purple-500 border-2 border-solid shadow-xl"
             : ""
@@ -571,6 +574,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       >
         <EventTrigger
           event={{ type: "VIEW_RECIPE", id: recipe?.id! }}
+          disabled={isExpanded}
           className={cn(
             "flex flex-col p-4",
             recipe?.id ? "cursor-pointer" : ""
@@ -604,15 +608,32 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 </div>
               )}
             </div>
-            {isExpanded && recipe?.id && recipe.name && (
-              <div className="flex flex-col gap-1 items-center">
+            {isExpanded && (
+              <div className="flex flex-col gap-2 items-center">
                 <Button
                   size="icon"
-                  variant="secondary"
+                  variant="ghost"
+                  autoFocus={false}
                   event={{ type: "EXIT" }}
                 >
-                  <XIcon />
+                  <XCircleIcon />
                 </Button>
+                {recipe?.slug ? (
+                  <Link href={`/recipe/${recipe.slug}`} target="_blank">
+                    <Button size="icon" variant="ghost" autoFocus={false}>
+                      <ExternalLinkIcon />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    autoFocus={false}
+                    disabled
+                  >
+                    <ExternalLinkIcon />
+                  </Button>
+                )}
               </div>
             )}
             {!isExpanded && recipe?.id && recipe.name && (

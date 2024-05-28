@@ -69,10 +69,6 @@ export async function HeaderWithInput({
             )}
           </div>
           <div className="flex flex-row gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
-            {/* <CraftHeading /> */}
-            <Button variant={"ghost"} event={{ type: "CLOSE" }}>
-              <ArrowLeftIcon />
-            </Button>
             <CraftCTA />
           </div>
           <div className="hidden crafting:block">
