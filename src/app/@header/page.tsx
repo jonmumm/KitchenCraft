@@ -13,7 +13,7 @@ import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile, getTimezone } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import { ChefHatIcon } from "lucide-react";
+import { ChefHatIcon, XCircleIcon, XIcon } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
 import {
@@ -91,11 +91,12 @@ export default async function Page({}) {
               <CraftCTA initialAutoFocus={!getIsMobile()} />
               <div className="hidden crafting:flex flex-col gap-3 items-center">
                 <Button
-                  variant={"ghost"}
+                  variant={"outline"}
+                  size="icon"
                   event={{ type: "CLOSE" }}
-                  className="text-xs text-semibold"
+                  className="text-xs text-semibold rounded-full"
                 >
-                  CLOSE
+                  <XIcon />
                 </Button>
                 <CurrentListButton />
               </div>
