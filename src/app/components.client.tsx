@@ -78,8 +78,7 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XCircleIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -454,7 +453,7 @@ export const CurrentListScreen = () => {
             <DropdownMenuTrigger className="flex-1 flex justify-center">
               <Badge
                 variant="default"
-                className="flex gap-2 justify-between text-center text-lg font-bold max-w-52 w-full px-4 py-2"
+                className="flex gap-2 justify-between text-center text-lg font-bold px-4 py-2 w-full sm:w-80"
               >
                 <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
                   <CurrentListCount />

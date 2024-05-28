@@ -9,7 +9,6 @@ import {
   SheetTrigger,
 } from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
-import NavigationLink from "@/components/navigation/navigation-link";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile, getTimezone } from "@/lib/headers";
@@ -31,16 +30,10 @@ export default async function Page({}) {
     <>
       <div className="mx-auto w-full h-[40vh] crafting:h-auto relative">
         <div className="hidden crafting:hidden absolute right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
-          <NavigationLink
-            href={
-              profile?.profileSlug ? `/@${profile.profileSlug}` : `/my-cookbook`
-            }
-            className="hidden lg:block crafting:hidden"
-          >
-            <div className="flex flex-row gap-1 items-center">
-              <div className="flex flex-row gap-1">
-                <CurrentListBadge />
-                {/* <Badge
+          <div className="flex flex-row gap-1 items-center">
+            <div className="flex flex-row gap-1">
+              <CurrentListBadge />
+              {/* <Badge
                   variant="outline"
                   className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
                 >
@@ -50,9 +43,8 @@ export default async function Page({}) {
                     {profile?.profileSlug ? profile.profileSlug : "My Cookbook"}
                   </span>
                 </Badge> */}
-              </div>
             </div>
-          </NavigationLink>
+          </div>
           <Separator orientation="vertical" />
           <MenuSheet>
             <SheetTrigger>
