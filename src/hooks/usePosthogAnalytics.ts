@@ -10,6 +10,8 @@ import { usePageSessionStore } from "./usePageSessionStore";
 const EVENTS_LOG_LEVEL_DEBUG = new Set([
   "SET_INPUT",
   "HYDRATE_INPUT", // blacklisted becuase it cant serialize this because it passes a ref, figure out hwo to handle
+  "MOUNT_CAROUSEL",
+  "UNMOUNT_CAROUSEL",
   "KEY_DOWN",
   "CHANGE",
 ]);

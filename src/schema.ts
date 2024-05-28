@@ -1,4 +1,5 @@
 import type { CreateMessage } from "ai";
+import { UseEmblaCarouselType } from "embla-carousel-react";
 import { useSession } from "next-auth/react";
 import { Stub } from "partykit/server";
 import { z } from "zod";
@@ -782,6 +783,15 @@ const CancelEventSchema = z.object({
   type: z.literal("CANCEL"),
 });
 
+const MountCarouselEventSchema = z.object({
+  type: z.literal("MOUNT_CAROUSEL"),
+  carouselAPI: z.custom<UseEmblaCarouselType[1]>(),
+});
+
+const UnmountCarouselEventSchema = z.object({
+  type: z.literal("UNMOUNT_CAROUSEL"),
+});
+
 const HydratInputEventSchema = z.object({
   type: z.literal("HYDRATE_INPUT"),
   ref: z.custom<HTMLTextAreaElement>(),
@@ -1139,6 +1149,8 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   AddIngredientEventSchema,
   SousChefFeedbackEventSchema,
   HydratInputEventSchema,
+  MountCarouselEventSchema,
+  UnmountCarouselEventSchema,
 ]);
 
 // TypeScript Type Literals

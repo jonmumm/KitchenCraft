@@ -106,7 +106,7 @@ export const browserSessionMachine = setup({
     equipment: {},
     preferences: {},
     diet: {},
-    currentListRecipeIds: [],
+    selectedRecipeIds: [],
     suggestedIngredients: [],
     suggestedTags: [],
     lastRunPersonalizationContext: undefined,
@@ -248,11 +248,11 @@ export const browserSessionMachine = setup({
       on: {
         SELECT_RECIPE: {
           guard: ({ context, event }) =>
-            !context.currentListRecipeIds.includes(event.id),
+            !context.selectedRecipeIds.includes(event.id),
           actions: [
             assign({
-              currentListRecipeIds: ({ context, event }) =>
-                produce(context.currentListRecipeIds, (draft) => {
+              selectedRecipeIds: ({ context, event }) =>
+                produce(context.selectedRecipeIds, (draft) => {
                   draft.push(event.id);
                 }),
             }),
@@ -260,8 +260,8 @@ export const browserSessionMachine = setup({
         },
         REMOVE_FROM_LIST: {
           actions: assign({
-            currentListRecipeIds: ({ context, event }) =>
-              context.currentListRecipeIds.filter((item) => item !== event.id),
+            selectedRecipeIds: ({ context, event }) =>
+              context.selectedRecipeIds.filter((item) => item !== event.id),
           }),
         },
       },

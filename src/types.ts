@@ -411,7 +411,7 @@ export type BrowserSessionContext = {
   groceryStores?: string;
   shoppingFrequency?: string;
   typicalGroceries?: string;
-  currentListRecipeIds: string[];
+  selectedRecipeIds: string[];
   equipment: EquipmentSettings;
   diet: DietSettings;
   preferences: TasteSettings;

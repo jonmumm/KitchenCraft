@@ -33,7 +33,7 @@ import {
   UserPreferences,
   WithCaller,
 } from "@/types";
-import { sql } from "@vercel/postgres";
+import { createClient, sql } from "@vercel/postgres";
 import { randomUUID } from "crypto";
 import { and, desc, eq, ilike, inArray, max, sql as sqlFN } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
@@ -313,29 +313,36 @@ export const pageSessionMachine = setup({
     ),
     getRecipes: fromPromise(
       async ({ input }: { input: { recipeIds: string[] } }) => {
-        const db = drizzle(sql);
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
 
-        const maxVersionSubquery = db
-          .select({
-            recipeId: RecipesTable.id,
-            maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
-          })
-          .from(RecipesTable)
-          .groupBy(RecipesTable.id)
-          .as("maxVersionSubquery"); // Naming the subquery
+        try {
+          const maxVersionSubquery = db
+            .select({
+              recipeId: RecipesTable.id,
+              maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
+            })
+            .from(RecipesTable)
+            .groupBy(RecipesTable.id)
+            .as("maxVersionSubquery"); // Naming the subquery
 
-        const recipes = await db
-          .select()
-          .from(RecipesTable)
-          .innerJoin(
-            maxVersionSubquery,
-            and(
-              eq(RecipesTable.id, maxVersionSubquery.recipeId),
-              eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+          const recipes = await db
+            .select()
+            .from(RecipesTable)
+            .innerJoin(
+              maxVersionSubquery,
+              and(
+                eq(RecipesTable.id, maxVersionSubquery.recipeId),
+                eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+              )
             )
-          )
-          .where(inArray(RecipesTable.id, input.recipeIds));
-        return recipes;
+            .where(inArray(RecipesTable.id, input.recipeIds));
+
+          return recipes;
+        } finally {
+          await client.end();
+        }
       }
     ),
     getChefName: fromPromise(
@@ -655,16 +662,6 @@ export const pageSessionMachine = setup({
       listsBySlug: ({ event, context }) =>
         produce(context.listsBySlug, (draft) => {
           assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
-          const defaultLists = {
-            liked: {
-              name: "Liked",
-              slug: "liked",
-            },
-            "make-later": {
-              name: "Make Later",
-              slug: "make-later",
-            },
-          } as Record<string, { name: string; slug: string }>;
 
           const defaultList = defaultLists[event.listSlug];
           if (!draft) {
@@ -2331,10 +2328,10 @@ export const pageSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                VIEW_LIST: {
+                BROWSER_SESSION_UPDATE: {
                   target: "Loading",
-                  guard: ({ context }) => {
-                    return !!context.browserSessionSnapshot?.context.currentListRecipeIds.filter(
+                  guard: ({ context, event }) => {
+                    return !!event.snapshot.context.selectedRecipeIds.filter(
                       (id) => !context.recipes[id]
                     ).length;
                   },
@@ -2344,28 +2341,32 @@ export const pageSessionMachine = setup({
             Loading: {
               invoke: {
                 src: "getRecipes",
-                input: ({ context }) => {
-                  console.log("loading");
+                input: ({ context, event }) => {
                   return {
-                    recipeIds:
-                      context.browserSessionSnapshot?.context.currentListRecipeIds.filter(
+                    recipeIds: [
+                      ...context.browserSessionSnapshot?.context.selectedRecipeIds.filter(
                         (id) => !context.recipes[id]
                       )!,
+                    ],
                   };
                 },
                 onDone: {
                   target: "Complete",
                   actions: assign(({ context, event }) => {
-                    console.log("GOT RECIPES", event);
                     return produce(context, (draft) => {
+                      console.log("prorudcing");
                       event.output.forEach(({ recipe }) => {
-                        draft.recipes[recipe.id] = {
-                          ...recipe,
-                          complete: true,
-                          started: true,
-                          metadataComplete: true,
-                          fullStarted: true,
-                        };
+                        console.log("no thpapening?");
+                        // Don't over write existing ones
+                        if (!draft.recipes[recipe.id]) {
+                          draft.recipes[recipe.id] = {
+                            ...recipe,
+                            complete: true,
+                            started: true,
+                            metadataComplete: true,
+                            fullStarted: true,
+                          };
+                        }
                       });
                     });
                   }),
@@ -2635,3 +2636,14 @@ const parseBrowserSessionToken = async (token: string) => {
   assert(verified.payload.jti, "expected JTI on BrowserSessionToken");
   return verified;
 };
+
+const defaultLists = {
+  liked: {
+    name: "Liked",
+    slug: "liked",
+  },
+  "make-later": {
+    name: "Make Later",
+    slug: "make-later",
+  },
+} as Record<string, { name: string; slug: string }>;

@@ -1,7 +1,7 @@
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
-import { selectCurrentListCount } from "@/selectors/page-session.selectors";
+import { selectSelectedRecipeCount } from "@/selectors/page-session.selectors";
 
 export const CurrentListCount = () => {
-  const count = usePageSessionSelector(selectCurrentListCount);
+  const count = usePageSessionSelector(selectSelectedRecipeCount);
   return <>{count}</>;
 };

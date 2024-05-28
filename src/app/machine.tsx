@@ -808,20 +808,24 @@ export const createCraftMachine = ({
         ListView: {
           type: "parallel",
           on: {
-            PREV: {
+            MOUNT_CAROUSEL: {
               actions: assign({
-                scrollItemIndex: ({ context }) => context.scrollItemIndex - 1,
+                carouselAPI: ({ event }) => event.carouselAPI,
               }),
+            },
+            PREV: {
+              actions: ({ context }) => {
+                if (context.carouselAPI) {
+                  context.carouselAPI.scrollPrev();
+                }
+              },
             },
             NEXT: {
-              actions: assign({
-                scrollItemIndex: ({ context }) => context.scrollItemIndex + 1,
-              }),
-            },
-            SCROLL_INDEX: {
-              actions: assign({
-                scrollItemIndex: ({ event }) => event.index,
-              }),
+              actions: ({ context }) => {
+                if (context.carouselAPI) {
+                  context.carouselAPI.scrollNext();
+                }
+              },
             },
             SELECT_RECIPE: {
               actions: assign({
@@ -829,7 +833,7 @@ export const createCraftMachine = ({
                   return (
                     store
                       .get()
-                      .context.browserSessionSnapshot?.context.currentListRecipeIds.indexOf(
+                      .context.browserSessionSnapshot?.context.selectedRecipeIds.indexOf(
                         event.id
                       ) || -1
                   );

@@ -51,15 +51,20 @@ import { Yield } from "@/components/yield";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
+import { usePageSessionStoreMatchesState } from "@/hooks/usePageSessionStoreMatchesState";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
-import { selectCurrentListRecipeIds } from "@/selectors/page-session.selectors";
+import {
+  selectCurrentListRecipeIds,
+  selectSelectedRecipeCount,
+} from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
 import { useStore } from "@nanostores/react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
+import useEmblaCarousel from "embla-carousel-react";
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -73,6 +78,7 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
+  XCircleIcon,
   XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
@@ -99,6 +105,7 @@ import {
 import { useCraftContext } from "./@craft/hooks";
 import { CraftContext } from "./context";
 import { MISC_ONBORADING_QUESTIONS } from "./data";
+import "./embla.css";
 import { CraftSnapshot } from "./machine";
 import { PageSessionSnapshot } from "./page-session-machine";
 
@@ -285,109 +292,111 @@ const CurrentListCarouselItem = ({
   const isSelected = usePageSessionSelector(
     (state) =>
       recipe?.id &&
-      state.context.browserSessionSnapshot?.context.currentListRecipeIds.includes(
+      state.context.browserSessionSnapshot?.context.selectedRecipeIds.includes(
         recipe.id!
       )
   );
 
   return (
-    <Card className="carousel-item max-h-100 w-[90vw] md:max-w-3xl">
-      <ScrollArea>
-        <div className="h-fit flex flex-col gap-2 p-2 py-4">
-          <CardTitle className="flex flex-row items-center gap-2 px-2">
-            {index + 1}.{" "}
-            {recipe?.name ? (
-              <p className="flex-1">{recipe.name}</p>
+    <div className="embla__slide max-h-100 p-3 relative">
+      <Card className="absolute inset-3 overflow-y-auto">
+        <ScrollArea>
+          <div className="h-fit flex flex-col gap-2 p-2 py-4">
+            <CardTitle className="flex flex-row items-center gap-2 px-2">
+              {index + 1}.{" "}
+              {recipe?.name ? (
+                <p className="flex-1">{recipe.name}</p>
+              ) : (
+                <div className="flex-1 flex flex-row gap-2">
+                  <SkeletonSentence className="h-7" numWords={4} />
+                </div>
+              )}
+            </CardTitle>
+            {recipe?.description ? (
+              <CardDescription className="px-2">
+                {recipe.description}
+              </CardDescription>
             ) : (
-              <div className="flex-1 flex flex-row gap-2">
-                <SkeletonSentence className="h-7" numWords={4} />
+              <div className="flex-1">
+                <SkeletonSentence className="h-4" numWords={12} />
               </div>
             )}
-          </CardTitle>
-          {recipe?.description ? (
-            <CardDescription className="px-2">
-              {recipe.description}
-            </CardDescription>
-          ) : (
-            <div className="flex-1">
-              <SkeletonSentence className="h-4" numWords={12} />
+            <div className="text-muted-foreground text-xs flex flex-row gap-2 px-2">
+              <span>Yields</span>
+              <span>
+                <Yield recipeId={recipe?.id} />
+              </span>
             </div>
+          </div>
+          <Separator />
+          {recipe?.slug && (
+            <>
+              <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
+                <ShareButton slug={recipe.slug} name={recipe.name} />
+                {!isSelected ? (
+                  <Button
+                    size="icon"
+                    className="flex-1 md:flex-0 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
+                    event={{ type: "SELECT_RECIPE", id: recipe.id }}
+                  >
+                    Select <PlusIcon className="ml-2" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    className="flex-1"
+                    event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                  >
+                    Unselect <XIcon className="ml-2" />
+                  </Button>
+                )}
+                <PrintButton slug={recipe?.slug} />
+              </div>
+              <Separator />
+            </>
           )}
-          <div className="text-muted-foreground text-xs flex flex-row gap-2 px-2">
-            <span>Yields</span>
-            <span>
-              <Yield recipeId={recipe?.id} />
-            </span>
+          <div>
+            <Times
+              activeTime={recipe?.activeTime}
+              totalTime={recipe?.totalTime}
+              cookTime={recipe?.cookTime}
+            />
           </div>
-        </div>
-        <Separator />
-        {recipe?.slug && (
-          <>
-            <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-              <ShareButton slug={recipe.slug} name={recipe.name} />
-              {!isSelected ? (
-                <Button
-                  size="icon"
-                  className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
-                  event={{ type: "SELECT_RECIPE", id: recipe.id }}
-                >
-                  Select <PlusIcon className="ml-2" />
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="flex-1"
-                  event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
-                >
-                  Unselect <XIcon className="ml-2" />
-                </Button>
-              )}
-              <PrintButton slug={recipe?.slug} />
+          <Separator />
+          <div className="px-5">
+            <div className="flex flex-row justify-between gap-1 items-center py-4">
+              <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                Ingredients
+              </h3>
+              <ShoppingBasketIcon />
             </div>
-            <Separator />
-          </>
-        )}
-        <div>
-          <Times
-            activeTime={recipe?.activeTime}
-            totalTime={recipe?.totalTime}
-            cookTime={recipe?.cookTime}
-          />
-        </div>
-        <Separator />
-        <div className="px-5">
-          <div className="flex flex-row justify-between gap-1 items-center py-4">
-            <h3 className="uppercase text-xs font-bold text-accent-foreground">
-              Ingredients
-            </h3>
-            <ShoppingBasketIcon />
+            <div className="mb-4 flex flex-col gap-2">
+              <ul className="list-disc pl-5 flex flex-col gap-2">
+                <Ingredients recipeId={recipe?.id} />
+              </ul>
+            </div>
           </div>
-          <div className="mb-4 flex flex-col gap-2">
-            <ul className="list-disc pl-5 flex flex-col gap-2">
-              <Ingredients recipeId={recipe?.id} />
-            </ul>
+          <Separator />
+          <div className="px-5">
+            <div className="flex flex-row justify-between gap-1 items-center py-4">
+              <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                Instructions
+              </h3>
+              <ScrollIcon />
+            </div>
+            <div className="mb-4 flex flex-col gap-2">
+              <ol className="list-decimal pl-5 flex flex-col gap-2">
+                <Instructions recipeId={recipe?.id} />
+              </ol>
+            </div>
           </div>
-        </div>
-        <Separator />
-        <div className="px-5">
-          <div className="flex flex-row justify-between gap-1 items-center py-4">
-            <h3 className="uppercase text-xs font-bold text-accent-foreground">
-              Instructions
-            </h3>
-            <ScrollIcon />
+          <Separator />
+          <div className="py-2">
+            <Tags recipeId={recipe?.id} />
           </div>
-          <div className="mb-4 flex flex-col gap-2">
-            <ol className="list-decimal pl-5 flex flex-col gap-2">
-              <Instructions recipeId={recipe?.id} />
-            </ol>
-          </div>
-        </div>
-        <Separator />
-        <div className="py-2">
-          <Tags recipeId={recipe?.id} />
-        </div>
-      </ScrollArea>
-    </Card>
+        </ScrollArea>
+      </Card>
+    </div>
   );
 };
 
@@ -395,7 +404,7 @@ const useListRecipeAtIndex = (index: number) => {
   return usePageSessionSelector(
     (state) =>
       state.context.recipes?.[
-        state.context.browserSessionSnapshot?.context.currentListRecipeIds[
+        state.context.browserSessionSnapshot?.context.selectedRecipeIds[
           index
         ] || -1
       ]
@@ -416,7 +425,7 @@ export const CurrentListScreen = () => {
             event={{ type: "PREV" }}
             variant="outline"
             autoFocus={false}
-            className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full shadow-xl z-80 md:bg-blue-500"
+            className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full shadow-xl z-80 md:bg-blue-500 md:text-white"
           >
             <ChevronLeftIcon />
           </Button>
@@ -427,7 +436,7 @@ export const CurrentListScreen = () => {
             event={{ type: "NEXT" }}
             variant="outline"
             autoFocus={false}
-            className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full shadow-xl z-80 md:bg-blue-500"
+            className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full shadow-xl z-80 md:bg-blue-500 md:text-white"
           >
             <ChevronRightIcon />
           </Button>
@@ -437,7 +446,7 @@ export const CurrentListScreen = () => {
           <Badge
             variant="secondary"
             event={{ type: "CLEAR_LIST" }}
-            className="text-xs text-semibold shadow-md"
+            className="text-xs text-semibold shadow-md bg-card"
           >
             CLEAR
           </Badge>
@@ -445,7 +454,7 @@ export const CurrentListScreen = () => {
             <DropdownMenuTrigger className="flex-1 flex justify-center">
               <Badge
                 variant="default"
-                className="flex gap-2 justify-between text-center text-lg font-bold max-w-52 w-full"
+                className="flex gap-2 justify-between text-center text-lg font-bold max-w-52 w-full px-4 py-2"
               >
                 <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
                   <CurrentListCount />
@@ -458,23 +467,24 @@ export const CurrentListScreen = () => {
               <MyRecipeListsRadioGroup />
             </DropdownMenuContent>
           </DropdownMenu>
-          <Badge
-            variant="secondary"
+          <Button
+            variant="ghost"
+            size="icon"
             event={{ type: "EXIT" }}
-            className="text-xs text-semibold shadow-md"
+            className="text-xs text-semibold shadow-md bg-card rounded-full"
           >
-            CLOSE
-          </Badge>
+            <XIcon />
+          </Button>
         </div>
         {/* <div className="carousel carousel-center space-x-2 pl-2 pr-8"> */}
-        <HasCurrentListItems>
+        <HasSelectedRecipes>
           <CurrentListCarousel>
             {recipeIds.map((id, index) => (
               <CurrentListCarouselItem key={id} id={id} index={index} />
             ))}
           </CurrentListCarousel>
-        </HasCurrentListItems>
-        <CurrentListEmpty>
+        </HasSelectedRecipes>
+        <NoRecipesSelected>
           <div className="px-4 flex-1">
             <Card className="h-full w-full flex flex-col gap-2 items-center justify-center">
               <div>No recipes selected.</div>
@@ -484,7 +494,7 @@ export const CurrentListScreen = () => {
               </Badge>
             </Card>
           </div>
-        </CurrentListEmpty>
+        </NoRecipesSelected>
         <div className="flex flex-row items-center justify-center gap-2">
           <Button variant="outline">
             <ShareIcon className="mr-1" />
@@ -1208,16 +1218,22 @@ const CurrentListHasPreviousRecipes = ({
   return <>{children}</>;
 };
 
-const CurrentListEmpty = ({ children }: { children: ReactNode }) => {
-  const recipe = useListRecipeAtIndex(0);
+const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
+  const isComplete = usePageSessionStoreMatchesState({
+    List: { Data: "Complete" },
+  });
+  const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
 
-  return !recipe ? <>{children}</> : <></>;
+  return !recipeCount && isComplete ? <>{children}</> : <></>;
 };
 
-const HasCurrentListItems = ({ children }: { children: ReactNode }) => {
-  const recipe = useListRecipeAtIndex(0);
+const HasSelectedRecipes = ({ children }: { children: ReactNode }) => {
+  const isComplete = usePageSessionStoreMatchesState({
+    List: { Data: "Complete" },
+  });
+  const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
 
-  return !!recipe ? <>{children}</> : <></>;
+  return recipeCount > 0 && isComplete ? <>{children}</> : <></>;
 };
 
 const MyRecipeListsRadioGroup = () => {
@@ -1306,59 +1322,20 @@ const RecipeListRadioItem = forwardRef<
 RecipeListRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName;
 
 export const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
-  const actor = useCraftContext();
-  const ref = useRef<HTMLDivElement>(null);
-  const isScrollingRef = useRef(false);
+  const [emblaRef, emblaAPI] = useEmblaCarousel();
+  const send = useSend();
+  useEffect(() => {
+    send({ type: "MOUNT_CAROUSEL", carouselAPI: emblaAPI });
 
-  const ScrollManager = () => {
-    const scrollItemIndex = useSelector(
-      actor,
-      (state) => state.context.scrollItemIndex
-    );
-
-    useEffect(() => {
-      if (ref.current && !isScrollingRef.current) {
-        const child = ref.current.children[scrollItemIndex];
-        if (child) {
-          child.scrollIntoView({ behavior: "smooth", inline: "center" });
-        }
-      }
-      isScrollingRef.current = false;
-    }, [scrollItemIndex]);
-
-    const handleScroll = useCallback(() => {
-      if (!isScrollingRef.current && ref.current) {
-        const scrollLeft = ref.current.scrollLeft;
-        const childWidth = ref.current.children[0]?.clientWidth || 1;
-        const newIndex = Math.round(scrollLeft / childWidth);
-
-        if (newIndex !== scrollItemIndex) {
-          // Update the state machine with the new index
-          actor.send({ type: "SCROLL_INDEX", index: newIndex });
-        }
-      }
-    }, [scrollItemIndex]);
-
-    useEffect(() => {
-      const carousel = ref.current;
-      if (carousel) {
-        carousel.addEventListener("scroll", handleScroll);
-        return () => {
-          carousel.removeEventListener("scroll", handleScroll);
-        };
-      }
-    }, [scrollItemIndex, handleScroll]);
-
-    return null;
-  };
+    return () => {
+      send({ type: "UNMOUNT_CAROUSEL" });
+    };
+  }, [emblaAPI, send]);
 
   return (
-    <div
-      ref={ref}
-      className="carousel pl-4 carousel-center md:pl-[20%] space-x-2 pr-8 flex-1"
-    >
-      <ScrollManager />
-      {children}
+    <div ref={emblaRef} className="embla flex-1 relative">
+      {/* <ScrollManager /> */}
+      <div className="embla__container absolute inset-0">{children}</div>
     </div>
   );
 };

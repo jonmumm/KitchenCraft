@@ -535,7 +535,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const isSelected = usePageSessionSelector(
     (state) =>
       recipe?.id &&
-      state.context.browserSessionSnapshot?.context.currentListRecipeIds.includes(
+      state.context.browserSessionSnapshot?.context.selectedRecipeIds.includes(
         recipe.id!
       )
   );

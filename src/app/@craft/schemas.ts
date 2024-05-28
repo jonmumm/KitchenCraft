@@ -4,6 +4,7 @@ import {
   SubstitutionsPredictionPartialOutputSchema,
   SuggestionPredictionPartialOutputSchema,
 } from "@/schema";
+import { UseEmblaCarouselType } from "embla-carousel-react";
 import { z } from "zod";
 
 export const ContextSchema = z.object({
@@ -39,4 +40,5 @@ export const ContextSchema = z.object({
   instantRecipeMetadata:
     InstantRecipeMetadataPredictionOutputSchema.partial().optional(),
   socketToastId: z.union([z.string(), z.number()]).optional(),
+  carouselAPI: z.custom<UseEmblaCarouselType[1]>().optional(),
 });

@@ -12,9 +12,6 @@ const config: Config = {
     container: {
       center: true,
       padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
     },
 
     extend: {
@@ -102,6 +99,17 @@ const config: Config = {
     },
   },
   plugins: [
+    plugin(({ addBase, theme }) => {
+      addBase({
+        ":root": {
+          "--breakpoint-sm": theme("screens.sm"),
+          "--breakpoint-md": theme("screens.md"),
+          "--breakpoint-lg": theme("screens.lg"),
+          "--breakpoint-xl": theme("screens.xl"),
+          "--breakpoint-2xl": theme("screens.2xl"),
+        },
+      });
+    }),
     plugin(({ addVariant }) => {
       addVariant("crafting", `.crafting &`);
       addVariant("prompt-dirty", `.prompt-dirty &`);
