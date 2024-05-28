@@ -78,7 +78,7 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -1206,7 +1206,24 @@ export const RecipeDetailOverlay = () => {
 };
 
 const CurrentListHasNextRecipes = ({ children }: { children: ReactNode }) => {
-  return <>{children}</>;
+  const actor = useCraftContext();
+  const carouselAPI = useSelector(actor, (state) => state.context.carouselAPI);
+  const canScrollNext = useSyncExternalStore(
+    (onStoreChange) => {
+      if (!carouselAPI) return () => {};
+      carouselAPI.on("slidesInView", onStoreChange);
+      return () => {
+        carouselAPI.off("slidesInView", onStoreChange);
+      };
+    },
+    () => {
+      return carouselAPI?.canScrollNext();
+    },
+    () => {
+      return false;
+    }
+  );
+  return canScrollNext ? <>{children}</> : <></>;
 };
 
 const CurrentListHasPreviousRecipes = ({
@@ -1214,7 +1231,28 @@ const CurrentListHasPreviousRecipes = ({
 }: {
   children: ReactNode;
 }) => {
-  return <>{children}</>;
+  const actor = useCraftContext();
+  const carouselAPI = useSelector(actor, (state) => state.context.carouselAPI);
+  const canScrollPrev = useSyncExternalStore(
+    (onStoreChange) => {
+      if (!carouselAPI) return () => {};
+      carouselAPI.on("slidesInView", onStoreChange);
+      carouselAPI.on("slidesChanged", onStoreChange);
+      carouselAPI.on("slideFocus", onStoreChange);
+      return () => {
+        carouselAPI.off("slidesInView", onStoreChange);
+        carouselAPI.off("slidesChanged", onStoreChange);
+        carouselAPI.off("slideFocus", onStoreChange);
+      };
+    },
+    () => {
+      return carouselAPI?.canScrollPrev();
+    },
+    () => {
+      return false;
+    }
+  );
+  return canScrollPrev ? <>{children}</> : <></>;
 };
 
 const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
