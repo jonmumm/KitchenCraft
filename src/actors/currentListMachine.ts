@@ -31,11 +31,5 @@ export const currentListMachine = setup({
           }),
       }),
     },
-    REMOVE_FROM_LIST: {
-      actions: assign({
-        recipeIds: ({ context, event }) =>
-          context.recipeIds.filter((item) => item !== event.id),
-      }),
-    },
   },
 });
