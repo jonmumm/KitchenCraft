@@ -818,16 +818,16 @@ export const createCraftMachine = ({
                     //     return { tokens: event.tokens || [] };
                     //   },
                     // },
-                    {
-                      type: "replaceQueryParameters",
-                      params({ event }) {
-                        return {
-                          paramSet: {
-                            prompt: event.prompt,
-                          },
-                        };
-                      },
-                    },
+                    // {
+                    //   type: "replaceQueryParameters",
+                    //   params({ event }) {
+                    //     return {
+                    //       paramSet: {
+                    //         prompt: event.prompt,
+                    //       },
+                    //     };
+                    //   },
+                    // },
                     // assign({
                     //   currentItemIndex: 0,
                     // }),
@@ -841,7 +841,7 @@ export const createCraftMachine = ({
             },
           },
         },
-        ListView: {
+        MyRecipes: {
           type: "parallel",
           on: {
             MOUNT_CAROUSEL: {

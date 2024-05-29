@@ -234,6 +234,34 @@ export const EnterChefNameCard = () => {
   );
 };
 
+const EmptyItemOverlay = ({
+  children,
+  show,
+}: {
+  children: ReactNode;
+  show: boolean;
+}) => {
+  return show ? (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="flex flex-col gap-2 items-center justify-center z-70">
+        <div>Empty.</div>
+        <div>
+          <Badge
+            event={{ type: "NEW_RECIPE" }}
+            variant="secondary"
+            className="shadow-md"
+          >
+            Select More
+          </Badge>
+        </div>
+      </div>
+      <div className="absolute inset-0 opacity-20">{children}</div>
+    </div>
+  ) : (
+    <>{children}</>
+  );
+};
+
 const OnboardingMiscQuestion = () => {
   return (
     <div className="py-2">
@@ -292,7 +320,7 @@ const CurrentListCarouselItem = ({
   id,
   index,
 }: {
-  id: string;
+  id?: string;
   index: number;
 }) => {
   const recipe = useListRecipeAtIndex(index);
@@ -305,12 +333,14 @@ const CurrentListCarouselItem = ({
   );
 
   const RecipeName = () => (
-    <div>
-      <span className="mr-1 text-muted-foreground">{index + 1}. </span>
+    <div className="flex flex-row items-center justify-start flex-1">
+      <span className="mr-1 text-muted-foreground flex flex-row gap-2">
+        {index + 1}.{" "}
+      </span>
       {recipe?.name ? (
-        <>{recipe.name}</>
+        <span className="flex-1">{recipe.name}</span>
       ) : (
-        <SkeletonSentence className="h-7" numWords={4} />
+        <SkeletonSentence className="h-7 flex-1" numWords={4} />
       )}
     </div>
   );
@@ -318,117 +348,119 @@ const CurrentListCarouselItem = ({
   return (
     <div className="embla__slide max-h-100 mr-2 first:ml-2 relative">
       <Card className="absolute inset-0 overflow-y-auto">
-        <ScrollArea className="absolute inset-0">
-          <div className="h-fit flex flex-col gap-2 py-4">
-            <CardTitle className="px-4">
-              {recipe?.slug ? (
-                <Link
-                  href={`/recipe/${recipe.slug}`}
-                  target="_blank"
-                  className="flex flex-row items-center justify-between gap-3"
-                >
-                  <RecipeName />
-                  <Button size="icon" variant="ghost" autoFocus={false}>
-                    <ExternalLinkIcon />
-                  </Button>
-                </Link>
-              ) : (
-                <div className="flex flex-row gap-2">
-                  <RecipeName />
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    autoFocus={false}
-                    disabled
+        <EmptyItemOverlay show={!id}>
+          <ScrollArea className="absolute inset-0">
+            <div className="h-fit flex flex-col gap-2 py-4">
+              <CardTitle className="px-4">
+                {recipe?.slug ? (
+                  <Link
+                    href={`/recipe/${recipe.slug}`}
+                    target="_blank"
+                    className="flex flex-row items-center justify-between gap-3"
                   >
-                    <ExternalLinkIcon />
-                  </Button>
+                    <RecipeName />
+                    <Button size="icon" variant="ghost" autoFocus={false}>
+                      <ExternalLinkIcon />
+                    </Button>
+                  </Link>
+                ) : (
+                  <div className="flex flex-row gap-2">
+                    <RecipeName />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      autoFocus={false}
+                      disabled
+                    >
+                      <ExternalLinkIcon />
+                    </Button>
+                  </div>
+                )}
+              </CardTitle>
+              {recipe?.description ? (
+                <CardDescription className="px-4">
+                  {recipe.description}
+                </CardDescription>
+              ) : (
+                <div className="flex-1 px-4">
+                  <SkeletonSentence className="h-4" numWords={12} />
                 </div>
               )}
-            </CardTitle>
-            {recipe?.description ? (
-              <CardDescription className="px-4">
-                {recipe.description}
-              </CardDescription>
-            ) : (
-              <div className="flex-1">
-                <SkeletonSentence className="h-4" numWords={12} />
+              <div className="text-muted-foreground text-xs flex flex-row gap-2 px-4">
+                <span>Yields</span>
+                <span>
+                  <Yield recipeId={recipe?.id} />
+                </span>
               </div>
+            </div>
+            <Separator />
+            {recipe?.slug && (
+              <>
+                <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
+                  <ShareButton slug={recipe.slug} name={recipe.name} />
+                  {!isSelected ? (
+                    <Button
+                      size="icon"
+                      className="flex-1 md:flex-0 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
+                      event={{ type: "SELECT_RECIPE", id: recipe.id }}
+                    >
+                      Select <PlusIcon className="ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      event={{ type: "UNSELECT", id: recipe.id }}
+                    >
+                      Unselect <XIcon className="ml-2" />
+                    </Button>
+                  )}
+                  <PrintButton slug={recipe?.slug} />
+                </div>
+                <Separator />
+              </>
             )}
-            <div className="text-muted-foreground text-xs flex flex-row gap-2 px-4">
-              <span>Yields</span>
-              <span>
-                <Yield recipeId={recipe?.id} />
-              </span>
+            <div>
+              <Times
+                activeTime={recipe?.activeTime}
+                totalTime={recipe?.totalTime}
+                cookTime={recipe?.cookTime}
+              />
             </div>
-          </div>
-          <Separator />
-          {recipe?.slug && (
-            <>
-              <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                <ShareButton slug={recipe.slug} name={recipe.name} />
-                {!isSelected ? (
-                  <Button
-                    size="icon"
-                    className="flex-1 md:flex-0 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
-                    event={{ type: "SELECT_RECIPE", id: recipe.id }}
-                  >
-                    Select <PlusIcon className="ml-2" />
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    event={{ type: "UNSELECT", id: recipe.id }}
-                  >
-                    Unselect <XIcon className="ml-2" />
-                  </Button>
-                )}
-                <PrintButton slug={recipe?.slug} />
+            <Separator />
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Ingredients
+                </h3>
+                <ShoppingBasketIcon />
               </div>
-              <Separator />
-            </>
-          )}
-          <div>
-            <Times
-              activeTime={recipe?.activeTime}
-              totalTime={recipe?.totalTime}
-              cookTime={recipe?.cookTime}
-            />
-          </div>
-          <Separator />
-          <div className="px-5">
-            <div className="flex flex-row justify-between gap-1 items-center py-4">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Ingredients
-              </h3>
-              <ShoppingBasketIcon />
+              <div className="mb-4 flex flex-col gap-2">
+                <ul className="list-disc pl-5 flex flex-col gap-2">
+                  <Ingredients recipeId={recipe?.id} />
+                </ul>
+              </div>
             </div>
-            <div className="mb-4 flex flex-col gap-2">
-              <ul className="list-disc pl-5 flex flex-col gap-2">
-                <Ingredients recipeId={recipe?.id} />
-              </ul>
+            <Separator />
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Instructions
+                </h3>
+                <ScrollIcon />
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <ol className="list-decimal pl-5 flex flex-col gap-2">
+                  <Instructions recipeId={recipe?.id} />
+                </ol>
+              </div>
             </div>
-          </div>
-          <Separator />
-          <div className="px-5">
-            <div className="flex flex-row justify-between gap-1 items-center py-4">
-              <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                Instructions
-              </h3>
-              <ScrollIcon />
+            <Separator />
+            <div className="py-2">
+              <Tags recipeId={recipe?.id} />
             </div>
-            <div className="mb-4 flex flex-col gap-2">
-              <ol className="list-decimal pl-5 flex flex-col gap-2">
-                <Instructions recipeId={recipe?.id} />
-              </ol>
-            </div>
-          </div>
-          <Separator />
-          <div className="py-2">
-            <Tags recipeId={recipe?.id} />
-          </div>
-        </ScrollArea>
+          </ScrollArea>
+        </EmptyItemOverlay>
       </Card>
     </div>
   );
@@ -445,19 +477,11 @@ const useListRecipeAtIndex = (index: number) => {
   );
 };
 
-const useHandleShareSelected = () => {
-  const send = useSend();
-  return useCallback(() => {
-    send({ type: "SHARE_SELECTED" });
-    window.navigator;
-  }, [send]);
-};
 
-export const CurrentListScreen = () => {
+export const MyRecipesScreen = () => {
   const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
+  const items = new Array(4).fill(0);
   useScrollLock(true);
-
-  const handleShareSelected = useHandleShareSelected();
 
   return (
     <Portal>
@@ -532,8 +556,12 @@ export const CurrentListScreen = () => {
         {/* <div className="carousel carousel-center space-x-2 pl-2 pr-8"> */}
         <HasSelectedRecipes>
           <CurrentListCarousel>
-            {recipeIds.map((id, index) => (
-              <CurrentListCarouselItem key={id} id={id} index={index} />
+            {items.map((id, index) => (
+              <CurrentListCarouselItem
+                key={index}
+                id={recipeIds[index]}
+                index={index}
+              />
             ))}
           </CurrentListCarousel>
         </HasSelectedRecipes>
@@ -849,10 +877,10 @@ export const EnterEmailCard = () => {
   );
 };
 
-export const IsInCurrentListView = (props: { children: ReactNode }) => {
+export const IsInMyRecipes = (props: { children: ReactNode }) => {
   const actor = useContext(CraftContext);
   const active = useSelector(actor, (state) =>
-    state.matches({ ListView: { Open: "True" } })
+    state.matches({ MyRecipes: { Open: "True" } })
   );
 
   return active ? <>{props.children}</> : null;

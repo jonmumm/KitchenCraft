@@ -31,16 +31,16 @@ import {
   Body,
   CraftStickyHeader,
   CreateNewListCard,
-  CurrentListScreen,
   EnterChefNameCard,
   EnterEmailCard,
   IsCreatingList,
-  IsInCurrentListView,
+  IsInMyRecipes,
   IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
   IsSelectingList,
   IsUpgradingAccount,
+  MyRecipesScreen,
   PersonalizationSettingsMenu,
   SearchParamsToastMessage,
   SelectListCard,
@@ -192,8 +192,7 @@ export default async function RootLayout(
                 <SaveDialog />
                 <PersonalizationSettingsDialog />
                 <UpgradeAccountDialog />
-                <CurrentListDialog />
-                {/* <OnboardingDialog /> */}
+                <MyRecipes />
               </ThemeProvider>
               <Toaster />
               <SearchParamsToastMessage />
@@ -240,15 +239,11 @@ const PersonalizationSettingsDialog = () => {
   );
 };
 
-const CurrentListDialog = () => {
-  const isMobile = getIsMobile();
-
+const MyRecipes = () => {
   return (
-    <>
-      <IsInCurrentListView>
-        <CurrentListScreen />
-      </IsInCurrentListView>
-    </>
+    <IsInMyRecipes>
+      <MyRecipesScreen />
+    </IsInMyRecipes>
   );
 };
 
