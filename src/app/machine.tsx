@@ -158,6 +158,9 @@ export const createCraftMachine = ({
       events: {} as AppEvent | GeneratorEvent,
     },
     actions: {
+      // shareSelectedUrl: ({ context }) => {
+
+      // },
       replaceQueryParameters: (
         { context },
         params: { paramSet: Record<string, string | undefined> }
@@ -280,6 +283,39 @@ export const createCraftMachine = ({
       },
       type: "parallel",
       states: {
+        // Sharing: {
+        //   initial: "Idle",
+        //   states: {
+        //     Idle: {
+        //       on: {
+        //         SHARE_SELECTED: [
+        //           {
+        //             target: "InProgress",
+        //             guard: () => "share" in navigator,
+        //           },
+        //           {
+        //             target: "Copied",
+        //             guard: () => "clipboard" in navigator,
+        //             actions: "shareSelectedUrl"
+        //           },
+        //         ],
+        //       },
+        //     },
+        //     InProgress: {},
+        //     Copied: {
+        //       always: {
+        //         target: "Idle",
+        //       },
+        //     },
+        //     Complete: {},
+        //     Error: {
+        //       always: {
+        //         target: "Idle",
+        //         actions: console.error,
+        //       },
+        //     },
+        //   },
+        // },
         Socket: {
           initial: "Uninitialized",
           on: {

@@ -612,13 +612,12 @@ const CloseEventSchema = z.object({
   type: z.literal("CLOSE"),
 });
 
-const AddToListEventSchema = z.object({
-  type: z.literal("ADD_TO_LIST"),
-  id: z.string(),
+const AddSelectEventSchema = z.object({
+  type: z.literal("ADD_SELECTED"),
 });
 
-const RemoveFromListEventSchema = z.object({
-  type: z.literal("REMOVE_FROM_LIST"),
+const UnselectEventSchema = z.object({
+  type: z.literal("UNSELECT"),
   id: z.string(),
 });
 
@@ -1132,8 +1131,8 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ModifyRecipeScaleEventSchema,
   ModifyRecipeDietaryEventSchema,
   SaveEventSchema,
-  AddToListEventSchema,
-  RemoveFromListEventSchema,
+  AddSelectEventSchema,
+  UnselectEventSchema,
   CloseEventSchema,
   NewRecipeEventSchema,
   ModifyEventSchema,

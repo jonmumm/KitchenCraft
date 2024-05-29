@@ -379,7 +379,7 @@ const CurrentListCarouselItem = ({
                   <Button
                     variant="outline"
                     className="flex-1"
-                    event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                    event={{ type: "UNSELECT", id: recipe.id }}
                   >
                     Unselect <XIcon className="ml-2" />
                   </Button>
@@ -564,7 +564,10 @@ export const CurrentListScreen = () => {
                 URL Copied!
               </PopoverContent>
             </SharePopover>
-            <Button className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white">
+            <Button
+              className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white"
+              event={{ type: "ADD_SELECTED" }}
+            >
               <PlusIcon className="mr-1" />
               Add (<CurrentListCount />) to...
             </Button>
@@ -1472,6 +1475,7 @@ const SharePopover = ({ children }: { children: ReactNode }) => {
     if (!selectedListId) {
       return;
     }
+    send({ type: "SHARE_SELECTED" });
 
     const { origin } = window.location;
     const url = `${origin}/list/${selectedListId}`;
@@ -1497,7 +1501,7 @@ const SharePopover = ({ children }: { children: ReactNode }) => {
         setShowCopied(false);
       }, 3000);
     }
-  }, [setShowCopied, selectedListId]);
+  }, [setShowCopied, selectedListId, send]);
 
   return (
     <Popover open={showCopied} onOpenChange={handlePressCopy}>

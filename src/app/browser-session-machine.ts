@@ -246,32 +246,51 @@ export const browserSessionMachine = setup({
         },
       },
     },
-    List: {
-      on: {
-        CLEAR_SELECTION: {
-          actions: [
-            assign({
-              selectedRecipeIds: () => [],
-            }),
-          ],
-        },
-        SELECT_RECIPE: {
-          guard: ({ context, event }) =>
-            !context.selectedRecipeIds.includes(event.id),
-          actions: [
-            assign({
-              selectedRecipeIds: ({ context, event }) =>
-                produce(context.selectedRecipeIds, (draft) => {
-                  draft.push(event.id);
+    Selection: {
+      on: {},
+      type: "parallel",
+      states: {
+        Items: {
+          on: {
+            CLEAR_SELECTION: {
+              actions: [
+                assign({
+                  selectedRecipeIds: () => [],
                 }),
-            }),
-          ],
+              ],
+            },
+            SELECT_RECIPE: {
+              guard: ({ context, event }) =>
+                !context.selectedRecipeIds.includes(event.id),
+              actions: [
+                assign({
+                  selectedRecipeIds: ({ context, event }) =>
+                    produce(context.selectedRecipeIds, (draft) => {
+                      draft.push(event.id);
+                    }),
+                }),
+              ],
+            },
+            // ADD_TO_LIST: {},
+            UNSELECT: {
+              actions: assign({
+                selectedRecipeIds: ({ context, event }) =>
+                  context.selectedRecipeIds.filter((item) => item !== event.id),
+              }),
+            },
+          },
         },
-        REMOVE_FROM_LIST: {
-          actions: assign({
-            selectedRecipeIds: ({ context, event }) =>
-              context.selectedRecipeIds.filter((item) => item !== event.id),
-          }),
+        Metadata: {
+          type: "parallel",
+          states: {
+            Created: {
+              initial: "False",
+              states: {
+                False: {},
+                True: {},
+              },
+            },
+          },
         },
       },
     },

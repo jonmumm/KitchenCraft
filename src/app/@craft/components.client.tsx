@@ -672,7 +672,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                   ) : (
                     <Badge
                       variant="secondary"
-                      event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                      event={{ type: "UNSELECT", id: recipe.id }}
                     >
                       Unselect <XIcon className="ml-1" size={14} />
                     </Badge>
@@ -704,7 +704,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                   <Button
                     variant="ghost"
                     className="flex-1"
-                    event={{ type: "REMOVE_FROM_LIST", id: recipe.id }}
+                    event={{ type: "UNSELECT", id: recipe.id }}
                   >
                     Unselect <XIcon className="ml-2" />
                   </Button>
