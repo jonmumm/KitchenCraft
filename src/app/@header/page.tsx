@@ -17,7 +17,7 @@ import { ChefHatIcon, XCircleIcon, XIcon } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
 import {
-  CurrentListBadge,
+  MyRecipesBadge,
   CurrentListButton,
   HomepageSuggestedTokens,
 } from "./components.client";
@@ -32,7 +32,7 @@ export default async function Page({}) {
         <div className="hidden crafting:hidden absolute right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
           <div className="flex flex-row gap-1 items-center">
             <div className="flex flex-row gap-1">
-              <CurrentListBadge />
+              <MyRecipesBadge />
               {/* <Badge
                   variant="outline"
                   className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"

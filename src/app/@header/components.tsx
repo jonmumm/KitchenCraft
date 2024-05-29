@@ -1,5 +1,4 @@
 import { MainMenu } from "@/app/menu/components";
-import { Badge } from "@/components/display/badge";
 import { Button } from "@/components/input/button";
 import {
   SheetContent,
@@ -18,7 +17,6 @@ import {
   ChevronRightIcon,
   GripVerticalIcon,
   ListIcon,
-  Loader2Icon,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -26,7 +24,7 @@ import { AddedTokens, HasTokens } from "../@craft/components.client";
 import {
   BackButton,
   CraftInput,
-  CurrentListBadge,
+  MyRecipesBadge,
   KeyboardToggle,
 } from "./components.client";
 
@@ -86,16 +84,7 @@ export async function HeaderWithInput({
           <div className="hidden crafting:hidden right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
             <div className="flex flex-row gap-1 items-center">
               <div className="flex flex-row gap-1">
-                <Badge
-                  variant="outline"
-                  className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
-                >
-                  <ChefHatIcon className="transitioning:hidden" />
-                  <Loader2Icon className="hidden transitioning:block animate-spin" />
-                  <span>
-                    {profile?.profileSlug ? profile.profileSlug : "My Recipes"}
-                  </span>
-                </Badge>
+                <MyRecipesBadge />
               </div>
             </div>
             <MenuSheet>
@@ -231,7 +220,7 @@ export default function BasicHeader({
       <div className="hidden crafting:hidden absolute right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
         <div className="flex flex-row gap-1 items-center">
           <div className="flex flex-row gap-1">
-            <CurrentListBadge />
+            <MyRecipesBadge />
             {/* <Badge
                 variant="outline"
                 className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"

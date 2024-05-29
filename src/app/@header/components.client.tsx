@@ -389,7 +389,7 @@ export const HomepageSuggestedTokens = () => {
   );
 };
 
-export const CurrentListBadge = () => {
+export const MyRecipesBadge = () => {
   return (
     <div className="indicator">
       <ListIndicator />

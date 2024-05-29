@@ -479,7 +479,8 @@ const useListRecipeAtIndex = (index: number) => {
 
 export const MyRecipesScreen = () => {
   const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
-  const items = new Array(4).fill(0);
+  const numItems = Math.max(recipeIds.length, 3);
+  const items = new Array(numItems).fill(0);
   useScrollLock(true);
 
   return (
@@ -1438,7 +1439,7 @@ const MyRecipeListsRadioGroup = () => {
           </div>
           <div>
             <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-             37 
+              37
             </span>
           </div>
         </div>
@@ -1452,7 +1453,7 @@ const MyRecipeListsRadioGroup = () => {
           </div>
           <div>
             <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-             40 
+              40
             </span>
           </div>
         </div>
@@ -1466,7 +1467,7 @@ const MyRecipeListsRadioGroup = () => {
           </div>
           <div>
             <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-             437 
+              437
             </span>
           </div>
         </div>
