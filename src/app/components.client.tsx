@@ -477,7 +477,6 @@ const useListRecipeAtIndex = (index: number) => {
   );
 };
 
-
 export const MyRecipesScreen = () => {
   const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
   const items = new Array(4).fill(0);
@@ -1418,22 +1417,72 @@ const MyRecipeListsRadioGroup = () => {
       <Separator className="my-1" />
       <RecipeListRadioItem value="make-later" className="py-4">
         <div className="flex flex-row gap-2 w-56">
-          <span className="flex-1">
-            <span className="mr-1">⏰</span> Make Later
-          </span>
-          <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-            0
-          </span>
+          <span className="mr-1">⏰</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">Make Later</span>
+            <span className="text-xs text-muted-foreground">Private</span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+              0
+            </span>
+          </div>
         </div>
       </RecipeListRadioItem>
       <RecipeListRadioItem value="favorites" className="py-4">
         <div className="flex flex-row gap-2 w-56">
-          <span className="flex-1">
-            <span className="mr-1">⭐️</span> Favorites
-          </span>
-          <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-            0
-          </span>
+          <span className="mr-1">⭐️</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">Favorites</span>
+            <span className="text-xs text-muted-foreground">Private</span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+             37 
+            </span>
+          </div>
+        </div>
+      </RecipeListRadioItem>
+      <RecipeListRadioItem value="liked" className="py-4">
+        <div className="flex flex-row gap-2 w-56">
+          <span className="mr-1">️👍</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">Liked</span>
+            <span className="text-xs text-muted-foreground">Public</span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+             40 
+            </span>
+          </div>
+        </div>
+      </RecipeListRadioItem>
+      <RecipeListRadioItem value="viewed" className="py-4">
+        <div className="flex flex-row gap-2 w-56">
+          <span className="mr-1">️📜</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">View History</span>
+            <span className="text-xs text-muted-foreground">Private</span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+             437 
+            </span>
+          </div>
+        </div>
+      </RecipeListRadioItem>
+      <RecipeListRadioItem value="commented" className="py-4">
+        <div className="flex flex-row gap-2 w-56">
+          <span className="mr-1">️💬</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">Commented On</span>
+            <span className="text-xs text-muted-foreground">Public</span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+              0
+            </span>
+          </div>
         </div>
       </RecipeListRadioItem>
       <Separator className="my-1" />
@@ -1458,7 +1507,7 @@ const RecipeListRadioItem = forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent dark:data-[state=checked]:bg-slate-900 data-[state=checked]:bg-slate-100 focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent dark:data-[state=checked]:bg-slate-900 data-[state=checked]:font-semibold data-[state=checked]:bg-slate-100 focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}
