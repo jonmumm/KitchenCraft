@@ -46,6 +46,9 @@ import { Popover } from "@radix-ui/react-popover";
 import { Portal } from "@radix-ui/react-portal";
 import {
   CarrotIcon,
+  CheckCircle2Icon,
+  CheckIcon,
+  CircleSlash2Icon,
   ExpandIcon,
   ExternalLinkIcon,
   Loader2Icon,
@@ -667,14 +670,14 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                       variant="secondary"
                       event={{ type: "SELECT_RECIPE", id: recipe.id }}
                     >
-                      Select <PlusIcon className="ml-1" size={14} />
+                      Select <CheckIcon className="ml-1" size={14} />
                     </Badge>
                   ) : (
                     <Badge
                       variant="secondary"
                       event={{ type: "UNSELECT", id: recipe.id }}
                     >
-                      Unselect <XIcon className="ml-1" size={14} />
+                      Unselect <CircleSlash2Icon className="ml-1" size={14} />
                     </Badge>
                   )
                 ) : (
@@ -698,7 +701,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                     className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
                     event={{ type: "SELECT_RECIPE", id: recipe.id }}
                   >
-                    Select <PlusIcon className="ml-2" />
+                    Select <CheckIcon className="ml-2" />
                   </Button>
                 ) : (
                   <Button
@@ -706,7 +709,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                     className="flex-1"
                     event={{ type: "UNSELECT", id: recipe.id }}
                   >
-                    Unselect <XIcon className="ml-2" />
+                    Unselect <CircleSlash2Icon className="ml-2" />
                   </Button>
                 )}
                 <PrintButton slug={recipe?.slug} />

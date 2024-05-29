@@ -6,7 +6,7 @@ import { BrowserSessionContext, BrowserSessionEvent } from "@/types";
 import { randomUUID } from "crypto";
 import { produce } from "immer";
 import { from, switchMap } from "rxjs";
-import { assign, fromEventObservable, setup } from "xstate";
+import { assign, fromEventObservable, fromPromise, setup } from "xstate";
 import { z } from "zod";
 import {
   SuggestIngredientStream,
@@ -32,6 +32,12 @@ export const browserSessionMachine = setup({
     events: {} as BrowserSessionEvent,
   },
   actors: {
+    createNewListWithRecipeId: fromPromise(
+      async ({ input }: { input: { listId: string; recipeId: string } }) => {
+        console.log(input);
+        return "";
+      }
+    ),
     generatePlaceholders: fromEventObservable(
       ({
         input,
@@ -108,7 +114,6 @@ export const browserSessionMachine = setup({
     preferences: {},
     diet: {},
     selectedRecipeIds: [],
-    selectedListId: randomUUID(),
     suggestedIngredients: [],
     suggestedTags: [],
     lastRunPersonalizationContext: undefined,
@@ -285,8 +290,39 @@ export const browserSessionMachine = setup({
           states: {
             Created: {
               initial: "False",
+              on: {
+                CLEAR_SELECTION: {
+                  target: ".False",
+                },
+              },
               states: {
-                False: {},
+                False: {
+                  on: {
+                    SELECT_RECIPE: {
+                      target: "Creating",
+                      actions: assign({
+                        selectedListId: () => randomUUID(),
+                      }),
+                    },
+                  },
+                },
+                Creating: {
+                  invoke: {
+                    src: "createNewListWithRecipeId",
+                    input: ({ context, event }) => {
+                      assert(
+                        event.type === "SELECT_RECIPE",
+                        "expected SELECT_RECIPE"
+                      );
+                      assert(context.selectedListId, "exlected selectedListId");
+                      return {
+                        listId: context.selectedListId,
+                        recipeId: event.id,
+                      };
+                    },
+                    onDone: "True",
+                  },
+                },
                 True: {},
               },
             },

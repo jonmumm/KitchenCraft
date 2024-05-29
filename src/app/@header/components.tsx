@@ -24,8 +24,8 @@ import { AddedTokens, HasTokens } from "../@craft/components.client";
 import {
   BackButton,
   CraftInput,
-  MyRecipesBadge,
   KeyboardToggle,
+  MyRecipesBadge,
 } from "./components.client";
 
 export async function HeaderWithInput({
@@ -101,28 +101,6 @@ export async function HeaderWithInput({
               </SheetContent>
             </MenuSheet>
           </div>
-          {/* <Link href="/leaderboard" className="hidden lg:block crafting:hidden">
-            <Button variant="ghost">
-              <TrophyIcon />
-            </Button>
-          </Link> */}
-          {/* <div className="crafting:hidden">
-            <MenuSheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <GripVerticalIcon />
-                </Button>
-              </SheetTrigger>
-              <SheetOverlay />
-              <SheetContent side="right">
-                <div className="flex flex-col gap-2 py-4">
-                  <MainMenu />
-                </div>
-              </SheetContent>
-            </MenuSheet>
-          </div> */}
-          {/* <Card className="flex flex-col items-center justify-center border-none py-2 gap-1 min-w-0">
-      </Card> */}
         </div>
       </div>
       <KeyboardToggle />

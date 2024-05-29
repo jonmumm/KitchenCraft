@@ -71,11 +71,15 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
+  CheckCircle2,
+  CheckCircle2Icon,
+  CheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsUpDown,
   Circle,
+  CircleSlash2Icon,
   ExternalLinkIcon,
   HeartIcon,
   PlusCircleIcon,
@@ -404,7 +408,7 @@ const CurrentListCarouselItem = ({
                       className="flex-1 md:flex-0 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
                       event={{ type: "SELECT_RECIPE", id: recipe.id }}
                     >
-                      Select <PlusIcon className="ml-2" />
+                      Select <CheckCircle2Icon className="ml-2" />
                     </Button>
                   ) : (
                     <Button
@@ -412,7 +416,7 @@ const CurrentListCarouselItem = ({
                       className="flex-1"
                       event={{ type: "UNSELECT", id: recipe.id }}
                     >
-                      Unselect <XIcon className="ml-2" />
+                      Unselect <CircleSlash2Icon className="ml-2" />
                     </Button>
                   )}
                   <PrintButton slug={recipe?.slug} />
