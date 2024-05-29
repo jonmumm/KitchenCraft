@@ -303,7 +303,7 @@ const CurrentListCarouselItem = ({
       <Card className="absolute inset-0 overflow-y-auto">
         <ScrollArea className="absolute inset-0">
           <div className="h-fit flex flex-col gap-2 py-4">
-            <CardTitle className="flex flex-row gap-2 px-4">
+            <CardTitle className="flex flex-row gap-2 px-4 items-center justify-between">
               {index + 1}.{" "}
               {recipe?.name ? (
                 <>{recipe.name}</>
