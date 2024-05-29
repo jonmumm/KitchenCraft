@@ -530,14 +530,14 @@ export const MyRecipesScreen = () => {
           <DropdownMenu>
             <DropdownMenuTrigger className="flex-1 flex justify-center">
               <Badge
-                variant="default"
-                className="flex gap-2 justify-between text-center text-lg font-bold px-4 py-2 w-full sm:w-80"
+                variant="outline"
+                className="flex gap-2 justify-between text-center text-lg font-bold px-4 py-2 w-full bg-card shadow-lg sm:w-80"
               >
+                <ChevronDownIcon />
+                <span>Selected</span>
                 <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
                   <CurrentListCount />
                 </span>
-                <span>Selected</span>
-                <ChevronDownIcon />
               </Badge>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="z-90">
