@@ -11,7 +11,7 @@ import { Badge } from "@/components/display/badge";
 import { Skeleton } from "@/components/display/skeleton";
 import AutoResizableTextarea from "@/components/input/auto-resizable-textarea";
 import { Button } from "@/components/input/button";
-import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
+import { ListIndicator } from "@/components/list-indicator";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
@@ -23,8 +23,7 @@ import {
   ArrowLeftIcon,
   ChevronRight,
   ListIcon,
-  Settings2Icon,
-  XCircleIcon,
+  Settings2Icon
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -43,7 +42,6 @@ import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { CraftContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
-import { ListIndicator } from "@/components/list-indicator";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -209,13 +207,12 @@ export const CraftInput = ({
       actor,
       (state) => !state.matches({ Open: "False" })
     );
-    return (
-      <ChevronRight
-        className={cn(
-          isOpen ? "w-0 ml-1" : "w-4 ml-4",
-          "h-4 shrink-0 opacity-50 self-start mt-1.5"
-        )}
-      />
+    return !isOpen ? (
+      <Button className="ml-2" variant="ghost" size="icon" disabled>
+        <ChevronRight />
+      </Button>
+    ) : (
+      <div className="w-2 h-full"></div>
     );
   };
 
@@ -247,16 +244,35 @@ export const CraftInput = ({
         }
       />
       <CraftEmpty>
-        <Settings2Icon
-          onClick={handleOpenSettings}
-          className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 active:opacity-30 cursor-pointer"
-        />
+        <div className="flex flex-col justify-start items-start h-full">
+          <Button
+            onClick={handleOpenSettings}
+            size="icon"
+            variant="outline"
+            className="mr-2"
+          >
+            <Settings2Icon className="opacity-60" />
+          </Button>
+        </div>
       </CraftEmpty>
       <CraftNotEmpty>
-        <XCircleIcon
-          onClick={handleClear}
-          className="mr-4 h-5 w-5 shrink-0 opacity-60 self-start mt-1 active:opacity-30 cursor-pointer sticky bottom-0"
-        />
+        <div className="flex flex-col gap-2 justify-between items-end self-stretch">
+          <Button
+            size="icon"
+            variant="outline"
+            className="mr-4"
+            onClick={handleOpenSettings}
+          >
+            <Settings2Icon />
+          </Button>
+          <Button
+            event={{ type: "CLEAR" }}
+            variant="ghost"
+            className="mr-2 text-xs font-semibold px-2 h-10"
+          >
+            CLEAR
+          </Button>
+        </div>
       </CraftNotEmpty>
       <script
         dangerouslySetInnerHTML={{
@@ -373,7 +389,6 @@ export const HomepageSuggestedTokens = () => {
   );
 };
 
-
 export const CurrentListBadge = () => {
   return (
     <div className="indicator">
@@ -400,4 +415,3 @@ export const CurrentListButton = () => {
     </div>
   );
 };
-
