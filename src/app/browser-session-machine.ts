@@ -3,6 +3,7 @@ import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert } from "@/lib/utils";
 import { BrowserSessionContext, BrowserSessionEvent } from "@/types";
+import { randomUUID } from "crypto";
 import { produce } from "immer";
 import { from, switchMap } from "rxjs";
 import { assign, fromEventObservable, setup } from "xstate";
@@ -107,6 +108,7 @@ export const browserSessionMachine = setup({
     preferences: {},
     diet: {},
     selectedRecipeIds: [],
+    selectedListId: randomUUID(),
     suggestedIngredients: [],
     suggestedTags: [],
     lastRunPersonalizationContext: undefined,

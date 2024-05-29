@@ -779,7 +779,6 @@ const DownloadAppEventShema = z.object({
   type: z.literal("DOWNLOAD_APP"),
 });
 
-
 const ClearSelectionEventSchema = z.object({
   type: z.literal("CLEAR_SELECTION"),
 });
@@ -1053,7 +1052,12 @@ const ExitEventSchema = z.object({
   type: z.literal("EXIT"),
 });
 
+const ShareSelectedEventSchema = z.object({
+  type: z.literal("SHARE_SELECTED"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ShareSelectedEventSchema,
   ExitEventSchema,
   ViewRecipeEventSchema,
   ViewListEventSchema,

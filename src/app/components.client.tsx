@@ -33,6 +33,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/layout/popover";
 import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
 import { PrintButton } from "@/components/print-button";
@@ -93,6 +98,7 @@ import {
   useContext,
   useEffect,
   useRef,
+  useState,
   useSyncExternalStore,
 } from "react";
 import { twc } from "react-twc";
@@ -439,10 +445,19 @@ const useListRecipeAtIndex = (index: number) => {
   );
 };
 
+const useHandleShareSelected = () => {
+  const send = useSend();
+  return useCallback(() => {
+    send({ type: "SHARE_SELECTED" });
+    window.navigator;
+  }, [send]);
+};
+
 export const CurrentListScreen = () => {
-  // useScrollLock(true);
   const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
   useScrollLock(true);
+
+  const handleShareSelected = useHandleShareSelected();
 
   return (
     <Portal>
@@ -538,10 +553,17 @@ export const CurrentListScreen = () => {
         </NoRecipesSelected>
         <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
           <HasSelectedRecipes>
-            <Button className="shadow-md">
-              <ShareIcon className="mr-1" />
-              Share (<CurrentListCount />)
-            </Button>
+            <SharePopover>
+              <PopoverTrigger asChild>
+                <Button className="shadow-md">
+                  <ShareIcon className="mr-1" />
+                  Share (<CurrentListCount />)
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-fit px-2 py-1 z-90">
+                URL Copied!
+              </PopoverContent>
+            </SharePopover>
             <Button className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white">
               <PlusIcon className="mr-1" />
               Add (<CurrentListCount />) to...
@@ -1436,5 +1458,50 @@ export const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
       {/* <ScrollManager /> */}
       <div className="embla__container absolute inset-0">{children}</div>
     </div>
+  );
+};
+
+const SharePopover = ({ children }: { children: ReactNode }) => {
+  const [showCopied, setShowCopied] = useState(false);
+  const send = useSend();
+  const selectedListId = usePageSessionSelector(
+    (state) => state.context.browserSessionSnapshot?.context.selectedListId
+  );
+
+  const handlePressCopy = useCallback(() => {
+    if (!selectedListId) {
+      return;
+    }
+
+    const { origin } = window.location;
+    const url = `${origin}/list/${selectedListId}`;
+
+    if ("share" in navigator) {
+      navigator
+        .share({
+          url,
+        })
+        .then(() => {
+          // todo prompt to save it?
+          // send({ type: "SHARE_COMPLETE", id });
+        })
+        .catch(() => {
+          // send({ type: "SHARE_CANCEL", slug });
+        });
+    } else if ("clipboard" in navigator) {
+      // @ts-ignore
+      navigator.clipboard.writeText(url);
+
+      setShowCopied(true);
+      setTimeout(() => {
+        setShowCopied(false);
+      }, 3000);
+    }
+  }, [setShowCopied, selectedListId]);
+
+  return (
+    <Popover open={showCopied} onOpenChange={handlePressCopy}>
+      {children}
+    </Popover>
   );
 };

@@ -412,6 +412,7 @@ export type BrowserSessionContext = {
   shoppingFrequency?: string;
   typicalGroceries?: string;
   selectedRecipeIds: string[];
+  selectedListId: string;
   equipment: EquipmentSettings;
   diet: DietSettings;
   preferences: TasteSettings;
