@@ -20,3 +20,15 @@
     flex: 0 0 45%;
   }
 }
+
+@media (min-width: 1960px) {
+  .embla__slide {
+    flex: 0 0 32%;
+  }
+}
+
+@media (min-width: 2440px) {
+  .embla__slide {
+    flex: 0 0 25%;
+  }
+}
