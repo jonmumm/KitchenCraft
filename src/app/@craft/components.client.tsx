@@ -586,7 +586,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <div className="flex flex-row gap-2 w-full">
             <div className="flex flex-col gap-2 w-full">
               <CardTitle className="flex flex-row items-center gap-2">
-                {index + 1}.{" "}
+                <span className="text-muted-foreground">{index + 1}.{" "}</span>
                 {recipe?.name ? (
                   <p className="flex-1">{recipe.name}</p>
                 ) : (

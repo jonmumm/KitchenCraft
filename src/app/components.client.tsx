@@ -298,33 +298,46 @@ const CurrentListCarouselItem = ({
       )
   );
 
+  const RecipeName = () => (
+    <div>
+      <span className="mr-1 text-muted-foreground">{index + 1}. </span>
+      {recipe?.name ? (
+        <>{recipe.name}</>
+      ) : (
+        <SkeletonSentence className="h-7" numWords={4} />
+      )}
+    </div>
+  );
+
   return (
     <div className="embla__slide max-h-100 mr-2 first:ml-2 relative">
       <Card className="absolute inset-0 overflow-y-auto">
         <ScrollArea className="absolute inset-0">
           <div className="h-fit flex flex-col gap-2 py-4">
-            <CardTitle className="flex flex-row gap-2 px-4 items-center justify-between">
-              {index + 1}.{" "}
-              {recipe?.name ? (
-                <>{recipe.name}</>
-              ) : (
-                <SkeletonSentence className="h-7" numWords={4} />
-              )}
+            <CardTitle className="px-4">
               {recipe?.slug ? (
-                <Link href={`/recipe/${recipe.slug}`} target="_blank">
-                  <Button size="icon" variant="outline" autoFocus={false}>
+                <Link
+                  href={`/recipe/${recipe.slug}`}
+                  target="_blank"
+                  className="flex flex-row items-center justify-between gap-3"
+                >
+                  <RecipeName />
+                  <Button size="icon" variant="ghost" autoFocus={false}>
                     <ExternalLinkIcon />
                   </Button>
                 </Link>
               ) : (
-                <Button
-                  size="icon"
-                  variant="outline"
-                  autoFocus={false}
-                  disabled
-                >
-                  <ExternalLinkIcon />
-                </Button>
+                <div className="flex flex-row gap-2">
+                  <RecipeName />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    autoFocus={false}
+                    disabled
+                  >
+                    <ExternalLinkIcon />
+                  </Button>
+                </div>
               )}
             </CardTitle>
             {recipe?.description ? (
