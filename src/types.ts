@@ -408,6 +408,8 @@ export type BrowserSessionEvent =
   | SuggestIngredientsEvent
   | HomepageCategoriesEvent;
 
+type FeedItem = { id: string } & DeepPartial<Category>;
+
 export type BrowserSessionContext = {
   id: string;
   userId: string;
@@ -436,7 +438,7 @@ export type BrowserSessionContext = {
   lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
-  feedItems: Record<string, DeepPartial<Category> & { id: string }>;
+  feedItems: Record<string, FeedItem>;
   feedItemIds: string[];
   listIds: string[];
   listsById: Record<
