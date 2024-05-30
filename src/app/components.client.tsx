@@ -82,6 +82,7 @@ import {
   HeartIcon,
   PlusCircleIcon,
   PlusIcon,
+  PlusSquareIcon,
   RefreshCwIcon,
   ScrollIcon,
   ShareIcon,
@@ -586,7 +587,7 @@ export const MyRecipesScreen = () => {
             <SharePopover>
               <PopoverTrigger asChild>
                 <Button className="shadow-md">
-                  <ShareIcon className="mr-1" />
+                  <ShareIcon size={16} className="mr-1" />
                   Share (<CurrentListCount />)
                 </Button>
               </PopoverTrigger>
@@ -598,20 +599,20 @@ export const MyRecipesScreen = () => {
               className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white"
               event={{ type: "ADD_SELECTED" }}
             >
-              <PlusIcon className="mr-1" />
+              <PlusSquareIcon size={16} className="mr-1" />
               Add (<CurrentListCount />) to...
             </Button>
           </HasSelectedRecipes>
           <NoRecipesSelected>
             <Button className="shadow-md" disabled>
-              <ShareIcon className="mr-1" />
-              Share (<CurrentListCount />)
+              <ShareIcon size={16} className="mr-1" />
+                  Share (<CurrentListCount />) to...
             </Button>
             <Button
               className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white"
               disabled
             >
-              <PlusIcon className="mr-1" />
+              <PlusCircleIcon size={16} className="mr-1" />
               Add (<CurrentListCount />) to...
             </Button>
           </NoRecipesSelected>

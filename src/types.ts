@@ -432,6 +432,21 @@ export type BrowserSessionContext = {
   lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
+  listsById: Record<
+    string,
+    {
+      id: string;
+      name?: string;
+      slug?: string;
+      isPublic: boolean;
+      totalItems: number;
+      items: {
+        ids: string[];
+        offset: number;
+        hasMore: boolean;
+      };
+    }
+  >;
 };
 
 type WithConnect<T extends string> = `${T}_CONNECT`;

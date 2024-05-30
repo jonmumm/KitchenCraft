@@ -119,6 +119,7 @@ export const browserSessionMachine = setup({
     lastRunPersonalizationContext: undefined,
     suggestedPlaceholders: [],
     suggestedTokens: [],
+    listsById: {},
   }),
   on: {
     CHANGE: [
