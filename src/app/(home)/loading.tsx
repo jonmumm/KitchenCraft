@@ -5,7 +5,7 @@ export default function Loading() {
     <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
       <div className="px-4 mt-8 max-w-3xl w-full mx-auto">
         <h3 className="text-muted-foreground uppercase text-xs">
-          Community Favorites
+          Personalized Cookbook
         </h3>
       </div>
       {new Array(8).fill(0).map((_, index) => {

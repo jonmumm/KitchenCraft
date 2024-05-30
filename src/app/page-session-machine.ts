@@ -2622,12 +2622,28 @@ async function upsertUserPreferences(
 }
 
 const defaultLists = {
+  favorites: {
+    name: "Favorites",
+    emoji: "⭐️",
+    slug: "favorites",
+    isPrivate: false,
+  },
   liked: {
     name: "Liked",
+    emoji: "👍",
     slug: "liked",
+    isPrivate: false,
   },
   "make-later": {
     name: "Make Later",
+    emoji: "⏰",
     slug: "make-later",
+    isPrivate: true,
   },
-} as Record<string, { name: string; slug: string }>;
+  "comments": {
+    name: "Commented",
+    emoji: "⏰",
+    slug: "make-later",
+    isPrivate: true,
+  },
+} as Record<string, { name: string; slug: string; isPrivate: boolean, emoji: string }>;

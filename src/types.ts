@@ -1,3 +1,4 @@
+import { DeepPartial } from "ai";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { Operation } from "fast-json-patch";
 import type * as Party from "partykit/server";
@@ -5,6 +6,7 @@ import { PostHog } from "posthog-node";
 import { Observable } from "rxjs";
 import { AnyStateMachine, SnapshotFrom } from "xstate";
 import type { z } from "zod";
+import { HomepageCategoriesEvent } from "./app/homepage-categories.stream";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
 import { SuggestIngredientsEvent } from "./app/suggest-ingredients.stream";
 import { SuggestPlaceholderEvent } from "./app/suggest-placeholder.stream";
@@ -32,6 +34,7 @@ import {
   AppEventSchema,
   AssistantMessageSchema,
   CallerIdTypeSchema,
+  CategorySchema,
   CookingTimeSchema,
   CookwareSchema,
   CreateMessageInputSchema,
@@ -402,7 +405,8 @@ export type BrowserSessionEvent =
   | SuggestTagsEvent
   | SuggestPlaceholderEvent
   | SuggestTokensEvent
-  | SuggestIngredientsEvent;
+  | SuggestIngredientsEvent
+  | HomepageCategoriesEvent;
 
 export type BrowserSessionContext = {
   id: string;
@@ -432,6 +436,9 @@ export type BrowserSessionContext = {
   lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
+  feedItems: Record<string, DeepPartial<Category> & { id: string }>;
+  feedItemIds: string[];
+  listIds: string[];
   listsById: Record<
     string,
     {
@@ -473,3 +480,5 @@ export type ActorSocketEvent<
   | {
       type: WithDisconnect<TEventType>;
     };
+
+export type Category = z.infer<typeof CategorySchema>;

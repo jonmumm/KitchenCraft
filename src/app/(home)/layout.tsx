@@ -43,7 +43,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <LayoutClient>
       <div className="flex flex-col">
-        {userId && (
+        {/* {userId && (
           <div className="flex flex-col gap-1 w-full mb-2">
             <div className="flex flex-row justify-between items-end px-4 pb-1 w-full max-w-2xl mx-auto">
               <Label className="uppercase font-semibold text-accent-foreground opacity-70 text-xs">
@@ -63,7 +63,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
             </div>
             <MyRecipes userId={userId} />
           </div>
-        )}
+        )} */}
         <HomeTabs>
           {/* <TabsList className="w-full">
             <TabsTrigger value="hot" asChild>

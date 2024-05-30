@@ -496,6 +496,12 @@ const SelectResultEventSchema = z.object({
   index: z.number(),
 });
 
+const SelectRecipeSuggestionEventSchema = z.object({
+  type: z.literal("SELECT_RECIPE_SUGGESTION"),
+  name: z.string(),
+  tagline: z.string(),
+});
+
 const SelectRecipeEventSchema = z.object({
   type: z.literal("SELECT_RECIPE"),
   id: z.string(),
@@ -1137,6 +1143,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   NewRecipeEventSchema,
   ModifyEventSchema,
   SelectRecipeEventSchema,
+  SelectRecipeSuggestionEventSchema,
   SelectResultEventSchema,
   SelectRelatedIdeaEventSchema,
   SetInputEventSchema,
@@ -1566,3 +1573,27 @@ export const ChefNameSchema = z
     /^[a-zA-Z0-9_\-\.]*$/,
     "Chef name must only contain alphanumeric characters, dashes, underscores, and periods"
   );
+
+const CategoryRecipeSchema = z.object({
+  name: z.string().describe("The name of the recipe"),
+  tagline: z.string().describe("A catchy phrase to inspire clicks"),
+});
+
+export const CategorySchema = z.object({
+  category: z
+    .string()
+    .describe(
+      "The name of the category. First character should always be an emoji."
+    ),
+  color: z
+    .string()
+    .describe(
+      "An rgb hex code to be used as the border color for visualizing the category"
+    ),
+  description: z
+    .string()
+    .describe("A short explanation about the category's recommendation"),
+  recipes: z
+    .array(CategoryRecipeSchema)
+    .describe("A list of 3 recipes in this category"),
+});

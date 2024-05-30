@@ -8,6 +8,7 @@ import { produce } from "immer";
 import { from, switchMap } from "rxjs";
 import { assign, fromEventObservable, fromPromise, setup } from "xstate";
 import { z } from "zod";
+import { HomepageCategoriesStream } from "./homepage-categories.stream";
 import {
   SuggestIngredientStream,
   SuggestIngredientsOutputSchema,
@@ -37,6 +38,16 @@ export const browserSessionMachine = setup({
         console.log(input);
         return "";
       }
+    ),
+    generateHomepageFeed: fromEventObservable(
+      ({
+        input,
+      }: {
+        input: {
+          personalizationContext: string;
+          timeContext: string;
+        };
+      }) => new HomepageCategoriesStream().getObservable(input)
     ),
     generatePlaceholders: fromEventObservable(
       ({
@@ -119,6 +130,9 @@ export const browserSessionMachine = setup({
     lastRunPersonalizationContext: undefined,
     suggestedPlaceholders: [],
     suggestedTokens: [],
+    feedItems: {},
+    feedItemIds: [],
+    listIds: [],
     listsById: {},
   }),
   on: {
@@ -252,6 +266,83 @@ export const browserSessionMachine = setup({
         },
       },
     },
+    Feed: {
+      type: "parallel",
+      states: {
+        Initialized: {
+          initial: "False",
+          states: {
+            False: {
+              on: {
+                HEARTBEAT: "True",
+              },
+            },
+            True: {
+              entry: assign(({ context, event }) =>
+                produce(context, (draft) => {
+                  const newItemIds = [
+                    randomUUID(),
+                    randomUUID(),
+                    randomUUID(),
+                    randomUUID(),
+                    randomUUID(),
+                    randomUUID(),
+                  ];
+
+                  draft.feedItemIds = [...context.feedItemIds, ...newItemIds];
+                  newItemIds.forEach((id) => {
+                    draft.feedItems[id] = {
+                      id,
+                    };
+                  });
+                })
+              ),
+              on: {
+                HOMEPAGE_CATEGORIES_PROGRESS: {
+                  description:
+                    "When the stream makes progress, update the feed items as they become available",
+                  actions: assign({
+                    feedItems: ({ context, event }) =>
+                      produce(context.feedItems, (draft) => {
+                        console.log(event);
+                        // const newItemIds = context.feedItemIds.slice(-6);
+                        // console.log(newItemIds);
+                        const startIndex = context.feedItemIds.length - 6;
+                        event.data.items?.forEach((item, index) => {
+                          const itemId =
+                            context.feedItemIds[startIndex + index];
+                          assert(itemId, "expected to find itemId");
+
+                          const existingItem = context.feedItems[itemId];
+                          assert(existingItem, "expected existingItem");
+
+                          draft[itemId] = {
+                            ...existingItem,
+                            ...item,
+                          };
+                        });
+                      }),
+                  }),
+                },
+              },
+              invoke: {
+                src: "generateHomepageFeed",
+                input: ({ context }) => {
+                  assert(context.timezone, "expected timezone");
+                  const personalizationContext =
+                    getPersonalizationContext(context);
+
+                  return {
+                    personalizationContext,
+                    timeContext: getTimeContext(context.timezone),
+                  };
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     Selection: {
       on: {},
       type: "parallel",
@@ -326,6 +417,15 @@ export const browserSessionMachine = setup({
                 },
                 True: {},
               },
+            },
+          },
+        },
+        Sharing: {
+          on: {
+            SHARE_SELECTED: {
+              actions: assign({
+                selectedListId: () => randomUUID(),
+              }),
             },
           },
         },

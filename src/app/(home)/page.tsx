@@ -1,6 +1,15 @@
+import {
+  Card,
+  CardContent,
+  CardEyebrow,
+  CardHeader,
+  CardTitle,
+} from "@/components/display/card";
+import { Button } from "@/components/input/button";
 import { getSession } from "@/lib/auth/session";
+import { RefreshCwIcon } from "lucide-react";
 import { getHotRecipes } from "../../db/queries";
-import { RecipeListItem } from "../recipe/components";
+import { FeedCards } from "@/components/feed-cards";
 
 export default async function Page({
   searchParams,
@@ -43,42 +52,18 @@ export default async function Page({
   return (
     <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
       <div className="px-4 mt-8 max-w-3xl w-full mx-auto">
-        <h3 className="text-muted-foreground uppercase text-xs">
-          Community Favorites
+        <h3 className="text-lg font-medium">
+          Today&apos;s Cookbook
+          <span className="text-muted-foreground text-sm ml-2">May 30</span>
         </h3>
+        {/* <Button variant="ghost">
+          <span>Refresh Recommendations</span>
+          <RefreshCwIcon className="ml-2" size={16} />
+        </Button> */}
       </div>
-      {items.map((item, index) => {
-        // ts hack, fix later
-        if (!item) {
-          return;
-        }
-        if (item.type === "recipe") {
-          return (
-            <RecipeListItem
-              key={index}
-              index={index}
-              recipe={item.recipe}
-              userId={userId}
-            />
-          );
-        } else if (item.type === "ad") {
-          return <></>;
-          // return (
-          //   <>
-          //     <div className="relative h-96">
-          //       <div className="absolute w-screen left-1/2 top-6 transform -translate-x-1/2 h-70 flex justify-center z-20">
-          //         {/* <AdCard key={item.id} adInstanceId={item.id} index={index} /> */}
-          //         <AffiliateProductCarousel
-          //         // slug={slug}
-          //         // productType={"equipment"}
-          //         />
-          //       </div>
-          //     </div>
-          //     <Separator className="block md:hidden" />
-          //   </>
-          // );
-        }
-      })}
+      <div>
+        <FeedCards />
+      </div>
     </div>
   );
 }

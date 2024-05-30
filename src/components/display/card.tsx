@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import { cva } from "class-variance-authority";
 import { useEffect, useImperativeHandle, useRef } from "react";
+import { Label } from "./label";
 
 const cardVariants = cva(
   "rounded-lg shadow-sm transition-colors focus-within:outline-none bg-card text-card-foreground",
@@ -97,6 +98,19 @@ const Card = React.forwardRef<
 );
 Card.displayName = "Card";
 
+
+const CardEyebrow = React.forwardRef<
+  HTMLLabelElement,
+  React.HTMLAttributes<HTMLLabelElement>
+>(({ className, ...props }, ref) => (
+  <Label
+    ref={ref}
+    className={cn("text-xs uppercase text-muted-foreground", className)}
+    {...props}
+  />
+));
+CardEyebrow.displayName = "CardEyebrow";
+
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -159,6 +173,7 @@ CardFooter.displayName = "CardFooter";
 export {
   Card,
   CardContent,
+  CardEyebrow,
   CardDescription,
   CardFooter,
   CardHeader,

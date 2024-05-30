@@ -112,6 +112,7 @@ export function SkeletonSentence({
           <Skeleton
             key={index}
             className={cn(className, widthClass)}
+            suppressHydrationWarning
             {...props}
           />
         );

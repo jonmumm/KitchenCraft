@@ -53,6 +53,10 @@ export abstract class StructuredObjectStream<
     const streamSpan = trace.getTracer("default").startSpan(this.getName());
 
     (async () => {
+      subject.next({
+        type: `$$xstate.init`,
+      } as any);
+
       try {
         subject.next({
           type: `${eventType}_START` as WithStart<string>,
