@@ -499,16 +499,16 @@ export const createCraftMachine = ({
                     //     return { prompt: event.ref.value };
                     //   },
                     // },
-                    {
-                      type: "replaceQueryParameters",
-                      params({ event }) {
-                        return {
-                          paramSet: {
-                            prompt: event.ref.value,
-                          },
-                        };
-                      },
-                    },
+                    // {
+                    //   type: "replaceQueryParameters",
+                    //   params({ event }) {
+                    //     return {
+                    //       paramSet: {
+                    //         prompt: event.ref.value,
+                    //       },
+                    //     };
+                    //   },
+                    // },
                   ],
                 },
               },
@@ -534,16 +534,6 @@ export const createCraftMachine = ({
                   requestAnimationFrame(() => {
                     window.scrollTo(0, 0);
                   });
-                },
-                {
-                  type: "replaceQueryParameters",
-                  params({ context, event }) {
-                    return {
-                      paramSet: {
-                        prompt: undefined,
-                      },
-                    };
-                  },
                 },
                 assign({
                   prompt: "",

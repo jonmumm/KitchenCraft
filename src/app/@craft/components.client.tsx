@@ -674,7 +674,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                     </Badge>
                   ) : (
                     <Badge
-                      variant="secondary"
+                      variant="outline"
                       event={{ type: "UNSELECT", id: recipe.id }}
                     >
                       Unselect <CircleSlash2Icon className="ml-1" size={14} />
