@@ -1,12 +1,12 @@
 import { StreamObservableEvent } from "@/lib/stream-to-observable";
 import { StructuredObjectStream } from "@/lib/structured-object-stream";
-import { CategorySchema } from "@/schema";
+import { FeedItemSchema } from "@/schema";
 import { DeepPartial } from "ai";
 import { z, ZodSchema } from "zod";
 
 export const HomepageCategoriesOutputSchema = z.object({
   items: z
-    .array(CategorySchema)
+    .array(FeedItemSchema)
     .describe(
       "Items in the personalized content feed. Should contain exactly 6 items."
     ),

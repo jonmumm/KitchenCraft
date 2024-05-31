@@ -304,9 +304,6 @@ export const browserSessionMachine = setup({
                   actions: assign({
                     feedItems: ({ context, event }) =>
                       produce(context.feedItems, (draft) => {
-                        console.log(event);
-                        // const newItemIds = context.feedItemIds.slice(-6);
-                        // console.log(newItemIds);
                         const startIndex = context.feedItemIds.length - 6;
                         event.data.items?.forEach((item, index) => {
                           const itemId =
@@ -320,6 +317,13 @@ export const browserSessionMachine = setup({
                             ...existingItem,
                             ...item,
                           };
+                          if (draft[itemId]?.recipes) {
+                            draft[itemId]?.recipes?.forEach((draftRecipe) => {
+                              if (draftRecipe && !draftRecipe.id) {
+                                draftRecipe.id = randomUUID();
+                              }
+                            });
+                          }
                         });
                       }),
                   }),
@@ -353,6 +357,47 @@ export const browserSessionMachine = setup({
               actions: [
                 assign({
                   selectedRecipeIds: () => [],
+                }),
+              ],
+            },
+            SELECT_RECIPE_SUGGESTION: {
+              guard: ({ context, event }) => {
+                const feedItemId = context.feedItemIds[event.itemIndex];
+                assert(feedItemId, `expected feedItemId at ${event.itemIndex}`);
+                const feedItem = context.feedItems[feedItemId];
+                assert(feedItem, "expected to find feedItem");
+                assert(feedItem.recipes, "expected feed item recipes");
+                const recipe = feedItem.recipes[event.recipeIndex];
+                assert(
+                  recipe,
+                  `expected to find recipe at ${event.recipeIndex}`
+                );
+                return (
+                  !!recipe?.id && !context.selectedRecipeIds.includes(recipe.id)
+                );
+              },
+              actions: [
+                assign({
+                  selectedRecipeIds: ({ context, event }) =>
+                    produce(context.selectedRecipeIds, (draft) => {
+                      const feedItemId = context.feedItemIds[event.itemIndex];
+                      assert(
+                        feedItemId,
+                        `expected feedItemId at ${event.itemIndex}`
+                      );
+                      const feedItem = context.feedItems[feedItemId];
+                      assert(feedItem, "expected to find feedItem");
+                      assert(feedItem.recipes, "expected feed item recipes");
+                      const recipe = feedItem.recipes[event.recipeIndex];
+                      assert(
+                        recipe,
+                        `expected to find recipe at ${event.recipeIndex}`
+                      );
+                      assert(recipe.id, `expected to have recipe id`);
+
+                      // const recipeId = context.feedItems[context.feedItemIds[event.itemIndex]]
+                      draft.push(recipe.id);
+                    }),
                 }),
               ],
             },

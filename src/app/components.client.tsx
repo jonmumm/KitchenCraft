@@ -1374,7 +1374,7 @@ const CurrentListHasPreviousRecipes = ({
 
 const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
   const isComplete = usePageSessionStoreMatchesState({
-    List: { Data: "Complete" },
+    Selection: { Data: "Complete" },
   });
   const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
 
@@ -1383,7 +1383,7 @@ const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
 
 const HasSelectedRecipes = ({ children }: { children: ReactNode }) => {
   const isComplete = usePageSessionStoreMatchesState({
-    List: { Data: "Complete" },
+    Selection: { Data: "Complete" },
   });
   const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
 

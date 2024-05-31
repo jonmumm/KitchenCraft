@@ -38,3 +38,25 @@ export const createFeedItemRecipeAtIndexSelector =
     }
     return undefined;
   };
+
+export const createFeedItemRecipeAtIndexIsSelectedSelector =
+  (input: { recipeIndex: number; itemIndex: number }) =>
+  (state: PageSessionSnapshot) => {
+    const feedItemId =
+      state.context.browserSessionSnapshot?.context.feedItemIds[
+        input.itemIndex
+      ];
+    if (feedItemId) {
+      const item =
+        state.context.browserSessionSnapshot?.context.feedItems[feedItemId];
+      const recipe = item?.recipes?.[input.recipeIndex];
+      if (recipe?.id) {
+        return state.context.browserSessionSnapshot?.context.selectedRecipeIds.includes(
+          recipe.id
+        );
+      }
+
+      return false;
+    }
+    return false;
+  };

@@ -4,10 +4,11 @@ import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { cn } from "@/lib/utils";
 import {
   createFeedItemAtIndexSelector,
+  createFeedItemRecipeAtIndexIsSelectedSelector,
   createFeedItemRecipeAtIndexSelector,
   selectNumFeedItemIds,
 } from "@/selectors/page-session.selectors";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, ExpandIcon } from "lucide-react";
 import { ReactNode, useMemo } from "react";
 import { Badge } from "./display/badge";
 import {
@@ -17,7 +18,10 @@ import {
   CardHeader,
   CardTitle,
 } from "./display/card";
+import { Separator } from "./display/separator";
 import { SkeletonSentence } from "./display/skeleton";
+import EventTrigger from "./input/event-trigger";
+import { Button } from "./ui/button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -70,7 +74,7 @@ const FeedCardItem = ({ index }: { index: number }) => {
 
 const FeedCardRecipeCarousel = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="relative h-24 ">
+    <div className="relative h-32 ">
       <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-row justify-center">
         <div className="carousel carousel-center pl-2 pr-8 space-x-2">
           {children}
@@ -88,40 +92,75 @@ const FeedCardRecipeItem = (input: {
     () => createFeedItemRecipeAtIndexSelector(input),
     [input]
   );
+  const selectIsSelected = useMemo(
+    () => createFeedItemRecipeAtIndexIsSelectedSelector(input),
+    [input]
+  );
   const recipe = usePageSessionSelector(selectFeedRecipe);
+  const isSelected = usePageSessionSelector(selectIsSelected);
 
   return (
-    <Card className="carousel-item w-72 h-24 flex flex-row gap-2 justify-center items-center px-4">
-      <div className="flex flex-col gap-2 flex-1">
-        <CardTitle className="text-md">
-          {recipe?.name ? (
-            <>{recipe.name}</>
+    <Card
+      className={cn("carousel-item w-72 h-32 flex flex-col justify-between cursor-pointer", isSelected ? "border-purple-500 border-2 border-solid shadow-xl": "")}
+      event={
+        recipe?.id
+          ? {
+              type: "VIEW_RECIPE",
+              id: recipe.id,
+            }
+          : undefined
+      }
+    >
+      <div className="flex flex-row gap-2 px-3 flex-1 justify-between items-center">
+        <div className="flex flex-col gap-1 flex-1">
+          <CardTitle className="text-md">
+            {recipe?.name ? (
+              <>{recipe.name}</>
+            ) : (
+              <SkeletonSentence numWords={3} className="h-5" />
+            )}
+          </CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">
+            {recipe?.tagline}
+          </CardDescription>
+        </div>
+        <Button variant="outline" size="icon">
+          <ExpandIcon />
+        </Button>
+      </div>
+      <Separator />
+      <EventTrigger
+        asChild
+        event={
+          !isSelected
+            ? { type: "SELECT_RECIPE_SUGGESTION", ...input }
+            : recipe?.id
+            ? { type: "UNSELECT", id: recipe.id }
+            : undefined
+        }
+      >
+        <div className="flex items-center justify-center py-3">
+          {!isSelected ? (
+            <>
+              {recipe?.id ? (
+                <Badge variant="secondary">
+                  Select <CheckIcon className="ml-1" size={14} />
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="opacity-40">
+                  Select <CheckIcon className="ml-1" size={14} />
+                </Badge>
+              )}
+            </>
           ) : (
-            <SkeletonSentence numWords={3} className="h-5" />
+            <>
+              <Badge variant="secondary">
+                Unselect <CheckIcon className="ml-1" size={14} />
+              </Badge>
+            </>
           )}
-        </CardTitle>
-        <CardDescription className="text-sm text-muted-foreground">
-          {recipe?.tagline}
-        </CardDescription>
-      </div>
-      <div>
-        {recipe?.name && recipe?.tagline ? (
-          <Badge
-            variant="secondary"
-            event={{
-              type: "SELECT_RECIPE_SUGGESTION",
-              name: recipe.name,
-              tagline: recipe.tagline,
-            }}
-          >
-            Select <CheckIcon className="ml-1" size={14} />
-          </Badge>
-        ) : (
-          <Badge variant="secondary" className="opacity-40">
-            Select <CheckIcon className="ml-1" size={14} />
-          </Badge>
-        )}
-      </div>
+        </div>
+      </EventTrigger>
     </Card>
   );
 };

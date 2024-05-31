@@ -498,8 +498,8 @@ const SelectResultEventSchema = z.object({
 
 const SelectRecipeSuggestionEventSchema = z.object({
   type: z.literal("SELECT_RECIPE_SUGGESTION"),
-  name: z.string(),
-  tagline: z.string(),
+  recipeIndex: z.number(),
+  itemIndex: z.number(),
 });
 
 const SelectRecipeEventSchema = z.object({
@@ -1579,7 +1579,7 @@ const CategoryRecipeSchema = z.object({
   tagline: z.string().describe("A catchy phrase to inspire clicks"),
 });
 
-export const CategorySchema = z.object({
+export const FeedItemSchema = z.object({
   category: z
     .string()
     .describe(

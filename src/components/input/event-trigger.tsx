@@ -6,7 +6,7 @@ import { Slot } from "@radix-ui/react-slot";
 import React, { ForwardRefRenderFunction, useCallback } from "react";
 
 interface EventTriggerProps extends React.HTMLProps<HTMLDivElement> {
-  event: AppEvent;
+  event?: AppEvent;
   asChild?: boolean;
   children: React.ReactNode;
   disabled?: boolean; // Add the disabled prop
@@ -24,10 +24,11 @@ const EventTrigger: ForwardRefRenderFunction<
       if (disabled) {
         return;
       }
-      send(event);
-      e.preventDefault();
-      e.stopPropagation();
-      // Add any additional logic if needed
+      if (event) {
+        send(event);
+        e.preventDefault();
+        e.stopPropagation();
+      }
     },
     [event, send, disabled]
   );

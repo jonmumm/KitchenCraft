@@ -853,21 +853,6 @@ export const createCraftMachine = ({
                 }
               },
             },
-            SELECT_RECIPE: {
-              actions: assign({
-                scrollItemIndex: ({ event }) => {
-                  return (
-                    store
-                      .get()
-                      .context.browserSessionSnapshot?.context.selectedRecipeIds.indexOf(
-                        event.id
-                      ) || -1
-                  );
-                },
-                // scrollItemIndex: ({ event }) => event.index,
-                // pageSession$.get().context.browserSessionSnapshot.context.currentListRecipeIds
-              }),
-            },
           },
           states: {
             Open: {

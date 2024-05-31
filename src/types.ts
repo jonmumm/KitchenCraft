@@ -34,7 +34,6 @@ import {
   AppEventSchema,
   AssistantMessageSchema,
   CallerIdTypeSchema,
-  CategorySchema,
   CookingTimeSchema,
   CookwareSchema,
   CreateMessageInputSchema,
@@ -49,6 +48,7 @@ import {
   EquipmentSettingsSchema,
   ExperienceLevelSchema,
   FAQsPredictionInputSchema,
+  FeedItemSchema,
   GeneratorTypeSchema,
   IdeasPredictionOutputSchema,
   InstantRecipeMetadataPredictionInputSchema,
@@ -129,6 +129,7 @@ export type Camelize<T> = {
     ? Camelize<T[K]>
     : T[K];
 };
+export type UnArray<T> = T extends Array<infer U> ? U : T;
 
 export type CloudFlareProps = Party.Request["cf"];
 
@@ -408,7 +409,17 @@ export type BrowserSessionEvent =
   | SuggestIngredientsEvent
   | HomepageCategoriesEvent;
 
-type FeedItem = { id: string } & DeepPartial<Category>;
+type FeedItemRecipe = UnArray<FeedItem["recipes"]>;
+type FeedItemRecipeWithId = FeedItemRecipe & {
+  id: string;
+};
+
+// New CategoryWithId type that extends Category and ensures recipes have an id
+type FeedWithRecipeIds = Omit<FeedItem, "recipes"> & {
+  recipes: FeedItemRecipeWithId[];
+};
+
+type FeedItemWithIds = { id: string } & DeepPartial<FeedWithRecipeIds>;
 
 export type BrowserSessionContext = {
   id: string;
@@ -438,7 +449,7 @@ export type BrowserSessionContext = {
   lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
-  feedItems: Record<string, FeedItem>;
+  feedItems: Record<string, FeedItemWithIds>;
   feedItemIds: string[];
   listIds: string[];
   listsById: Record<
@@ -483,4 +494,4 @@ export type ActorSocketEvent<
       type: WithDisconnect<TEventType>;
     };
 
-export type Category = z.infer<typeof CategorySchema>;
+export type FeedItem = z.infer<typeof FeedItemSchema>;
