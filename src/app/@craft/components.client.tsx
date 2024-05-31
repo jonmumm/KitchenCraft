@@ -5,7 +5,6 @@ import { Card, CardDescription, CardTitle } from "@/components/display/card";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
 } from "@/components/display/collapsible";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
@@ -23,8 +22,10 @@ import {
   FormMessage,
 } from "@/components/input/form";
 import { Instructions } from "@/components/instructions";
-import { PopoverContent, PopoverTrigger } from "@/components/layout/popover";
+import { PrintButton } from "@/components/print-button";
+import { RecipeSelectButton } from "@/components/recipe-select-button";
 import ScrollLockComponent from "@/components/scroll-lock";
+import { ShareButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { Yield } from "@/components/yield";
@@ -34,29 +35,22 @@ import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useSuggestedRecipeAtIndex } from "@/hooks/useSuggestedRecipeAtIndex";
-import { openAndPrintURL } from "@/lib/print";
 import { assert, cn, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, ListNameSchema } from "@/schema";
+import { createRecipeIsSelectedSelector } from "@/selectors/page-session.selectors";
 import { ExtractAppEvent } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
-import { Popover } from "@radix-ui/react-popover";
 import { Portal } from "@radix-ui/react-portal";
 import {
   CarrotIcon,
-  CheckCircle2Icon,
   CheckIcon,
   CircleSlash2Icon,
-  ExpandIcon,
   ExternalLinkIcon,
-  Loader2Icon,
   MoveLeftIcon,
-  PlusIcon,
-  PrinterIcon,
   ScrollIcon,
-  ShareIcon,
   ShoppingBasketIcon,
   TagIcon,
   XCircleIcon,
@@ -74,6 +68,7 @@ import {
   useContext,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -90,8 +85,6 @@ import { SessionStoreSnapshot } from "../page-session-store-provider";
 import { PageSessionContext } from "../page-session-store.context";
 import { buildInput, isEqual } from "../utils";
 import { useCraftContext } from "./hooks";
-import { ShareButton } from "@/components/share-button";
-import { PrintButton } from "@/components/print-button";
 //   selectIsCreating,
 //   selectIsRemixing,
 //   selectPromptLength,
@@ -535,13 +528,11 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const isFocused = useSelector(actor, selectIsFocused);
   const isExpanded = isFocused;
   const send = useSend();
-  const isSelected = usePageSessionSelector(
-    (state) =>
-      recipe?.id &&
-      state.context.browserSessionSnapshot?.context.selectedRecipeIds.includes(
-        recipe.id!
-      )
+  const selectRecipeIsSelected = useMemo(
+    () => createRecipeIsSelectedSelector(recipe?.id),
+    [recipe?.id]
   );
+  const isSelected = usePageSessionSelector(selectRecipeIsSelected);
 
   const handleOpenChange = useCallback(
     (value: boolean) => {
@@ -589,7 +580,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <div className="flex flex-row gap-2 w-full">
             <div className="flex flex-col gap-2 w-full">
               <CardTitle className="flex flex-row items-center gap-2">
-                <span className="text-muted-foreground">{index + 1}.{" "}</span>
+                <span className="text-muted-foreground">{index + 1}. </span>
                 {recipe?.name ? (
                   <p className="flex-1">{recipe.name}</p>
                 ) : (
@@ -614,6 +605,12 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 </div>
               )}
             </div>
+
+            {!isExpanded && (
+              <div>
+                <RecipeSelectButton id={recipe?.id} />
+              </div>
+            )}
             {isExpanded && (
               <div className="flex flex-col gap-2 items-center">
                 <Button
@@ -642,55 +639,24 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 )}
               </div>
             )}
-            {!isExpanded && recipe?.id && recipe.name && (
+            {/* {!isExpanded && recipe?.id && recipe.name && (
               <div className="flex flex-col justify-center">
                 <Button
                   size="icon"
-                  variant="outline"
+                  variant="ghost"
                   event={{ type: "VIEW_RECIPE", id: recipe.id }}
                 >
                   <ExpandIcon />
                 </Button>
               </div>
-            )}
+            )} */}
           </div>
         </EventTrigger>
-        <Separator />
         <Collapsible
           open={isFocused}
           className="overflow-hidden"
           onOpenChange={handleOpenChange}
         >
-          {!isExpanded && (
-            <CollapsibleTrigger asChild disabled={!recipe?.name}>
-              <div className="flex flex-row gap-1 items-center justify-center text-s py-3 cursor-pointer">
-                {recipe?.id && recipe.name ? (
-                  !isSelected ? (
-                    <Badge
-                      variant="secondary"
-                      event={{ type: "SELECT_RECIPE", id: recipe.id }}
-                    >
-                      Select <CheckIcon className="ml-1" size={14} />
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      event={{ type: "UNSELECT", id: recipe.id }}
-                    >
-                      Unselect <CircleSlash2Icon className="ml-1" size={14} />
-                    </Badge>
-                  )
-                ) : (
-                  <Badge variant="secondary">
-                    <span className="text-muted-foreground flex flex-row gap-1">
-                      <span>Generating</span>
-                      <Loader2Icon size={16} className="animate-spin" />
-                    </span>
-                  </Badge>
-                )}
-              </div>
-            </CollapsibleTrigger>
-          )}
           <CollapsibleContent>
             {isExpanded && recipe?.metadataComplete && (
               <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
@@ -1768,5 +1734,3 @@ export const SuggestedTagsSection = () => {
 const TagsLabel = () => {
   return <SectionLabel icon={TagIcon} title="Tags" />;
 };
-
-

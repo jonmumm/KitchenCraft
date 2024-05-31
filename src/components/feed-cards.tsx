@@ -4,13 +4,11 @@ import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { cn } from "@/lib/utils";
 import {
   createFeedItemAtIndexSelector,
-  createFeedItemRecipeAtIndexIsSelectedSelector,
   createFeedItemRecipeAtIndexSelector,
+  createRecipeIsSelectedSelector,
   selectNumFeedItemIds,
 } from "@/selectors/page-session.selectors";
-import { CheckIcon, ExpandIcon } from "lucide-react";
 import { ReactNode, useMemo } from "react";
-import { Badge } from "./display/badge";
 import {
   Card,
   CardContent,
@@ -20,8 +18,7 @@ import {
 } from "./display/card";
 import { Separator } from "./display/separator";
 import { SkeletonSentence } from "./display/skeleton";
-import EventTrigger from "./input/event-trigger";
-import { Button } from "./ui/button";
+import { RecipeSelectButton } from "./recipe-select-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -92,16 +89,19 @@ const FeedCardRecipeItem = (input: {
     () => createFeedItemRecipeAtIndexSelector(input),
     [input]
   );
-  const selectIsSelected = useMemo(
-    () => createFeedItemRecipeAtIndexIsSelectedSelector(input),
-    [input]
-  );
   const recipe = usePageSessionSelector(selectFeedRecipe);
+  const selectIsSelected = useMemo(
+    () => createRecipeIsSelectedSelector(recipe?.id),
+    [recipe?.id]
+  );
   const isSelected = usePageSessionSelector(selectIsSelected);
 
   return (
     <Card
-      className={cn("carousel-item w-72 h-32 flex flex-col justify-between cursor-pointer", isSelected ? "border-purple-500 border-2 border-solid shadow-xl": "")}
+      className={cn(
+        "carousel-item w-72 h-32 flex flex-col justify-between cursor-pointer",
+        isSelected ? "border-purple-500 border-2 border-solid shadow-xl" : ""
+      )}
       event={
         recipe?.id
           ? {
@@ -124,12 +124,10 @@ const FeedCardRecipeItem = (input: {
             {recipe?.tagline}
           </CardDescription>
         </div>
-        <Button variant="outline" size="icon">
-          <ExpandIcon />
-        </Button>
+        <RecipeSelectButton id={recipe?.id} />
       </div>
       <Separator />
-      <EventTrigger
+      {/* <EventTrigger
         asChild
         event={
           !isSelected
@@ -160,7 +158,7 @@ const FeedCardRecipeItem = (input: {
             </>
           )}
         </div>
-      </EventTrigger>
+      </EventTrigger> */}
     </Card>
   );
 };
