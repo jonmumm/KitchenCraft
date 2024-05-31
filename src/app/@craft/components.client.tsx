@@ -570,7 +570,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         )}
       >
         <EventTrigger
-          event={{ type: "VIEW_RECIPE", id: recipe?.id! }}
+          event={
+            recipe?.id ? { type: "VIEW_RECIPE", id: recipe.id } : undefined
+          }
           disabled={isExpanded}
           className={cn(
             "flex flex-col p-4",
