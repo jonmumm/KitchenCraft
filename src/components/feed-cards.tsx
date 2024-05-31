@@ -8,6 +8,7 @@ import {
   createRecipeIsSelectedSelector,
   selectNumFeedItemIds,
 } from "@/selectors/page-session.selectors";
+import { CheckIcon } from "lucide-react";
 import { ReactNode, useMemo } from "react";
 import {
   Card,
@@ -18,7 +19,7 @@ import {
 } from "./display/card";
 import { Separator } from "./display/separator";
 import { SkeletonSentence } from "./display/skeleton";
-import { RecipeSelectButton } from "./recipe-select-button";
+import { Button } from "./input/button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -124,7 +125,23 @@ const FeedCardRecipeItem = (input: {
             {recipe?.tagline}
           </CardDescription>
         </div>
-        <RecipeSelectButton id={recipe?.id} />
+        <Button
+          event={
+            recipe?.id
+              ? !isSelected
+                ? { type: "SELECT_RECIPE_SUGGESTION", ...input }
+                : { type: "UNSELECT", id: recipe.id }
+              : undefined
+          }
+          className={cn(
+            "rounded-full",
+            isSelected ? "border-purple-700 border-2 border-solid" : ""
+          )}
+          variant="outline"
+          size="icon"
+        >
+          <CheckIcon className={!isSelected ? "hidden" : "block"} />
+        </Button>
       </div>
       <Separator />
       {/* <EventTrigger
