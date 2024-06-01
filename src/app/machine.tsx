@@ -976,8 +976,8 @@ const RecipeAddedToast = ({
 }) => {
   const send = useSend();
   return (
-    <Card className="flex flex-row gap-2 justify-between items-center w-full p-4">
-      <div className="flex flex-col gap-1 flex-1">
+    <Card className="flex flex-row gap-2 justify-between items-center w-full p-4 shadow-xl">
+      <div className="flex flex-col gap-1 flex-1 w-full">
         <div className="font-semibold">{name}</div>
         <div className="text-muted-foreground">Added to Selected</div>
       </div>

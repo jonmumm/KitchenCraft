@@ -16,6 +16,14 @@ export const selectNumFeedItemIds = createSelector(
   (items) => items.length
 );
 
+export const createRecipeSelector =
+  (id?: string) => (state: PageSessionSnapshot) => {
+    if (id) {
+      return state.context.recipes[id];
+    }
+    return undefined;
+  };
+
 export const createFeedItemAtIndexSelector =
   (index: number) => (state: PageSessionSnapshot) => {
     const id = state.context.browserSessionSnapshot?.context.feedItemIds[index];
