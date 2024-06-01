@@ -39,7 +39,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
-import { CraftContext } from "../context";
+import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
 
@@ -134,7 +134,7 @@ export const CraftInput = ({
   const initialFocusRef = useRef(false);
   const store = usePageSessionStore();
   const [initialValue] = useState(selectPrompt(store.get()));
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
 
   const [autoFocus, setAutofocus] = useState(
     actor.getSnapshot().value.Hydration === "Waiting" && initialAutoFocus
@@ -202,7 +202,7 @@ export const CraftInput = ({
   }, [send, autoFocus, initialFocusRef, initialAutoFocus]);
 
   const PromptCarrot = () => {
-    const actor = useContext(CraftContext);
+    const actor = useContext(AppContext);
     const isOpen = useSelector(
       actor,
       (state) => !state.matches({ Open: "False" })

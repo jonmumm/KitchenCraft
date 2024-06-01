@@ -18,8 +18,8 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { ReactNode, useContext, useEffect, useRef, useState } from "react";
-import { CraftContext } from "./context";
-import { createCraftMachine } from "./machine";
+import { AppContext } from "./context";
+import { createAppMachine } from "./machine";
 import { PageSessionContext } from "./page-session-store.context";
 
 // export const ApplicationContext = createContext()
@@ -62,7 +62,7 @@ export function ApplicationProvider(props: {
     const send = useSend();
 
     const actor = useActor("craft", () =>
-      createCraftMachine({
+      createAppMachine({
         searchParams: Object.fromEntries(searchParams.entries()),
         router,
         send,
@@ -79,7 +79,7 @@ export function ApplicationProvider(props: {
     }, [actor]);
 
     return (
-      <CraftContext.Provider value={actor}>{children}</CraftContext.Provider>
+      <AppContext.Provider value={actor}>{children}</AppContext.Provider>
     );
   };
 

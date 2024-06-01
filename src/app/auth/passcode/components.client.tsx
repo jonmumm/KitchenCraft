@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
-import { CraftContext } from "@/app/context";
+import { AppContext } from "@/app/context";
 import { Input } from "@/components/ui/input-otp";
 import { Button } from "@/components/input/button";
 import {
@@ -36,7 +36,7 @@ export function PasscodeForm(props: {
   // submit: (formData: FormData) => Promise<void>;
 }) {
   const [disabled, setDisabled] = useState(false);
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const params = useSearchParams();
   const router = useRouter();
   const form = useForm({

@@ -1,4 +1,4 @@
 import { createContext } from "react";
-import { CraftActor } from "./machine";
+import { AppActor } from "./machine";
 
-export const CraftContext = createContext({} as CraftActor);
+export const AppContext = createContext({} as AppActor);

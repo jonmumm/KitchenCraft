@@ -1,4 +1,4 @@
-import { CraftSnapshot } from "../machine";
+import { AppSnapshot } from "../machine";
 
 // export const selectIsInputting = (state: CraftSnapshot) =>
 //   state.matches("Mode.New.Inputting");
@@ -40,7 +40,7 @@ import { CraftSnapshot } from "../machine";
 // export const selectIsModifyingScale = (state: CraftSnapshot) =>
 //   state.matches("Mode.Modify.Scale");
 
-export const selectIsOpen = (state: CraftSnapshot) => {
+export const selectIsOpen = (state: AppSnapshot) => {
   return state.matches({ Open: "True" });
 };
 
@@ -61,9 +61,9 @@ export const selectIsOpen = (state: CraftSnapshot) => {
 //   return hash === context.submittedInputHash;
 // };
 
-export const selectIsRemixing = (state: CraftSnapshot) => false;
+export const selectIsRemixing = (state: AppSnapshot) => false;
 
-export const selectIsTyping = (state: CraftSnapshot) =>
+export const selectIsTyping = (state: AppSnapshot) =>
   state.matches({ Typing: "True" });
 
 // export const selectIsInstantRecipeLoading = (state: CraftSnapshot) =>

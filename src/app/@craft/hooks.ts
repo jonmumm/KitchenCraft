@@ -1,10 +1,10 @@
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useContext, useEffect, useMemo } from "react";
-import { CraftContext } from "../context";
+import { AppContext } from "../context";
 
-export const useCraftContext = () => {
-  return useContext(CraftContext);
+export const useAppContext = () => {
+  return useContext(AppContext);
 };
 
 export const useKeyboardToggle = () => {
@@ -31,11 +31,11 @@ export const useIsMacDesktop = () => {
 };
 
 export const useIngredients = () => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   return useSelector(actor, (state) => state.context.ingredients);
 };
 
 export const useTags = () => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   return useSelector(actor, (state) => state.context.tags);
 };

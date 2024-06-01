@@ -1,6 +1,6 @@
 "use client";
 
-import { CraftContext } from "@/app/context";
+import { AppContext } from "@/app/context";
 import { Card } from "@/components/display/card";
 import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import { useSelector } from "@/hooks/useSelector";
@@ -13,7 +13,7 @@ export const RecipeCraftingPlaceholder = ({
   name?: string;
   description?: string;
 }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const selection = useSelector(actor, (state) => state.context.selection);
 
   return (

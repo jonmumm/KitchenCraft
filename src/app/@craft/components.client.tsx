@@ -83,13 +83,13 @@ import { twc } from "react-twc";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
 import { RecipeDetailOverlay } from "../components.client";
-import { CraftContext } from "../context";
-import { CraftSnapshot } from "../machine";
+import { AppContext } from "../context";
+import { AppSnapshot } from "../machine";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { SessionStoreSnapshot } from "../page-session-store-provider";
 import { PageSessionContext } from "../page-session-store.context";
 import { buildInput, isEqual } from "../utils";
-import { useCraftContext } from "./hooks";
+import { useAppContext } from "./hooks";
 //   selectIsCreating,
 //   selectIsRemixing,
 //   selectPromptLength,
@@ -102,7 +102,7 @@ import { useCraftContext } from "./hooks";
 // } from "./selectors";
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const promptLength = usePromptLength();
   const numTokens = useNumTokens();
 
@@ -127,13 +127,13 @@ export const CraftReadyToSave = ({ children }: { children: ReactNode }) => {
 };
 
 export const CraftPromptEmpty = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const promptLength = usePromptLength();
 
   return promptLength === 0 ? <>{children}</> : null;
 };
 export const CraftPromptNotEmpty = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const promptLength = usePromptLength();
 
   return promptLength !== 0 ? <>{children}</> : null;
@@ -146,7 +146,7 @@ export const HasTokens = ({ children }: { children: ReactNode }) => {
 };
 
 export const CraftNotOpen = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const saving = useSelector(
     actor,
     (state) => !state.matches({ Open: "False" })
@@ -342,7 +342,7 @@ const VisibilityControl = ({
 // };
 
 export const CraftingPlacholder = () => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const selection = useSelector(actor, (state) => state.context.selection);
 
   return selection && <RecipeCraftingPlaceholder />;
@@ -397,7 +397,7 @@ export const LoadMoreCard = () => {
 };
 
 const usePromptLength = () => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const promptLength = useSelector(
     actor,
     (state) => state.context.prompt.length
@@ -523,9 +523,9 @@ const useCurrentRecipe = () => {
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const recipe = useSuggestedRecipeAtIndex(index);
 
-  const actor = useCraftContext();
+  const actor = useAppContext();
   const selectIsFocused = useCallback(
-    (state: CraftSnapshot) => {
+    (state: AppSnapshot) => {
       return !!recipe?.id && state.context.focusedRecipeId === recipe.id;
     },
     [recipe?.id]
@@ -799,9 +799,9 @@ const RecipeDetailContainer = ({
   index: number;
 }) => {
   const recipe = useSuggestedRecipeAtIndex(index);
-  const actor = useCraftContext();
+  const actor = useAppContext();
   const selectIsFocused = useCallback(
-    (state: CraftSnapshot) => {
+    (state: AppSnapshot) => {
       return !!recipe?.id && state.context.focusedRecipeId === recipe.id;
     },
     [recipe?.id]
@@ -834,7 +834,7 @@ export const SuggestedTokenBadge = ({
   index: number;
   className: string;
 }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const isTyping = useSelector(actor, (state) =>
     state.matches({ Typing: "True" })
   );
@@ -1572,7 +1572,7 @@ export function waitFor<T>(
 
 export const CraftCarousel = ({ children }: { children: ReactNode }) => {
   const carouselRef = useRef<HTMLDivElement | null>(null);
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const scrollItemIndex = useSelector(
     actor,
     (state) => state.context.scrollItemIndex

@@ -112,11 +112,11 @@ import {
   EnterEmailForm,
   EnterListNameForm,
 } from "./@craft/components.client";
-import { useCraftContext } from "./@craft/hooks";
-import { CraftContext } from "./context";
+import { useAppContext } from "./@craft/hooks";
+import { AppContext } from "./context";
 import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
-import { CraftSnapshot } from "./machine";
+import { AppSnapshot } from "./machine";
 import { PageSessionSnapshot } from "./page-session-machine";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -881,7 +881,7 @@ export const EnterEmailCard = () => {
 };
 
 export const IsInMyRecipes = (props: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const active = useSelector(actor, (state) =>
     state.matches({ MyRecipes: { Open: "True" } })
   );
@@ -890,7 +890,7 @@ export const IsInMyRecipes = (props: { children: ReactNode }) => {
 };
 
 export const IsInPersonalizationSettings = (props: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const active = useSelector(actor, (state) =>
     state.matches({ PersonalizationSettings: "Open" })
   );
@@ -914,23 +914,23 @@ export const IsInputtingChefName = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
-const selectIsCreatingList = (state: CraftSnapshot) => false;
+const selectIsCreatingList = (state: AppSnapshot) => false;
 // state.matches({
 //   Auth: { LoggedIn: { Adding: { True: { ListCreating: "True" } } } },
 // });
 
-const selectIsSelectingList = (state: CraftSnapshot) => false;
+const selectIsSelectingList = (state: AppSnapshot) => false;
 // state.matches({ Auth: { LoggedIn: { Adding: "True" } } }) &&
 // !selectIsCreatingList(state);
 
 export const IsSelectingList = (props: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const active = useSelector(actor, selectIsSelectingList);
   return active ? <>{props.children}</> : null;
 };
 
 export const IsCreatingList = (props: { children: ReactNode }) => {
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
   const active = useSelector(actor, selectIsCreatingList);
 
   return active ? <>{props.children}</> : null;
@@ -1304,7 +1304,7 @@ export const CraftStickyHeader = ({ children }: { children: ReactNode }) => {
 };
 
 export const RecipeDetailOverlay = () => {
-  const actor = useCraftContext();
+  const actor = useAppContext();
   const isRecipeDetail = useSelector(actor, (state) =>
     state.matches({ RecipeDetail: "Open" })
   );
@@ -1319,7 +1319,7 @@ export const RecipeDetailOverlay = () => {
 };
 
 const CurrentListHasNextRecipes = ({ children }: { children: ReactNode }) => {
-  const actor = useCraftContext();
+  const actor = useAppContext();
   const carouselAPI = useSelector(actor, (state) => state.context.carouselAPI);
   const canScrollNext = useSyncExternalStore(
     (onStoreChange) => {
@@ -1344,7 +1344,7 @@ const CurrentListHasPreviousRecipes = ({
 }: {
   children: ReactNode;
 }) => {
-  const actor = useCraftContext();
+  const actor = useAppContext();
   const carouselAPI = useSelector(actor, (state) => state.context.carouselAPI);
   const canScrollPrev = useSyncExternalStore(
     (onStoreChange) => {
@@ -1399,7 +1399,7 @@ const MyRecipeListsRadioGroup = () => {
     [send]
   );
 
-  const actor = useCraftContext();
+  const actor = useAppContext();
   const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
 
   return (

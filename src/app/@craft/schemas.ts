@@ -7,9 +7,7 @@ import {
 import { UseEmblaCarouselType } from "embla-carousel-react";
 import { z } from "zod";
 
-export const ContextSchema = z.object({
-  // currentItemIndex: z.number(),
-  // tokens: z.array(z.string()),
+export const AppContextSchema = z.object({
   token: z.string(),
   scrollItemIndex: z.number(),
   savedRecipeSlugs: z.array(z.string()),

@@ -21,7 +21,7 @@ import {
   setup,
 } from "xstate";
 import { z } from "zod";
-import { ContextSchema } from "./@craft/schemas";
+import { AppContextSchema } from "./@craft/schemas";
 import { PageSessionSnapshot } from "./page-session-machine";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
@@ -45,7 +45,7 @@ type CreateRecipeResponse = Promise<
     }
 >;
 
-export const createCraftMachine = ({
+export const createAppMachine = ({
   searchParams,
   router,
   initialPath,
@@ -103,7 +103,7 @@ export const createCraftMachine = ({
       currentRecipeUrl: undefined,
       scrollItemIndex: 0,
       token,
-    } satisfies Context;
+    } satisfies AppContext;
   })();
 
   // const initialPromptState = store.get().context.prompt?.length
@@ -154,7 +154,7 @@ export const createCraftMachine = ({
 
   return setup({
     types: {
-      context: {} as Context,
+      context: {} as AppContext,
       events: {} as AppEvent | GeneratorEvent,
     },
     actions: {
@@ -922,10 +922,10 @@ export const createCraftMachine = ({
   );
 };
 
-type CraftMachine = ReturnType<typeof createCraftMachine>;
-export type CraftActor = ActorRefFrom<CraftMachine>;
-export type CraftSnapshot = SnapshotFrom<CraftActor>;
-type Context = z.infer<typeof ContextSchema>;
+type AppAMchine = ReturnType<typeof createAppMachine>;
+export type AppActor = ActorRefFrom<AppAMchine>;
+export type AppSnapshot = SnapshotFrom<AppActor>;
+type AppContext = z.infer<typeof AppContextSchema>;
 
 type GeneratorEvent =
   | GeneratorObervableEvent<"SUGGESTION", SuggestionPredictionOutput>

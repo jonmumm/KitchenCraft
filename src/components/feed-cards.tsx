@@ -1,6 +1,8 @@
 "use client";
 
+import { useAppContext } from "@/app/@craft/hooks";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
+import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
 import {
   createFeedItemAtIndexSelector,
@@ -8,8 +10,11 @@ import {
   createRecipeIsSelectedSelector,
   selectNumFeedItemIds,
 } from "@/selectors/page-session.selectors";
-import { CheckIcon } from "lucide-react";
+import { Portal } from "@radix-ui/react-portal";
+import useEmblaCarousel from "embla-carousel-react";
+import { CheckIcon, XIcon } from "lucide-react";
 import { ReactNode, useMemo } from "react";
+import { Badge } from "./display/badge";
 import {
   Card,
   CardContent,
@@ -17,9 +22,9 @@ import {
   CardHeader,
   CardTitle,
 } from "./display/card";
-import { Separator } from "./display/separator";
 import { SkeletonSentence } from "./display/skeleton";
 import { Button } from "./input/button";
+import { useScrollLock } from "./scroll-lock";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -31,10 +36,28 @@ const FeedCardItem = ({ index }: { index: number }) => {
   const recipeItems = new Array(
     Math.max(feedItem?.recipes?.length || 0, 3)
   ).fill(0);
+  const context = useAppContext();
+  const focusedRecipeId = useSelector(
+    context,
+    (state) => state.context.focusedRecipeId
+  );
+
+  const isInFocus = usePageSessionSelector((state) => {
+    const feedItemId =
+      state.context.browserSessionSnapshot?.context.feedItemIds[index];
+    return feedItemId && focusedRecipeId
+      ? !!state.context.browserSessionSnapshot?.context.feedItems[
+          feedItemId
+        ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
+      : false;
+  });
 
   return (
     <Card
-      className={cn("max-w-3xl w-full mx-auto border-solid border-t-4")}
+      className={cn(
+        "max-w-3xl w-full mx-auto border-solid border-t-4",
+        isInFocus ? "absolute inset-0" : ""
+      )}
       style={{ borderTopColor: feedItem?.color ? `${feedItem.color}` : `` }}
     >
       <CardHeader>
@@ -54,7 +77,7 @@ const FeedCardItem = ({ index }: { index: number }) => {
         </div>
       </CardHeader>
       <CardContent>
-        <FeedCardRecipeCarousel>
+        <FeedCardRecipeCarousel index={index}>
           {recipeItems.map((_, recipeIndex) => {
             return (
               <FeedCardRecipeItem
@@ -70,13 +93,127 @@ const FeedCardItem = ({ index }: { index: number }) => {
   );
 };
 
-const FeedCardRecipeCarousel = ({ children }: { children: ReactNode }) => {
+const RecipeListCarousel = ({
+  children,
+  recipeIds,
+  currentIndex,
+}: {
+  children: ReactNode;
+  recipeIds: string[];
+  currentIndex: number;
+}) => {
+  const currentRecipeId = recipeIds[currentIndex];
+
+  const RecipeListCarouselCurrentItem = ({
+    children,
+  }: {
+    children: ReactNode;
+  }) => {
+    return <div className="embla__slide">{children}</div>;
+  };
+
+  const RecipeListCarouselPreviousItems = () => {
+    const previousRecipeIds = recipeIds.slice(0, currentIndex);
+    return <></>;
+  };
+  const RecipeListCarouselNextItems = () => {
+    const previousRecipeIds = recipeIds.slice(0, currentIndex);
+    return <></>;
+  };
+
   return (
-    <div className="relative h-32 ">
-      <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-row justify-center">
-        <div className="carousel carousel-center pl-2 pr-8 space-x-2">
+    <RecipeListCarouselContent>
+      <RecipeListCarouselPreviousItems />
+      <RecipeListCarouselCurrentItem>{children}</RecipeListCarouselCurrentItem>
+      <RecipeListCarouselNextItems />
+    </RecipeListCarouselContent>
+  );
+};
+
+const RecipeListCarouselCurrentItem = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  return <></>;
+};
+
+const RecipeListCarouselNextItems = () => {
+  return <></>;
+};
+
+const RecipeListCarouselContent = ({ children }: { children: ReactNode }) => {
+  const [emblaRef, emblaAPI] = useEmblaCarousel();
+
+  return (
+    <div ref={emblaRef} className="embla flex-1 relative">
+      <div className="embla__container absolute inset-0">{children}</div>
+    </div>
+  );
+};
+
+const FeedCardRecipeCarousel = ({
+  children,
+  index,
+}: {
+  children: ReactNode;
+  index: number;
+}) => {
+  const context = useAppContext();
+  const isInRecipeDetails = useSelector(context, (state) =>
+    state.matches({ RecipeDetail: "Open" })
+  );
+  const focusedRecipeId = useSelector(
+    context,
+    (state) => state.context.focusedRecipeId
+  );
+
+  const isActive = usePageSessionSelector((state) => {
+    const feedItemId =
+      state.context.browserSessionSnapshot?.context.feedItemIds[index];
+    return feedItemId && focusedRecipeId
+      ? !!state.context.browserSessionSnapshot?.context.feedItems[
+          feedItemId
+        ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
+      : false;
+  });
+
+  useScrollLock(isActive);
+
+  const Overlay = () => {
+    return (
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"></div>
+    );
+  };
+
+  return (
+    <div className={cn("relative h-32")}>
+      {isActive && (
+        <Portal>
+          <Overlay />
+        </Portal>
+      )}
+      <div
+        className={cn(
+          "top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-col justify-between",
+          isActive ? "fixed bottom-0 z-60" : "absolute"
+        )}
+      >
+        <div
+          className={cn(
+            "carousel carousel-center pl-2 pr-8 space-x-2",
+            isActive ? "flex-1" : ""
+          )}
+        >
           {children}
         </div>
+        {isActive && (
+          <div className="mt-4 mb-24 flex flex-col items-center">
+            <Badge event={{ type: "EXIT" }}>
+              Close <XIcon size={14} className="ml-1" />
+            </Badge>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -112,7 +249,7 @@ const FeedCardRecipeItem = (input: {
           : undefined
       }
     >
-      <div className="flex flex-row gap-2 px-3 flex-1 justify-between items-center">
+      <div className="flex flex-row gap-2 px-4 flex-1 justify-between items-center">
         <div className="flex flex-col gap-1 flex-1">
           <CardTitle className="text-md">
             {recipe?.name ? (
@@ -143,39 +280,6 @@ const FeedCardRecipeItem = (input: {
           <CheckIcon className={!isSelected ? "hidden" : "block"} />
         </Button>
       </div>
-      <Separator />
-      {/* <EventTrigger
-        asChild
-        event={
-          !isSelected
-            ? { type: "SELECT_RECIPE_SUGGESTION", ...input }
-            : recipe?.id
-            ? { type: "UNSELECT", id: recipe.id }
-            : undefined
-        }
-      >
-        <div className="flex items-center justify-center py-3">
-          {!isSelected ? (
-            <>
-              {recipe?.id ? (
-                <Badge variant="secondary">
-                  Select <CheckIcon className="ml-1" size={14} />
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="opacity-40">
-                  Select <CheckIcon className="ml-1" size={14} />
-                </Badge>
-              )}
-            </>
-          ) : (
-            <>
-              <Badge variant="secondary">
-                Unselect <CheckIcon className="ml-1" size={14} />
-              </Badge>
-            </>
-          )}
-        </div>
-      </EventTrigger> */}
     </Card>
   );
 };

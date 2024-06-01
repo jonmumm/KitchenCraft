@@ -1,7 +1,7 @@
 "use client";
 
 import { selectIsOpen } from "@/app/@craft/selectors";
-import { CraftContext } from "@/app/context";
+import { AppContext } from "@/app/context";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { PageSessionContext } from "@/app/page-session-store.context";
 // import { session$ } from "@/app/session-store";
@@ -55,7 +55,7 @@ const AutoResizableTextarea: React.FC<
   ...props
 }) => {
   const send = useSend();
-  const actor = useContext(CraftContext);
+  const actor = useContext(AppContext);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
