@@ -194,7 +194,7 @@ export default async function RootLayout(
                 <UpgradeAccountDialog />
                 <MyRecipes />
               </ThemeProvider>
-              <Toaster />
+              <Toaster className="z-100" />
               <SearchParamsToastMessage />
               <LegacyToaster />
             </Body>

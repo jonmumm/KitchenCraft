@@ -11,6 +11,7 @@ import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
+import { useSend } from "@/hooks/useSend";
 import { socket$ } from "@/stores/socket";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { toast } from "sonner";
@@ -917,6 +918,17 @@ export const createAppMachine = ({
         },
         Selection: {
           on: {
+            SELECT_RECIPE: {
+              actions: ({ context, event, self }) => {
+                const recipe = store.get().context.recipes[event.id];
+                const name = recipe?.name;
+                assert(name, "expected to find recipe.name");
+
+                toast.custom((t) => (
+                  <RecipeAddedToast name={name} toastId={t} />
+                ));
+              },
+            },
             SELECT_RECIPE_SUGGESTION: {
               actions: ({ context, event, self }) => {
                 console.log(self.getSnapshot());
@@ -936,27 +948,11 @@ export const createAppMachine = ({
                 const recipe = feedItem.recipes[event.recipeIndex];
                 assert(recipe, "expected to find recipe in feedItem");
                 assert(recipe.id, "expected to find recipe.id");
-                assert(recipe.name, "expected to find recipe.name");
+                const name = recipe.name;
+                assert(name, "expected to find recipe.name");
 
                 toast.custom((t) => (
-                  <Card className="flex flex-row gap-2 justify-between items-center w-full p-4">
-                    <div className="flex flex-col gap-1 flex-1">
-                      <div className="font-semibold">{recipe.name}</div>
-                      <div className="text-muted-foreground">
-                        Added to Selected
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-center">
-                      <Badge
-                        onClick={() => {
-                          toast.dismiss(t);
-                          send({ type: "VIEW_LIST" });
-                        }}
-                      >
-                        View
-                      </Badge>
-                    </div>
-                  </Card>
+                  <RecipeAddedToast name={name} toastId={t} />
                 ));
               },
             },
@@ -968,6 +964,34 @@ export const createAppMachine = ({
     //   actions: {
     //   },
     // }
+  );
+};
+
+const RecipeAddedToast = ({
+  name,
+  toastId,
+}: {
+  name: string;
+  toastId: string | number;
+}) => {
+  const send = useSend();
+  return (
+    <Card className="flex flex-row gap-2 justify-between items-center w-full p-4">
+      <div className="flex flex-col gap-1 flex-1">
+        <div className="font-semibold">{name}</div>
+        <div className="text-muted-foreground">Added to Selected</div>
+      </div>
+      <div className="flex items-center justify-center">
+        <Badge
+          onClick={() => {
+            toast.dismiss(toastId);
+            send({ type: "VIEW_LIST" });
+          }}
+        >
+          View
+        </Badge>
+      </div>
+    </Card>
   );
 };
 
