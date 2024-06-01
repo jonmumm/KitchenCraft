@@ -176,7 +176,7 @@ const FeedCardRecipeCarousel = ({
           feedItemId
         ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
       : false;
-  });
+  }) && isInRecipeDetails;
 
   useScrollLock(isActive);
 
@@ -195,7 +195,7 @@ const FeedCardRecipeCarousel = ({
       )}
       <div
         className={cn(
-          "top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-col justify-between",
+          "top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-col justify-between lg:items-center",
           isActive ? "fixed bottom-0 z-60" : "absolute"
         )}
       >

@@ -19,7 +19,6 @@ import {
   CraftNotEmpty,
   CraftNotReadyToSave,
   CraftReadyToSave,
-  LoadMoreCard,
   Section,
   SectionLabel,
   SuggestedIngredientsSection,
@@ -298,44 +297,6 @@ const SuggestedRecipesSection = () => {
       </div>
     </CraftNotEmpty>
   );
-
-  // return (
-  //   <CraftNotEmpty>
-  //     <div className="flex flex-col items-center justify-center px-4 mt-4 mb-2">
-  //       <div className="relative w-full max-w-3xl carousel">
-  //         <SuggestedRecipeCards />
-  //         {/* <Card className="w-full z-40 absolute inset-0 -mt-4 scale-95">
-  //           <CardHeader>
-  //             <CardTitle>Chocolate Chip Cookies</CardTitle>
-  //             <CardDescription>
-  //               Gooey baked in tghe oven for 35 minutes. A classic recipe.
-  //             </CardDescription>
-  //           </CardHeader>
-  //           <Separator className="mb-6" />
-  //           <CardContent className="flex justify-end">
-  //             <Button variant="secondary">
-  //               Continue Crafting <ChevronsRightIcon />
-  //             </Button>
-  //           </CardContent>
-  //         </Card>
-  //         <Card className="w-full z-30 absolute inset-0 -mt-8 scale-90">
-  //           <CardHeader>
-  //             <CardTitle>Chocolate Chip Cookies</CardTitle>
-  //             <CardDescription>
-  //               Gooey baked in tghe oven for 35 minutes. A classic recipe.
-  //             </CardDescription>
-  //           </CardHeader>
-  //           <Separator className="mb-6" />
-  //           <CardContent className="flex justify-end">
-  //             <Button variant="secondary">
-  //               Continue Crafting <ChevronsRightIcon />
-  //             </Button>
-  //           </CardContent>
-  //         </Card> */}
-  //       </div>
-  //     </div>
-  //   </CraftNotEmpty>
-  // );
 };
 
 const ShareButton = () => {

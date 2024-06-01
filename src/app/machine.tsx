@@ -9,6 +9,8 @@ import {
 import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
+import { Badge } from "@/components/display/badge";
+import { Card } from "@/components/display/card";
 import { socket$ } from "@/stores/socket";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { toast } from "sonner";
@@ -909,6 +911,53 @@ export const createAppMachine = ({
             Open: {
               on: {
                 CLOSE: "Closed",
+              },
+            },
+          },
+        },
+        Selection: {
+          on: {
+            SELECT_RECIPE_SUGGESTION: {
+              actions: ({ context, event, self }) => {
+                console.log(self.getSnapshot());
+                const { browserSessionSnapshot } = store.get().context;
+                assert(
+                  browserSessionSnapshot,
+                  "expected browser session snapshot"
+                );
+                const feedItemId =
+                  browserSessionSnapshot.context.feedItemIds[event.itemIndex];
+                assert(feedItemId, "couldnt find feed item id");
+                const feedItem =
+                  browserSessionSnapshot.context.feedItems[feedItemId];
+                assert(feedItem, "expected feedItem");
+                assert(feedItem.category, "expected feedItem to have cateogry");
+                assert(feedItem.recipes, "expected feedItem to have recipes");
+                const recipe = feedItem.recipes[event.recipeIndex];
+                assert(recipe, "expected to find recipe in feedItem");
+                assert(recipe.id, "expected to find recipe.id");
+                assert(recipe.name, "expected to find recipe.name");
+
+                toast.custom((t) => (
+                  <Card className="flex flex-row gap-2 justify-between items-center w-full p-4">
+                    <div className="flex flex-col gap-1 flex-1">
+                      <div className="font-semibold">{recipe.name}</div>
+                      <div className="text-muted-foreground">
+                        Added to Selected
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <Badge
+                        onClick={() => {
+                          toast.dismiss(t);
+                          send({ type: "VIEW_LIST" });
+                        }}
+                      >
+                        View
+                      </Badge>
+                    </div>
+                  </Card>
+                ));
               },
             },
           },

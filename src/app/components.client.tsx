@@ -81,13 +81,12 @@ import {
   ExternalLinkIcon,
   HeartIcon,
   PlusCircleIcon,
-  PlusIcon,
   PlusSquareIcon,
   RefreshCwIcon,
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
 import Link from "next/link";
@@ -606,7 +605,7 @@ export const MyRecipesScreen = () => {
           <NoRecipesSelected>
             <Button className="shadow-md" disabled>
               <ShareIcon size={16} className="mr-1" />
-                  Share (<CurrentListCount />) to...
+              Share (<CurrentListCount />) to...
             </Button>
             <Button
               className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white"
@@ -1419,6 +1418,48 @@ const MyRecipeListsRadioGroup = () => {
         </div>
       </RecipeListRadioItem>
       <Separator className="my-1" />
+      <RecipeListRadioItem value="my-recipes" className="py-4">
+        <div className="flex flex-row gap-2 w-56">
+          <span className="mr-1">📒</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">My Recipes</span>
+            <span className="text-xs text-muted-foreground">Public</span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+              0
+            </span>
+          </div>
+        </div>
+      </RecipeListRadioItem>
+      <RecipeListRadioItem value="liked" className="py-4">
+        <div className="flex flex-row gap-2 w-56">
+          <span className="mr-1">️👍</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">Liked</span>
+            <span className="text-xs text-muted-foreground">Public</span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+              40
+            </span>
+          </div>
+        </div>
+      </RecipeListRadioItem>
+      <RecipeListRadioItem value="commented" className="py-4">
+        <div className="flex flex-row gap-2 w-56">
+          <span className="mr-1">️💬</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">Commented On</span>
+            <span className="text-xs text-muted-foreground">Public</span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+              0
+            </span>
+          </div>
+        </div>
+      </RecipeListRadioItem>
       <RecipeListRadioItem value="make-later" className="py-4">
         <div className="flex flex-row gap-2 w-56">
           <span className="mr-1">⏰</span>
@@ -1443,48 +1484,6 @@ const MyRecipeListsRadioGroup = () => {
           <div>
             <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
               37
-            </span>
-          </div>
-        </div>
-      </RecipeListRadioItem>
-      <RecipeListRadioItem value="liked" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="mr-1">️👍</span>
-          <div className="flex-1 flex flex-col gap-2">
-            <span className="font-medium">Liked</span>
-            <span className="text-xs text-muted-foreground">Public</span>
-          </div>
-          <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-              40
-            </span>
-          </div>
-        </div>
-      </RecipeListRadioItem>
-      <RecipeListRadioItem value="viewed" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="mr-1">️📜</span>
-          <div className="flex-1 flex flex-col gap-2">
-            <span className="font-medium">View History</span>
-            <span className="text-xs text-muted-foreground">Private</span>
-          </div>
-          <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-              437
-            </span>
-          </div>
-        </div>
-      </RecipeListRadioItem>
-      <RecipeListRadioItem value="commented" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="mr-1">️💬</span>
-          <div className="flex-1 flex flex-col gap-2">
-            <span className="font-medium">Commented On</span>
-            <span className="text-xs text-muted-foreground">Public</span>
-          </div>
-          <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-              0
             </span>
           </div>
         </div>

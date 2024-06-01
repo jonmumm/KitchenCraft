@@ -1,7 +1,13 @@
-import { getTimezone } from "@/lib/headers";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/display/card";
 import { SkeletonSentence } from "@/components/display/skeleton";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/display/card";
-import { Badge } from "@/components/display/badge";
+import { Button } from "@/components/input/button";
+import { getTimezone } from "@/lib/headers";
 import { CheckIcon } from "lucide-react";
 
 export default function Loading() {
@@ -23,7 +29,11 @@ export default function Loading() {
       </div>
       <div className="m-4 flex flex-col gap-8">
         {new Array(3).fill(0).map((_, index) => (
-          <Card key={index} className="max-w-3xl w-full mx-auto border-solid border-t-4" style={{ borderTopColor: "#ccc" }}>
+          <Card
+            key={index}
+            className="max-w-3xl w-full mx-auto border-solid border-t-4"
+            style={{ borderTopColor: "#ccc" }}
+          >
             <CardHeader>
               <CardTitle className="text-lg">
                 <SkeletonSentence className="h-7" numWords={3} />
@@ -37,7 +47,10 @@ export default function Loading() {
                 <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-row justify-center">
                   <div className="carousel carousel-center pl-2 pr-8 space-x-2">
                     {new Array(3).fill(0).map((_, recipeIndex) => (
-                      <Card key={recipeIndex} className="carousel-item w-72 h-24 flex flex-row gap-2 justify-center items-center px-4">
+                      <Card
+                        key={recipeIndex}
+                        className="carousel-item w-72 h-24 flex flex-row gap-2 justify-center items-center px-4"
+                      >
                         <div className="flex flex-col gap-2 flex-1">
                           <CardTitle className="text-md">
                             <SkeletonSentence numWords={3} className="h-5" />
@@ -46,9 +59,13 @@ export default function Loading() {
                             <SkeletonSentence numWords={5} className="h-4" />
                           </CardDescription>
                         </div>
-                        <Badge variant="secondary" className="opacity-40">
-                          Select <CheckIcon className="ml-1" size={14} />
-                        </Badge>
+                        <Button
+                          className={"rounded-full"}
+                          variant="outline"
+                          size="icon"
+                        >
+                          <CheckIcon className={"hidden"} />
+                        </Button>
                       </Card>
                     ))}
                   </div>

@@ -64,7 +64,7 @@ export async function Footer({
         My Recipes
       </Badge>
     </div> */}
-              <FooterTabTitle isActive={false}>My Recipes</FooterTabTitle>
+              <FooterTabTitle isActive={false}>My Cookbook</FooterTabTitle>
             </Card>
           </div>
           <MenuSheet>
