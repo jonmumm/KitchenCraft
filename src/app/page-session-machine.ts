@@ -151,6 +151,7 @@ export type PageSessionContext = {
   recipes: Record<
     string,
     PartialRecipe & {
+      matchPercent: number | undefined;
       complete: boolean;
       metadataComplete: boolean;
       started: boolean;
@@ -1557,6 +1558,7 @@ export const pageSessionMachine = setup({
                           started: index === 0,
                           fullStarted: index === 0,
                           complete: false,
+                          matchPercent: undefined,
                           metadataComplete: false,
                         };
                       });
@@ -1618,60 +1620,130 @@ export const pageSessionMachine = setup({
                         return !recipe.fullStarted;
                       },
                     },
-                    VIEW_RECIPE: {
-                      actions: [
-                        spawnChild("generateFullRecipe", {
-                          input: ({ context, event }) => {
-                            assert(
-                              event.type === "VIEW_RECIPE",
-                              "expected event to be view recipe"
-                            );
+                    VIEW_RECIPE: [
+                      {
+                        description:
+                          "recipe doesnt yet exist but it was a suggestion",
+                        guard: ({ context, event }) => {
+                          const recipe = context.recipes?.[event.id];
+                          return !recipe;
+                        },
+                        actions: [
+                          spawnChild("generateFullRecipeFromSuggestion", {
+                            input: ({ context, event }) => {
+                              assertEvent(event, "VIEW_RECIPE");
+                              const feedItems =
+                                context.browserSessionSnapshot?.context
+                                  .feedItems;
+                              assert(feedItems, "expected feedItems");
+                              const feedItem = Object.values(feedItems).find(
+                                (item) =>
+                                  item.recipes?.find(
+                                    (recipe) => recipe?.id === event.id
+                                  )
+                              );
+                              assert(feedItem, "expected feedItem");
+                              assert(
+                                feedItem.category,
+                                "expected category in feedItem"
+                              );
+                              const recipe = feedItem?.recipes?.find(
+                                (recipe) => recipe?.id === event.id
+                              );
+                              assert(
+                                recipe,
+                                "expected to matching recipe in feedItem"
+                              );
+                              assert(recipe.id, "expected to find recipe.name");
+                              assert(
+                                recipe.name,
+                                "expected to find recipe.name"
+                              );
+                              assert(
+                                recipe.tagline,
+                                "expected to find recipe.tagline"
+                              );
 
-                            const recipe = context.recipes[event.id];
-                            assert(
-                              recipe?.name,
-                              "expected recipe to have name when generating full recipe"
-                            );
-                            assert(
-                              recipe.description,
-                              "expected recipe to have description when generating full recipe"
-                            );
-                            assert(recipe.id, "expected recipe to have an id");
-
-                            return {
-                              prompt: context.prompt,
-                              tokens: context.tokens,
-                              id: recipe.id,
-                              name: recipe.name,
-                              description: recipe.description,
-                            };
-                          },
-                        }),
-                        assign(({ context, event }) =>
-                          produce(context, (draft) => {
-                            const recipe = draft.recipes[event.id];
-                            assert(
-                              recipe,
-                              "expected recipe when updating recipe progress"
-                            );
-                            draft.recipes[event.id] = {
-                              ...recipe,
-                              fullStarted: true,
-                            };
-                          })
-                        ),
-                      ],
-
-                      guard: ({ context, event }) => {
-                        const recipe = context.recipes?.[event.id];
-                        assert(
-                          recipe,
-                          "expected recipe to exist when viewing full"
-                        );
-
-                        return !recipe.fullStarted;
+                              return {
+                                id: recipe.id,
+                                category: feedItem.category,
+                                name: recipe.name,
+                                tagline: recipe.tagline,
+                              };
+                            },
+                          }),
+                          assign(({ context, event }) =>
+                            produce(context, (draft) => {
+                              const recipe = draft.recipes[event.id];
+                              assert(
+                                recipe,
+                                "expected recipe when updating recipe progress"
+                              );
+                              draft.recipes[event.id] = {
+                                ...recipe,
+                                fullStarted: true,
+                              };
+                            })
+                          ),
+                        ],
                       },
-                    },
+                      {
+                        guard: ({ context, event }) => {
+                          const recipe = context.recipes?.[event.id];
+                          assert(
+                            recipe,
+                            "expected recipe to exist when viewing full"
+                          );
+
+                          return !recipe.fullStarted;
+                        },
+                        actions: [
+                          spawnChild("generateFullRecipe", {
+                            input: ({ context, event }) => {
+                              assert(
+                                event.type === "VIEW_RECIPE",
+                                "expected event to be view recipe"
+                              );
+
+                              const recipe = context.recipes[event.id];
+                              assert(
+                                recipe?.name,
+                                "expected recipe to have name when generating full recipe"
+                              );
+                              assert(
+                                recipe.description,
+                                "expected recipe to have description when generating full recipe"
+                              );
+                              assert(
+                                recipe.id,
+                                "expected recipe to have an id"
+                              );
+
+                              return {
+                                prompt: context.prompt,
+                                tokens: context.tokens,
+                                id: recipe.id,
+                                name: recipe.name,
+                                description: recipe.description,
+                              };
+                            },
+                          }),
+                          assign(({ context, event }) =>
+                            produce(context, (draft) => {
+                              const recipe = draft.recipes[event.id];
+                              assert(
+                                recipe,
+                                "expected recipe when updating recipe progress"
+                              );
+                              draft.recipes[event.id] = {
+                                ...recipe,
+                                fullStarted: true,
+                              };
+                            })
+                          ),
+                        ],
+                      },
+                    ],
                     FULL_RECIPE_COMPLETE: {
                       actions: [
                         assign(({ context, event }) =>
@@ -1766,6 +1838,7 @@ export const pageSessionMachine = setup({
                                       !!event.data.yield;
                                     draft.recipes[event.id] = {
                                       ...recipe,
+                                      matchPercent: 100,
                                       metadataComplete,
                                       ...event.data,
                                     };
@@ -2505,6 +2578,7 @@ export const pageSessionMachine = setup({
                       id: recipe.id,
                       versionId: 0,
                       started: true,
+                      matchPercent: undefined,
                       fullStarted: true,
                       complete: false,
                       metadataComplete: false,
@@ -2554,6 +2628,7 @@ export const pageSessionMachine = setup({
                         if (!draft.recipes[recipe.id]) {
                           draft.recipes[recipe.id] = {
                             ...recipe,
+                            matchPercent: undefined,
                             complete: true,
                             started: true,
                             metadataComplete: true,

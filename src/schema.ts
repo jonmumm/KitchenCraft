@@ -780,6 +780,10 @@ const ShareCancelEventSchema = z.object({
   slug: SlugSchema,
 });
 
+const PressResultBadgeEventShema = z.object({
+  type: z.literal("PRESS_RESULT_BADGE"),
+});
+
 const DownloadAppEventShema = z.object({
   type: z.literal("DOWNLOAD_APP"),
 });
@@ -1111,6 +1115,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   EnablePushNotificationsEventSchema,
   ErrorEventSchema,
   DownloadAppEventShema,
+  PressResultBadgeEventShema,
   CancelEventSchema,
   ClearSelectionEventSchema,
   KeyDownEventSchema,

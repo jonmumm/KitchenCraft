@@ -4,12 +4,21 @@ import { z, ZodSchema } from "zod";
 import { buildInput } from "./utils";
 
 export const RecipeIdeasMetadataOutputSchema = z.object({
-  ideas: z.array(
-    z.object({
-      name: z.string(),
-      description: z.string(),
-    })
-  ),
+  ideas: z
+    .array(
+      z.object({
+        name: z.string().describe("Name of the recipe"),
+        description: z.string().describe("Short description of the recipe"),
+        matchPercent: z
+          .number()
+          .min(0)
+          .max(100)
+          .describe(
+            "A number from 0-100 describing how closely this recipe suggestion is relative to the user's input."
+          ),
+      })
+    )
+    .describe("A list of 5 recipe ideas"),
 });
 
 export type RecipeIdeasMetadataOutput = z.infer<
@@ -70,35 +79,36 @@ ${input.instantRecipe.name}
 ${input.instantRecipe.description}
 Ingredients: ${input.instantRecipe.ingredients.join(", ")}
 
-Each recipe idea should have both a 'name' and a 'description' and nothing more.
+Each recipe idea should have a 'name', a 'description', an 'explanation', and a 'matchPercent' and nothing more.
 
-Here is an example response given 'egg and feta' as the user input:
+Here is an example response given 'chicken and broccoli' as the user input:
 
 {
   "ideas": [
     {
-      "name": "Feta Omelette",
-      "description": "Fluffy eggs, crumbled feta, spinach, tomatoes. Breakfast classic."
+      "name": "Chicken Broccoli Stir-fry",
+      "description": "Tender chicken and broccoli florets stir-fried with garlic and soy sauce.",
+      "matchPercent": 90
     },
     {
-      "name": "Egg Feta Muffins",
-      "description": "Whisked eggs, feta, veggies. Baked in muffin tins."
+      "name": "Chicken Broccoli Casserole",
+      "description": "Baked chicken and broccoli with a creamy cheese sauce.",
+      "matchPercent": 85
     },
     {
-      "name": "Spinach Egg Pie",
-      "description": "Layered phyllo, spinach, eggs, feta. Golden crust delight."
+      "name": "Lemon Herb Chicken with Broccoli",
+      "description": "Grilled chicken marinated in lemon and herbs, served with steamed broccoli.",
+      "matchPercent": 80
     },
     {
-      "name": "Feta Scramble",
-      "description": "Soft scrambled eggs, feta, herbs. Creamy and savory."
+      "name": "Chicken Broccoli Alfredo",
+      "description": "Fettuccine pasta with grilled chicken and broccoli in a creamy Alfredo sauce.",
+      "matchPercent": 78
     },
     {
-      "name": "Egg Feta Tart",
-      "description": "Shortcrust, eggs, feta, olives. Mediterranean-inspired pastry."
-    },
-    {
-      "name": "Egg-Feta Soufflé",
-      "description": "Airy eggs, feta. Puffed up gourmet elegance."
+      "name": "Chicken Broccoli Quinoa Bowl",
+      "description": "Quinoa bowl with grilled chicken, broccoli, and a lemon-tahini dressing.",
+      "matchPercent": 75
     }
   ]
 }

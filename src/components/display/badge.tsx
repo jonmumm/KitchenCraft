@@ -43,14 +43,16 @@ function Badge({
   className,
   variant,
   event,
+  onClickOnEvent,
   ...props
-}: BadgeProps & { event?: AppEvent }) {
+}: BadgeProps & { event?: AppEvent; onClickOnEvent?: boolean }) {
   const send = useSend();
   const handleClick = React.useMemo(() => {
     if (event) {
       const handler: React.MouseEventHandler<HTMLDivElement> = (e) => {
         send(event);
         e.preventDefault();
+        e.stopPropagation();
       };
       return handler;
     } else {
