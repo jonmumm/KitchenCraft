@@ -15,11 +15,12 @@ import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
   CheckIcon,
+  CircleSlash2Icon,
   ExternalLinkIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   XCircleIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -223,7 +224,9 @@ const FeedCardRecipeCarousel = ({
         <div
           className={cn(
             "carousel carousel-center",
-            isActive ? "w-full h-full space-x-4 px-4" : "pl-2 pr-8 space-x-2"
+            isActive
+              ? "w-full h-full pl-4 pr-8 space-x-2"
+              : "pl-2 pr-8 space-x-2"
           )}
         >
           {children}
@@ -253,12 +256,14 @@ const FeedCardRecipeItem = (input: {
     () => createRecipeIsSelectedSelector(feedRecipe?.id),
     [feedRecipe?.id]
   );
+  console.log({ selectIsSelected });
   const selectRecipe = useMemo(
     () => createRecipeSelector(feedRecipe?.id),
     [feedRecipe?.id]
   );
   const recipe = usePageSessionSelector(selectRecipe);
   const isSelected = usePageSessionSelector(selectIsSelected);
+  console.log({ isSelected });
   const context = useAppContext();
   const isInRecipeDetails = useSelector(context, (state) =>
     state.matches({ RecipeDetail: "Open" })
@@ -269,7 +274,7 @@ const FeedCardRecipeItem = (input: {
       className={cn(
         "carousel-item flex flex-col justify-between cursor-pointer",
         isInRecipeDetails
-          ? "w-[85vw] md:w-[65vw] lg:w-[50vw] xl:w-[40vw] 2xl:w-[33vw] overflow-y-auto overflow-x-hidden"
+          ? "w-full md:w-[65%] lg:w-[50%] xl:w-[40%] 2xl:w-[33%] overflow-y-auto overflow-x-hidden"
           : "w-72 h-28",
         !isInRecipeDetails && isSelected
           ? "border-purple-500 border-2 border-solid shadow-xl"
@@ -379,13 +384,16 @@ const FeedCardRecipeItem = (input: {
           </div>
           <Separator className="mt-4" />
           {recipe?.name && (
-            <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
+            <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-between">
               <ShareButton slug={recipe.slug} name={recipe.name} />
-              {/* {!isSelected ? (
+              {!isSelected ? (
                 <Button
-                  size="icon"
                   className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
-                  event={{ type: "SELECT_RECIPE", id: recipe.id }}
+                  event={{
+                    type: "SELECT_RECIPE_SUGGESTION",
+                    itemIndex: input.itemIndex,
+                    recipeIndex: input.recipeIndex,
+                  }}
                 >
                   Select <CheckIcon className="ml-2" />
                 </Button>
@@ -397,7 +405,7 @@ const FeedCardRecipeItem = (input: {
                 >
                   Unselect <CircleSlash2Icon className="ml-2" />
                 </Button>
-              )} */}
+              )}
               <PrintButton slug={recipe?.slug} />
             </div>
           )}
