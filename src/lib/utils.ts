@@ -46,7 +46,7 @@ export function sentenceToSlug(sentence: string): string {
 // Helper function to format display names from camcelCase keys
 export function formatDisplayName(key: string) {
   return key
-    .replace(/([A-Z])/g, ' $1') // Insert space before each uppercase letter
+    .replace(/([A-Z])/g, " $1") // Insert space before each uppercase letter
     .replace(/^./, (str) => str.toUpperCase()) // Capitalize the first letter
     .trim();
 }
@@ -308,4 +308,18 @@ export function findKeyByValue(
     }
   }
   return undefined;
+}
+
+export function arraysEqual(arr1: string[], arr2: string[]): boolean {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }

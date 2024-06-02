@@ -1,5 +1,5 @@
 import { GeneratorObervableEvent } from "@/lib/generator";
-import { assert, isMobile } from "@/lib/utils";
+import { arraysEqual, assert, isMobile } from "@/lib/utils";
 import {
   AppEvent,
   InstantRecipeMetadataPredictionOutput,
@@ -12,6 +12,7 @@ import { Session } from "next-auth";
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
 import { useSend } from "@/hooks/useSend";
+import { selectFeedItemIds } from "@/selectors/page-session.selectors";
 import { socket$ } from "@/stores/socket";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { toast } from "sonner";
@@ -237,6 +238,27 @@ export const createAppMachine = ({
     },
     actors: {
       waitForSessionValue,
+      waitForRefreshFeedEnd: fromPromise(async () => {
+        const feedItems = selectFeedItemIds(store.get());
+        const startingLength = feedItems.length;
+        
+
+        await new Promise<null>((resolve, reject) => {
+        // todo add a timeout
+          // setTimeout(() => {
+
+          // }, )
+          const unsub = store.listen((snapshot) => {
+            const newFeedItems = selectFeedItemIds(snapshot)
+            if (!arraysEqual(newFeedItems, feedItems) && startingLength === newFeedItems.length) {
+              resolve(null);
+              unsub()
+            }
+          })
+        })
+
+        return true;
+      }),
       // createNewInstantRecipe,
       // createNewRecipeFromSuggestion,
       // waitForNewRecipeSlug: fromPromise(
@@ -277,48 +299,8 @@ export const createAppMachine = ({
     {
       id: "CraftMachine",
       context: initialContext,
-      on: {
-        // SKIP: {
-        //   actions: assign({
-        //     currentItemIndex: ({ context }) => context.currentItemIndex + 1,
-        //   }),
-        // },
-      },
       type: "parallel",
       states: {
-        // Sharing: {
-        //   initial: "Idle",
-        //   states: {
-        //     Idle: {
-        //       on: {
-        //         SHARE_SELECTED: [
-        //           {
-        //             target: "InProgress",
-        //             guard: () => "share" in navigator,
-        //           },
-        //           {
-        //             target: "Copied",
-        //             guard: () => "clipboard" in navigator,
-        //             actions: "shareSelectedUrl"
-        //           },
-        //         ],
-        //       },
-        //     },
-        //     InProgress: {},
-        //     Copied: {
-        //       always: {
-        //         target: "Idle",
-        //       },
-        //     },
-        //     Complete: {},
-        //     Error: {
-        //       always: {
-        //         target: "Idle",
-        //         actions: console.error,
-        //       },
-        //     },
-        //   },
-        // },
         Socket: {
           initial: "Uninitialized",
           on: {
@@ -1001,6 +983,27 @@ export const createAppMachine = ({
             },
           },
         },
+        Feed: {
+          type: "parallel",
+          states: {
+            Refreshing: {
+              initial: "False",
+              states: {
+                False: {
+                  on: {
+                    REFRESH_FEED: "True"
+                  }
+                },
+                True: {
+                  invoke: {
+                    src: "waitForRefreshFeedEnd",
+                    onDone: "False"
+                  }
+                },
+              }
+            }
+          }
+        }
       },
     }
     // {

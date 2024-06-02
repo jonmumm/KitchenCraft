@@ -24,6 +24,15 @@ export const createRecipeSelector =
     return undefined;
   };
 
+export const createSelectedRecipeAtIndexSelector = (index: number) => {
+  return (state: PageSessionSnapshot) => {
+    return state.context.recipes?.[
+      state.context.browserSessionSnapshot?.context.selectedRecipeIds[index] ||
+        -1
+    ];
+  };
+};
+
 export const createFeedItemAtIndexSelector =
   (index: number) => (state: PageSessionSnapshot) => {
     const id = state.context.browserSessionSnapshot?.context.feedItemIds[index];

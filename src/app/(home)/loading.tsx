@@ -8,7 +8,7 @@ import {
 import { SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { getTimezone } from "@/lib/headers";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, RefreshCwIcon } from "lucide-react";
 
 export default function Loading() {
   const timezone = getTimezone();
@@ -26,6 +26,14 @@ export default function Loading() {
           Today&apos;s Cookbook
           <span className="text-muted-foreground text-sm ml-2">{today}</span>
         </h3>
+        <Button
+          variant="ghost"
+          className="text-xs py-1 px-2 w-fit h-fit flex items-center justify-center animate-pulse opacity-50"
+          disabled
+        >
+          <RefreshCwIcon className="mr-1" size={14} />
+          Refresh
+        </Button>
       </div>
       <div className="m-4 flex flex-col gap-8">
         {new Array(3).fill(0).map((_, index) => (

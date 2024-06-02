@@ -605,6 +605,11 @@ const RemoveTagEventSchema = z.object({
   tag: z.string(),
 });
 
+
+const RefreshFeedEventSchema = z.object({
+  type: z.literal("REFRESH_FEED"),
+});
+
 const RemoveIngredientEventSchema = z.object({
   type: z.literal("REMOVE_INGREDIENT"),
   ingredient: z.string(),
@@ -1067,6 +1072,7 @@ const ShareSelectedEventSchema = z.object({
 });
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+  RefreshFeedEventSchema,
   ShareSelectedEventSchema,
   ExitEventSchema,
   ViewRecipeEventSchema,

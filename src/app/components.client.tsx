@@ -61,6 +61,9 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import {
+  createRecipeIsSelectedSelector,
+  createRecipeSelector,
+  createSelectedRecipeAtIndexSelector,
   selectCurrentListRecipeIds,
   selectSelectedRecipeCount,
 } from "@/selectors/page-session.selectors";
@@ -99,6 +102,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -325,14 +329,13 @@ const CurrentListCarouselItem = ({
   id?: string;
   index: number;
 }) => {
-  const recipe = useListRecipeAtIndex(index);
-  const isSelected = usePageSessionSelector(
-    (state) =>
-      recipe?.id &&
-      state.context.browserSessionSnapshot?.context.selectedRecipeIds.includes(
-        recipe.id!
-      )
+  const selectRecipe = useMemo(() => createRecipeSelector(id), [id]);
+  const recipe = usePageSessionSelector(selectRecipe);
+  const selectRecipeIsSelected = useMemo(
+    () => createRecipeIsSelectedSelector(id),
+    [id]
   );
+  const isSelected = usePageSessionSelector(selectRecipeIsSelected);
 
   const RecipeName = () => (
     <div className="flex flex-row items-center justify-start flex-1">
@@ -468,21 +471,19 @@ const CurrentListCarouselItem = ({
   );
 };
 
-const useListRecipeAtIndex = (index: number) => {
-  return usePageSessionSelector(
-    (state) =>
-      state.context.recipes?.[
-        state.context.browserSessionSnapshot?.context.selectedRecipeIds[
-          index
-        ] || -1
-      ]
+const useSelectedRecipeAtIndex = (index: number) => {
+  const selectSelectedRecipeAtIndex = useMemo(
+    () => createSelectedRecipeAtIndexSelector(index),
+    [index]
   );
+  return usePageSessionSelector(selectSelectedRecipeAtIndex);
 };
 
 export const MyRecipesScreen = () => {
-  const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
-  const numItems = Math.max(recipeIds.length, 3);
-  const items = new Array(numItems).fill(0);
+  const session$ = usePageSessionStore();
+  const [recipeIds] = useState(selectCurrentListRecipeIds(session$.get()));
+  const [numItems] = useState(Math.max(recipeIds.length, 3));
+  const [items] = useState(new Array(numItems).fill(0));
   useScrollLock(true);
 
   return (
@@ -555,7 +556,6 @@ export const MyRecipesScreen = () => {
             <XIcon />
           </Button>
         </div>
-        {/* <div className="carousel carousel-center space-x-2 pl-2 pr-8"> */}
         <HasSelectedRecipes>
           <CurrentListCarousel>
             {items.map((id, index) => (
@@ -582,7 +582,7 @@ export const MyRecipesScreen = () => {
           </div>
         </NoRecipesSelected>
         <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
-          <HasSelectedRecipes>
+          <IsShareable>
             <SharePopover>
               <PopoverTrigger asChild>
                 <Button className="shadow-md">
@@ -601,7 +601,7 @@ export const MyRecipesScreen = () => {
               <PlusSquareIcon size={16} className="mr-1" />
               Add (<CurrentListCount />) to...
             </Button>
-          </HasSelectedRecipes>
+          </IsShareable>
           <NoRecipesSelected>
             <Button className="shadow-md" disabled>
               <ShareIcon size={16} className="mr-1" />
@@ -1375,16 +1375,27 @@ const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
   const isComplete = usePageSessionStoreMatchesState({
     Selection: { Data: "Complete" },
   });
-  const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
+  const session$ = usePageSessionStore();
+  const [recipeCount] = useState(selectSelectedRecipeCount(session$.get()));
 
   return !recipeCount && isComplete ? <>{children}</> : <></>;
+};
+
+const IsShareable = ({ children }: { children: ReactNode }) => {
+  const isComplete = usePageSessionStoreMatchesState({
+    Selection: { Data: "Complete" },
+  });
+  const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
+
+  return recipeCount > 0 && isComplete ? <>{children}</> : <></>;
 };
 
 const HasSelectedRecipes = ({ children }: { children: ReactNode }) => {
   const isComplete = usePageSessionStoreMatchesState({
     Selection: { Data: "Complete" },
   });
-  const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
+  const session$ = usePageSessionStore();
+  const [recipeCount] = useState(selectSelectedRecipeCount(session$.get()));
 
   return recipeCount > 0 && isComplete ? <>{children}</> : <></>;
 };

@@ -270,6 +270,12 @@ export const browserSessionMachine = setup({
       type: "parallel",
       states: {
         Initialized: {
+          on: {
+            REFRESH_FEED: {
+              target: ".True",
+              reenter: true,
+            },
+          },
           initial: "False",
           states: {
             False: {
@@ -288,8 +294,9 @@ export const browserSessionMachine = setup({
                     randomUUID(),
                     randomUUID(),
                   ];
+                  console.log({ newItemIds });
 
-                  draft.feedItemIds = [...context.feedItemIds, ...newItemIds];
+                  draft.feedItemIds = [...newItemIds];
                   newItemIds.forEach((id) => {
                     draft.feedItems[id] = {
                       id,
