@@ -15,7 +15,7 @@ import { getErrorMessage } from "@/lib/error";
 import { getPersonalizationContext } from "@/lib/llmContext";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
-import { assert, sentenceToSlug } from "@/lib/utils";
+import { assert, assertType, sentenceToSlug } from "@/lib/utils";
 import { ListNameSchema } from "@/schema";
 import {
   ActorSocketEvent,
@@ -119,6 +119,14 @@ const InputSchema = z.object({
 });
 type Input = z.infer<typeof InputSchema>;
 
+type Recipe = PartialRecipe & {
+  matchPercent: number | undefined;
+  complete: boolean;
+  metadataComplete: boolean;
+  started: boolean;
+  fullStarted: boolean;
+};
+
 export type PageSessionContext = {
   // refs are non-serialize objects that are used within the machine but
   // are not synced over the network
@@ -148,16 +156,7 @@ export type PageSessionContext = {
   storage: Party.Storage;
   tokens: string[];
   suggestedRecipes: string[];
-  recipes: Record<
-    string,
-    PartialRecipe & {
-      matchPercent: number | undefined;
-      complete: boolean;
-      metadataComplete: boolean;
-      started: boolean;
-      fullStarted: boolean;
-    }
-  >;
+  recipes: Record<string, Recipe>;
   generatingRecipeId: string | undefined;
   currentItemIndex: number;
   currentListRecipeIndex: number;
@@ -632,6 +631,77 @@ export const pageSessionMachine = setup({
     ),
   },
   guards: {
+    nextNextRecipeInCategoryShouldBeCreated: ({ context, event }) => {
+      assertType(event, "VIEW_RECIPE");
+      debugger;
+      console.log(event);
+      const feedItems = context.browserSessionSnapshot?.context.feedItems;
+      if (!feedItems) return false;
+
+      const feedItem = Object.values(feedItems).find(
+        (item) => item.recipes?.find((recipe) => recipe?.id === event.id)
+      );
+      if (!feedItem) return false;
+
+      const recipes = feedItem?.recipes;
+      if (!recipes) return false;
+
+      // Find the index of the current recipe
+      const currentIndex = recipes.findIndex(
+        (recipe) => recipe?.id === event.id
+      );
+      if (currentIndex === -1) return false;
+      console.log({ currentIndex });
+
+      // Check for the next incomplete recipe
+      for (let i = currentIndex + 1; i < recipes.length; i++) {
+        const recipeId = recipes[i]?.id;
+        if (recipeId && !context.recipes[recipeId]?.fullStarted) {
+          return true;
+        }
+      }
+
+      // If no next incomplete recipe found, check from the beginning
+      for (let i = 0; i < currentIndex; i++) {
+        const recipeId = recipes[i]?.id;
+        if (recipeId && !context.recipes[recipeId]?.fullStarted) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+    nextRecipeInCategoryShouldBeCreated: ({ context, event }): boolean => {
+      assertType(event, "VIEW_RECIPE");
+
+      const feedItems = context.browserSessionSnapshot?.context.feedItems;
+      if (!feedItems) return false;
+
+      const feedItem = Object.values(feedItems).find(
+        (item) => item.recipes?.find((recipe) => recipe?.id === event.id)
+      );
+      if (!feedItem) return false;
+
+      const recipes = feedItem?.recipes;
+      if (!recipes) return false;
+
+      // Find the index of the current recipe
+      const currentIndex = recipes.findIndex(
+        (recipe) => recipe?.id === event.id
+      );
+      if (currentIndex === -1) return false;
+
+      const recipeIds = recipes
+        .map((recipe) => recipe?.id!)
+        .filter((recipeId) => !!recipeId);
+      const unstartedRecipes = getSortedUnstartedRecipes(
+        recipeIds,
+        currentIndex,
+        context
+      );
+
+      return unstartedRecipes.length >= 1;
+    },
     isNewUser: () => {
       return false;
     },
@@ -1526,6 +1596,426 @@ export const pageSessionMachine = setup({
                 },
               },
             },
+
+            NextHomeFeedItem: {
+              on: {
+                VIEW_RECIPE: {
+                  guard: "nextRecipeInCategoryShouldBeCreated",
+                  actions: [
+                    spawnChild("generateFullRecipeFromSuggestion", {
+                      input: ({ context, event }) => {
+                        assertEvent(event, "VIEW_RECIPE");
+                        const feedItems =
+                          context.browserSessionSnapshot?.context.feedItems;
+                        assert(feedItems, "expected feedItems");
+
+                        const feedItem = Object.values(feedItems).find(
+                          (item) =>
+                            item.recipes?.find(
+                              (recipe) => recipe?.id === event.id
+                            )
+                        );
+                        assert(feedItem, "expected feedItem");
+                        assert(
+                          feedItem.category,
+                          "expected category in feedItem"
+                        );
+
+                        const recipes = feedItem?.recipes;
+                        assert(recipes, "expected recipes in feedItem");
+
+                        // Find the index of the current recipe
+                        const currentIndex = recipes.findIndex(
+                          (recipe) => recipe?.id === event.id
+                        );
+                        assert(
+                          currentIndex >= 0,
+                          "expected to find current recipe index"
+                        );
+
+                        const recipeIds = recipes.map((recipe) => recipe?.id!);
+                        const unstartedRecipes = getSortedUnstartedRecipes(
+                          recipeIds,
+                          currentIndex,
+                          context
+                        );
+                        const nextRecipeId = unstartedRecipes[0];
+                        const nextRecipe = recipes.find(
+                          (recipe) => recipe?.id === nextRecipeId
+                        );
+                        assert(nextRecipe, "expected to find next recipe");
+                        assert(
+                          nextRecipe.id,
+                          "expected to find next recipe id"
+                        );
+                        assert(
+                          nextRecipe.name,
+                          "expected to find next recipe name"
+                        );
+                        assert(
+                          nextRecipe.tagline,
+                          "expected to find next recipe tagline"
+                        );
+
+                        return {
+                          id: nextRecipe.id,
+                          category: feedItem.category,
+                          name: nextRecipe.name,
+                          tagline: nextRecipe.tagline,
+                        };
+                      },
+                    }),
+                    assign(({ context, event }) =>
+                      produce(context, (draft) => {
+                        const feedItems =
+                          context.browserSessionSnapshot?.context.feedItems;
+                        assert(feedItems, "expected feedItems");
+
+                        const feedItem = Object.values(feedItems).find(
+                          (item) =>
+                            item.recipes?.find(
+                              (recipe) => recipe?.id === event.id
+                            )
+                        );
+                        assert(feedItem, "expected feedItem");
+                        assert(
+                          feedItem.category,
+                          "expected category in feedItem"
+                        );
+
+                        const recipes = feedItem?.recipes;
+                        assert(recipes, "expected recipes in feedItem");
+
+                        // Find the index of the current recipe
+                        const currentIndex = recipes.findIndex(
+                          (recipe) => recipe?.id === event.id
+                        );
+                        assert(
+                          currentIndex >= 0,
+                          "expected to find current recipe index"
+                        );
+
+                        const recipeIds = recipes.map((recipe) => recipe?.id!);
+                        const unstartedRecipes = getSortedUnstartedRecipes(
+                          recipeIds,
+                          currentIndex,
+                          context
+                        );
+                        const nextRecipeId = unstartedRecipes[0];
+                        const nextRecipe = recipes.find(
+                          (recipe) => recipe?.id === nextRecipeId
+                        );
+                        assert(nextRecipe, "expected to find next recipe");
+                        assert(nextRecipe.id, "expected to find id");
+
+                        draft.recipes[nextRecipe.id] = {
+                          ...nextRecipe,
+                          id: nextRecipe.id,
+                          versionId: 0,
+                          started: true,
+                          fullStarted: true,
+                          complete: false,
+                          matchPercent: undefined,
+                          metadataComplete: false,
+                        };
+                      })
+                    ),
+                  ],
+                },
+              },
+            },
+
+            NextNextHomeFeedItem: {
+              on: {
+                VIEW_RECIPE: {
+                  guard: "nextRecipeInCategoryShouldBeCreated",
+                  actions: [
+                    spawnChild("generateFullRecipeFromSuggestion", {
+                      input: ({ context, event }) => {
+                        assertEvent(event, "VIEW_RECIPE");
+                        const feedItems =
+                          context.browserSessionSnapshot?.context.feedItems;
+                        assert(feedItems, "expected feedItems");
+
+                        const feedItem = Object.values(feedItems).find(
+                          (item) =>
+                            item.recipes?.find(
+                              (recipe) => recipe?.id === event.id
+                            )
+                        );
+                        assert(feedItem, "expected feedItem");
+                        assert(
+                          feedItem.category,
+                          "expected category in feedItem"
+                        );
+
+                        const recipes = feedItem?.recipes;
+                        assert(recipes, "expected recipes in feedItem");
+
+                        // Find the index of the current recipe
+                        const currentIndex = recipes.findIndex(
+                          (recipe) => recipe?.id === event.id
+                        );
+                        assert(
+                          currentIndex >= 0,
+                          "expected to find current recipe index"
+                        );
+
+                        const recipeIds = recipes.map((recipe) => recipe?.id!);
+                        const unstartedRecipes = getSortedUnstartedRecipes(
+                          recipeIds,
+                          currentIndex,
+                          context
+                        );
+                        const nextRecipeId = unstartedRecipes[0];
+                        const nextRecipe = recipes.find(
+                          (recipe) => recipe?.id === nextRecipeId
+                        );
+                        assert(nextRecipe, "expected to find next recipe");
+                        assert(
+                          nextRecipe.id,
+                          "expected to find next recipe id"
+                        );
+                        assert(
+                          nextRecipe.name,
+                          "expected to find next recipe name"
+                        );
+                        assert(
+                          nextRecipe.tagline,
+                          "expected to find next recipe tagline"
+                        );
+
+                        return {
+                          id: nextRecipe.id,
+                          category: feedItem.category,
+                          name: nextRecipe.name,
+                          tagline: nextRecipe.tagline,
+                        };
+                      },
+                    }),
+                    assign(({ context, event }) =>
+                      produce(context, (draft) => {
+                        const feedItems =
+                          context.browserSessionSnapshot?.context.feedItems;
+                        assert(feedItems, "expected feedItems");
+
+                        const feedItem = Object.values(feedItems).find(
+                          (item) =>
+                            item.recipes?.find(
+                              (recipe) => recipe?.id === event.id
+                            )
+                        );
+                        assert(feedItem, "expected feedItem");
+                        assert(
+                          feedItem.category,
+                          "expected category in feedItem"
+                        );
+
+                        const recipes = feedItem?.recipes;
+                        assert(recipes, "expected recipes in feedItem");
+
+                        // Find the index of the current recipe
+                        const currentIndex = recipes.findIndex(
+                          (recipe) => recipe?.id === event.id
+                        );
+                        assert(
+                          currentIndex >= 0,
+                          "expected to find current recipe index"
+                        );
+
+                        const recipeIds = recipes.map((recipe) => recipe?.id!);
+                        const unstartedRecipes = getSortedUnstartedRecipes(
+                          recipeIds,
+                          currentIndex,
+                          context
+                        );
+                        const nextRecipeId = unstartedRecipes[0];
+                        const nextRecipe = recipes.find(
+                          (recipe) => recipe?.id === nextRecipeId
+                        );
+                        assert(nextRecipe, "expected to find next recipe");
+                        assert(nextRecipe.id, "expected to find id");
+
+                        draft.recipes[nextRecipe.id] = {
+                          ...nextRecipe,
+                          id: nextRecipe.id,
+                          versionId: 0,
+                          started: true,
+                          fullStarted: true,
+                          complete: false,
+                          matchPercent: undefined,
+                          metadataComplete: false,
+                        };
+                      })
+                    ),
+                  ],
+                },
+              },
+            },
+            // NextNextHomeFeedItem: {
+            //   on: {
+            //     VIEW_RECIPE: {
+            //       guard: "nextRecipeInCategoryShouldBeCreated",
+            //       actions: [
+            //         spawnChild("generateFullRecipeFromSuggestion", {
+            //           input: ({ context, event }) => {
+            //             assertEvent(event, "VIEW_RECIPE");
+            //             const feedItems =
+            //               context.browserSessionSnapshot?.context.feedItems;
+            //             assert(feedItems, "expected feedItems");
+            //             const feedItem = Object.values(feedItems).find(
+            //               (item) =>
+            //                 item.recipes?.find(
+            //                   (recipe) => recipe?.id === event.id
+            //                 )
+            //             );
+            //             assert(feedItem, "expected feedItem");
+            //             assert(
+            //               feedItem.category,
+            //               "expected category in feedItem"
+            //             );
+            //             const recipes = feedItem?.recipes;
+            //             assert(recipes, "expected recipes in feedItem");
+
+            //             // Find the index of the current recipe
+            //             const currentIndex = recipes.findIndex(
+            //               (recipe) => recipe?.id === event.id
+            //             );
+            //             assert(
+            //               currentIndex >= 0,
+            //               "expected to find current recipe index"
+            //             );
+
+            //             // Find the next incomplete recipe
+            //             let nextRecipe = null;
+            //             for (
+            //               let i = currentIndex + 1;
+            //               i < recipes.length;
+            //               i++
+            //             ) {
+            //               const recipeId = recipes[i]?.id;
+            //               if (
+            //                 recipeId &&
+            //                 !context.recipes[recipeId]?.complete
+            //               ) {
+            //                 nextRecipe = recipes[i];
+            //                 break;
+            //               }
+            //             }
+
+            //             // If no next incomplete recipe found, circle around to the beginning
+            //             if (!nextRecipe) {
+            //               for (let i = 0; i < currentIndex; i++) {
+            //                 const recipeId = recipes[i]?.id;
+            //                 if (
+            //                   recipeId &&
+            //                   !context.recipes[recipeId]?.complete
+            //                 ) {
+            //                   nextRecipe = recipes[i];
+            //                   break;
+            //                 }
+            //               }
+            //             }
+            //             assert(nextRecipe, "expected to find next recipe");
+            //             assert(
+            //               nextRecipe.id,
+            //               "expected to find next recipe id"
+            //             );
+            //             assert(
+            //               nextRecipe.name,
+            //               "expected to find next recipe name"
+            //             );
+            //             assert(
+            //               nextRecipe.tagline,
+            //               "expected to find next recipe tagline"
+            //             );
+
+            //             return {
+            //               id: nextRecipe.id,
+            //               category: feedItem.category,
+            //               name: nextRecipe.name,
+            //               tagline: nextRecipe.tagline,
+            //             };
+            //           },
+            //         }),
+            //         assign(({ context, event }) =>
+            //           produce(context, (draft) => {
+            //             const feedItems =
+            //               context.browserSessionSnapshot?.context.feedItems;
+            //             assert(feedItems, "expected feedItems");
+            //             const feedItem = Object.values(feedItems).find(
+            //               (item) =>
+            //                 item.recipes?.find(
+            //                   (recipe) => recipe?.id === event.id
+            //                 )
+            //             );
+            //             assert(feedItem, "expected feedItem");
+            //             assert(
+            //               feedItem.category,
+            //               "expected category in feedItem"
+            //             );
+            //             const recipes = feedItem?.recipes;
+            //             assert(recipes, "expected recipes in feedItem");
+
+            //             // Find the index of the current recipe
+            //             const currentIndex = recipes.findIndex(
+            //               (recipe) => recipe?.id === event.id
+            //             );
+            //             assert(
+            //               currentIndex >= 0,
+            //               "expected to find current recipe index"
+            //             );
+
+            //             // Find the next incomplete recipe
+            //             let nextRecipe = null;
+            //             for (
+            //               let i = currentIndex + 1;
+            //               i < recipes.length;
+            //               i++
+            //             ) {
+            //               const recipeId = recipes[i]?.id;
+            //               if (
+            //                 recipeId &&
+            //                 !context.recipes[recipeId]?.complete
+            //               ) {
+            //                 nextRecipe = recipes[i];
+            //                 break;
+            //               }
+            //             }
+
+            //             // If no next incomplete recipe found, circle around to the beginning
+            //             if (!nextRecipe) {
+            //               for (let i = 0; i < currentIndex; i++) {
+            //                 const recipeId = recipes[i]?.id;
+            //                 if (
+            //                   recipeId &&
+            //                   !context.recipes[recipeId]?.complete
+            //                 ) {
+            //                   nextRecipe = recipes[i];
+            //                   break;
+            //                 }
+            //               }
+            //             }
+
+            //             assert(nextRecipe, "expected to find next recipe");
+            //             assert(nextRecipe.id, "expected to find id");
+
+            //             draft.recipes[nextRecipe.id] = {
+            //               ...nextRecipe,
+            //               id: nextRecipe.id,
+            //               versionId: 0,
+            //               started: true,
+            //               fullStarted: true,
+            //               complete: false,
+            //               matchPercent: undefined,
+            //               metadataComplete: false,
+            //             };
+            //           })
+            //         ),
+            //       ],
+            //     },
+            //   },
+            // },
 
             Recipes: {
               initial: "Idle",
@@ -2914,3 +3404,29 @@ const defaultLists = {
   string,
   { name: string; slug: string; isPrivate: boolean; emoji: string }
 >;
+
+function getSortedUnstartedRecipes(
+  recipeIds: string[],
+  currentIndex: number,
+  context: PageSessionContext
+): string[] {
+  const unstartedRecipes: string[] = [];
+
+  // Check for the unstarted recipes after the current index
+  for (let i = currentIndex + 1; i < recipeIds.length; i++) {
+    const recipeId = recipeIds[i];
+    if (recipeId && !context.recipes?.[recipeId]?.fullStarted) {
+      unstartedRecipes.push(recipeId);
+    }
+  }
+
+  // Check from the beginning up to the current index
+  for (let i = 0; i < currentIndex; i++) {
+    const recipeId = recipeIds[i];
+    if (recipeId && !context.recipes?.[recipeId]?.fullStarted) {
+      unstartedRecipes.push(recipeId);
+    }
+  }
+
+  return unstartedRecipes;
+}

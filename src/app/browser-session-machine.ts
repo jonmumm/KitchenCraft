@@ -652,14 +652,14 @@ export const browserSessionMachine = setup({
         NotStarted: {
           on: {
             PAGE_LOADED: {
-              target: "Welcome",
+              target: "Intro",
               guard: ({ event, context }) => {
-                return event.pathname.startsWith("/quiz");
+                return event.pathname.startsWith("/quiz/intro");
               },
             },
           },
         },
-        Welcome: {
+        Intro: {
           on: {
             PAGE_LOADED: {
               target: "Experience",
@@ -672,46 +672,21 @@ export const browserSessionMachine = setup({
         Experience: {
           on: {
             PAGE_LOADED: {
-              target: "Taste",
-              guard: ({ event }) => event.pathname.startsWith("/quiz/taste"),
-            },
-          },
-        },
-        Taste: {
-          on: {
-            PAGE_LOADED: {
-              target: "Shopping",
-              guard: ({ event }) => event.pathname.startsWith("/quiz/shopping"),
-            },
-          },
-        },
-        Shopping: {
-          on: {
-            PAGE_LOADED: {
-              target: "Diet",
-              guard: ({ event }) => event.pathname.startsWith("/quiz/diet"),
-            },
-          },
-        },
-        Diet: {
-          on: {
-            PAGE_LOADED: {
-              target: "Equipment",
+              target: "Preferences",
               guard: ({ event }) =>
-                event.pathname.startsWith("/quiz/equipment"),
+                event.pathname.startsWith("/quiz/preferences"),
             },
           },
         },
-        Equipment: {
+        Preferences: {
           on: {
             PAGE_LOADED: {
-              target: "Complete",
-              guard: ({ event }) => event.pathname.startsWith("/quiz/results"),
+              target: "Summary",
+              guard: ({ event }) => event.pathname.startsWith("/quiz/summary"),
             },
           },
         },
-        Complete: {
-          // todo update the results here...
+        Summary: {
           type: "final",
         },
       },

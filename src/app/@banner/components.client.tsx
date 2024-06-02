@@ -13,7 +13,7 @@ export const IsOnboaridngInComplete = ({
   return (
     <PageSessionSnapshotConditionalRenderer
       selector={(state) =>
-        state.context.browserSessionSnapshot?.value.Onboarding !== "Complete"
+        state.context.browserSessionSnapshot?.value.Onboarding !== "Summary"
       }
       initialValueOverride={initialValue}
     >

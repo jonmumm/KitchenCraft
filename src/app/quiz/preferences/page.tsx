@@ -8,19 +8,17 @@ import { useStore } from "@nanostores/react";
 import { useRouter } from "next/navigation";
 
 // Main Preferences component
-export default function Taste() {
+export default function Preferences() {
   const router = useRouter();
   const preferences = useStore($preferences);
 
   const handleNext = () => {
-    router.push("/quiz/shopping"); // Adjust the navigation route as necessary
+    router.push("/quiz/summary"); // Adjust the navigation route as necessary
   };
 
   return (
     <div className="flex flex-col items-center justify-center relative">
-      <h1 className="text-xl font-bold px-4 text-center">
-        Check all that apply
-      </h1>
+      <h1 className="text-xl font-bold px-4 text-center">20 Questions</h1>
       <div className="space-y-2 w-full max-w-xl h-full p-4">
         {Object.keys(preferences).map((key) => (
           <PreferenceCard

@@ -15,15 +15,15 @@ import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
   CheckIcon,
-  CircleSlash2Icon,
   ExternalLinkIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   XCircleIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import Link from "next/link";
-import { ReactNode, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { ReactNode, useEffect, useMemo } from "react";
 import { Badge } from "./display/badge";
 import {
   Card,
@@ -284,8 +284,8 @@ const FeedCardRecipeItem = (input: {
           : undefined
       }
     >
-      <div className="flex flex-row gap-2 p-4 flex-1 justify-between items-start h-fit">
-        <div className="flex flex-col gap-1 flex-1">
+      <div className="flex flex-row gap-2 p-4 justify-between items-start h-fit">
+        <div className="flex flex-col gap-1">
           <CardTitle className={isInRecipeDetails ? "text-lg" : "text-md"}>
             {feedRecipe?.name ? (
               <>{feedRecipe.name}</>
@@ -449,6 +449,11 @@ const FeedCardRecipeItem = (input: {
 
 export const FeedCards = () => {
   const numFeedItemIds = usePageSessionSelector(selectNumFeedItemIds);
+  const router = useRouter();
+  useEffect(() => {
+    console.log("prefetching /quiz");
+    router.prefetch("/quiz");
+  }, [router]);
   const items = new Array(Math.max(numFeedItemIds, 3)).fill(0);
 
   return (

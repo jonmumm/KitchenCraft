@@ -17,15 +17,13 @@ export default async function Page() {
   assert(snapshot, "expected snapshot");
 
   switch (snapshot.value.Onboarding) {
-    case "Taste":
-      return redirect("/quiz/taste");
     case "Experience":
       return redirect("/quiz/experience");
-    case "Diet":
-      return redirect("/quiz/diet");
-    case "Equipment":
-      return redirect("/quiz/equipment");
+    case "Preferences":
+      return redirect("/quiz/preferences");
+    case "Summary":
+      return redirect("/quiz/summary");
     default:
-      return redirect("/quiz/welcome");
+      return redirect("/quiz/intro")
   }
 }

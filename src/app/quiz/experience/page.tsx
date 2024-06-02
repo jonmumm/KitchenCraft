@@ -33,18 +33,18 @@ export default function Experience() {
     setSelectedExperience(experience);
     $experienceLevel.set(experience);
     send({ type: "EXPERIENCE_CHANGE", experience });
-    router.push("/quiz/taste");
+    router.push("/quiz/preferences");
   };
 
   const handleNext = () => {
     assert(selectedExperience, "expected experience to be selected");
     send({ type: "EXPERIENCE_CHANGE", experience: selectedExperience });
-    router.push("/quiz/taste");
+    router.push("/quiz/preferences");
   };
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h1 className="text-xl font-bold px-4 text-center text-balance">
+      <h1 className="text-lg font-semibold px-4 text-center text-balance">
         Describe your cooking experience
       </h1>
       <div className="flex flex-col gap-2 w-full p-4">
