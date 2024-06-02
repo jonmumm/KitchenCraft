@@ -1527,8 +1527,14 @@ RecipeListRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName;
 
 export const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
   const [emblaRef, emblaAPI] = useEmblaCarousel();
+  const initializedRef = useRef(false);
   const send = useSend();
   useEffect(() => {
+    if (!emblaAPI || initializedRef.current) {
+      return;
+    }
+
+    initializedRef.current = true;
     send({ type: "MOUNT_CAROUSEL", carouselAPI: emblaAPI });
 
     return () => {

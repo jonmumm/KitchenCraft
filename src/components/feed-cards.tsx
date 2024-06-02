@@ -256,14 +256,12 @@ const FeedCardRecipeItem = (input: {
     () => createRecipeIsSelectedSelector(feedRecipe?.id),
     [feedRecipe?.id]
   );
-  console.log({ selectIsSelected });
   const selectRecipe = useMemo(
     () => createRecipeSelector(feedRecipe?.id),
     [feedRecipe?.id]
   );
   const recipe = usePageSessionSelector(selectRecipe);
   const isSelected = usePageSessionSelector(selectIsSelected);
-  console.log({ isSelected });
   const context = useAppContext();
   const isInRecipeDetails = useSelector(context, (state) =>
     state.matches({ RecipeDetail: "Open" })
@@ -459,7 +457,6 @@ export const FeedCards = () => {
   const numFeedItemIds = usePageSessionSelector(selectNumFeedItemIds);
   const router = useRouter();
   useEffect(() => {
-    console.log("prefetching /quiz");
     router.prefetch("/quiz");
   }, [router]);
   const items = new Array(Math.max(numFeedItemIds, 3)).fill(0);

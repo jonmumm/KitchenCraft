@@ -838,9 +838,23 @@ export const createAppMachine = ({
           type: "parallel",
           on: {
             MOUNT_CAROUSEL: {
-              actions: assign({
-                carouselAPI: ({ event }) => event.carouselAPI,
-              }),
+              actions: [
+                assign({
+                  carouselAPI: ({ event }) => event.carouselAPI,
+                  selectItemIndexToScrollTo: ({ context, event }) => {
+                    console.log(context.selectItemIndexToScrollTo, event);
+                    if (
+                      context.selectItemIndexToScrollTo !== undefined &&
+                      event.carouselAPI
+                    ) {
+                      event.carouselAPI.scrollTo(
+                        context.selectItemIndexToScrollTo
+                      );
+                    }
+                    return undefined;
+                  },
+                }),
+              ],
             },
             PREV: {
               actions: ({ context }) => {
@@ -863,7 +877,19 @@ export const createAppMachine = ({
               states: {
                 False: {
                   on: {
-                    VIEW_LIST: "True",
+                    VIEW_LIST: [
+                      {
+                        target: "True",
+                        guard: ({ context, event }) => {
+                          return !!event.itemIndex;
+                        },
+                        actions: assign({
+                          selectItemIndexToScrollTo: ({ event }) =>
+                            event.itemIndex,
+                        }),
+                      },
+                      { target: "True" },
+                    ],
                   },
                 },
                 True: {
@@ -919,13 +945,24 @@ export const createAppMachine = ({
         Selection: {
           on: {
             SELECT_RECIPE: {
-              actions: ({ context, event, self }) => {
+              actions: ({ event }) => {
                 const recipe = store.get().context.recipes[event.id];
                 const name = recipe?.name;
                 assert(name, "expected to find recipe.name");
+                const { browserSessionSnapshot } = store.get().context;
+                assert(
+                  browserSessionSnapshot,
+                  "expected browser session snapshot"
+                );
 
                 toast.custom((t) => (
-                  <RecipeAddedToast name={name} toastId={t} />
+                  <RecipeAddedToast
+                    name={name}
+                    toastId={t}
+                    itemIndex={
+                      browserSessionSnapshot.context.selectedRecipeIds.length
+                    }
+                  />
                 ));
               },
             },
@@ -952,7 +989,13 @@ export const createAppMachine = ({
                 assert(name, "expected to find recipe.name");
 
                 toast.custom((t) => (
-                  <RecipeAddedToast name={name} toastId={t} />
+                  <RecipeAddedToast
+                    name={name}
+                    toastId={t}
+                    itemIndex={
+                      browserSessionSnapshot.context.selectedRecipeIds.length
+                    }
+                  />
                 ));
               },
             },
@@ -970,9 +1013,11 @@ export const createAppMachine = ({
 const RecipeAddedToast = ({
   name,
   toastId,
+  itemIndex,
 }: {
   name: string;
   toastId: string | number;
+  itemIndex: number;
 }) => {
   const send = useSend();
   return (
@@ -985,7 +1030,7 @@ const RecipeAddedToast = ({
         <Badge
           onClick={() => {
             toast.dismiss(toastId);
-            send({ type: "VIEW_LIST" });
+            send({ type: "VIEW_LIST", itemIndex });
           }}
         >
           View

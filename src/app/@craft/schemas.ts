@@ -39,4 +39,5 @@ export const AppContextSchema = z.object({
     InstantRecipeMetadataPredictionOutputSchema.partial().optional(),
   socketToastId: z.union([z.string(), z.number()]).optional(),
   carouselAPI: z.custom<UseEmblaCarouselType[1]>().optional(),
+  selectItemIndexToScrollTo: z.number().optional(),
 });

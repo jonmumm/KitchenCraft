@@ -612,6 +612,7 @@ const RemoveIngredientEventSchema = z.object({
 
 const ViewListEventSchema = z.object({
   type: z.literal("VIEW_LIST"),
+  itemIndex: z.number().optional(),
 });
 
 const CloseEventSchema = z.object({
