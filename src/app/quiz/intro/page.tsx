@@ -3,7 +3,7 @@
 import { Button } from "@/components/input/button";
 import AnimatedText from "@/components/typography/animated-text";
 import Delay from "@/components/util/delay";
-import { Loader2Icon } from "lucide-react";
+import { ChevronsRightIcon, Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -22,52 +22,53 @@ const Intro: React.FC = () => {
   }, [router]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto px-4">
-      <h2 className="text-2xl font-semibold mb-6">
-        <AnimatedText
-          text="Craft your ultimate recipe library."
-          baseSpeed={60}
-          punctDelay={600}
-          delay={0}
-        />
-      </h2>
-      <Delay delay={500}>
-        <div className="text-lg mb-4">
+    <>
+      <div className="flex flex-col justify-center h-full max-w-xl mx-4 md:mx-auto p-4 rounded-xl bg-purple-600 ">
+        <h2 className="text-2xl font-semibold mb-6 leading-10">
           <AnimatedText
-            text="Hi there! We’re thrilled to help you craft a library of recipes that suit your unique cooking style. This quick quiz will help us understand your preferences and tastes."
+            text="Craft your ultimate recipe library."
+            baseSpeed={60}
+            punctDelay={600}
+            delay={0}
+          />
+        </h2>
+        <div className="text-lg mb-4 font-semibold leading-7">
+          <AnimatedText
+            text="Hi there! We’re thrilled to help you craft a library of recipes that suit your unique cooking needs. This quick quiz will help us understand your preferences and tastes."
             baseSpeed={50}
             punctDelay={300}
             delay={2750}
           />
         </div>
-      </Delay>
-      <Delay delay={5500}>
-        <div className="text-lg mb-4">
+        <div className="text-lg mb-4 font-semibold">
           <AnimatedText
-            text="The quiz is brief with just 20 questions. Your responses will allow us to create a chef profile for you and offer personalized recipe recommendations. Ready to begin?"
+            text="The quiz is brief, only 2 minutes. Your responses will allow us to create a chef profile for you and offer personalized recipe recommendations. Ready to begin?"
             baseSpeed={35}
             punctDelay={600}
             delay={6250}
           />
         </div>
-      </Delay>
+      </div>
       <Delay delay={10000}>
         <Button
-          className="mt-2 w-full"
+          className="mt-2 max-w-xl w-full sticky bottom-4 left-4 right-4 mx-auto text-xl font-semibold"
           size="xl"
           onClick={handleStart}
           disabled={loading}
         >
           {loading ? (
             <>
-              Loading <Loader2Icon className="ml-1 animate-spin" />
+              Loading <Loader2Icon className="ml-2 animate-spin" size={16} />
             </>
           ) : (
-            <>Start Quiz</>
+            <>
+              Start Quiz
+              <ChevronsRightIcon className="ml-2" />
+            </>
           )}
         </Button>
       </Delay>
-    </div>
+    </>
   );
 };
 

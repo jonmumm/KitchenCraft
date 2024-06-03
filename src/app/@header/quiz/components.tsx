@@ -49,7 +49,7 @@ const StepsIndicator: React.FC<StepsIndicatorProps> = ({
           <Button variant="ghost">Skip</Button>
         </div>
       </div>
-      <ul className="steps text-xs text-muted-foreground my-4 max-w-3xl w-full mx-auto">
+      <ul className="steps text-xs my-4 max-w-3xl w-full mx-auto">
         {steps.map((step) => {
           const isDone = isStepPastOrDone(step);
           const Component = isDone ? twc(Link)`` : twc.li``;
@@ -58,11 +58,9 @@ const StepsIndicator: React.FC<StepsIndicatorProps> = ({
             <Component
               href={`/quiz/${sentenceToSlug(step)}`}
               key={step}
-              className={`step ${
-                isDone ? "step-primary text-foreground font-semibold" : ""
-              }`}
+              className={`step ${isDone ? "step-primary font-semibold" : ""}`}
             >
-              {step}
+              <span>{step}</span>
             </Component>
           );
         })}
