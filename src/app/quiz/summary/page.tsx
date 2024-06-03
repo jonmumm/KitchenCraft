@@ -7,7 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/display/card";
+import { Label } from "@/components/display/label";
+import { Input } from "@/components/input";
 import AnimatedText from "@/components/typography/animated-text";
+import Delay from "@/components/util/delay";
 
 export default function Results() {
   // const router = useRouter();
@@ -20,7 +23,7 @@ export default function Results() {
   // }, [router]);
 
   return (
-    <div className="max-w-md mx-auto w-full px-4">
+    <div className="max-w-md mx-auto w-full px-4 flex flex-col gap-4">
       <div className="flex flex-col justify-center h-full md:mx-auto rounded-xl bg-purple-600 w-full p-4">
         <h2 className="text-2xl font-semibold mb-2 leading-10">
           <AnimatedText
@@ -47,20 +50,20 @@ export default function Results() {
           />
         </div>
       </div>
+      <Delay delay={3000}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Save Chef Profile</CardTitle>
+            <CardDescription>
+              Enter your email to create your personalized chef profile.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Label htmlFor="email">Email address</Label>
+            <Input type="email" name="email" />
+          </CardContent>
+        </Card>
+      </Delay>
     </div>
   );
 }
-
-const EnterEmailStep = () => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Save Chef Profile</CardTitle>
-        <CardDescription>
-          Enter your email to create your personalized chef profile.
-        </CardDescription>
-      </CardHeader>
-      <CardContent></CardContent>
-    </Card>
-  );
-};
