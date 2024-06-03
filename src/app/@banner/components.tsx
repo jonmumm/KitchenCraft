@@ -3,7 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { IsOnboaridngInComplete } from "./components.client";
 
-export function QuizBanner({ showInitial }: { showInitial: boolean }) {
+export function QuizBanner({
+  showInitial,
+  hasStartedQuiz,
+}: {
+  showInitial: boolean;
+  hasStartedQuiz: boolean;
+}) {
   return (
     <IsOnboaridngInComplete initialValue={showInitial}>
       <div className="crafting:hidden">
@@ -48,7 +54,7 @@ export function QuizBanner({ showInitial }: { showInitial: boolean }) {
             <div>
               <Link href="/quiz">
                 <Badge className="text-white dark:text-white" variant="success">
-                  START
+                  {!hasStartedQuiz ? <>START</> : <>RESUME</>}
                 </Badge>
               </Link>
             </div>

@@ -153,7 +153,7 @@
     "@storybook/nextjs": "^7.4.6",
     "@storybook/react": "^7.4.6",
     "@storybook/testing-library": "^0.2.2",
-    "@tailwindcss/typography": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.13",
     "@types/cookie": "^0.6.0",
     "@types/diff-match-patch": "^1.0.36",
     "@types/event-source-polyfill": "^1.0.2",

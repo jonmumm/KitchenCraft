@@ -22,11 +22,6 @@ import {
   FormMessage,
 } from "@/components/input/form";
 import { Instructions } from "@/components/instructions";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/layout/popover";
 import { PrintButton } from "@/components/print-button";
 import { RecipeSelectButton } from "@/components/recipe-select-button";
 import ScrollLockComponent from "@/components/scroll-lock";
@@ -659,50 +654,27 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             )} */}
           </div>
           <div className={"text-xs mt-2"}>
-            <Popover>
-              <PopoverTrigger asChild>
-                <>
-                  {recipe?.matchPercent !== undefined ? (
-                    <>
-                      {recipe.matchPercent === 100 && (
-                        <Badge
-                          event={{ type: "PRESS_RESULT_BADGE" }}
-                          onClickOnEvent={true}
-                          variant="secondary"
-                        >
-                          <span className="text-green-700 font-medium mr-1">
-                            Direct Match
-                          </span>{" "}
-                          • 100%
-                        </Badge>
-                      )}
-                      {recipe.matchPercent < 100 && (
-                        <Badge variant="outline">{recipe.matchPercent}% match</Badge>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <Badge variant="outline">
-                        <Skeleton className="w-10 h-4" />
-                      </Badge>
-                    </>
-                  )}
-                </>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">Foo</PopoverContent>
-            </Popover>
-            {/* {recipe?.matchPercent !== undefined ? <>{recipe.matchPercent ? (
-
-<span>
-
-            <span className="text-green-700">Direct Match</span> • 100%
-</span>
-            )}<></> : (
-<span>
-
-            <span className="text-green-700">Direct Match</span> • 100%
-</span>
-            )} */}
+            {recipe?.matchPercent !== undefined ? (
+              <>
+                {recipe.matchPercent === 100 && (
+                  <Badge variant="secondary">
+                    <span className="text-green-700 font-medium mr-1">
+                      Direct Match
+                    </span>{" "}
+                    • 100%
+                  </Badge>
+                )}
+                {recipe.matchPercent < 100 && (
+                  <Badge variant="outline">{recipe.matchPercent}% match</Badge>
+                )}
+              </>
+            ) : (
+              <>
+                <Badge variant="outline">
+                  <Skeleton className="w-10 h-4" />
+                </Badge>
+              </>
+            )}
           </div>
         </EventTrigger>
         <Collapsible

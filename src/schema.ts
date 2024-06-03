@@ -605,7 +605,6 @@ const RemoveTagEventSchema = z.object({
   tag: z.string(),
 });
 
-
 const RefreshFeedEventSchema = z.object({
   type: z.literal("REFRESH_FEED"),
 });
@@ -1071,7 +1070,14 @@ const ShareSelectedEventSchema = z.object({
   type: z.literal("SHARE_SELECTED"),
 });
 
+const SelectQuestionOptionEventSchema = z.object({
+  type: z.literal("SELECT_QUESTION_OPTION"),
+  questionIndex: z.number(),
+  optionIndex: z.number(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  SelectQuestionOptionEventSchema,
   RefreshFeedEventSchema,
   ShareSelectedEventSchema,
   ExitEventSchema,
