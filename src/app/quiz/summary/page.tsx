@@ -20,30 +20,32 @@ export default function Results() {
   // }, [router]);
 
   return (
-    <div className="flex flex-col justify-center h-full max-w-md mx-4 md:mx-auto p-4 rounded-xl bg-purple-600 w-full">
-      <h2 className="text-2xl font-semibold mb-2 leading-10">
-        <AnimatedText
-          text="Thank You"
-          baseSpeed={60}
-          punctDelay={600}
-          delay={0}
-        />
-      </h2>
-      <div className="text-lg mb-4 font-semibold leading-7">
-        <AnimatedText
-          text="For sharing your preferences"
-          baseSpeed={50}
-          punctDelay={300}
-          delay={500}
-        />
-      </div>
-      <div className="text-lg font-semibold leading-7 animate-pulse">
-        <AnimatedText
-          text="Your Chef Profile is building."
-          baseSpeed={50}
-          punctDelay={300}
-          delay={2000}
-        />
+    <div className="max-w-md mx-auto w-full px-4">
+      <div className="flex flex-col justify-center h-full md:mx-auto rounded-xl bg-purple-600 w-full p-4">
+        <h2 className="text-2xl font-semibold mb-2 leading-10">
+          <AnimatedText
+            text="Thank You"
+            baseSpeed={60}
+            punctDelay={600}
+            delay={0}
+          />
+        </h2>
+        <div className="text-lg mb-4 font-semibold leading-7">
+          <AnimatedText
+            text="For sharing your preferences"
+            baseSpeed={50}
+            punctDelay={300}
+            delay={500}
+          />
+        </div>
+        <div className="text-lg font-semibold leading-7 animate-pulse">
+          <AnimatedText
+            text="Your Chef Profile is building."
+            baseSpeed={50}
+            punctDelay={300}
+            delay={2000}
+          />
+        </div>
       </div>
     </div>
   );
