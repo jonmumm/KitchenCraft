@@ -108,7 +108,7 @@ const PreferenceQuestion = ({ index }: { index: number }) => {
       <div className="flex justify-between gap-2">
         {options?.map((option, optionIndex) => {
           return (
-            <OptionButton questionIndex={index} optionIndex={optionIndex}>
+            <OptionButton key={option} questionIndex={index} optionIndex={optionIndex}>
               {option}
             </OptionButton>
           );
