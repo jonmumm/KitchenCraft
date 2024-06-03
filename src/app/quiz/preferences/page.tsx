@@ -62,7 +62,7 @@ export default function Preferences() {
       {new Array(Math.min(currentIndex + 1, PREFERENCE_QUESTIONS.length))
         .fill(0)
         .map((_, idx) => {
-          return <PreferenceQuestion index={idx} />;
+          return <PreferenceQuestion key={idx} index={idx} />;
         })}
       {showNext && (
         <div className="sticky bottom-0 w-full p-2 flex justify-center">
