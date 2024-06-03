@@ -87,7 +87,7 @@ const PreferenceQuestion = ({ index }: { index: number }) => {
       <Label className="text-xs text-muted-foreground uppercase">
         {index + 1}/{PREFERENCE_QUESTIONS.length}
       </Label>
-      <div className="prose prose-slate">
+      <div className="prose dark:prose-invert prose-slate">
         <h2 className="font-semibold text-balance flex flex-row gap-2 items-center">
           <span>{question}</span>
           <div>

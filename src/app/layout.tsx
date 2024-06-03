@@ -24,6 +24,7 @@ import { getCanInstallPWA, getIsMobile } from "@/lib/headers";
 import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import type { Metadata } from "next";
+import Script from "next/script";
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
 import "../styles/globals.css";
@@ -172,6 +173,12 @@ export default async function RootLayout(
             // reauthenticate={reauthenticate.bind(null, pageSessionId)}
           >
             <Body isPWA={!!parseCookie("appSessionId")}>
+              {/* next-themes uses the color-scheme CSS property to differentiate light and dark themes,
+                but Tailwind is watching for a CSS class. */}
+              {/* <Script id="theme-detector">{`
+                const theme = document.documentElement.style.colorScheme
+                document.documentElement.classList.add(theme)
+              `}</Script> */}
               <ThemeProvider
                 attribute="class"
                 defaultTheme="system"
