@@ -175,10 +175,10 @@ export default async function RootLayout(
             <Body isPWA={!!parseCookie("appSessionId")}>
               {/* next-themes uses the color-scheme CSS property to differentiate light and dark themes,
                 but Tailwind is watching for a CSS class. */}
-              {/* <Script id="theme-detector">{`
+              <Script id="theme-detector">{`
                 const theme = document.documentElement.style.colorScheme
                 document.documentElement.classList.add(theme)
-              `}</Script> */}
+              `}</Script>
               <ThemeProvider
                 attribute="class"
                 defaultTheme="system"

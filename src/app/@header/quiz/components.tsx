@@ -59,7 +59,7 @@ const StepsIndicator: React.FC<StepsIndicatorProps> = ({
               href={`/quiz/${sentenceToSlug(step)}`}
               key={step}
               className={`step ${
-                isDone ? "step-neutral text-foreground font-semibold" : ""
+                isDone ? "step-primary text-foreground font-semibold" : ""
               }`}
             >
               {step}
