@@ -10,7 +10,7 @@ import { ExperienceLevelSchema } from "@/schema";
 import { $experienceLevel } from "@/stores/settings";
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { MouseEventHandler, useState } from "react";
+import { MouseEventHandler, useEffect, useState } from "react";
 
 export default function Experience() {
   const router = useRouter();
@@ -20,6 +20,10 @@ export default function Experience() {
     session$.get().context.browserSessionSnapshot?.context.experienceLevel
   );
   const [showCTA, setShowCTA] = useState(!!selectedExperience);
+
+  useEffect(() => {
+    router.prefetch("/quiz/preferences");
+  }, [router]);
 
   useEventHandler("PAGE_LOADED", () => {
     setShowCTA(true);

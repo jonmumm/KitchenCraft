@@ -1555,7 +1555,6 @@ export const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
 
   return (
     <div ref={emblaRef} className="embla flex-1 relative">
-      {/* <ScrollManager /> */}
       <div className="embla__container absolute inset-0">{children}</div>
     </div>
   );

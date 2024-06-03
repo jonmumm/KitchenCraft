@@ -10,10 +10,10 @@ import {
 } from "@/components/layout/popover";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { useStore } from "@nanostores/react";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Loader2Icon } from "lucide-react";
 import { atom } from "nanostores";
 import { useRouter } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { PREFERENCE_QUESTIONS } from "./constants";
 
 const currentIndex$ = atom(0);
@@ -25,9 +25,11 @@ export default function Preferences() {
   const selections = useStore(selections$);
   const numSelections = Object.values(selections).length;
   const showNext = numSelections === PREFERENCE_QUESTIONS.length;
+  const [loading, setLoading] = useState(false);
 
   const handleNext = () => {
     router.push("/quiz/summary"); // Adjust the navigation route as necessary
+    setLoading(true);
   };
 
   const currentIndex = useStore(currentIndex$);
@@ -67,10 +69,17 @@ export default function Preferences() {
       {showNext && (
         <div className="sticky bottom-0 w-full p-2 flex justify-center">
           <Button
-            className="mt-6 font-bold py-2 px-4 rounded w-full mb-6 sticky max-w-xl shadow-xl"
+            className="mt-6 font-bold py-2 px-4 rounded-xl w-full mb-6 sticky max-w-xl shadow-xl"
             onClick={handleNext}
+            disabled={loading}
           >
-            Next
+            {!loading ? (
+              <>Next</>
+            ) : (
+              <>
+                Loading <Loader2Icon className="ml-2 animate-spin" size={14} />
+              </>
+            )}
           </Button>
         </div>
       )}
@@ -108,7 +117,11 @@ const PreferenceQuestion = ({ index }: { index: number }) => {
       <div className="flex justify-between gap-2">
         {options?.map((option, optionIndex) => {
           return (
-            <OptionButton key={option} questionIndex={index} optionIndex={optionIndex}>
+            <OptionButton
+              key={option}
+              questionIndex={index}
+              optionIndex={optionIndex}
+            >
               {option}
             </OptionButton>
           );
