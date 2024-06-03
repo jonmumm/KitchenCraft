@@ -22,7 +22,7 @@ const Intro: React.FC = () => {
 
   return (
     <>
-      <div className="flex flex-col justify-center h-full max-w-xl mx-4 md:mx-auto p-4 rounded-xl bg-purple-600 ">
+      <div className="flex flex-col justify-center h-full max-w-xl mx-4 md:mx-auto p-4 rounded-xl bg-purple-600 prose">
         <h2 className="text-2xl font-semibold mb-6 leading-10">
           <AnimatedText
             text="Welcome to KitchenCraft!"
@@ -31,7 +31,7 @@ const Intro: React.FC = () => {
             delay={0}
           />
         </h2>
-        <h2 className="text-2xl font-semibold mb-6 leading-10">
+        <h2 className="text-2xl font-semibold mb-6 leading-7">
           <AnimatedText
             text="Craft your ultimate recipe library."
             baseSpeed={60}
