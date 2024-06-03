@@ -34,7 +34,7 @@ import {
   EnterChefNameCard,
   EnterEmailCard,
   IsCreatingList,
-  IsInMyRecipes,
+  IsInMyCookbook,
   IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
@@ -241,9 +241,9 @@ const PersonalizationSettingsDialog = () => {
 
 const MyRecipes = () => {
   return (
-    <IsInMyRecipes>
+    <IsInMyCookbook>
       <MyRecipesScreen />
-    </IsInMyRecipes>
+    </IsInMyCookbook>
   );
 };
 

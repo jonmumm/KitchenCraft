@@ -241,21 +241,23 @@ export const createAppMachine = ({
       waitForRefreshFeedEnd: fromPromise(async () => {
         const feedItems = selectFeedItemIds(store.get());
         const startingLength = feedItems.length;
-        
 
         await new Promise<null>((resolve, reject) => {
-        // todo add a timeout
+          // todo add a timeout
           // setTimeout(() => {
 
           // }, )
           const unsub = store.listen((snapshot) => {
-            const newFeedItems = selectFeedItemIds(snapshot)
-            if (!arraysEqual(newFeedItems, feedItems) && startingLength === newFeedItems.length) {
+            const newFeedItems = selectFeedItemIds(snapshot);
+            if (
+              !arraysEqual(newFeedItems, feedItems) &&
+              startingLength === newFeedItems.length
+            ) {
               resolve(null);
-              unsub()
+              unsub();
             }
-          })
-        })
+          });
+        });
 
         return true;
       }),
@@ -816,7 +818,7 @@ export const createAppMachine = ({
             },
           },
         },
-        MyRecipes: {
+        MyCookbook: {
           type: "parallel",
           on: {
             MOUNT_CAROUSEL: {
@@ -927,7 +929,12 @@ export const createAppMachine = ({
         Selection: {
           on: {
             SELECT_RECIPE: {
-              actions: ({ event }) => {
+              actions: ({ event, self }) => {
+                if (
+                  self.getSnapshot().matches({ MyCookbook: { Open: "True" } })
+                ) {
+                  return;
+                }
                 const recipe = store.get().context.recipes[event.id];
                 const name = recipe?.name;
                 assert(name, "expected to find recipe.name");
@@ -950,7 +957,6 @@ export const createAppMachine = ({
             },
             SELECT_RECIPE_SUGGESTION: {
               actions: ({ context, event, self }) => {
-                console.log(self.getSnapshot());
                 const { browserSessionSnapshot } = store.get().context;
                 assert(
                   browserSessionSnapshot,
@@ -969,6 +975,9 @@ export const createAppMachine = ({
                 assert(recipe.id, "expected to find recipe.id");
                 const name = recipe.name;
                 assert(name, "expected to find recipe.name");
+
+                if (self.getSnapshot().matches({ Selection: "" })) {
+                }
 
                 toast.custom((t) => (
                   <RecipeAddedToast
@@ -991,19 +1000,19 @@ export const createAppMachine = ({
               states: {
                 False: {
                   on: {
-                    REFRESH_FEED: "True"
-                  }
+                    REFRESH_FEED: "True",
+                  },
                 },
                 True: {
                   invoke: {
                     src: "waitForRefreshFeedEnd",
-                    onDone: "False"
-                  }
+                    onDone: "False",
+                  },
                 },
-              }
-            }
-          }
-        }
+              },
+            },
+          },
+        },
       },
     }
     // {

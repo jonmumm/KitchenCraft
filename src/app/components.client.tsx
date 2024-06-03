@@ -879,10 +879,10 @@ export const EnterEmailCard = () => {
   );
 };
 
-export const IsInMyRecipes = (props: { children: ReactNode }) => {
+export const IsInMyCookbook = (props: { children: ReactNode }) => {
   const actor = useContext(AppContext);
   const active = useSelector(actor, (state) =>
-    state.matches({ MyRecipes: { Open: "True" } })
+    state.matches({ MyCookbook: { Open: "True" } })
   );
 
   return active ? <>{props.children}</> : null;
