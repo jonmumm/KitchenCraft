@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 const Intro: React.FC = () => {
-  // const [showButton, setShowButton] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -49,24 +48,26 @@ const Intro: React.FC = () => {
           />
         </div>
       </div>
-      <Delay delay={10000}>
-        <Button
-          className="mt-2 max-w-xl w-full sticky bottom-4 left-4 right-4 mx-auto text-lg font-semibold"
-          size="xl"
-          onClick={handleStart}
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              Loading <Loader2Icon className="ml-2 animate-spin" size={16} />
-            </>
-          ) : (
-            <>
-              Start Quiz
-              <ChevronsRightIcon className="ml-2" />
-            </>
-          )}
-        </Button>
+      <Delay delay={10500}>
+        <div className="mt-2 max-w-xl w-full p-4 mx-auto text-lg font-semibold">
+          <Button
+            className="text-lg font-semibold w-full"
+            size="xl"
+            onClick={handleStart}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                Loading <Loader2Icon className="ml-2 animate-spin" size={16} />
+              </>
+            ) : (
+              <>
+                Start Quiz
+                <ChevronsRightIcon className="ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
       </Delay>
     </>
   );

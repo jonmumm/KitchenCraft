@@ -69,7 +69,7 @@ export default function Preferences() {
       {showNext && (
         <div className="sticky bottom-0 w-full p-2 flex justify-center">
           <Button
-            className="mt-6 font-bold py-2 px-4 rounded-xl w-full mb-6 sticky max-w-xl shadow-xl text-lg font-semibold"
+            className="mt-6 py-2 px-4 rounded-xl w-full mb-6 sticky max-w-xl shadow-xl text-lg font-semibold"
             onClick={handleNext}
             size="xl"
             disabled={loading}
