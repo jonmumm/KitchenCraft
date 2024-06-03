@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 
 import { AppContext } from "@/app/context";
-import { Input } from "@/components/ui/input-otp";
 import { Button } from "@/components/input/button";
 import {
   Form,
@@ -15,6 +14,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/input/form";
+import { Input } from "@/components/ui/input-otp";
 import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -153,15 +153,15 @@ export function PasscodeForm(props: {
           render={({ field, fieldState }) => (
             <FormItem>
               <FormControl>
-                    <Input 
-                      id="code" 
-                      autoFocus={!showGMailLink}
-                      maxLength={5} 
-                      disabled={disabled} 
-                      {...field}
-                      onChange={handleInputChange}  
-                      onPaste={handleOnPaste}
-                    />
+                <Input
+                  id="code"
+                  autoFocus={!showGMailLink}
+                  maxLength={5}
+                  disabled={disabled}
+                  {...field}
+                  onChange={handleInputChange}
+                  onPaste={handleOnPaste}
+                />
               </FormControl>
               <FormDescription>
                 Enter the 5-letter code you received at{" "}

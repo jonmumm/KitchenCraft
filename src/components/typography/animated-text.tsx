@@ -24,7 +24,7 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({
       <span
         key={index}
         ref={(el) => (spanRefs.current[index] = el)}
-        className="text-word text-black"
+        className="text-word text-black opacity-40"
       >
         {word}
       </span>
@@ -59,7 +59,15 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({
     startAnimation();
   }, [baseSpeed, punctDelay, delay, spans]);
 
-  return <span className="text-black">{spans.length ? <>{spans}</> : <>{text}</>}</span>;
+  return (
+    <span className="text-black">
+      {spans.length ? (
+        <>{spans}</>
+      ) : (
+        <span className="opacity-50">{text}</span>
+      )}
+    </span>
+  );
 };
 
 export default AnimatedText;

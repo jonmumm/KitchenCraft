@@ -98,7 +98,7 @@ const PreferenceQuestion = ({ index }: { index: number }) => {
         {index + 1}/{PREFERENCE_QUESTIONS.length}
       </Label>
       <div className="prose dark:prose-invert">
-        <h2 className="font-semibold text-balance flex flex-row gap-2 items-center text-foreground">
+        <h3 className="font-semibold text-balance flex flex-row gap-2 items-center text-foreground">
           <span>{question}</span>
           <div>
             <Popover>
@@ -112,7 +112,7 @@ const PreferenceQuestion = ({ index }: { index: number }) => {
               </PopoverContent>
             </Popover>
           </div>
-        </h2>
+        </h3>
       </div>
 
       <div className="flex justify-between gap-2">
@@ -154,7 +154,7 @@ const OptionButton = ({
       }}
       variant={!isSelected ? "outline" : "default"}
       size="xl"
-      className="flex-1"
+      className="flex-1 text-md"
     >
       {children}
     </Button>
