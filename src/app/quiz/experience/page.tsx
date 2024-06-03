@@ -86,7 +86,8 @@ export default function Experience() {
       {showCTA && (
         <div className="sticky bottom-0 w-full p-2 flex justify-center">
           <Button
-            className="mt-6 font-bold py-2 px-4 rounded w-full mb-6 max-w-xl shadow-xl transitioning:opacity-50"
+            className="mt-6 text-lg font-semibold w-full mb-6 max-w-xl shadow-xl transitioning:opacity-50"
+            size="xl"
             onClick={handleNext}
           >
             <span className="transitioning:hidden">Next</span>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import "./animated-text.css";  // Assuming you have a CSS file for custom styles
+import { useEffect, useRef, useState } from "react";
+import "./animated-text.css"; // Assuming you have a CSS file for custom styles
 
 type AnimatedTextProps = {
   text: string;
@@ -10,12 +10,22 @@ type AnimatedTextProps = {
   delay: number;
 };
 
-const AnimatedText: React.FC<AnimatedTextProps> = ({ text, baseSpeed, punctDelay, delay }) => {
+const AnimatedText: React.FC<AnimatedTextProps> = ({
+  text,
+  baseSpeed,
+  punctDelay,
+  delay,
+}) => {
   const [spans, setSpans] = useState<JSX.Element[]>([]);
-  
+  const spanRefs = useRef<(HTMLSpanElement | null)[]>([]);
+
   useEffect(() => {
     const spanElements = text.split(/(\s+)/).map((word, index) => (
-      <span key={index} className="text-word">
+      <span
+        key={index}
+        ref={(el) => (spanRefs.current[index] = el)}
+        className="text-word text-black"
+      >
         {word}
       </span>
     ));
@@ -23,19 +33,22 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({ text, baseSpeed, punctDelay
   }, [text]);
 
   useEffect(() => {
-    const spanElements = document.querySelectorAll('.text-word');
     let currentIndex = 0;
 
     const highlightWord = () => {
-      if (currentIndex < spanElements.length) {
-        const span = spanElements[currentIndex] as HTMLElement;
-        span.classList.add('highlight');
+      if (currentIndex < spanRefs.current.length) {
+        const span = spanRefs.current[currentIndex];
+        if (span) {
+          span.classList.add("highlight");
 
-        const isPunctuation = ['.', '?', ','].some(p => span.innerHTML.includes(p));
-        const currentDelay = isPunctuation ? punctDelay : baseSpeed;
-        
-        currentIndex++;
-        setTimeout(highlightWord, currentDelay);
+          const isPunctuation = [".", "?", ","].some((p) =>
+            span.innerHTML.includes(p)
+          );
+          const currentDelay = isPunctuation ? punctDelay : baseSpeed;
+
+          currentIndex++;
+          setTimeout(highlightWord, currentDelay);
+        }
       }
     };
 
@@ -44,10 +57,9 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({ text, baseSpeed, punctDelay
     };
 
     startAnimation();
-
   }, [baseSpeed, punctDelay, delay, spans]);
 
-  return <span>{spans}</span>;
+  return <span className="text-black">{spans.length ? <>{spans}</> : <>{text}</>}</span>;
 };
 
 export default AnimatedText;
