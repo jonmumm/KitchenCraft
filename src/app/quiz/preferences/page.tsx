@@ -87,8 +87,8 @@ const PreferenceQuestion = ({ index }: { index: number }) => {
       <Label className="text-xs text-muted-foreground uppercase">
         {index + 1}/{PREFERENCE_QUESTIONS.length}
       </Label>
-      <div className="prose dark:prose-invert prose-slate">
-        <h2 className="font-semibold text-balance flex flex-row gap-2 items-center">
+      <div className="prose dark:prose-invert">
+        <h2 className="font-semibold text-balance flex flex-row gap-2 items-center text-foreground">
           <span>{question}</span>
           <div>
             <Popover>
