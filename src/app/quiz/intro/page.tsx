@@ -51,7 +51,7 @@ const Intro: React.FC = () => {
       </div>
       <Delay delay={10000}>
         <Button
-          className="mt-2 max-w-xl w-full sticky bottom-4 left-4 right-4 mx-auto text-xl font-semibold"
+          className="mt-2 max-w-xl w-full sticky bottom-4 left-4 right-4 mx-auto text-lg font-semibold"
           size="xl"
           onClick={handleStart}
           disabled={loading}
