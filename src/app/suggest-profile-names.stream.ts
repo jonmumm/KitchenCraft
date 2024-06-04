@@ -17,17 +17,19 @@ export type SuggestProfileNamesEvent = StreamObservableEvent<
   z.infer<typeof SuggestProfileNamesOutputSchema>
 >;
 
+export type SuggestProfileNamesInput = {
+  email: string;
+  previousSuggestions: string[];
+  preferences: Record<number, number>;
+  personalizationContext: string;
+};
+
 export type SuggestProfileNamesOutput = z.infer<
   typeof SuggestProfileNamesOutputSchema
 >;
 
 export class SuggestProfileNamesStream extends StructuredObjectStream<
-  {
-    email: string;
-    previousSuggestions: string[];
-    preferences: Record<number, number>;
-    personalizationContext: string;
-  },
+  SuggestProfileNamesInput,
   SuggestProfileNamesOutput
 > {
   protected getSchema(): z.ZodType<

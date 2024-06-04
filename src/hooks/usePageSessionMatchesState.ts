@@ -3,9 +3,7 @@ import { useSyncExternalStore } from "react";
 import { matchesState } from "xstate";
 import { usePageSessionStore } from "./usePageSessionStore";
 
-export const usePageSessionStoreMatchesState = (
-  matchedState: PageSessionState
-) => {
+export const usePageSessionMatchesState = (matchedState: PageSessionState) => {
   const store = usePageSessionStore();
   return useSyncExternalStore(
     store.subscribe,

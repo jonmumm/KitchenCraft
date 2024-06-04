@@ -16,6 +16,12 @@ export const selectNumFeedItemIds = createSelector(
   (items) => items.length
 );
 
+export const selectSuggestedProfileNames = (state: PageSessionSnapshot) => {
+  return (
+    state.context.browserSessionSnapshot?.context.suggestedProfileNames || []
+  );
+};
+
 export const createRecipeSelector =
   (id?: string) => (state: PageSessionSnapshot) => {
     if (id) {

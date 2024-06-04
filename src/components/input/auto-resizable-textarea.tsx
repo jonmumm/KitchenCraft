@@ -7,7 +7,7 @@ import { PageSessionContext } from "@/app/page-session-store.context";
 // import { session$ } from "@/app/session-store";
 import { usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useEventHandler } from "@/hooks/useEventHandler";
-import { usePageSessionStoreMatchesState } from "@/hooks/usePageSessionStoreMatchesState";
+import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { useSelectorCallback } from "@/hooks/useSelectorCallback";
 import { useSend } from "@/hooks/useSend";
 import { assert, shuffle } from "@/lib/utils";
@@ -179,7 +179,7 @@ const AutoResizableTextarea: React.FC<
 
     const PlaceholderAnimation = () => {
       const isPristine = usePromptIsPristine();
-      const placeholdersGenerating = usePageSessionStoreMatchesState({
+      const placeholdersGenerating = usePageSessionMatchesState({
         Craft: { Generators: { Placeholder: "Generating" } },
       });
 

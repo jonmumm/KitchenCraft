@@ -21,8 +21,8 @@ const Intro: React.FC = () => {
   }, [router]);
 
   return (
-    <>
-      <div className="flex flex-col justify-center h-full max-w-xl mx-4 md:mx-auto p-4 rounded-xl bg-purple-600 prose">
+    <div className="max-w-md mx-auto w-full px-4 flex flex-col gap-4">
+      <div className="flex flex-col justify-center h-full md:mx-auto rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 w-full p-4">
         <h2 className="text-2xl font-semibold mb-6 leading-10">
           <AnimatedText
             text="Welcome to KitchenCraft!"
@@ -77,7 +77,7 @@ const Intro: React.FC = () => {
           </Button>
         </div>
       </Delay>
-    </>
+    </div>
   );
 };
 

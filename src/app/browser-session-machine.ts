@@ -1,12 +1,21 @@
 import { captureEvent } from "@/actions/capturePostHogEvent";
+import { UsersTable, db } from "@/db";
 import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert } from "@/lib/utils";
 import { BrowserSessionContext, BrowserSessionEvent } from "@/types";
 import { randomUUID } from "crypto";
+import { eq } from "drizzle-orm";
 import { produce } from "immer";
 import { from, switchMap } from "rxjs";
-import { assign, fromEventObservable, fromPromise, setup } from "xstate";
+import {
+  StateValueFrom,
+  assign,
+  fromEventObservable,
+  fromPromise,
+  setup,
+  spawnChild,
+} from "xstate";
 import { z } from "zod";
 import { HomepageCategoriesStream } from "./homepage-categories.stream";
 import {
@@ -14,6 +23,10 @@ import {
   SuggestIngredientsOutputSchema,
 } from "./suggest-ingredients.stream";
 import { SuggestPlaceholderStream } from "./suggest-placeholder.stream";
+import {
+  SuggestProfileNamesInput,
+  SuggestProfileNamesStream,
+} from "./suggest-profile-names.stream";
 import {
   SuggestTagsOutputSchema,
   SuggestTagsStream,
@@ -33,6 +46,22 @@ export const browserSessionMachine = setup({
     events: {} as BrowserSessionEvent,
   },
   actors: {
+    sendWelcomeEmail: fromPromise(
+      async ({ input }: { input: { email: string } }) => {
+        console.log(input.email);
+        return "";
+      }
+    ),
+    checkIfEmailAvailable: fromPromise(
+      async ({ input }: { input: { email: string } }) => {
+        const result = await db
+          .select()
+          .from(UsersTable)
+          .where(eq(UsersTable.email, input.email))
+          .execute();
+        return result.length === 0;
+      }
+    ),
     createNewListWithRecipeId: fromPromise(
       async ({ input }: { input: { listId: string; recipeId: string } }) => {
         console.log(input);
@@ -90,6 +119,10 @@ export const browserSessionMachine = setup({
         );
       }
     ),
+    generateProfileNameSuggestions: fromEventObservable(
+      ({ input }: { input: SuggestProfileNamesInput }) =>
+        new SuggestProfileNamesStream().getObservable(input)
+    ),
     generateIngredientSuggestions: fromEventObservable(
       ({
         input,
@@ -114,6 +147,9 @@ export const browserSessionMachine = setup({
   },
   guards: {
     didLoadOnboardingPage: ({ event }) => false,
+    didChangeEmailInput: ({ context, event }) => {
+      return event.type === "CHANGE" && event.name === "email";
+    },
   },
   actions: {},
 }).createMachine({
@@ -130,6 +166,8 @@ export const browserSessionMachine = setup({
     lastRunPersonalizationContext: undefined,
     suggestedPlaceholders: [],
     suggestedTokens: [],
+    suggestedProfileNames: [],
+    previousSuggestedProfileNames: [],
     feedItems: {},
     feedItemIds: [],
     listIds: [],
@@ -694,7 +732,118 @@ export const browserSessionMachine = setup({
           },
         },
         Summary: {
-          type: "final",
+          initial: "Email",
+          on: {
+            SUGGEST_PROFILE_NAME_START: {
+              actions: assign(({ context }) =>
+                produce(context, (draft) => {
+                  draft.previousSuggestedProfileNames =
+                    context.previousSuggestedProfileNames.concat(
+                      context.suggestedProfileNames
+                    );
+                  draft.suggestedProfileNames = [];
+                })
+              ),
+            },
+            SUGGEST_PROFILE_NAME_PROGRESS: {
+              actions: assign({
+                suggestedProfileNames: ({ event, context }) => {
+                  const names = event.data.names;
+                  return names || context.suggestedProfileNames;
+                },
+              }),
+            },
+            SUGGEST_PROFILE_NAME_COMPLETE: {
+              actions: assign({
+                suggestedProfileNames: ({ event, context }) => {
+                  const names = event.data.names;
+                  return names;
+                },
+              }),
+            },
+          },
+          states: {
+            Email: {
+              on: {
+                CHANGE: {
+                  target: ".Inputting",
+                  guard: "didChangeEmailInput",
+                  actions: assign({
+                    email: ({ event }) => event.value,
+                  }),
+                },
+                SUBMIT: {
+                  guard: ({ context }) =>
+                    z.string().email().safeParse(context.email).success,
+                  target: ".Checking",
+                },
+              },
+              initial: "Inputting",
+              states: {
+                Inputting: {},
+                Checking: {
+                  invoke: {
+                    src: "checkIfEmailAvailable",
+                    input: ({ context }) => {
+                      assert(context.email, "expected email when checking");
+                      return {
+                        email: context.email,
+                      };
+                    },
+                    onDone: [
+                      {
+                        guard: ({ event }) => event.output,
+                        target: "Sending",
+                      },
+                      {
+                        target: "InUse",
+                      },
+                    ],
+                  },
+                },
+                InUse: {},
+                Sending: {
+                  entry: spawnChild("generateProfileNameSuggestions", {
+                    input: ({ context, event }) => {
+                      assert(
+                        context.email,
+                        "expected email when generating profile name suggestions"
+                      );
+                      return {
+                        email: context.email,
+                        previousSuggestions: [],
+                        preferences: {},
+                        personalizationContext:
+                          "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
+                      };
+                    },
+                  }),
+                  invoke: {
+                    src: "sendWelcomeEmail",
+                    input: ({ context }) => {
+                      assert(
+                        context.email,
+                        "expected email when sending welcome email"
+                      );
+                      return {
+                        email: context.email,
+                      };
+                    },
+                    onDone: "Sent",
+                  },
+                },
+                Sent: {
+                  type: "final",
+                },
+              },
+            },
+            Username: {
+              on: {},
+            },
+            Complete: {
+              type: "final",
+            },
+          },
         },
       },
     },
@@ -702,3 +851,4 @@ export const browserSessionMachine = setup({
 });
 
 export type BrowserSessionMachine = typeof browserSessionMachine;
+export type BrowserSessionState = StateValueFrom<BrowserSessionMachine>;

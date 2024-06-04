@@ -1079,11 +1079,11 @@ const SelectQuestionOptionEventSchema = z.object({
 export const AppEventSchema = z.discriminatedUnion("type", [
   SelectQuestionOptionEventSchema,
   RefreshFeedEventSchema,
+  LoadMoreEventSchema,
   ShareSelectedEventSchema,
   ExitEventSchema,
   ViewRecipeEventSchema,
   ViewListEventSchema,
-  LoadMoreEventSchema,
   SocketOpenEventSchema,
   SocketConnectingEventSchema,
   SocketCloseEventSchema,

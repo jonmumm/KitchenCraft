@@ -53,14 +53,19 @@ const StepsIndicator: React.FC<StepsIndicatorProps> = ({
         {steps.map((step) => {
           const isDone = isStepPastOrDone(step);
           const Component = isDone ? twc(Link)`` : twc.li``;
+          const isActiveStep = step === currentStep;
 
           return (
             <Component
               href={`/quiz/${sentenceToSlug(step)}`}
               key={step}
-              className={`step ${isDone ? "step-primary font-semibold" : ""}`}
+              className={`step font-semibold ${
+                isActiveStep ? "step-primary" : isDone ? "" : "step-neutral"
+              }`}
             >
-              <span>{step}</span>
+              <span className={isActiveStep ? "animate-pulse" : ""}>
+                {step}
+              </span>
             </Component>
           );
         })}

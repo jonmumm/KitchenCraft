@@ -54,9 +54,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageSessionSnapshotConditionalRenderer } from "@/components/util/page-session-snapshot-conditiona.renderer";
 import { Yield } from "@/components/yield";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
+import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
-import { usePageSessionStoreMatchesState } from "@/hooks/usePageSessionStoreMatchesState";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
@@ -223,7 +223,7 @@ export const EnterChefNameCard = () => {
               <Label className="uppercase text-xs text-muted-foreground">
                 Suggestions
               </Label>
-              <Button variant="ghost" event={{ type: "REFRESH" }}>
+              <Button variant="ghost" event={{ type: "LOAD_MORE" }}>
                 <RefreshCwIcon size={14} />
               </Button>
             </div>
@@ -1372,7 +1372,7 @@ const CurrentListHasPreviousRecipes = ({
 };
 
 const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
-  const isComplete = usePageSessionStoreMatchesState({
+  const isComplete = usePageSessionMatchesState({
     Selection: { Data: "Complete" },
   });
   const session$ = usePageSessionStore();
@@ -1382,7 +1382,7 @@ const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
 };
 
 const IsShareable = ({ children }: { children: ReactNode }) => {
-  const isComplete = usePageSessionStoreMatchesState({
+  const isComplete = usePageSessionMatchesState({
     Selection: { Data: "Complete" },
   });
   const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
@@ -1391,7 +1391,7 @@ const IsShareable = ({ children }: { children: ReactNode }) => {
 };
 
 const HasSelectedRecipes = ({ children }: { children: ReactNode }) => {
-  const isComplete = usePageSessionStoreMatchesState({
+  const isComplete = usePageSessionMatchesState({
     Selection: { Data: "Complete" },
   });
   const session$ = usePageSessionStore();

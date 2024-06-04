@@ -10,6 +10,7 @@ import { HomepageCategoriesEvent } from "./app/homepage-categories.stream";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
 import { SuggestIngredientsEvent } from "./app/suggest-ingredients.stream";
 import { SuggestPlaceholderEvent } from "./app/suggest-placeholder.stream";
+import { SuggestProfileNamesEvent } from "./app/suggest-profile-names.stream";
 import { SuggestTagsEvent } from "./app/suggest-tags.stream";
 import { SuggestTokensEvent } from "./app/suggest-tokens.stream";
 import ingredients from "./data/ingredients.json";
@@ -405,6 +406,7 @@ export type BrowserSessionEvent =
   | WithCaller<SystemEvent>
   | SuggestTagsEvent
   | SuggestPlaceholderEvent
+  | SuggestProfileNamesEvent
   | SuggestTokensEvent
   | SuggestIngredientsEvent
   | HomepageCategoriesEvent;
@@ -431,6 +433,7 @@ export type BrowserSessionContext = {
   selectedRecipeIds: string[];
   selectedListId?: string;
   equipment: EquipmentSettings;
+  email?: string;
   diet: DietSettings;
   preferences: TasteSettings;
   timezone?: string;
@@ -447,6 +450,8 @@ export type BrowserSessionContext = {
   suggestedIngredients: Array<string>;
   suggestedTags: Array<string>;
   lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
+  suggestedProfileNames: string[];
+  previousSuggestedProfileNames: string[];
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
   feedItems: Record<string, FeedItemWithIds>;
