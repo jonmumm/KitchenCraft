@@ -1,5 +1,5 @@
 import { captureEvent } from "@/actions/capturePostHogEvent";
-import { UsersTable, db } from "@/db";
+import { ProfileSchema, ProfileTable, UsersTable, db } from "@/db";
 import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert } from "@/lib/utils";
@@ -32,6 +32,7 @@ import {
   SuggestTagsStream,
 } from "./suggest-tags.stream";
 import { SuggestTokensStream } from "./suggest-tokens.stream";
+import { WelcomeMessageStream } from "./welcome-message.stream";
 
 const InputSchema = z.object({
   id: z.string(),
@@ -52,6 +53,16 @@ export const browserSessionMachine = setup({
         return "";
       }
     ),
+    checkIfProfileNameAvailable: fromPromise(
+      async ({ input }: { input: { profileName: string } }) => {
+        const result = await db
+          .select()
+          .from(ProfileTable)
+          .where(eq(ProfileTable.profileSlug, input.profileName))
+          .execute();
+        return result.length === 0;
+      }
+    ),
     checkIfEmailAvailable: fromPromise(
       async ({ input }: { input: { email: string } }) => {
         const result = await db
@@ -67,6 +78,17 @@ export const browserSessionMachine = setup({
         console.log(input);
         return "";
       }
+    ),
+    generateWelcomeMessage: fromEventObservable(
+      ({
+        input,
+      }: {
+        input: {
+          profileName: string;
+          personalizationContext: string;
+          preferences: Record<number, number>;
+        };
+      }) => new WelcomeMessageStream().getObservable(input)
     ),
     generateHomepageFeed: fromEventObservable(
       ({
@@ -147,6 +169,9 @@ export const browserSessionMachine = setup({
   },
   guards: {
     didLoadOnboardingPage: ({ event }) => false,
+    didChangeProfileNameInput: ({ context, event }) => {
+      return event.type === "CHANGE" && event.name === "profileName";
+    },
     didChangeEmailInput: ({ context, event }) => {
       return event.type === "CHANGE" && event.name === "email";
     },
@@ -162,6 +187,7 @@ export const browserSessionMachine = setup({
     diet: {},
     selectedRecipeIds: [],
     suggestedIngredients: [],
+    preferenceQuestionResults: {},
     suggestedTags: [],
     lastRunPersonalizationContext: undefined,
     suggestedPlaceholders: [],
@@ -729,22 +755,23 @@ export const browserSessionMachine = setup({
               target: "Summary",
               guard: ({ event }) => event.pathname.startsWith("/quiz/summary"),
             },
-          },
-        },
-        Summary: {
-          initial: "Email",
-          on: {
-            SUGGEST_PROFILE_NAME_START: {
-              actions: assign(({ context }) =>
+            SELECT_QUESTION_OPTION: {
+              actions: assign(({ context, event }) =>
                 produce(context, (draft) => {
-                  draft.previousSuggestedProfileNames =
-                    context.previousSuggestedProfileNames.concat(
-                      context.suggestedProfileNames
-                    );
-                  draft.suggestedProfileNames = [];
+                  if (!draft.preferenceQuestionResults) {
+                    draft.preferenceQuestionResults = {};
+                  }
+                  draft.preferenceQuestionResults[event.questionIndex] =
+                    event.optionIndex;
                 })
               ),
             },
+          },
+        },
+        Summary: {
+          onDone: "Complete",
+          initial: "Email",
+          on: {
             SUGGEST_PROFILE_NAME_PROGRESS: {
               actions: assign({
                 suggestedProfileNames: ({ event, context }) => {
@@ -761,9 +788,43 @@ export const browserSessionMachine = setup({
                 },
               }),
             },
+            LOAD_MORE: {
+              actions: [
+                assign(({ context }) =>
+                  produce(context, (draft) => {
+                    draft.previousSuggestedProfileNames =
+                      context.previousSuggestedProfileNames.concat(
+                        context.suggestedProfileNames
+                      );
+                    draft.suggestedProfileNames = [];
+                  })
+                ),
+                spawnChild("generateProfileNameSuggestions", {
+                  input: ({ context, event }) => {
+                    assert(
+                      context.email,
+                      "expected email when generating profile name suggestions"
+                    );
+                    const previousSuggestions =
+                      context.previousSuggestedProfileNames.concat(
+                        context.suggestedProfileNames
+                      );
+                    console.log(previousSuggestions);
+                    return {
+                      email: context.email,
+                      previousSuggestions,
+                      preferences: {},
+                      personalizationContext:
+                        "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
+                    };
+                  },
+                }),
+              ],
+            },
           },
           states: {
             Email: {
+              onDone: "ProfileName",
               on: {
                 CHANGE: {
                   target: ".Inputting",
@@ -812,9 +873,9 @@ export const browserSessionMachine = setup({
                       return {
                         email: context.email,
                         previousSuggestions: [],
-                        preferences: {},
+                        preferences: context.preferenceQuestionResults,
                         personalizationContext:
-                          "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
+                          getPersonalizationContext(context),
                       };
                     },
                   }),
@@ -837,13 +898,114 @@ export const browserSessionMachine = setup({
                 },
               },
             },
-            Username: {
-              on: {},
+            ProfileName: {
+              initial: "Inputting",
+              onDone: "Complete",
+              on: {
+                CHANGE: {
+                  target: ".Inputting",
+                  guard: "didChangeProfileNameInput",
+                  actions: assign({
+                    profileName: ({ event }) => event.value,
+                  }),
+                },
+                SUBMIT: {
+                  guard: ({ context }) =>
+                    ProfileSchema.shape.profileSlug.safeParse(
+                      context.profileName
+                    ).success,
+                  target: ".Checking",
+                },
+              },
+              states: {
+                Inputting: {
+                  on: {},
+                },
+                Checking: {
+                  invoke: {
+                    src: "checkIfProfileNameAvailable",
+                    input: ({ context }) => {
+                      assert(
+                        context.profileName,
+                        "expected profileName when checking"
+                      );
+                      return {
+                        profileName: context.profileName,
+                      };
+                    },
+                    onDone: [
+                      {
+                        guard: ({ event }) => event.output,
+                        target: "Complete",
+                      },
+                      {
+                        target: "InUse",
+                      },
+                    ],
+                  },
+                },
+                InUse: {},
+                Complete: {
+                  type: "final",
+                },
+              },
             },
+            // WelcomeMessage: {
+            //   on: {
+            //     WELCOME_MESSAGE_PROGRESS: {
+            //       actions: [
+            //         console.log,
+            //         assign({
+            //           welcome: ({ event }) => event.data,
+            //         }),
+            //       ],
+            //     },
+            //   },
+            //   initial: "Generating",
+            //   states: {
+            //     Generating: {
+            //       on: {
+            //         WELCOME_MESSAGE_COMPLETE: "Inputting",
+            //       },
+            //       invoke: {
+            //         src: "generateWelcomeMessage",
+            //         input: ({ context, event }) => {
+            //           assert(
+            //             context.profileName,
+            //             "expected profileName when generating welcome message"
+            //           );
+            //           return {
+            //             profileName: context.profileName,
+            //             preferences: context.preferenceQuestionResults,
+            //             personalizationContext:
+            //               getPersonalizationContext(context),
+            //           };
+            //         },
+            //         onError: "Error",
+            //       },
+            //     },
+            //     Error: {
+            //       entry: console.error,
+            //     },
+            //     Inputting: {
+            //       on: {
+            //         SUBMIT: {
+            //           target: "Complete",
+            //         },
+            //       },
+            //     },
+            //     Complete: {
+            //       type: "final",
+            //     },
+            //   },
+            // },
             Complete: {
               type: "final",
             },
           },
+        },
+        Complete: {
+          type: "final",
         },
       },
     },

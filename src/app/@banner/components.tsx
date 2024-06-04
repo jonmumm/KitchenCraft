@@ -3,15 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { IsOnboaridngInComplete } from "./components.client";
 
-export function QuizBanner({
-  showInitial,
-  hasStartedQuiz,
-}: {
-  showInitial: boolean;
-  hasStartedQuiz: boolean;
-}) {
+export function QuizBanner({ hasStartedQuiz }: { hasStartedQuiz: boolean }) {
   return (
-    <IsOnboaridngInComplete initialValue={showInitial}>
+    <IsOnboaridngInComplete>
       <div className="crafting:hidden">
         <Link
           className="absolute top-0 left-0 -rotate-45 bg-green px-40 py-2 translate-y-16 -translate-x-40 hidden lg:flex flex-row gap-1 bg-green-500 shadow-xl z-20"

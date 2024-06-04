@@ -13,6 +13,10 @@ import { SuggestPlaceholderEvent } from "./app/suggest-placeholder.stream";
 import { SuggestProfileNamesEvent } from "./app/suggest-profile-names.stream";
 import { SuggestTagsEvent } from "./app/suggest-tags.stream";
 import { SuggestTokensEvent } from "./app/suggest-tokens.stream";
+import {
+  WelcomeMessageEvent,
+  WelcomeMessageOutput,
+} from "./app/welcome-message.stream";
 import ingredients from "./data/ingredients.json";
 import {
   AffiliateProductSchema,
@@ -404,6 +408,7 @@ export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
 export type BrowserSessionEvent =
   | WithCaller<AppEvent>
   | WithCaller<SystemEvent>
+  | WelcomeMessageEvent
   | SuggestTagsEvent
   | SuggestPlaceholderEvent
   | SuggestProfileNamesEvent
@@ -433,9 +438,11 @@ export type BrowserSessionContext = {
   selectedRecipeIds: string[];
   selectedListId?: string;
   equipment: EquipmentSettings;
+  profileName?: string;
   email?: string;
   diet: DietSettings;
   preferences: TasteSettings;
+  preferenceQuestionResults: Record<number, number>;
   timezone?: string;
   country?: string;
   continent?: string;
@@ -455,6 +462,7 @@ export type BrowserSessionContext = {
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
   feedItems: Record<string, FeedItemWithIds>;
+  welcome?: DeepPartial<WelcomeMessageOutput>;
   feedItemIds: string[];
   listIds: string[];
   listsById: Record<

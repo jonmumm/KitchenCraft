@@ -51,7 +51,7 @@ import { ShareButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { PageSessionSnapshotConditionalRenderer } from "@/components/util/page-session-snapshot-conditiona.renderer";
+import { PageSessionSelector } from "@/components/util/page-session-selector";
 import { Yield } from "@/components/yield";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
@@ -715,12 +715,12 @@ const selectIsUserPreferencesInitialized = (snapshot: PageSessionSnapshot) => {
 
 export const IsInOnboarding = ({ children }: { children: ReactNode }) => {
   return (
-    <PageSessionSnapshotConditionalRenderer
+    <PageSessionSelector
       selector={selectIsInOnboarding}
       initialValueOverride={false}
     >
       {children}
-    </PageSessionSnapshotConditionalRenderer>
+    </PageSessionSelector>
   );
 };
 

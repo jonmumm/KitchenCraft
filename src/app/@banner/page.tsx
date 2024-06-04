@@ -14,7 +14,6 @@ export default async function Page() {
   );
   assert(snapshot, "expected snapshot");
 
-  const show = snapshot.value.Onboarding !== "Summary";
   const hasStartedQuiz = snapshot.value.Onboarding !== "NotStarted";
-  return <QuizBanner hasStartedQuiz={hasStartedQuiz} showInitial={show} />;
+  return <QuizBanner hasStartedQuiz={hasStartedQuiz} />;
 }

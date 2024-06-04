@@ -16,6 +16,10 @@ export const selectNumFeedItemIds = createSelector(
   (items) => items.length
 );
 
+export const selectProfileName = (state: PageSessionSnapshot) => {
+  return state.context.browserSessionSnapshot?.context.profileName;
+};
+
 export const selectSuggestedProfileNames = (state: PageSessionSnapshot) => {
   return (
     state.context.browserSessionSnapshot?.context.suggestedProfileNames || []

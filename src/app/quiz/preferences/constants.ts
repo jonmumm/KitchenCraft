@@ -18,12 +18,6 @@ export const PREFERENCE_QUESTIONS = [
       "This helps KitchenCraft gauge your openness to experimenting with new ingredients versus preferring familiar staples.",
   },
   {
-    question: "How do you find new recipes?",
-    options: ["Online blogs", "Cookbooks"],
-    explanation:
-      "Knowing your preferred sources for recipes allows KitchenCraft to recommend recipes that match your discovery style.",
-  },
-  {
     question: "Do you prefer healthy recipes or comfort food?",
     options: ["Healthy recipes", "Comfort food"],
     explanation:
@@ -119,5 +113,12 @@ export const PREFERENCE_QUESTIONS = [
     options: ["Often", "Rarely"],
     explanation:
       "This helps KitchenCraft determine if we should include breakfast recipes in your recommendations.",
+  },
+  {
+    question:
+      "Do you typically have more time to cook in the mornings or evenings?",
+    options: ["Mornings", "Evenings"],
+    explanation:
+      "Knowing your preferred cooking times helps KitchenCraft recommend recipes that fit your schedule.",
   },
 ];

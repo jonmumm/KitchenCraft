@@ -2,6 +2,7 @@ import { getBrowserSessionActorClient } from "@/lib/auth/session";
 import { getBrowserSessionId } from "@/lib/browser-session";
 import { assert } from "@/lib/utils";
 import { redirect } from "next/navigation";
+import { matchesState } from "xstate";
 
 export const dynamic = "force-dynamic";
 
@@ -16,14 +17,13 @@ export default async function Page() {
   );
   assert(snapshot, "expected snapshot");
 
-  switch (snapshot.value.Onboarding) {
-    case "Experience":
-      return redirect("/quiz/experience");
-    case "Preferences":
-      return redirect("/quiz/preferences");
-    case "Summary":
-      return redirect("/quiz/summary");
-    default:
-      return redirect("/quiz/intro")
+  if (matchesState({ Onboarding: "Experience" }, snapshot.value)) {
+    return redirect("/quiz/experience");
+  } else if (matchesState({ Onboarding: "Preferences" }, snapshot.value)) {
+    return redirect("/quiz/preferences");
+  } else if (matchesState({ Onboarding: "Summary" }, snapshot.value)) {
+    return redirect("/quiz/summary");
+  } else {
+    return redirect("/quiz/intro");
   }
 }
