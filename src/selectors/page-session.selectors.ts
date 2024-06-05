@@ -75,3 +75,15 @@ export const createRecipeIsSelectedSelector =
       id
     );
   };
+
+export const selectSuggestedFeedTopics = (state: PageSessionSnapshot) => {
+  return (
+    state.context.browserSessionSnapshot?.context.suggestedFeedTopics
+  );
+};
+
+export const selectSelectedFeedTopics = (state: PageSessionSnapshot) => {
+  return (
+    state.context.browserSessionSnapshot?.context.selectedFeedTopics
+  );
+};

@@ -6,6 +6,7 @@ import { PostHog } from "posthog-node";
 import { Observable } from "rxjs";
 import { AnyStateMachine, SnapshotFrom } from "xstate";
 import type { z } from "zod";
+import { FeedTopicsEvent } from "./app/feed-topics.stream";
 import { HomepageCategoriesEvent } from "./app/homepage-categories.stream";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
 import { SuggestIngredientsEvent } from "./app/suggest-ingredients.stream";
@@ -408,6 +409,7 @@ export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
 export type BrowserSessionEvent =
   | WithCaller<AppEvent>
   | WithCaller<SystemEvent>
+  | FeedTopicsEvent
   | WelcomeMessageEvent
   | SuggestTagsEvent
   | SuggestPlaceholderEvent
@@ -456,6 +458,8 @@ export type BrowserSessionContext = {
   regionCode?: string;
   suggestedIngredients: Array<string>;
   suggestedTags: Array<string>;
+  suggestedFeedTopics?: Array<string>;
+  selectedFeedTopics: Array<string>;
   lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
   suggestedProfileNames: string[];
   previousSuggestedProfileNames: string[];

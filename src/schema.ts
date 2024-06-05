@@ -1076,7 +1076,13 @@ const SelectQuestionOptionEventSchema = z.object({
   optionIndex: z.number(),
 });
 
+const SelectTopicEventSchema = z.object({
+  type: z.literal("SELECT_TOPIC"),
+  topic: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  SelectTopicEventSchema,
   SelectQuestionOptionEventSchema,
   RefreshFeedEventSchema,
   LoadMoreEventSchema,

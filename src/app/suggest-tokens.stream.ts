@@ -31,6 +31,7 @@ export class SuggestTokensStream extends StructuredObjectStream<
     timeContext: string;
     personalizationContext: string;
   }): Promise<string> {
+    console.log("IN", input);
     return `${input.timeContext} ${input.personalizationContext}`;
   }
 
@@ -41,10 +42,6 @@ export class SuggestTokensStream extends StructuredObjectStream<
     const TEMPLATE = `
 Given the provided context about the current datetime, user's preferences and geographical information, suggest a set of word tokens to be displayed back to the user as buttons they can tap to initiate a prompt describing requirements for a recipe. Suggestions should be primarily ingredients, but also include things like kitchen equipment, cooking techniques, measurements, unit preferences, timing preferences, serving size preferences, among other things.
 
-Do not include any of the same ingredients that are in the user prompt.
-
-Format the response in YAML with a single key 'tokens' and then the list of tokens. Return back at least 6 tokens and at most 12. Return nothing else but the formatted YAML.
-    
 Be inspired from but not limited to the the lists below.
 
 // Ingredients

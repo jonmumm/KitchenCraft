@@ -63,18 +63,14 @@
 
 @layer base {
   :root {
-    --color-primary: 278 71.6% 47.05%;
+    /* --color-primary: 278 71.6% 47.05%;
     --color-success: 22 163 74;
-    --color-neutral: 100 116 139;
-    --fallback-n: rgb(var(--color-neutral));
-    --fallback-p: rgb(var(--color-success) / 1);
-    /* --fallback-p: rgb(var(--color-success)); */
+    --color-neutral: 100 116 139; */
     --fallback-pc: white;
     --fallback-bc: white;
 
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -84,6 +80,12 @@
 
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
+    /* --fallback-p: oklch(var(--primary)); */
+
+    --color-green-700: 21 128 61;
+    --color-slate-700: 51 65 86;
+    --fallback-n: rgb(var(--color-slate-700) / 1);
+    --fallback-p: rgb(var(--color-green-700) / 1);
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;

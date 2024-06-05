@@ -31,10 +31,14 @@ import { useSessionMatchesState } from "@/hooks/useSessionMatchesState";
 import { useSessionMatchesStateHandler } from "@/hooks/useSessionMatchesStateHandler";
 import {
   selectProfileName,
+  selectSelectedFeedTopics,
+  selectSuggestedFeedTopics,
   selectSuggestedProfileNames,
 } from "@/selectors/page-session.selectors";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useStore } from "@nanostores/react";
 import { RefreshCwIcon } from "lucide-react";
+import { atom } from "nanostores";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -54,6 +58,9 @@ export default function Results() {
   const [isLoadingUsernameResponse, setIsLoadingUsernameResponse] =
     useState(false);
 
+  const isSelectingTopics = useSessionMatchesState({
+    Onboarding: { Summary: "Topics" },
+  });
   const isEmailAddressInUse = useSessionMatchesState({
     Onboarding: { Summary: { Email: "InUse" } },
   });
@@ -63,7 +70,7 @@ export default function Results() {
   const isOnEmail = useSessionMatchesState({
     Onboarding: { Summary: "Email" },
   });
-  const isWelcomeEmailSent = !isOnEmail;
+  const isWelcomeEmailSent = !isOnEmail && !isSelectingTopics;
 
   const [isEmailInputComplete, setIsEmailInputComplete] = useState(false);
   const emailForm = useForm({
@@ -106,28 +113,6 @@ export default function Results() {
 
   const onSubmitEmail = useCallback(async () => {
     send({ type: "SUBMIT" });
-    // setIsLoadingEmailResponse(true);
-    // try {
-    //   // Three possible response
-    //   // 1 -
-
-    //   // Simulate API call
-    //   console.log("Saving email:", data.email);
-    //   setIsEmailInputComplete(true);
-
-    //   setTimeout(() => {
-    //     window.scrollTo({
-    //       top: document.body.scrollHeight,
-    //       behavior: "smooth",
-    //     });
-    //   }, 20);
-
-    //   // Redirect to another page if needed
-    // } catch (error) {
-    //   console.error("Saving email failed:", error);
-    // } finally {
-    //   setIsLoadingEmailResponse(false);
-    // }
   }, [send]);
 
   const onSubmitUsername = useCallback(async () => {
@@ -143,119 +128,149 @@ export default function Results() {
 
   return (
     <div className="max-w-md mx-auto w-full px-4 flex flex-col gap-4 mb-8">
-      {!isComplete && (
-        <div className="flex flex-col justify-center h-full md:mx-auto rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 w-full p-4">
-          <h2 className="text-2xl font-semibold mb-2 leading-10">
-            <AnimatedText
-              text="Thank You"
-              baseSpeed={60}
-              punctDelay={600}
-              delay={0}
-            />
-          </h2>
-          <div className="text-lg mb-4 font-semibold leading-7">
-            <AnimatedText
-              text="For sharing your preferences"
-              baseSpeed={50}
-              punctDelay={300}
-              delay={500}
-            />
-          </div>
-          <div className="text-lg font-semibold leading-7 animate-pulse">
-            <AnimatedText
-              text="Your Chef Profile is building."
-              baseSpeed={50}
-              punctDelay={300}
-              delay={2000}
-            />
-          </div>
-        </div>
-      )}
-      <Delay delay={!isWelcomeEmailSent ? 3000 : 0}>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {isSendingWelcomeEmail ? (
-                <span className="animate-pulse">Sending Welcome Email...</span>
-              ) : isWelcomeEmailSent ? (
-                <>Email Sent!</>
-              ) : (
-                <>Save Recipes</>
-              )}
-            </CardTitle>
-            <CardDescription>
-              {isWelcomeEmailSent ? (
-                <>
-                  Click the link in your email later to finish confirming your
-                  account.
-                </>
-              ) : isSendingWelcomeEmail ? (
-                <>Confirmation email coming your way.</>
-              ) : (
-                <>
-                  Provide an email to save your preferences, recipes, and lists.
-                </>
-              )}
-            </CardDescription>
-          </CardHeader>
-          {!isSendingWelcomeEmail && !isWelcomeEmailSent && (
-            <CardContent>
-              <Form {...emailForm}>
-                <form
-                  onSubmit={emailForm.handleSubmit(onSubmitEmail)}
-                  className="space-y-8"
-                >
-                  <FormField
-                    control={emailForm.control}
-                    name="email"
-                    render={({ field, fieldState }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            autoFocus
-                            autoComplete="email"
-                            disabled={
-                              isLoadingEmailResponse || isEmailInputComplete
-                            }
-                            type="email"
-                            placeholder="you@example.com"
-                            {...field}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <FormMessage>{fieldState.error.message}</FormMessage>
-                        )}{" "}
-                        {isEmailAddressInUse && (
-                          <FormMessage className="text-error">
-                            Email is already in use.{" "}
-                            <Link
-                              className="text-foreground underline font-semibold"
-                              href="/auth/signin"
-                            >
-                              Sign In
-                            </Link>
-                          </FormMessage>
-                        )}
-                      </FormItem>
-                    )}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {isSelectingTopics ? "Select Topics" : "Selected Topics"}
+          </CardTitle>
+          <CardDescription>
+            {isSelectingTopics
+              ? "This will help inform what recipes show in your daily cookbook."
+              : "This will help inform suggestions in your daily coookbook."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isSelectingTopics && <SuggestedFeedTopics />}
+          {!isSelectingTopics && <SelectedFeedTopics />}
+          {isSelectingTopics && <FeedTopicSubmitButton />}
+        </CardContent>
+      </Card>
+      {!isSelectingTopics && (
+        <>
+          {!isComplete && (
+            <Delay delay={0}>
+              <div className="flex flex-col justify-center h-full md:mx-auto rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 w-full p-4">
+                <h2 className="text-2xl font-semibold mb-2 leading-10">
+                  <AnimatedText
+                    text="Thank You"
+                    baseSpeed={60}
+                    punctDelay={600}
+                    delay={0}
                   />
-                  {!isEmailInputComplete && (
-                    <Button
-                      disabled={isLoadingEmailResponse || isEmailAddressInUse}
-                      type="submit"
-                      className="w-full"
-                      size="xl"
-                    >
-                      {isLoadingEmailResponse ? "Loading..." : "Submit"}
-                    </Button>
-                  )}
-                </form>
-              </Form>
-            </CardContent>
+                </h2>
+                <div className="text-lg mb-4 font-semibold leading-7">
+                  <AnimatedText
+                    text="For sharing your preferences"
+                    baseSpeed={50}
+                    punctDelay={300}
+                    delay={500}
+                  />
+                </div>
+                <div className="text-lg font-semibold leading-7 animate-pulse">
+                  <AnimatedText
+                    text="Your Chef Profile is building."
+                    baseSpeed={50}
+                    punctDelay={300}
+                    delay={2000}
+                  />
+                </div>
+              </div>
+            </Delay>
           )}
-        </Card>
-      </Delay>
+          <Delay delay={!isWelcomeEmailSent ? 3000 : 0}>
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {isSendingWelcomeEmail ? (
+                    <span className="animate-pulse">
+                      Sending Welcome Email...
+                    </span>
+                  ) : isWelcomeEmailSent ? (
+                    <>Email Sent!</>
+                  ) : (
+                    <>Save Recipes</>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  {isWelcomeEmailSent ? (
+                    <>
+                      Click the link in your email later to finish confirming
+                      your account.
+                    </>
+                  ) : isSendingWelcomeEmail ? (
+                    <>Confirmation email coming your way.</>
+                  ) : (
+                    <>
+                      Provide an email to save your preferences, recipes, and
+                      lists.
+                    </>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              {!isSendingWelcomeEmail && !isWelcomeEmailSent && (
+                <CardContent>
+                  <Form {...emailForm}>
+                    <form
+                      onSubmit={emailForm.handleSubmit(onSubmitEmail)}
+                      className="space-y-8"
+                    >
+                      <FormField
+                        control={emailForm.control}
+                        name="email"
+                        render={({ field, fieldState }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input
+                                autoFocus
+                                autoComplete="email"
+                                disabled={
+                                  isLoadingEmailResponse || isEmailInputComplete
+                                }
+                                type="email"
+                                placeholder="you@example.com"
+                                {...field}
+                              />
+                            </FormControl>
+                            {fieldState.error && (
+                              <FormMessage>
+                                {fieldState.error.message}
+                              </FormMessage>
+                            )}{" "}
+                            {isEmailAddressInUse && (
+                              <FormMessage className="text-error">
+                                Email is already in use.{" "}
+                                <Link
+                                  className="text-foreground underline font-semibold"
+                                  href="/auth/signin"
+                                >
+                                  Sign In
+                                </Link>
+                              </FormMessage>
+                            )}
+                          </FormItem>
+                        )}
+                      />
+                      {!isEmailInputComplete && (
+                        <Button
+                          disabled={
+                            isLoadingEmailResponse || isEmailAddressInUse
+                          }
+                          type="submit"
+                          className="w-full"
+                          size="xl"
+                        >
+                          {isLoadingEmailResponse ? "Loading..." : "Submit"}
+                        </Button>
+                      )}
+                    </form>
+                  </Form>
+                </CardContent>
+              )}
+            </Card>
+          </Delay>
+        </>
+      )}
       {isWelcomeEmailSent && (
         <Delay delay={0}>
           <Card>
@@ -371,6 +386,21 @@ export default function Results() {
   );
 }
 
+const FeedTopicSubmitButton = () => {
+  const selection = useStore(selected$);
+  const count = Object.keys(selection).length;
+  return (
+    <Button
+      className="w-full mt-6"
+      size="xl"
+      event={{ type: "SUBMIT" }}
+      disabled={count < 3}
+    >
+      {count >= 3 ? <>Submit</> : <>Pick at 3 or more</>}
+    </Button>
+  );
+};
+
 const AnimatedChefProfile = () => {
   const router = useRouter();
   const send = useSend();
@@ -467,5 +497,67 @@ const ProfileNameForm = () => {
     <span className="font-semibold">
       {profileName === "" ? "PROFILE-NAME" : profileName}
     </span>
+  );
+};
+
+const SelectedFeedTopics = () => {
+  const selectedFeedTopics = usePageSessionSelector(selectSelectedFeedTopics);
+
+  const Item = ({ index }: { index: number }) => {
+    const topic = selectedFeedTopics && selectedFeedTopics[index];
+
+    return <Badge variant={"default"}>{topic}</Badge>;
+  };
+
+  return selectedFeedTopics ? (
+    <div className="flex flex-row gap-2 flex-wrap">
+      {selectedFeedTopics.map((item, index) => {
+        return <Item key={item} index={index} />;
+      })}
+    </div>
+  ) : (
+    <></>
+  );
+};
+
+const selected$ = atom<Record<string, boolean>>({});
+
+const SuggestedFeedTopics = () => {
+  const suggestedFeedTopics = usePageSessionSelector(selectSuggestedFeedTopics);
+  const items = new Array(20).fill(0);
+
+  // todo fix bug here around initial selections not being shown as selected
+  const Item = ({ index, initialValue: boolean }: { index: number, initialValue: boolean }) => {
+    const topic = suggestedFeedTopics && suggestedFeedTopics[index];
+    const selections = useStore(selected$);
+    const isSelected = !!topic && selections[topic];
+    useEventHandler("SELECT_TOPIC", (event) => {
+      if (event.topic === topic) {
+        const selected = selected$.get();
+        selected$.set({
+          ...selected,
+          [topic]: !selected[topic],
+        });
+      }
+    });
+
+    return topic ? (
+      <Badge
+        event={{ type: "SELECT_TOPIC", topic }}
+        variant={!isSelected ? "outline" : "default"}
+      >
+        {topic}
+      </Badge>
+    ) : (
+      <Skeleton className="w-10 h-4" />
+    );
+  };
+
+  return (
+    <div className="flex flex-row gap-2 flex-wrap">
+      {items.map((item, index) => {
+        return <Item key={index} index={index} />;
+      })}
+    </div>
   );
 };

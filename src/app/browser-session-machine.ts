@@ -17,6 +17,7 @@ import {
   spawnChild,
 } from "xstate";
 import { z } from "zod";
+import { FeedTopicsStream } from "./feed-topics.stream";
 import { HomepageCategoriesStream } from "./homepage-categories.stream";
 import {
   SuggestIngredientStream,
@@ -79,6 +80,16 @@ export const browserSessionMachine = setup({
         return "";
       }
     ),
+    generateFeedTopics: fromEventObservable(
+      ({
+        input,
+      }: {
+        input: {
+          personalizationContext: string;
+          preferences: Record<number, number>;
+        };
+      }) => new FeedTopicsStream().getObservable(input)
+    ),
     generateWelcomeMessage: fromEventObservable(
       ({
         input,
@@ -97,6 +108,8 @@ export const browserSessionMachine = setup({
         input: {
           personalizationContext: string;
           timeContext: string;
+          preferences: Record<number, number>;
+          pastTopics: Array<string>;
         };
       }) => new HomepageCategoriesStream().getObservable(input)
     ),
@@ -190,6 +203,7 @@ export const browserSessionMachine = setup({
     preferenceQuestionResults: {},
     suggestedTags: [],
     lastRunPersonalizationContext: undefined,
+    selectedFeedTopics: [],
     suggestedPlaceholders: [],
     suggestedTokens: [],
     suggestedProfileNames: [],
@@ -410,6 +424,8 @@ export const browserSessionMachine = setup({
                   return {
                     personalizationContext,
                     timeContext: getTimeContext(context.timezone),
+                    preferences: context.preferenceQuestionResults,
+                    pastTopics: context.selectedFeedTopics,
                   };
                 },
               },
@@ -705,6 +721,7 @@ export const browserSessionMachine = setup({
                   const personalizationContext =
                     getPersonalizationContext(context);
 
+                  console.log({ personalizationContext });
                   return {
                     personalizationContext,
                     timeContext: getTimeContext(context.timezone),
@@ -770,7 +787,7 @@ export const browserSessionMachine = setup({
         },
         Summary: {
           onDone: "Complete",
-          initial: "Email",
+          initial: "Topics",
           on: {
             SUGGEST_PROFILE_NAME_PROGRESS: {
               actions: assign({
@@ -823,6 +840,37 @@ export const browserSessionMachine = setup({
             },
           },
           states: {
+            Topics: {
+              entry: spawnChild("generateFeedTopics", {
+                input: ({ context }) => {
+                  const personalizationContext =
+                    getPersonalizationContext(context);
+
+                  return {
+                    personalizationContext,
+                    preferences: context.preferenceQuestionResults,
+                  };
+                },
+              }),
+              on: {
+                SELECT_TOPIC: {
+                  actions: assign({
+                    selectedFeedTopics: ({ context, event }) => [
+                      ...context.selectedFeedTopics,
+                      event.topic,
+                    ],
+                  }),
+                },
+                FEED_TOPICS_PROGRESS: {
+                  actions: assign({
+                    suggestedFeedTopics: ({ event }) => event.data.topics,
+                  }),
+                },
+                SUBMIT: {
+                  target: "Email",
+                },
+              },
+            },
             Email: {
               onDone: "ProfileName",
               on: {
@@ -950,55 +998,6 @@ export const browserSessionMachine = setup({
                 },
               },
             },
-            // WelcomeMessage: {
-            //   on: {
-            //     WELCOME_MESSAGE_PROGRESS: {
-            //       actions: [
-            //         console.log,
-            //         assign({
-            //           welcome: ({ event }) => event.data,
-            //         }),
-            //       ],
-            //     },
-            //   },
-            //   initial: "Generating",
-            //   states: {
-            //     Generating: {
-            //       on: {
-            //         WELCOME_MESSAGE_COMPLETE: "Inputting",
-            //       },
-            //       invoke: {
-            //         src: "generateWelcomeMessage",
-            //         input: ({ context, event }) => {
-            //           assert(
-            //             context.profileName,
-            //             "expected profileName when generating welcome message"
-            //           );
-            //           return {
-            //             profileName: context.profileName,
-            //             preferences: context.preferenceQuestionResults,
-            //             personalizationContext:
-            //               getPersonalizationContext(context),
-            //           };
-            //         },
-            //         onError: "Error",
-            //       },
-            //     },
-            //     Error: {
-            //       entry: console.error,
-            //     },
-            //     Inputting: {
-            //       on: {
-            //         SUBMIT: {
-            //           target: "Complete",
-            //         },
-            //       },
-            //     },
-            //     Complete: {
-            //       type: "final",
-            //     },
-            //   },
-            // },
             Complete: {
               type: "final",
             },

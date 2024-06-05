@@ -3,6 +3,7 @@ import { StructuredObjectStream } from "@/lib/structured-object-stream";
 import { FeedItemSchema } from "@/schema";
 import { DeepPartial } from "ai";
 import { z, ZodSchema } from "zod";
+import { getPreferences } from "./quiz/preferences/constants";
 
 export const HomepageCategoriesOutputSchema = z.object({
   items: z
@@ -25,6 +26,8 @@ export type HomepageCategoriesInput = {
   recentViewed?: string[];
   personalizationContext: string;
   timeContext: string;
+  preferences: Record<number, number>;
+  pastTopics: string[];
 };
 
 export const HOMEPAGE_CATEGORIES = "HOMEPAGE_CATEGORIES";
@@ -62,11 +65,16 @@ export class HomepageCategoriesStream extends StructuredObjectStream<
 const HOMEPAGE_CATEGORY_USER_TEMPLATE = (input: HomepageCategoriesInput) => `
 ${input.personalizationContext}
 ${input.timeContext}
+${getPreferences(input.preferences)}
 `;
 
 const HOMEPAGE_CATEGORIES_SYSTEM_TEMPLATE = (
   input: HomepageCategoriesInput
 ) => `Help generate a feed of recipes, grouped by categories. Ther user will provide a profile about themselves, use that to help guide/inspire suggestions for categories and recipes.
+
+Here are some past categories that were interesting for this user that you can draw inspiration from: ${input.pastTopics.join(
+  ", "
+)}
 
 Example output:
 

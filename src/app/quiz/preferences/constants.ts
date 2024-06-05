@@ -122,3 +122,12 @@ export const PREFERENCE_QUESTIONS = [
       "Knowing your preferred cooking times helps KitchenCraft recommend recipes that fit your schedule.",
   },
 ];
+
+export const getPreferences = (preferences: Record<number, number>): string => {
+  return Object.entries(preferences)
+    .map(([questionIndex, answerIndex]) => {
+      const question = PREFERENCE_QUESTIONS[Number(questionIndex)]!;
+      return `${question.question} ${question.options[Number(answerIndex)]}`;
+    })
+    .join("\n");
+};

@@ -18,7 +18,6 @@ export const SessionSnapshotConditionalRenderer = (
     typeof props.initialValueOverride === "boolean"
       ? props.initialValueOverride
       : (active && !props.not) || (props.not && !active);
-  console.log(props.matchedState, { value, active, not: props.not });
 
   return value ? <>{props.children}</> : <></>;
 };
