@@ -527,7 +527,13 @@ const SuggestedFeedTopics = () => {
   const items = new Array(20).fill(0);
 
   // todo fix bug here around initial selections not being shown as selected
-  const Item = ({ index, initialValue: boolean }: { index: number, initialValue: boolean }) => {
+  const Item = ({
+    index,
+    initialValue: boolean,
+  }: {
+    index: number;
+    initialValue: boolean;
+  }) => {
     const topic = suggestedFeedTopics && suggestedFeedTopics[index];
     const selections = useStore(selected$);
     const isSelected = !!topic && selections[topic];
@@ -556,7 +562,13 @@ const SuggestedFeedTopics = () => {
   return (
     <div className="flex flex-row gap-2 flex-wrap">
       {items.map((item, index) => {
-        return <Item key={index} index={index} />;
+        return (
+          <Item
+            key={index}
+            index={index}
+            initialValue={!!selected$.get()[item]}
+          />
+        );
       })}
     </div>
   );
