@@ -11,6 +11,8 @@ import { Separator } from "@/components/display/separator";
 import { FavoriteButton } from "@/components/favorite-button";
 import { Button } from "@/components/input/button";
 import { PrintButton } from "@/components/print-button";
+import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
+import { RecipeSelectButton } from "@/components/recipe-select-button";
 import { ShareButton } from "@/components/share-button";
 import { db } from "@/db";
 import {
@@ -56,7 +58,6 @@ import {
   upsertRecipeRating,
 } from "./rating/queries";
 import { RatingValue } from "./rating/types";
-import { RecipeSelectButton } from "@/components/recipe-select-button";
 
 // export const maxDuration = 300;
 // export const dynamic = "force-dynamic";
@@ -375,6 +376,7 @@ export default async function Page(props: Props) {
                   <ShareButton slug={slug} name={name} />
                   <FavoriteButton slug={recipe?.slug} />
                   <RecipeSelectButton id={recipe.id} />
+                <RecipeMoreDropdownButton />
                 </div>
                 <Separator />
                 {/* {recipeUserId && recipe?.createdAt && (

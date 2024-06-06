@@ -31,7 +31,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
 import {
@@ -42,6 +42,7 @@ import {
 import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
 import { PrintButton } from "@/components/print-button";
+import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
 import { RecipeSelectButton } from "@/components/recipe-select-button";
 import { useScrollLock } from "@/components/scroll-lock";
 import { DietCard } from "@/components/settings/diet-card";
@@ -406,6 +407,7 @@ const CurrentListCarouselItem = ({
                   <FavoriteButton slug={recipe?.slug} />
                   <ShareButton slug={recipe.slug} name={recipe.name} />
                   <RecipeSelectButton id={recipe.id} />
+                  <RecipeMoreDropdownButton />
                 </div>
                 <Separator />
               </>

@@ -3,8 +3,8 @@
 import { Badge } from "@/components/display/badge";
 import { Card, CardDescription, CardTitle } from "@/components/display/card";
 import {
-    Collapsible,
-    CollapsibleContent,
+  Collapsible,
+  CollapsibleContent,
 } from "@/components/display/collapsible";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
@@ -14,6 +14,7 @@ import { Button } from "@/components/input/button";
 import EventTrigger from "@/components/input/event-trigger";
 import { Instructions } from "@/components/instructions";
 import { PrintButton } from "@/components/print-button";
+import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
 import { RecipeSelectButton } from "@/components/recipe-select-button";
 import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
 import ScrollLockComponent from "@/components/scroll-lock";
@@ -31,11 +32,11 @@ import { createRecipeIsSelectedSelector } from "@/selectors/page-session.selecto
 import { ExtractAppEvent } from "@/types";
 import { Portal } from "@radix-ui/react-portal";
 import {
-    ExternalLinkIcon,
-    ScrollIcon,
-    ShoppingBasketIcon,
-    XCircleIcon,
-    XIcon,
+  ExternalLinkIcon,
+  ScrollIcon,
+  ShoppingBasketIcon,
+  XCircleIcon,
+  XIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useCallback, useMemo, useState } from "react";
@@ -217,6 +218,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 <FavoriteButton slug={recipe?.slug} />
                 <ShareButton slug={recipe.slug} name={recipe.name} />
                 <RecipeSelectButton id={recipe.id} />
+                <RecipeMoreDropdownButton />
               </div>
             )}
             {/* <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2"></div> */}

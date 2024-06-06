@@ -52,6 +52,7 @@ import { ShareButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
+import { RecipeMoreDropdownButton } from "./recipe-more-dropdown-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -480,6 +481,7 @@ const FeedCardRecipeItem = (input: {
                 itemIndex={input.itemIndex}
                 recipeIndex={input.recipeIndex}
               />
+              <RecipeMoreDropdownButton />
               {/* <PrintButton slug={recipe?.slug} /> */}
             </div>
           )}

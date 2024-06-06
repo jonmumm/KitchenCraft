@@ -39,7 +39,7 @@ export const RecipeSelectButton = ({ id }: { id: string | undefined }) => {
           className="basis-32"
           event={{ type: "UNSELECT", id }}
         >
-          Unselect <CircleSlash2Icon size={14} className="ml-2" />
+          Unselect <CircleSlash2Icon size={16} className="ml-2" />
         </Button>
       )}
     </>
