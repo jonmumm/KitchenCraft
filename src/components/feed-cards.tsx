@@ -42,7 +42,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "./input/dropdown-menu";
 import { Instructions } from "./instructions";
 import { PrintButton } from "./print-button";
@@ -113,37 +113,76 @@ const FeedCardItem = ({ index }: { index: number }) => {
           <DropdownMenuContent className="w-56 mr-2">
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <span role="img" aria-label="more-like-this" className="mr-2">
-                  👍
-                </span>
-                More like this
+                <div>
+                  <span role="img" aria-label="more-like-this" className="mr-2">
+                    👍
+                  </span>
+                  <span className="font-semibold">More</span> like this
+                </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <span role="img" aria-label="less-like-this" className="mr-2">
-                  👎
-                </span>
-                Less like this
+                <div>
+                  <span role="img" aria-label="less-like-this" className="mr-2">
+                    👎
+                  </span>
+                  <span className="font-semibold">Less</span> like this
+                </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                <span role="img" aria-label="hide-this" className="mr-2">
-                  🙈
-                </span>
-                Hide this
+                <div>
+                  <span role="img" aria-label="hide-this" className="mr-2">
+                    🙈
+                  </span>
+                  <span className="font-semibold">Hide</span> this
+                </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
-                {/* <Button
-                  variant="outline"
-                  size="sm"
-                  event={{
-                    type: "SELECT_RECIPES",
-                    recipeIds:
-                      feedItem?.recipes?.map((recipe) => recipe?.id!) || [],
-                  }}
-                > */}
-                Select ({feedItem?.recipes?.length || 0}){/* </Button> */}
+                <div>
+                  <span role="img" aria-label="select" className="mr-2">
+                    ✔️
+                  </span>
+                  <span className="font-semibold">Select</span> (
+                  {feedItem?.recipes?.length || 0})
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-muted-foreground">
+                <div>
+                  <span
+                    role="img"
+                    aria-label="add-to-make-later"
+                    className="mr-2"
+                  >
+                    ⏰
+                  </span>
+                  <span className="font-semibold">
+                    Add ({feedItem?.recipes?.length || 0}) to{" "}
+                  </span>
+                  <span className="text-foreground font-semibold">
+                    Make Later
+                  </span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-muted-foreground">
+                <div>
+                  <span
+                    role="img"
+                    aria-label="add-to-favorites"
+                    className="mr-2"
+                  >
+                    ❤️
+                  </span>
+                  <span className="font-semibold">
+                    Add ({feedItem?.recipes?.length || 0}) to{" "}
+                  </span>
+                  <span className="text-foreground font-semibold">
+                    Favorites
+                  </span>
+                </div>
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
