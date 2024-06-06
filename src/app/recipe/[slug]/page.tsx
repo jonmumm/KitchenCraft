@@ -8,7 +8,11 @@ import { Avatar, RobotAvatarImage } from "@/components/display/avatar";
 import { Badge } from "@/components/display/badge";
 import MarkdownRenderer from "@/components/display/markdown";
 import { Separator } from "@/components/display/separator";
+import { FavoriteButton } from "@/components/favorite-button";
 import { Button } from "@/components/input/button";
+import { PrintButton } from "@/components/print-button";
+import { SelectButton } from "@/components/select-button";
+import { ShareButton } from "@/components/share-button";
 import { db } from "@/db";
 import {
   findLatestRecipeVersion,
@@ -32,7 +36,6 @@ import {
 } from "@/modules/media-gallery/components.client";
 import {
   AxeIcon,
-  CameraIcon,
   ClockIcon,
   GitForkIcon,
   LightbulbIcon,
@@ -46,8 +49,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { ShareButton } from "../components.client";
-import { SaveButton, TipsAndTricksContent } from "./components.client";
+import { TipsAndTricksContent } from "./components.client";
 import { getAllVersionsOfRecipeBySlug } from "./history/queries";
 import { Rating } from "./rating/components.client";
 import {
@@ -55,7 +57,6 @@ import {
   upsertRecipeRating,
 } from "./rating/queries";
 import { RatingValue } from "./rating/types";
-import { UploadMediaButton } from "./upload-media-button";
 
 // export const maxDuration = 300;
 // export const dynamic = "force-dynamic";
@@ -348,7 +349,7 @@ export default async function Page(props: Props) {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1 hidden-print">
+                  {/* <div className="flex flex-col gap-1 hidden-print">
                     <SaveButton initialIsSaved={false} />
                     <UploadMediaButton slug={slug}>
                       <CameraIcon />
@@ -358,69 +359,23 @@ export default async function Page(props: Props) {
                         <MessageSquareIcon />
                       </Button>
                     </Link>
-                    {/* <Button
-                  event={{ type: "REMIX", slug }}
-                  variant="outline"
-                  aria-label="Remix"
-                >
-                  <ShuffleIcon />
-                </Button> */}
-                    {/* <Link href={`/recipe/${slug}/edit`}>
-                  <Button
-                    variant="outline"
-                    aria-label="Remix"
-                    className="w-full"
-                  >
-                    <EditIcon />
-                  </Button>
-                </Link> */}
-                    {/* <Link href={"#history"}>
-                      <Button
-                        variant="outline"
-                        aria-label="History"
-                        className="w-full"
-                      >
-                        <GitForkIcon />
-                      </Button>
-                    </Link> */}
                     <ShareButton
                       slug={slug}
                       name={name}
                       description={description}
                     />
-                  </div>
+                  </div> */}
                 </div>
-                {/*
-            <Separator />
-            <div className="flex flex-col gap-2 justify-center items-center px-5" >
-              <h2 className="font-semibold flex-1 truncate min-w-0">{name}</h2>
-              <div className="flex flex-row gap-2 justify-center items-center flex-wrap">
-                <Button variant="outline" className="flex flex-row gap-2">
-                  Remix <ShuffleIcon size={16} />
-                </Button>
-                <Link href="#assistant">
-                  <Button variant="outline" className="flex flex-row gap-2">
-                    Assistant <MessagesSquareIcon size={16} />
-                  </Button>
-                </Link>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="outline">
-                      <MoreVerticalIcon />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem>Upload Photo</DropdownMenuItem>
-                    <DropdownMenuItem>Print</DropdownMenuItem>
-                    <DropdownMenuItem>Share</DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <GitForkIcon /> History
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div> */}
+                <Separator />
+                <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-between px-4 w-full">
+                  <ShareButton slug={slug} name={name} />
+                  <SelectButton id={recipe.id} />
+                  {/* <Button className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white">
+                    Select <CheckIcon className="ml-2" />
+                  </Button> */}
+                  <FavoriteButton slug={recipe?.slug} />
+                  <PrintButton slug={recipe?.slug} />
+                </div>
                 <Separator />
                 {/* {recipeUserId && recipe?.createdAt && (
               <>
