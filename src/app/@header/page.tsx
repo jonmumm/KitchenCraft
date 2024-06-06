@@ -93,7 +93,7 @@ export default async function Page({}) {
               ⚡️ Instantly create personalized recipes.
             </p>
             <div className="flex flex-row gap-2 items-center">
-              <Highlight active={true}>
+              <Highlight active={false}>
                 <HighlightTarget>
                   <CraftCTA initialAutoFocus={!getIsMobile()} />
                 </HighlightTarget>

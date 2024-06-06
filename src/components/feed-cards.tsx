@@ -330,7 +330,7 @@ const FeedCardRecipeItem = (input: {
         </div>
         {!isInRecipeDetails ? (
           <>
-            <Button
+            {/* <Button
               event={
                 feedRecipe?.id
                   ? !isSelected
@@ -346,7 +346,7 @@ const FeedCardRecipeItem = (input: {
               size="icon"
             >
               <CheckIcon className={!isSelected ? "hidden" : "block"} />
-            </Button>
+            </Button> */}
           </>
         ) : (
           <div className="flex flex-col gap-2">
