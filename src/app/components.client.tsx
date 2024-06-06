@@ -121,6 +121,7 @@ import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
 import { AppSnapshot } from "./machine";
 import { PageSessionSnapshot } from "./page-session-machine";
+import { FavoriteButton } from "@/components/favorite-button";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -420,6 +421,7 @@ const CurrentListCarouselItem = ({
                       Unselect <CircleSlash2Icon className="ml-2" />
                     </Button>
                   )}
+                  <FavoriteButton slug={recipe?.slug} />
                   <PrintButton slug={recipe?.slug} />
                 </div>
                 <Separator />

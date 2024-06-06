@@ -85,6 +85,7 @@ import { SessionStoreSnapshot } from "../page-session-store-provider";
 import { PageSessionContext } from "../page-session-store.context";
 import { buildInput, isEqual } from "../utils";
 import { useAppContext } from "./hooks";
+import { FavoriteButton } from "@/components/favorite-button";
 //   selectIsCreating,
 //   selectIsRemixing,
 //   selectPromptLength,
@@ -703,6 +704,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                     Unselect <CircleSlash2Icon className="ml-2" />
                   </Button>
                 )}
+                <FavoriteButton slug={recipe?.slug} />
                 <PrintButton slug={recipe?.slug} />
               </div>
             )}

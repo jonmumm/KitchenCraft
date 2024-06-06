@@ -44,6 +44,7 @@ import { ShareButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
+import { FavoriteButton } from "./favorite-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -404,6 +405,7 @@ const FeedCardRecipeItem = (input: {
                   Unselect <CircleSlash2Icon className="ml-2" />
                 </Button>
               )}
+              <FavoriteButton slug={recipe?.slug} />
               <PrintButton slug={recipe?.slug} />
             </div>
           )}
