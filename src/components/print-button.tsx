@@ -2,25 +2,31 @@
 
 import { openAndPrintURL } from "@/lib/print";
 import { PrinterIcon } from "lucide-react";
-import { useCallback } from "react";
+import { ComponentProps, useCallback } from "react";
 import { Button } from "./input/button";
 
-export const PrintButton = ({ slug }: { slug?: string }) => {
+export const PrintButton = ({
+  slug,
+  variant,
+}: {
+  slug?: string;
+  variant?: ComponentProps<typeof Button>["variant"];
+}) => {
   const handleClick = useCallback(() => {
     openAndPrintURL(`${window.location.origin}/recipe/${slug}`);
   }, [slug]);
 
   if (!slug) {
     return (
-      <Button variant="ghost" disabled size="icon">
-        <PrinterIcon className="ml-2" />
+      <Button variant={"outline"} disabled size="icon">
+        <PrinterIcon />
       </Button>
     );
   }
 
   return (
-    <Button variant="ghost" onClick={handleClick} size="icon">
-      <PrinterIcon className="ml-2" />
+    <Button variant={"outline"} onClick={handleClick} size="icon">
+      <PrinterIcon />
     </Button>
   );
 };

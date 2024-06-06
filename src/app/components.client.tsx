@@ -23,6 +23,7 @@ import {
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
+import { FavoriteButton } from "@/components/favorite-button";
 import { Ingredients } from "@/components/ingredients";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
@@ -41,6 +42,7 @@ import {
 import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
 import { PrintButton } from "@/components/print-button";
+import { RecipeSelectButton } from "@/components/recipe-select-button";
 import { useScrollLock } from "@/components/scroll-lock";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
@@ -74,13 +76,11 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
-  CheckCircle2Icon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsUpDown,
   Circle,
-  CircleSlash2Icon,
   ExternalLinkIcon,
   HeartIcon,
   PlusCircleIcon,
@@ -89,7 +89,7 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { Inter } from "next/font/google";
 import Link from "next/link";
@@ -121,7 +121,6 @@ import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
 import { AppSnapshot } from "./machine";
 import { PageSessionSnapshot } from "./page-session-machine";
-import { FavoriteButton } from "@/components/favorite-button";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -404,23 +403,7 @@ const CurrentListCarouselItem = ({
               <>
                 <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
                   <ShareButton slug={recipe.slug} name={recipe.name} />
-                  {!isSelected ? (
-                    <Button
-                      size="icon"
-                      className="flex-1 md:flex-0 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
-                      event={{ type: "SELECT_RECIPE", id: recipe.id }}
-                    >
-                      Select <CheckCircle2Icon className="ml-2" />
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      event={{ type: "UNSELECT", id: recipe.id }}
-                    >
-                      Unselect <CircleSlash2Icon className="ml-2" />
-                    </Button>
-                  )}
+                  <RecipeSelectButton id={recipe.id} />
                   <FavoriteButton slug={recipe?.slug} />
                   <PrintButton slug={recipe?.slug} />
                 </div>

@@ -1,17 +1,10 @@
 "use client";
 
 import { Badge } from "@/components/display/badge";
-import { Card, CardDescription, CardTitle } from "@/components/display/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-} from "@/components/display/collapsible";
-import { Separator } from "@/components/display/separator";
-import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
-import { Ingredients } from "@/components/ingredients";
+import { Card } from "@/components/display/card";
+import { Skeleton } from "@/components/display/skeleton";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
-import EventTrigger from "@/components/input/event-trigger";
 import {
   Form,
   FormControl,
@@ -21,43 +14,24 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
-import { Instructions } from "@/components/instructions";
-import { PrintButton } from "@/components/print-button";
-import ScrollLockComponent from "@/components/scroll-lock";
-import { ShareButton } from "@/components/share-button";
-import { Tags } from "@/components/tags";
-import { Times } from "@/components/times";
-import { Yield } from "@/components/yield";
 import { useEventHandler } from "@/hooks/useEventHandler";
-import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { useSuggestedRecipeAtIndex } from "@/hooks/useSuggestedRecipeAtIndex";
 import { assert, cn, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, ListNameSchema } from "@/schema";
-import { createRecipeIsSelectedSelector } from "@/selectors/page-session.selectors";
-import { ExtractAppEvent } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
-import { Portal } from "@radix-ui/react-portal";
 import {
   CarrotIcon,
-  CheckIcon,
-  CircleSlash2Icon,
-  ExternalLinkIcon,
   MoveLeftIcon,
-  ScrollIcon,
-  ShoppingBasketIcon,
   TagIcon,
-  XCircleIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FC,
@@ -67,35 +41,20 @@ import {
   useContext,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
+  useSyncExternalStore
 } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { twc } from "react-twc";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { z } from "zod";
-import { RecipeDetailOverlay } from "../components.client";
 import { AppContext } from "../context";
-import { AppSnapshot } from "../machine";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { SessionStoreSnapshot } from "../page-session-store-provider";
 import { PageSessionContext } from "../page-session-store.context";
 import { buildInput, isEqual } from "../utils";
-import { useAppContext } from "./hooks";
-import { FavoriteButton } from "@/components/favorite-button";
-import { RecipeSelectButton } from "@/components/recipe-select-button.old";
-//   selectIsCreating,
-//   selectIsRemixing,
-//   selectPromptLength,
-//   selectTokens,
-// } from "./selectors";
-//   selectIsCreating,
-//   selectIsRemixing,
-//   selectPromptLength,
-//   selectTokens,
-// } from "./selectors";
+import { SuggestedRecipeCard } from "./suggested-recipe-craft.component";
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(AppContext);
@@ -177,140 +136,6 @@ const VisibilityControl = ({
   );
 };
 
-// export const InstantRecipeItem = () => {
-//   const actor = useContext(CraftContext);
-//   const description = useSelector(
-//     actor,
-//     (state) => state.context.instantRecipeMetadata?.description
-//   );
-//   const name = useSelector(
-//     actor,
-//     (state) => state.context.instantRecipeMetadata?.name
-//   );
-//   return (
-//     <ResultCard index={0} event={{ type: "INSTANT_RECIPE" }}>
-//       {/* <Avatar className="opacity-20">
-//         <AvatarFallback>{index + 1}.</AvatarFallback>
-//       </Avatar> */}
-//       <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
-//         <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
-//           {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
-//         </div>
-//         {description ? (
-//           <p className="line-clamp-4">{description}</p>
-//         ) : (
-//           <div className="flex flex-col gap-1 w-full">
-//             <Skeleton className="w-full h-5" />
-//             <Skeleton className="w-full h-5" />
-//             <Skeleton className="w-full h-5" />
-//           </div>
-//         )}
-//       </div>
-//       <div className="w-24 flex flex-row justify-center">
-//         {/* <Button event={{ type: "INSTANT_RECIPE" }} variant="ghost" size="icon"> */}
-//         {/* <ClientOnly>
-//           <InstantRecipeIcon />
-//         </ClientOnly> */}
-//         {/* </Button> */}
-//       </div>
-//       {/* <Badge className="opacity-20">Craft</Badge> */}
-//     </ResultCard>
-//   );
-// };
-
-// const ResultCard = ({
-//   index,
-//   children,
-//   ...props
-// }: {
-//   index: number;
-// } & ComponentProps<typeof Card>) => {
-//   const actor = useContext(CraftContext);
-//   const isFocused = useSelector(
-//     actor,
-//     (state) => state.context.currentItemIndex === index
-//   );
-
-//   return (
-//     <Card
-//       id={`result-${index}`}
-//       variant="interactive"
-//       {...props}
-//       className={cn(
-//         `w-full flex flex-row justify-between items-center cursor-pointer ${
-//           isFocused ? `outline-blue-500 outline outline-2` : ``
-//         }`,
-//         props.className
-//       )}
-//     >
-//       {children}
-//     </Card>
-//   );
-// };
-
-// export const SuggestionItem = ({ index }: { index: number }) => {
-//   const actor = useContext(CraftContext);
-//   const name = useSelector(
-//     actor,
-//     (state) => state.context.suggestions?.[index]?.name
-//   );
-//   const description = useSelector(
-//     actor,
-//     (state) => state.context.suggestions?.[index]?.description
-//   );
-//   return (
-//     <ResultCard event={{ type: "SELECT_RESULT", index }} index={index + 1}>
-//       <div className="flex flex-col gap-2 p-3 w-full sm:flex-row">
-//         <div className="sm:basis-60 sm:flex-shrink-0 font-semibold">
-//           {name ? name : <Skeleton className="w-2/3 sm:w-full h-7" />}
-//         </div>
-//         {description ? (
-//           <p className="line-clamp-3">{description}</p>
-//         ) : (
-//           <div className="flex flex-col gap-1 w-full">
-//             <Skeleton className="w-full h-5" />
-//             <Skeleton className="w-full h-5" />
-//             <Skeleton className="w-full h-5" />
-//           </div>
-//         )}
-//       </div>
-//       <div className="w-24 flex flex-row justify-center">
-//         <ClientOnly>
-//           <SuggestionIcon index={index} />
-//         </ClientOnly>
-//       </div>
-//     </ResultCard>
-//   );
-// };
-
-// const SuggestionIcon = ({ index }: { index: number }) => {
-//   const actor = useContext(CraftContext);
-//   const isTyping = useSelector(actor, (state) =>
-//     state.matches({ Typing: "True" })
-//   );
-//   const isSuggestionsLoading = useSelector(actor, selectIsSuggestionsLoading);
-
-//   const isLoading =
-//     useSelector(actor, (state) => !state.context.suggestions?.[index + 1]) &&
-//     isSuggestionsLoading;
-
-//   const hasSuggestion = useSelector(
-//     actor,
-//     (state) => !!state.context.suggestions?.[index]
-//   );
-
-//   return isTyping ? (
-//     <EllipsisAnimation />
-//   ) : isLoading ? (
-//     <LoaderIcon className="animate-spin" />
-//   ) : hasSuggestion ? (
-//     <Badge variant="outline">Craft</Badge>
-//   ) : (
-//     <Badge variant="outline">
-//       <Skeleton className="w-8 h-4" />
-//     </Badge>
-//   );
-// };
 
 // const InstantRecipeIcon = () => {
 //   const actor = useContext(CraftContext);
@@ -514,292 +339,6 @@ const useCurrentRecipe = () => {
 
   const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
   return recipe;
-};
-
-export const SuggestedRecipeCard = ({ index }: { index: number }) => {
-  const recipe = useSuggestedRecipeAtIndex(index);
-
-  const actor = useAppContext();
-  const selectIsFocused = useCallback(
-    (state: AppSnapshot) => {
-      return !!recipe?.id && state.context.focusedRecipeId === recipe.id;
-    },
-    [recipe?.id]
-  );
-  const isFocused = useSelector(actor, selectIsFocused);
-  const isExpanded = isFocused;
-  const send = useSend();
-  const selectRecipeIsSelected = useMemo(
-    () => createRecipeIsSelectedSelector(recipe?.id),
-    [recipe?.id]
-  );
-  const isSelected = usePageSessionSelector(selectRecipeIsSelected);
-
-  const handleOpenChange = useCallback(
-    (value: boolean) => {
-      if (value && recipe?.id) {
-        send({ type: "VIEW_RECIPE", id: recipe.id });
-      }
-    },
-    [send, recipe?.id]
-  );
-
-  const [wasJustSelected, setWasJustSelected] = useState(false);
-
-  const onSelectRecipe = useCallback(
-    (event: ExtractAppEvent<"SELECT_RECIPE">) => {
-      if (event.id === recipe?.id) {
-        setWasJustSelected(true);
-        setTimeout(() => {
-          setWasJustSelected(false);
-        }, 2500);
-      }
-    },
-    [setWasJustSelected, recipe]
-  );
-
-  useEventHandler("SELECT_RECIPE", onSelectRecipe);
-
-  return (
-    <RecipeDetailContainer index={index}>
-      <Card
-        className={cn(
-          "carousel-item relative flex flex-col w-full max-w-3xl mx-auto",
-          !isExpanded && isSelected
-            ? "border-purple-500 border-2 border-solid shadow-xl"
-            : ""
-        )}
-      >
-        <EventTrigger
-          event={
-            recipe?.id ? { type: "VIEW_RECIPE", id: recipe.id } : undefined
-          }
-          disabled={isExpanded}
-          className={cn(
-            "flex flex-col p-4",
-            recipe?.id ? "cursor-pointer" : ""
-          )}
-        >
-          <div className="flex flex-row gap-2 w-full">
-            <div className="flex flex-col gap-2 w-full">
-              <CardTitle className="flex flex-row items-center gap-2">
-                <span className="text-muted-foreground">{index + 1}. </span>
-                {recipe?.name ? (
-                  <p className="flex-1">{recipe.name}</p>
-                ) : (
-                  <div className="flex-1 flex flex-row gap-2">
-                    <SkeletonSentence className="h-7" numWords={4} />
-                  </div>
-                )}
-              </CardTitle>
-              {recipe?.description ? (
-                <CardDescription>{recipe.description}</CardDescription>
-              ) : (
-                <div className="flex-1">
-                  <SkeletonSentence className="h-4" numWords={12} />
-                </div>
-              )}
-              {isExpanded && (
-                <div className="text-muted-foreground text-xs flex flex-row gap-2">
-                  <span>Yields</span>
-                  <span>
-                    <Yield recipeId={recipe?.id} />
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {!isExpanded && (
-              <div>
-                <RecipeSelectButton id={recipe?.id} />
-              </div>
-            )}
-            {isExpanded && (
-              <div className="flex flex-col gap-2 items-center">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  autoFocus={false}
-                  event={{ type: "EXIT" }}
-                >
-                  <XCircleIcon />
-                </Button>
-                {recipe?.slug ? (
-                  <Link href={`/recipe/${recipe.slug}`} target="_blank">
-                    <Button size="icon" variant="ghost" autoFocus={false}>
-                      <ExternalLinkIcon />
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    autoFocus={false}
-                    disabled
-                  >
-                    <ExternalLinkIcon />
-                  </Button>
-                )}
-              </div>
-            )}
-            {/* {!isExpanded && recipe?.id && recipe.name && (
-              <div className="flex flex-col justify-center">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  event={{ type: "VIEW_RECIPE", id: recipe.id }}
-                >
-                  <ExpandIcon />
-                </Button>
-              </div>
-            )} */}
-          </div>
-          <div className={"text-xs mt-2"}>
-            {recipe?.matchPercent !== undefined ? (
-              <>
-                {recipe.matchPercent === 100 && (
-                  <Badge variant="secondary">
-                    <span className="text-green-700 font-medium mr-1">
-                      Direct Match
-                    </span>{" "}
-                    • 100%
-                  </Badge>
-                )}
-                {recipe.matchPercent < 100 && (
-                  <Badge variant="outline">{recipe.matchPercent}% match</Badge>
-                )}
-              </>
-            ) : (
-              <>
-                <Badge variant="outline">
-                  <Skeleton className="w-10 h-4" />
-                </Badge>
-              </>
-            )}
-          </div>
-        </EventTrigger>
-        <Collapsible
-          open={isFocused}
-          className="overflow-hidden"
-          onOpenChange={handleOpenChange}
-        >
-          <CollapsibleContent>
-            {isExpanded && recipe?.metadataComplete && (
-              <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                {/* {!isSelected ? (
-                  <Button
-                    size="icon"
-                    className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
-                    event={{ type: "SELECT_RECIPE", id: recipe.id }}
-                  >
-                    Select <CheckIcon className="ml-2" />
-                  </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    className="flex-1"
-                    event={{ type: "UNSELECT", id: recipe.id }}
-                  >
-                    Unselect <CircleSlash2Icon className="ml-2" />
-                  </Button>
-                )} */}
-                <RecipeSelectButton id={recipe.id} />
-                <ShareButton slug={recipe.slug} name={recipe.name} />
-                <FavoriteButton slug={recipe?.slug} />
-                <PrintButton slug={recipe?.slug} />
-              </div>
-            )}
-            {/* <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2"></div> */}
-            <Separator />
-            <div>
-              <Times
-                activeTime={recipe?.activeTime}
-                totalTime={recipe?.totalTime}
-                cookTime={recipe?.cookTime}
-              />
-            </div>
-            <Separator />
-            <div className="px-5">
-              <div className="flex flex-row justify-between gap-1 items-center py-4">
-                <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                  Ingredients
-                </h3>
-                <ShoppingBasketIcon />
-              </div>
-              <div className="mb-4 flex flex-col gap-2">
-                <ul className="list-disc pl-5 flex flex-col gap-2">
-                  <Ingredients recipeId={recipe?.id} />
-                </ul>
-              </div>
-            </div>
-            <Separator />
-            <div className="px-5">
-              <div className="flex flex-row justify-between gap-1 items-center py-4">
-                <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                  Instructions
-                </h3>
-                <ScrollIcon />
-              </div>
-              <div className="mb-4 flex flex-col gap-2">
-                <ol className="list-decimal pl-5 flex flex-col gap-2">
-                  <Instructions recipeId={recipe?.id} />
-                </ol>
-              </div>
-            </div>
-            <Separator />
-            <div className="py-2">
-              <Tags recipeId={recipe?.id} />
-            </div>
-            <Separator />
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {isExpanded && (
-        <div className="mt-4 mb-24 flex flex-col items-center">
-          <Badge event={{ type: "EXIT" }}>
-            Close <XIcon size={14} className="ml-1" />
-          </Badge>
-        </div>
-      )}
-    </RecipeDetailContainer>
-  );
-};
-
-const RecipeDetailContainer = ({
-  children,
-  index,
-}: {
-  children: ReactNode;
-  index: number;
-}) => {
-  const recipe = useSuggestedRecipeAtIndex(index);
-  const actor = useAppContext();
-  const selectIsFocused = useCallback(
-    (state: AppSnapshot) => {
-      return !!recipe?.id && state.context.focusedRecipeId === recipe.id;
-    },
-    [recipe?.id]
-  );
-  const isFocused = useSelector(actor, selectIsFocused);
-  return (
-    <div
-      style={isFocused ? { zIndex: 65 } : {}}
-      className={cn(isFocused ? "absolute inset-0 mb-16" : "max-w-xl w-full")}
-    >
-      {isFocused && (
-        <Portal>
-          <RecipeDetailOverlay />
-        </Portal>
-      )}
-      <ScrollLockComponent
-        active={isFocused}
-        className={isFocused ? "p-4" : ""}
-      >
-        {children}
-      </ScrollLockComponent>
-    </div>
-  );
 };
 
 export const SuggestedTokenBadge = ({

@@ -5,7 +5,11 @@ import { CheckIcon } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "./input/button";
 
-export const RecipeSelectButton = ({ id }: { id: string | undefined }) => {
+export const RecipeSelectCircleButton = ({
+  id,
+}: {
+  id: string | undefined;
+}) => {
   const selectItemIsSelected = useMemo(
     () => createRecipeIsSelectedSelector(id),
     [id]

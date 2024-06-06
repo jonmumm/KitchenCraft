@@ -31,7 +31,7 @@ export const RecipeSuggestionSelectButton = ({
 
   if (!recipe?.id) {
     return (
-      <Button size="icon" className="basis-36" disabled>
+      <Button size="icon" className="basis-32" disabled>
         <Skeleton className="w-10 h-4" />
       </Button>
     );
@@ -42,7 +42,7 @@ export const RecipeSuggestionSelectButton = ({
       {!isSelected ? (
         <Button
           size="icon"
-          className="bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white basis-36"
+          className="bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white basis-32"
           event={{ type: "SELECT_RECIPE_SUGGESTION", itemIndex, recipeIndex }}
         >
           Select <CheckIcon className="ml-2" />
@@ -50,10 +50,10 @@ export const RecipeSuggestionSelectButton = ({
       ) : recipe?.id ? (
         <Button
           variant="outline"
-          className="basis-36"
+          className="basis-32"
           event={{ type: "UNSELECT", id: recipe.id }}
         >
-          Unselect <CircleSlash2Icon className="ml-2" />
+          Unselect <CircleSlash2Icon size={14} className="ml-2" />
         </Button>
       ) : (
         <></>
