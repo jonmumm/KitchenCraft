@@ -38,18 +38,20 @@ import { Ingredients } from "./ingredients";
 import { Button } from "./input/button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuTrigger,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "./input/dropdown-menu";
 import { Instructions } from "./instructions";
+import { PrintButton } from "./print-button";
+import { RecipeSuggestionSelectButton } from "./recipe-suggestion-select-button";
 import { useScrollLock } from "./scroll-lock";
 import { ShareButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
-import { RecipeSuggestionSelectButton } from "./recipe-suggestion-select-button";
-import { PrintButton } from "./print-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -108,20 +110,42 @@ const FeedCardItem = ({ index }: { index: number }) => {
               <MoreVerticalIcon />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuCheckboxItem>
-              More like{" "}
-              <span className="italic text-muted-foreground text">
-                {feedItem?.category}
-              </span>
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem>
-              Less like{" "}
-              <span className="italic text-muted-foreground text">
-                {feedItem?.category}
-              </span>
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem>Hide</DropdownMenuCheckboxItem>
+          <DropdownMenuContent className="w-56 mr-2">
+            <DropdownMenuGroup>
+              <DropdownMenuItem>
+                <span role="img" aria-label="more-like-this" className="mr-2">
+                  👍
+                </span>
+                More like this
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <span role="img" aria-label="less-like-this" className="mr-2">
+                  👎
+                </span>
+                Less like this
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <span role="img" aria-label="hide-this" className="mr-2">
+                  🙈
+                </span>
+                Hide this
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                {/* <Button
+                  variant="outline"
+                  size="sm"
+                  event={{
+                    type: "SELECT_RECIPES",
+                    recipeIds:
+                      feedItem?.recipes?.map((recipe) => recipe?.id!) || [],
+                  }}
+                > */}
+                Select ({feedItem?.recipes?.length || 0}){/* </Button> */}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
@@ -413,7 +437,10 @@ const FeedCardRecipeItem = (input: {
               <PrintButton slug={recipe?.slug} />
               <ShareButton slug={recipe.slug} name={recipe.name} />
               <FavoriteButton slug={recipe?.slug} />
-              <RecipeSuggestionSelectButton itemIndex={input.itemIndex} recipeIndex={input.recipeIndex} />
+              <RecipeSuggestionSelectButton
+                itemIndex={input.itemIndex}
+                recipeIndex={input.recipeIndex}
+              />
               {/* <PrintButton slug={recipe?.slug} /> */}
             </div>
           )}

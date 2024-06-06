@@ -496,6 +496,27 @@ const SelectResultEventSchema = z.object({
   index: z.number(),
 });
 
+
+const SelectRecipesEventSchema = z.object({
+  type: z.literal("SELECT_RECIPES"),
+  recipeIds: z.array(z.string()),
+});
+
+const HideThisEventSchema = z.object({
+  type: z.literal("HIDE_THIS"),
+  id: z.number(),
+});
+
+const LessLikeThisEventSchema = z.object({
+  type: z.literal("LESS_LIKE_THIS"),
+  id: z.number(),
+});
+
+const MoreLikeThisEventSchema = z.object({
+  type: z.literal("MORE_LIKE_THIS"),
+  id: z.number(),
+});
+
 const SelectRecipeSuggestionEventSchema = z.object({
   type: z.literal("SELECT_RECIPE_SUGGESTION"),
   recipeIndex: z.number(),
@@ -1082,6 +1103,7 @@ const SelectTopicEventSchema = z.object({
 });
 
 export const AppEventSchema = z.discriminatedUnion("type", [
+
   SelectTopicEventSchema,
   SelectQuestionOptionEventSchema,
   RefreshFeedEventSchema,
@@ -1169,7 +1191,10 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   SelectRecipeEventSchema,
   SelectRecipeSuggestionEventSchema,
   SelectResultEventSchema,
-  SelectRelatedIdeaEventSchema,
+  SelectRecipesEventSchema,
+  HideThisEventSchema,
+  LessLikeThisEventSchema,
+  MoreLikeThisEventSchema,
   SetInputEventSchema,
   ChangeEventSchema,
   SubmitEventSchema,
