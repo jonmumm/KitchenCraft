@@ -134,9 +134,14 @@ export default function Results() {
             {isSelectingTopics ? "Select Topics" : "Selected Topics"}
           </CardTitle>
           <CardDescription>
-            {isSelectingTopics
-              ? "This will help inform what recipes show in your daily cookbook."
-              : "This will help inform suggestions in your daily coookbook."}
+            {isSelectingTopics ? (
+              "This will help inform suggestions show in your daily cookbook."
+            ) : (
+              <>
+                Thes topics will be used to help recommend you recipe. You can 
+                modify these preferences later.
+              </>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -280,13 +285,13 @@ export default function Results() {
               </CardTitle>
               <CardDescription>
                 {isComplete ? (
-                  <>
-                    You recipes will be saved to:
+                  <span>
+                    You saved recipes will be available at:
                     <br /> kitchencraft.ai/@
                     <span className="font-semibold">
                       <ProfileNameSession />
                     </span>
-                  </>
+                  </span>
                 ) : (
                   <>Choose a profile name where you can access your recipes.</>
                 )}

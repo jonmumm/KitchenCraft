@@ -4,6 +4,11 @@ import { DateTime } from "luxon";
 import { Badge } from "@/components/display/badge";
 import { Separator } from "@/components/display/separator";
 import {
+  Highlight,
+  HighlightContent,
+  HighlightTarget,
+} from "@/components/highlight";
+import {
   SheetContent,
   SheetOverlay,
   SheetTrigger,
@@ -13,13 +18,13 @@ import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile, getTimezone } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import { ChefHatIcon, XCircleIcon, XIcon } from "lucide-react";
+import { ChefHatIcon, XIcon } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
 import {
-  MyRecipesBadge,
   CurrentListButton,
   HomepageSuggestedTokens,
+  MyRecipesBadge,
 } from "./components.client";
 
 export default async function Page({}) {
@@ -88,7 +93,15 @@ export default async function Page({}) {
               ⚡️ Instantly create personalized recipes.
             </p>
             <div className="flex flex-row gap-2 items-center">
-              <CraftCTA initialAutoFocus={!getIsMobile()} />
+              <Highlight active={true}>
+                <HighlightTarget>
+                  <CraftCTA initialAutoFocus={!getIsMobile()} />
+                </HighlightTarget>
+                <HighlightContent>
+                  Teach me something here. Animate the text and play audio. TODO
+                  new compoennt
+                </HighlightContent>
+              </Highlight>
               <div className="hidden crafting:flex flex-col gap-3 items-center">
                 <Button
                   variant={"outline"}

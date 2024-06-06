@@ -270,7 +270,7 @@ const FeedCardRecipeItem = (input: {
   return (
     <Card
       className={cn(
-        "carousel-item flex flex-col justify-between cursor-pointer",
+        "carousel-item flex flex-col justify-start cursor-pointer",
         isInRecipeDetails
           ? "w-full md:w-[65%] lg:w-[50%] xl:w-[40%] 2xl:w-[33%] overflow-y-auto overflow-x-hidden"
           : "w-72 h-28",
