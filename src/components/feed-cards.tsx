@@ -14,12 +14,10 @@ import {
 import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
-  CheckIcon,
-  CircleSlash2Icon,
   ExternalLinkIcon,
+  MoreVerticalIcon,
   ScrollIcon,
   ShoppingBasketIcon,
-  XCircleIcon,
   XIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -35,16 +33,22 @@ import {
 } from "./display/card";
 import { Separator } from "./display/separator";
 import { SkeletonSentence } from "./display/skeleton";
+import { FavoriteButton } from "./favorite-button";
 import { Ingredients } from "./ingredients";
 import { Button } from "./input/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "./input/dropdown-menu";
 import { Instructions } from "./instructions";
-import { PrintButton } from "./print-button";
 import { useScrollLock } from "./scroll-lock";
 import { ShareButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
-import { FavoriteButton } from "./favorite-button";
+import { RecipeSuggestionSelectButton } from "./recipe-suggestion-select-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -80,21 +84,45 @@ const FeedCardItem = ({ index }: { index: number }) => {
       )}
       style={{ borderTopColor: feedItem?.color ? `${feedItem.color}` : `` }}
     >
-      <CardHeader>
-        <CardTitle className="text-lg">
-          {feedItem?.category ? (
-            <>{feedItem.category}</>
-          ) : (
-            <SkeletonSentence className="h-7" numWords={3} />
-          )}
-        </CardTitle>
+      <CardHeader className="flex flex-row gap-2">
         <div>
-          {feedItem?.category ? (
-            <CardDescription>{feedItem.description}</CardDescription>
-          ) : (
-            <SkeletonSentence className="h-5" numWords={7} />
-          )}
+          <CardTitle className="text-lg">
+            {feedItem?.category ? (
+              <>{feedItem.category}</>
+            ) : (
+              <SkeletonSentence className="h-7" numWords={3} />
+            )}
+          </CardTitle>
+          <div>
+            {feedItem?.category ? (
+              <CardDescription>{feedItem.description}</CardDescription>
+            ) : (
+              <SkeletonSentence className="h-5" numWords={7} />
+            )}
+          </div>
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVerticalIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuCheckboxItem>
+              More like{" "}
+              <span className="italic text-muted-foreground text">
+                {feedItem?.category}
+              </span>
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem>
+              Less like{" "}
+              <span className="italic text-muted-foreground text">
+                {feedItem?.category}
+              </span>
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem>Hide</DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
       <CardContent>
         <FeedCardRecipeCarousel index={index}>
@@ -208,7 +236,7 @@ const FeedCardRecipeCarousel = ({
   };
 
   return (
-    <div className={cn("relative h-28")}>
+    <div className={cn("relative h-32")}>
       {isActive && (
         <Portal>
           <div className="bg-black opacity-60 fixed inset-0 z-50"></div>
@@ -274,7 +302,7 @@ const FeedCardRecipeItem = (input: {
         "carousel-item flex flex-col justify-start cursor-pointer",
         isInRecipeDetails
           ? "w-full md:w-[65%] lg:w-[50%] xl:w-[40%] 2xl:w-[33%] overflow-y-auto overflow-x-hidden"
-          : "w-72 h-28",
+          : "w-72 h-32",
         !isInRecipeDetails && isSelected
           ? "border-purple-500 border-2 border-solid shadow-xl"
           : ""
@@ -288,7 +316,12 @@ const FeedCardRecipeItem = (input: {
           : undefined
       }
     >
-      <div className="flex flex-row gap-2 p-4 justify-between items-start h-fit">
+      <div
+        className={cn(
+          "flex flex-row gap-3 p-4 justify-between items-start",
+          !isInRecipeDetails ? "h-full" : "h-fit"
+        )}
+      >
         <div className="flex flex-col gap-1">
           <CardTitle className={isInRecipeDetails ? "text-lg" : "text-md"}>
             {feedRecipe?.name ? (
@@ -331,34 +364,20 @@ const FeedCardRecipeItem = (input: {
         </div>
         {!isInRecipeDetails ? (
           <>
-            {/* <Button
-              event={
-                feedRecipe?.id
-                  ? !isSelected
-                    ? { type: "SELECT_RECIPE_SUGGESTION", ...input }
-                    : { type: "UNSELECT", id: feedRecipe.id }
-                  : undefined
-              }
-              className={cn(
-                "rounded-full",
-                isSelected ? "border-purple-700 border-2 border-solid" : ""
-              )}
-              variant="outline"
-              size="icon"
-            >
-              <CheckIcon className={!isSelected ? "hidden" : "block"} />
-            </Button> */}
+            <div className="self-end">
+              <FavoriteButton slug={recipe?.slug} />
+            </div>
           </>
         ) : (
           <div className="flex flex-col gap-2">
-            <Button
+            {/* <Button
               size="icon"
               variant="ghost"
               autoFocus={false}
               event={{ type: "EXIT" }}
             >
               <XCircleIcon />
-            </Button>
+            </Button> */}
             {recipe?.slug ? (
               <Link href={`/recipe/${recipe.slug}`} target="_blank">
                 <Button size="icon" variant="ghost" autoFocus={false}>
@@ -383,30 +402,17 @@ const FeedCardRecipeItem = (input: {
           </div>
           <Separator className="mt-4" />
           {recipe?.name && (
-            <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-between">
-              <ShareButton slug={recipe.slug} name={recipe.name} />
-              {!isSelected ? (
-                <Button
-                  className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
-                  event={{
-                    type: "SELECT_RECIPE_SUGGESTION",
-                    itemIndex: input.itemIndex,
-                    recipeIndex: input.recipeIndex,
-                  }}
-                >
-                  Select <CheckIcon className="ml-2" />
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="flex-1"
-                  event={{ type: "UNSELECT", id: recipe.id }}
-                >
-                  Unselect <CircleSlash2Icon className="ml-2" />
-                </Button>
+            <div
+              className={cn(
+                "flex flex-row gap-2 py-2 max-w-xl mx-auto justify-center w-full",
+                !isInRecipeDetails ? "h-full" : ""
               )}
+            >
+              <RecipeSuggestionSelectButton itemIndex={input.itemIndex} recipeIndex={input.recipeIndex} />
+              {/* <RecipeSelectButton id={recipe.id} /> */}
+              <ShareButton slug={recipe.slug} name={recipe.name} />
               <FavoriteButton slug={recipe?.slug} />
-              <PrintButton slug={recipe?.slug} />
+              {/* <PrintButton slug={recipe?.slug} /> */}
             </div>
           )}
           <Separator />

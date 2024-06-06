@@ -12,14 +12,14 @@ export const PrintButton = ({ slug }: { slug?: string }) => {
 
   if (!slug) {
     return (
-      <Button variant="ghost" disabled className="flex-2">
+      <Button variant="ghost" disabled size="icon">
         <PrinterIcon className="ml-2" />
       </Button>
     );
   }
 
   return (
-    <Button variant="ghost" onClick={handleClick}>
+    <Button variant="ghost" onClick={handleClick} size="icon">
       <PrinterIcon className="ml-2" />
     </Button>
   );

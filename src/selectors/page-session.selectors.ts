@@ -77,13 +77,9 @@ export const createRecipeIsSelectedSelector =
   };
 
 export const selectSuggestedFeedTopics = (state: PageSessionSnapshot) => {
-  return (
-    state.context.browserSessionSnapshot?.context.suggestedFeedTopics
-  );
+  return state.context.browserSessionSnapshot?.context.suggestedFeedTopics;
 };
 
 export const selectSelectedFeedTopics = (state: PageSessionSnapshot) => {
-  return (
-    state.context.browserSessionSnapshot?.context.selectedFeedTopics
-  );
+  return state.context.browserSessionSnapshot?.context.selectedFeedTopics;
 };

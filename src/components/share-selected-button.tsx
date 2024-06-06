@@ -51,7 +51,7 @@ export const ShareSelectedButton = ({
   if (!slug) {
     return (
       <Button variant="ghost" className="flex-2" disabled>
-        Share <ShareIcon className="ml-2" />
+        <ShareIcon className="ml-2" />
       </Button>
     );
   }
@@ -65,7 +65,7 @@ export const ShareSelectedButton = ({
             className="w-full"
             event={{ type: "SHARE", slug }}
           >
-            Share <ShareIcon className="ml-2" />
+            <ShareIcon className="ml-2" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-fit px-2 py-1 z-90">

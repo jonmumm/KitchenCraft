@@ -11,7 +11,6 @@ import { Separator } from "@/components/display/separator";
 import { FavoriteButton } from "@/components/favorite-button";
 import { Button } from "@/components/input/button";
 import { PrintButton } from "@/components/print-button";
-import { SelectButton } from "@/components/select-button";
 import { ShareButton } from "@/components/share-button";
 import { db } from "@/db";
 import {
@@ -57,6 +56,7 @@ import {
   upsertRecipeRating,
 } from "./rating/queries";
 import { RatingValue } from "./rating/types";
+import { RecipeSelectButton } from "@/components/recipe-select-button";
 
 // export const maxDuration = 300;
 // export const dynamic = "force-dynamic";
@@ -368,12 +368,12 @@ export default async function Page(props: Props) {
                 </div>
                 <Separator />
                 <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-between px-4 w-full">
-                  <ShareButton slug={slug} name={name} />
-                  <SelectButton id={recipe.id} />
+                  <RecipeSelectButton id={recipe.id} />
                   {/* <Button className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white">
                     Select <CheckIcon className="ml-2" />
                   </Button> */}
                   <FavoriteButton slug={recipe?.slug} />
+                  <ShareButton slug={slug} name={name} />
                   <PrintButton slug={recipe?.slug} />
                 </div>
                 <Separator />

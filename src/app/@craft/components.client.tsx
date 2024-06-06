@@ -23,7 +23,6 @@ import {
 } from "@/components/input/form";
 import { Instructions } from "@/components/instructions";
 import { PrintButton } from "@/components/print-button";
-import { RecipeSelectButton } from "@/components/recipe-select-button";
 import ScrollLockComponent from "@/components/scroll-lock";
 import { ShareButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
@@ -86,6 +85,7 @@ import { PageSessionContext } from "../page-session-store.context";
 import { buildInput, isEqual } from "../utils";
 import { useAppContext } from "./hooks";
 import { FavoriteButton } from "@/components/favorite-button";
+import { RecipeSelectButton } from "@/components/recipe-select-button.old";
 //   selectIsCreating,
 //   selectIsRemixing,
 //   selectPromptLength,
@@ -686,8 +686,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <CollapsibleContent>
             {isExpanded && recipe?.metadataComplete && (
               <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                <ShareButton slug={recipe.slug} name={recipe.name} />
-                {!isSelected ? (
+                {/* {!isSelected ? (
                   <Button
                     size="icon"
                     className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white"
@@ -703,7 +702,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                   >
                     Unselect <CircleSlash2Icon className="ml-2" />
                   </Button>
-                )}
+                )} */}
+                <RecipeSelectButton id={recipe.id} />
+                <ShareButton slug={recipe.slug} name={recipe.name} />
                 <FavoriteButton slug={recipe?.slug} />
                 <PrintButton slug={recipe?.slug} />
               </div>

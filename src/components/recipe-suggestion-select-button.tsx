@@ -1,21 +1,35 @@
 "use client";
 
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
-import { createRecipeIsSelectedSelector } from "@/selectors/page-session.selectors";
+import {
+  createFeedItemRecipeAtIndexSelector,
+  createRecipeIsSelectedSelector,
+} from "@/selectors/page-session.selectors";
 import { CheckIcon, CircleSlash2Icon } from "lucide-react";
 import { useMemo } from "react";
 import { Skeleton } from "./display/skeleton";
 import { Button } from "./input/button";
 
-export const RecipeSelectButton = ({ id }: { id: string | undefined }) => {
+export const RecipeSuggestionSelectButton = ({
+  itemIndex,
+  recipeIndex,
+}: {
+  itemIndex: number;
+  recipeIndex: number;
+}) => {
+  const recipeSelector = useMemo(
+    () => createFeedItemRecipeAtIndexSelector({ itemIndex, recipeIndex }),
+    [recipeIndex, itemIndex]
+  );
+  const recipe = usePageSessionSelector(recipeSelector);
+  const recipeId = recipe?.id;
   const selectRecipeIsSelected = useMemo(
-    () => createRecipeIsSelectedSelector(id),
-    [id]
+    () => createRecipeIsSelectedSelector(recipeId),
+    [recipeId]
   );
   const isSelected = usePageSessionSelector(selectRecipeIsSelected);
-  console.log({ isSelected, id });
 
-  if (!id) {
+  if (!recipe?.id) {
     return (
       <Button size="icon" className="basis-36" disabled>
         <Skeleton className="w-10 h-4" />
@@ -29,18 +43,20 @@ export const RecipeSelectButton = ({ id }: { id: string | undefined }) => {
         <Button
           size="icon"
           className="bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white basis-36"
-          event={{ type: "SELECT_RECIPE", id }}
+          event={{ type: "SELECT_RECIPE_SUGGESTION", itemIndex, recipeIndex }}
         >
           Select <CheckIcon className="ml-2" />
         </Button>
-      ) : (
+      ) : recipe?.id ? (
         <Button
           variant="outline"
           className="basis-36"
-          event={{ type: "UNSELECT", id }}
+          event={{ type: "UNSELECT", id: recipe.id }}
         >
           Unselect <CircleSlash2Icon className="ml-2" />
         </Button>
+      ) : (
+        <></>
       )}
     </>
   );
