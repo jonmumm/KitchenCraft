@@ -367,14 +367,14 @@ export default async function Page(props: Props) {
                   </div> */}
                 </div>
                 <Separator />
-                <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-between px-4 w-full">
-                  <RecipeSelectButton id={recipe.id} />
+                <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-center px-4 w-full">
                   {/* <Button className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white">
                     Select <CheckIcon className="ml-2" />
                   </Button> */}
-                  <FavoriteButton slug={recipe?.slug} />
-                  <ShareButton slug={slug} name={name} />
                   <PrintButton slug={recipe?.slug} />
+                  <ShareButton slug={slug} name={name} />
+                  <FavoriteButton slug={recipe?.slug} />
+                  <RecipeSelectButton id={recipe.id} />
                 </div>
                 <Separator />
                 {/* {recipeUserId && recipe?.createdAt && (

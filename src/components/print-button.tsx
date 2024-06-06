@@ -18,7 +18,7 @@ export const PrintButton = ({
 
   if (!slug) {
     return (
-      <Button variant={"outline"} disabled size="icon">
+      <Button variant={"ghost"} disabled size="icon">
         <PrinterIcon />
       </Button>
     );

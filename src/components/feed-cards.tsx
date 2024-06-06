@@ -49,6 +49,7 @@ import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
 import { RecipeSuggestionSelectButton } from "./recipe-suggestion-select-button";
+import { PrintButton } from "./print-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -408,10 +409,11 @@ const FeedCardRecipeItem = (input: {
                 !isInRecipeDetails ? "h-full" : ""
               )}
             >
-              <RecipeSuggestionSelectButton itemIndex={input.itemIndex} recipeIndex={input.recipeIndex} />
               {/* <RecipeSelectButton id={recipe.id} /> */}
+              <PrintButton slug={recipe?.slug} />
               <ShareButton slug={recipe.slug} name={recipe.name} />
               <FavoriteButton slug={recipe?.slug} />
+              <RecipeSuggestionSelectButton itemIndex={input.itemIndex} recipeIndex={input.recipeIndex} />
               {/* <PrintButton slug={recipe?.slug} /> */}
             </div>
           )}

@@ -213,9 +213,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <CollapsibleContent>
             {isExpanded && recipe?.metadataComplete && (
               <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                <ShareButton slug={recipe.slug} name={recipe.name} />
-                <FavoriteButton slug={recipe?.slug} />
                 <PrintButton slug={recipe?.slug} />
+                <FavoriteButton slug={recipe?.slug} />
+                <ShareButton slug={recipe.slug} name={recipe.name} />
                 <RecipeSelectButton id={recipe.id} />
               </div>
             )}
