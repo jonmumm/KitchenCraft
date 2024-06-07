@@ -23,12 +23,14 @@ export const RecipeMoreDropdownButton = () => {
         <DropdownMenuGroup>
           <DropdownMenuItem className="text-muted-foreground">
             <div>
+              {/* <EventTrigger event={{type: "ADD_TO_LIST"}}>  */}
               <span role="img" aria-label="add-to-make-later" className="mr-2">
                 ⏰
               </span>
               <span className="text-muted-foreground">Add to </span>
               <span className="text-foreground font-semibold">Make Later</span>
             </div>
+            {/* </EventTrigger> */}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="text-muted-foreground">

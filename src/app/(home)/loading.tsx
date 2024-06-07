@@ -46,7 +46,7 @@ export default function Loading() {
               <CardTitle className="text-lg">
                 <SkeletonSentence className="h-7" numWords={3} />
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="mt-2">
                 <SkeletonSentence className="h-5" numWords={7} />
               </CardDescription>
             </CardHeader>

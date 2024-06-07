@@ -46,13 +46,13 @@ import {
 } from "./input/dropdown-menu";
 import { Instructions } from "./instructions";
 import { PrintButton } from "./print-button";
+import { RecipeMoreDropdownButton } from "./recipe-more-dropdown-button";
 import { RecipeSuggestionSelectButton } from "./recipe-suggestion-select-button";
 import { useScrollLock } from "./scroll-lock";
 import { ShareButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
-import { RecipeMoreDropdownButton } from "./recipe-more-dropdown-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -88,7 +88,7 @@ const FeedCardItem = ({ index }: { index: number }) => {
       )}
       style={{ borderTopColor: feedItem?.color ? `${feedItem.color}` : `` }}
     >
-      <CardHeader className="flex flex-row gap-2">
+      <CardHeader className="flex flex-row gap-2 justify-between">
         <div>
           <CardTitle className="text-lg">
             {feedItem?.category ? (
