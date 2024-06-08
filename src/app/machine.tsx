@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import {
   ActorRefFrom,
   SnapshotFrom,
+  StateValueFrom,
   and,
   assign,
   fromPromise,
@@ -455,6 +456,12 @@ export const createAppMachine = ({
                 prompt: ({ event }) => event.value,
               }),
             },
+            NEW_RECIPE: {
+              guard: ({ event }) => event.prompt !== undefined,
+              actions: assign({
+                prompt: ({ event }) => event.prompt!,
+              }),
+            },
             ADD_TOKEN: {
               actions: assign({
                 prompt: ({ context, event }) => {
@@ -534,6 +541,9 @@ export const createAppMachine = ({
           on: {
             ADD_TOKEN: ".True",
             SET_INPUT: {
+              target: ".True",
+            },
+            NEW_RECIPE: {
               target: ".True",
             },
           },
@@ -784,12 +794,6 @@ export const createAppMachine = ({
                   target: "True",
                   actions: [
                     // {
-                    //   type: "assignPrompt",
-                    //   params({ event }) {
-                    //     return { prompt: event.prompt };
-                    //   },
-                    // },
-                    // {
                     //   type: "assignTokens",
                     //   params({ event }) {
                     //     return { tokens: event.tokens || [] };
@@ -966,7 +970,7 @@ export const createAppMachine = ({
                   browserSessionSnapshot.context.feedItemIds[event.itemIndex];
                 assert(feedItemId, "couldnt find feed item id");
                 const feedItem =
-                  browserSessionSnapshot.context.feedItems[feedItemId];
+                  browserSessionSnapshot.context.feedItemsById[feedItemId];
                 assert(feedItem, "expected feedItem");
                 assert(feedItem.category, "expected feedItem to have cateogry");
                 assert(feedItem.recipes, "expected feedItem to have recipes");
@@ -1036,7 +1040,10 @@ const RecipeAddedToast = ({
     <Card className="flex flex-row gap-2 justify-between items-center w-full max-w-[356px] p-4 shadow-xl">
       <div className="flex flex-col gap-1 flex-1 w-full">
         <div className="font-semibold">{name}</div>
-        <div className="text-muted-foreground text-xs">Added to <span className="text-foreground font-semibold">Selected</span></div>
+        <div className="text-muted-foreground text-xs">
+          Added to{" "}
+          <span className="text-foreground font-semibold">Selected</span>
+        </div>
       </div>
       <div className="flex items-center justify-center">
         <Badge
@@ -1052,9 +1059,10 @@ const RecipeAddedToast = ({
   );
 };
 
-type AppAMchine = ReturnType<typeof createAppMachine>;
-export type AppActor = ActorRefFrom<AppAMchine>;
+type AppMachine = ReturnType<typeof createAppMachine>;
+export type AppActor = ActorRefFrom<AppMachine>;
 export type AppSnapshot = SnapshotFrom<AppActor>;
+export type AppState = StateValueFrom<AppMachine>;
 type AppContext = z.infer<typeof AppContextSchema>;
 
 type GeneratorEvent =

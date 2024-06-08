@@ -635,7 +635,7 @@ export const pageSessionMachine = setup({
       assertType(event, "VIEW_RECIPE");
       debugger;
       console.log(event);
-      const feedItems = context.browserSessionSnapshot?.context.feedItems;
+      const feedItems = context.browserSessionSnapshot?.context.feedItemsById;
       if (!feedItems) return false;
 
       const feedItem = Object.values(feedItems).find(
@@ -674,7 +674,7 @@ export const pageSessionMachine = setup({
     nextRecipeInCategoryShouldBeCreated: ({ context, event }): boolean => {
       assertType(event, "VIEW_RECIPE");
 
-      const feedItems = context.browserSessionSnapshot?.context.feedItems;
+      const feedItems = context.browserSessionSnapshot?.context.feedItemsById;
       if (!feedItems) return false;
 
       const feedItem = Object.values(feedItems).find(
@@ -1128,16 +1128,15 @@ export const pageSessionMachine = setup({
                 ],
               },
             ],
-            // NEW_RECIPE: {
-            //   actions: [
-            //     "resetSuggestions",
-            //     assign({
-            //       tokens: ({ event }) => event.tokens || [],
-            //       prompt: ({ event }) => event.prompt || "",
-            //       currentItemIndex: 0,
-            //     }),
-            //   ],
-            // },
+            NEW_RECIPE: {
+              guard: ({ event }) => !!event.prompt,
+              actions: [
+                "resetSuggestions",
+                assign({
+                  prompt: ({ event }) => event.prompt || "",
+                }),
+              ],
+            },
             REMOVE_TOKEN: {
               actions: [
                 "resetSuggestions",
@@ -1606,7 +1605,7 @@ export const pageSessionMachine = setup({
                       input: ({ context, event }) => {
                         assertEvent(event, "VIEW_RECIPE");
                         const feedItems =
-                          context.browserSessionSnapshot?.context.feedItems;
+                          context.browserSessionSnapshot?.context.feedItemsById;
                         assert(feedItems, "expected feedItems");
 
                         const feedItem = Object.values(feedItems).find(
@@ -1668,7 +1667,7 @@ export const pageSessionMachine = setup({
                     assign(({ context, event }) =>
                       produce(context, (draft) => {
                         const feedItems =
-                          context.browserSessionSnapshot?.context.feedItems;
+                          context.browserSessionSnapshot?.context.feedItemsById;
                         assert(feedItems, "expected feedItems");
 
                         const feedItem = Object.values(feedItems).find(
@@ -1734,7 +1733,7 @@ export const pageSessionMachine = setup({
                       input: ({ context, event }) => {
                         assertEvent(event, "VIEW_RECIPE");
                         const feedItems =
-                          context.browserSessionSnapshot?.context.feedItems;
+                          context.browserSessionSnapshot?.context.feedItemsById;
                         assert(feedItems, "expected feedItems");
 
                         const feedItem = Object.values(feedItems).find(
@@ -1796,7 +1795,7 @@ export const pageSessionMachine = setup({
                     assign(({ context, event }) =>
                       produce(context, (draft) => {
                         const feedItems =
-                          context.browserSessionSnapshot?.context.feedItems;
+                          context.browserSessionSnapshot?.context.feedItemsById;
                         assert(feedItems, "expected feedItems");
 
                         const feedItem = Object.values(feedItems).find(
@@ -2033,7 +2032,8 @@ export const pageSessionMachine = setup({
                         input: ({ context, event }) => {
                           assertEvent(event, "VIEW_RECIPE");
                           const feedItems =
-                            context.browserSessionSnapshot?.context.feedItems;
+                            context.browserSessionSnapshot?.context
+                              .feedItemsById;
                           assert(feedItems, "expected feedItems");
                           const feedItem = Object.values(feedItems).find(
                             (item) =>
@@ -2071,7 +2071,8 @@ export const pageSessionMachine = setup({
                       assign(({ context, event }) =>
                         produce(context, (draft) => {
                           const feedItems =
-                            context.browserSessionSnapshot?.context.feedItems;
+                            context.browserSessionSnapshot?.context
+                              .feedItemsById;
                           assert(feedItems, "expected feedItems");
                           const feedItem = Object.values(feedItems).find(
                             (item) =>
@@ -3011,7 +3012,9 @@ export const pageSessionMachine = setup({
                   ];
                 assert(feedItemId, "couldnt find feed item id");
                 const feedItem =
-                  context.browserSessionSnapshot?.context.feedItems[feedItemId];
+                  context.browserSessionSnapshot?.context.feedItemsById[
+                    feedItemId
+                  ];
                 assert(feedItem, "expected feedItem");
                 assert(feedItem.category, "expected feedItem to have cateogry");
                 assert(feedItem.recipes, "expected feedItem to have recipes");
@@ -3031,7 +3034,7 @@ export const pageSessionMachine = setup({
                       ];
                     assert(feedItemId, "couldnt find feed item id");
                     const feedItem =
-                      context.browserSessionSnapshot?.context.feedItems[
+                      context.browserSessionSnapshot?.context.feedItemsById[
                         feedItemId
                       ];
                     assert(feedItem, "expected feedItem");
@@ -3065,7 +3068,7 @@ export const pageSessionMachine = setup({
                       ];
                     assert(feedItemId, "couldnt find feed item id");
                     const feedItem =
-                      context.browserSessionSnapshot?.context.feedItems[
+                      context.browserSessionSnapshot?.context.feedItemsById[
                         feedItemId
                       ];
                     assert(feedItem, "expected feedItem");

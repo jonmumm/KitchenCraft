@@ -1,5 +1,6 @@
 "use client";
 
+import { CameraButton } from "@/components/camera-button";
 import { Badge } from "@/components/display/badge";
 import { Card, CardDescription, CardTitle } from "@/components/display/card";
 import {
@@ -42,7 +43,7 @@ import Link from "next/link";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { RecipeDetailOverlay } from "../components.client";
 import { AppSnapshot } from "../machine";
-import { useAppContext } from "./hooks";
+import { useAppContext } from "@/hooks/useAppContext";
 
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const recipe = useSuggestedRecipeAtIndex(index);
@@ -214,8 +215,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <CollapsibleContent>
             {isExpanded && recipe?.metadataComplete && (
               <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                <PrintButton slug={recipe?.slug} />
-                <FavoriteButton slug={recipe?.slug} />
+                {/* <PrintButton slug={recipe?.slug} /> */}
+                <CameraButton slug={recipe?.slug} />
+                <FavoriteButton id={recipe?.id} />
                 <ShareButton slug={recipe.slug} name={recipe.name} />
                 <RecipeSelectButton id={recipe.id} />
                 <RecipeMoreDropdownButton />

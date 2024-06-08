@@ -13,7 +13,6 @@ export const RecipeSelectButton = ({ id }: { id: string | undefined }) => {
     [id]
   );
   const isSelected = usePageSessionSelector(selectRecipeIsSelected);
-  console.log({ isSelected, id });
 
   if (!id) {
     return (

@@ -496,7 +496,6 @@ const SelectResultEventSchema = z.object({
   index: z.number(),
 });
 
-
 const SelectRecipesEventSchema = z.object({
   type: z.literal("SELECT_RECIPES"),
   recipeIds: z.array(z.string()),
@@ -1102,8 +1101,13 @@ const SelectTopicEventSchema = z.object({
   topic: z.string(),
 });
 
-export const AppEventSchema = z.discriminatedUnion("type", [
+const FavoriteRecipeSchema = z.object({
+  type: z.literal("FAVORITE_RECIPE"),
+  id: z.string(),
+});
 
+export const AppEventSchema = z.discriminatedUnion("type", [
+  FavoriteRecipeSchema,
   SelectTopicEventSchema,
   SelectQuestionOptionEventSchema,
   RefreshFeedEventSchema,

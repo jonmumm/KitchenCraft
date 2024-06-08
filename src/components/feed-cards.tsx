@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppContext } from "@/app/@craft/hooks";
+import { useAppContext } from "@/hooks/useAppContext";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo } from "react";
+import { CameraButton } from "./camera-button";
 import { Badge } from "./display/badge";
 import {
   Card,
@@ -45,7 +46,6 @@ import {
   DropdownMenuTrigger,
 } from "./input/dropdown-menu";
 import { Instructions } from "./instructions";
-import { PrintButton } from "./print-button";
 import { RecipeMoreDropdownButton } from "./recipe-more-dropdown-button";
 import { RecipeSuggestionSelectButton } from "./recipe-suggestion-select-button";
 import { useScrollLock } from "./scroll-lock";
@@ -74,7 +74,7 @@ const FeedCardItem = ({ index }: { index: number }) => {
     const feedItemId =
       state.context.browserSessionSnapshot?.context.feedItemIds[index];
     return feedItemId && focusedRecipeId
-      ? !!state.context.browserSessionSnapshot?.context.feedItems[
+      ? !!state.context.browserSessionSnapshot?.context.feedItemsById[
           feedItemId
         ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
       : false;
@@ -286,7 +286,7 @@ const FeedCardRecipeCarousel = ({
       const feedItemId =
         state.context.browserSessionSnapshot?.context.feedItemIds[index];
       return feedItemId && focusedRecipeId
-        ? !!state.context.browserSessionSnapshot?.context.feedItems[
+        ? !!state.context.browserSessionSnapshot?.context.feedItemsById[
             feedItemId
           ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
         : false;
@@ -430,7 +430,7 @@ const FeedCardRecipeItem = (input: {
         {!isInRecipeDetails ? (
           <>
             <div className="self-end">
-              <FavoriteButton slug={recipe?.slug} />
+              <FavoriteButton id={recipe?.id} />
             </div>
           </>
         ) : (
@@ -474,9 +474,10 @@ const FeedCardRecipeItem = (input: {
               )}
             >
               {/* <RecipeSelectButton id={recipe.id} /> */}
-              <PrintButton slug={recipe?.slug} />
+              {/* <PrintButton slug={recipe?.slug} /> */}
+              <CameraButton slug={recipe?.slug} />
               <ShareButton slug={recipe.slug} name={recipe.name} />
-              <FavoriteButton slug={recipe?.slug} />
+              <FavoriteButton id={recipe?.id} />
               <RecipeSuggestionSelectButton
                 itemIndex={input.itemIndex}
                 recipeIndex={input.recipeIndex}

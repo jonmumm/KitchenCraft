@@ -3,7 +3,7 @@
 import { Button } from "@/components/input/button";
 import { useSelector } from "@/hooks/useSelector";
 import { Loader2Icon, RefreshCwIcon } from "lucide-react";
-import { useAppContext } from "../@craft/hooks";
+import { useAppContext } from "@/hooks/useAppContext";
 
 export const RefreshFeedButton = () => {
   const context = useAppContext();

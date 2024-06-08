@@ -58,6 +58,7 @@ import {
   upsertRecipeRating,
 } from "./rating/queries";
 import { RatingValue } from "./rating/types";
+import { CameraButton } from "@/components/camera-button";
 
 // export const maxDuration = 300;
 // export const dynamic = "force-dynamic";
@@ -372,9 +373,10 @@ export default async function Page(props: Props) {
                   {/* <Button className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white">
                     Select <CheckIcon className="ml-2" />
                   </Button> */}
-                  <PrintButton slug={recipe?.slug} />
+                  {/* <PrintButton slug={recipe?.slug} /> */}
+                  <CameraButton slug={recipe?.slug} />
                   <ShareButton slug={slug} name={name} />
-                  <FavoriteButton slug={recipe?.slug} />
+                  <FavoriteButton id={recipe?.id} />
                   <RecipeSelectButton id={recipe.id} />
                   <RecipeMoreDropdownButton />
                 </div>

@@ -47,7 +47,7 @@ export const createFeedItemAtIndexSelector =
   (index: number) => (state: PageSessionSnapshot) => {
     const id = state.context.browserSessionSnapshot?.context.feedItemIds[index];
     if (id) {
-      return state.context.browserSessionSnapshot?.context.feedItems[id];
+      return state.context.browserSessionSnapshot?.context.feedItemsById[id];
     }
     return undefined;
   };
@@ -60,10 +60,32 @@ export const createFeedItemRecipeAtIndexSelector =
         input.itemIndex
       ];
     if (id) {
-      const item = state.context.browserSessionSnapshot?.context.feedItems[id];
+      const item = state.context.browserSessionSnapshot?.context.feedItemsById[id];
       return item?.recipes?.[input.recipeIndex];
     }
     return undefined;
+  };
+
+export const createRecipeIsFavoritedSelector =
+  (id?: string) => (state: PageSessionSnapshot) => {
+    if (!id) {
+      return undefined;
+    }
+    // todo find the
+    const listsById = state.context.browserSessionSnapshot?.context.listsById;
+    if (!listsById) {
+      return undefined;
+    }
+
+    const favoriteList = Object.values(listsById).find(({ slug }) => {
+      return slug === "favorites";
+    });
+
+    if (!favoriteList) {
+      return undefined;
+    }
+
+    return favoriteList.items.idSet[id];
   };
 
 export const createRecipeIsSelectedSelector =

@@ -208,7 +208,7 @@ export const CraftInput = ({
       (state) => !state.matches({ Open: "False" })
     );
     return !isOpen ? (
-      <Button className="ml-2" variant="ghost" size="icon" disabled>
+      <Button className="ml-1" variant="ghost" size="icon" disabled>
         <ChevronRight />
       </Button>
     ) : (
@@ -219,7 +219,7 @@ export const CraftInput = ({
   return (
     <div
       className={cn(
-        "flex flex-row gap-2 items-center w-full relative",
+        "flex flex-row gap-2 items-stretch w-full relative",
         className
       )}
     >
@@ -260,7 +260,7 @@ export const CraftInput = ({
           <Button
             size="icon"
             variant="outline"
-            className="mr-4"
+            className="mr-2"
             onClick={handleOpenSettings}
           >
             <Settings2Icon />
@@ -268,7 +268,7 @@ export const CraftInput = ({
           <Button
             event={{ type: "CLEAR" }}
             variant="ghost"
-            className="mr-2 text-xs font-semibold px-2 h-10"
+            className="mr-1 text-xs font-semibold px-1 h-10"
           >
             CLEAR
           </Button>

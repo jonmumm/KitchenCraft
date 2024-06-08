@@ -4,6 +4,7 @@ import { selectIsOpen } from "@/app/@craft/selectors";
 import { AppContext } from "@/app/context";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { PageSessionContext } from "@/app/page-session-store.context";
+import { useAppMatchesStateHandler } from "@/hooks/useAppMatchesStateHandler";
 // import { session$ } from "@/app/session-store";
 import { usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useEventHandler } from "@/hooks/useEventHandler";
@@ -73,21 +74,38 @@ const AutoResizableTextarea: React.FC<
     textarea.style.height = minHeight; // todo should be dynamicd?
 
     // Resize logic
-    const computedStyle = window.getComputedStyle(textarea);
-    const lineHeight = parseInt(computedStyle.lineHeight, 10);
     const isCrafting = document.body.classList.contains("crafting");
-    const numberOfLines = isCrafting
-      ? Math.floor(textarea.scrollHeight / lineHeight)
-      : 1;
-    const requiredHeight = numberOfLines * lineHeight;
-    textarea.style.height = `${requiredHeight}px`;
+    if (isCrafting) {
+      const computedStyle = window.getComputedStyle(textarea);
+      const lineHeight = parseInt(computedStyle.lineHeight, 10);
+      const numberOfLines = isCrafting
+        ? Math.floor(textarea.scrollHeight / lineHeight)
+        : 2;
+      const requiredHeight = numberOfLines * lineHeight;
+      textarea.style.height = `${requiredHeight}px`;
+    }
   }, []);
   useSelectorCallback(actor, selectIsOpen, (value) => {
     setTimeout(() => {
       resizeTextarea();
     }, 0);
   });
+
   useEventHandler("CLEAR", resizeTextarea);
+
+  const handleNewRecipe = useCallback(
+    (event: ExtractAppEvent<"NEW_RECIPE">) => {
+      const textarea = textareaRef.current;
+      if (!textarea || !event.prompt) return;
+      textareaRef.current.value = event.prompt;
+
+      resizeTextarea();
+    },
+    [resizeTextarea, textareaRef]
+  );
+  useEventHandler("NEW_RECIPE", handleNewRecipe);
+  // use
+
   const onAddToken = useCallback(
     (event: ExtractAppEvent<"ADD_TOKEN">) => {
       const currentValue = textareaRef.current?.value || "";
@@ -113,20 +131,15 @@ const AutoResizableTextarea: React.FC<
     return () => window.removeEventListener("resize", resizeTextarea);
   }, [resizeTextarea]);
 
-  // useEffect(() => {
-  //   resizeTextarea();
-  // }, [props.value, size, resizeTextarea]);
-
-  useEffect(() => {
-    // return session$.subscribe(() => {
-    //   resizeTextarea();
-    // });
+  const onClose = useCallback(() => {
+    console.log("CLLSE RESIZE");
+    resizeTextarea();
   }, [resizeTextarea]);
+
+  useAppMatchesStateHandler({ Open: "False" }, onClose);
 
   const textSizeClass =
     sizeClassMap[size]?.textSize || sizeClassMap["md"].textSize;
-  const heightClass =
-    sizeClassMap[size]?.heightClass || sizeClassMap["md"].heightClass;
 
   const Placeholder = () => {
     const isPristine = usePromptIsPristine();
@@ -141,22 +154,8 @@ const AutoResizableTextarea: React.FC<
   };
 
   const Textarea = () => {
-    // const value = useSelector(actor, (state) => state.context.prompt);
-
-    // const handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> =
-    //   useCallback((e) => {
-    //     alert(e.key);
-    //     if (e.key === "Enter") {
-    //       alert("ENTER!");
-    //       e.preventDefault();
-    //       e.currentTarget.blur(); // Close the keyboard
-    //     }
-    //   }, []);
-
     const handleChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
       (e) => {
-        // alert(e.nativeEvent.key);
-        console.log(e.nativeEvent);
         onChange && onChange(e);
         resizeTextarea();
       },
@@ -284,7 +283,7 @@ const AutoResizableTextarea: React.FC<
         <textarea
           suppressHydrationWarning
           ref={ref}
-          className={`peer resize-none block w-full ${textSizeClass} ${heightClass} outline-none bg-transparent overflow-y-hidden placeholder-slate-500`}
+          className={`peer resize-none block w-full ${textSizeClass} outline-none bg-transparent overflow-y-hidden placeholder-slate-500`}
           onChange={handleChange}
           onBlur={handleBlur}
           onFocus={handleFocus}
@@ -299,7 +298,7 @@ const AutoResizableTextarea: React.FC<
   };
 
   return (
-    <div className="relative block flex-1 items-center mr-3">
+    <div className="relative flex-1 flex flex-row items-start mr-2 mt-1.5">
       <Textarea />
       <Placeholder />
     </div>

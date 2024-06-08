@@ -202,14 +202,15 @@ export const browserSessionMachine = setup({
     suggestedIngredients: [],
     preferenceQuestionResults: {},
     suggestedTags: [],
+    generationIdSets: {},
     lastRunPersonalizationContext: undefined,
     selectedFeedTopics: [],
     suggestedPlaceholders: [],
     suggestedTokens: [],
     suggestedProfileNames: [],
     previousSuggestedProfileNames: [],
-    feedItems: {},
     feedItemIds: [],
+    feedItemsById: {},
     listIds: [],
     listsById: {},
   }),
@@ -364,6 +365,11 @@ export const browserSessionMachine = setup({
             True: {
               entry: assign(({ context, event }) =>
                 produce(context, (draft) => {
+                  // TODO: 
+                  // We can build the feed here...
+                  // We have the data fetched
+                  // And then on the first heartbeat, do all the LLM processing...
+
                   const newItemIds = [
                     randomUUID(),
                     randomUUID(),
@@ -376,7 +382,7 @@ export const browserSessionMachine = setup({
 
                   draft.feedItemIds = [...newItemIds];
                   newItemIds.forEach((id) => {
-                    draft.feedItems[id] = {
+                    draft.feedItemsById[id] = {
                       id,
                     };
                   });
@@ -387,15 +393,15 @@ export const browserSessionMachine = setup({
                   description:
                     "When the stream makes progress, update the feed items as they become available",
                   actions: assign({
-                    feedItems: ({ context, event }) =>
-                      produce(context.feedItems, (draft) => {
+                    feedItemsById: ({ context, event }) =>
+                      produce(context.feedItemsById, (draft) => {
                         const startIndex = context.feedItemIds.length - 6;
                         event.data.items?.forEach((item, index) => {
                           const itemId =
                             context.feedItemIds[startIndex + index];
                           assert(itemId, "expected to find itemId");
 
-                          const existingItem = context.feedItems[itemId];
+                          const existingItem = context.feedItemsById[itemId];
                           assert(existingItem, "expected existingItem");
 
                           draft[itemId] = {
@@ -451,7 +457,7 @@ export const browserSessionMachine = setup({
               guard: ({ context, event }) => {
                 const feedItemId = context.feedItemIds[event.itemIndex];
                 assert(feedItemId, `expected feedItemId at ${event.itemIndex}`);
-                const feedItem = context.feedItems[feedItemId];
+                const feedItem = context.feedItemsById[feedItemId];
                 assert(feedItem, "expected to find feedItem");
                 assert(feedItem.recipes, "expected feed item recipes");
                 const recipe = feedItem.recipes[event.recipeIndex];
@@ -472,7 +478,7 @@ export const browserSessionMachine = setup({
                         feedItemId,
                         `expected feedItemId at ${event.itemIndex}`
                       );
-                      const feedItem = context.feedItems[feedItemId];
+                      const feedItem = context.feedItemsById[feedItemId];
                       assert(feedItem, "expected to find feedItem");
                       assert(feedItem.recipes, "expected feed item recipes");
                       const recipe = feedItem.recipes[event.recipeIndex];

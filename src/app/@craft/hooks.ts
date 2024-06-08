@@ -3,10 +3,6 @@ import { useSend } from "@/hooks/useSend";
 import { useContext, useEffect, useMemo } from "react";
 import { AppContext } from "../context";
 
-export const useAppContext = () => {
-  return useContext(AppContext);
-};
-
 export const useKeyboardToggle = () => {
   const send = useSend();
 

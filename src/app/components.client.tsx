@@ -116,12 +116,13 @@ import {
   EnterEmailForm,
   EnterListNameForm,
 } from "./@craft/components.client";
-import { useAppContext } from "./@craft/hooks";
 import { AppContext } from "./context";
 import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
 import { AppSnapshot } from "./machine";
 import { PageSessionSnapshot } from "./page-session-machine";
+import { CameraButton } from "@/components/camera-button";
+import { useAppContext } from "@/hooks/useAppContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -403,8 +404,9 @@ const CurrentListCarouselItem = ({
             {recipe?.slug && (
               <>
                 <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                  <PrintButton slug={recipe?.slug} />
-                  <FavoriteButton slug={recipe?.slug} />
+                  {/* <PrintButton slug={recipe?.slug} /> */}
+                  <CameraButton slug={recipe?.slug} />
+                  <FavoriteButton id={recipe?.id} />
                   <ShareButton slug={recipe.slug} name={recipe.name} />
                   <RecipeSelectButton id={recipe.id} />
                   <RecipeMoreDropdownButton />

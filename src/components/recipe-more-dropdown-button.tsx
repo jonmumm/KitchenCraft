@@ -43,16 +43,6 @@ export const RecipeMoreDropdownButton = () => {
             </div>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <div>
-              <span role="img" aria-label="upload-photo" className="mr-2">
-                📸
-              </span>
-              <span className="text-muted-foreground">Upload a</span>{" "}
-              <span className="text-foreground font-semibold">Photo</span>
-            </div>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem className="text-muted-foreground">
             <div>
               <span role="img" aria-label="modify-recipe" className="mr-2">

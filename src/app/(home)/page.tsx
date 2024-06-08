@@ -45,7 +45,7 @@ export default async function Page({
           Today&apos;s Cookbook
           <span className="text-muted-foreground text-sm ml-2">{today}</span>
         </h3>
-        <RefreshFeedButton />
+        {/* <RefreshFeedButton /> */}
       </div>
       <div>
         <FeedCards />

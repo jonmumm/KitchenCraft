@@ -465,9 +465,10 @@ export type BrowserSessionContext = {
   previousSuggestedProfileNames: string[];
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
-  feedItems: Record<string, FeedItemWithIds>;
   welcome?: DeepPartial<WelcomeMessageOutput>;
+  feedItemsById: Record<string, FeedItemWithIds>;
   feedItemIds: string[];
+  generationIdSets: Record<string, string[]>;
   listIds: string[];
   listsById: Record<
     string,
@@ -478,7 +479,8 @@ export type BrowserSessionContext = {
       isPublic: boolean;
       totalItems: number;
       items: {
-        ids: string[];
+        idSet: Record<string, true>;
+        // todo add an ordering here?
         offset: number;
         hasMore: boolean;
       };
