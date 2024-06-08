@@ -55,6 +55,7 @@ const AutoResizableTextarea: React.FC<
   initialValue,
   ...props
 }) => {
+  const minHeight = 86;
   const send = useSend();
   const actor = useContext(AppContext);
 
@@ -70,8 +71,7 @@ const AutoResizableTextarea: React.FC<
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const minHeight = "86px";
-    textarea.style.height = minHeight; // todo should be dynamicd?
+    // textarea.style.height = minHeight; // todo should be dynamicd?
 
     // Resize logic
     const isCrafting = document.body.classList.contains("crafting");
@@ -83,6 +83,8 @@ const AutoResizableTextarea: React.FC<
         : 2;
       const requiredHeight = numberOfLines * lineHeight;
       textarea.style.height = `${requiredHeight}px`;
+    } else {
+      textarea.style.height = `${minHeight}px`;
     }
   }, []);
   useSelectorCallback(actor, selectIsOpen, (value) => {
@@ -287,6 +289,7 @@ const AutoResizableTextarea: React.FC<
           onChange={handleChange}
           onBlur={handleBlur}
           onFocus={handleFocus}
+          style={{ minHeight: `${minHeight}px` }}
           {...props}
           // onChange={(e) => {
           //   handleSearch(e.target.value);
@@ -298,7 +301,7 @@ const AutoResizableTextarea: React.FC<
   };
 
   return (
-    <div className="relative flex-1 flex flex-row items-start mr-2 mt-1.5">
+    <div className="relative flex-1 flex flex-row justify-between items-start mr-2 mt-1.5">
       <Textarea />
       <Placeholder />
     </div>

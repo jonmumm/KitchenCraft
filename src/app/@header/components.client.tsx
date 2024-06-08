@@ -208,18 +208,18 @@ export const CraftInput = ({
       (state) => !state.matches({ Open: "False" })
     );
     return !isOpen ? (
-      <Button className="ml-1" variant="ghost" size="icon" disabled>
+      <Button variant="ghost" size="icon" disabled>
         <ChevronRight />
       </Button>
     ) : (
-      <div className="w-2 h-full"></div>
+      <div className="w-1 h-full"></div>
     );
   };
 
   return (
     <div
       className={cn(
-        "flex flex-row gap-2 items-stretch w-full relative",
+        "flex flex-row gap-2 items-stretch justify-between w-full relative",
         className
       )}
     >
