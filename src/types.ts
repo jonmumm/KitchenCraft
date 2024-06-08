@@ -477,13 +477,8 @@ export type BrowserSessionContext = {
       name?: string;
       slug?: string;
       isPublic: boolean;
-      totalItems: number;
-      items: {
-        idSet: Record<string, true>;
-        // todo add an ordering here?
-        offset: number;
-        hasMore: boolean;
-      };
+      count: number;
+      idSet: Record<string, true>;
     }
   >;
 };

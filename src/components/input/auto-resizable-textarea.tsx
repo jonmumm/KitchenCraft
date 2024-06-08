@@ -301,7 +301,7 @@ const AutoResizableTextarea: React.FC<
   };
 
   return (
-    <div className="relative flex-1 flex flex-row justify-between items-start mr-2 mt-1.5">
+    <div className="relative flex-1 flex flex-row items-start mr-2 mt-1.5">
       <Textarea />
       <Placeholder />
     </div>

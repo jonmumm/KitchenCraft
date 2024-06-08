@@ -1,11 +1,18 @@
 import { captureEvent } from "@/actions/capturePostHogEvent";
-import { ProfileSchema, ProfileTable, UsersTable, db } from "@/db";
+import {
+  ListRecipeTable,
+  ListTable,
+  ProfileSchema,
+  ProfileTable,
+  UsersTable,
+  db,
+} from "@/db";
 import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert } from "@/lib/utils";
 import { BrowserSessionContext, BrowserSessionEvent } from "@/types";
 import { randomUUID } from "crypto";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { produce } from "immer";
 import { from, switchMap } from "rxjs";
 import {
@@ -50,7 +57,6 @@ export const browserSessionMachine = setup({
   actors: {
     sendWelcomeEmail: fromPromise(
       async ({ input }: { input: { email: string } }) => {
-        console.log(input.email);
         return "";
       }
     ),
@@ -62,6 +68,26 @@ export const browserSessionMachine = setup({
           .where(eq(ProfileTable.profileSlug, input.profileName))
           .execute();
         return result.length === 0;
+      }
+    ),
+    fetchLists: fromPromise(
+      async ({ input }: { input: { userId: string } }) => {
+        const lists = await db
+          .select()
+          .from(ListTable)
+          .where(eq(ListTable.createdBy, input.userId))
+          .execute();
+
+        const listIds = lists.map((item) => item.id);
+        const listRecipes = listIds.length
+          ? await db
+              .select()
+              .from(ListRecipeTable)
+              .where(inArray(ListRecipeTable.listId, listIds))
+              .execute()
+          : [];
+
+        return { lists, listRecipes };
       }
     ),
     checkIfEmailAvailable: fromPromise(
@@ -193,27 +219,29 @@ export const browserSessionMachine = setup({
 }).createMachine({
   id: "BrowserSessionMachine",
   type: "parallel",
-  context: ({ input }) => ({
-    ...input,
-    equipment: {},
-    preferences: {},
-    diet: {},
-    selectedRecipeIds: [],
-    suggestedIngredients: [],
-    preferenceQuestionResults: {},
-    suggestedTags: [],
-    generationIdSets: {},
-    lastRunPersonalizationContext: undefined,
-    selectedFeedTopics: [],
-    suggestedPlaceholders: [],
-    suggestedTokens: [],
-    suggestedProfileNames: [],
-    previousSuggestedProfileNames: [],
-    feedItemIds: [],
-    feedItemsById: {},
-    listIds: [],
-    listsById: {},
-  }),
+  context: ({ input }) => {
+    return {
+      ...input,
+      equipment: {},
+      preferences: {},
+      diet: {},
+      selectedRecipeIds: [],
+      suggestedIngredients: [],
+      preferenceQuestionResults: {},
+      suggestedTags: [],
+      generationIdSets: {},
+      lastRunPersonalizationContext: undefined,
+      selectedFeedTopics: [],
+      suggestedPlaceholders: [],
+      suggestedTokens: [],
+      suggestedProfileNames: [],
+      previousSuggestedProfileNames: [],
+      feedItemIds: [],
+      feedItemsById: {},
+      listIds: [],
+      listsById: {},
+    };
+  },
   on: {
     CHANGE: [
       {
@@ -365,7 +393,7 @@ export const browserSessionMachine = setup({
             True: {
               entry: assign(({ context, event }) =>
                 produce(context, (draft) => {
-                  // TODO: 
+                  // TODO:
                   // We can build the feed here...
                   // We have the data fetched
                   // And then on the first heartbeat, do all the LLM processing...
@@ -1011,6 +1039,58 @@ export const browserSessionMachine = setup({
         },
         Complete: {
           type: "final",
+        },
+      },
+    },
+    Lists: {
+      initial: "Loading",
+      states: {
+        Loading: {
+          invoke: {
+            src: "fetchLists",
+            input: ({ context }) => {
+              return {
+                userId: context.userId,
+              };
+            },
+            onDone: {
+              target: "Ready",
+              actions: assign(({ context, event }) => {
+                return produce(context, (draft) => {
+                  const recipeIdsByListId: Record<
+                    string,
+                    Record<string, true>
+                  > = {};
+                  event.output.listRecipes.forEach(({ recipeId, listId }) => {
+                    if (!recipeIdsByListId[listId]) {
+                      recipeIdsByListId[listId] = {};
+                    }
+                    recipeIdsByListId[listId]![recipeId] = true;
+                  });
+
+                  event.output.lists.forEach((list) => {
+                    const idSet = recipeIdsByListId[list.id];
+                    assert(idSet, "expected idSet for list: " + list.id);
+
+                    draft.listIds.push(list.id);
+                    draft.listsById[list.id] = {
+                      id: list.id,
+                      name: list.name,
+                      slug: list.slug,
+                      isPublic: true,
+                      count: Object.keys(idSet).length,
+                      idSet,
+                    };
+                  });
+                });
+              }),
+            },
+          },
+        },
+        Ready: {
+          on: {
+            ADD_SELECTED: {},
+          },
         },
       },
     },

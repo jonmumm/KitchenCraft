@@ -1,5 +1,6 @@
 "use client";
 
+import { CameraButton } from "@/components/camera-button";
 import { CurrentListCount } from "@/components/current-list-count";
 import {
   Accordion,
@@ -41,7 +42,6 @@ import {
 } from "@/components/layout/popover";
 import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
-import { PrintButton } from "@/components/print-button";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
 import { RecipeSelectButton } from "@/components/recipe-select-button";
 import { useScrollLock } from "@/components/scroll-lock";
@@ -56,6 +56,7 @@ import { Times } from "@/components/times";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageSessionSelector } from "@/components/util/page-session-selector";
 import { Yield } from "@/components/yield";
+import { useAppContext } from "@/hooks/useAppContext";
 import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
@@ -121,8 +122,6 @@ import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
 import { AppSnapshot } from "./machine";
 import { PageSessionSnapshot } from "./page-session-machine";
-import { CameraButton } from "@/components/camera-button";
-import { useAppContext } from "@/hooks/useAppContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -902,12 +901,16 @@ export const IsInputtingChefName = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
-const selectIsCreatingList = (state: AppSnapshot) => false;
+const selectIsCreatingList = (state: AppSnapshot) => {
+  return state.matches({ Lists: { Creating: "True" } });
+};
 // state.matches({
 //   Auth: { LoggedIn: { Adding: { True: { ListCreating: "True" } } } },
 // });
 
-const selectIsSelectingList = (state: AppSnapshot) => false;
+const selectIsSelectingList = (state: AppSnapshot) => {
+  return state.matches({ Lists: { Selecting: "True" } });
+};
 // state.matches({ Auth: { LoggedIn: { Adding: "True" } } }) &&
 // !selectIsCreatingList(state);
 
@@ -1104,9 +1107,7 @@ export const SelectListCard = () => {
       <div className="flex flex-row gap-1 items-center justify-between px-4">
         <div className="flex flex-col gap-1 mb-2">
           <CardTitle>Add to List</CardTitle>
-          <CardDescription>
-            Select a list to add this recipe to.
-          </CardDescription>
+          <CardDescription>Select a list to add to.</CardDescription>
           {/* <div className="flex flex-row justify-between items-center">
               <Label className="uppercase text-xs text-muted-foreground">
                 Recent

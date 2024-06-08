@@ -6,6 +6,7 @@ import {
 } from "@/components/layout/responsive-dialog";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppSnapshotConditionalRenderer } from "@/components/util/app-snapshot-conditional-renderer";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
   getCurrentEmail,
@@ -23,6 +24,7 @@ import { parseCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA, getIsMobile } from "@/lib/headers";
 import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
+import { IS_CREATING_LIST, IS_SELECTING_LIST } from "@/states/app.states";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { ReactNode } from "react";
@@ -34,12 +36,10 @@ import {
   CreateNewListCard,
   EnterChefNameCard,
   EnterEmailCard,
-  IsCreatingList,
   IsInMyCookbook,
   IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
-  IsSelectingList,
   IsUpgradingAccount,
   MyRecipesScreen,
   PersonalizationSettingsMenu,
@@ -298,22 +298,22 @@ const SaveDialog = () => {
   const isMobile = getIsMobile();
   return (
     <>
-      <IsSelectingList>
+      <AppSnapshotConditionalRenderer matchedState={IS_SELECTING_LIST}>
         <ResponsiveDialog open isMobile={isMobile}>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent>
             <SelectListCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
-      </IsSelectingList>
-      <IsCreatingList>
+      </AppSnapshotConditionalRenderer>
+      <AppSnapshotConditionalRenderer matchedState={IS_CREATING_LIST}>
         <ResponsiveDialog open isMobile={isMobile}>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent>
             <CreateNewListCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
-      </IsCreatingList>
+      </AppSnapshotConditionalRenderer>
     </>
   );
 };

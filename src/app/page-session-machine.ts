@@ -2,6 +2,7 @@ import { streamToObservable } from "@/lib/stream-to-observable";
 import { produce } from "immer";
 
 import { captureEvent } from "@/actions/capturePostHogEvent";
+import { getAllListsForUserWithRecipeCount } from "@/actors/getAllListsForUserWithRecipeCount";
 import {
   ListRecipeTable,
   ListTable,
@@ -33,7 +34,7 @@ import {
 } from "@/types";
 import { createClient } from "@vercel/postgres";
 import { randomUUID } from "crypto";
-import { and, desc, eq, ilike, inArray, max, sql as sqlFN } from "drizzle-orm";
+import { and, eq, ilike, inArray, max, sql as sqlFN } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 import { Operation, applyPatch, compare } from "fast-json-patch";
 import * as Party from "partykit/server";
@@ -234,37 +235,6 @@ const listenBrowserSession = fromEventObservable(
   }
 );
 
-const getAllListsForUserWithRecipeCount = fromPromise(
-  async ({ input }: { input: { userId: string } }) => {
-    const client = createClient();
-    await client.connect();
-    const db = drizzle(client);
-    try {
-      const result = await db
-        .select({
-          id: ListTable.id,
-          name: ListTable.name,
-          slug: ListTable.slug,
-          createdAt: ListTable.createdAt,
-          recipeCount: sqlFN<number>`COUNT(${ListRecipeTable.recipeId})`,
-        })
-        .from(ListTable)
-        .leftJoin(ListRecipeTable, eq(ListTable.id, ListRecipeTable.listId))
-        .where(eq(ListTable.createdBy, input.userId))
-        .groupBy(ListTable.id)
-        .orderBy(desc(ListTable.createdAt))
-        .execute();
-
-      return { success: true, result };
-    } catch (error) {
-      console.error("Error retrieving lists with recipe count:", error);
-      return { success: false, error: getErrorMessage(error) };
-    } finally {
-      await client.end();
-    }
-  }
-);
-
 export type PageSessionEvent =
   | WithCaller<AppEvent>
   | WithCaller<SystemEvent>
@@ -407,7 +377,7 @@ export const pageSessionMachine = setup({
         input: {
           listName: string;
           userId: string;
-          recipeIdToAdd: string;
+          recipeIdsToAdd: string[];
         };
       }) => {
         const client = createClient();
@@ -431,11 +401,15 @@ export const pageSessionMachine = setup({
             const list = result[0];
             assert(list, "expected list to be created");
 
-            await tx.insert(ListRecipeTable).values({
-              userId: input.userId,
-              listId: list.id,
-              recipeId: input.recipeIdToAdd,
-            });
+            if (input.recipeIdsToAdd.length) {
+              await tx.insert(ListRecipeTable).values(
+                input.recipeIdsToAdd.map((recipeId) => ({
+                  userId: input.userId,
+                  listId: list.id,
+                  recipeId,
+                }))
+              );
+            }
 
             return list;
           });
@@ -1193,64 +1167,61 @@ export const pageSessionMachine = setup({
 
         Adding: {
           on: {
-            CHANGE_LIST: {
-              target: ".True",
-              actions: assign({
-                currentListSlug: () => undefined,
-              }),
-            },
-            SAVE: [
-              {
-                guard: ({ event, context }) =>
-                  event.caller.type === "user" && !!context.currentListSlug,
-                actions: [
-                  spawnChild("saveRecipeToListName", {
-                    input: ({ context, event }) => {
-                      assert("caller" in event, "expected caller");
-                      assert(
-                        event.caller.type === "user",
-                        "expected caller to be user"
-                      );
-                      const userId = event.caller.id;
-
-                      const recipeId =
-                        context.suggestedRecipes[context.currentItemIndex];
-                      assert(recipeId, "expected recipeId");
-                      assert(
-                        context.currentListSlug,
-                        "expected currentListSlug"
-                      );
-
-                      // const list = context.listsBySlug?[context.currentListSlug];
-                      assert(
-                        context.listsBySlug,
-                        "expected listsBySlug to be loaded"
-                      );
-                      const currentList =
-                        context.listsBySlug[context.currentListSlug];
-                      assert(currentList, "expected currentList");
-
-                      return {
-                        recipeId,
-                        userId,
-                        listName: currentList.name,
-                      };
-                    },
-                  }),
-                  "incrementRecipeCountForCurrentList",
-                ],
-              },
-              {
-                actions: ["assignRecipeIdToSave"],
-                guard: ({ context }) => {
-                  return !context.currentListSlug;
-                },
-                target: ".True",
-              },
-              {
-                actions: ["assignRecipeIdToSave"],
-              },
-            ],
+            // CHANGE_LIST: {
+            //   target: ".True",
+            //   actions: assign({
+            //     currentListSlug: () => undefined,
+            //   }),
+            // },
+            // SAVE: [
+            //   {
+            //     guard: ({ event, context }) =>
+            //       event.caller.type === "user" && !!context.currentListSlug,
+            //     actions: [
+            //       spawnChild("saveRecipeToListName", {
+            //         input: ({ context, event }) => {
+            //           assert("caller" in event, "expected caller");
+            //           assert(
+            //             event.caller.type === "user",
+            //             "expected caller to be user"
+            //           );
+            //           const userId = event.caller.id;
+            //           const recipeId =
+            //             context.suggestedRecipes[context.currentItemIndex];
+            //           assert(recipeId, "expected recipeId");
+            //           assert(
+            //             context.currentListSlug,
+            //             "expected currentListSlug"
+            //           );
+            //           // const list = context.listsBySlug?[context.currentListSlug];
+            //           assert(
+            //             context.listsBySlug,
+            //             "expected listsBySlug to be loaded"
+            //           );
+            //           const currentList =
+            //             context.listsBySlug[context.currentListSlug];
+            //           assert(currentList, "expected currentList");
+            //           return {
+            //             recipeId,
+            //             userId,
+            //             listName: currentList.name,
+            //           };
+            //         },
+            //       }),
+            //       "incrementRecipeCountForCurrentList",
+            //     ],
+            //   },
+            //   {
+            //     actions: ["assignRecipeIdToSave"],
+            //     guard: ({ context }) => {
+            //       return !context.currentListSlug;
+            //     },
+            //     target: ".True",
+            //   },
+            //   {
+            //     actions: ["assignRecipeIdToSave"],
+            //   },
+            // ],
           },
           initial: "False",
           states: {
@@ -1258,165 +1229,55 @@ export const pageSessionMachine = setup({
             True: {
               type: "parallel",
               on: {
-                SELECT_LIST: [
-                  {
-                    target: "False",
-                    guard: ({ event }) => event.caller.type === "user",
-                    actions: [
-                      "assignListSelection",
-                      spawnChild("saveRecipeToListName", {
-                        input: ({ context, event }) => {
-                          assert("caller" in event, "expected caller");
-                          assert(
-                            event.caller.type === "user",
-                            "expected caller to be user"
-                          );
-                          const userId = event.caller.id;
+                // SELECT_LIST: [
+                //   {
+                //     target: "False",
+                //     guard: ({ event }) => event.caller.type === "user",
+                //     actions: [
+                //       "assignListSelection",
+                //       spawnChild("saveRecipeToListName", {
+                //         input: ({ context, event }) => {
+                //           assert("caller" in event, "expected caller");
+                //           assert(
+                //             event.caller.type === "user",
+                //             "expected caller to be user"
+                //           );
+                //           const userId = event.caller.id;
 
-                          const recipeId =
-                            context.suggestedRecipes[context.currentItemIndex];
-                          assert(recipeId, "expected recipeId");
-                          assert(
-                            context.currentListSlug,
-                            "expected currentListSlug"
-                          );
+                //           const recipeId =
+                //             context.suggestedRecipes[context.currentItemIndex];
+                //           assert(recipeId, "expected recipeId");
+                //           assert(
+                //             context.currentListSlug,
+                //             "expected currentListSlug"
+                //           );
 
-                          // const list = context.listsBySlug?[context.currentListSlug];
-                          assert(
-                            context.listsBySlug,
-                            "expected listsBySlug to be loaded"
-                          );
-                          const currentList =
-                            context.listsBySlug[context.currentListSlug];
-                          assert(currentList, "expected currentList");
+                //           // const list = context.listsBySlug?[context.currentListSlug];
+                //           assert(
+                //             context.listsBySlug,
+                //             "expected listsBySlug to be loaded"
+                //           );
+                //           const currentList =
+                //             context.listsBySlug[context.currentListSlug];
+                //           assert(currentList, "expected currentList");
 
-                          return {
-                            recipeId,
-                            userId,
-                            listName: currentList.name,
-                          };
-                        },
-                      }),
-                    ],
-                  },
-                  {
-                    target: "False",
-                    actions: "assignListSelection",
-                  },
-                ],
+                //           return {
+                //             recipeId,
+                //             userId,
+                //             listName: currentList.name,
+                //           };
+                //         },
+                //       }),
+                //     ],
+                //   },
+                //   {
+                //     target: "False",
+                //     actions: "assignListSelection",
+                //   },
+                // ],
                 CANCEL: "False",
-                CHANGE: {
-                  guard: "didChangeListNameInput",
-                  actions: assign({
-                    listName: ({ event }) => {
-                      return event.value;
-                    },
-                  }),
-                },
               },
               states: {
-                ListCreating: {
-                  initial: "False",
-                  states: {
-                    False: {
-                      on: {
-                        CREATE_LIST: "True",
-                      },
-                    },
-                    True: {
-                      on: {
-                        SUBMIT: {
-                          target: "Saving",
-                          actions: assign({
-                            currentListSlug: ({ context }) => {
-                              const listName = ListNameSchema.parse(
-                                context.listName
-                              );
-                              return sentenceToSlug(listName);
-                            },
-                          }),
-                        },
-                      },
-                    },
-                    Saving: {
-                      invoke: {
-                        src: "createNewList",
-                        input: ({ context, event }) => {
-                          const listName = ListNameSchema.parse(
-                            context.listName
-                          );
-                          assert("caller" in event, "expected caller in event");
-
-                          const recipeIdToAdd =
-                            context.suggestedRecipes[context.currentItemIndex];
-                          assert(
-                            recipeIdToAdd,
-                            "expected recipeToAdd when creating list"
-                          );
-
-                          return {
-                            listName,
-                            userId: event.caller.id,
-                            recipeIdToAdd,
-                          };
-                        },
-                        onDone: {
-                          actions: assign({
-                            listsBySlug: ({ context, event }) =>
-                              produce(context.listsBySlug, (draft) => {
-                                assert(
-                                  draft,
-                                  "expected lists to be fetched alredy"
-                                );
-                                draft[event.output.slug] = {
-                                  ...event.output,
-                                  recipeCount: 1,
-                                };
-                              }),
-                          }),
-                        },
-                        // actions: [
-                        //   assign({
-                        //     currentListSlug: ({ context }) => {
-                        //       const listName = ListNameSchema.parse(
-                        //         context.listName
-                        //       );
-                        //       // todo verify this somewhere that its unique
-                        //       return listName;
-                        //     },
-                        //   }),
-                        // ],
-                      },
-
-                      // spawnChild("createNewList", {
-                      //   input: ({ context, event }) => {
-                      //     const listName = ListNameSchema.parse(
-                      //       context.listName
-                      //     );
-                      //     assert(
-                      //       "caller" in event,
-                      //       "expected caller in event"
-                      //     );
-
-                      //     const recipeIdToAdd =
-                      //       context.suggestedRecipes[
-                      //         context.currentItemIndex
-                      //       ];
-                      //     assert(
-                      //       recipeIdToAdd,
-                      //       "expected recipeToAdd when creating list"
-                      //     );
-
-                      //     return {
-                      //       listName,
-                      //       userId: event.caller.id,
-                      //       recipeIdToAdd,
-                      //     };
-                      //   },
-                      // }),
-                    },
-                  },
-                },
                 Lists: {
                   initial: "Initializing",
                   states: {
@@ -2580,9 +2441,9 @@ export const pageSessionMachine = setup({
         },
         Anonymous: {
           on: {
-            SELECT_LIST: {
-              target: "Registering",
-            },
+            // SELECT_LIST: {
+            //   target: "Registering",
+            // },
           },
 
           type: "parallel",
@@ -3155,6 +3016,107 @@ export const pageSessionMachine = setup({
             },
             Complete: {},
           },
+        },
+      },
+    },
+    ListCreate: {
+      initial: "False",
+      states: {
+        False: {
+          on: {
+            CREATE_LIST: "True",
+          },
+        },
+        True: {
+          on: {
+            CHANGE: {
+              guard: "didChangeListNameInput",
+              actions: assign({
+                listName: ({ event }) => {
+                  return event.value;
+                },
+              }),
+            },
+            SUBMIT: {
+              target: "Saving",
+              // todo guard
+              actions: assign({
+                currentListSlug: ({ context }) => {
+                  const listName = ListNameSchema.parse(context.listName);
+                  return sentenceToSlug(listName);
+                },
+              }),
+            },
+          },
+        },
+        Saving: {
+          invoke: {
+            src: "createNewList",
+            input: ({ context, event }) => {
+              const listName = ListNameSchema.parse(context.listName);
+              assert("caller" in event, "expected caller in event");
+
+              const recipeIdsToAdd =
+                context.browserSessionSnapshot?.context.selectedRecipeIds;
+              assert(recipeIdsToAdd, "expected recipeIds to add");
+
+              return {
+                listName,
+                userId: event.caller.id,
+                recipeIdsToAdd,
+              };
+            },
+            onDone: {
+              actions: assign({
+                listsBySlug: ({ context, event }) =>
+                  produce(context.listsBySlug, (draft) => {
+                    assert(draft, "expected lists to be fetched alredy");
+                    draft[event.output.slug] = {
+                      ...event.output,
+                      recipeCount: 1,
+                    };
+                  }),
+              }),
+            },
+            // actions: [
+            //   assign({
+            //     currentListSlug: ({ context }) => {
+            //       const listName = ListNameSchema.parse(
+            //         context.listName
+            //       );
+            //       // todo verify this somewhere that its unique
+            //       return listName;
+            //     },
+            //   }),
+            // ],
+          },
+
+          // spawnChild("createNewList", {
+          //   input: ({ context, event }) => {
+          //     const listName = ListNameSchema.parse(
+          //       context.listName
+          //     );
+          //     assert(
+          //       "caller" in event,
+          //       "expected caller in event"
+          //     );
+
+          //     const recipeIdToAdd =
+          //       context.suggestedRecipes[
+          //         context.currentItemIndex
+          //       ];
+          //     assert(
+          //       recipeIdToAdd,
+          //       "expected recipeToAdd when creating list"
+          //     );
+
+          //     return {
+          //       listName,
+          //       userId: event.caller.id,
+          //       recipeIdToAdd,
+          //     };
+          //   },
+          // }),
         },
       },
     },

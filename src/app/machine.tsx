@@ -882,6 +882,7 @@ export const createAppMachine = ({
                 },
                 True: {
                   on: {
+                    ADD_SELECTED: "False",
                     NEW_RECIPE: "False",
                     EXIT: "False",
                   },
@@ -905,6 +906,7 @@ export const createAppMachine = ({
             },
             Open: {
               on: {
+                VIEW_LIST: "Closed",
                 EXIT: {
                   target: "Closed",
                   actions: assign({
@@ -1011,6 +1013,46 @@ export const createAppMachine = ({
                   invoke: {
                     src: "waitForRefreshFeedEnd",
                     onDone: "False",
+                  },
+                },
+              },
+            },
+          },
+        },
+        Lists: {
+          type: "parallel",
+          states: {
+            Selecting: {
+              initial: "False",
+              states: {
+                False: {
+                  on: {
+                    ADD_SELECTED: "True",
+                  },
+                },
+                True: {
+                  on: {
+                    CANCEL: "False",
+                    SELECT_LIST: "False",
+                    SUBMIT: "False",
+                  },
+                  type: "parallel",
+                  states: {
+                    Creating: {
+                      initial: "False",
+                      states: {
+                        False: {
+                          on: {
+                            CREATE_LIST: "True",
+                          },
+                        },
+                        True: {
+                          on: {
+                            CANCEL: "False",
+                          },
+                        },
+                      },
+                    },
                   },
                 },
               },
