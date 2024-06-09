@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { getBrowser, getUserAgent } from "@/lib/headers";
 import { assert } from "@/lib/utils";
 import Bowser from "bowser";
@@ -10,7 +10,7 @@ export default async function Page({
 }: {
   searchParams: Record<string, string>;
 }) {
-  const session = await getSession();
+  const session = await getNextAuthSession();
   if (session) {
     return redirect("/");
   }

@@ -16,7 +16,7 @@ export function PreferenceCard({
   const session = usePageSessionStore();
   const [toggleValue, setToggleValue] = useState(() => {
     const sessionValue =
-      session.get().context.browserSessionSnapshot?.context.preferences[
+      session.get().context.sessionSnapshot?.context.preferences[
         preferenceKey
       ];
     return typeof sessionValue !== "undefined"

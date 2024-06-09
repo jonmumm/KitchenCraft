@@ -18,7 +18,7 @@ import {
   waitFor,
 } from "xstate";
 import { z } from "zod";
-import { createCallerToken, parseCallerIdToken } from "../browser-session";
+import { createCallerToken, parseCallerIdToken } from "../session";
 import { assert } from "../utils";
 import { API_SERVER_URL } from "./constants";
 

@@ -17,7 +17,7 @@ import { Badge } from "@/components/display/badge";
 import { EventButton } from "@/components/event-button";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { db } from "@/db";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { formatDuration, shuffle, timeAgo } from "@/lib/utils";
 import {
   getProfileByUserId,
@@ -28,7 +28,7 @@ import LayoutClient, { HomeTabs } from "./layout.client";
 // import { db } from "@vercel/postgres";
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  const userId = (await getSession())?.user.id;
+  const userId = (await getNextAuthSession())?.user.id;
   let username: string | undefined;
   if (userId) {
     const result = await getProfileByUserId(userId);

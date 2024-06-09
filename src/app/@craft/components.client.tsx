@@ -1173,7 +1173,7 @@ export const BadgeList = ({ children }: { children: ReactNode }) => {
 
 const selectSuggestedIngredients = (snapshot: SessionStoreSnapshot) => {
   return (
-    snapshot.context.browserSessionSnapshot?.context.suggestedIngredients || []
+    snapshot.context.sessionSnapshot?.context.suggestedIngredients || []
   );
 };
 
@@ -1229,13 +1229,13 @@ export const SuggestedIngredientsSection = () => {
 };
 
 const selectSuggestedTags = (snapshot: SessionStoreSnapshot) => {
-  return snapshot.context.browserSessionSnapshot?.context.suggestedTags || [];
+  return snapshot.context.sessionSnapshot?.context.suggestedTags || [];
 };
 
 const selectIsGeneratingSuggestedIngredients = (
   snapshot: SessionStoreSnapshot
 ) => {
-  const value = snapshot.context.browserSessionSnapshot?.value;
+  const value = snapshot.context.sessionSnapshot?.value;
   return (
     typeof value?.Suggestions === "object" &&
     typeof value.Suggestions.Ingredients === "string" &&
@@ -1244,7 +1244,7 @@ const selectIsGeneratingSuggestedIngredients = (
 };
 
 const selectIsGeneratingSuggestedTags = (snapshot: SessionStoreSnapshot) => {
-  const value = snapshot.context.browserSessionSnapshot?.value;
+  const value = snapshot.context.sessionSnapshot?.value;
   return (
     typeof value?.Suggestions === "object" &&
     typeof value.Suggestions.Tags === "string" &&

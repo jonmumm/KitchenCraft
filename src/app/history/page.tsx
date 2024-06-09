@@ -9,7 +9,7 @@ import { getProfileLifetimePoints, getRecentLikedRecipesByUser } from "@/db/quer
 import { formatJoinDateStr } from "@/lib/utils";
 import { ChefHatIcon } from "lucide-react";
 import { RecipeListItem } from "../recipe/components";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import Link from "next/link";
 import { combineLatest, from, map, of, shareReplay } from "rxjs";
 import { redirect } from "next/navigation";
@@ -21,7 +21,7 @@ import { db } from "@/db";
 const NUM_PLACEHOLDER_RECIPES = 30;
 
 export default async function Page() {
-  const session = await getSession();
+  const session = await getNextAuthSession();
   if (!session) {
     redirect("/auth/signin");
   }

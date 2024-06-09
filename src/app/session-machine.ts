@@ -10,7 +10,7 @@ import {
 import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert } from "@/lib/utils";
-import { BrowserSessionContext, BrowserSessionEvent } from "@/types";
+import { SessionContext, SessionEvent } from "@/types";
 import { randomUUID } from "crypto";
 import { eq, inArray } from "drizzle-orm";
 import { produce } from "immer";
@@ -44,15 +44,14 @@ import { WelcomeMessageStream } from "./welcome-message.stream";
 
 const InputSchema = z.object({
   id: z.string(),
-  userId: z.string(),
 });
 type Input = z.infer<typeof InputSchema>;
 
-export const browserSessionMachine = setup({
+export const sessionMachine = setup({
   types: {
     input: {} as Input,
-    context: {} as BrowserSessionContext,
-    events: {} as BrowserSessionEvent,
+    context: {} as SessionContext,
+    events: {} as SessionEvent,
   },
   actors: {
     sendWelcomeEmail: fromPromise(
@@ -207,6 +206,7 @@ export const browserSessionMachine = setup({
     ),
   },
   guards: {
+    isLoggedIn: ({ context }) => context.authenticated,
     didLoadOnboardingPage: ({ event }) => false,
     didChangeProfileNameInput: ({ context, event }) => {
       return event.type === "CHANGE" && event.name === "profileName";
@@ -217,11 +217,13 @@ export const browserSessionMachine = setup({
   },
   actions: {},
 }).createMachine({
-  id: "BrowserSessionMachine",
+  id: "SessionMachine",
   type: "parallel",
   context: ({ input }) => {
     return {
       ...input,
+      userId: randomUUID(),
+      authenticated: false,
       equipment: {},
       preferences: {},
       diet: {},
@@ -321,6 +323,13 @@ export const browserSessionMachine = setup({
         Ready: {
           type: "final",
         },
+      },
+    },
+    AuthState: {
+      initial: "Unauthenticated",
+      states: {
+        Unauthenticated: {},
+        Authenticated: {},
       },
     },
     Connections: {
@@ -900,9 +909,19 @@ export const browserSessionMachine = setup({
                     suggestedFeedTopics: ({ event }) => event.data.topics,
                   }),
                 },
-                SUBMIT: {
-                  target: "Email",
-                },
+                SUBMIT: [
+                  {
+                    target: "Email",
+                    guard: ({ context }) => !context.authenticated,
+                  },
+                  {
+                    target: "ProfileName",
+                    guard: ({ context }) => !context.profileName,
+                  },
+                  {
+                    target: "Complete",
+                  },
+                ],
               },
             },
             Email: {
@@ -1097,5 +1116,5 @@ export const browserSessionMachine = setup({
   },
 });
 
-export type BrowserSessionMachine = typeof browserSessionMachine;
-export type BrowserSessionState = StateValueFrom<BrowserSessionMachine>;
+export type SessionMachine = typeof sessionMachine;
+export type SessionState = StateValueFrom<SessionMachine>;

@@ -13,7 +13,7 @@ import {
 } from "@/db/queries";
 import { Recipe } from "@/db/types";
 import { env } from "@/env.public";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { getResult } from "@/lib/db";
 import { SuggestionPredictionInputSchema, TempRecipeSchema } from "@/schema";
 import { RecipePredictionInput } from "@/types";
@@ -40,7 +40,7 @@ export default async function Page(props: Props) {
   const { slug } = props.params;
 
   const [session, recipe, media] = await Promise.all([
-    getSession(),
+    getNextAuthSession(),
     getRecipe(slug),
     getSortedMediaForRecipe(slug),
   ]);

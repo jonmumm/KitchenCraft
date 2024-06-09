@@ -16,7 +16,7 @@ export function DietCard({ dietKey }: { dietKey: keyof DietSettings }) {
   const send = useSend();
   const session = usePageSessionStore();
   const [checked, setChecked] = useState(
-    !!session.get().context.browserSessionSnapshot?.context.diet[dietKey]
+    !!session.get().context.sessionSnapshot?.context.diet[dietKey]
   );
 
   const toggleDiet = () => {

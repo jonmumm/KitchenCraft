@@ -1,6 +1,6 @@
 import { RecipeListItem } from "@/app/recipe/components";
 import { getBestRecipes } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { TimeParamSchema } from "../schema";
 
 // export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export default async function Page({
   const timeParam = TimeParamSchema.parse(searchParams["t"] || "month");
 
   const items = new Array(30).fill(0);
-  const session = await getSession();
+  const session = await getNextAuthSession();
   const userId = session?.user.id;
   const recipes = await getBestRecipes(timeParam);
 

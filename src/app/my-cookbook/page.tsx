@@ -8,35 +8,22 @@ import { AsyncRenderFirstValue } from "@/components/util/async-render-first-valu
 import { AsyncRenderLastValue } from "@/components/util/async-render-last-value";
 import quoteList from "@/data/quotes.json";
 import { db } from "@/db";
-import { getRecentRecipesByCreator, getRecentLikedRecipesByUser, updateRecipeCreator } from "@/db/queries";
+import { getRecentLikedRecipesByUser } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
-import { getGuestId } from "@/lib/browser-session";
 import { assert, shuffle } from "@/lib/utils";
 import { ChevronRightIcon } from "lucide-react";
 import { from, of, shareReplay } from "rxjs";
 import { RecipeListItem } from "../recipe/components";
 
 export default async function Page() {
-  const [currentUserId, guestId] = await Promise.all([
-    getCurrentUserId(),
-    getGuestId(),
-  ]);
+  const currentUserId = await getCurrentUserId();
 
-  if (currentUserId && guestId) {
-    // todo only do this sometimes...
-    await updateRecipeCreator(db, guestId, currentUserId);
-  }
+  // if (currentUserId && guestId) {
+  //   // todo only do this sometimes...
+  //   await updateRecipeCreator(db, guestId, currentUserId);
+  // }
 
-  let createdBy;
-  if (currentUserId) {
-    // const currentProfile = await getProfileByUserId(currentUserId);
-    // if (currentProfile?.activated) {
-    //   redirect(`/@${currentProfile?.profileSlug}`);
-    // }
-    createdBy = currentUserId;
-  } else {
-    createdBy = guestId;
-  }
+  const createdBy = currentUserId;
 
   const [recipes$] = [
     createdBy
@@ -51,7 +38,7 @@ export default async function Page() {
         <section>
           <AsyncRenderFirstValue
             render={(recipes) => {
-              return recipes.length && guestId && !currentUserId ? (
+              return recipes.length && !currentUserId ? (
                 <Card className="border-solid border-2 border-t-4 border-t-green-400 dark:border-t-green-600 mt-8">
                   <div className="p-4">
                     <h3 className="font-semibold">Save Your Recipes</h3>

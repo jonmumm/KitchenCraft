@@ -18,7 +18,7 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({ level }) => {
   // Fetch initial experience level from the session
   const [selected, setSelected] = useState(() => {
     const sessionExperience =
-      session.get().context.browserSessionSnapshot?.context.experienceLevel;
+      session.get().context.sessionSnapshot?.context.experienceLevel;
     return sessionExperience === level;
   });
 

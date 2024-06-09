@@ -343,7 +343,7 @@ export const KeyboardToggle = () => {
 };
 
 const selectSuggestedTokens = (snapshot: PageSessionSnapshot) => {
-  return snapshot.context.browserSessionSnapshot?.context.suggestedTokens || [];
+  return snapshot.context.sessionSnapshot?.context.suggestedTokens || [];
 };
 
 export const HomepageSuggestedTokens = () => {

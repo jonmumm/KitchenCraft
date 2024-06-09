@@ -13,11 +13,9 @@ import {
   getActiveSubscriptionForUserId,
   getMembersBySubscriptionId,
   getProfileByUserId,
-  getUserLifetimePoints,
-  getUserPointsLast30Days,
 } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
-import { ChefHatIcon, GithubIcon, LoaderIcon, YoutubeIcon } from "lucide-react";
+import { getNextAuthSession } from "@/lib/auth/session";
+import { ChefHatIcon, GithubIcon, YoutubeIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -39,7 +37,7 @@ import {
 } from "./components.client";
 
 export async function MainMenu({ className }: { className?: string }) {
-  const session = await getSession();
+  const session = await getNextAuthSession();
 
   const userId = session?.user.id;
   const email = session?.user.email;
@@ -100,11 +98,12 @@ export async function MainMenu({ className }: { className?: string }) {
       {!userId && (
         <>
           {/* {canInstallPWA && <AppInstall />} */}
-          <Link href="/auth/signin">
-            <Button size="lg" className="w-full">
-              Sign In / Sign Up
-            </Button>
-          </Link>
+          <Button
+            size="xl"
+            event={{ type: "SIGN_IN" }}
+          >
+            Sign In
+          </Button>
           <Separator />
         </>
       )}

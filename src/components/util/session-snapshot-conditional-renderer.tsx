@@ -1,9 +1,9 @@
-import { BrowserSessionState } from "@/app/browser-session-machine";
+import { SessionState } from "@/app/session-machine";
 import { useSessionMatchesState } from "@/hooks/useSessionMatchesState";
 import { ReactNode } from "react";
 
 interface SessionSnapshotConditionalRendererProps {
-  matchedState: BrowserSessionState;
+  matchedState: SessionState;
   children: ReactNode;
   initialValueOverride?: boolean;
   not?: boolean;

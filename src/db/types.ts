@@ -1,8 +1,6 @@
 import { z } from "zod";
 import {
-  AccountSchema,
   MediaSchema,
-  NewAccountSchema,
   NewMediaSchema,
   NewRecipeSchema,
   NewSessionSchema,
@@ -18,9 +16,6 @@ import {
 
 export type User = z.infer<typeof UserSchema>;
 export type NewUser = z.infer<typeof NewUserSchema>;
-
-export type Account = z.infer<typeof AccountSchema>;
-export type NewAccount = z.infer<typeof NewAccountSchema>;
 
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type NewRecipe = z.infer<typeof NewRecipeSchema>;

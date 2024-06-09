@@ -1,35 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  createBrowserSessionToken,
   createCallerToken,
-  getBrowserSessionTokenFromCookie,
+  createRefreshToken,
   getGuestTokenFromCookies,
-  parseAppInstallToken,
-  parsedBrowserSessionTokenFromCookie,
+  getRefreshTokenFromCookie,
+  parsedSessionTokenFromCookie,
   setGuestTokenCookieHeader,
   setSessionTokenCookieHeader,
-} from "./lib/browser-session";
+} from "./lib/session";
 import { CallerSchema } from "./schema";
 
 export async function middleware(request: NextRequest) {
-  const appInstallToken = request.nextUrl.searchParams.get("token");
-
   let newGuestToken: string | undefined;
-  let newBrowserSessionToken: string | undefined;
+  let newRefreshTOken: string | undefined;
   let uniqueId;
-  // let uniqueIdType: UniqueIdType | undefined;
-  if (appInstallToken) {
-    let appInstall;
-    try {
-      appInstall = await parseAppInstallToken(appInstallToken);
-    } catch (ex) {
-      // If expired, do nothing
-    }
-    if (appInstall && !appInstall.email && appInstall.distinctId) {
-      uniqueId = appInstall.distinctId;
-      newGuestToken = await createCallerToken(appInstall.distinctId, "guest");
-    }
-  }
+
+  // const appInstallToken = request.nextUrl.searchParams.get("token");
+  // if (appInstallToken) {
+  //   let appInstall;
+  //   try {
+  //     appInstall = await parseAppInstallToken(appInstallToken);
+  //   } catch (ex) {
+  //     // If expired, do nothing
+  //   }
+  //   if (appInstall && !appInstall.email && appInstall.distinctId) {
+  //     uniqueId = appInstall.distinctId;
+  //     newGuestToken = await createCallerToken(appInstall.distinctId, "guest");
+  //   }
+  // }
 
   if (!uniqueId) {
     const guestToken = await getGuestTokenFromCookies();
@@ -52,16 +50,16 @@ export async function middleware(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
 
-  const browserSessionToken = await getBrowserSessionTokenFromCookie();
-  const parsedBrowserSessionToken = await parsedBrowserSessionTokenFromCookie();
-  if (browserSessionToken && parsedBrowserSessionToken) {
-    requestHeaders.set("x-browser-session-id", parsedBrowserSessionToken.jti);
-    requestHeaders.set("x-browser-session-token", browserSessionToken);
+  const refreshToken = await getRefreshTokenFromCookie();
+  const parsedSessionToken = await parsedSessionTokenFromCookie();
+  if (refreshToken && parsedSessionToken) {
+    requestHeaders.set("x-session-id", parsedSessionToken.jti);
+    requestHeaders.set("x-refresh-token", refreshToken);
   } else {
-    const browserSessionId = uuidv4();
-    newBrowserSessionToken = await createBrowserSessionToken(browserSessionId);
-    requestHeaders.set("x-browser-session-id", browserSessionId);
-    requestHeaders.set("x-browser-session-token", newBrowserSessionToken);
+    const sessionId = uuidv4();
+    newRefreshTOken = await createRefreshToken(sessionId);
+    requestHeaders.set("x-session-id", sessionId);
+    requestHeaders.set("x-refresh-token", newRefreshTOken);
   }
 
   const pageSessionId = uuidv4();
@@ -81,8 +79,8 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  if (newBrowserSessionToken) {
-    await setSessionTokenCookieHeader(res, newBrowserSessionToken);
+  if (newRefreshTOken) {
+    await setSessionTokenCookieHeader(res, newRefreshTOken);
   }
 
   if (newGuestToken) {

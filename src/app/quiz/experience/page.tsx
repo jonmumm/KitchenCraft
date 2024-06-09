@@ -17,7 +17,7 @@ export default function Experience() {
   const send = useSend();
   const session$ = usePageSessionStore();
   const [selectedExperience, setSelectedExperience] = useState(
-    session$.get().context.browserSessionSnapshot?.context.experienceLevel
+    session$.get().context.sessionSnapshot?.context.experienceLevel
   );
   const [showCTA, setShowCTA] = useState(!!selectedExperience);
 

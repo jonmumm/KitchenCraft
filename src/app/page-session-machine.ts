@@ -50,11 +50,11 @@ import {
   spawnChild,
 } from "xstate";
 import { z } from "zod";
+import { initializeSessionSocket } from "../actors/initializeSessionSocket";
 import {
   generateChefNameSuggestions,
   generateListNameSuggestions,
   getUserPreferences,
-  initializeBrowserSessionSocket,
   saveRecipeToListName,
 } from "../actors/shared";
 import { AutoSuggestIngredientEvent } from "./auto-suggest-ingredients.stream";
@@ -70,8 +70,6 @@ import {
   AutoSuggestTokensEvent,
   AutoSuggestTokensStream,
 } from "./auto-suggest-tokens.stream";
-import { BrowserSessionMachine } from "./browser-session-machine";
-import { BrowserSessionSnapshot } from "./browser-session-store.types";
 import {
   FullRecipeFromSuggestionEvent,
   FullRecipeFromSuggestionStream,
@@ -86,6 +84,8 @@ import {
   RecipeIdeasMetadataStream,
 } from "./recipe-ideas-metadata.stream";
 import { SuggestRecipeProductsEvent } from "./recipe/[slug]/products/recipe-products-stream";
+import { SessionMachine } from "./session-machine";
+import { SessionSnapshot } from "./session-store.types";
 import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { buildInput } from "./utils";
@@ -116,7 +116,7 @@ const InputSchema = z.object({
   partyContext: z.custom<Party.Context>(),
   url: z.string().url(),
   initialCaller: z.custom<Caller>(),
-  browserSessionToken: z.string(),
+  refreshToken: z.string(),
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -134,7 +134,7 @@ export type PageSessionContext = {
   refs: {
     partyStorage: Party.Storage;
     partyContext: Party.Context;
-    browserSessionSocket: ServerPartySocket | undefined;
+    sessionSocket: ServerPartySocket | undefined;
   };
   onboardingInput: {
     mealType?: string | undefined;
@@ -161,7 +161,7 @@ export type PageSessionContext = {
   generatingRecipeId: string | undefined;
   currentItemIndex: number;
   currentListRecipeIndex: number;
-  browserSessionToken: string;
+  refreshToken: string;
   numCompletedRecipes: number;
   numCompletedRecipeMetadata: number;
   suggestedTags: string[];
@@ -179,16 +179,13 @@ export type PageSessionContext = {
   history: string[];
   userPreferences: UserPreferences; // New field to store user preferences
   modifiedPreferences: Partial<Record<keyof UserPreferences, true>>;
-  browserSessionSnapshot: BrowserSessionSnapshot | undefined;
+  sessionSnapshot: SessionSnapshot | undefined;
   listsBySlug: ListsBySlugRecord | undefined;
 };
 
-type BrowserSessionActorSocketEvent = ActorSocketEvent<
-  "BROWSER_SESSION",
-  BrowserSessionMachine
->;
+type SessionActorSocketEvent = ActorSocketEvent<"SESSION", SessionMachine>;
 
-const listenBrowserSession = fromEventObservable(
+const listenSession = fromEventObservable(
   ({
     input,
   }: {
@@ -196,15 +193,14 @@ const listenBrowserSession = fromEventObservable(
       socket: ServerPartySocket;
     };
   }) => {
-    const subject = new Subject<BrowserSessionActorSocketEvent>();
+    const subject = new Subject<SessionActorSocketEvent>();
     const { socket } = input;
 
     socket.addEventListener("error", (error) => {
       console.error("error", error);
     });
 
-    let currentSnapshot: SnapshotFrom<BrowserSessionMachine> | undefined =
-      undefined;
+    let currentSnapshot: SnapshotFrom<SessionMachine> | undefined = undefined;
 
     socket.addEventListener("message", (message) => {
       assert(
@@ -220,7 +216,7 @@ const listenBrowserSession = fromEventObservable(
         applyPatch(draft, operations);
       });
       subject.next({
-        type: "BROWSER_SESSION_UPDATE",
+        type: "SESSION_UPDATE",
         snapshot: nextSnapshot as any,
         operations,
       });
@@ -228,7 +224,7 @@ const listenBrowserSession = fromEventObservable(
     });
 
     socket.addEventListener("close", () => {
-      subject.next({ type: "BROWSER_SESSION_DISCONNECT" });
+      subject.next({ type: "SESSION_DISCONNECT" });
     });
 
     return subject;
@@ -252,7 +248,7 @@ export type PageSessionEvent =
   | FullRecipeEvent
   | FullRecipeFromSuggestionEvent
   | NewRecipeProductKeywordEvent
-  | BrowserSessionActorSocketEvent;
+  | SessionActorSocketEvent;
 
 export const pageSessionMachine = setup({
   types: {
@@ -266,8 +262,8 @@ export const pageSessionMachine = setup({
     generateChefNameSuggestions,
     generateListNameSuggestions,
     getUserPreferences,
-    initializeBrowserSessionSocket,
-    listenBrowserSession,
+    initializeSessionSocket,
+    listenSession: listenSession,
     updateChefName: fromPromise(
       async ({
         input,
@@ -609,7 +605,7 @@ export const pageSessionMachine = setup({
       assertType(event, "VIEW_RECIPE");
       debugger;
       console.log(event);
-      const feedItems = context.browserSessionSnapshot?.context.feedItemsById;
+      const feedItems = context.sessionSnapshot?.context.feedItemsById;
       if (!feedItems) return false;
 
       const feedItem = Object.values(feedItems).find(
@@ -648,7 +644,7 @@ export const pageSessionMachine = setup({
     nextRecipeInCategoryShouldBeCreated: ({ context, event }): boolean => {
       assertType(event, "VIEW_RECIPE");
 
-      const feedItems = context.browserSessionSnapshot?.context.feedItemsById;
+      const feedItems = context.sessionSnapshot?.context.feedItemsById;
       if (!feedItems) return false;
 
       const feedItem = Object.values(feedItems).find(
@@ -768,7 +764,7 @@ export const pageSessionMachine = setup({
     refs: {
       partyStorage: input.storage,
       partyContext: input.partyContext,
-      browserSessionSocket: undefined,
+      sessionSocket: undefined,
     },
     onboardingInput: {},
     currentListRecipeIndex: 0,
@@ -800,7 +796,7 @@ export const pageSessionMachine = setup({
     generatingRecipeId: undefined,
     suggestedTags: [],
     suggestedText: [],
-    browserSessionSnapshot: undefined,
+    sessionSnapshot: undefined,
     suggestedIngredients: [],
     suggestedTokens: [],
     // createdRecipeSlugs: [],
@@ -812,7 +808,7 @@ export const pageSessionMachine = setup({
     undoOperations: [],
     redoOperations: [],
     listsBySlug: undefined,
-    browserSessionToken: input.browserSessionToken,
+    refreshToken: input.refreshToken,
   }),
   type: "parallel",
   states: {
@@ -821,7 +817,7 @@ export const pageSessionMachine = setup({
       states: {
         Loading: {
           on: {
-            BROWSER_SESSION_UPDATE: "Ready",
+            SESSION_UPDATE: "Ready",
           },
         },
         Ready: {
@@ -829,7 +825,7 @@ export const pageSessionMachine = setup({
         },
       },
     },
-    BrowserSession: {
+    Session: {
       initial: "Uninitialized",
       states: {
         Uninitialized: {
@@ -837,10 +833,10 @@ export const pageSessionMachine = setup({
         },
         Initializing: {
           invoke: {
-            src: "initializeBrowserSessionSocket",
+            src: "initializeSessionSocket",
             input: ({ context }) => {
               return {
-                browserSessionToken: context.browserSessionToken,
+                refreshToken: context.refreshToken,
                 partyContext: context.refs.partyContext,
                 caller: context.initialCaller,
               };
@@ -850,7 +846,7 @@ export const pageSessionMachine = setup({
               actions: assign({
                 refs: ({ context, event }) =>
                   produce(context.refs, (draft) => {
-                    draft.browserSessionSocket = event.output;
+                    draft.sessionSocket = event.output;
                   }),
               }),
             },
@@ -861,26 +857,26 @@ export const pageSessionMachine = setup({
             actions: ({ context, event }) => {
               if ("caller" in event) {
                 // todo need to limit this to only my caller or something?
-                context.refs.browserSessionSocket?.send(JSON.stringify(event));
+                context.refs.sessionSocket?.send(JSON.stringify(event));
               }
             },
           },
           on: {
-            BROWSER_SESSION_UPDATE: {
+            SESSION_UPDATE: {
               actions: assign({
-                browserSessionSnapshot: ({ event }) => event.snapshot,
+                sessionSnapshot: ({ event }) => event.snapshot,
               }),
             },
           },
           invoke: {
-            src: "listenBrowserSession",
+            src: "listenSession",
             input: ({ context }) => {
               assert(
-                context.refs.browserSessionSocket,
-                "expected browserSessionSocket to be initialized"
+                context.refs.sessionSocket,
+                "expected sessionSocket to be initialized"
               );
               return {
-                socket: context.refs.browserSessionSocket,
+                socket: context.refs.sessionSocket,
               };
             },
           },
@@ -1466,7 +1462,7 @@ export const pageSessionMachine = setup({
                       input: ({ context, event }) => {
                         assertEvent(event, "VIEW_RECIPE");
                         const feedItems =
-                          context.browserSessionSnapshot?.context.feedItemsById;
+                          context.sessionSnapshot?.context.feedItemsById;
                         assert(feedItems, "expected feedItems");
 
                         const feedItem = Object.values(feedItems).find(
@@ -1528,7 +1524,7 @@ export const pageSessionMachine = setup({
                     assign(({ context, event }) =>
                       produce(context, (draft) => {
                         const feedItems =
-                          context.browserSessionSnapshot?.context.feedItemsById;
+                          context.sessionSnapshot?.context.feedItemsById;
                         assert(feedItems, "expected feedItems");
 
                         const feedItem = Object.values(feedItems).find(
@@ -1594,7 +1590,7 @@ export const pageSessionMachine = setup({
                       input: ({ context, event }) => {
                         assertEvent(event, "VIEW_RECIPE");
                         const feedItems =
-                          context.browserSessionSnapshot?.context.feedItemsById;
+                          context.sessionSnapshot?.context.feedItemsById;
                         assert(feedItems, "expected feedItems");
 
                         const feedItem = Object.values(feedItems).find(
@@ -1656,7 +1652,7 @@ export const pageSessionMachine = setup({
                     assign(({ context, event }) =>
                       produce(context, (draft) => {
                         const feedItems =
-                          context.browserSessionSnapshot?.context.feedItemsById;
+                          context.sessionSnapshot?.context.feedItemsById;
                         assert(feedItems, "expected feedItems");
 
                         const feedItem = Object.values(feedItems).find(
@@ -1893,8 +1889,7 @@ export const pageSessionMachine = setup({
                         input: ({ context, event }) => {
                           assertEvent(event, "VIEW_RECIPE");
                           const feedItems =
-                            context.browserSessionSnapshot?.context
-                              .feedItemsById;
+                            context.sessionSnapshot?.context.feedItemsById;
                           assert(feedItems, "expected feedItems");
                           const feedItem = Object.values(feedItems).find(
                             (item) =>
@@ -1932,8 +1927,7 @@ export const pageSessionMachine = setup({
                       assign(({ context, event }) =>
                         produce(context, (draft) => {
                           const feedItems =
-                            context.browserSessionSnapshot?.context
-                              .feedItemsById;
+                            context.sessionSnapshot?.context.feedItemsById;
                           assert(feedItems, "expected feedItems");
                           const feedItem = Object.values(feedItems).find(
                             (item) =>
@@ -2539,10 +2533,10 @@ export const pageSessionMachine = setup({
                             context.previousSuggestedChefnames,
                           prompt: context.prompt,
                           tokens: context.tokens,
-                          personalizationContext: context.browserSessionSnapshot
+                          personalizationContext: context.sessionSnapshot
                             ?.context
                             ? getPersonalizationContext(
-                                context.browserSessionSnapshot.context
+                                context.sessionSnapshot.context
                               )
                             : undefined,
                           selectedRecipe: {
@@ -2623,10 +2617,9 @@ export const pageSessionMachine = setup({
                         email: context.email,
                         previousSuggestions: context.previousSuggestedChefnames,
                         prompt: context.prompt,
-                        personalizationContext: context.browserSessionSnapshot
-                          ?.context
+                        personalizationContext: context.sessionSnapshot?.context
                           ? getPersonalizationContext(
-                              context.browserSessionSnapshot.context
+                              context.sessionSnapshot.context
                             )
                           : undefined,
                         tokens: context.tokens,
@@ -2868,14 +2861,10 @@ export const pageSessionMachine = setup({
                 "Generate full recipe if we don't already have this recipe",
               guard: ({ context, event }) => {
                 const feedItemId =
-                  context.browserSessionSnapshot?.context.feedItemIds[
-                    event.itemIndex
-                  ];
+                  context.sessionSnapshot?.context.feedItemIds[event.itemIndex];
                 assert(feedItemId, "couldnt find feed item id");
                 const feedItem =
-                  context.browserSessionSnapshot?.context.feedItemsById[
-                    feedItemId
-                  ];
+                  context.sessionSnapshot?.context.feedItemsById[feedItemId];
                 assert(feedItem, "expected feedItem");
                 assert(feedItem.category, "expected feedItem to have cateogry");
                 assert(feedItem.recipes, "expected feedItem to have recipes");
@@ -2890,12 +2879,12 @@ export const pageSessionMachine = setup({
                   input: ({ context, event }) => {
                     assertEvent(event, "SELECT_RECIPE_SUGGESTION");
                     const feedItemId =
-                      context.browserSessionSnapshot?.context.feedItemIds[
+                      context.sessionSnapshot?.context.feedItemIds[
                         event.itemIndex
                       ];
                     assert(feedItemId, "couldnt find feed item id");
                     const feedItem =
-                      context.browserSessionSnapshot?.context.feedItemsById[
+                      context.sessionSnapshot?.context.feedItemsById[
                         feedItemId
                       ];
                     assert(feedItem, "expected feedItem");
@@ -2924,12 +2913,12 @@ export const pageSessionMachine = setup({
                 assign(({ context, event }) =>
                   produce(context, (draft) => {
                     const feedItemId =
-                      context.browserSessionSnapshot?.context.feedItemIds[
+                      context.sessionSnapshot?.context.feedItemIds[
                         event.itemIndex
                       ];
                     assert(feedItemId, "couldnt find feed item id");
                     const feedItem =
-                      context.browserSessionSnapshot?.context.feedItemsById[
+                      context.sessionSnapshot?.context.feedItemsById[
                         feedItemId
                       ];
                     assert(feedItem, "expected feedItem");
@@ -2966,7 +2955,7 @@ export const pageSessionMachine = setup({
           states: {
             Idle: {
               on: {
-                BROWSER_SESSION_UPDATE: [
+                SESSION_UPDATE: [
                   {
                     target: "Loading",
                     guard: ({ context, event }) => {
@@ -2987,7 +2976,7 @@ export const pageSessionMachine = setup({
                 input: ({ context, event }) => {
                   return {
                     recipeIds: [
-                      ...context.browserSessionSnapshot?.context.selectedRecipeIds.filter(
+                      ...context.sessionSnapshot?.context.selectedRecipeIds.filter(
                         (id) => !context.recipes[id]
                       )!,
                     ],
@@ -3057,7 +3046,7 @@ export const pageSessionMachine = setup({
               assert("caller" in event, "expected caller in event");
 
               const recipeIdsToAdd =
-                context.browserSessionSnapshot?.context.selectedRecipeIds;
+                context.sessionSnapshot?.context.selectedRecipeIds;
               assert(recipeIdsToAdd, "expected recipeIds to add");
 
               return {

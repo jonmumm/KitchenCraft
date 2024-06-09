@@ -13,12 +13,12 @@ import { assert } from "./utils";
 export class AuthError extends Error {}
 
 export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
-export const BROWSER_SESSION_TOKEN_COOKIE_KEY = "browser-session-token";
+export const SESSION_TOKEN_COOKIEY_KEY = "session-token";
 
-export const createBrowserSessionToken = async (browserSessionId: string) => {
+export const createRefreshToken = async (sessionId: string) => {
   const token = await new SignJWT({})
     .setProtectedHeader({ alg: "HS256" })
-    .setJti(browserSessionId)
+    .setJti(sessionId)
     .setIssuedAt()
     .setExpirationTime("30d")
     .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
@@ -81,7 +81,7 @@ export const setSessionTokenCookieHeader = async (
 ) => {
   const date = new Date();
   date.setFullYear(date.getFullYear() + 20); // Expires 20 years from now
-  const tokenStr = serialize(BROWSER_SESSION_TOKEN_COOKIE_KEY, token, {
+  const tokenStr = serialize(SESSION_TOKEN_COOKIEY_KEY, token, {
     path: "/",
     expires: date,
     secure: true,
@@ -125,18 +125,17 @@ export const getGuestTokenFromCookies = async () => {
   }
 };
 
-export const parsedBrowserSessionTokenFromCookie = async () => {
+export const parsedSessionTokenFromCookie = async () => {
   const cookieStore = cookies();
-  const browserSessionToken = cookieStore.get(BROWSER_SESSION_TOKEN_COOKIE_KEY)
-    ?.value;
+  const sessionToken = cookieStore.get(SESSION_TOKEN_COOKIEY_KEY)?.value;
 
-  if (!browserSessionToken) {
+  if (!sessionToken) {
     return undefined;
   }
 
   try {
     const verified = await jwtVerify(
-      browserSessionToken,
+      sessionToken,
       new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
     );
     return verified.payload as UserJwtPayload;
@@ -147,26 +146,25 @@ export const parsedBrowserSessionTokenFromCookie = async () => {
   }
 };
 
-export const getBrowserSessionTokenFromCookie = () => {
+export const getRefreshTokenFromCookie = () => {
   const cookieStore = cookies();
-  const browserSessionToken = cookieStore.get(BROWSER_SESSION_TOKEN_COOKIE_KEY)
-    ?.value;
-  return browserSessionToken;
+  const sessionToken = cookieStore.get(SESSION_TOKEN_COOKIEY_KEY)?.value;
+  return sessionToken;
 };
 
-export const getBrowserSessionToken = () => {
-  const browserSessionToken = getBrowserSessionTokenFromCookie();
-  if (browserSessionToken) {
-    return browserSessionToken;
+export const getRefreshToken = () => {
+  const refreshTokenFromCookies = getRefreshTokenFromCookie();
+  if (refreshTokenFromCookies) {
+    return refreshTokenFromCookies;
   }
 
   const headerList = headers();
-  const browserSessionId = headerList.get("x-browser-session-token");
+  const refreshToken = headerList.get("x-refresh-token");
   assert(
-    browserSessionId,
-    "expected x-browser-session-id in header but wasn't in cookies or header."
+    refreshToken,
+    "expected x-refresh-token in header but wasn't in cookies or header."
   );
-  return browserSessionId;
+  return refreshToken;
 };
 
 export const getPageSessionId = () => {
@@ -176,11 +174,11 @@ export const getPageSessionId = () => {
   return pageSessionId;
 };
 
-export const getBrowserSessionId = () => {
+export const getSessionId = () => {
   const headerList = headers();
-  const browserSessionId = headerList.get("x-browser-session-id");
-  assert(browserSessionId, "expected x-broser-session-id in header");
-  return browserSessionId;
+  const sessionId = headerList.get("x-session-id");
+  assert(sessionId, "expected x-session-id in header");
+  return sessionId;
 };
 
 export const getRequestUrl = () => {

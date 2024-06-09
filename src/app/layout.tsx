@@ -10,18 +10,18 @@ import { AppSnapshotConditionalRenderer } from "@/components/util/app-snapshot-c
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
   getCurrentEmail,
+  getNextAuthSession,
   getPageSessionActorClient,
-  getSession,
   getUniqueId,
 } from "@/lib/auth/session";
-import {
-  createAppInstallToken,
-  getBrowserSessionToken,
-  getPageSessionId,
-  getRequestUrl,
-} from "@/lib/browser-session";
 import { parseCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA, getIsMobile } from "@/lib/headers";
+import {
+  createAppInstallToken,
+  getPageSessionId,
+  getRefreshToken,
+  getRequestUrl,
+} from "@/lib/session";
 import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import { IS_CREATING_LIST, IS_SELECTING_LIST } from "@/states/app.states";
@@ -49,6 +49,7 @@ import {
 } from "./components.client";
 import { SessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
+import { SignInCard } from "./sign-in-card";
 import "./styles.css";
 export const revalidate = 0;
 
@@ -117,15 +118,15 @@ export default async function RootLayout(
   }
 
   const canInstallPWA = getCanInstallPWA();
-  const session = await getSession();
+  const nextAuthSession = await getNextAuthSession();
 
   const pageSessionActorClient = await getPageSessionActorClient();
   const pageSessionId = await getPageSessionId();
-  const browserSessionToken = await getBrowserSessionToken();
+  const refreshToken = await getRefreshToken();
   const url = await getRequestUrl();
   const { snapshot, connectionId, token } = await pageSessionActorClient.get(
     pageSessionId,
-    { url, browserSessionToken }
+    { url, refreshToken }
   );
   assert(snapshot, "expected snapshot");
 
@@ -162,7 +163,7 @@ export default async function RootLayout(
       {/* Enables server to centralize logic in a machine across routes */}
       <SessionStoreProvider initial={snapshot}>
         <ApplicationProvider
-          session={session}
+          nextAuthSession={nextAuthSession}
           appSessionId={parseCookie("appSessionId")}
           token={token}
         >
@@ -197,6 +198,7 @@ export default async function RootLayout(
                 {canInstallPWA && <SafariInstallPrompt />}
                 <RegistrationDialog />
                 <SaveDialog />
+                <SignInDialog />
                 <PersonalizationSettingsDialog />
                 <UpgradeAccountDialog />
                 <MyRecipes />
@@ -228,6 +230,22 @@ export default async function RootLayout(
 //     </>
 //   );
 // };
+const SignInDialog = () => {
+  const isMobile = getIsMobile();
+
+  return (
+    <>
+      <AppSnapshotConditionalRenderer matchedState={{ Auth: "SigningIn" }}>
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
+            <SignInCard />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </AppSnapshotConditionalRenderer>
+    </>
+  );
+};
 
 const PersonalizationSettingsDialog = () => {
   const isMobile = getIsMobile();

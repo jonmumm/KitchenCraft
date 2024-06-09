@@ -24,7 +24,6 @@ import {
 import { ReactNode } from "react";
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  const uniqueId = await getUniqueId();
   return (
     <>
       <div className="max-w-2xl w-full mx-auto px-4 mb-8">

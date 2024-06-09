@@ -13,7 +13,7 @@ import {
   getMembersBySubscriptionId,
   getProfileByUserId,
 } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { getCanInstallPWA } from "@/lib/headers";
 import { cn } from "@/lib/utils";
 import {
@@ -31,7 +31,7 @@ import { Observable, from, map, of, shareReplay, switchMap, take } from "rxjs";
 import { AppInstallContainer } from "./app-install-container";
 
 export async function MainMenu({ className }: { className?: string }) {
-  const session = await getSession();
+  const session = await getNextAuthSession();
   const canInstallPWA = getCanInstallPWA();
 
   const userId = session?.user.id;
@@ -120,12 +120,13 @@ export async function MainMenu({ className }: { className?: string }) {
             </MenuItem>
           )}
           <MenuItem>
-            <NavigationLink href="/auth/signin">
-              <Button size="lg" className="w-full transitioning:opacity-70">
-                <span className="transitioning:hidden">Sign In / Sign Up</span>
-                <span className="transitioning:inline hidden">Loading</span>
-              </Button>
-            </NavigationLink>
+            <Button
+              size="lg"
+              className="w-full transitioning:opacity-70"
+              event={{ type: "SIGN_IN" }}
+            >
+              Sign In
+            </Button>
           </MenuItem>
           <Separator />
         </>
@@ -385,7 +386,7 @@ export async function MainMenu({ className }: { className?: string }) {
             <Button
               variant="ghost"
               className="text-sm underline text-center"
-              event={{type: "LOGOUT"}}
+              event={{ type: "LOGOUT" }}
             >
               Sign Out
             </Button>

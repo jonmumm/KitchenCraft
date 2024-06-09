@@ -2,7 +2,7 @@ import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import ServerRedirect from "@/components/navigation/server-redirect";
 import { adapter, authOptions, emailConfig } from "@/lib/auth/options";
 import { getCurrentEmail } from "@/lib/auth/session";
-import { parseAppInstallToken } from "@/lib/browser-session";
+import { parseAppInstallToken } from "@/lib/session";
 import { MAX_INT, parseCookie, setCookie } from "@/lib/coookieStore";
 import { createHash, randomString } from "@/lib/string";
 import { assert } from "@/lib/utils";

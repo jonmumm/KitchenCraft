@@ -72,9 +72,9 @@ const FeedCardItem = ({ index }: { index: number }) => {
 
   const isInFocus = usePageSessionSelector((state) => {
     const feedItemId =
-      state.context.browserSessionSnapshot?.context.feedItemIds[index];
+      state.context.sessionSnapshot?.context.feedItemIds[index];
     return feedItemId && focusedRecipeId
-      ? !!state.context.browserSessionSnapshot?.context.feedItemsById[
+      ? !!state.context.sessionSnapshot?.context.feedItemsById[
           feedItemId
         ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
       : false;
@@ -284,9 +284,9 @@ const FeedCardRecipeCarousel = ({
   const isActive =
     usePageSessionSelector((state) => {
       const feedItemId =
-        state.context.browserSessionSnapshot?.context.feedItemIds[index];
+        state.context.sessionSnapshot?.context.feedItemIds[index];
       return feedItemId && focusedRecipeId
-        ? !!state.context.browserSessionSnapshot?.context.feedItemsById[
+        ? !!state.context.sessionSnapshot?.context.feedItemsById[
             feedItemId
           ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
         : false;

@@ -1,10 +1,10 @@
 import { RecipeListItem } from "@/app/recipe/components";
 import { getRecentRecipes } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 
 export default async function Page() {
   const items = new Array(30).fill(0);
-  const session = await getSession();
+  const session = await getNextAuthSession();
   const userId = session?.user.id;
   const recipes = await getRecentRecipes();
 

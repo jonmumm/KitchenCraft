@@ -394,9 +394,7 @@ export type UserPreferences = {
 export type RecipeList = z.infer<typeof ListSchema>;
 
 export type ServerPartySocket = Awaited<
-  ReturnType<
-    ReturnType<Party.Context["parties"]["browser_sessions"]["get"]>["socket"]
-  >
+  ReturnType<ReturnType<Party.Context["parties"]["sessions"]["get"]>["socket"]>
 >;
 
 export type OnboardingInput = z.infer<typeof OnboardingInputSchema>;
@@ -406,7 +404,7 @@ export type EquipmentSettings = z.infer<typeof EquipmentSettingsSchema>;
 export type DietSettings = z.infer<typeof DietSettingsSchema>;
 export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
 
-export type BrowserSessionEvent =
+export type SessionEvent =
   | WithCaller<AppEvent>
   | WithCaller<SystemEvent>
   | FeedTopicsEvent
@@ -430,9 +428,10 @@ type FeedWithRecipeIds = Omit<FeedItem, "recipes"> & {
 
 type FeedItemWithIds = { id: string } & DeepPartial<FeedWithRecipeIds>;
 
-export type BrowserSessionContext = {
+export type SessionContext = {
   id: string;
   userId: string;
+  authenticated: boolean;
   experienceLevel?: ExperienceLevel;
   groceryStores?: string;
   shoppingFrequency?: string;

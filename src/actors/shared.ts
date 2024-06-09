@@ -1,16 +1,13 @@
 import { ListRecipeTable, ListTable, UserPreferencesTable } from "@/db";
-import { createCallerToken } from "@/lib/browser-session";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert, formatDisplayName, sentenceToSlug } from "@/lib/utils";
-import { Caller, DbOrTransaction } from "@/types";
+import { DbOrTransaction } from "@/types";
 import { sql } from "@vercel/postgres";
 import { and, eq, sql as sqlFN } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { drizzle } from "drizzle-orm/vercel-postgres";
-import { jwtVerify } from "jose";
-import type * as Party from "partykit/server";
 import { from, switchMap } from "rxjs";
 import { fromEventObservable, fromPromise } from "xstate";
 import {
@@ -189,42 +186,6 @@ export const generateListNameSuggestions = fromEventObservable(
     );
   }
 );
-
-export const initializeBrowserSessionSocket = fromPromise(
-  async ({
-    input,
-  }: {
-    input: {
-      browserSessionToken: string;
-      caller: Caller;
-      partyContext: Party.Context;
-    };
-  }) => {
-    const sessionId = (
-      await parseBrowserSessionToken(input.browserSessionToken)
-    ).payload.jti;
-    assert(sessionId, "expected session id when listening for browser session");
-    // const party = input.getBrowserSessionParty(sessionId);
-    const token = await createCallerToken(input.caller.id, input.caller.type);
-    const socket = await input.partyContext.parties
-      .browser_session!.get(sessionId)
-      .socket({
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    return socket;
-  }
-);
-
-const parseBrowserSessionToken = async (token: string) => {
-  const verified = await jwtVerify(
-    token,
-    new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
-  );
-  assert(verified.payload.jti, "expected JTI on BrowserSessionToken");
-  return verified;
-};
 
 export const getUserPreferences = fromPromise(
   async ({

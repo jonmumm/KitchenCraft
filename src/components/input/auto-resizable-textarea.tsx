@@ -362,7 +362,7 @@ const selectInProgressSuggestedPlaceholders = (
 const selectEmptyStateSuggestedPlaceholders = (
   snapshot: PageSessionSnapshot
 ) => {
-  return snapshot.context.browserSessionSnapshot?.context.suggestedPlaceholders;
+  return snapshot.context.sessionSnapshot?.context.suggestedPlaceholders;
 };
 
 const selectHasTokens = (snapshot: PageSessionSnapshot) => {

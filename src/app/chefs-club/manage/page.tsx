@@ -15,7 +15,7 @@ import {
   getUserByEmail,
   updateMemberStatusInSubscription,
 } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { getOrigin } from "@/lib/headers";
 import { resend } from "@/lib/resend";
 import { assert } from "@/lib/utils";
@@ -27,7 +27,7 @@ import { Suspense } from "react";
 import { z } from "zod";
 
 export default async function Page() {
-  const session = await getSession();
+  const session = await getNextAuthSession();
   const userId = session?.user.id;
   const email = session?.user.email;
   if (!userId || !email) {

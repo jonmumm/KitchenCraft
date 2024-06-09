@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 
 import { db } from "@/db";
 import { getStripeCustomerId } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { stripe } from "@/lib/stripe";
 import { redirect } from "next/navigation";
 
@@ -14,7 +14,7 @@ export default async function Checkout() {
       ? `http://`
       : `https://`;
   const origin = `${protocol}${host}`;
-  const session = await getSession();
+  const session = await getNextAuthSession();
   const userId = session?.user.id;
   const email = session?.user.email;
   if (!userId || !email) {

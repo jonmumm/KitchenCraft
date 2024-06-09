@@ -2,7 +2,7 @@ import { Label } from "@/components/display/label";
 import { Button } from "@/components/input/button";
 import { db } from "@/db";
 import { getProfileByUserId, getStripeCustomerId } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { assert } from "@/lib/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -12,7 +12,7 @@ import Image from "next/image";
 import { ChefHatIcon } from "lucide-react";
 
 export default async function Page() {
-  const session = await getSession();
+  const session = await getNextAuthSession();
   const userId = session?.user.id;
   const email = session?.user.email;
   if (!userId || !email) {

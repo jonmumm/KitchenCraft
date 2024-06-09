@@ -1,10 +1,10 @@
-import { BrowserSessionState } from "@/app/browser-session-machine";
+import { SessionState } from "@/app/session-machine";
 import { matchesState } from "xstate";
 import { usePageSessionStore } from "./usePageSessionStore";
 import { useRef, useEffect } from "react";
 
 export const useSessionMatchesStateHandler = (
-  matchedState: BrowserSessionState,
+  matchedState: SessionState,
   handler: () => void
 ) => {
   const store = usePageSessionStore();
@@ -18,7 +18,7 @@ export const useSessionMatchesStateHandler = (
 
   useEffect(() => {
     const unsubscribe = store.subscribe(() => {
-      const value = store.get().context.browserSessionSnapshot?.value;
+      const value = store.get().context.sessionSnapshot?.value;
       const matched = value ? matchesState(matchedState as any, value) : false;
 
       if (matched && !wasMatchedRef.current) {

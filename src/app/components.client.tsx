@@ -902,7 +902,9 @@ export const IsInputtingChefName = (props: { children: ReactNode }) => {
 };
 
 const selectIsCreatingList = (state: AppSnapshot) => {
-  return state.matches({ Lists: { Creating: "True" } });
+  return state.matches({
+    Lists: { Selecting: { True: { Creating: "True" } } },
+  });
 };
 // state.matches({
 //   Auth: { LoggedIn: { Adding: { True: { ListCreating: "True" } } } },
@@ -1554,7 +1556,7 @@ const SharePopover = ({ children }: { children: ReactNode }) => {
   const [showCopied, setShowCopied] = useState(false);
   const send = useSend();
   const selectedListId = usePageSessionSelector(
-    (state) => state.context.browserSessionSnapshot?.context.selectedListId
+    (state) => state.context.sessionSnapshot?.context.selectedListId
   );
 
   const handlePressCopy = useCallback(() => {

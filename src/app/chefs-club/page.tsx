@@ -10,13 +10,13 @@ import {
   getActiveSubscriptionForUserId,
   getProfileByUserId,
 } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { Suspense } from "react";
 
 export default async function Page() {
-  const session = await getSession();
+  const session = await getNextAuthSession();
   const userId = session?.user.id;
   const activeSubscription = userId
     ? await getActiveSubscriptionForUserId(db, userId)

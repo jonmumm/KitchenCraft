@@ -1,4 +1,3 @@
-import type { AdapterAccount } from "@auth/core/adapters";
 import { sql } from "drizzle-orm";
 import {
   bigint,
@@ -40,7 +39,7 @@ export const featureIdEnum = pgEnum("feature_id", [
 export const UsersTable = pgTable("user", {
   id: text("id").notNull().primaryKey(),
   name: text("name"),
-  email: text("email").notNull().unique(),
+  email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow(),
   image: text("image"),
@@ -48,30 +47,6 @@ export const UsersTable = pgTable("user", {
 });
 export const UserSchema = createSelectSchema(UsersTable);
 export const NewUserSchema = createInsertSchema(UsersTable);
-
-export const AccountsTable = pgTable(
-  "account",
-  {
-    userId: text("userId")
-      .notNull()
-      .references(() => UsersTable.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccount["type"]>().notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
-    scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
-  },
-  (account) => ({
-    compoundKey: primaryKey(account.provider, account.providerAccountId),
-  })
-);
-export const AccountSchema = createSelectSchema(AccountsTable);
-export const NewAccountSchema = createInsertSchema(AccountsTable);
 
 export const SessionsTable = pgTable("session", {
   sessionToken: text("sessionToken").notNull().primaryKey(),
@@ -122,9 +97,8 @@ export const RecipesTable = pgTable(
   (table) => {
     return {
       pk: primaryKey({ columns: [table.id, table.versionId] }),
-      tagsIndex: index("tags_gin_idx")
-        .on(table.tags)
-        .using(sql`gin`),
+      tagsIndex: index("tags_gin_idx").on(table.tags),
+      // .using(sql`gin`),
     };
   }
 );

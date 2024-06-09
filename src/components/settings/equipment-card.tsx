@@ -23,7 +23,7 @@ export function EquipmentCard({
   const send = useSend();
   const session = usePageSessionStore();
   const [checked, setChecked] = useState(
-    !!session.get().context.browserSessionSnapshot?.context.equipment[
+    !!session.get().context.sessionSnapshot?.context.equipment[
       equipmentKey
     ]
   );

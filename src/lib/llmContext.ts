@@ -1,9 +1,9 @@
 import { preferencesDisplayNames } from "@/data/settings";
-import { BrowserSessionContext } from "@/types";
+import { SessionContext } from "@/types";
 import { formatDisplayName } from "./utils";
 
 type PersonalizationOptions = Pick<
-  BrowserSessionContext,
+  SessionContext,
   | "shoppingFrequency"
   | "groceryStores"
   | "typicalGroceries"

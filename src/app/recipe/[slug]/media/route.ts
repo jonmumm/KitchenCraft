@@ -1,6 +1,6 @@
 import { db, MediaTable } from "@/db";
 import { createRecipeMedia } from "@/db/queries";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { assert } from "@/lib/utils";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { kv } from "@/lib/kv";
@@ -29,7 +29,7 @@ export async function POST(
         pathname: string,
         clientPayload?: string
       ) => {
-        const session = await getSession();
+        const session = await getNextAuthSession();
         const userId = session?.user.id;
         assert(userId, "expected userId when uploading media");
 

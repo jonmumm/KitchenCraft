@@ -1,23 +1,23 @@
-import { browserSessionMachine } from "@/app/browser-session-machine";
 import { pageSessionMachine } from "@/app/page-session-machine";
+import { sessionMachine } from "@/app/session-machine";
 import { getProfileByUserId } from "@/db/queries";
 import { getServerSession } from "next-auth";
 import { cache } from "react";
 import { createActorHTTPClient } from "../actor-kit";
-import { getGuestId } from "../browser-session";
 import { withSpan } from "../observability";
+import { getGuestId } from "../session";
 import { authOptions } from "./options";
 
-export const getSession = withSpan(
+export const getNextAuthSession = withSpan(
   cache(async () => {
     return await getServerSession(authOptions);
   }),
-  "getSession"
+  "getNextAuthSession"
 );
 
 export const getCurrentUserId = withSpan(
   cache(async () => {
-    const session = await getSession();
+    const session = await getNextAuthSession();
     return session?.user.id;
   }),
   "getCurrentUserId"
@@ -40,23 +40,20 @@ export const getUniqueIdType = withSpan(
   "getUniqueId"
 );
 
-export const getBrowserSessionActorClient = withSpan(
+export const getSessionActorClient = withSpan(
   cache(async () => {
     const uniqueId = await getUniqueId();
     const uniqueIdType = await getUniqueIdType();
 
-    return createActorHTTPClient<
-      typeof browserSessionMachine,
-      typeof uniqueIdType
-    >({
-      type: "browser_session",
+    return createActorHTTPClient<typeof sessionMachine, typeof uniqueIdType>({
+      type: "session",
       caller: {
         id: uniqueId,
         type: uniqueIdType,
       },
     });
   }),
-  "getBrowserSessionActorClient"
+  "getSessionActorClient"
 );
 
 export const getPageSessionActorClient = withSpan(
@@ -80,7 +77,7 @@ export const getPageSessionActorClient = withSpan(
 
 export const getCurrentEmail = withSpan(
   cache(async () => {
-    const session = await getSession();
+    const session = await getNextAuthSession();
     return !!session?.user.email ? session?.user.email : undefined;
   }),
   "withCurrentEmail"

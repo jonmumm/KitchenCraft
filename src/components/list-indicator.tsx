@@ -8,7 +8,7 @@ import { useCallback, useRef, useState } from "react";
 
 const selectNumItemsInList = (snapshot: PageSessionSnapshot) => {
   return (
-    snapshot.context.browserSessionSnapshot?.context.selectedRecipeIds
+    snapshot.context.sessionSnapshot?.context.selectedRecipeIds
       .length || 0
   );
 };

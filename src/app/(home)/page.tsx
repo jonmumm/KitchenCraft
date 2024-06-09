@@ -1,5 +1,5 @@
 import { FeedCards } from "@/components/feed-cards";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { getTimezone } from "@/lib/headers";
 import { getHotRecipes } from "../../db/queries";
 import { RefreshFeedButton } from "./refresh-feed-button";
@@ -9,7 +9,7 @@ export default async function Page({
 }: {
   searchParams: Record<string, string>;
 }) {
-  const session = await getSession();
+  const session = await getNextAuthSession();
   const recipes = (await getHotRecipes(session?.user.id)).map((recipe) => ({
     type: "recipe" as const,
     recipe,

@@ -1,10 +1,10 @@
 import { SignInForm } from "@/components/forms/sign-in/components.client";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 // import { SignInForm } from "./components.clients";
 
 export default async function Page() {
-  const session = await getSession();
+  const session = await getNextAuthSession();
   if (session) {
     return redirect("/");
   }

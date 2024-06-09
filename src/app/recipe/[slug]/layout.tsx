@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { upvoteBySlug } from "../actions";
@@ -11,7 +11,7 @@ export default async function Layout({
   children: ReactNode;
   params: { slug: string };
 }) {
-  const session = await getSession();
+  const session = await getNextAuthSession();
   const userId = session?.user.id;
 
   const requireLogin = async () => {

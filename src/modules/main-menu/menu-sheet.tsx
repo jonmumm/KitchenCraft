@@ -14,8 +14,12 @@ export function MenuSheet({ children }: { children: ReactNode }) {
   const handleDownloadApp = useCallback(() => {
     open$.set(false);
   }, [open$]);
+  const handleSignIn = useCallback(() => {
+    open$.set(false);
+  }, [open$]);
 
   useEventHandler("DOWNLOAD_APP", handleDownloadApp);
+  useEventHandler("SIGN_IN", handleSignIn);
 
   const pathname = usePathname();
 

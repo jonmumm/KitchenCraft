@@ -8,7 +8,7 @@ import { useActor } from "@/hooks/useActor";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
-import { getSession } from "@/lib/auth/session";
+import { getNextAuthSession } from "@/lib/auth/session";
 import { map } from "nanostores";
 import { SessionProvider, signOut, useSession } from "next-auth/react";
 import {
@@ -32,7 +32,7 @@ import { PageSessionContext } from "./page-session-store.context";
 
 export function ApplicationProvider(props: {
   children: ReactNode;
-  session: Awaited<ReturnType<typeof getSession>>;
+  nextAuthSession: Awaited<ReturnType<typeof getNextAuthSession>>;
   appSessionId: string | undefined;
   token: string;
 }) {
@@ -67,7 +67,7 @@ export function ApplicationProvider(props: {
         router,
         send,
         initialPath: pathname,
-        session: props.session,
+        session: props.nextAuthSession,
         store,
         token: props.token,
       })
@@ -85,7 +85,7 @@ export function ApplicationProvider(props: {
 
   return (
     <ServiceWorkerProvider>
-      <SessionProvider session={props.session}>
+      <SessionProvider session={props.nextAuthSession}>
         <ApplicationContext.Provider value={app$}>
           <CraftProvider>
             <SessionEventProviders />
