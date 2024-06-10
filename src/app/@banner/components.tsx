@@ -1,9 +1,10 @@
 import { Badge } from "@/components/display/badge";
 import Image from "next/image";
 import Link from "next/link";
+import { BadgeText } from "./badge-text";
 import { IsOnboaridngInComplete } from "./components.client";
 
-export function QuizBanner({ hasStartedQuiz }: { hasStartedQuiz: boolean }) {
+export function QuizBanner() {
   return (
     <IsOnboaridngInComplete>
       <div className="crafting:hidden">
@@ -48,7 +49,7 @@ export function QuizBanner({ hasStartedQuiz }: { hasStartedQuiz: boolean }) {
             <div>
               <Link href="/quiz">
                 <Badge className="text-white dark:text-white" variant="success">
-                  {!hasStartedQuiz ? <>START</> : <>RESUME</>}
+                  <BadgeText />
                 </Badge>
               </Link>
             </div>

@@ -42,7 +42,7 @@ import {
 import Link from "next/link";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { RecipeDetailOverlay } from "../components.client";
-import { AppSnapshot } from "../machine";
+import { AppSnapshot } from "../app-machine";
 import { useAppContext } from "@/hooks/useAppContext";
 
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {

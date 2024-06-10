@@ -120,7 +120,7 @@ import {
 import { AppContext } from "./context";
 import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
-import { AppSnapshot } from "./machine";
+import { AppSnapshot } from "./app-machine";
 import { PageSessionSnapshot } from "./page-session-machine";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -684,15 +684,6 @@ export const PersonalizationSettingsMenu = () => {
   );
 };
 
-const selectIsInOnboarding = (snapshot: PageSessionSnapshot) => {
-  const state = snapshot.value;
-  return (
-    typeof state.Auth === "object" &&
-    typeof state.Auth.Anonymous === "object" &&
-    state.Auth.Anonymous.Onboarding === "Open"
-  );
-};
-
 const selectIsUserPreferencesInitialized = (snapshot: PageSessionSnapshot) => {
   const state = snapshot.value;
   return (
@@ -701,49 +692,8 @@ const selectIsUserPreferencesInitialized = (snapshot: PageSessionSnapshot) => {
   );
 };
 
-export const IsInOnboarding = ({ children }: { children: ReactNode }) => {
-  return (
-    <PageSessionSelector
-      selector={selectIsInOnboarding}
-      initialValueOverride={false}
-    >
-      {children}
-    </PageSessionSelector>
-  );
-};
-
-const IsUserPreferencesInitialized = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
-  const session$ = usePageSessionStore();
-  const active = useSyncExternalStore(
-    session$.subscribe,
-    () => selectIsUserPreferencesInitialized(session$.get()),
-    () => selectIsUserPreferencesInitialized(session$.get())
-  );
-
-  return active ? <>{children}</> : <></>;
-};
-
 const selectIsUserPreferencesInitializing = (snapshot: PageSessionSnapshot) => {
   return !selectIsUserPreferencesInitialized(snapshot);
-};
-
-const IsInitializingUserPreferences = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
-  const session$ = usePageSessionStore();
-  const active = useSyncExternalStore(
-    session$.subscribe,
-    () => selectIsUserPreferencesInitializing(session$.get()),
-    () => selectIsUserPreferencesInitializing(session$.get())
-  );
-
-  return active ? <>{children}</> : <></>;
 };
 
 export const UpgradeAccountCard = () => {

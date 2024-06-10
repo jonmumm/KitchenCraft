@@ -1,6 +1,6 @@
 "use client";
 
-import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditional-renderer";
+import { UserSnapshotConditionalRenderer } from "@/components/util/user-snapshot-conditional-renderer";
 import { ReactNode } from "react";
 
 export const IsOnboaridngInComplete = ({
@@ -9,11 +9,11 @@ export const IsOnboaridngInComplete = ({
   children: ReactNode;
 }) => {
   return (
-    <SessionSnapshotConditionalRenderer
+    <UserSnapshotConditionalRenderer
       matchedState={{ Onboarding: "Complete" }}
       not
     >
       {children}
-    </SessionSnapshotConditionalRenderer>
+    </UserSnapshotConditionalRenderer>
   );
 };

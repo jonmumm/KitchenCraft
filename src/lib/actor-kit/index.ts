@@ -61,7 +61,7 @@ export const createActorHTTPClient = <
   TMachine extends AnyStateMachine,
   TCallerType extends keyof EventMap,
 >(props: {
-  type: "page_session" | "session";
+  type: "page_session" | "session" | "user";
   caller: Caller & { type: TCallerType };
 }) => {
   const get = async (id: string, input: Record<string, string>) => {
@@ -199,7 +199,7 @@ export const createMachineServer = <
           const input = {
             id: this.room.id,
             storage: this.room.storage,
-            partyContext: this.room.context,
+            parties: this.room.context.parties,
             initialCaller: caller,
             ...inputJson,
           } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
@@ -325,7 +325,7 @@ export const createMachineServer = <
         const input = {
           id: this.room.id,
           storage: this.room.storage,
-          partyContext: this.room.context,
+          parties: this.room.context.parties,
           initialCaller: caller,
           // ...inputJson,
         } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer

@@ -22,7 +22,10 @@ import {
 } from "@/components/display/card";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSend } from "@/hooks/useSend";
+import { useSessionMatchesState } from "@/hooks/useSessionMatchesState";
+import { selectSessionEmail } from "@/selectors/page-session.selectors";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -55,10 +58,16 @@ const formSchema = z.object({
 
 function SignInForm() {
   const [disabled, setDisabled] = useState(false);
+  const hasError = useSessionMatchesState({
+    Auth: { SigningIn: { Inputting: "Error" } },
+  });
+
+  const store = usePageSessionStore();
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      email: selectSessionEmail(store.get()) || "",
     },
   });
   const send = useSend();
@@ -119,6 +128,11 @@ function SignInForm() {
               <FormDescription>Send yourself a login code.</FormDescription>
               {fieldState.error && (
                 <FormMessage>{fieldState.error.message}</FormMessage>
+              )}
+              {hasError && (
+                <FormMessage className="text-error">
+                  Account not found for email.
+                </FormMessage>
               )}
             </FormItem>
           )}

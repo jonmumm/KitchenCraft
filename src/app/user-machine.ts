@@ -1,10 +1,27 @@
-import { ProfileSchema } from "@/db";
+import { ProfileSchema, ProfileTable, UsersTable } from "@/db";
+import { getPersonalizationContext } from "@/lib/llmContext";
 import { assert } from "@/lib/utils";
 import { UserContext, UserEvent } from "@/types";
+import { createClient } from "@vercel/postgres";
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/vercel-postgres";
 import { produce } from "immer";
 import * as Party from "partykit/server";
-import { SnapshotFrom, StateValueFrom, assign, setup } from "xstate";
+import {
+  SnapshotFrom,
+  StateValueFrom,
+  assign,
+  fromEventObservable,
+  fromPromise,
+  setup,
+  spawnChild,
+} from "xstate";
 import { z } from "zod";
+import { FeedTopicsStream } from "./feed-topics.stream";
+import {
+  SuggestProfileNamesInput,
+  SuggestProfileNamesStream,
+} from "./suggest-profile-names.stream";
 
 const InputSchema = z.object({
   id: z.string(),
@@ -18,8 +35,69 @@ export const userMachine = setup({
     context: {} as UserContext,
     events: {} as UserEvent,
   },
-  actors: {},
-  guards: {},
+  actors: {
+    checkIfEmailAvailable: fromPromise(
+      async ({ input }: { input: { email: string } }) => {
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          const result = await db
+            .select()
+            .from(UsersTable)
+            .where(eq(UsersTable.email, input.email))
+            .execute();
+          return result.length === 0;
+        } finally {
+          await client.end();
+        }
+      }
+    ),
+    generateFeedTopics: fromEventObservable(
+      ({
+        input,
+      }: {
+        input: {
+          personalizationContext: string;
+          preferences: Record<number, number>;
+        };
+      }) => new FeedTopicsStream().getObservable(input)
+    ),
+    checkIfProfileNameAvailable: fromPromise(
+      async ({ input }: { input: { profileName: string } }) => {
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          const result = await db
+            .select()
+            .from(ProfileTable)
+            .where(eq(ProfileTable.profileSlug, input.profileName))
+            .execute();
+          return result.length === 0;
+        } finally {
+          await client.end();
+        }
+      }
+    ),
+    generateProfileNameSuggestions: fromEventObservable(
+      ({ input }: { input: SuggestProfileNamesInput }) =>
+        new SuggestProfileNamesStream().getObservable(input)
+    ),
+    sendWelcomeEmail: fromPromise(
+      async ({ input }: { input: { email: string } }) => {
+        return "";
+      }
+    ),
+  },
+  guards: {
+    didChangeProfileNameInput: ({ context, event }) => {
+      return event.type === "CHANGE" && event.name === "profileName";
+    },
+    didChangeEmailInput: ({ context, event }) => {
+      return event.type === "CHANGE" && event.name === "email";
+    },
+  },
   actions: {},
 }).createMachine({
   id: "UserMachine",
@@ -28,9 +106,71 @@ export const userMachine = setup({
     return {
       ...input,
       preferenceQuestionResults: {},
+      suggestedProfileNames: [],
+      suggestedFeedTopics: [],
+      selectedFeedTopics: [],
+      equipment: {},
+      preferences: {},
+      diet: {},
+      previousSuggestedProfileNames: [],
     };
   },
   states: {
+    Initialization: {
+      initial: "Ready",
+      states: {
+        Ready: {
+          type: "final",
+        },
+      },
+    },
+    Connections: {
+      on: {
+        HEARTBEAT: {
+          actions: assign(({ context, event }) => {
+            return produce(context, (draft) => {
+              const cf = event?.cf;
+
+              if (typeof cf?.continent === "string") {
+                draft.continent = cf.continent;
+              }
+              if (
+                typeof cf?.latitude === "string" &&
+                typeof cf.longitude === "string"
+              ) {
+                draft.gps = {
+                  latitude: cf.latitude,
+                  longitude: cf.longitude,
+                };
+              }
+              if (typeof cf?.postalCode === "string") {
+                draft.postalCode = cf.postalCode;
+              }
+
+              if (typeof cf?.country === "string") {
+                draft.country = cf.country;
+              }
+
+              if (typeof cf?.region === "string") {
+                draft.region = cf.region;
+              }
+
+              if (typeof cf?.regionCode === "string") {
+                draft.regionCode = cf.regionCode;
+              }
+
+              if (typeof cf?.city === "string") {
+                draft.city = cf.city;
+              }
+
+              if (typeof cf?.timezone === "string") {
+                draft.timezone = cf.timezone;
+              }
+            });
+          }),
+        },
+      },
+    },
     Onboarding: {
       initial: "NotStarted",
       states: {
@@ -38,7 +178,7 @@ export const userMachine = setup({
           on: {
             PAGE_LOADED: {
               target: "Intro",
-              guard: ({ event, context }) => {
+              guard: ({ event }) => {
                 return event.pathname.startsWith("/quiz/intro");
               },
             },
@@ -85,97 +225,96 @@ export const userMachine = setup({
         Summary: {
           onDone: "Complete",
           initial: "Topics",
-          // on: {
-          //   SUGGEST_PROFILE_NAME_PROGRESS: {
-          //     actions: assign({
-          //       suggestedProfileNames: ({ event, context }) => {
-          //         const names = event.data.names;
-          //         return names || context.suggestedProfileNames;
-          //       },
-          //     }),
-          //   },
-          //   SUGGEST_PROFILE_NAME_COMPLETE: {
-          //     actions: assign({
-          //       suggestedProfileNames: ({ event, context }) => {
-          //         const names = event.data.names;
-          //         return names;
-          //       },
-          //     }),
-          //   },
-          //   LOAD_MORE: {
-          //     actions: [
-          //       assign(({ context }) =>
-          //         produce(context, (draft) => {
-          //           draft.previousSuggestedProfileNames =
-          //             context.previousSuggestedProfileNames.concat(
-          //               context.suggestedProfileNames
-          //             );
-          //           draft.suggestedProfileNames = [];
-          //         })
-          //       ),
-          //       spawnChild("generateProfileNameSuggestions", {
-          //         input: ({ context, event }) => {
-          //           assert(
-          //             context.email,
-          //             "expected email when generating profile name suggestions"
-          //           );
-          //           const previousSuggestions =
-          //             context.previousSuggestedProfileNames.concat(
-          //               context.suggestedProfileNames
-          //             );
-          //           console.log(previousSuggestions);
-          //           return {
-          //             email: context.email,
-          //             previousSuggestions,
-          //             preferences: {},
-          //             personalizationContext:
-          //               "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
-          //           };
-          //         },
-          //       }),
-          //     ],
-          //   },
-          // },
+          on: {
+            SUGGEST_PROFILE_NAME_PROGRESS: {
+              actions: assign({
+                suggestedProfileNames: ({ event, context }) => {
+                  const names = event.data.names;
+                  return names || context.suggestedProfileNames;
+                },
+              }),
+            },
+            SUGGEST_PROFILE_NAME_COMPLETE: {
+              actions: assign({
+                suggestedProfileNames: ({ event, context }) => {
+                  const names = event.data.names;
+                  return names;
+                },
+              }),
+            },
+            LOAD_MORE: {
+              actions: [
+                assign(({ context }) =>
+                  produce(context, (draft) => {
+                    draft.previousSuggestedProfileNames =
+                      context.previousSuggestedProfileNames.concat(
+                        context.suggestedProfileNames
+                      );
+                    draft.suggestedProfileNames = [];
+                  })
+                ),
+                spawnChild("generateProfileNameSuggestions", {
+                  input: ({ context }) => {
+                    assert(
+                      context.email,
+                      "expected email when generating profile name suggestions"
+                    );
+                    const previousSuggestions =
+                      context.previousSuggestedProfileNames.concat(
+                        context.suggestedProfileNames
+                      );
+                    return {
+                      email: context.email,
+                      previousSuggestions,
+                      preferences: {},
+                      personalizationContext:
+                        "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
+                    };
+                  },
+                }),
+              ],
+            },
+          },
           states: {
             Topics: {
-              // entry: spawnChild("generateFeedTopics", {
-              //   input: ({ context }) => {
-              //     const personalizationContext =
-              //       getPersonalizationContext(context);
+              entry: spawnChild("generateFeedTopics", {
+                input: ({ context }) => {
+                  const personalizationContext =
+                    getPersonalizationContext(context);
 
-              //     return {
-              //       personalizationContext,
-              //       preferences: context.preferenceQuestionResults,
-              //     };
-              //   },
-              // }),
+                  return {
+                    personalizationContext,
+                    preferences: context.preferenceQuestionResults,
+                  };
+                },
+              }),
               on: {
-                // SELECT_TOPIC: {
-                //   actions: assign({
-                //     selectedFeedTopics: ({ context, event }) => [
-                //       ...context.selectedFeedTopics,
-                //       event.topic,
-                //     ],
-                //   }),
-                // },
-                // FEED_TOPICS_PROGRESS: {
-                //   actions: assign({
-                //     suggestedFeedTopics: ({ event }) => event.data.topics,
-                //   }),
-                // },
-                // SUBMIT: [
-                //   {
-                //     target: "Email",
-                //     guard: ({ context }) => !context.authenticated,
-                //   },
-                //   {
-                //     target: "ProfileName",
-                //     guard: ({ context }) => !context.profileName,
-                //   },
-                //   {
-                //     target: "Complete",
-                //   },
-                // ],
+                SELECT_TOPIC: {
+                  actions: assign({
+                    selectedFeedTopics: ({ context, event }) => [
+                      ...context.selectedFeedTopics,
+                      event.topic,
+                    ],
+                  }),
+                },
+                FEED_TOPICS_PROGRESS: {
+                  actions: assign({
+                    suggestedFeedTopics: ({ event }) => event.data.topics,
+                  }),
+                },
+                SUBMIT: [
+                  {
+                    target: "Email",
+                    // guard: stateIn,
+                  },
+                  {
+                    target: "ProfileName",
+                    // guard: ({ context }) => !context.profileName,
+                  },
+                  {
+                    target: "Complete",
+                  },
+                ],
               },
             },
             Email: {
@@ -219,21 +358,21 @@ export const userMachine = setup({
                 },
                 InUse: {},
                 Sending: {
-                  // entry: spawnChild("generateProfileNameSuggestions", {
-                  //   input: ({ context, event }) => {
-                  //     assert(
-                  //       context.email,
-                  //       "expected email when generating profile name suggestions"
-                  //     );
-                  //     return {
-                  //       email: context.email,
-                  //       previousSuggestions: [],
-                  //       preferences: context.preferenceQuestionResults,
-                  //       personalizationContext:
-                  //         getPersonalizationContext(context),
-                  //     };
-                  //   },
-                  // }),
+                  entry: spawnChild("generateProfileNameSuggestions", {
+                    input: ({ context, event }) => {
+                      assert(
+                        context.email,
+                        "expected email when generating profile name suggestions"
+                      );
+                      return {
+                        email: context.email,
+                        previousSuggestions: [],
+                        preferences: context.preferenceQuestionResults,
+                        personalizationContext:
+                          getPersonalizationContext(context),
+                      };
+                    },
+                  }),
                   invoke: {
                     src: "sendWelcomeEmail",
                     input: ({ context }) => {

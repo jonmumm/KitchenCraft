@@ -19,7 +19,7 @@ import {
 } from "next/navigation";
 import { ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { AppContext } from "./context";
-import { createAppMachine } from "./machine";
+import { createAppMachine } from "./app-machine";
 import { PageSessionContext } from "./page-session-store.context";
 
 // export const ApplicationContext = createContext()
@@ -130,7 +130,6 @@ const HashChangeEventsProvider = () => {
 
 const SignInProvider = () => {
   const shouldSignIn = usePageSessionSelector((state) => {
-    console.log(state);
     return (
       state.context.sessionSnapshot?.value.Auth === "Authenticated" &&
       state.context.userSnapshot?.context.id &&
@@ -147,7 +146,6 @@ const SignInProvider = () => {
     });
     return null;
   };
-  console.log({ shouldSignIn });
 
   return shouldSignIn ? <SignInRedirect /> : <></>;
 };

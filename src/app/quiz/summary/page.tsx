@@ -27,8 +27,7 @@ import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSend } from "@/hooks/useSend";
-import { useSessionMatchesState } from "@/hooks/useSessionMatchesState";
-import { useSessionMatchesStateHandler } from "@/hooks/useSessionMatchesStateHandler";
+import { useUserMatchesState } from "@/hooks/useUserMatchesState";
 import {
   selectProfileName,
   selectSelectedFeedTopics,
@@ -58,16 +57,16 @@ export default function Results() {
   const [isLoadingUsernameResponse, setIsLoadingUsernameResponse] =
     useState(false);
 
-  const isSelectingTopics = useSessionMatchesState({
+  const isSelectingTopics = useUserMatchesState({
     Onboarding: { Summary: "Topics" },
   });
-  const isEmailAddressInUse = useSessionMatchesState({
+  const isEmailAddressInUse = useUserMatchesState({
     Onboarding: { Summary: { Email: "InUse" } },
   });
-  const isSendingWelcomeEmail = useSessionMatchesState({
+  const isSendingWelcomeEmail = useUserMatchesState({
     Onboarding: { Summary: { Email: "Sending" } },
   });
-  const isOnEmail = useSessionMatchesState({
+  const isOnEmail = useUserMatchesState({
     Onboarding: { Summary: "Email" },
   });
   const isWelcomeEmailSent = !isOnEmail && !isSelectingTopics;
@@ -79,15 +78,11 @@ export default function Results() {
       email: "",
     },
   });
-  const isComplete = useSessionMatchesState({
+  const isComplete = useUserMatchesState({
     Onboarding: "Complete",
   });
 
   const store = usePageSessionStore();
-
-  useSessionMatchesStateHandler({ Onboarding: { Summary: "Complete" } }, () => {
-    console.log("HI");
-  });
 
   const profileNameForm = useForm({
     resolver: zodResolver(profileNameFormSchema),
@@ -138,7 +133,7 @@ export default function Results() {
               "This will help inform suggestions show in your daily cookbook."
             ) : (
               <>
-                Thes topics will be used to help recommend you recipe. You can 
+                Thes topics will be used to help recommend you recipe. You can
                 modify these preferences later.
               </>
             )}

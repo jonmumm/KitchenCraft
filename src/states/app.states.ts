@@ -1,4 +1,4 @@
-import { AppState } from "@/app/machine";
+import { AppState } from "@/app/app-machine";
 
 export const IS_CREATING_LIST: AppState = {
   Lists: { Selecting: { True: { Creating: "True" } } },

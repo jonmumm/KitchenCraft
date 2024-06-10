@@ -30,7 +30,7 @@ import { selectSessionEmail } from "@/selectors/page-session.selectors";
 import { ExternalLinkIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { ClipboardEventHandler, useCallback, useEffect, useState } from "react";
-import { AppSnapshot } from "./machine";
+import { AppSnapshot } from "./app-machine";
 
 export default function EmailCodeCard() {
   //   const userAgent = getUserAgent();

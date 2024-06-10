@@ -404,7 +404,10 @@ export type EquipmentSettings = z.infer<typeof EquipmentSettingsSchema>;
 export type DietSettings = z.infer<typeof DietSettingsSchema>;
 export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
 
-export type UserEvent = WithCaller<AppEvent>;
+export type UserEvent =
+  | WithCaller<AppEvent>
+  | SuggestProfileNamesEvent
+  | FeedTopicsEvent;
 
 export type SessionEvent =
   | WithCaller<AppEvent>
@@ -413,7 +416,6 @@ export type SessionEvent =
   | WelcomeMessageEvent
   | SuggestTagsEvent
   | SuggestPlaceholderEvent
-  | SuggestProfileNamesEvent
   | SuggestTokensEvent
   | SuggestIngredientsEvent
   | HomepageCategoriesEvent;
@@ -433,30 +435,32 @@ type FeedItemWithIds = { id: string } & DeepPartial<FeedWithRecipeIds>;
 export type UserContext = {
   id: string;
   experienceLevel?: ExperienceLevel;
-  // groceryStores?: string;
-  // shoppingFrequency?: string;
-  // typicalGroceries?: string;
-  // equipment: EquipmentSettings;
+  groceryStores?: string;
+  shoppingFrequency?: string;
+  typicalGroceries?: string;
+  equipment: EquipmentSettings;
   profileName?: string;
   email?: string;
-  // diet: DietSettings;
-  // preferences: TasteSettings;
+  diet: DietSettings;
+  preferences: TasteSettings;
   preferenceQuestionResults: Record<number, number>;
-  // timezone?: string;
-  // country?: string;
-  // continent?: string;
-  // city?: string;
-  // postalCode?: string;
-  // gps?: {
-  //   latitude: string;
-  //   longitude: string;
-  // };
-  // region?: string;
-  // regionCode?: string;
+  suggestedProfileNames: string[];
+  previousSuggestedProfileNames: string[];
+  timezone?: string;
+  country?: string;
+  continent?: string;
+  city?: string;
+  postalCode?: string;
+  gps?: {
+    latitude: string;
+    longitude: string;
+  };
+  region?: string;
+  regionCode?: string;
   // suggestedIngredients: Array<string>;
   // suggestedTags: Array<string>;
-  // suggestedFeedTopics?: Array<string>;
-  // selectedFeedTopics: Array<string>;
+  suggestedFeedTopics?: Array<string>;
+  selectedFeedTopics: Array<string>;
   // lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
   // suggestedProfileNames: string[];
   // previousSuggestedProfileNames: string[];
@@ -514,8 +518,6 @@ export type SessionContext = {
   suggestedFeedTopics?: Array<string>;
   selectedFeedTopics: Array<string>;
   lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
-  suggestedProfileNames: string[];
-  previousSuggestedProfileNames: string[];
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
   welcome?: DeepPartial<WelcomeMessageOutput>;
@@ -563,3 +565,10 @@ export type ActorSocketEvent<
     };
 
 export type FeedItem = z.infer<typeof FeedItemSchema>;
+
+export type PartyMap = Record<
+  string,
+  {
+    get(id: string): Party.Stub;
+  }
+>;

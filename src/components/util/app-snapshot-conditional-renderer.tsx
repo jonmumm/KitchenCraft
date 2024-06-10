@@ -1,6 +1,6 @@
 "use client";
 
-import type { AppState } from "@/app/machine";
+import type { AppState } from "@/app/app-machine";
 import { useAppMatchesState } from "@/hooks/useAppMatchesState";
 import { ReactNode } from "react";
 

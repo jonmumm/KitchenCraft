@@ -1,4 +1,4 @@
-import { AppSnapshot } from "../machine";
+import { AppSnapshot } from "../app-machine";
 
 // export const selectIsInputting = (state: CraftSnapshot) =>
 //   state.matches("Mode.New.Inputting");

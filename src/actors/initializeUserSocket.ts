@@ -1,7 +1,6 @@
 import { assert } from "@/lib/utils";
-import { Caller } from "@/types";
+import { Caller, PartyMap } from "@/types";
 import { jwtVerify } from "jose";
-import type * as Party from "partykit/server";
 import { fromPromise } from "xstate";
 
 export const initializeUserSocket = fromPromise(
@@ -11,13 +10,13 @@ export const initializeUserSocket = fromPromise(
     input: {
       userAccessToken: string;
       caller: Caller;
-      partyContext: Party.Context;
+      parties: PartyMap;
     };
   }) => {
     const userId = (await parseUserAccessTokenForId(input.userAccessToken))
       .payload.jti;
     assert(userId, "expected session id in session token");
-    const socket = await input.partyContext.parties.user!.get(userId).socket({
+    const socket = await input.parties.user!.get(userId).socket({
       headers: {
         Authorization: `Bearer ${input.userAccessToken}`,
       },

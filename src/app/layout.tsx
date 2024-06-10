@@ -252,7 +252,7 @@ const SignInDialog = () => {
 
   return (
     <>
-      <AppSnapshotConditionalRenderer
+      <SessionSnapshotConditionalRenderer
         matchedState={{ Auth: { SigningIn: "Inputting" } }}
       >
         <ResponsiveDialog open isMobile={isMobile}>
@@ -261,7 +261,7 @@ const SignInDialog = () => {
             <SignInCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
-      </AppSnapshotConditionalRenderer>
+      </SessionSnapshotConditionalRenderer>
       <SessionSnapshotConditionalRenderer
         matchedState={{ Auth: { SigningIn: "WaitingForCode" } }}
         initialValueOverride={false}

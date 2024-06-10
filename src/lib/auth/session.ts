@@ -1,5 +1,6 @@
 import { pageSessionMachine } from "@/app/page-session-machine";
 import { sessionMachine } from "@/app/session-machine";
+import { userMachine } from "@/app/user-machine";
 import { getProfileByUserId } from "@/db/queries";
 import { getServerSession } from "next-auth";
 import { cache } from "react";
@@ -38,6 +39,19 @@ export const getUniqueIdType = withSpan(
     return userId ? ("user" as const) : ("guest" as const);
   }),
   "getUniqueId"
+);
+
+export const getUserActorClient = withSpan(
+  cache(async () => {
+    return createActorHTTPClient<typeof userMachine, "user">({
+      type: "user",
+      caller: {
+        id: getUserId(),
+        type: "user",
+      },
+    });
+  }),
+  "getUserActorClient"
 );
 
 export const getSessionActorClient = withSpan(

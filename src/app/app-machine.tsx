@@ -23,11 +23,12 @@ import {
   and,
   assign,
   fromPromise,
+  matchesState,
   setup,
 } from "xstate";
 import { z } from "zod";
 import { AppContextSchema } from "./@craft/schemas";
-import { PageSessionSnapshot } from "./page-session-machine";
+import type { PageSessionSnapshot } from "./page-session-machine";
 
 const getInstantRecipeMetadataEventSource = (input: SuggestionsInput) => {
   const params = new URLSearchParams();
@@ -282,13 +283,10 @@ export const createAppMachine = ({
       // ),
     },
     guards: {
-      hasValidChefName: ({ context }) => {
+      hasValidChefName: () => {
         const stateValue = store.get().value;
-        return (
-          typeof stateValue.Profile &&
-          !!stateValue.Profile.Available &&
-          stateValue.Profile.Available === "Yes"
-        );
+        // todo there is a latency issue here whe if user presses submit before value has been synced
+        return matchesState({ Profile: { Available: "Yes" } }, stateValue);
       },
       isMobile: () => {
         return isMobile();

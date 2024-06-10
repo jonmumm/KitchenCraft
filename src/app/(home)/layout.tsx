@@ -35,11 +35,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
     username = result?.profileSlug;
   }
 
-  async function upvote(slug: string) {
-    "use server";
-    console.log("upvote", slug);
-  }
-
   return (
     <LayoutClient>
       <div className="flex flex-col">

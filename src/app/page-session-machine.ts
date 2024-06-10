@@ -26,6 +26,7 @@ import {
   AppEvent,
   Caller,
   PartialRecipe,
+  PartyMap,
   ProductType,
   RecipeList,
   ServerPartySocket,
@@ -115,7 +116,7 @@ type NewRecipeProductKeywordEvent = {
 const InputSchema = z.object({
   id: z.string(),
   storage: z.custom<Party.Storage>(),
-  partyContext: z.custom<Party.Context>(),
+  parties: z.custom<PartyMap>(),
   url: z.string().url(),
   initialCaller: z.custom<Caller>(),
   sessionAccessToken: z.string(),
@@ -136,7 +137,7 @@ export type PageSessionContext = {
   // are not synced over the network
   refs: {
     partyStorage: Party.Storage;
-    partyContext: Party.Context;
+    parties: PartyMap;
     sessionSocket: ServerPartySocket | undefined;
     userSocket: ServerPartySocket | undefined;
   };
@@ -564,8 +565,6 @@ export const pageSessionMachine = setup({
   guards: {
     nextNextRecipeInCategoryShouldBeCreated: ({ context, event }) => {
       assertType(event, "VIEW_RECIPE");
-      debugger;
-      console.log(event);
       const feedItems = context.sessionSnapshot?.context.feedItemsById;
       if (!feedItems) return false;
 
@@ -582,7 +581,6 @@ export const pageSessionMachine = setup({
         (recipe) => recipe?.id === event.id
       );
       if (currentIndex === -1) return false;
-      console.log({ currentIndex });
 
       // Check for the next incomplete recipe
       for (let i = currentIndex + 1; i < recipes.length; i++) {
@@ -723,9 +721,10 @@ export const pageSessionMachine = setup({
   id: "UserAppMachine",
   context: ({ input }) => ({
     refs: {
+      parties: input.parties,
       partyStorage: input.storage,
-      partyContext: input.partyContext,
       sessionSocket: undefined,
+      userSocket: undefined,
     },
     onboardingInput: {},
     currentListRecipeIndex: 0,
@@ -758,9 +757,9 @@ export const pageSessionMachine = setup({
     suggestedTags: [],
     suggestedText: [],
     sessionSnapshot: undefined,
+    userSnapshot: undefined,
     suggestedIngredients: [],
     suggestedTokens: [],
-    // createdRecipeSlugs: [],
     placeholders: defaultPlaceholders,
     adInstances: {},
     viewedAdInstanceIds: [],
@@ -799,7 +798,7 @@ export const pageSessionMachine = setup({
             input: ({ context }) => {
               return {
                 sessionAccessToken: context.sessionAccessToken,
-                partyContext: context.refs.partyContext,
+                parties: context.refs.parties,
                 caller: context.initialCaller,
               };
             },
@@ -857,7 +856,7 @@ export const pageSessionMachine = setup({
             input: ({ context }) => {
               return {
                 userAccessToken: context.userAccessToken,
-                partyContext: context.refs.partyContext,
+                parties: context.refs.parties,
                 caller: context.initialCaller,
               };
             },
@@ -2454,31 +2453,9 @@ export const pageSessionMachine = setup({
           ],
         },
         Anonymous: {
-          on: {
-            // SELECT_LIST: {
-            //   target: "Registering",
-            // },
-          },
-
+          on: {},
           type: "parallel",
-          states: {
-            Onboarding: {
-              initial: "Closed",
-              states: {
-                Closed: {
-                  on: {
-                    START_ONBOARDING: "Open",
-                    ADD_TOKEN: "Open",
-                  },
-                },
-                Open: {
-                  on: {
-                    CLOSE: "Closed",
-                  },
-                },
-              },
-            },
-          },
+          states: {},
         },
         Registering: {
           initial: "InputtingEmail",
@@ -2721,6 +2698,23 @@ export const pageSessionMachine = setup({
           },
         },
         LoggedIn: {},
+      },
+    },
+
+    Quiz: {
+      initial: "Closed",
+      states: {
+        Closed: {
+          on: {
+            START_ONBOARDING: "Open",
+            ADD_TOKEN: "Open",
+          },
+        },
+        Open: {
+          on: {
+            CLOSE: "Closed",
+          },
+        },
       },
     },
 

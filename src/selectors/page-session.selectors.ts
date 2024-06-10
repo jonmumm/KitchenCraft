@@ -20,11 +20,11 @@ export const selectNumFeedItemIds = createSelector(
 );
 
 export const selectProfileName = (state: PageSessionSnapshot) => {
-  return state.context.sessionSnapshot?.context.profileName;
+  return state.context.userSnapshot?.context.profileName;
 };
 
 export const selectSuggestedProfileNames = (state: PageSessionSnapshot) => {
-  return state.context.sessionSnapshot?.context.suggestedProfileNames || [];
+  return state.context.userSnapshot?.context.suggestedProfileNames || [];
 };
 
 export const createRecipeSelector =
@@ -97,9 +97,9 @@ export const createRecipeIsSelectedSelector =
   };
 
 export const selectSuggestedFeedTopics = (state: PageSessionSnapshot) => {
-  return state.context.sessionSnapshot?.context.suggestedFeedTopics;
+  return state.context.userSnapshot?.context.suggestedFeedTopics;
 };
 
 export const selectSelectedFeedTopics = (state: PageSessionSnapshot) => {
-  return state.context.sessionSnapshot?.context.selectedFeedTopics;
+  return state.context.userSnapshot?.context.selectedFeedTopics;
 };
