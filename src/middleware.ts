@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  createCallerToken,
   createRefreshToken,
   getGuestTokenFromCookies,
   getRefreshTokenFromCookie,
   parsedSessionTokenFromCookie,
-  setGuestTokenCookieHeader,
-  setSessionTokenCookieHeader,
+  setRefreshTokenCookieHeader,
 } from "./lib/session";
 import { CallerSchema } from "./schema";
 
 export async function middleware(request: NextRequest) {
-  let newGuestToken: string | undefined;
-  let newRefreshTOken: string | undefined;
+  let newRefreshToken: string | undefined;
   let uniqueId;
 
   // const appInstallToken = request.nextUrl.searchParams.get("token");
@@ -42,8 +39,8 @@ export async function middleware(request: NextRequest) {
 
     if (!uniqueId) {
       const id = uuidv4();
-      const callerToken = await createCallerToken(id, "guest");
-      newGuestToken = callerToken;
+      // const callerToken = await createCallerToken(id, "guest");
+      // newGuestToken = callerToken;
       uniqueId = id;
     }
   }
@@ -52,14 +49,22 @@ export async function middleware(request: NextRequest) {
 
   const refreshToken = await getRefreshTokenFromCookie();
   const parsedSessionToken = await parsedSessionTokenFromCookie();
-  if (refreshToken && parsedSessionToken) {
+  if (
+    refreshToken &&
+    parsedSessionToken &&
+    parsedSessionToken.sub &&
+    parsedSessionToken.jti
+  ) {
     requestHeaders.set("x-session-id", parsedSessionToken.jti);
+    requestHeaders.set("x-user-id", parsedSessionToken.sub);
     requestHeaders.set("x-refresh-token", refreshToken);
   } else {
     const sessionId = uuidv4();
-    newRefreshTOken = await createRefreshToken(sessionId);
+    const userId = uuidv4();
+    newRefreshToken = await createRefreshToken(sessionId, userId);
     requestHeaders.set("x-session-id", sessionId);
-    requestHeaders.set("x-refresh-token", newRefreshTOken);
+    requestHeaders.set("x-user-id", userId);
+    requestHeaders.set("x-refresh-token", newRefreshToken);
   }
 
   const pageSessionId = uuidv4();
@@ -79,12 +84,8 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  if (newRefreshTOken) {
-    await setSessionTokenCookieHeader(res, newRefreshTOken);
-  }
-
-  if (newGuestToken) {
-    await setGuestTokenCookieHeader(res, newGuestToken);
+  if (newRefreshToken) {
+    await setRefreshTokenCookieHeader(res, newRefreshToken);
   }
 
   return res;

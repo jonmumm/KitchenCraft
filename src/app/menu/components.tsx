@@ -8,6 +8,7 @@ import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
 import { RenderFirstValue } from "@/components/util/render-first-value";
+import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditional-renderer";
 import { db } from "@/db";
 import {
   getActiveSubscriptionForUserId,
@@ -95,48 +96,46 @@ export async function MainMenu({ className }: { className?: string }) {
 
   return (
     <>
-      {!userId && (
-        <>
-          {/* {canInstallPWA && <AppInstall />} */}
-          <Button
-            size="xl"
-            event={{ type: "SIGN_IN" }}
-          >
-            Sign In
-          </Button>
-          <Separator />
-        </>
-      )}
-      {userId && (
-        <>
-          <div className="flex flex-col gap-1 items-center justify-center">
-            <Label className="uppercase text-xs font-bold text-accent-foreground">
-              Chef
-            </Label>
-            <div className="flex flex-col gap-2 items-center justify-center">
-              <Link href={`/@${profileSlug}`}>
-                <Badge variant="outline">
-                  <h3 className="font-bold text-xl">
-                    <div className="flex flex-col gap-1 items-center">
-                      <div className="flex flex-row gap-1 items-center">
-                        <ChefHatIcon />
-                        <span>
-                          <span className="underline">{profileSlug}</span>
-                        </span>
-                      </div>
+      <SessionSnapshotConditionalRenderer
+        matchedState={{ Auth: "Authenticated" }}
+        not
+      >
+        <Button size="xl" event={{ type: "SIGN_IN" }}>
+          Sign In
+        </Button>
+        <Separator />
+      </SessionSnapshotConditionalRenderer>
+      <SessionSnapshotConditionalRenderer
+        matchedState={{ Auth: "Authenticated" }}
+      >
+        <div className="flex flex-col gap-1 items-center justify-center">
+          <Label className="uppercase text-xs font-bold text-accent-foreground">
+            Chef
+          </Label>
+          <div className="flex flex-col gap-2 items-center justify-center">
+            <Link href={`/@${profileSlug}`}>
+              <Badge variant="outline">
+                <h3 className="font-bold text-xl">
+                  <div className="flex flex-col gap-1 items-center">
+                    <div className="flex flex-row gap-1 items-center">
+                      <ChefHatIcon />
+                      <span>
+                        <span className="underline">{profileSlug}</span>
+                      </span>
                     </div>
-                  </h3>
-                </Badge>{" "}
-              </Link>
-              <Link
-                href={`/@${profileSlug}`}
-                className="text-muted-foreground text-xs"
-              >
-                <span>Free Account</span>
-              </Link>
-            </div>
+                  </div>
+                </h3>
+              </Badge>{" "}
+            </Link>
+            <Link
+              href={`/@${profileSlug}`}
+              className="text-muted-foreground text-xs"
+            >
+              <span>Free Account</span>
+            </Link>
           </div>
-          {/* <div className="flex flex-row gap-8 items-center justify-around">
+        </div>
+        {/* <div className="flex flex-row gap-8 items-center justify-around">
             <div className="flex flex-row justify-around gap-8">
               <div className="flex flex-col gap-1 items-center">
                 <Link href="/leaderboard">
@@ -190,19 +189,19 @@ export async function MainMenu({ className }: { className?: string }) {
               </div>
             </div>
           </div> */}
-          {/* {canInstallPWA && <AppInstall />} */}
-          {/* <Separator /> */}
-          <div className="flex flex-row items-center justify-between w-full gap-3">
-            <Label className="uppercase text-xs font-bold text-accent-foreground">
-              Email
-            </Label>
-            <div className="flex-1 min-w-0 truncate text-right">
-              <span className="truncate">{email}</span>
-            </div>
+        {/* {canInstallPWA && <AppInstall />} */}
+        {/* <Separator /> */}
+        <div className="flex flex-row items-center justify-between w-full gap-3">
+          <Label className="uppercase text-xs font-bold text-accent-foreground">
+            Email
+          </Label>
+          <div className="flex-1 min-w-0 truncate text-right">
+            <span className="truncate">{email}</span>
           </div>
-          <Separator />
+        </div>
+        <Separator />
 
-          {/* <Separator />
+        {/* <Separator />
           <AsyncRenderFirstValue
             observable={combineLatest([
               usage$,
@@ -244,117 +243,114 @@ export async function MainMenu({ className }: { className?: string }) {
             }}
             fallback={<Skeleton className="h-12 w-full" />}
           /> */}
+        <div className="flex flex-row gap-3 items-center justify-between">
+          <Label className="uppercase text-xs font-bold text-accent-foreground">
+            Subscription
+          </Label>
+          <div className="flex-1 flex flex-row justify-end">
+            <Suspense>
+              <RenderFirstValue
+                observable={activeSubscription$}
+                render={(sub) => {
+                  const isManager = userId === sub?.managingUserId;
+                  return sub ? (
+                    <Link
+                      href={isManager ? "/chefs-club/manage" : "/chefs-club"}
+                      className="flex flex-col items-end gap-2"
+                    >
+                      <Badge variant="secondary">Friends & Family</Badge>
+                      {isManager && (
+                        <div className="flex flex-col gap-2 w-full">
+                          <AsyncRenderFirstValue
+                            render={([count, limit]) => {
+                              return (
+                                <Progress
+                                  value={(100 * count) / limit}
+                                  className="w-full"
+                                />
+                              );
+                            }}
+                            observable={combineLatest(
+                              memberCount$,
+                              memberCountLimit$
+                            )}
+                            fallback={<Progress value={0} className="w-full" />}
+                          />
+
+                          <div className="text-muted-foreground text-xs text-right">
+                            <SubscriptionMemberCountCurrent />/
+                            <SubscriptionMemberCountLimit /> Members
+                          </div>
+                        </div>
+                      )}
+                    </Link>
+                  ) : (
+                    <Link href="/chefs-club">
+                      <Badge variant="secondary">Upgrade</Badge>
+                    </Link>
+                  );
+                }}
+              />
+            </Suspense>
+          </div>
+        </div>
+        <Separator />
+        <Suspense fallback={null}>
+          <RenderFirstValue
+            observable={activeSubscription$}
+            render={(sub) => {
+              return sub ? (
+                <>
+                  <div className="flex flex-row gap-3 items-center justify-between">
+                    <Label className="uppercase text-xs font-bold text-accent-foreground">
+                      Billing
+                    </Label>
+                    <div className="flex-1 flex flex-row justify-end">
+                      <Link href="/billing">
+                        <Badge variant="secondary">Manage</Badge>
+                      </Link>
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              ) : (
+                <></>
+              );
+            }}
+          />
+        </Suspense>
+        <NotificationsSetting>
           <div className="flex flex-row gap-3 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
-              Subscription
+              Notifications
             </Label>
-            <div className="flex-1 flex flex-row justify-end">
-              <Suspense>
-                <RenderFirstValue
-                  observable={activeSubscription$}
-                  render={(sub) => {
-                    const isManager = userId === sub?.managingUserId;
-                    return sub ? (
-                      <Link
-                        href={isManager ? "/chefs-club/manage" : "/chefs-club"}
-                        className="flex flex-col items-end gap-2"
-                      >
-                        <Badge variant="secondary">Friends & Family</Badge>
-                        {isManager && (
-                          <div className="flex flex-col gap-2 w-full">
-                            <AsyncRenderFirstValue
-                              render={([count, limit]) => {
-                                return (
-                                  <Progress
-                                    value={(100 * count) / limit}
-                                    className="w-full"
-                                  />
-                                );
-                              }}
-                              observable={combineLatest(
-                                memberCount$,
-                                memberCountLimit$
-                              )}
-                              fallback={
-                                <Progress value={0} className="w-full" />
-                              }
-                            />
-
-                            <div className="text-muted-foreground text-xs text-right">
-                              <SubscriptionMemberCountCurrent />/
-                              <SubscriptionMemberCountLimit /> Members
-                            </div>
-                          </div>
-                        )}
-                      </Link>
-                    ) : (
-                      <Link href="/chefs-club">
-                        <Badge variant="secondary">Upgrade</Badge>
-                      </Link>
-                    );
-                  }}
-                />
-              </Suspense>
+            <div>
+              <NotificationsSwitch />
             </div>
           </div>
           <Separator />
-          <Suspense fallback={null}>
-            <RenderFirstValue
-              observable={activeSubscription$}
-              render={(sub) => {
-                return sub ? (
-                  <>
-                    <div className="flex flex-row gap-3 items-center justify-between">
-                      <Label className="uppercase text-xs font-bold text-accent-foreground">
-                        Billing
-                      </Label>
-                      <div className="flex-1 flex flex-row justify-end">
-                        <Link href="/billing">
-                          <Badge variant="secondary">Manage</Badge>
-                        </Link>
-                      </div>
-                    </div>
-                    <Separator />
-                  </>
-                ) : (
-                  <></>
-                );
-              }}
-            />
-          </Suspense>
-          <NotificationsSetting>
-            <div className="flex flex-row gap-3 items-center justify-between">
-              <Label className="uppercase text-xs font-bold text-accent-foreground">
-                Notifications
-              </Label>
-              <div>
-                <NotificationsSwitch />
-              </div>
-            </div>
-            <Separator />
-          </NotificationsSetting>
-        </>
-      )}
+        </NotificationsSetting>
+      </SessionSnapshotConditionalRenderer>
       <div className="flex flex-row gap-1 items-center justify-between">
         <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
           Theme
         </Label>
         <ModeToggle />
       </div>
-      {userId && (
-        <>
-          <Separator />
-          <div className="flex justify-center">
-            <Button
-              variant="ghost"
-              className="text-sm underline text-center"
-              event={{ type: "LOGOUT" }}
-            >
-              Sign Out
-            </Button>
-          </div>
-        </>
-      )}
+      <SessionSnapshotConditionalRenderer
+        matchedState={{ Auth: "Authenticated" }}
+      >
+        <Separator />
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            className="text-sm underline text-center"
+            event={{ type: "LOGOUT" }}
+          >
+            Sign Out
+          </Button>
+        </div>
+      </SessionSnapshotConditionalRenderer>
       <Separator />
       <div className="flex flex-row gap-2 justify-center">
         <div className="flex flex-row justify-center gap-2">

@@ -10,7 +10,7 @@ import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
 import { getNextAuthSession } from "@/lib/auth/session";
 import { map } from "nanostores";
-import { SessionProvider, signOut, useSession } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import {
   useParams,
   usePathname,
@@ -78,9 +78,7 @@ export function ApplicationProvider(props: {
       window.client$ = actor;
     }, [actor]);
 
-    return (
-      <AppContext.Provider value={actor}>{children}</AppContext.Provider>
-    );
+    return <AppContext.Provider value={actor}>{children}</AppContext.Provider>;
   };
 
   return (
@@ -94,7 +92,6 @@ export function ApplicationProvider(props: {
             <SearchParamsEventsProvider />
             <HashChangeEventsProvider />
             <PopStateEventsProvider />
-            <LogoutProvider />
             <AnalyticsProvider />
             {props.appSessionId && <PWALifeCycle />}
             {props.children}
@@ -126,14 +123,6 @@ const HashChangeEventsProvider = () => {
       lastHash.current = window.location.hash;
     }
   }, [params, send]);
-
-  return null;
-};
-
-const LogoutProvider = () => {
-  useEventHandler("LOGOUT", () => {
-    signOut({ callbackUrl: "/" });
-  });
 
   return null;
 };

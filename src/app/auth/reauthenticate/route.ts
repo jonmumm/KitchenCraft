@@ -27,11 +27,19 @@ export async function GET(req: NextRequest) {
     },
   });
   console.log([{ pageSessionId, connectionId }]);
-  await client.send(pageSessionId, {
-    type: "AUTHENTICATE",
-    connectionId,
-    userId,
-  });
+
+  // todo, instead of sending this event to the page session
+  // we want to send an event to the session
+  // that way it can authenticate and then push it's
+  // state back out to clients that are listening to it.
+  // this will enable you to authenticat multiple page sessions
+  // at once potentially
+
+  // await client.send(pageSessionId, {
+  //   type: "AUTHENTICATE",
+  //   connectionId,
+  //   userId,
+  // });
 
   if (callbackUrl) {
     redirect(callbackUrl);

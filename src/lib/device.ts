@@ -43,6 +43,8 @@ export const getPlatformInfo = (_ua: string) => {
   const isUnsupported = false; // todo how do we detect webview
   const isiPad = isIOSSafari && _ua.indexOf("iPad") > -1;
   const isiPhone = isIOSSafari && _ua.indexOf("iPad") === -1;
+  const isDesktop = !isIDevice && !/android/i.test(_ua);
+
 
   return {
     isUnsupported,
@@ -58,5 +60,6 @@ export const getPlatformInfo = (_ua: string) => {
     isOpera,
     isIDevice,
     isInPWA,
+    isDesktop
   };
 };

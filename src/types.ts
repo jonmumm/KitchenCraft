@@ -404,6 +404,8 @@ export type EquipmentSettings = z.infer<typeof EquipmentSettingsSchema>;
 export type DietSettings = z.infer<typeof DietSettingsSchema>;
 export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
 
+export type UserEvent = WithCaller<AppEvent>;
+
 export type SessionEvent =
   | WithCaller<AppEvent>
   | WithCaller<SystemEvent>
@@ -428,11 +430,63 @@ type FeedWithRecipeIds = Omit<FeedItem, "recipes"> & {
 
 type FeedItemWithIds = { id: string } & DeepPartial<FeedWithRecipeIds>;
 
+export type UserContext = {
+  id: string;
+  experienceLevel?: ExperienceLevel;
+  // groceryStores?: string;
+  // shoppingFrequency?: string;
+  // typicalGroceries?: string;
+  // equipment: EquipmentSettings;
+  profileName?: string;
+  email?: string;
+  // diet: DietSettings;
+  // preferences: TasteSettings;
+  preferenceQuestionResults: Record<number, number>;
+  // timezone?: string;
+  // country?: string;
+  // continent?: string;
+  // city?: string;
+  // postalCode?: string;
+  // gps?: {
+  //   latitude: string;
+  //   longitude: string;
+  // };
+  // region?: string;
+  // regionCode?: string;
+  // suggestedIngredients: Array<string>;
+  // suggestedTags: Array<string>;
+  // suggestedFeedTopics?: Array<string>;
+  // selectedFeedTopics: Array<string>;
+  // lastRunPersonalizationContext: string | undefined; // todo put this on the store instead of context?
+  // suggestedProfileNames: string[];
+  // previousSuggestedProfileNames: string[];
+  // suggestedPlaceholders: Array<string>;
+  // suggestedTokens: Array<string>;
+  // welcome?: DeepPartial<WelcomeMessageOutput>;
+  // signInCode?: string;
+  // feedItemsById: Record<string, FeedItemWithIds>;
+  // feedItemIds: string[];
+  // generationIdSets: Record<string, string[]>;
+  // listIds: string[];
+  // listsById: Record<
+  //   string,
+  //   {
+  //     id: string;
+  //     name?: string;
+  //     slug?: string;
+  //     isPublic: boolean;
+  //     count: number;
+  //     idSet: Record<string, true>;
+  //   }
+  // >;
+};
+
 export type SessionContext = {
   id: string;
   userId: string;
   authenticated: boolean;
   experienceLevel?: ExperienceLevel;
+  storage: Party.Storage;
   groceryStores?: string;
   shoppingFrequency?: string;
   typicalGroceries?: string;
@@ -465,6 +519,7 @@ export type SessionContext = {
   suggestedPlaceholders: Array<string>;
   suggestedTokens: Array<string>;
   welcome?: DeepPartial<WelcomeMessageOutput>;
+  signInCode?: string;
   feedItemsById: Record<string, FeedItemWithIds>;
   feedItemIds: string[];
   generationIdSets: Record<string, string[]>;

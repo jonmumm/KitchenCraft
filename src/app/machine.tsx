@@ -375,6 +375,11 @@ export const createAppMachine = ({
           UPDATE_SESSION: {
             target: ".LoggedIn",
           },
+          LOGOUT: {
+            actions: () => {
+              window.location.href = "/signout";
+            },
+          },
         },
         states: {
           Anonymous: {
@@ -390,6 +395,35 @@ export const createAppMachine = ({
           SigningIn: {
             on: {
               CANCEL: "Anonymous",
+            },
+            initial: "Inputting",
+            states: {
+              Inputting: {
+                on: {
+                  SUBMIT: "WaitingForClick",
+                  CHANGE: {
+                    guard: ({ event }) => event.name === "email",
+                    actions: assign({
+                      email: ({ event }) => event.value,
+                    }),
+                  },
+                },
+              },
+              WaitingForClick: {
+                invoke: {
+                  src: "waitForSessionValue",
+                  input: ({ context, event }) => {
+                    return {
+                      timeoutMs: 60000,
+                      selector: (state) => {
+                        return !!state.context.sessionSnapshot?.context
+                          .authenticated;
+                      },
+                    };
+                  },
+                },
+              },
+              Clicked: {},
             },
           },
           Registering: {

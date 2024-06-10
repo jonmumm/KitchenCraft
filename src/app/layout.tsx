@@ -7,6 +7,7 @@ import {
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppSnapshotConditionalRenderer } from "@/components/util/app-snapshot-conditional-renderer";
+import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditional-renderer";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
   getCurrentEmail,
@@ -17,10 +18,12 @@ import {
 import { parseCookie } from "@/lib/coookieStore";
 import { getCanInstallPWA, getIsMobile } from "@/lib/headers";
 import {
+  createAccessToken,
   createAppInstallToken,
   getPageSessionId,
-  getRefreshToken,
   getRequestUrl,
+  getSessionId,
+  getUserId,
 } from "@/lib/session";
 import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
@@ -47,6 +50,7 @@ import {
   SelectListCard,
   UpgradeAccountCard,
 } from "./components.client";
+import EmailCodeCard from "./email-code-card";
 import { SessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
 import { SignInCard } from "./sign-in-card";
@@ -122,11 +126,24 @@ export default async function RootLayout(
 
   const pageSessionActorClient = await getPageSessionActorClient();
   const pageSessionId = await getPageSessionId();
-  const refreshToken = await getRefreshToken();
+  const sessionId = getSessionId();
+  const userId = getUserId();
+  const userAccessToken = await createAccessToken({
+    actorId: userId,
+    type: "user",
+    callerId: userId,
+    callerType: "user",
+  });
+  const sessionAccessToken = await createAccessToken({
+    actorId: sessionId,
+    type: "session",
+    callerId: getUserId(),
+    callerType: "user",
+  });
   const url = await getRequestUrl();
   const { snapshot, connectionId, token } = await pageSessionActorClient.get(
     pageSessionId,
-    { url, refreshToken }
+    { url, sessionAccessToken, userAccessToken }
   );
   assert(snapshot, "expected snapshot");
 
@@ -235,7 +252,9 @@ const SignInDialog = () => {
 
   return (
     <>
-      <AppSnapshotConditionalRenderer matchedState={{ Auth: "SigningIn" }}>
+      <AppSnapshotConditionalRenderer
+        matchedState={{ Auth: { SigningIn: "Inputting" } }}
+      >
         <ResponsiveDialog open isMobile={isMobile}>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
@@ -243,6 +262,17 @@ const SignInDialog = () => {
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </AppSnapshotConditionalRenderer>
+      <SessionSnapshotConditionalRenderer
+        matchedState={{ Auth: { SigningIn: "WaitingForCode" } }}
+        initialValueOverride={false}
+      >
+        <ResponsiveDialog open isMobile={isMobile}>
+          <ResponsiveDialogOverlay />
+          <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
+            <EmailCodeCard />
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
+      </SessionSnapshotConditionalRenderer>
     </>
   );
 };

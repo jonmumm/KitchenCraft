@@ -9,6 +9,7 @@ import { z } from "zod";
 
 export const AppContextSchema = z.object({
   token: z.string(),
+  email: z.string().optional(),
   scrollItemIndex: z.number(),
   savedRecipeSlugs: z.array(z.string()),
   currentRecipeUrl: z.string().optional(),

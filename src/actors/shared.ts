@@ -4,7 +4,7 @@ import { withDatabaseSpan } from "@/lib/observability";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert, formatDisplayName, sentenceToSlug } from "@/lib/utils";
 import { DbOrTransaction } from "@/types";
-import { sql } from "@vercel/postgres";
+import { createClient, sql } from "@vercel/postgres";
 import { and, eq, sql as sqlFN } from "drizzle-orm";
 import { PgTransaction } from "drizzle-orm/pg-core";
 import { drizzle } from "drizzle-orm/vercel-postgres";
@@ -195,12 +195,18 @@ export const getUserPreferences = fromPromise(
       userId: string;
     };
   }) => {
-    const db = drizzle(sql);
-    const result = await db
-      .select()
-      .from(UserPreferencesTable)
-      .where(eq(UserPreferencesTable.userId, input.userId))
-      .execute();
-    return result;
+    const client = createClient();
+    await client.connect();
+    const db = drizzle(client);
+    try {
+      const result = await db
+        .select()
+        .from(UserPreferencesTable)
+        .where(eq(UserPreferencesTable.userId, input.userId))
+        .execute();
+      return result;
+    } finally {
+      await client.end();
+    }
   }
 );

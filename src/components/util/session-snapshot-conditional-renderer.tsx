@@ -1,6 +1,8 @@
+"use client";
+
 import { SessionState } from "@/app/session-machine";
 import { useSessionMatchesState } from "@/hooks/useSessionMatchesState";
-import { ReactNode } from "react";
+import { ReactNode, useLayoutEffect, useState } from "react";
 
 interface SessionSnapshotConditionalRendererProps {
   matchedState: SessionState;
@@ -13,10 +15,17 @@ export const SessionSnapshotConditionalRenderer = (
   props: SessionSnapshotConditionalRendererProps
 ) => {
   const active = useSessionMatchesState(props.matchedState);
+  const [overrideValue, setOverrideValue] = useState(
+    props.initialValueOverride
+  );
+
+  useLayoutEffect(() => {
+    setOverrideValue(undefined);
+  }, [props.initialValueOverride]);
 
   const value =
-    typeof props.initialValueOverride === "boolean"
-      ? props.initialValueOverride
+    typeof overrideValue === "boolean"
+      ? overrideValue
       : (active && !props.not) || (props.not && !active);
 
   return value ? <>{props.children}</> : <></>;

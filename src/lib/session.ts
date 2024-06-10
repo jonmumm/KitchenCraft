@@ -13,37 +13,83 @@ import { assert } from "./utils";
 export class AuthError extends Error {}
 
 export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
-export const SESSION_TOKEN_COOKIEY_KEY = "session-token";
+export const REFRESH_TOKEN_COOKIEY_KEY = "refresh-token";
 
-export const createRefreshToken = async (sessionId: string) => {
+export const createRefreshToken = async (sessionId: string, userId: string) => {
   const token = await new SignJWT({})
     .setProtectedHeader({ alg: "HS256" })
     .setJti(sessionId)
-    .setIssuedAt()
-    .setExpirationTime("30d")
+    .setSubject(userId)
+    .setExpirationTime("90d")
     .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
   return token;
 };
 
-export const createCallerToken = async (uniqueId: string, type: CallerType) => {
-  const callerId = `${type}-${uniqueId}`;
-  CallerSchema.parse(callerId);
-  const token = await new SignJWT({})
-    .setProtectedHeader({ alg: "HS256" })
-    .setJti(callerId)
-    .setIssuedAt()
-    .setExpirationTime("30d")
-    .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
-  return token;
-};
-
-export const parseCallerIdToken = async (token: string) => {
+export const parseRefreshTokenForUserId = async (refreshToken: string) => {
   const verified = await jwtVerify(
-    token,
+    refreshToken,
     new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
   );
-  assert(verified.payload.jti, "expected JTI on appInstallToken");
-  return CallerSchema.parse(verified.payload.jti);
+  assert(verified.payload.sub, "expected userId to be on accessToken as sub");
+  return verified.payload.sub;
+};
+
+export const parseRefreshTokenForSessionId = async (refreshToken: string) => {
+  const verified = await jwtVerify(
+    refreshToken,
+    new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
+  );
+  assert(verified.payload.jti, "expected JTI on accessToken");
+  return verified.payload.jti;
+};
+
+export const createAccessToken = async ({
+  actorId,
+  callerId,
+  callerType,
+  type,
+}: {
+  actorId: string;
+  callerId: string;
+  callerType: CallerType;
+  type: "page_session" | "session" | "user";
+}) => {
+  const subject = `${callerType}-${callerId}`;
+  CallerSchema.parse(subject);
+  const token = await new SignJWT({})
+    .setProtectedHeader({ alg: "HS256" })
+    .setJti(actorId)
+    .setSubject(subject)
+    .setAudience(type)
+    .setExpirationTime("30d")
+    .sign(new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET));
+  return token;
+};
+
+export const parseAccessTokenForCaller = async ({
+  accessToken,
+  type,
+  id,
+}: {
+  accessToken: string;
+  type: string;
+  id: string;
+}) => {
+  const verified = await jwtVerify(
+    accessToken,
+    new TextEncoder().encode(privateEnv.NEXTAUTH_SECRET)
+  );
+  assert(verified.payload.jti, "expected JTI on accessToken");
+  assert(
+    verified.payload.jti === id,
+    "expected JTI on accessToken to match actor id: " + id
+  );
+  assert(
+    verified.payload.aud,
+    "expected accessToken audience to match actor type: " + type
+  );
+  assert(verified.payload.sub, "expected accessToken to have subject");
+  return CallerSchema.parse(verified.payload.sub);
 };
 
 export const createAppInstallToken = async (
@@ -75,13 +121,13 @@ export const parseAppInstallToken = async (token: string) => {
   return { email: sub, distinctId: verified.payload.jti };
 };
 
-export const setSessionTokenCookieHeader = async (
+export const setRefreshTokenCookieHeader = async (
   res: NextResponse,
   token: string
 ) => {
   const date = new Date();
   date.setFullYear(date.getFullYear() + 20); // Expires 20 years from now
-  const tokenStr = serialize(SESSION_TOKEN_COOKIEY_KEY, token, {
+  const tokenStr = serialize(REFRESH_TOKEN_COOKIEY_KEY, token, {
     path: "/",
     expires: date,
     secure: true,
@@ -127,7 +173,7 @@ export const getGuestTokenFromCookies = async () => {
 
 export const parsedSessionTokenFromCookie = async () => {
   const cookieStore = cookies();
-  const sessionToken = cookieStore.get(SESSION_TOKEN_COOKIEY_KEY)?.value;
+  const sessionToken = cookieStore.get(REFRESH_TOKEN_COOKIEY_KEY)?.value;
 
   if (!sessionToken) {
     return undefined;
@@ -148,8 +194,8 @@ export const parsedSessionTokenFromCookie = async () => {
 
 export const getRefreshTokenFromCookie = () => {
   const cookieStore = cookies();
-  const sessionToken = cookieStore.get(SESSION_TOKEN_COOKIEY_KEY)?.value;
-  return sessionToken;
+  const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIEY_KEY)?.value;
+  return refreshToken;
 };
 
 export const getRefreshToken = () => {
@@ -172,6 +218,13 @@ export const getPageSessionId = () => {
   const pageSessionId = headerList.get("x-page-session-id");
   assert(pageSessionId, "expected x-page-session-id in header");
   return pageSessionId;
+};
+
+export const getUserId = () => {
+  const headerList = headers();
+  const userId = headerList.get("x-user-id");
+  assert(userId, "expected x-user-id in header");
+  return userId;
 };
 
 export const getSessionId = () => {

@@ -3,6 +3,9 @@ import { produce } from "immer";
 
 import { captureEvent } from "@/actions/capturePostHogEvent";
 import { getAllListsForUserWithRecipeCount } from "@/actors/getAllListsForUserWithRecipeCount";
+import { initializeUserSocket } from "@/actors/initializeUserSocket";
+import { ListenSessionEvent, listenSession } from "@/actors/listenSession";
+import { ListenUserEvent, listenUser } from "@/actors/listenUser";
 import {
   ListRecipeTable,
   ListTable,
@@ -19,7 +22,6 @@ import { getSlug } from "@/lib/slug";
 import { assert, assertType, sentenceToSlug } from "@/lib/utils";
 import { ListNameSchema } from "@/schema";
 import {
-  ActorSocketEvent,
   AdInstance,
   AppEvent,
   Caller,
@@ -36,9 +38,9 @@ import { createClient } from "@vercel/postgres";
 import { randomUUID } from "crypto";
 import { and, eq, ilike, inArray, max, sql as sqlFN } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
-import { Operation, applyPatch, compare } from "fast-json-patch";
+import { Operation, compare } from "fast-json-patch";
 import * as Party from "partykit/server";
-import { Subject, from, switchMap } from "rxjs";
+import { from, switchMap } from "rxjs";
 import {
   SnapshotFrom,
   StateValueFrom,
@@ -84,7 +86,6 @@ import {
   RecipeIdeasMetadataStream,
 } from "./recipe-ideas-metadata.stream";
 import { SuggestRecipeProductsEvent } from "./recipe/[slug]/products/recipe-products-stream";
-import { SessionMachine } from "./session-machine";
 import { SessionSnapshot } from "./session-store.types";
 import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
@@ -116,7 +117,8 @@ const InputSchema = z.object({
   partyContext: z.custom<Party.Context>(),
   url: z.string().url(),
   initialCaller: z.custom<Caller>(),
-  refreshToken: z.string(),
+  sessionAccessToken: z.string(),
+  userAccessToken: z.string(),
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -135,6 +137,7 @@ export type PageSessionContext = {
     partyStorage: Party.Storage;
     partyContext: Party.Context;
     sessionSocket: ServerPartySocket | undefined;
+    userSocket: ServerPartySocket | undefined;
   };
   onboardingInput: {
     mealType?: string | undefined;
@@ -161,7 +164,8 @@ export type PageSessionContext = {
   generatingRecipeId: string | undefined;
   currentItemIndex: number;
   currentListRecipeIndex: number;
-  refreshToken: string;
+  sessionAccessToken: string;
+  userAccessToken: string;
   numCompletedRecipes: number;
   numCompletedRecipeMetadata: number;
   suggestedTags: string[];
@@ -180,56 +184,9 @@ export type PageSessionContext = {
   userPreferences: UserPreferences; // New field to store user preferences
   modifiedPreferences: Partial<Record<keyof UserPreferences, true>>;
   sessionSnapshot: SessionSnapshot | undefined;
+  userSnapshot: UserSnapshot | undefined;
   listsBySlug: ListsBySlugRecord | undefined;
 };
-
-type SessionActorSocketEvent = ActorSocketEvent<"SESSION", SessionMachine>;
-
-const listenSession = fromEventObservable(
-  ({
-    input,
-  }: {
-    input: {
-      socket: ServerPartySocket;
-    };
-  }) => {
-    const subject = new Subject<SessionActorSocketEvent>();
-    const { socket } = input;
-
-    socket.addEventListener("error", (error) => {
-      console.error("error", error);
-    });
-
-    let currentSnapshot: SnapshotFrom<SessionMachine> | undefined = undefined;
-
-    socket.addEventListener("message", (message) => {
-      assert(
-        typeof message.data === "string",
-        "expected message data to be a string"
-      );
-
-      const { operations } = z
-        .object({ operations: z.array(z.custom<Operation>()) })
-        .parse(JSON.parse(message.data));
-
-      const nextSnapshot = produce(currentSnapshot || {}, (draft) => {
-        applyPatch(draft, operations);
-      });
-      subject.next({
-        type: "SESSION_UPDATE",
-        snapshot: nextSnapshot as any,
-        operations,
-      });
-      currentSnapshot = nextSnapshot as any;
-    });
-
-    socket.addEventListener("close", () => {
-      subject.next({ type: "SESSION_DISCONNECT" });
-    });
-
-    return subject;
-  }
-);
 
 export type PageSessionEvent =
   | WithCaller<AppEvent>
@@ -248,7 +205,8 @@ export type PageSessionEvent =
   | FullRecipeEvent
   | FullRecipeFromSuggestionEvent
   | NewRecipeProductKeywordEvent
-  | SessionActorSocketEvent;
+  | ListenUserEvent
+  | ListenSessionEvent;
 
 export const pageSessionMachine = setup({
   types: {
@@ -263,7 +221,9 @@ export const pageSessionMachine = setup({
     generateListNameSuggestions,
     getUserPreferences,
     initializeSessionSocket,
-    listenSession: listenSession,
+    initializeUserSocket,
+    listenSession,
+    listenUser,
     updateChefName: fromPromise(
       async ({
         input,
@@ -678,7 +638,7 @@ export const pageSessionMachine = setup({
     hasValidChefName: ({ context }) => {
       return !!context.chefname && context.chefname?.length > 0;
     },
-    didChangeEmailInput: ({ context, event }) => {
+    didChangeEmailInput: ({ event }) => {
       return event.type === "CHANGE" && event.name === "email";
     },
     didChangeListNameInput: ({ event }) => {
@@ -808,7 +768,8 @@ export const pageSessionMachine = setup({
     undoOperations: [],
     redoOperations: [],
     listsBySlug: undefined,
-    refreshToken: input.refreshToken,
+    sessionAccessToken: input.sessionAccessToken,
+    userAccessToken: input.userAccessToken,
   }),
   type: "parallel",
   states: {
@@ -836,7 +797,7 @@ export const pageSessionMachine = setup({
             src: "initializeSessionSocket",
             input: ({ context }) => {
               return {
-                refreshToken: context.refreshToken,
+                sessionAccessToken: context.sessionAccessToken,
                 partyContext: context.refs.partyContext,
                 caller: context.initialCaller,
               };
@@ -877,6 +838,64 @@ export const pageSessionMachine = setup({
               );
               return {
                 socket: context.refs.sessionSocket,
+              };
+            },
+          },
+        },
+      },
+    },
+    User: {
+      initial: "Uninitialized",
+      states: {
+        Uninitialized: {
+          always: "Initializing",
+        },
+        Initializing: {
+          invoke: {
+            src: "initializeUserSocket",
+            input: ({ context }) => {
+              return {
+                userAccessToken: context.userAccessToken,
+                partyContext: context.refs.partyContext,
+                caller: context.initialCaller,
+              };
+            },
+            onDone: {
+              target: "Running",
+              actions: assign({
+                refs: ({ context, event }) =>
+                  produce(context.refs, (draft) => {
+                    draft.userSocket = event.output;
+                  }),
+              }),
+            },
+          },
+        },
+        Running: {
+          always: {
+            actions: ({ context, event }) => {
+              if ("caller" in event) {
+                // todo need to limit this to only my caller or something?
+                context.refs.userSocket?.send(JSON.stringify(event));
+              }
+            },
+          },
+          on: {
+            USER_UPDATE: {
+              actions: assign({
+                userSnapshot: ({ event }) => event.snapshot,
+              }),
+            },
+          },
+          invoke: {
+            src: "listenUser",
+            input: ({ context }) => {
+              assert(
+                context.refs.userSocket,
+                "expected userSocket to be initialized"
+              );
+              return {
+                socket: context.refs.userSocket,
               };
             },
           },

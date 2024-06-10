@@ -7,6 +7,7 @@ import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
+import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditional-renderer";
 import { db } from "@/db";
 import {
   getActiveSubscriptionForUserId,
@@ -131,36 +132,38 @@ export async function MainMenu({ className }: { className?: string }) {
           <Separator />
         </>
       )}
-      {userId && (
-        <>
-          <div className="flex flex-col gap-1 items-center justify-center">
-            <Label className="uppercase text-xs font-bold text-accent-foreground">
-              Chef
-            </Label>
-            <div className="flex flex-col gap-2 items-center justify-center">
-              <Link href={`/me`}>
-                <Badge variant="outline">
-                  <h3 className="font-bold text-xl">
-                    <div className="flex flex-col gap-1 items-center">
-                      <div className="flex flex-row gap-1 items-center">
-                        <ChefHatIcon />
-                        <span>
-                          <span className="underline">{profileSlug}</span>
-                        </span>
-                      </div>
+      helllo0
+      <SessionSnapshotConditionalRenderer
+        matchedState={{ Auth: "Authenticated" }}
+      >
+        <div className="flex flex-col gap-1 items-center justify-center">
+          <Label className="uppercase text-xs font-bold text-accent-foreground">
+            Chef
+          </Label>
+          <div className="flex flex-col gap-2 items-center justify-center">
+            <Link href={`/me`}>
+              <Badge variant="outline">
+                <h3 className="font-bold text-xl">
+                  <div className="flex flex-col gap-1 items-center">
+                    <div className="flex flex-row gap-1 items-center">
+                      <ChefHatIcon />
+                      <span>
+                        <span className="underline">{profileSlug}</span>
+                      </span>
                     </div>
-                  </h3>
-                </Badge>{" "}
-              </Link>
-              {/* <Link
+                  </div>
+                </h3>
+              </Badge>{" "}
+            </Link>
+            {/* <Link
                 href={`/@${profileSlug}`}
                 className="text-muted-foreground text-xs"
               >
                 <span>Inactive</span>
               </Link> */}
-            </div>
           </div>
-          {/* <div className="flex flex-row gap-8 items-center justify-around">
+        </div>
+        {/* <div className="flex flex-row gap-8 items-center justify-around">
             <div className="flex flex-row justify-around gap-8">
               <div className="flex flex-col gap-1 items-center">
                 <Link href="/leaderboard">
@@ -214,19 +217,19 @@ export async function MainMenu({ className }: { className?: string }) {
               </div>
             </div>
           </div> */}
-          <div className="flex flex-row items-center justify-center max-w-full gap-3 text-muted-foreground text-sm">
-            <div className="flex-1 min-w-0 truncate text-center">
-              <span className="truncate">{email}</span>
-            </div>
+        <div className="flex flex-row items-center justify-center max-w-full gap-3 text-muted-foreground text-sm">
+          <div className="flex-1 min-w-0 truncate text-center">
+            <span className="truncate">{email}</span>
           </div>
+        </div>
 
-          {canInstallPWA && (
-            <MenuItem className="mb-2">
-              <AppInstall />
-            </MenuItem>
-          )}
-          <Separator />
-          {/* <AsyncRenderFirstValue
+        {canInstallPWA && (
+          <MenuItem className="mb-2">
+            <AppInstall />
+          </MenuItem>
+        )}
+        <Separator />
+        {/* <AsyncRenderFirstValue
             observable={combineLatest([
               usage$,
               quotaLimit$,
@@ -269,7 +272,7 @@ export async function MainMenu({ className }: { className?: string }) {
             }}
             fallback={<Skeleton className="h-12 w-full" />}
           /> */}
-          {/* <MenuItem className="flex flex-row gap-3 items-center justify-between">
+        {/* <MenuItem className="flex flex-row gap-3 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
               Subscription
             </Label>
@@ -323,7 +326,7 @@ export async function MainMenu({ className }: { className?: string }) {
             </div>
           </MenuItem>
           <Separator /> */}
-          {/* <Suspense fallback={null}>
+        {/* <Suspense fallback={null}>
             <RenderFirstValue
               observable={activeSubscription$}
               render={(sub) => {
@@ -347,7 +350,7 @@ export async function MainMenu({ className }: { className?: string }) {
               }}
             />
           </Suspense> */}
-          {/* <NotificationsSetting>
+        {/* <NotificationsSetting>
             <MenuItem className="flex flex-row gap-3 items-center justify-between">
               <Label className="uppercase text-xs font-bold text-accent-foreground">
                 Notifications
@@ -358,8 +361,7 @@ export async function MainMenu({ className }: { className?: string }) {
             </MenuItem>
             <Separator />
           </NotificationsSetting> */}
-        </>
-      )}
+      </SessionSnapshotConditionalRenderer>
       <MenuItem className="flex flex-row gap-1 items-center justify-between">
         <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
           Theme

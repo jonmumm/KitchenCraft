@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { cache } from "react";
 import { createActorHTTPClient } from "../actor-kit";
 import { withSpan } from "../observability";
-import { getGuestId } from "../session";
+import { getGuestId, getUserId } from "../session";
 import { authOptions } from "./options";
 
 export const getNextAuthSession = withSpan(
@@ -42,14 +42,11 @@ export const getUniqueIdType = withSpan(
 
 export const getSessionActorClient = withSpan(
   cache(async () => {
-    const uniqueId = await getUniqueId();
-    const uniqueIdType = await getUniqueIdType();
-
-    return createActorHTTPClient<typeof sessionMachine, typeof uniqueIdType>({
+    return createActorHTTPClient<typeof sessionMachine, "user">({
       type: "session",
       caller: {
-        id: uniqueId,
-        type: uniqueIdType,
+        id: getUserId(),
+        type: "user",
       },
     });
   }),
@@ -58,17 +55,11 @@ export const getSessionActorClient = withSpan(
 
 export const getPageSessionActorClient = withSpan(
   cache(async () => {
-    const uniqueId = await getUniqueId();
-    const uniqueIdType = await getUniqueIdType();
-
-    return createActorHTTPClient<
-      typeof pageSessionMachine,
-      typeof uniqueIdType
-    >({
+    return createActorHTTPClient<typeof pageSessionMachine, "user">({
       type: "page_session",
       caller: {
-        id: uniqueId,
-        type: uniqueIdType,
+        id: getUserId(),
+        type: "user",
       },
     });
   }),

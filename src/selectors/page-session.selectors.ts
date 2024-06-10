@@ -5,6 +5,9 @@ export const selectCurrentListRecipeIds = (state: PageSessionSnapshot) => {
   return state.context.sessionSnapshot?.context.selectedRecipeIds || [];
 };
 
+export const selectSessionEmail = (state: PageSessionSnapshot) =>
+  state.context.sessionSnapshot?.context.email;
+
 export const selectSelectedRecipeCount = (state: PageSessionSnapshot) =>
   state.context.sessionSnapshot?.context.selectedRecipeIds?.length || 0;
 

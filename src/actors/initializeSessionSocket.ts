@@ -1,4 +1,3 @@
-import { createCallerToken } from "@/lib/session";
 import { assert } from "@/lib/utils";
 import { Caller } from "@/types";
 import { jwtVerify } from "jose";
@@ -10,30 +9,31 @@ export const initializeSessionSocket = fromPromise(
     input,
   }: {
     input: {
-      refreshToken: string;
+      sessionAccessToken: string;
       caller: Caller;
       partyContext: Party.Context;
     };
   }) => {
-    const sessionId = (await parseRefreshToken(input.refreshToken)).payload.jti;
-    assert(sessionId, "expected session id in refresh token");
-    const token = await createCallerToken(input.caller.id, input.caller.type);
+    const sessionId = (await parseSessionAccessTokenForId(input.sessionAccessToken))
+      .payload.jti;
+    assert(sessionId, "expected session id in session token");
+    // const token = await createCallerToken(input.caller.id, input.caller.type);
     const socket = await input.partyContext.parties
       .session!.get(sessionId)
       .socket({
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${input.sessionAccessToken}`,
         },
       });
     return socket;
   }
 );
 
-const parseRefreshToken = async (token: string) => {
+const parseSessionAccessTokenForId = async (token: string) => {
   const verified = await jwtVerify(
     token,
     new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
   );
-  assert(verified.payload.jti, "expected JTI on Access Token");
+  assert(verified.payload.jti, "expected JTI on Session Token");
   return verified;
 };

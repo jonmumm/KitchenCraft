@@ -6,6 +6,7 @@
   "ai": true,
   "parties": {
     "page_session": "src/app/page-session-server.ts",
-    "session": "src/app/session-server.ts"
+    "session": "src/app/session-server.ts",
+    "user": "src/app/user-server.ts"
   }
 }

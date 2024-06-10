@@ -18,7 +18,7 @@ import {
   waitFor,
 } from "xstate";
 import { z } from "zod";
-import { createCallerToken, parseCallerIdToken } from "../session";
+import { createAccessToken, parseAccessTokenForCaller } from "../session";
 import { assert } from "../utils";
 import { API_SERVER_URL } from "./constants";
 
@@ -61,11 +61,16 @@ export const createActorHTTPClient = <
   TMachine extends AnyStateMachine,
   TCallerType extends keyof EventMap,
 >(props: {
-  type: string;
+  type: "page_session" | "session";
   caller: Caller & { type: TCallerType };
 }) => {
   const get = async (id: string, input: Record<string, string>) => {
-    const token = await createCallerToken(props.caller.id, props.caller.type);
+    const token = await createAccessToken({
+      actorId: id,
+      callerId: props.caller.id,
+      callerType: props.caller.type,
+      type: props.type,
+    });
     const resp = await fetch(
       `${API_SERVER_URL}/parties/${props.type}/${id}?input=${encodeURIComponent(
         JSON.stringify(input)
@@ -92,7 +97,12 @@ export const createActorHTTPClient = <
   };
 
   const send = async (id: string, event: EventMap[TCallerType]) => {
-    const token = await createCallerToken(props.caller.id, props.caller.type);
+    const token = await createAccessToken({
+      actorId: id,
+      callerId: props.caller.id,
+      callerType: props.caller.type,
+      type: props.type,
+    });
     const resp = await fetch(`${API_SERVER_URL}/parties/${props.type}/${id}`, {
       method: "POST",
       headers: {
@@ -150,7 +160,7 @@ export const createMachineServer = <
     async onRequest(request: Party.Request) {
       const connectionId = randomUUID();
       const authHeader = request.headers.get("Authorization");
-      const callerToken = authHeader?.split(" ")[1];
+      const accessToken = authHeader?.split(" ")[1];
       let caller: Caller | undefined;
 
       const index = request.url.indexOf("?");
@@ -158,8 +168,12 @@ export const createMachineServer = <
       const params = new URLSearchParams(search);
       const connectionToken = params.get("token");
 
-      if (callerToken) {
-        caller = await parseCallerIdToken(callerToken);
+      if (accessToken) {
+        caller = await parseAccessTokenForCaller({
+          accessToken,
+          type: this.room.name,
+          id: this.room.id,
+        });
       } else if (connectionToken) {
         const connectionId = (await parseConnectionToken(connectionToken))
           .payload.jti;
@@ -216,6 +230,7 @@ export const createMachineServer = <
           snapshot,
         });
       } else if (request.method === "POST") {
+        console.log(caller);
         if (caller.type === "system") {
           const json = await request.json();
           const event = SystemCallerEventSchema.parse(json);
@@ -271,9 +286,16 @@ export const createMachineServer = <
       const authHeader = context.request.headers.get("Authorization");
       let caller: Caller | undefined;
       if (authHeader) {
-        const callerIdToken = authHeader?.split(" ")[1];
-        assert(callerIdToken, "unable to parse bearer token");
-        caller = await parseCallerIdToken(callerIdToken);
+        const accessToken = authHeader?.split(" ")[1];
+        assert(
+          accessToken,
+          "Unable to parse Bearer header for for accessToken"
+        );
+        caller = await parseAccessTokenForCaller({
+          accessToken,
+          type: this.room.name,
+          id: this.room.id,
+        });
         this.callersByConnectionId.set(connection.id, caller);
       } else {
         const searchParams = new URLSearchParams(

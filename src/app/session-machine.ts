@@ -5,15 +5,18 @@ import {
   ProfileSchema,
   ProfileTable,
   UsersTable,
-  db,
 } from "@/db";
 import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
-import { assert } from "@/lib/utils";
+import { assert, noop } from "@/lib/utils";
 import { SessionContext, SessionEvent } from "@/types";
+import { createClient } from "@vercel/postgres";
 import { randomUUID } from "crypto";
 import { eq, inArray } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/vercel-postgres";
 import { produce } from "immer";
+import * as Party from "partykit/server";
+import { Resend } from "resend";
 import { from, switchMap } from "rxjs";
 import {
   StateValueFrom,
@@ -44,6 +47,7 @@ import { WelcomeMessageStream } from "./welcome-message.stream";
 
 const InputSchema = z.object({
   id: z.string(),
+  storage: z.custom<Party.Storage>(),
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -54,54 +58,119 @@ export const sessionMachine = setup({
     events: {} as SessionEvent,
   },
   actors: {
+    sendSignInEmail: fromPromise(
+      async ({ input }: { input: { email: string; code: string } }) => {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const result = await resend.emails.send({
+          from: "KitchenCraft <signin@mail.kitchencraft.ai>",
+          to: input.email,
+          subject: "Your Sign-In Code",
+          text: `To sign-in to KitchenCraft, enter this code: ${input.code}. This code will expire in 5 minutes.`,
+          html: `<div><p>To sign-in to KitchenCraft, enter this code:</p><p>${input.code}</p><p>This code will expire in 5 minutes.</p></div>`,
+        });
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+      }
+    ),
     sendWelcomeEmail: fromPromise(
       async ({ input }: { input: { email: string } }) => {
         return "";
       }
     ),
+    checkIfSignInCodeIsValid: fromPromise(
+      async ({
+        input,
+      }: {
+        input: { code: string; storage: Party.Storage };
+      }) => {
+        const signInCode = await input.storage.get("signInCode");
+        // todo verify the email matches
+        return input.code === signInCode;
+      }
+    ),
     checkIfProfileNameAvailable: fromPromise(
       async ({ input }: { input: { profileName: string } }) => {
-        const result = await db
-          .select()
-          .from(ProfileTable)
-          .where(eq(ProfileTable.profileSlug, input.profileName))
-          .execute();
-        return result.length === 0;
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          const result = await db
+            .select()
+            .from(ProfileTable)
+            .where(eq(ProfileTable.profileSlug, input.profileName))
+            .execute();
+          return result.length === 0;
+        } finally {
+          await client.end();
+        }
+      }
+    ),
+    fetchUserIdForEmail: fromPromise(
+      async ({ input }: { input: { email: string } }) => {
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          const users = await db
+            .select()
+            .from(UsersTable)
+            .where(eq(UsersTable.email, input.email))
+            .execute();
+          const user = users[0];
+          assert(user, "expected user");
+          return user.id;
+        } finally {
+          await client.end();
+        }
       }
     ),
     fetchLists: fromPromise(
       async ({ input }: { input: { userId: string } }) => {
-        const lists = await db
-          .select()
-          .from(ListTable)
-          .where(eq(ListTable.createdBy, input.userId))
-          .execute();
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          const lists = await db
+            .select()
+            .from(ListTable)
+            .where(eq(ListTable.createdBy, input.userId))
+            .execute();
 
-        const listIds = lists.map((item) => item.id);
-        const listRecipes = listIds.length
-          ? await db
-              .select()
-              .from(ListRecipeTable)
-              .where(inArray(ListRecipeTable.listId, listIds))
-              .execute()
-          : [];
+          const listIds = lists.map((item) => item.id);
+          const listRecipes = listIds.length
+            ? await db
+                .select()
+                .from(ListRecipeTable)
+                .where(inArray(ListRecipeTable.listId, listIds))
+                .execute()
+            : [];
 
-        return { lists, listRecipes };
+          return { lists, listRecipes };
+        } finally {
+          await client.end();
+        }
       }
     ),
     checkIfEmailAvailable: fromPromise(
       async ({ input }: { input: { email: string } }) => {
-        const result = await db
-          .select()
-          .from(UsersTable)
-          .where(eq(UsersTable.email, input.email))
-          .execute();
-        return result.length === 0;
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          const result = await db
+            .select()
+            .from(UsersTable)
+            .where(eq(UsersTable.email, input.email))
+            .execute();
+          return result.length === 0;
+        } finally {
+          await client.end();
+        }
       }
     ),
     createNewListWithRecipeId: fromPromise(
       async ({ input }: { input: { listId: string; recipeId: string } }) => {
-        console.log(input);
         return "";
       }
     ),
@@ -325,10 +394,183 @@ export const sessionMachine = setup({
         },
       },
     },
-    AuthState: {
-      initial: "Unauthenticated",
+    Auth: {
+      initial: "Anonymous",
       states: {
-        Unauthenticated: {},
+        Anonymous: {
+          on: {
+            // SAVE: {
+            //   target: "Registering",
+            // },
+            SIGN_IN: {
+              target: "SigningIn",
+            },
+          },
+        },
+        SigningIn: {
+          onDone: "Authenticated",
+          on: {
+            CANCEL: {
+              target: "Anonymous",
+            },
+          },
+          initial: "Inputting",
+          states: {
+            Inputting: {
+              on: {
+                SUBMIT: {
+                  target: "SendingEmail",
+                },
+                CHANGE: {
+                  guard: ({ event }) => event.name === "email",
+                  actions: assign({
+                    email: ({ event }) => event.value,
+                  }),
+                },
+              },
+            },
+            SendingEmail: {
+              invoke: {
+                src: "sendSignInEmail",
+                input: ({ context }) => {
+                  const email = z.string().email().parse(context.email);
+                  const code = generateSignInCode();
+
+                  // todo maybe use redis for this so it can self expire?
+                  context.storage
+                    .put("signInCode", code)
+                    .then(noop)
+                    .catch((e) => {
+                      console.error(e);
+                    });
+
+                  return { email, code };
+                },
+                onDone: "WaitingForCode",
+              },
+            },
+            WaitingForCode: {
+              after: {
+                300000: "Expired",
+              },
+              onDone: "Complete",
+              initial: "Inputting",
+              states: {
+                Inputting: {
+                  on: {
+                    SUBMIT: "Verifying",
+                    CHANGE: {
+                      guard: ({ event }) => event.name === "signInCode",
+                      actions: assign({
+                        signInCode: ({ event }) => event.value,
+                      }),
+                    },
+                  },
+                },
+                Verifying: {
+                  invoke: {
+                    src: "checkIfSignInCodeIsValid",
+                    input: ({ context, event }) => {
+                      assert(
+                        context.signInCode,
+                        "expected signInCode to be set"
+                      );
+                      return {
+                        code: context.signInCode,
+                        storage: context.storage,
+                      };
+                    },
+                    onDone: [
+                      {
+                        target: "Invalid",
+                        guard: ({ event }) => !event.output,
+                      },
+                      { target: "UpdatingUser" },
+                    ],
+                  },
+                },
+                Invalid: {
+                  on: {
+                    CHANGE: {
+                      target: "Inputting",
+                      guard: ({ event }) => event.name === "signInCode",
+                      actions: assign({
+                        signInCode: ({ event }) => event.value,
+                      }),
+                    },
+                  },
+                },
+                UpdatingUser: {
+                  invoke: {
+                    src: "fetchUserIdForEmail",
+                    input: ({ context }) => {
+                      const email = z.string().email().parse(context.email);
+                      return { email };
+                    },
+                    onDone: {
+                      target: "Complete",
+                      actions: assign({
+                        userId: ({ event }) => event.output,
+                      }),
+                    },
+                  },
+                },
+                Complete: {
+                  type: "final",
+                  // TODO kick off any jobs to update the userId on recipes/lists somewhere here
+                },
+              },
+            },
+            Expired: {
+              entry: ({ context }) => {
+                context.storage
+                  .delete("signInCode")
+                  .then(noop)
+                  .catch((e) => {
+                    console.error(e);
+                  });
+              },
+            },
+            Complete: {
+              type: "final",
+            },
+          },
+        },
+        Registering: {
+          initial: "InputtingEmail",
+          onDone: "Authenticated",
+          on: {
+            CANCEL: "Anonymous",
+          },
+          states: {
+            InputtingEmail: {
+              on: {
+                PAGE_LOADED: {
+                  target: "InputtingChefName",
+                },
+              },
+            },
+            InputtingChefName: {
+              on: {
+                SUBMIT: {
+                  target: "InputtingOTP",
+                  // guard: "hasValidChefName",
+                },
+              },
+            },
+            InputtingOTP: {
+              on: {
+                PAGE_LOADED: {
+                  target: "Complete",
+                  guard: ({ event }) => event.pathname === "/me",
+                },
+              },
+            },
+            Complete: {
+              type: "final",
+            },
+          },
+        },
         Authenticated: {},
       },
     },
@@ -1118,3 +1360,13 @@ export const sessionMachine = setup({
 
 export type SessionMachine = typeof sessionMachine;
 export type SessionState = StateValueFrom<SessionMachine>;
+
+function generateSignInCode(): string {
+  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // Avoid confusing characters
+  let code = "";
+  for (let i = 0; i < 5; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    code += characters[randomIndex];
+  }
+  return code;
+}
