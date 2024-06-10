@@ -5,7 +5,7 @@ import { ApplicationContext } from "@/context/application";
 import { ServiceWorkerProvider } from "@/context/service-worker";
 import { env } from "@/env.public";
 import { useActor } from "@/hooks/useActor";
-import { useEventHandler } from "@/hooks/useEventHandler";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
 import { getNextAuthSession } from "@/lib/auth/session";
@@ -92,6 +92,7 @@ export function ApplicationProvider(props: {
             <SearchParamsEventsProvider />
             <HashChangeEventsProvider />
             <PopStateEventsProvider />
+            <SignInProvider />
             <AnalyticsProvider />
             {props.appSessionId && <PWALifeCycle />}
             {props.children}
@@ -125,6 +126,30 @@ const HashChangeEventsProvider = () => {
   }, [params, send]);
 
   return null;
+};
+
+const SignInProvider = () => {
+  const shouldSignIn = usePageSessionSelector((state) => {
+    console.log(state);
+    return (
+      state.context.sessionSnapshot?.value.Auth === "Authenticated" &&
+      state.context.userSnapshot?.context.id &&
+      state.context.sessionSnapshot?.context.userId &&
+      state.context.userSnapshot.context.id !==
+        state.context.sessionSnapshot.context.userId
+    );
+  });
+
+  const SignInRedirect = () => {
+    useEffect(() => {
+      // todo callbackUrl add
+      window.location.href = "/signin";
+    });
+    return null;
+  };
+  console.log({ shouldSignIn });
+
+  return shouldSignIn ? <SignInRedirect /> : <></>;
 };
 
 const PopStateEventsProvider = () => {

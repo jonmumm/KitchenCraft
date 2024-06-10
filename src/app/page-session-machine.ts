@@ -89,6 +89,7 @@ import { SuggestRecipeProductsEvent } from "./recipe/[slug]/products/recipe-prod
 import { SessionSnapshot } from "./session-store.types";
 import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
+import { UserSnapshot } from "./user-machine";
 import { buildInput } from "./utils";
 
 type ListsBySlugRecord = Record<

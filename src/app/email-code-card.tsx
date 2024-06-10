@@ -29,7 +29,6 @@ import { getPlatformInfo } from "@/lib/device";
 import { selectSessionEmail } from "@/selectors/page-session.selectors";
 import { ExternalLinkIcon, XIcon } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { ClipboardEventHandler, useCallback, useEffect, useState } from "react";
 import { AppSnapshot } from "./machine";
 
@@ -105,7 +104,6 @@ const GmailLink = () => {
       window.removeEventListener("blur", handleTabBlur);
     };
   }, []);
-  console.log({ gmailLink, hideGmailLink });
 
   if (!gmailLink || hideGmailLink) {
     return null;
@@ -132,7 +130,6 @@ const formSchema = z.object({
 
 function EmailCodeForm() {
   const [disabled, setDisabled] = useState(false);
-  const params = useSearchParams();
   const actor = useAppContext();
   const showGMailLink = useSelector(actor, (state) => selectGmailLink(state)!!);
   const send = useSend();

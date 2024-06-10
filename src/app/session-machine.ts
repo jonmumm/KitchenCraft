@@ -9,7 +9,7 @@ import {
 import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
 import { assert, noop } from "@/lib/utils";
-import { SessionContext, SessionEvent } from "@/types";
+import { Caller, SessionContext, SessionEvent } from "@/types";
 import { createClient } from "@vercel/postgres";
 import { randomUUID } from "crypto";
 import { eq, inArray } from "drizzle-orm";
@@ -48,6 +48,7 @@ import { WelcomeMessageStream } from "./welcome-message.stream";
 const InputSchema = z.object({
   id: z.string(),
   storage: z.custom<Party.Storage>(),
+  initialCaller: z.custom<Caller>(),
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -290,8 +291,9 @@ export const sessionMachine = setup({
   type: "parallel",
   context: ({ input }) => {
     return {
-      ...input,
-      userId: randomUUID(),
+      id: input.id,
+      storage: input.storage,
+      userId: input.initialCaller.id,
       authenticated: false,
       equipment: {},
       preferences: {},

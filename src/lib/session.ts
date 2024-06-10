@@ -13,7 +13,7 @@ import { assert } from "./utils";
 export class AuthError extends Error {}
 
 export const GUEST_TOKEN_COOKIE_KEY = "guest-token";
-export const REFRESH_TOKEN_COOKIEY_KEY = "refresh-token";
+export const REFRESH_TOKEN_COOKEY_KEY = "refresh-token";
 
 export const createRefreshToken = async (sessionId: string, userId: string) => {
   const token = await new SignJWT({})
@@ -127,7 +127,7 @@ export const setRefreshTokenCookieHeader = async (
 ) => {
   const date = new Date();
   date.setFullYear(date.getFullYear() + 20); // Expires 20 years from now
-  const tokenStr = serialize(REFRESH_TOKEN_COOKIEY_KEY, token, {
+  const tokenStr = serialize(REFRESH_TOKEN_COOKEY_KEY, token, {
     path: "/",
     expires: date,
     secure: true,
@@ -173,7 +173,7 @@ export const getGuestTokenFromCookies = async () => {
 
 export const parsedSessionTokenFromCookie = async () => {
   const cookieStore = cookies();
-  const sessionToken = cookieStore.get(REFRESH_TOKEN_COOKIEY_KEY)?.value;
+  const sessionToken = cookieStore.get(REFRESH_TOKEN_COOKEY_KEY)?.value;
 
   if (!sessionToken) {
     return undefined;
@@ -194,7 +194,7 @@ export const parsedSessionTokenFromCookie = async () => {
 
 export const getRefreshTokenFromCookie = () => {
   const cookieStore = cookies();
-  const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKIEY_KEY)?.value;
+  const refreshToken = cookieStore.get(REFRESH_TOKEN_COOKEY_KEY)?.value;
   return refreshToken;
 };
 
