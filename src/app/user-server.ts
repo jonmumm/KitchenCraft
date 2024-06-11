@@ -1,7 +1,7 @@
-import { createMachineServer } from "@/lib/actor-kit";
+import { createMachineServer } from "@/lib/actor-kit/createMachineServer";
 import { AppEventSchema } from "@/schema";
-import { userMachine } from "./user-machine";
+import { createUserMachine } from "./user-machine";
 
-const UserServer = createMachineServer(userMachine, AppEventSchema);
+const UserServer = createMachineServer(createUserMachine, AppEventSchema, true);
 
 export default UserServer;

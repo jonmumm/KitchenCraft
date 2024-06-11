@@ -1,6 +1,4 @@
 import { ActorRefFrom, SnapshotFrom } from "xstate";
-import { sessionMachine as sessionMachine } from "./session-machine";
+import type { SessionMachine } from "./session-machine";
 
-export type SessionSnapshot = SnapshotFrom<
-  ActorRefFrom<typeof sessionMachine>
->;
+export type SessionSnapshot = SnapshotFrom<ActorRefFrom<SessionMachine>>;

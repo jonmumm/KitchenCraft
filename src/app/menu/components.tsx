@@ -6,7 +6,6 @@ import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
-import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditional-renderer";
 import { UserSnapshotConditionalRenderer } from "@/components/util/user-snapshot-conditional-renderer";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import {
@@ -17,66 +16,11 @@ import { ChefHatIcon, GithubIcon, YoutubeIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaDiscord } from "react-icons/fa";
-import {
-  AppInstallContainer,
-  NotificationsSetting,
-  NotificationsSwitch,
-} from "./components.client";
+import { AppInstallContainer } from "./components.client";
 
 export function MainMenu({ className }: { className?: string }) {
   const profileSlug = usePageSessionSelector(selectProfileName);
-
   const email = usePageSessionSelector(selectUserEmail);
-
-  // let stripeCustomerId$: Observable<string | undefined>;
-  // let activeSubscription$: Observable<
-  //   { id: number; managingUserId: string } | undefined
-  // >;
-
-  // if (userId) {
-  //   profileSlug = (await getProfileByUserId(userId))?.profileSlug;
-  //   // stripeCustomerId$ = from(getStripeCustomerId(db, userId)).pipe(
-  //   //   shareReplay(1)
-  //   // );
-  //   activeSubscription$ = from(getActiveSubscriptionForUserId(db, userId)).pipe(
-  //     shareReplay(1)
-  //   );
-  // } else {
-  //   // stripeCustomerId$ = of(undefined);
-  //   activeSubscription$ = of(undefined);
-  // }
-
-  // const usage$ = of(1);
-  // const memberCount$ = activeSubscription$.pipe(
-  //   switchMap((s) => from(getMembersBySubscriptionId(db, s?.id!))),
-  //   map((members) => members.length),
-  //   take(1)
-  // );
-  // const memberCountLimit$ = of(5);
-
-  // const SubscriptionMemberCountCurrent = () => {
-  //   return (
-  //     <AsyncRenderFirstValue
-  //       observable={memberCount$}
-  //       render={(memberCount) => {
-  //         return <>{memberCount}</>;
-  //       }}
-  //       fallback={<Skeleton className="w-4 h-4" />}
-  //     />
-  //   );
-  // };
-
-  // const SubscriptionMemberCountLimit = () => {
-  //   return (
-  //     <AsyncRenderFirstValue
-  //       observable={memberCountLimit$}
-  //       render={(limit) => {
-  //         return <>{limit}</>;
-  //       }}
-  //       fallback={<Skeleton className="w-4 h-4" />}
-  //     />
-  //   );
-  // };
 
   return (
     <>

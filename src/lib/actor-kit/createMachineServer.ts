@@ -1,6 +1,13 @@
 import { json, notFound } from "@/lib/actor-kit/utils/response";
 import { AppEventSchema, RequestInfoSchema, SystemEventSchema } from "@/schema";
-import { AppEvent, Caller, WithCaller, WithCloudFlareProps } from "@/types";
+import {
+  AnyStateMachineWithIdInput,
+  AppEvent,
+  Caller,
+  PartyMap,
+  WithCaller,
+  WithCloudFlareProps,
+} from "@/types";
 import { randomUUID } from "crypto";
 import { compare } from "fast-json-patch";
 import { SignJWT, jwtVerify } from "jose";
@@ -12,15 +19,13 @@ import {
   EventFrom,
   InputFrom,
   SnapshotFrom,
-  StateMachine,
   Subscription,
   createActor,
   waitFor,
 } from "xstate";
 import { z } from "zod";
-import { createAccessToken, parseAccessTokenForCaller } from "../session";
-import { assert } from "../utils";
-import { API_SERVER_URL } from "./constants";
+import { parseAccessTokenForCaller } from "../session";
+import { assert, noop } from "../utils";
 
 type ActorConnectionState = {
   postHogClient: PostHog;
@@ -28,115 +33,22 @@ type ActorConnectionState = {
 
 type ActorConnection = Party.Connection<ActorConnectionState>;
 
-const GuestCallerEventSchema = AppEventSchema;
-const UserCallerEventSchema = AppEventSchema;
-const SystemCallerEventSchema = SystemEventSchema;
-
-type GuestCallerEvent = z.infer<typeof GuestCallerEventSchema>;
-type UserCallerEvent = z.infer<typeof UserCallerEventSchema>;
-type SystemCallerEvent = z.infer<typeof SystemCallerEventSchema>;
-
-type EventMap = {
-  guest: GuestCallerEvent;
-  user: UserCallerEvent;
-  system: SystemCallerEvent;
-};
-
-// export const fromActorKit = <TMachine extends AnyStateMachine>(props: {
-//   type: string;
-//   caller: Caller;
-//   id: string;
-// }) => {
-//   return fromEventObservable(() => {
-//     // const responseSchema = z.object({
-//     //   connectionId: z.string(),
-//     //   token: z.string(),
-//     //   snapshot: z.custom<SnapshotFrom<Actor<TMachine>>>(),
-//     // });
-
-//   });
-// };
-
-export const createActorHTTPClient = <
-  TMachine extends AnyStateMachine,
-  TCallerType extends keyof EventMap,
->(props: {
-  type: "page_session" | "session" | "user";
-  caller: Caller & { type: TCallerType };
-}) => {
-  const get = async (id: string, input: Record<string, string>) => {
-    const token = await createAccessToken({
-      actorId: id,
-      callerId: props.caller.id,
-      callerType: props.caller.type,
-      type: props.type,
-    });
-    const resp = await fetch(
-      `${API_SERVER_URL}/parties/${props.type}/${id}?input=${encodeURIComponent(
-        JSON.stringify(input)
-      )}`,
-      {
-        next: { revalidate: 0 },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const responseSchema = z.object({
-      connectionId: z.string(),
-      token: z.string(),
-      snapshot: z.custom<SnapshotFrom<Actor<TMachine>>>(),
-    });
-
-    return responseSchema.parse(await resp.json());
-  };
-
-  const getSnapshot = async (id: string, input: Record<string, string>) => {
-    return (await get(id, input)).snapshot as SnapshotFrom<Actor<TMachine>>;
-  };
-
-  const send = async (id: string, event: EventMap[TCallerType]) => {
-    const token = await createAccessToken({
-      actorId: id,
-      callerId: props.caller.id,
-      callerType: props.caller.type,
-      type: props.type,
-    });
-    const resp = await fetch(`${API_SERVER_URL}/parties/${props.type}/${id}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(event),
-    });
-
-    return await resp.json();
-  };
-
-  return { get, getSnapshot, send };
-};
-
-type WithIdInput = { id: string };
-type AnyStateMachineWithIdInput = StateMachine<
-  any, // context
-  any, // event
-  any, // children
-  any, // actor
-  any, // action
-  any, // guard
-  any, // delay
-  any, // state value
-  any, // tag
-  WithIdInput, // input, now explicitly requiring an object with an id of type string
-  any // output
->;
+const PERSISTED_SNAPSHOT_KEY = "persistedSnapshot";
 
 export const createMachineServer = <
   TMachine extends AnyStateMachineWithIdInput,
 >(
-  machine: TMachine,
-  eventSchema: z.ZodSchema<Omit<EventFrom<TMachine>, "caller">>
+  createMachine: ({
+    id,
+    storage,
+    parties,
+  }: {
+    id: string;
+    storage: Party.Storage;
+    parties: PartyMap;
+  }) => TMachine,
+  eventSchema: z.ZodSchema<Omit<EventFrom<TMachine>, "caller">>,
+  persisted?: boolean
 ) => {
   class ActorServer implements Party.Server {
     actor: Actor<TMachine> | undefined;
@@ -153,8 +65,24 @@ export const createMachineServer = <
       this.subscrptionsByConnectionId = new Map();
     }
 
-    onStart() {
-      // send actor any events to load things here
+    async onStart() {
+      if (persisted) {
+        const persistentSnapshot = await this.room.storage.get(
+          PERSISTED_SNAPSHOT_KEY
+        );
+
+        if (persistentSnapshot) {
+          const machine = createMachine({
+            id: this.room.id,
+            storage: this.room.storage,
+            parties: this.room.context.parties,
+          });
+          this.actor = createActor(machine, {
+            snapshot: JSON.parse(persistentSnapshot as string),
+          });
+          this.actor.start();
+        }
+      }
     }
 
     async onRequest(request: Party.Request) {
@@ -187,41 +115,23 @@ export const createMachineServer = <
       assert(caller, "expected caller to be set");
 
       if (request.method === "GET") {
-        if (!this.actor) {
-          // console.log(request.cf);
-          const index = request.url.indexOf("?");
-          const search = index !== -1 ? request.url.substring(index + 1) : "";
-          const params = new URLSearchParams(search);
-          const inputJsonString = params.get("input");
-          assert(inputJsonString, "expected input object in query params");
-          const inputJson = JSON.parse(inputJsonString);
+        const index = request.url.indexOf("?");
+        const search = index !== -1 ? request.url.substring(index + 1) : "";
+        const params = new URLSearchParams(search);
+        const inputJsonString = params.get("input");
+        assert(inputJsonString, "expected input object in query params");
+        const inputJson = JSON.parse(inputJsonString);
 
-          const input = {
-            id: this.room.id,
-            storage: this.room.storage,
-            parties: this.room.context.parties,
-            initialCaller: caller,
-            ...inputJson,
-          } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
-          // console.log(input);
-
-          this.actor = createActor(machine, {
-            input,
-          });
-          this.actor.start();
-        }
-
-        // this.room.context.parties["session"]?.get("foo")
-
+        const actor = this.ensureActorRunning({ caller, inputJson });
         this.callersByConnectionId.set(connectionId, caller);
         const token = await createConnectionToken(this.room.id, connectionId);
 
-        await waitFor(this.actor, (state) => {
+        await waitFor(actor, (state) => {
           const anyState = state as SnapshotFrom<AnyStateMachine>;
-          return anyState.matches({ Initialization: "Ready" });
+          return anyState.matches({ Initialization: "Ready" }); // todo update the types to require this state somehow
         });
 
-        const snapshot = this.actor.getPersistedSnapshot();
+        const snapshot = actor.getPersistedSnapshot();
         this.lastSnapshotsByConnectionId.set(connectionId, snapshot);
 
         return json({
@@ -230,11 +140,10 @@ export const createMachineServer = <
           snapshot,
         });
       } else if (request.method === "POST") {
-        console.log(caller);
         if (caller.type === "system") {
           const json = await request.json();
-          const event = SystemCallerEventSchema.parse(json);
-          console.log(json);
+          const event = SystemEventSchema.parse(json);
+
           // Set future events from this connection to
           // come from the userId
           if (event.type === "AUTHENTICATE") {
@@ -278,6 +187,47 @@ export const createMachineServer = <
       return notFound();
     }
 
+    private ensureActorRunning({
+      caller,
+      inputJson,
+    }: {
+      caller: Caller;
+      inputJson?: Record<string, unknown>;
+    }) {
+      if (!this.actor) {
+        const input = {
+          id: this.room.id,
+          initialCaller: caller,
+          ...inputJson,
+        } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
+        const machine = createMachine({
+          id: this.room.id,
+          storage: this.room.storage,
+          parties: this.room.context.parties,
+        });
+        this.actor = createActor(machine, {
+          input,
+        });
+        this.actor.subscribe(() => {
+          if (persisted) {
+            const snapshot = this.actor?.getPersistedSnapshot();
+            // todo buffer of batch these
+
+            if (snapshot) {
+              this.room.storage
+                .put(PERSISTED_SNAPSHOT_KEY, JSON.stringify(snapshot))
+                .then(noop)
+                .catch((error) => {
+                  console.error(error);
+                });
+            }
+          }
+        });
+        this.actor.start();
+      }
+      return this.actor;
+    }
+
     async onConnect(
       connection: ActorConnection,
       context: Party.ConnectionContext
@@ -319,31 +269,8 @@ export const createMachineServer = <
         return;
       }
 
-      let actor = this.actor;
-      // Happens if someone directly connects to the websocket before calling a GET request
-      if (!actor) {
-        const input = {
-          id: this.room.id,
-          storage: this.room.storage,
-          parties: this.room.context.parties,
-          initialCaller: caller,
-          // ...inputJson,
-        } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
-
-        actor = createActor(machine, {
-          input,
-        });
-        actor.start();
-
-        // @ts-expect-error
-        actor.send({
-          type: "INITIALIZE",
-          caller,
-          parties: this.room.context.parties,
-        });
-
-        this.actor = actor;
-      }
+      // todo support for inputJson in websocket initial connections
+      const actor = this.ensureActorRunning({ caller });
 
       let lastSnapshot =
         this.lastSnapshotsByConnectionId.get(connection.id) || {};

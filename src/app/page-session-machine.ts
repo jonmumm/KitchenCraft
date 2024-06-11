@@ -115,8 +115,6 @@ type NewRecipeProductKeywordEvent = {
 
 const InputSchema = z.object({
   id: z.string(),
-  storage: z.custom<Party.Storage>(),
-  parties: z.custom<PartyMap>(),
   url: z.string().url(),
   initialCaller: z.custom<Caller>(),
   sessionAccessToken: z.string(),
@@ -133,14 +131,6 @@ type Recipe = PartialRecipe & {
 };
 
 export type PageSessionContext = {
-  // refs are non-serialize objects that are used within the machine but
-  // are not synced over the network
-  refs: {
-    partyStorage: Party.Storage;
-    parties: PartyMap;
-    sessionSocket: ServerPartySocket | undefined;
-    userSocket: ServerPartySocket | undefined;
-  };
   onboardingInput: {
     mealType?: string | undefined;
   };
@@ -159,7 +149,6 @@ export type PageSessionContext = {
   suggestedChefnames: string[];
   previouslySuggestedListNames: string[];
   suggestedListNames: string[];
-  storage: Party.Storage;
   tokens: string[];
   suggestedRecipes: string[];
   recipes: Record<string, Recipe>;
@@ -210,1699 +199,1284 @@ export type PageSessionEvent =
   | ListenUserEvent
   | ListenSessionEvent;
 
-export const pageSessionMachine = setup({
-  types: {
-    input: {} as Input,
-    context: {} as PageSessionContext,
-    events: {} as PageSessionEvent,
-  },
-  actors: {
-    getAllListsForUserWithRecipeCount,
-    saveRecipeToListName,
-    generateChefNameSuggestions,
-    generateListNameSuggestions,
-    getUserPreferences,
-    initializeSessionSocket,
-    initializeUserSocket,
-    listenSession,
-    listenUser,
-    updateChefName: fromPromise(
-      async ({
-        input,
-      }: {
-        input: {
-          chefname: string;
-          userId: string;
-        };
-      }) => {
-        const client = createClient();
-        await client.connect();
-        const db = drizzle(client);
-        try {
-          return await db
-            .update(ProfileTable)
-            .set({ profileSlug: input.chefname })
-            .where(eq(ProfileTable.userId, input.userId));
-        } finally {
-          await client.end();
-        }
-      }
-    ),
-    getRecipes: fromPromise(
-      async ({ input }: { input: { recipeIds: string[] } }) => {
-        const client = createClient();
-        await client.connect();
-        const db = drizzle(client);
+export const createPageSessionMachine = ({
+  id,
+  storage,
+  parties,
+}: {
+  id: string;
+  storage: Party.Storage;
+  parties: PartyMap;
+}) => {
+  let sessionSocket: ServerPartySocket | undefined;
+  let userSocket: ServerPartySocket | undefined;
 
-        try {
-          const maxVersionSubquery = db
-            .select({
-              recipeId: RecipesTable.id,
-              maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
-            })
-            .from(RecipesTable)
-            .groupBy(RecipesTable.id)
-            .as("maxVersionSubquery"); // Naming the subquery
-
-          const recipes = await db
-            .select()
-            .from(RecipesTable)
-            .innerJoin(
-              maxVersionSubquery,
-              and(
-                eq(RecipesTable.id, maxVersionSubquery.recipeId),
-                eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
-              )
-            )
-            .where(inArray(RecipesTable.id, input.recipeIds));
-
-          return recipes;
-        } finally {
-          await client.end();
+  const pageSessionMachine = setup({
+    types: {
+      input: {} as Input,
+      context: {} as PageSessionContext,
+      events: {} as PageSessionEvent,
+    },
+    actors: {
+      getAllListsForUserWithRecipeCount,
+      saveRecipeToListName,
+      generateChefNameSuggestions,
+      generateListNameSuggestions,
+      getUserPreferences,
+      initializeSessionSocket,
+      initializeUserSocket,
+      listenSession,
+      listenUser,
+      updateChefName: fromPromise(
+        async ({
+          input,
+        }: {
+          input: {
+            chefname: string;
+            userId: string;
+          };
+        }) => {
+          const client = createClient();
+          await client.connect();
+          const db = drizzle(client);
+          try {
+            return await db
+              .update(ProfileTable)
+              .set({ profileSlug: input.chefname })
+              .where(eq(ProfileTable.userId, input.userId));
+          } finally {
+            await client.end();
+          }
         }
-      }
-    ),
-    getChefName: fromPromise(
-      async ({
-        input,
-      }: {
-        input: {
-          userId: string;
-        };
-      }) => {
-        return await getChefNameByUserId(input.userId);
-      }
-    ),
-    checkChefNameAvailability: fromPromise(
-      async ({
-        input,
-      }: {
-        input: {
-          chefname: string;
-        };
-      }) => {
-        const profile = await getProfileBySlug(input.chefname);
-        return !profile;
-      }
-    ),
-    checkIfNewUser: fromPromise(
-      async ({
-        input,
-      }: {
-        input: {
-          email: string;
-        };
-      }) => {
-        const client = createClient();
-        await client.connect();
-        const db = drizzle(client);
-        try {
-          return !(
-            await db
-              .select()
-              .from(UsersTable)
-              .where(eq(UsersTable.email, input.email))
-          )[0];
-        } finally {
-          await client.end();
-        }
-      }
-    ),
-    createNewList: fromPromise(
-      async ({
-        input,
-      }: {
-        input: {
-          listName: string;
-          userId: string;
-          recipeIdsToAdd: string[];
-        };
-      }) => {
-        const client = createClient();
-        await client.connect();
-        const db = drizzle(client);
-        try {
-          return await db.transaction(async (tx) => {
-            const result = await tx
-              .insert(ListTable)
-              .values({
-                name: input.listName,
-                slug: sentenceToSlug(input.listName),
-                createdBy: input.userId,
+      ),
+      getRecipes: fromPromise(
+        async ({ input }: { input: { recipeIds: string[] } }) => {
+          const client = createClient();
+          await client.connect();
+          const db = drizzle(client);
+
+          try {
+            const maxVersionSubquery = db
+              .select({
+                recipeId: RecipesTable.id,
+                maxVersionId: max(RecipesTable.versionId).as("maxVersionId"),
               })
-              .returning({
-                id: ListTable.id,
-                name: ListTable.name,
-                slug: ListTable.slug,
-                createdAt: ListTable.createdAt,
-              });
-            const list = result[0];
-            assert(list, "expected list to be created");
+              .from(RecipesTable)
+              .groupBy(RecipesTable.id)
+              .as("maxVersionSubquery"); // Naming the subquery
 
-            if (input.recipeIdsToAdd.length) {
-              await tx.insert(ListRecipeTable).values(
-                input.recipeIdsToAdd.map((recipeId) => ({
-                  userId: input.userId,
-                  listId: list.id,
-                  recipeId,
-                }))
+            const recipes = await db
+              .select()
+              .from(RecipesTable)
+              .innerJoin(
+                maxVersionSubquery,
+                and(
+                  eq(RecipesTable.id, maxVersionSubquery.recipeId),
+                  eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
+                )
+              )
+              .where(inArray(RecipesTable.id, input.recipeIds));
+
+            return recipes;
+          } finally {
+            await client.end();
+          }
+        }
+      ),
+      getChefName: fromPromise(
+        async ({
+          input,
+        }: {
+          input: {
+            userId: string;
+          };
+        }) => {
+          return await getChefNameByUserId(input.userId);
+        }
+      ),
+      checkChefNameAvailability: fromPromise(
+        async ({
+          input,
+        }: {
+          input: {
+            chefname: string;
+          };
+        }) => {
+          const profile = await getProfileBySlug(input.chefname);
+          return !profile;
+        }
+      ),
+      checkIfNewUser: fromPromise(
+        async ({
+          input,
+        }: {
+          input: {
+            email: string;
+          };
+        }) => {
+          const client = createClient();
+          await client.connect();
+          const db = drizzle(client);
+          try {
+            return !(
+              await db
+                .select()
+                .from(UsersTable)
+                .where(eq(UsersTable.email, input.email))
+            )[0];
+          } finally {
+            await client.end();
+          }
+        }
+      ),
+      createNewList: fromPromise(
+        async ({
+          input,
+        }: {
+          input: {
+            listName: string;
+            userId: string;
+            recipeIdsToAdd: string[];
+          };
+        }) => {
+          const client = createClient();
+          await client.connect();
+          const db = drizzle(client);
+          try {
+            return await db.transaction(async (tx) => {
+              const result = await tx
+                .insert(ListTable)
+                .values({
+                  name: input.listName,
+                  slug: sentenceToSlug(input.listName),
+                  createdBy: input.userId,
+                })
+                .returning({
+                  id: ListTable.id,
+                  name: ListTable.name,
+                  slug: ListTable.slug,
+                  createdAt: ListTable.createdAt,
+                });
+              const list = result[0];
+              assert(list, "expected list to be created");
+
+              if (input.recipeIdsToAdd.length) {
+                await tx.insert(ListRecipeTable).values(
+                  input.recipeIdsToAdd.map((recipeId) => ({
+                    userId: input.userId,
+                    listId: list.id,
+                    recipeId,
+                  }))
+                );
+              }
+
+              return list;
+            });
+          } finally {
+            await client.end();
+          }
+        }
+      ),
+      createNewRecipe: fromPromise(
+        async ({
+          input,
+        }: {
+          input: {
+            recipe: PartialRecipe;
+            prompt: string;
+            tokens: string[];
+            createdBy: string;
+          };
+        }) => {
+          const { recipe } = input;
+
+          assert(recipe.name, "expected name");
+          assert(recipe.description, "expected description");
+          assert(recipe.slug, "expected slug");
+
+          const finalRecipe = {
+            id: recipe.id,
+            slug: recipe.slug,
+            versionId: recipe.versionId,
+            description: recipe.description,
+            name: recipe.name,
+            yield: recipe.yield!,
+            tags: recipe.tags!,
+            ingredients: recipe.ingredients!,
+            instructions: recipe.instructions!,
+            cookTime: recipe.cookTime!,
+            tokens: input.tokens,
+            activeTime: recipe.activeTime!,
+            totalTime: recipe.totalTime!,
+            prompt: input.prompt,
+            createdBy: input.createdBy,
+            createdAt: new Date(),
+          } satisfies NewRecipe;
+
+          const client = createClient();
+          await client.connect();
+          const db = drizzle(client);
+          try {
+            await db.insert(RecipesTable).values(finalRecipe);
+            return recipe.slug;
+          } finally {
+            await client.end();
+          }
+        }
+      ),
+      generatePlaceholders: fromEventObservable(
+        ({ input }: { input: { prompt: string } }) => {
+          const tokenStream = new AutoSuggestPlaceholderStream();
+          return from(tokenStream.getStream(input)).pipe(
+            switchMap((stream) => {
+              return streamToObservable(
+                stream,
+                "PLACEHOLDER",
+                AutoSuggestPlaceholderOutputSchema
               );
-            }
-
-            return list;
-          });
-        } finally {
-          await client.end();
+            })
+          );
         }
-      }
-    ),
-    createNewRecipe: fromPromise(
-      async ({
-        input,
-      }: {
-        input: {
-          recipe: PartialRecipe;
-          prompt: string;
-          tokens: string[];
-          createdBy: string;
-        };
-      }) => {
-        const { recipe } = input;
-
-        assert(recipe.name, "expected name");
-        assert(recipe.description, "expected description");
-        assert(recipe.slug, "expected slug");
-
-        const finalRecipe = {
-          id: recipe.id,
-          slug: recipe.slug,
-          versionId: recipe.versionId,
-          description: recipe.description,
-          name: recipe.name,
-          yield: recipe.yield!,
-          tags: recipe.tags!,
-          ingredients: recipe.ingredients!,
-          instructions: recipe.instructions!,
-          cookTime: recipe.cookTime!,
-          tokens: input.tokens,
-          activeTime: recipe.activeTime!,
-          totalTime: recipe.totalTime!,
-          prompt: input.prompt,
-          createdBy: input.createdBy,
-          createdAt: new Date(),
-        } satisfies NewRecipe;
-
-        const client = createClient();
-        await client.connect();
-        const db = drizzle(client);
-        try {
-          await db.insert(RecipesTable).values(finalRecipe);
-          return recipe.slug;
-        } finally {
-          await client.end();
-        }
-      }
-    ),
-    generatePlaceholders: fromEventObservable(
-      ({ input }: { input: { prompt: string } }) => {
-        const tokenStream = new AutoSuggestPlaceholderStream();
-        return from(tokenStream.getStream(input)).pipe(
-          switchMap((stream) => {
-            return streamToObservable(
-              stream,
-              "PLACEHOLDER",
-              AutoSuggestPlaceholderOutputSchema
-            );
-          })
-        );
-      }
-    ),
-    generateRecipeIdeasMetadata: fromEventObservable(
-      ({
-        input,
-      }: {
-        input: {
-          prompt: string;
-          tokens: string[];
-          instantRecipe: {
+      ),
+      generateRecipeIdeasMetadata: fromEventObservable(
+        ({
+          input,
+        }: {
+          input: {
+            prompt: string;
+            tokens: string[];
+            instantRecipe: {
+              name: string;
+              description: string;
+              ingredients: string[];
+            };
+          };
+        }) => new RecipeIdeasMetadataStream().getObservable(input)
+      ),
+      generateInstantRecipe: fromEventObservable(
+        ({
+          input,
+        }: {
+          input: {
+            prompt: string;
+            tokens: string[];
+            recipeId: string;
+          };
+        }) => new InstantRecipeStream(input.recipeId).getObservable(input)
+      ),
+      generateFullRecipeFromSuggestion: fromEventObservable(
+        ({
+          input,
+        }: {
+          input: {
+            category: string;
+            name: string;
+            tagline: string;
+            id: string;
+          };
+        }) => new FullRecipeFromSuggestionStream(input.id).getObservable(input)
+      ),
+      generateFullRecipe: fromEventObservable(
+        ({
+          input,
+        }: {
+          input: {
+            prompt: string;
+            tokens: string[];
             name: string;
             description: string;
-            ingredients: string[];
+            id: string;
           };
-        };
-      }) => new RecipeIdeasMetadataStream().getObservable(input)
-    ),
-    generateInstantRecipe: fromEventObservable(
-      ({
-        input,
-      }: {
-        input: {
-          prompt: string;
-          tokens: string[];
-          recipeId: string;
-        };
-      }) => new InstantRecipeStream(input.recipeId).getObservable(input)
-    ),
-    generateFullRecipeFromSuggestion: fromEventObservable(
-      ({
-        input,
-      }: {
-        input: {
-          category: string;
-          name: string;
-          tagline: string;
-          id: string;
-        };
-      }) => new FullRecipeFromSuggestionStream(input.id).getObservable(input)
-    ),
-    generateFullRecipe: fromEventObservable(
-      ({
-        input,
-      }: {
-        input: {
-          prompt: string;
-          tokens: string[];
-          name: string;
-          description: string;
-          id: string;
-        };
-      }) => new FullRecipeStream(input.id).getObservable(input)
-    ),
-    generateTokens: fromEventObservable(
-      ({ input }: { input: { prompt: string } }) =>
-        new AutoSuggestTokensStream().getObservable(input)
-    ),
-    // initializeRecipeAds: fromEventObservable(
-    //   ({ input }: { input: { context: ExtractType<AdContext, "recipe"> } }) => {
-    //     const db = drizzle(sql);
-    //     const getRecipes = db
-    //       .select()
-    //       .from(RecipesTable)
-    //       .where(eq(RecipesTable.slug, input.context.slug))
-    //       .execute();
-    //     const lastKeywords = new Set();
+        }) => new FullRecipeStream(input.id).getObservable(input)
+      ),
+      generateTokens: fromEventObservable(
+        ({ input }: { input: { prompt: string } }) =>
+          new AutoSuggestTokensStream().getObservable(input)
+      ),
+      // initializeRecipeAds: fromEventObservable(
+      //   ({ input }: { input: { context: ExtractType<AdContext, "recipe"> } }) => {
+      //     const db = drizzle(sql);
+      //     const getRecipes = db
+      //       .select()
+      //       .from(RecipesTable)
+      //       .where(eq(RecipesTable.slug, input.context.slug))
+      //       .execute();
+      //     const lastKeywords = new Set();
 
-    //     return from(getRecipes).pipe(
-    //       map((recipes) => {
-    //         const recipe = recipes[0];
-    //         assert(recipe, "expected recipe");
-    //         return recipe;
-    //       }),
-    //       switchMap(async (recipe) => {
-    //         const tokenStream = new RecipeProductsTokenStream();
-    //         return await tokenStream.getStream({
-    //           type: input.context.productType,
-    //           recipe,
-    //         });
-    //       }),
-    //       switchMap((stream) => {
-    //         return streamToObservable(
-    //           stream,
-    //           RecipeProductsEventBase,
-    //           RecipeProductsPredictionOutputSchema
-    //         );
-    //       }),
-    //       mergeMap((event) => {
-    //         if (
-    //           event.type === "SUGGEST_RECIPE_PRODUCTS_PROGRESS" &&
-    //           Array.isArray(event.data.queries)
-    //         ) {
-    //           const newKeywords = event.data.queries
-    //             .slice(0, event.data.queries.length - 1)
-    //             .filter((keyword) => !lastKeywords.has(keyword));
-    //           newKeywords.forEach((keyword) => lastKeywords.add(keyword)); // Update state
+      //     return from(getRecipes).pipe(
+      //       map((recipes) => {
+      //         const recipe = recipes[0];
+      //         assert(recipe, "expected recipe");
+      //         return recipe;
+      //       }),
+      //       switchMap(async (recipe) => {
+      //         const tokenStream = new RecipeProductsTokenStream();
+      //         return await tokenStream.getStream({
+      //           type: input.context.productType,
+      //           recipe,
+      //         });
+      //       }),
+      //       switchMap((stream) => {
+      //         return streamToObservable(
+      //           stream,
+      //           RecipeProductsEventBase,
+      //           RecipeProductsPredictionOutputSchema
+      //         );
+      //       }),
+      //       mergeMap((event) => {
+      //         if (
+      //           event.type === "SUGGEST_RECIPE_PRODUCTS_PROGRESS" &&
+      //           Array.isArray(event.data.queries)
+      //         ) {
+      //           const newKeywords = event.data.queries
+      //             .slice(0, event.data.queries.length - 1)
+      //             .filter((keyword) => !lastKeywords.has(keyword));
+      //           newKeywords.forEach((keyword) => lastKeywords.add(keyword)); // Update state
 
-    //           // // Map new keywords to events and emit them immediately
-    //           return newKeywords.map((keyword) => ({
-    //             type: "NEW_RECIPE_PRODUCT_KEYWORD",
-    //             keyword: keyword,
-    //             productType: input.context.productType,
-    //             slug: input.context.slug,
-    //           }));
-    //         } else if (event.type === "SUGGEST_RECIPE_PRODUCTS_COMPLETE") {
-    //           // Handle completion if needed. For now, return an empty array to emit nothing.
-    //           return [];
-    //         }
-    //         // Return an empty array for any other event types to emit nothing.
-    //         return [];
-    //       })
-    //     );
-    //   }
-    // ),
-    updateUserPreferences: fromPromise(
-      async ({
-        input,
-      }: {
-        input: {
-          userId: string;
-          preferences: { type: UserPreferenceType; value: string }[];
-        };
-      }) => {
-        await upsertUserPreferences(input.userId, input.preferences);
-      }
-    ),
-  },
-  guards: {
-    nextNextRecipeInCategoryShouldBeCreated: ({ context, event }) => {
-      assertType(event, "VIEW_RECIPE");
-      const feedItems = context.sessionSnapshot?.context.feedItemsById;
-      if (!feedItems) return false;
-
-      const feedItem = Object.values(feedItems).find(
-        (item) => item.recipes?.find((recipe) => recipe?.id === event.id)
-      );
-      if (!feedItem) return false;
-
-      const recipes = feedItem?.recipes;
-      if (!recipes) return false;
-
-      // Find the index of the current recipe
-      const currentIndex = recipes.findIndex(
-        (recipe) => recipe?.id === event.id
-      );
-      if (currentIndex === -1) return false;
-
-      // Check for the next incomplete recipe
-      for (let i = currentIndex + 1; i < recipes.length; i++) {
-        const recipeId = recipes[i]?.id;
-        if (recipeId && !context.recipes[recipeId]?.fullStarted) {
-          return true;
+      //           // // Map new keywords to events and emit them immediately
+      //           return newKeywords.map((keyword) => ({
+      //             type: "NEW_RECIPE_PRODUCT_KEYWORD",
+      //             keyword: keyword,
+      //             productType: input.context.productType,
+      //             slug: input.context.slug,
+      //           }));
+      //         } else if (event.type === "SUGGEST_RECIPE_PRODUCTS_COMPLETE") {
+      //           // Handle completion if needed. For now, return an empty array to emit nothing.
+      //           return [];
+      //         }
+      //         // Return an empty array for any other event types to emit nothing.
+      //         return [];
+      //       })
+      //     );
+      //   }
+      // ),
+      updateUserPreferences: fromPromise(
+        async ({
+          input,
+        }: {
+          input: {
+            userId: string;
+            preferences: { type: UserPreferenceType; value: string }[];
+          };
+        }) => {
+          await upsertUserPreferences(input.userId, input.preferences);
         }
-      }
+      ),
+    },
+    guards: {
+      nextNextRecipeInCategoryShouldBeCreated: ({ context, event }) => {
+        assertType(event, "VIEW_RECIPE");
+        const feedItems = context.sessionSnapshot?.context.feedItemsById;
+        if (!feedItems) return false;
 
-      // If no next incomplete recipe found, check from the beginning
-      for (let i = 0; i < currentIndex; i++) {
-        const recipeId = recipes[i]?.id;
-        if (recipeId && !context.recipes[recipeId]?.fullStarted) {
-          return true;
+        const feedItem = Object.values(feedItems).find(
+          (item) => item.recipes?.find((recipe) => recipe?.id === event.id)
+        );
+        if (!feedItem) return false;
+
+        const recipes = feedItem?.recipes;
+        if (!recipes) return false;
+
+        // Find the index of the current recipe
+        const currentIndex = recipes.findIndex(
+          (recipe) => recipe?.id === event.id
+        );
+        if (currentIndex === -1) return false;
+
+        // Check for the next incomplete recipe
+        for (let i = currentIndex + 1; i < recipes.length; i++) {
+          const recipeId = recipes[i]?.id;
+          if (recipeId && !context.recipes[recipeId]?.fullStarted) {
+            return true;
+          }
         }
-      }
 
-      return false;
-    },
-    nextRecipeInCategoryShouldBeCreated: ({ context, event }): boolean => {
-      assertType(event, "VIEW_RECIPE");
+        // If no next incomplete recipe found, check from the beginning
+        for (let i = 0; i < currentIndex; i++) {
+          const recipeId = recipes[i]?.id;
+          if (recipeId && !context.recipes[recipeId]?.fullStarted) {
+            return true;
+          }
+        }
 
-      const feedItems = context.sessionSnapshot?.context.feedItemsById;
-      if (!feedItems) return false;
-
-      const feedItem = Object.values(feedItems).find(
-        (item) => item.recipes?.find((recipe) => recipe?.id === event.id)
-      );
-      if (!feedItem) return false;
-
-      const recipes = feedItem?.recipes;
-      if (!recipes) return false;
-
-      // Find the index of the current recipe
-      const currentIndex = recipes.findIndex(
-        (recipe) => recipe?.id === event.id
-      );
-      if (currentIndex === -1) return false;
-
-      const recipeIds = recipes
-        .map((recipe) => recipe?.id!)
-        .filter((recipeId) => !!recipeId);
-      const unstartedRecipes = getSortedUnstartedRecipes(
-        recipeIds,
-        currentIndex,
-        context
-      );
-
-      return unstartedRecipes.length >= 1;
-    },
-    isNewUser: () => {
-      return false;
-    },
-    hasValidChefName: ({ context }) => {
-      return !!context.chefname && context.chefname?.length > 0;
-    },
-    didChangeEmailInput: ({ event }) => {
-      return event.type === "CHANGE" && event.name === "email";
-    },
-    didChangeListNameInput: ({ event }) => {
-      return event.type === "CHANGE" && event.name === "listName";
-    },
-    didChangeChefNameInput: ({ context, event }) => {
-      return event.type === "CHANGE" && event.name === "chefname";
-    },
-    isChefNameNotEmpty: ({ context, event }) => {
-      return (
-        event.type === "CHANGE" &&
-        event.name === "chefname" &&
-        !!event.value.length
-      );
-    },
-    shouldCreateNewAds: ({ context }) => {
-      Object.values(context.adInstances).map((item) => item.product);
-      return false;
-    },
-  },
-  actions: {
-    resetSuggestions: assign({
-      suggestedTags: [],
-      suggestedIngredients: [],
-      suggestedRecipes: [],
-      suggestedText: [],
-      suggestedTokens: [],
-      currentItemIndex: 0,
-      numCompletedRecipeMetadata: 0,
-      numCompletedRecipes: 0,
-    }),
-    incrementRecipeCountForCurrentList: assign({
-      listsBySlug: ({ context }) => {
-        return produce(context.listsBySlug, (draft) => {
-          assert(draft, "expected listsBySlug when saving");
-          assert(
-            context.currentListSlug,
-            "expected currentListSlug when saving"
-          );
-          const list = draft[context.currentListSlug];
-          assert(list, "expected list when saving");
-          list.recipeCount = list.recipeCount + 1;
-        });
+        return false;
       },
-    }),
-    assignRecipeIdToSave: assign({
-      recipeIdToSave: ({ context }) => {
-        const recipeId = context.suggestedRecipes[context.currentItemIndex];
-        assert(recipeId, "expected recipeId");
-        return recipeId;
+      nextRecipeInCategoryShouldBeCreated: ({ context, event }): boolean => {
+        assertType(event, "VIEW_RECIPE");
+
+        const feedItems = context.sessionSnapshot?.context.feedItemsById;
+        if (!feedItems) return false;
+
+        const feedItem = Object.values(feedItems).find(
+          (item) => item.recipes?.find((recipe) => recipe?.id === event.id)
+        );
+        if (!feedItem) return false;
+
+        const recipes = feedItem?.recipes;
+        if (!recipes) return false;
+
+        // Find the index of the current recipe
+        const currentIndex = recipes.findIndex(
+          (recipe) => recipe?.id === event.id
+        );
+        if (currentIndex === -1) return false;
+
+        const recipeIds = recipes
+          .map((recipe) => recipe?.id!)
+          .filter((recipeId) => !!recipeId);
+        const unstartedRecipes = getSortedUnstartedRecipes(
+          recipeIds,
+          currentIndex,
+          context
+        );
+
+        return unstartedRecipes.length >= 1;
       },
-    }),
-    assighChefName: assign(({ context }) => {
-      return context;
-    }),
-    assignListSelection: assign({
-      currentListSlug: ({ event }) => {
-        assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
-        return event.listSlug;
+      isNewUser: () => {
+        return false;
       },
-      listsBySlug: ({ event, context }) =>
-        produce(context.listsBySlug, (draft) => {
+      hasValidChefName: ({ context }) => {
+        return !!context.chefname && context.chefname?.length > 0;
+      },
+      didChangeEmailInput: ({ event }) => {
+        return event.type === "CHANGE" && event.name === "email";
+      },
+      didChangeListNameInput: ({ event }) => {
+        return event.type === "CHANGE" && event.name === "listName";
+      },
+      didChangeChefNameInput: ({ context, event }) => {
+        return event.type === "CHANGE" && event.name === "chefname";
+      },
+      isChefNameNotEmpty: ({ context, event }) => {
+        return (
+          event.type === "CHANGE" &&
+          event.name === "chefname" &&
+          !!event.value.length
+        );
+      },
+      shouldCreateNewAds: ({ context }) => {
+        Object.values(context.adInstances).map((item) => item.product);
+        return false;
+      },
+    },
+    actions: {
+      resetSuggestions: assign({
+        suggestedTags: [],
+        suggestedIngredients: [],
+        suggestedRecipes: [],
+        suggestedText: [],
+        suggestedTokens: [],
+        currentItemIndex: 0,
+        numCompletedRecipeMetadata: 0,
+        numCompletedRecipes: 0,
+      }),
+      incrementRecipeCountForCurrentList: assign({
+        listsBySlug: ({ context }) => {
+          return produce(context.listsBySlug, (draft) => {
+            assert(draft, "expected listsBySlug when saving");
+            assert(
+              context.currentListSlug,
+              "expected currentListSlug when saving"
+            );
+            const list = draft[context.currentListSlug];
+            assert(list, "expected list when saving");
+            list.recipeCount = list.recipeCount + 1;
+          });
+        },
+      }),
+      assignRecipeIdToSave: assign({
+        recipeIdToSave: ({ context }) => {
+          const recipeId = context.suggestedRecipes[context.currentItemIndex];
+          assert(recipeId, "expected recipeId");
+          return recipeId;
+        },
+      }),
+      assighChefName: assign(({ context }) => {
+        return context;
+      }),
+      assignListSelection: assign({
+        currentListSlug: ({ event }) => {
           assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
+          return event.listSlug;
+        },
+        listsBySlug: ({ event, context }) =>
+          produce(context.listsBySlug, (draft) => {
+            assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
 
-          const defaultList = defaultLists[event.listSlug];
-          if (!draft) {
-            draft = {};
-          }
+            const defaultList = defaultLists[event.listSlug];
+            if (!draft) {
+              draft = {};
+            }
 
-          if (defaultList) {
-            draft[event.listSlug] = {
-              ...defaultList,
-              createdAt: new Date().toISOString() as unknown as Date,
-              recipeCount: 1,
-            };
-          }
-        }),
+            if (defaultList) {
+              draft[event.listSlug] = {
+                ...defaultList,
+                createdAt: new Date().toISOString() as unknown as Date,
+                recipeCount: 1,
+              };
+            }
+          }),
+      }),
+    },
+  }).createMachine({
+    id: "UserAppMachine",
+    context: ({ input }) => ({
+      onboardingInput: {},
+      currentListRecipeIndex: 0,
+      pageSessionId: input.id,
+      history: [input.url],
+      uniqueId: input.initialCaller.id,
+      modifiedPreferences: {},
+      userPreferences: {},
+      recipeIdToSave: undefined,
+      prompt: "",
+      initialCaller: input.initialCaller,
+      listName: undefined,
+      isNewUser: undefined,
+      chefname: undefined,
+      suggestedChefnames: [],
+      previousSuggestedChefnames: [],
+      suggestedListNames: [],
+      previouslySuggestedListNames: [],
+      email: undefined,
+      currentItemIndex: 0,
+      currentListSlug: undefined,
+      currentListId: undefined,
+      numCompletedRecipes: 0,
+      numCompletedRecipeMetadata: 0,
+      tokens: [],
+      recipes: {},
+      suggestedRecipes: [],
+      generatingRecipeId: undefined,
+      suggestedTags: [],
+      suggestedText: [],
+      sessionSnapshot: undefined,
+      userSnapshot: undefined,
+      suggestedIngredients: [],
+      suggestedTokens: [],
+      placeholders: defaultPlaceholders,
+      adInstances: {},
+      viewedAdInstanceIds: [],
+      clickedAdInstanceIds: [],
+      productIdViewCounts: {},
+      undoOperations: [],
+      redoOperations: [],
+      listsBySlug: undefined,
+      sessionAccessToken: input.sessionAccessToken,
+      userAccessToken: input.userAccessToken,
     }),
-  },
-}).createMachine({
-  id: "UserAppMachine",
-  context: ({ input }) => ({
-    refs: {
-      parties: input.parties,
-      partyStorage: input.storage,
-      sessionSocket: undefined,
-      userSocket: undefined,
-    },
-    onboardingInput: {},
-    currentListRecipeIndex: 0,
-    pageSessionId: input.id,
-    history: [input.url],
-    uniqueId: input.initialCaller.id,
-    modifiedPreferences: {},
-    userPreferences: {},
-    recipeIdToSave: undefined,
-    prompt: "",
-    initialCaller: input.initialCaller,
-    listName: undefined,
-    isNewUser: undefined,
-    chefname: undefined,
-    suggestedChefnames: [],
-    previousSuggestedChefnames: [],
-    suggestedListNames: [],
-    previouslySuggestedListNames: [],
-    email: undefined,
-    storage: input.storage,
-    currentItemIndex: 0,
-    currentListSlug: undefined,
-    currentListId: undefined,
-    numCompletedRecipes: 0,
-    numCompletedRecipeMetadata: 0,
-    tokens: [],
-    recipes: {},
-    suggestedRecipes: [],
-    generatingRecipeId: undefined,
-    suggestedTags: [],
-    suggestedText: [],
-    sessionSnapshot: undefined,
-    userSnapshot: undefined,
-    suggestedIngredients: [],
-    suggestedTokens: [],
-    placeholders: defaultPlaceholders,
-    adInstances: {},
-    viewedAdInstanceIds: [],
-    clickedAdInstanceIds: [],
-    productIdViewCounts: {},
-    undoOperations: [],
-    redoOperations: [],
-    listsBySlug: undefined,
-    sessionAccessToken: input.sessionAccessToken,
-    userAccessToken: input.userAccessToken,
-  }),
-  type: "parallel",
-  states: {
-    Initialization: {
-      initial: "Loading",
-      states: {
-        Loading: {
-          on: {
-            SESSION_UPDATE: "Ready",
-          },
-        },
-        Ready: {
-          type: "final",
-        },
-      },
-    },
-    Session: {
-      initial: "Uninitialized",
-      states: {
-        Uninitialized: {
-          always: "Initializing",
-        },
-        Initializing: {
-          invoke: {
-            src: "initializeSessionSocket",
-            input: ({ context }) => {
-              return {
-                sessionAccessToken: context.sessionAccessToken,
-                parties: context.refs.parties,
-                caller: context.initialCaller,
-              };
-            },
-            onDone: {
-              target: "Running",
-              actions: assign({
-                refs: ({ context, event }) =>
-                  produce(context.refs, (draft) => {
-                    draft.sessionSocket = event.output;
-                  }),
-              }),
+    type: "parallel",
+    states: {
+      Initialization: {
+        initial: "Loading",
+        states: {
+          Loading: {
+            always: {
+              description:
+                "Wait until both the sessionSnapshot and userSnapshot are loaded",
+              target: "Ready",
+              guard: ({ context }) =>
+                !!context.userSnapshot && !!context.sessionSnapshot,
             },
           },
-        },
-        Running: {
-          always: {
-            actions: ({ context, event }) => {
-              if ("caller" in event) {
-                // todo need to limit this to only my caller or something?
-                context.refs.sessionSocket?.send(JSON.stringify(event));
-              }
-            },
-          },
-          on: {
-            SESSION_UPDATE: {
-              actions: assign({
-                sessionSnapshot: ({ event }) => event.snapshot,
-              }),
-            },
-          },
-          invoke: {
-            src: "listenSession",
-            input: ({ context }) => {
-              assert(
-                context.refs.sessionSocket,
-                "expected sessionSocket to be initialized"
-              );
-              return {
-                socket: context.refs.sessionSocket,
-              };
-            },
+          Ready: {
+            type: "final",
           },
         },
       },
-    },
-    User: {
-      initial: "Uninitialized",
-      states: {
-        Uninitialized: {
-          always: "Initializing",
-        },
-        Initializing: {
-          invoke: {
-            src: "initializeUserSocket",
-            input: ({ context }) => {
-              return {
-                userAccessToken: context.userAccessToken,
-                parties: context.refs.parties,
-                caller: context.initialCaller,
-              };
-            },
-            onDone: {
-              target: "Running",
-              actions: assign({
-                refs: ({ context, event }) =>
-                  produce(context.refs, (draft) => {
-                    draft.userSocket = event.output;
-                  }),
-              }),
-            },
+      Session: {
+        initial: "Uninitialized",
+        states: {
+          Uninitialized: {
+            always: "Initializing",
           },
-        },
-        Running: {
-          always: {
-            actions: ({ context, event }) => {
-              if ("caller" in event) {
-                // todo need to limit this to only my caller or something?
-                context.refs.userSocket?.send(JSON.stringify(event));
-              }
-            },
-          },
-          on: {
-            USER_UPDATE: {
-              actions: assign({
-                userSnapshot: ({ event }) => event.snapshot,
-              }),
-            },
-          },
-          invoke: {
-            src: "listenUser",
-            input: ({ context }) => {
-              assert(
-                context.refs.userSocket,
-                "expected userSocket to be initialized"
-              );
-              return {
-                socket: context.refs.userSocket,
-              };
-            },
-          },
-        },
-      },
-    },
-
-    UserPreferences: {
-      initial: "Uninitialized",
-      on: {
-        UPDATE_USER_PREFERENCE: {
-          target: ".Holding",
-          actions: assign(({ event, context }) =>
-            produce(context, (draft) => {
-              // Utilize the key from the event to decide which preference to update
-              switch (event.key) {
-                case "dietaryRestrictions":
-                  draft.userPreferences.dietaryRestrictions = event.value[0];
-                  draft.modifiedPreferences.dietaryRestrictions = true;
-                  break;
-                case "cuisinePreferences":
-                  draft.userPreferences.cuisinePreferences = event.value[0];
-                  draft.modifiedPreferences.cuisinePreferences = true;
-                  break;
-                case "cookingFrequency":
-                  draft.userPreferences.cookingFrequency = event.value[0];
-                  draft.modifiedPreferences.cookingFrequency = true;
-                  break;
-                case "cookingEquipment":
-                  draft.userPreferences.cookingEquipment = event.value[0];
-                  draft.modifiedPreferences.cookingEquipment = true;
-                  break;
-                case "ingredientPreference":
-                  draft.userPreferences.ingredientPreference = event.value[0];
-                  draft.modifiedPreferences.ingredientPreference = true;
-                  break;
-                case "timeAvailability":
-                  draft.userPreferences.timeAvailability = event.value[0];
-                  draft.modifiedPreferences.timeAvailability = true;
-                  break;
-                case "skillLevel":
-                  draft.userPreferences.skillLevel = event.value[0];
-                  draft.modifiedPreferences.skillLevel = true;
-                  break;
-                default:
-                  throw new Error(`Unhandled preference key: ${event.key}`);
-              }
-            })
-          ),
-        },
-      },
-      states: {
-        Uninitialized: {
-          on: {
-            CONNECT: [
-              {
-                target: "Initializing",
-                guard: ({ event }) => event.caller.type === "user",
+          Initializing: {
+            invoke: {
+              src: "initializeSessionSocket",
+              input: ({ context }) => {
+                return {
+                  sessionAccessToken: context.sessionAccessToken,
+                  parties: parties,
+                  caller: context.initialCaller,
+                };
               },
-              {
+              onDone: {
+                target: "Running",
+                actions: ({ event }) => {
+                  sessionSocket = event.output;
+                },
+              },
+            },
+          },
+          Running: {
+            always: {
+              actions: ({ context, event }) => {
+                if ("caller" in event) {
+                  // todo need to limit this to only my caller or something?
+                  sessionSocket?.send(JSON.stringify(event));
+                }
+              },
+            },
+            on: {
+              SESSION_UPDATE: {
+                actions: assign({
+                  sessionSnapshot: ({ event }) => event.snapshot,
+                }),
+              },
+            },
+            invoke: {
+              src: "listenSession",
+              input: () => {
+                assert(
+                  sessionSocket,
+                  "expected sessionSocket to be initialized"
+                );
+                return {
+                  socket: sessionSocket,
+                };
+              },
+            },
+          },
+        },
+      },
+      User: {
+        initial: "Uninitialized",
+        states: {
+          Uninitialized: {
+            always: "Initializing",
+          },
+          Initializing: {
+            invoke: {
+              src: "initializeUserSocket",
+              input: ({ context }) => {
+                return {
+                  userAccessToken: context.userAccessToken,
+                  parties,
+                  caller: context.initialCaller,
+                };
+              },
+              onDone: {
+                target: "Running",
+                actions: ({ event }) => {
+                  userSocket = event.output;
+                },
+              },
+            },
+          },
+          Running: {
+            always: {
+              actions: ({ context, event }) => {
+                if ("caller" in event) {
+                  // todo need to limit this to only my caller or something?
+                  userSocket?.send(JSON.stringify(event));
+                }
+              },
+            },
+            on: {
+              USER_UPDATE: {
+                actions: assign({
+                  userSnapshot: ({ event }) => event.snapshot,
+                }),
+              },
+            },
+            invoke: {
+              src: "listenUser",
+              input: ({ context }) => {
+                assert(userSocket, "expected userSocket to be initialized");
+                return {
+                  socket: userSocket,
+                };
+              },
+            },
+          },
+        },
+      },
+
+      UserPreferences: {
+        initial: "Uninitialized",
+        on: {
+          UPDATE_USER_PREFERENCE: {
+            target: ".Holding",
+            actions: assign(({ event, context }) =>
+              produce(context, (draft) => {
+                // Utilize the key from the event to decide which preference to update
+                switch (event.key) {
+                  case "dietaryRestrictions":
+                    draft.userPreferences.dietaryRestrictions = event.value[0];
+                    draft.modifiedPreferences.dietaryRestrictions = true;
+                    break;
+                  case "cuisinePreferences":
+                    draft.userPreferences.cuisinePreferences = event.value[0];
+                    draft.modifiedPreferences.cuisinePreferences = true;
+                    break;
+                  case "cookingFrequency":
+                    draft.userPreferences.cookingFrequency = event.value[0];
+                    draft.modifiedPreferences.cookingFrequency = true;
+                    break;
+                  case "cookingEquipment":
+                    draft.userPreferences.cookingEquipment = event.value[0];
+                    draft.modifiedPreferences.cookingEquipment = true;
+                    break;
+                  case "ingredientPreference":
+                    draft.userPreferences.ingredientPreference = event.value[0];
+                    draft.modifiedPreferences.ingredientPreference = true;
+                    break;
+                  case "timeAvailability":
+                    draft.userPreferences.timeAvailability = event.value[0];
+                    draft.modifiedPreferences.timeAvailability = true;
+                    break;
+                  case "skillLevel":
+                    draft.userPreferences.skillLevel = event.value[0];
+                    draft.modifiedPreferences.skillLevel = true;
+                    break;
+                  default:
+                    throw new Error(`Unhandled preference key: ${event.key}`);
+                }
+              })
+            ),
+          },
+        },
+        states: {
+          Uninitialized: {
+            on: {
+              CONNECT: [
+                {
+                  target: "Initializing",
+                  guard: ({ event }) => event.caller.type === "user",
+                },
+                {
+                  target: "Idle",
+                },
+              ],
+            },
+          },
+          Initializing: {
+            invoke: {
+              src: "getUserPreferences",
+              input: ({ event }) => {
+                assert("caller" in event, "expected event to have caller");
+                return { userId: event.caller.id };
+              },
+              onDone: {
                 target: "Idle",
+                actions: assign(({ context, event }) =>
+                  produce(context, (draft) => {
+                    event.output.forEach(
+                      ({ preferenceKey, preferenceValue }) => {
+                        if (preferenceValue) {
+                          draft.userPreferences[preferenceKey] =
+                            preferenceValue[0];
+                        }
+                      }
+                    );
+                  })
+                ),
               },
-            ],
-          },
-        },
-        Initializing: {
-          invoke: {
-            src: "getUserPreferences",
-            input: ({ event }) => {
-              assert("caller" in event, "expected event to have caller");
-              return { userId: event.caller.id };
             },
-            onDone: {
-              target: "Idle",
-              actions: assign(({ context, event }) =>
-                produce(context, (draft) => {
-                  event.output.forEach(({ preferenceKey, preferenceValue }) => {
-                    if (preferenceValue) {
-                      draft.userPreferences[preferenceKey] = preferenceValue[0];
-                    }
+          },
+          Idle: {},
+          Holding: {
+            after: {
+              5000: "Saving",
+            },
+          },
+          Saving: {
+            invoke: {
+              src: "updateUserPreferences",
+              input: ({ context }) => {
+                const preferenceTypes = Object.keys(
+                  context.modifiedPreferences
+                ) as (keyof typeof context.modifiedPreferences)[];
+                const preferences = preferenceTypes
+                  .map((type) => {
+                    return {
+                      type,
+                      value: context.userPreferences[type]!,
+                    };
+                  })
+                  .filter((pref) => {
+                    return !!pref.value;
                   });
-                })
-              ),
-            },
-          },
-        },
-        Idle: {},
-        Holding: {
-          after: {
-            5000: "Saving",
-          },
-        },
-        Saving: {
-          invoke: {
-            src: "updateUserPreferences",
-            input: ({ context }) => {
-              const preferenceTypes = Object.keys(
-                context.modifiedPreferences
-              ) as (keyof typeof context.modifiedPreferences)[];
-              const preferences = preferenceTypes
-                .map((type) => {
-                  return {
-                    type,
-                    value: context.userPreferences[type]!,
-                  };
-                })
-                .filter((pref) => {
-                  return !!pref.value;
-                });
 
-              return {
-                preferences,
-                userId: context.uniqueId,
-              };
-            },
-            onDone: {
-              target: "Idle",
-              actions: assign(({ context }) =>
-                produce(context, (draft) => {
-                  // todo possible we lose a save here, need to rethink this logic
-                  // if a modify comes in whiel were saving, we might wipe it otu
-                  draft.modifiedPreferences = {};
-                })
-              ),
+                return {
+                  preferences,
+                  userId: context.uniqueId,
+                };
+              },
+              onDone: {
+                target: "Idle",
+                actions: assign(({ context }) =>
+                  produce(context, (draft) => {
+                    // todo possible we lose a save here, need to rethink this logic
+                    // if a modify comes in whiel were saving, we might wipe it otu
+                    draft.modifiedPreferences = {};
+                  })
+                ),
+              },
             },
           },
         },
       },
-    },
 
-    Craft: {
-      type: "parallel",
-      states: {
-        Input: {
-          on: {
-            PREV: {
-              actions: assign(({ context }) => {
-                return produce(context, (draft) => {
-                  assert(
-                    context.currentItemIndex > 0,
-                    "expected non 0 currentItemIndex"
-                  );
-                  draft.currentItemIndex = draft.currentItemIndex - 1;
-                });
-              }),
-            },
-            SCROLL_INDEX: {
-              actions: assign({
-                currentItemIndex: ({ event }) => event.index,
-              }),
-            },
-            NEXT: {
-              actions: assign({
-                currentItemIndex: ({ context }) => context.currentItemIndex + 1,
-                // undoOperations: ({ context, event }) => [
-                //   ...context.undoOperations,
-                //   compare(
-                //     {
-                //       prompt: context.prompt,
-                //       tokens: context.tokens,
-                //       currentItemIndex: context.currentItemIndex + 1,
-                //     },
-                //     {
-                //       prompt: context.prompt,
-                //       tokens: context.tokens,
-                //       currentItemIndex: context.currentItemIndex,
-                //     }
-                //   ),
-                // ],
-              }),
-            },
-            CLEAR: [
-              {
-                guard: ({ event }) => !!event.all,
-                actions: [
-                  "resetSuggestions",
-                  assign({
-                    prompt: "",
-                    tokens: [],
-                    undoOperations: ({ context, event }) => [
-                      ...context.undoOperations,
-                      compare(
-                        {
-                          prompt: "",
-                          tokens: [],
-                          currentItemIndex: context.currentItemIndex,
-                        },
-                        {
-                          prompt: context.prompt,
-                          tokens: context.tokens,
-                          currentItemIndex: context.currentItemIndex,
-                        }
-                      ),
-                    ],
-                  }),
-                ],
-              },
-              {
-                actions: [
-                  "resetSuggestions",
-                  assign({
-                    prompt: "",
-                    undoOperations: ({ context, event }) => [
-                      ...context.undoOperations,
-                      compare(
-                        {
-                          prompt: "",
-                          tokens: context.tokens,
-                          currentItemIndex: context.currentItemIndex,
-                        },
-                        {
-                          prompt: context.prompt,
-                          tokens: context.tokens,
-                          currentItemIndex: context.currentItemIndex,
-                        }
-                      ),
-                    ],
-                  }),
-                ],
-              },
-            ],
-            NEW_RECIPE: {
-              guard: ({ event }) => !!event.prompt,
-              actions: [
-                "resetSuggestions",
-                assign({
-                  prompt: ({ event }) => event.prompt || "",
+      Craft: {
+        type: "parallel",
+        states: {
+          Input: {
+            on: {
+              PREV: {
+                actions: assign(({ context }) => {
+                  return produce(context, (draft) => {
+                    assert(
+                      context.currentItemIndex > 0,
+                      "expected non 0 currentItemIndex"
+                    );
+                    draft.currentItemIndex = draft.currentItemIndex - 1;
+                  });
                 }),
-              ],
-            },
-            REMOVE_TOKEN: {
-              actions: [
-                "resetSuggestions",
-                assign({
-                  tokens: ({ context, event }) =>
-                    context.tokens.filter((token) => token !== event.token),
-                  undoOperations: ({ context, event }) => [
-                    ...context.undoOperations,
-                    compare(
-                      {
-                        prompt: context.prompt,
-                        tokens: context.tokens.filter(
-                          (token) => token !== event.token
+              },
+              SCROLL_INDEX: {
+                actions: assign({
+                  currentItemIndex: ({ event }) => event.index,
+                }),
+              },
+              NEXT: {
+                actions: assign({
+                  currentItemIndex: ({ context }) =>
+                    context.currentItemIndex + 1,
+                  // undoOperations: ({ context, event }) => [
+                  //   ...context.undoOperations,
+                  //   compare(
+                  //     {
+                  //       prompt: context.prompt,
+                  //       tokens: context.tokens,
+                  //       currentItemIndex: context.currentItemIndex + 1,
+                  //     },
+                  //     {
+                  //       prompt: context.prompt,
+                  //       tokens: context.tokens,
+                  //       currentItemIndex: context.currentItemIndex,
+                  //     }
+                  //   ),
+                  // ],
+                }),
+              },
+              CLEAR: [
+                {
+                  guard: ({ event }) => !!event.all,
+                  actions: [
+                    "resetSuggestions",
+                    assign({
+                      prompt: "",
+                      tokens: [],
+                      undoOperations: ({ context, event }) => [
+                        ...context.undoOperations,
+                        compare(
+                          {
+                            prompt: "",
+                            tokens: [],
+                            currentItemIndex: context.currentItemIndex,
+                          },
+                          {
+                            prompt: context.prompt,
+                            tokens: context.tokens,
+                            currentItemIndex: context.currentItemIndex,
+                          }
                         ),
-                        currentItemIndex: context.currentItemIndex,
-                      },
-                      {
-                        prompt: context.prompt,
-                        tokens: context.tokens,
-                        currentItemIndex: context.currentItemIndex,
-                      }
-                    ),
-                  ],
-                }),
-              ],
-            },
-            ADD_TOKEN: {
-              actions: [
-                assign({
-                  prompt: ({ context, event }) => {
-                    const currentValue = context.prompt;
-
-                    let nextValue;
-                    if (currentValue.length) {
-                      nextValue = currentValue + `, ${event.token}`;
-                    } else {
-                      nextValue = event.token;
-                    }
-                    return nextValue;
-                  },
-                }),
-              ],
-            },
-            SET_INPUT: {
-              actions: [
-                "resetSuggestions",
-                assign({
-                  prompt: ({ event }) => event.value,
-                }),
-              ],
-            },
-          },
-        },
-
-        Adding: {
-          on: {
-            // CHANGE_LIST: {
-            //   target: ".True",
-            //   actions: assign({
-            //     currentListSlug: () => undefined,
-            //   }),
-            // },
-            // SAVE: [
-            //   {
-            //     guard: ({ event, context }) =>
-            //       event.caller.type === "user" && !!context.currentListSlug,
-            //     actions: [
-            //       spawnChild("saveRecipeToListName", {
-            //         input: ({ context, event }) => {
-            //           assert("caller" in event, "expected caller");
-            //           assert(
-            //             event.caller.type === "user",
-            //             "expected caller to be user"
-            //           );
-            //           const userId = event.caller.id;
-            //           const recipeId =
-            //             context.suggestedRecipes[context.currentItemIndex];
-            //           assert(recipeId, "expected recipeId");
-            //           assert(
-            //             context.currentListSlug,
-            //             "expected currentListSlug"
-            //           );
-            //           // const list = context.listsBySlug?[context.currentListSlug];
-            //           assert(
-            //             context.listsBySlug,
-            //             "expected listsBySlug to be loaded"
-            //           );
-            //           const currentList =
-            //             context.listsBySlug[context.currentListSlug];
-            //           assert(currentList, "expected currentList");
-            //           return {
-            //             recipeId,
-            //             userId,
-            //             listName: currentList.name,
-            //           };
-            //         },
-            //       }),
-            //       "incrementRecipeCountForCurrentList",
-            //     ],
-            //   },
-            //   {
-            //     actions: ["assignRecipeIdToSave"],
-            //     guard: ({ context }) => {
-            //       return !context.currentListSlug;
-            //     },
-            //     target: ".True",
-            //   },
-            //   {
-            //     actions: ["assignRecipeIdToSave"],
-            //   },
-            // ],
-          },
-          initial: "False",
-          states: {
-            False: {},
-            True: {
-              type: "parallel",
-              on: {
-                // SELECT_LIST: [
-                //   {
-                //     target: "False",
-                //     guard: ({ event }) => event.caller.type === "user",
-                //     actions: [
-                //       "assignListSelection",
-                //       spawnChild("saveRecipeToListName", {
-                //         input: ({ context, event }) => {
-                //           assert("caller" in event, "expected caller");
-                //           assert(
-                //             event.caller.type === "user",
-                //             "expected caller to be user"
-                //           );
-                //           const userId = event.caller.id;
-
-                //           const recipeId =
-                //             context.suggestedRecipes[context.currentItemIndex];
-                //           assert(recipeId, "expected recipeId");
-                //           assert(
-                //             context.currentListSlug,
-                //             "expected currentListSlug"
-                //           );
-
-                //           // const list = context.listsBySlug?[context.currentListSlug];
-                //           assert(
-                //             context.listsBySlug,
-                //             "expected listsBySlug to be loaded"
-                //           );
-                //           const currentList =
-                //             context.listsBySlug[context.currentListSlug];
-                //           assert(currentList, "expected currentList");
-
-                //           return {
-                //             recipeId,
-                //             userId,
-                //             listName: currentList.name,
-                //           };
-                //         },
-                //       }),
-                //     ],
-                //   },
-                //   {
-                //     target: "False",
-                //     actions: "assignListSelection",
-                //   },
-                // ],
-                CANCEL: "False",
-              },
-              states: {
-                Lists: {
-                  initial: "Initializing",
-                  states: {
-                    Initializing: {
-                      always: [
-                        {
-                          target: "Fetching",
-                          guard: ({ context }) => !context.listsBySlug,
-                        },
-                        {
-                          target: "Complete",
-                        },
                       ],
-                    },
-                    Fetching: {
-                      invoke: {
-                        src: "getAllListsForUserWithRecipeCount",
-                        input: ({ event }) => {
-                          assert("caller" in event, "expected caller in event");
-                          return { userId: event.caller.id };
-                        },
-                        onDone: {
-                          target: "Complete",
-                          actions: assign(({ context, event }) => {
-                            return produce(context, (draft) => {
-                              if (event.output.success) {
-                                draft.listsBySlug = {};
-                                event.output.result?.forEach((item) => {
-                                  draft.listsBySlug![item.slug] = item;
-                                });
-                              }
-                            });
-                          }),
-                        },
-                      },
-                    },
-                    Complete: {
-                      type: "final",
-                    },
-                  },
+                    }),
+                  ],
                 },
-              },
-            },
-          },
-        },
-
-        Generators: {
-          type: "parallel",
-          on: {
-            CLEAR: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle"],
-            NEW_RECIPE: {
-              target: [
-                ".Placeholder.Generating",
-                ".Tokens.Generating",
-                ".Recipes.Generating",
+                {
+                  actions: [
+                    "resetSuggestions",
+                    assign({
+                      prompt: "",
+                      undoOperations: ({ context, event }) => [
+                        ...context.undoOperations,
+                        compare(
+                          {
+                            prompt: "",
+                            tokens: context.tokens,
+                            currentItemIndex: context.currentItemIndex,
+                          },
+                          {
+                            prompt: context.prompt,
+                            tokens: context.tokens,
+                            currentItemIndex: context.currentItemIndex,
+                          }
+                        ),
+                      ],
+                    }),
+                  ],
+                },
               ],
-              actions: ["resetSuggestions"],
-              guard: ({ event }) =>
-                !!event.prompt?.length || !!event.tokens?.length,
-            },
-            ADD_TOKEN: {
-              target: [
-                ".Placeholder.Generating",
-                ".Tokens.Generating",
-                ".Recipes.Generating",
-              ],
-              actions: ["resetSuggestions"],
-            },
-            SET_INPUT: [
-              {
-                target: [
-                  ".Placeholder.Holding",
-                  ".Tokens.Holding",
-                  ".Recipes.Holding",
+              NEW_RECIPE: {
+                guard: ({ event }) => !!event.prompt,
+                actions: [
+                  "resetSuggestions",
+                  assign({
+                    prompt: ({ event }) => event.prompt || "",
+                  }),
                 ],
-                guard: ({ event }) => !!event.value?.length,
               },
-              {
-                target: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle"],
+              REMOVE_TOKEN: {
+                actions: [
+                  "resetSuggestions",
+                  assign({
+                    tokens: ({ context, event }) =>
+                      context.tokens.filter((token) => token !== event.token),
+                    undoOperations: ({ context, event }) => [
+                      ...context.undoOperations,
+                      compare(
+                        {
+                          prompt: context.prompt,
+                          tokens: context.tokens.filter(
+                            (token) => token !== event.token
+                          ),
+                          currentItemIndex: context.currentItemIndex,
+                        },
+                        {
+                          prompt: context.prompt,
+                          tokens: context.tokens,
+                          currentItemIndex: context.currentItemIndex,
+                        }
+                      ),
+                    ],
+                  }),
+                ],
               },
-            ],
+              ADD_TOKEN: {
+                actions: [
+                  assign({
+                    prompt: ({ context, event }) => {
+                      const currentValue = context.prompt;
+
+                      let nextValue;
+                      if (currentValue.length) {
+                        nextValue = currentValue + `, ${event.token}`;
+                      } else {
+                        nextValue = event.token;
+                      }
+                      return nextValue;
+                    },
+                  }),
+                ],
+              },
+              SET_INPUT: {
+                actions: [
+                  "resetSuggestions",
+                  assign({
+                    prompt: ({ event }) => event.value,
+                  }),
+                ],
+              },
+            },
           },
-          states: {
-            Placeholder: {
-              initial: "Idle",
-              states: {
-                Idle: {},
-                Holding: {
-                  after: {
-                    600: {
-                      target: "Generating",
-                      guard: ({ context }) => !!context.prompt?.length,
-                    },
-                  },
+
+          Adding: {
+            on: {
+              // CHANGE_LIST: {
+              //   target: ".True",
+              //   actions: assign({
+              //     currentListSlug: () => undefined,
+              //   }),
+              // },
+              // SAVE: [
+              //   {
+              //     guard: ({ event, context }) =>
+              //       event.caller.type === "user" && !!context.currentListSlug,
+              //     actions: [
+              //       spawnChild("saveRecipeToListName", {
+              //         input: ({ context, event }) => {
+              //           assert("caller" in event, "expected caller");
+              //           assert(
+              //             event.caller.type === "user",
+              //             "expected caller to be user"
+              //           );
+              //           const userId = event.caller.id;
+              //           const recipeId =
+              //             context.suggestedRecipes[context.currentItemIndex];
+              //           assert(recipeId, "expected recipeId");
+              //           assert(
+              //             context.currentListSlug,
+              //             "expected currentListSlug"
+              //           );
+              //           // const list = context.listsBySlug?[context.currentListSlug];
+              //           assert(
+              //             context.listsBySlug,
+              //             "expected listsBySlug to be loaded"
+              //           );
+              //           const currentList =
+              //             context.listsBySlug[context.currentListSlug];
+              //           assert(currentList, "expected currentList");
+              //           return {
+              //             recipeId,
+              //             userId,
+              //             listName: currentList.name,
+              //           };
+              //         },
+              //       }),
+              //       "incrementRecipeCountForCurrentList",
+              //     ],
+              //   },
+              //   {
+              //     actions: ["assignRecipeIdToSave"],
+              //     guard: ({ context }) => {
+              //       return !context.currentListSlug;
+              //     },
+              //     target: ".True",
+              //   },
+              //   {
+              //     actions: ["assignRecipeIdToSave"],
+              //   },
+              // ],
+            },
+            initial: "False",
+            states: {
+              False: {},
+              True: {
+                type: "parallel",
+                on: {
+                  // SELECT_LIST: [
+                  //   {
+                  //     target: "False",
+                  //     guard: ({ event }) => event.caller.type === "user",
+                  //     actions: [
+                  //       "assignListSelection",
+                  //       spawnChild("saveRecipeToListName", {
+                  //         input: ({ context, event }) => {
+                  //           assert("caller" in event, "expected caller");
+                  //           assert(
+                  //             event.caller.type === "user",
+                  //             "expected caller to be user"
+                  //           );
+                  //           const userId = event.caller.id;
+
+                  //           const recipeId =
+                  //             context.suggestedRecipes[context.currentItemIndex];
+                  //           assert(recipeId, "expected recipeId");
+                  //           assert(
+                  //             context.currentListSlug,
+                  //             "expected currentListSlug"
+                  //           );
+
+                  //           // const list = context.listsBySlug?[context.currentListSlug];
+                  //           assert(
+                  //             context.listsBySlug,
+                  //             "expected listsBySlug to be loaded"
+                  //           );
+                  //           const currentList =
+                  //             context.listsBySlug[context.currentListSlug];
+                  //           assert(currentList, "expected currentList");
+
+                  //           return {
+                  //             recipeId,
+                  //             userId,
+                  //             listName: currentList.name,
+                  //           };
+                  //         },
+                  //       }),
+                  //     ],
+                  //   },
+                  //   {
+                  //     target: "False",
+                  //     actions: "assignListSelection",
+                  //   },
+                  // ],
+                  CANCEL: "False",
                 },
-                Generating: {
-                  on: {
-                    // TAG_START: {
-                    //   actions: assign({
-                    //     suggestedTagsResultId: ({ event }) => event.resultId,
-                    //   }),
-                    // },
-                    PLACEHOLDER_PROGRESS: {
-                      actions: assign({
-                        placeholders: ({ event }) => event.data.items || [],
-                      }),
-                    },
-                    PLACEHOLDER_COMPLETE: {
-                      actions: assign({
-                        placeholders: ({ event }) => event.data.items,
-                      }),
-                    },
-                  },
-                  entry: ({ context }) =>
-                    captureEvent(context.uniqueId, {
-                      type: "LLM_CALL",
-                      properties: {
-                        llmType: "PLACEHOLDER",
+                states: {
+                  Lists: {
+                    initial: "Initializing",
+                    states: {
+                      Initializing: {
+                        always: [
+                          {
+                            target: "Fetching",
+                            guard: ({ context }) => !context.listsBySlug,
+                          },
+                          {
+                            target: "Complete",
+                          },
+                        ],
                       },
-                    }),
-                  invoke: {
-                    input: ({ context }) => ({
-                      prompt: context.prompt.length
-                        ? context.prompt
-                        : buildInput(context),
-                    }),
-                    src: "generatePlaceholders",
-                    onDone: {
-                      target: "Idle",
+                      Fetching: {
+                        invoke: {
+                          src: "getAllListsForUserWithRecipeCount",
+                          input: ({ event }) => {
+                            assert(
+                              "caller" in event,
+                              "expected caller in event"
+                            );
+                            return { userId: event.caller.id };
+                          },
+                          onDone: {
+                            target: "Complete",
+                            actions: assign(({ context, event }) => {
+                              return produce(context, (draft) => {
+                                if (event.output.success) {
+                                  draft.listsBySlug = {};
+                                  event.output.result?.forEach((item) => {
+                                    draft.listsBySlug![item.slug] = item;
+                                  });
+                                }
+                              });
+                            }),
+                          },
+                        },
+                      },
+                      Complete: {
+                        type: "final",
+                      },
                     },
                   },
                 },
               },
             },
-            Tokens: {
-              initial: "Idle",
-              states: {
-                Idle: {},
-                Holding: {
-                  after: {
-                    500: {
-                      target: "Generating",
-                      guard: ({ context }) => !!context.prompt?.length,
-                    },
-                  },
-                },
-                Generating: {
-                  entry: ({ context }) =>
-                    captureEvent(context.uniqueId, {
-                      type: "LLM_CALL",
-                      properties: {
-                        llmType: "AUTO_SUGGEST_TOKENS",
-                      },
-                    }),
-                  on: {
-                    AUTO_SUGGEST_TOKENS_PROGRESS: {
-                      actions: assign({
-                        suggestedTokens: ({ event }) => event.data.tokens || [],
-                      }),
-                    },
-                    AUTO_SUGGEST_TOKENS_COMPLETE: {
-                      actions: assign({
-                        suggestedTokens: ({ event }) => event.data.tokens,
-                      }),
-                    },
-                  },
-                  invoke: {
-                    input: ({ context }) => ({
-                      prompt: buildInput(context),
-                    }),
-                    src: "generateTokens",
-                    onDone: {
-                      target: "Idle",
-                    },
-                  },
-                },
+          },
+
+          Generators: {
+            type: "parallel",
+            on: {
+              CLEAR: [".Placeholder.Idle", ".Tokens.Idle", ".Recipes.Idle"],
+              NEW_RECIPE: {
+                target: [
+                  ".Placeholder.Generating",
+                  ".Tokens.Generating",
+                  ".Recipes.Generating",
+                ],
+                actions: ["resetSuggestions"],
+                guard: ({ event }) =>
+                  !!event.prompt?.length || !!event.tokens?.length,
               },
-            },
-
-            NextHomeFeedItem: {
-              on: {
-                VIEW_RECIPE: {
-                  guard: "nextRecipeInCategoryShouldBeCreated",
-                  actions: [
-                    spawnChild("generateFullRecipeFromSuggestion", {
-                      input: ({ context, event }) => {
-                        assertEvent(event, "VIEW_RECIPE");
-                        const feedItems =
-                          context.sessionSnapshot?.context.feedItemsById;
-                        assert(feedItems, "expected feedItems");
-
-                        const feedItem = Object.values(feedItems).find(
-                          (item) =>
-                            item.recipes?.find(
-                              (recipe) => recipe?.id === event.id
-                            )
-                        );
-                        assert(feedItem, "expected feedItem");
-                        assert(
-                          feedItem.category,
-                          "expected category in feedItem"
-                        );
-
-                        const recipes = feedItem?.recipes;
-                        assert(recipes, "expected recipes in feedItem");
-
-                        // Find the index of the current recipe
-                        const currentIndex = recipes.findIndex(
-                          (recipe) => recipe?.id === event.id
-                        );
-                        assert(
-                          currentIndex >= 0,
-                          "expected to find current recipe index"
-                        );
-
-                        const recipeIds = recipes.map((recipe) => recipe?.id!);
-                        const unstartedRecipes = getSortedUnstartedRecipes(
-                          recipeIds,
-                          currentIndex,
-                          context
-                        );
-                        const nextRecipeId = unstartedRecipes[0];
-                        const nextRecipe = recipes.find(
-                          (recipe) => recipe?.id === nextRecipeId
-                        );
-                        assert(nextRecipe, "expected to find next recipe");
-                        assert(
-                          nextRecipe.id,
-                          "expected to find next recipe id"
-                        );
-                        assert(
-                          nextRecipe.name,
-                          "expected to find next recipe name"
-                        );
-                        assert(
-                          nextRecipe.tagline,
-                          "expected to find next recipe tagline"
-                        );
-
-                        return {
-                          id: nextRecipe.id,
-                          category: feedItem.category,
-                          name: nextRecipe.name,
-                          tagline: nextRecipe.tagline,
-                        };
-                      },
-                    }),
-                    assign(({ context, event }) =>
-                      produce(context, (draft) => {
-                        const feedItems =
-                          context.sessionSnapshot?.context.feedItemsById;
-                        assert(feedItems, "expected feedItems");
-
-                        const feedItem = Object.values(feedItems).find(
-                          (item) =>
-                            item.recipes?.find(
-                              (recipe) => recipe?.id === event.id
-                            )
-                        );
-                        assert(feedItem, "expected feedItem");
-                        assert(
-                          feedItem.category,
-                          "expected category in feedItem"
-                        );
-
-                        const recipes = feedItem?.recipes;
-                        assert(recipes, "expected recipes in feedItem");
-
-                        // Find the index of the current recipe
-                        const currentIndex = recipes.findIndex(
-                          (recipe) => recipe?.id === event.id
-                        );
-                        assert(
-                          currentIndex >= 0,
-                          "expected to find current recipe index"
-                        );
-
-                        const recipeIds = recipes.map((recipe) => recipe?.id!);
-                        const unstartedRecipes = getSortedUnstartedRecipes(
-                          recipeIds,
-                          currentIndex,
-                          context
-                        );
-                        const nextRecipeId = unstartedRecipes[0];
-                        const nextRecipe = recipes.find(
-                          (recipe) => recipe?.id === nextRecipeId
-                        );
-                        assert(nextRecipe, "expected to find next recipe");
-                        assert(nextRecipe.id, "expected to find id");
-
-                        draft.recipes[nextRecipe.id] = {
-                          ...nextRecipe,
-                          id: nextRecipe.id,
-                          versionId: 0,
-                          started: true,
-                          fullStarted: true,
-                          complete: false,
-                          matchPercent: undefined,
-                          metadataComplete: false,
-                        };
-                      })
-                    ),
+              ADD_TOKEN: {
+                target: [
+                  ".Placeholder.Generating",
+                  ".Tokens.Generating",
+                  ".Recipes.Generating",
+                ],
+                actions: ["resetSuggestions"],
+              },
+              SET_INPUT: [
+                {
+                  target: [
+                    ".Placeholder.Holding",
+                    ".Tokens.Holding",
+                    ".Recipes.Holding",
+                  ],
+                  guard: ({ event }) => !!event.value?.length,
+                },
+                {
+                  target: [
+                    ".Placeholder.Idle",
+                    ".Tokens.Idle",
+                    ".Recipes.Idle",
                   ],
                 },
-              },
+              ],
             },
-
-            NextNextHomeFeedItem: {
-              on: {
-                VIEW_RECIPE: {
-                  guard: "nextRecipeInCategoryShouldBeCreated",
-                  actions: [
-                    spawnChild("generateFullRecipeFromSuggestion", {
-                      input: ({ context, event }) => {
-                        assertEvent(event, "VIEW_RECIPE");
-                        const feedItems =
-                          context.sessionSnapshot?.context.feedItemsById;
-                        assert(feedItems, "expected feedItems");
-
-                        const feedItem = Object.values(feedItems).find(
-                          (item) =>
-                            item.recipes?.find(
-                              (recipe) => recipe?.id === event.id
-                            )
-                        );
-                        assert(feedItem, "expected feedItem");
-                        assert(
-                          feedItem.category,
-                          "expected category in feedItem"
-                        );
-
-                        const recipes = feedItem?.recipes;
-                        assert(recipes, "expected recipes in feedItem");
-
-                        // Find the index of the current recipe
-                        const currentIndex = recipes.findIndex(
-                          (recipe) => recipe?.id === event.id
-                        );
-                        assert(
-                          currentIndex >= 0,
-                          "expected to find current recipe index"
-                        );
-
-                        const recipeIds = recipes.map((recipe) => recipe?.id!);
-                        const unstartedRecipes = getSortedUnstartedRecipes(
-                          recipeIds,
-                          currentIndex,
-                          context
-                        );
-                        const nextRecipeId = unstartedRecipes[0];
-                        const nextRecipe = recipes.find(
-                          (recipe) => recipe?.id === nextRecipeId
-                        );
-                        assert(nextRecipe, "expected to find next recipe");
-                        assert(
-                          nextRecipe.id,
-                          "expected to find next recipe id"
-                        );
-                        assert(
-                          nextRecipe.name,
-                          "expected to find next recipe name"
-                        );
-                        assert(
-                          nextRecipe.tagline,
-                          "expected to find next recipe tagline"
-                        );
-
-                        return {
-                          id: nextRecipe.id,
-                          category: feedItem.category,
-                          name: nextRecipe.name,
-                          tagline: nextRecipe.tagline,
-                        };
+            states: {
+              Placeholder: {
+                initial: "Idle",
+                states: {
+                  Idle: {},
+                  Holding: {
+                    after: {
+                      600: {
+                        target: "Generating",
+                        guard: ({ context }) => !!context.prompt?.length,
                       },
-                    }),
-                    assign(({ context, event }) =>
-                      produce(context, (draft) => {
-                        const feedItems =
-                          context.sessionSnapshot?.context.feedItemsById;
-                        assert(feedItems, "expected feedItems");
-
-                        const feedItem = Object.values(feedItems).find(
-                          (item) =>
-                            item.recipes?.find(
-                              (recipe) => recipe?.id === event.id
-                            )
-                        );
-                        assert(feedItem, "expected feedItem");
-                        assert(
-                          feedItem.category,
-                          "expected category in feedItem"
-                        );
-
-                        const recipes = feedItem?.recipes;
-                        assert(recipes, "expected recipes in feedItem");
-
-                        // Find the index of the current recipe
-                        const currentIndex = recipes.findIndex(
-                          (recipe) => recipe?.id === event.id
-                        );
-                        assert(
-                          currentIndex >= 0,
-                          "expected to find current recipe index"
-                        );
-
-                        const recipeIds = recipes.map((recipe) => recipe?.id!);
-                        const unstartedRecipes = getSortedUnstartedRecipes(
-                          recipeIds,
-                          currentIndex,
-                          context
-                        );
-                        const nextRecipeId = unstartedRecipes[0];
-                        const nextRecipe = recipes.find(
-                          (recipe) => recipe?.id === nextRecipeId
-                        );
-                        assert(nextRecipe, "expected to find next recipe");
-                        assert(nextRecipe.id, "expected to find id");
-
-                        draft.recipes[nextRecipe.id] = {
-                          ...nextRecipe,
-                          id: nextRecipe.id,
-                          versionId: 0,
-                          started: true,
-                          fullStarted: true,
-                          complete: false,
-                          matchPercent: undefined,
-                          metadataComplete: false,
-                        };
-                      })
-                    ),
-                  ],
+                    },
+                  },
+                  Generating: {
+                    on: {
+                      // TAG_START: {
+                      //   actions: assign({
+                      //     suggestedTagsResultId: ({ event }) => event.resultId,
+                      //   }),
+                      // },
+                      PLACEHOLDER_PROGRESS: {
+                        actions: assign({
+                          placeholders: ({ event }) => event.data.items || [],
+                        }),
+                      },
+                      PLACEHOLDER_COMPLETE: {
+                        actions: assign({
+                          placeholders: ({ event }) => event.data.items,
+                        }),
+                      },
+                    },
+                    entry: ({ context }) =>
+                      captureEvent(context.uniqueId, {
+                        type: "LLM_CALL",
+                        properties: {
+                          llmType: "PLACEHOLDER",
+                        },
+                      }),
+                    invoke: {
+                      input: ({ context }) => ({
+                        prompt: context.prompt.length
+                          ? context.prompt
+                          : buildInput(context),
+                      }),
+                      src: "generatePlaceholders",
+                      onDone: {
+                        target: "Idle",
+                      },
+                    },
+                  },
                 },
               },
-            },
-            // NextNextHomeFeedItem: {
-            //   on: {
-            //     VIEW_RECIPE: {
-            //       guard: "nextRecipeInCategoryShouldBeCreated",
-            //       actions: [
-            //         spawnChild("generateFullRecipeFromSuggestion", {
-            //           input: ({ context, event }) => {
-            //             assertEvent(event, "VIEW_RECIPE");
-            //             const feedItems =
-            //               context.browserSessionSnapshot?.context.feedItems;
-            //             assert(feedItems, "expected feedItems");
-            //             const feedItem = Object.values(feedItems).find(
-            //               (item) =>
-            //                 item.recipes?.find(
-            //                   (recipe) => recipe?.id === event.id
-            //                 )
-            //             );
-            //             assert(feedItem, "expected feedItem");
-            //             assert(
-            //               feedItem.category,
-            //               "expected category in feedItem"
-            //             );
-            //             const recipes = feedItem?.recipes;
-            //             assert(recipes, "expected recipes in feedItem");
-
-            //             // Find the index of the current recipe
-            //             const currentIndex = recipes.findIndex(
-            //               (recipe) => recipe?.id === event.id
-            //             );
-            //             assert(
-            //               currentIndex >= 0,
-            //               "expected to find current recipe index"
-            //             );
-
-            //             // Find the next incomplete recipe
-            //             let nextRecipe = null;
-            //             for (
-            //               let i = currentIndex + 1;
-            //               i < recipes.length;
-            //               i++
-            //             ) {
-            //               const recipeId = recipes[i]?.id;
-            //               if (
-            //                 recipeId &&
-            //                 !context.recipes[recipeId]?.complete
-            //               ) {
-            //                 nextRecipe = recipes[i];
-            //                 break;
-            //               }
-            //             }
-
-            //             // If no next incomplete recipe found, circle around to the beginning
-            //             if (!nextRecipe) {
-            //               for (let i = 0; i < currentIndex; i++) {
-            //                 const recipeId = recipes[i]?.id;
-            //                 if (
-            //                   recipeId &&
-            //                   !context.recipes[recipeId]?.complete
-            //                 ) {
-            //                   nextRecipe = recipes[i];
-            //                   break;
-            //                 }
-            //               }
-            //             }
-            //             assert(nextRecipe, "expected to find next recipe");
-            //             assert(
-            //               nextRecipe.id,
-            //               "expected to find next recipe id"
-            //             );
-            //             assert(
-            //               nextRecipe.name,
-            //               "expected to find next recipe name"
-            //             );
-            //             assert(
-            //               nextRecipe.tagline,
-            //               "expected to find next recipe tagline"
-            //             );
-
-            //             return {
-            //               id: nextRecipe.id,
-            //               category: feedItem.category,
-            //               name: nextRecipe.name,
-            //               tagline: nextRecipe.tagline,
-            //             };
-            //           },
-            //         }),
-            //         assign(({ context, event }) =>
-            //           produce(context, (draft) => {
-            //             const feedItems =
-            //               context.browserSessionSnapshot?.context.feedItems;
-            //             assert(feedItems, "expected feedItems");
-            //             const feedItem = Object.values(feedItems).find(
-            //               (item) =>
-            //                 item.recipes?.find(
-            //                   (recipe) => recipe?.id === event.id
-            //                 )
-            //             );
-            //             assert(feedItem, "expected feedItem");
-            //             assert(
-            //               feedItem.category,
-            //               "expected category in feedItem"
-            //             );
-            //             const recipes = feedItem?.recipes;
-            //             assert(recipes, "expected recipes in feedItem");
-
-            //             // Find the index of the current recipe
-            //             const currentIndex = recipes.findIndex(
-            //               (recipe) => recipe?.id === event.id
-            //             );
-            //             assert(
-            //               currentIndex >= 0,
-            //               "expected to find current recipe index"
-            //             );
-
-            //             // Find the next incomplete recipe
-            //             let nextRecipe = null;
-            //             for (
-            //               let i = currentIndex + 1;
-            //               i < recipes.length;
-            //               i++
-            //             ) {
-            //               const recipeId = recipes[i]?.id;
-            //               if (
-            //                 recipeId &&
-            //                 !context.recipes[recipeId]?.complete
-            //               ) {
-            //                 nextRecipe = recipes[i];
-            //                 break;
-            //               }
-            //             }
-
-            //             // If no next incomplete recipe found, circle around to the beginning
-            //             if (!nextRecipe) {
-            //               for (let i = 0; i < currentIndex; i++) {
-            //                 const recipeId = recipes[i]?.id;
-            //                 if (
-            //                   recipeId &&
-            //                   !context.recipes[recipeId]?.complete
-            //                 ) {
-            //                   nextRecipe = recipes[i];
-            //                   break;
-            //                 }
-            //               }
-            //             }
-
-            //             assert(nextRecipe, "expected to find next recipe");
-            //             assert(nextRecipe.id, "expected to find id");
-
-            //             draft.recipes[nextRecipe.id] = {
-            //               ...nextRecipe,
-            //               id: nextRecipe.id,
-            //               versionId: 0,
-            //               started: true,
-            //               fullStarted: true,
-            //               complete: false,
-            //               matchPercent: undefined,
-            //               metadataComplete: false,
-            //             };
-            //           })
-            //         ),
-            //       ],
-            //     },
-            //   },
-            // },
-
-            Recipes: {
-              initial: "Idle",
-              on: {
-                VIEW_RECIPE: [
-                  {
-                    description:
-                      "recipe doesnt yet exist but it was a suggestion",
-                    guard: ({ context, event }) => {
-                      const recipe = context.recipes?.[event.id];
-                      return !recipe;
+              Tokens: {
+                initial: "Idle",
+                states: {
+                  Idle: {},
+                  Holding: {
+                    after: {
+                      500: {
+                        target: "Generating",
+                        guard: ({ context }) => !!context.prompt?.length,
+                      },
                     },
+                  },
+                  Generating: {
+                    entry: ({ context }) =>
+                      captureEvent(context.uniqueId, {
+                        type: "LLM_CALL",
+                        properties: {
+                          llmType: "AUTO_SUGGEST_TOKENS",
+                        },
+                      }),
+                    on: {
+                      AUTO_SUGGEST_TOKENS_PROGRESS: {
+                        actions: assign({
+                          suggestedTokens: ({ event }) =>
+                            event.data.tokens || [],
+                        }),
+                      },
+                      AUTO_SUGGEST_TOKENS_COMPLETE: {
+                        actions: assign({
+                          suggestedTokens: ({ event }) => event.data.tokens,
+                        }),
+                      },
+                    },
+                    invoke: {
+                      input: ({ context }) => ({
+                        prompt: buildInput(context),
+                      }),
+                      src: "generateTokens",
+                      onDone: {
+                        target: "Idle",
+                      },
+                    },
+                  },
+                },
+              },
+
+              NextHomeFeedItem: {
+                on: {
+                  VIEW_RECIPE: {
+                    guard: "nextRecipeInCategoryShouldBeCreated",
                     actions: [
                       spawnChild("generateFullRecipeFromSuggestion", {
                         input: ({ context, event }) => {
@@ -1910,6 +1484,7 @@ export const pageSessionMachine = setup({
                           const feedItems =
                             context.sessionSnapshot?.context.feedItemsById;
                           assert(feedItems, "expected feedItems");
+
                           const feedItem = Object.values(feedItems).find(
                             (item) =>
                               item.recipes?.find(
@@ -1921,25 +1496,50 @@ export const pageSessionMachine = setup({
                             feedItem.category,
                             "expected category in feedItem"
                           );
-                          const recipe = feedItem?.recipes?.find(
+
+                          const recipes = feedItem?.recipes;
+                          assert(recipes, "expected recipes in feedItem");
+
+                          // Find the index of the current recipe
+                          const currentIndex = recipes.findIndex(
                             (recipe) => recipe?.id === event.id
                           );
                           assert(
-                            recipe,
-                            "expected to matching recipe in feedItem"
+                            currentIndex >= 0,
+                            "expected to find current recipe index"
                           );
-                          assert(recipe.id, "expected to find recipe.name");
-                          assert(recipe.name, "expected to find recipe.name");
+
+                          const recipeIds = recipes.map(
+                            (recipe) => recipe?.id!
+                          );
+                          const unstartedRecipes = getSortedUnstartedRecipes(
+                            recipeIds,
+                            currentIndex,
+                            context
+                          );
+                          const nextRecipeId = unstartedRecipes[0];
+                          const nextRecipe = recipes.find(
+                            (recipe) => recipe?.id === nextRecipeId
+                          );
+                          assert(nextRecipe, "expected to find next recipe");
                           assert(
-                            recipe.tagline,
-                            "expected to find recipe.tagline"
+                            nextRecipe.id,
+                            "expected to find next recipe id"
+                          );
+                          assert(
+                            nextRecipe.name,
+                            "expected to find next recipe name"
+                          );
+                          assert(
+                            nextRecipe.tagline,
+                            "expected to find next recipe tagline"
                           );
 
                           return {
-                            id: recipe.id,
+                            id: nextRecipe.id,
                             category: feedItem.category,
-                            name: recipe.name,
-                            tagline: recipe.tagline,
+                            name: nextRecipe.name,
+                            tagline: nextRecipe.tagline,
                           };
                         },
                       }),
@@ -1948,6 +1548,7 @@ export const pageSessionMachine = setup({
                           const feedItems =
                             context.sessionSnapshot?.context.feedItemsById;
                           assert(feedItems, "expected feedItems");
+
                           const feedItem = Object.values(feedItems).find(
                             (item) =>
                               item.recipes?.find(
@@ -1959,17 +1560,37 @@ export const pageSessionMachine = setup({
                             feedItem.category,
                             "expected category in feedItem"
                           );
-                          const recipe = feedItem?.recipes?.find(
+
+                          const recipes = feedItem?.recipes;
+                          assert(recipes, "expected recipes in feedItem");
+
+                          // Find the index of the current recipe
+                          const currentIndex = recipes.findIndex(
                             (recipe) => recipe?.id === event.id
                           );
                           assert(
-                            recipe,
-                            "expected to matching recipe in feedItem"
+                            currentIndex >= 0,
+                            "expected to find current recipe index"
                           );
 
-                          draft.recipes[event.id] = {
-                            ...recipe,
-                            id: event.id,
+                          const recipeIds = recipes.map(
+                            (recipe) => recipe?.id!
+                          );
+                          const unstartedRecipes = getSortedUnstartedRecipes(
+                            recipeIds,
+                            currentIndex,
+                            context
+                          );
+                          const nextRecipeId = unstartedRecipes[0];
+                          const nextRecipe = recipes.find(
+                            (recipe) => recipe?.id === nextRecipeId
+                          );
+                          assert(nextRecipe, "expected to find next recipe");
+                          assert(nextRecipe.id, "expected to find id");
+
+                          draft.recipes[nextRecipe.id] = {
+                            ...nextRecipe,
+                            id: nextRecipe.id,
                             versionId: 0,
                             started: true,
                             fullStarted: true,
@@ -1981,105 +1602,410 @@ export const pageSessionMachine = setup({
                       ),
                     ],
                   },
-                  {
-                    guard: ({ context, event }) => {
-                      const recipe = context.recipes?.[event.id];
-                      assert(
-                        recipe,
-                        "expected recipe to exist when viewing full"
-                      );
+                },
+              },
 
-                      return !recipe.fullStarted;
-                    },
+              NextNextHomeFeedItem: {
+                on: {
+                  VIEW_RECIPE: {
+                    guard: "nextRecipeInCategoryShouldBeCreated",
                     actions: [
-                      spawnChild("generateFullRecipe", {
+                      spawnChild("generateFullRecipeFromSuggestion", {
                         input: ({ context, event }) => {
+                          assertEvent(event, "VIEW_RECIPE");
+                          const feedItems =
+                            context.sessionSnapshot?.context.feedItemsById;
+                          assert(feedItems, "expected feedItems");
+
+                          const feedItem = Object.values(feedItems).find(
+                            (item) =>
+                              item.recipes?.find(
+                                (recipe) => recipe?.id === event.id
+                              )
+                          );
+                          assert(feedItem, "expected feedItem");
                           assert(
-                            event.type === "VIEW_RECIPE",
-                            "expected event to be view recipe"
+                            feedItem.category,
+                            "expected category in feedItem"
                           );
 
-                          const recipe = context.recipes[event.id];
-                          assert(
-                            recipe?.name,
-                            "expected recipe to have name when generating full recipe"
+                          const recipes = feedItem?.recipes;
+                          assert(recipes, "expected recipes in feedItem");
+
+                          // Find the index of the current recipe
+                          const currentIndex = recipes.findIndex(
+                            (recipe) => recipe?.id === event.id
                           );
                           assert(
-                            recipe.description,
-                            "expected recipe to have description when generating full recipe"
+                            currentIndex >= 0,
+                            "expected to find current recipe index"
                           );
-                          assert(recipe.id, "expected recipe to have an id");
+
+                          const recipeIds = recipes.map(
+                            (recipe) => recipe?.id!
+                          );
+                          const unstartedRecipes = getSortedUnstartedRecipes(
+                            recipeIds,
+                            currentIndex,
+                            context
+                          );
+                          const nextRecipeId = unstartedRecipes[0];
+                          const nextRecipe = recipes.find(
+                            (recipe) => recipe?.id === nextRecipeId
+                          );
+                          assert(nextRecipe, "expected to find next recipe");
+                          assert(
+                            nextRecipe.id,
+                            "expected to find next recipe id"
+                          );
+                          assert(
+                            nextRecipe.name,
+                            "expected to find next recipe name"
+                          );
+                          assert(
+                            nextRecipe.tagline,
+                            "expected to find next recipe tagline"
+                          );
 
                           return {
-                            prompt: context.prompt,
-                            tokens: context.tokens,
-                            id: recipe.id,
-                            name: recipe.name,
-                            description: recipe.description,
+                            id: nextRecipe.id,
+                            category: feedItem.category,
+                            name: nextRecipe.name,
+                            tagline: nextRecipe.tagline,
                           };
                         },
                       }),
                       assign(({ context, event }) =>
                         produce(context, (draft) => {
-                          const recipe = draft.recipes[event.id];
-                          assert(
-                            recipe,
-                            "expected recipe when updating recipe progress"
+                          const feedItems =
+                            context.sessionSnapshot?.context.feedItemsById;
+                          assert(feedItems, "expected feedItems");
+
+                          const feedItem = Object.values(feedItems).find(
+                            (item) =>
+                              item.recipes?.find(
+                                (recipe) => recipe?.id === event.id
+                              )
                           );
-                          draft.recipes[event.id] = {
-                            ...recipe,
+                          assert(feedItem, "expected feedItem");
+                          assert(
+                            feedItem.category,
+                            "expected category in feedItem"
+                          );
+
+                          const recipes = feedItem?.recipes;
+                          assert(recipes, "expected recipes in feedItem");
+
+                          // Find the index of the current recipe
+                          const currentIndex = recipes.findIndex(
+                            (recipe) => recipe?.id === event.id
+                          );
+                          assert(
+                            currentIndex >= 0,
+                            "expected to find current recipe index"
+                          );
+
+                          const recipeIds = recipes.map(
+                            (recipe) => recipe?.id!
+                          );
+                          const unstartedRecipes = getSortedUnstartedRecipes(
+                            recipeIds,
+                            currentIndex,
+                            context
+                          );
+                          const nextRecipeId = unstartedRecipes[0];
+                          const nextRecipe = recipes.find(
+                            (recipe) => recipe?.id === nextRecipeId
+                          );
+                          assert(nextRecipe, "expected to find next recipe");
+                          assert(nextRecipe.id, "expected to find id");
+
+                          draft.recipes[nextRecipe.id] = {
+                            ...nextRecipe,
+                            id: nextRecipe.id,
+                            versionId: 0,
+                            started: true,
                             fullStarted: true,
+                            complete: false,
+                            matchPercent: undefined,
+                            metadataComplete: false,
                           };
                         })
                       ),
                     ],
                   },
-                ],
-              },
-              states: {
-                Idle: {},
-                Holding: {
-                  after: {
-                    600: {
-                      target: "Generating",
-                      guard: ({ context }) => !!context.prompt?.length,
-                    },
-                  },
                 },
-                Generating: {
-                  entry: assign(({ context, event }) =>
-                    produce(context, (draft) => {
-                      draft.suggestedRecipes = [
-                        randomUUID(),
-                        randomUUID(),
-                        randomUUID(),
-                        randomUUID(),
-                        randomUUID(),
-                        randomUUID(),
-                      ];
+              },
+              // NextNextHomeFeedItem: {
+              //   on: {
+              //     VIEW_RECIPE: {
+              //       guard: "nextRecipeInCategoryShouldBeCreated",
+              //       actions: [
+              //         spawnChild("generateFullRecipeFromSuggestion", {
+              //           input: ({ context, event }) => {
+              //             assertEvent(event, "VIEW_RECIPE");
+              //             const feedItems =
+              //               context.browserSessionSnapshot?.context.feedItems;
+              //             assert(feedItems, "expected feedItems");
+              //             const feedItem = Object.values(feedItems).find(
+              //               (item) =>
+              //                 item.recipes?.find(
+              //                   (recipe) => recipe?.id === event.id
+              //                 )
+              //             );
+              //             assert(feedItem, "expected feedItem");
+              //             assert(
+              //               feedItem.category,
+              //               "expected category in feedItem"
+              //             );
+              //             const recipes = feedItem?.recipes;
+              //             assert(recipes, "expected recipes in feedItem");
 
-                      draft.suggestedRecipes.forEach((id, index) => {
-                        draft.recipes[id] = {
-                          id,
-                          versionId: 0,
-                          started: index === 0,
-                          fullStarted: index === 0,
-                          complete: false,
-                          matchPercent: undefined,
-                          metadataComplete: false,
-                        };
-                      });
-                    })
-                  ),
-                  type: "parallel",
-                  on: {
-                    SELECT_RECIPE: {
+              //             // Find the index of the current recipe
+              //             const currentIndex = recipes.findIndex(
+              //               (recipe) => recipe?.id === event.id
+              //             );
+              //             assert(
+              //               currentIndex >= 0,
+              //               "expected to find current recipe index"
+              //             );
+
+              //             // Find the next incomplete recipe
+              //             let nextRecipe = null;
+              //             for (
+              //               let i = currentIndex + 1;
+              //               i < recipes.length;
+              //               i++
+              //             ) {
+              //               const recipeId = recipes[i]?.id;
+              //               if (
+              //                 recipeId &&
+              //                 !context.recipes[recipeId]?.complete
+              //               ) {
+              //                 nextRecipe = recipes[i];
+              //                 break;
+              //               }
+              //             }
+
+              //             // If no next incomplete recipe found, circle around to the beginning
+              //             if (!nextRecipe) {
+              //               for (let i = 0; i < currentIndex; i++) {
+              //                 const recipeId = recipes[i]?.id;
+              //                 if (
+              //                   recipeId &&
+              //                   !context.recipes[recipeId]?.complete
+              //                 ) {
+              //                   nextRecipe = recipes[i];
+              //                   break;
+              //                 }
+              //               }
+              //             }
+              //             assert(nextRecipe, "expected to find next recipe");
+              //             assert(
+              //               nextRecipe.id,
+              //               "expected to find next recipe id"
+              //             );
+              //             assert(
+              //               nextRecipe.name,
+              //               "expected to find next recipe name"
+              //             );
+              //             assert(
+              //               nextRecipe.tagline,
+              //               "expected to find next recipe tagline"
+              //             );
+
+              //             return {
+              //               id: nextRecipe.id,
+              //               category: feedItem.category,
+              //               name: nextRecipe.name,
+              //               tagline: nextRecipe.tagline,
+              //             };
+              //           },
+              //         }),
+              //         assign(({ context, event }) =>
+              //           produce(context, (draft) => {
+              //             const feedItems =
+              //               context.browserSessionSnapshot?.context.feedItems;
+              //             assert(feedItems, "expected feedItems");
+              //             const feedItem = Object.values(feedItems).find(
+              //               (item) =>
+              //                 item.recipes?.find(
+              //                   (recipe) => recipe?.id === event.id
+              //                 )
+              //             );
+              //             assert(feedItem, "expected feedItem");
+              //             assert(
+              //               feedItem.category,
+              //               "expected category in feedItem"
+              //             );
+              //             const recipes = feedItem?.recipes;
+              //             assert(recipes, "expected recipes in feedItem");
+
+              //             // Find the index of the current recipe
+              //             const currentIndex = recipes.findIndex(
+              //               (recipe) => recipe?.id === event.id
+              //             );
+              //             assert(
+              //               currentIndex >= 0,
+              //               "expected to find current recipe index"
+              //             );
+
+              //             // Find the next incomplete recipe
+              //             let nextRecipe = null;
+              //             for (
+              //               let i = currentIndex + 1;
+              //               i < recipes.length;
+              //               i++
+              //             ) {
+              //               const recipeId = recipes[i]?.id;
+              //               if (
+              //                 recipeId &&
+              //                 !context.recipes[recipeId]?.complete
+              //               ) {
+              //                 nextRecipe = recipes[i];
+              //                 break;
+              //               }
+              //             }
+
+              //             // If no next incomplete recipe found, circle around to the beginning
+              //             if (!nextRecipe) {
+              //               for (let i = 0; i < currentIndex; i++) {
+              //                 const recipeId = recipes[i]?.id;
+              //                 if (
+              //                   recipeId &&
+              //                   !context.recipes[recipeId]?.complete
+              //                 ) {
+              //                   nextRecipe = recipes[i];
+              //                   break;
+              //                 }
+              //               }
+              //             }
+
+              //             assert(nextRecipe, "expected to find next recipe");
+              //             assert(nextRecipe.id, "expected to find id");
+
+              //             draft.recipes[nextRecipe.id] = {
+              //               ...nextRecipe,
+              //               id: nextRecipe.id,
+              //               versionId: 0,
+              //               started: true,
+              //               fullStarted: true,
+              //               complete: false,
+              //               matchPercent: undefined,
+              //               metadataComplete: false,
+              //             };
+              //           })
+              //         ),
+              //       ],
+              //     },
+              //   },
+              // },
+
+              Recipes: {
+                initial: "Idle",
+                on: {
+                  VIEW_RECIPE: [
+                    {
+                      description:
+                        "recipe doesnt yet exist but it was a suggestion",
+                      guard: ({ context, event }) => {
+                        const recipe = context.recipes?.[event.id];
+                        return !recipe;
+                      },
+                      actions: [
+                        spawnChild("generateFullRecipeFromSuggestion", {
+                          input: ({ context, event }) => {
+                            assertEvent(event, "VIEW_RECIPE");
+                            const feedItems =
+                              context.sessionSnapshot?.context.feedItemsById;
+                            assert(feedItems, "expected feedItems");
+                            const feedItem = Object.values(feedItems).find(
+                              (item) =>
+                                item.recipes?.find(
+                                  (recipe) => recipe?.id === event.id
+                                )
+                            );
+                            assert(feedItem, "expected feedItem");
+                            assert(
+                              feedItem.category,
+                              "expected category in feedItem"
+                            );
+                            const recipe = feedItem?.recipes?.find(
+                              (recipe) => recipe?.id === event.id
+                            );
+                            assert(
+                              recipe,
+                              "expected to matching recipe in feedItem"
+                            );
+                            assert(recipe.id, "expected to find recipe.name");
+                            assert(recipe.name, "expected to find recipe.name");
+                            assert(
+                              recipe.tagline,
+                              "expected to find recipe.tagline"
+                            );
+
+                            return {
+                              id: recipe.id,
+                              category: feedItem.category,
+                              name: recipe.name,
+                              tagline: recipe.tagline,
+                            };
+                          },
+                        }),
+                        assign(({ context, event }) =>
+                          produce(context, (draft) => {
+                            const feedItems =
+                              context.sessionSnapshot?.context.feedItemsById;
+                            assert(feedItems, "expected feedItems");
+                            const feedItem = Object.values(feedItems).find(
+                              (item) =>
+                                item.recipes?.find(
+                                  (recipe) => recipe?.id === event.id
+                                )
+                            );
+                            assert(feedItem, "expected feedItem");
+                            assert(
+                              feedItem.category,
+                              "expected category in feedItem"
+                            );
+                            const recipe = feedItem?.recipes?.find(
+                              (recipe) => recipe?.id === event.id
+                            );
+                            assert(
+                              recipe,
+                              "expected to matching recipe in feedItem"
+                            );
+
+                            draft.recipes[event.id] = {
+                              ...recipe,
+                              id: event.id,
+                              versionId: 0,
+                              started: true,
+                              fullStarted: true,
+                              complete: false,
+                              matchPercent: undefined,
+                              metadataComplete: false,
+                            };
+                          })
+                        ),
+                      ],
+                    },
+                    {
+                      guard: ({ context, event }) => {
+                        const recipe = context.recipes?.[event.id];
+                        assert(
+                          recipe,
+                          "expected recipe to exist when viewing full"
+                        );
+
+                        return !recipe.fullStarted;
+                      },
                       actions: [
                         spawnChild("generateFullRecipe", {
                           input: ({ context, event }) => {
                             assert(
-                              event.type === "SELECT_RECIPE",
-                              "expected event to be SELECT_RECIPE"
+                              event.type === "VIEW_RECIPE",
+                              "expected event to be view recipe"
                             );
 
                             const recipe = context.recipes[event.id];
@@ -2116,309 +2042,400 @@ export const pageSessionMachine = setup({
                           })
                         ),
                       ],
-
-                      guard: ({ context, event }) => {
-                        const recipe = context.recipes?.[event.id];
-                        assert(
-                          recipe,
-                          "expected recipe to exist when viewing full"
-                        );
-
-                        return !recipe.fullStarted;
+                    },
+                  ],
+                },
+                states: {
+                  Idle: {},
+                  Holding: {
+                    after: {
+                      600: {
+                        target: "Generating",
+                        guard: ({ context }) => !!context.prompt?.length,
                       },
                     },
-                    FULL_RECIPE_COMPLETE: {
-                      actions: [
-                        assign(({ context, event }) =>
-                          produce(context, (draft) => {
-                            const recipe = draft.recipes[event.id];
-                            assert(recipe, "expected recipe");
-                            assert(recipe.name, "expected recipe name");
-                            draft.recipes[event.id] = {
-                              ...recipe,
-                              ...event.data,
-                              slug: getSlug({
+                  },
+                  Generating: {
+                    entry: assign(({ context, event }) =>
+                      produce(context, (draft) => {
+                        draft.suggestedRecipes = [
+                          randomUUID(),
+                          randomUUID(),
+                          randomUUID(),
+                          randomUUID(),
+                          randomUUID(),
+                          randomUUID(),
+                        ];
+
+                        draft.suggestedRecipes.forEach((id, index) => {
+                          draft.recipes[id] = {
+                            id,
+                            versionId: 0,
+                            started: index === 0,
+                            fullStarted: index === 0,
+                            complete: false,
+                            matchPercent: undefined,
+                            metadataComplete: false,
+                          };
+                        });
+                      })
+                    ),
+                    type: "parallel",
+                    on: {
+                      SELECT_RECIPE: {
+                        actions: [
+                          spawnChild("generateFullRecipe", {
+                            input: ({ context, event }) => {
+                              assert(
+                                event.type === "SELECT_RECIPE",
+                                "expected event to be SELECT_RECIPE"
+                              );
+
+                              const recipe = context.recipes[event.id];
+                              assert(
+                                recipe?.name,
+                                "expected recipe to have name when generating full recipe"
+                              );
+                              assert(
+                                recipe.description,
+                                "expected recipe to have description when generating full recipe"
+                              );
+                              assert(
+                                recipe.id,
+                                "expected recipe to have an id"
+                              );
+
+                              return {
+                                prompt: context.prompt,
+                                tokens: context.tokens,
                                 id: recipe.id,
                                 name: recipe.name,
-                              }),
-                              complete: true,
-                            };
-                          })
-                        ),
-                        spawnChild("createNewRecipe", {
-                          input: ({ context, event }) => {
-                            assert(
-                              event.type === "FULL_RECIPE_COMPLETE",
-                              "expected recipe to be created"
-                            );
-                            const recipe = context.recipes[event.id];
-
-                            assert(
-                              recipe,
-                              "expected recipe with id when reating"
-                            );
-
-                            return {
-                              recipe,
-                              prompt: context.prompt,
-                              tokens: context.tokens,
-                              createdBy: context.uniqueId,
-                            };
-                          },
-                        }),
-                      ],
-                    },
-                    FULL_RECIPE_PROGRESS: {
-                      actions: [
-                        assign(({ context, event }) =>
-                          produce(context, (draft) => {
-                            const recipe = draft.recipes[event.id];
-                            assert(
-                              recipe,
-                              "expected recipe when updating full recipe progress"
-                            );
-                            draft.recipes[event.id] = {
-                              ...recipe,
-                              ...event.data,
-                            };
-                          })
-                        ),
-                      ],
-                    },
-                  },
-                  states: {
-                    InstantRecipe: {
-                      initial: "Generating",
-                      states: {
-                        Generating: {
-                          on: {
-                            INSTANT_RECIPE_START: {
-                              actions: assign(({ context, event }) =>
-                                produce(context, (draft) => {
-                                  const recipe = draft.recipes[event.id];
-                                  assert(
-                                    recipe,
-                                    "expected recipe when updating recipe progress"
-                                  );
-                                  draft.recipes[event.id] = {
-                                    ...recipe,
-                                    started: true,
-                                  };
-                                })
-                              ),
+                                description: recipe.description,
+                              };
                             },
-                            INSTANT_RECIPE_PROGRESS: {
-                              actions: [
-                                assign(({ context, event }) =>
+                          }),
+                          assign(({ context, event }) =>
+                            produce(context, (draft) => {
+                              const recipe = draft.recipes[event.id];
+                              assert(
+                                recipe,
+                                "expected recipe when updating recipe progress"
+                              );
+                              draft.recipes[event.id] = {
+                                ...recipe,
+                                fullStarted: true,
+                              };
+                            })
+                          ),
+                        ],
+
+                        guard: ({ context, event }) => {
+                          const recipe = context.recipes?.[event.id];
+                          assert(
+                            recipe,
+                            "expected recipe to exist when viewing full"
+                          );
+
+                          return !recipe.fullStarted;
+                        },
+                      },
+                      FULL_RECIPE_COMPLETE: {
+                        actions: [
+                          assign(({ context, event }) =>
+                            produce(context, (draft) => {
+                              const recipe = draft.recipes[event.id];
+                              assert(recipe, "expected recipe");
+                              assert(recipe.name, "expected recipe name");
+                              draft.recipes[event.id] = {
+                                ...recipe,
+                                ...event.data,
+                                slug: getSlug({
+                                  id: recipe.id,
+                                  name: recipe.name,
+                                }),
+                                complete: true,
+                              };
+                            })
+                          ),
+                          spawnChild("createNewRecipe", {
+                            input: ({ context, event }) => {
+                              assert(
+                                event.type === "FULL_RECIPE_COMPLETE",
+                                "expected recipe to be created"
+                              );
+                              const recipe = context.recipes[event.id];
+
+                              assert(
+                                recipe,
+                                "expected recipe with id when reating"
+                              );
+
+                              return {
+                                recipe,
+                                prompt: context.prompt,
+                                tokens: context.tokens,
+                                createdBy: context.uniqueId,
+                              };
+                            },
+                          }),
+                        ],
+                      },
+                      FULL_RECIPE_PROGRESS: {
+                        actions: [
+                          assign(({ context, event }) =>
+                            produce(context, (draft) => {
+                              const recipe = draft.recipes[event.id];
+                              assert(
+                                recipe,
+                                "expected recipe when updating full recipe progress"
+                              );
+                              draft.recipes[event.id] = {
+                                ...recipe,
+                                ...event.data,
+                              };
+                            })
+                          ),
+                        ],
+                      },
+                    },
+                    states: {
+                      InstantRecipe: {
+                        initial: "Generating",
+                        states: {
+                          Generating: {
+                            on: {
+                              INSTANT_RECIPE_START: {
+                                actions: assign(({ context, event }) =>
                                   produce(context, (draft) => {
                                     const recipe = draft.recipes[event.id];
                                     assert(
                                       recipe,
                                       "expected recipe when updating recipe progress"
                                     );
-                                    const metadataComplete =
-                                      recipe.metadataComplete ||
-                                      !!event.data.yield;
                                     draft.recipes[event.id] = {
                                       ...recipe,
-                                      matchPercent: 100,
-                                      metadataComplete,
-                                      ...event.data,
+                                      started: true,
                                     };
                                   })
                                 ),
-                              ],
-                            },
-                            INSTANT_RECIPE_COMPLETE: {
-                              actions: [
-                                assign(({ context, event }) =>
-                                  produce(context, (draft) => {
-                                    const recipe = draft.recipes[event.id];
-                                    assert(recipe, "expected recipe");
-                                    assert(recipe.name, "expected recipe name");
-                                    draft.recipes[event.id] = {
-                                      ...recipe,
-                                      ...event.data,
-                                      slug: getSlug({
-                                        id: recipe.id,
-                                        name: recipe.name,
-                                      }),
-                                      metadataComplete: true,
-                                      complete: true,
-                                    };
-                                  })
-                                ),
-                                spawnChild("createNewRecipe", {
-                                  input: ({ context, event }) => {
-                                    assert(
-                                      event.type === "INSTANT_RECIPE_COMPLETE",
-                                      "expected INSTANT_RECIPE_COMPLETE event"
-                                    );
-                                    const recipe = context.recipes[event.id];
-
-                                    assert(
-                                      recipe,
-                                      "expected recipe with id when reating"
-                                    );
-
-                                    return {
-                                      recipe,
-                                      prompt: context.prompt,
-                                      tokens: context.tokens,
-                                      createdBy: context.uniqueId,
-                                    };
-                                  },
-                                }),
-                              ],
-                            },
-                          },
-                          invoke: {
-                            input: ({ context, event }) => {
-                              const recipeId = context.suggestedRecipes[0];
-                              assert(
-                                recipeId,
-                                "expected recipeId to be in suggestedRecipes at index -"
-                              );
-                              return {
-                                prompt: context.prompt,
-                                tokens: context.tokens,
-                                recipeId,
-                              };
-                            },
-                            src: "generateInstantRecipe",
-                            onDone: "Complete",
-                          },
-                        },
-                        Complete: {
-                          type: "final",
-                        },
-                      },
-                    },
-                    Metadata: {
-                      initial: "Idle",
-                      states: {
-                        Idle: {
-                          on: {
-                            INSTANT_RECIPE_PROGRESS: {
-                              target: "Generating",
-                              guard: ({ event }) => !!event.data.yield,
-                            },
-                          },
-                        },
-                        Generating: {
-                          on: {
-                            RECIPE_IDEAS_METADATA_START: {
-                              actions: assign(({ context, event }) =>
-                                produce(context, (draft) => {
-                                  context.suggestedRecipes
-                                    .slice(1)
-                                    .forEach((id) => {
-                                      const recipe = draft.recipes[id];
+                              },
+                              INSTANT_RECIPE_PROGRESS: {
+                                actions: [
+                                  assign(({ context, event }) =>
+                                    produce(context, (draft) => {
+                                      const recipe = draft.recipes[event.id];
                                       assert(
                                         recipe,
                                         "expected recipe when updating recipe progress"
                                       );
-                                      draft.recipes[id] = {
+                                      const metadataComplete =
+                                        recipe.metadataComplete ||
+                                        !!event.data.yield;
+                                      draft.recipes[event.id] = {
                                         ...recipe,
-                                        started: true,
+                                        matchPercent: 100,
+                                        metadataComplete,
+                                        ...event.data,
                                       };
-                                    });
-                                })
-                              ),
+                                    })
+                                  ),
+                                ],
+                              },
+                              INSTANT_RECIPE_COMPLETE: {
+                                actions: [
+                                  assign(({ context, event }) =>
+                                    produce(context, (draft) => {
+                                      const recipe = draft.recipes[event.id];
+                                      assert(recipe, "expected recipe");
+                                      assert(
+                                        recipe.name,
+                                        "expected recipe name"
+                                      );
+                                      draft.recipes[event.id] = {
+                                        ...recipe,
+                                        ...event.data,
+                                        slug: getSlug({
+                                          id: recipe.id,
+                                          name: recipe.name,
+                                        }),
+                                        metadataComplete: true,
+                                        complete: true,
+                                      };
+                                    })
+                                  ),
+                                  spawnChild("createNewRecipe", {
+                                    input: ({ context, event }) => {
+                                      assert(
+                                        event.type ===
+                                          "INSTANT_RECIPE_COMPLETE",
+                                        "expected INSTANT_RECIPE_COMPLETE event"
+                                      );
+                                      const recipe = context.recipes[event.id];
+
+                                      assert(
+                                        recipe,
+                                        "expected recipe with id when reating"
+                                      );
+
+                                      return {
+                                        recipe,
+                                        prompt: context.prompt,
+                                        tokens: context.tokens,
+                                        createdBy: context.uniqueId,
+                                      };
+                                    },
+                                  }),
+                                ],
+                              },
                             },
-                            RECIPE_IDEAS_METADATA_PROGRESS: {
-                              actions: assign(({ context, event }) =>
-                                produce(context, (draft) => {
-                                  context.suggestedRecipes
-                                    .slice(1)
-                                    .forEach((id, index) => {
-                                      const idea = event.data.ideas?.[index];
-                                      if (idea) {
-                                        const recipe = context.recipes[id];
-                                        assert(
-                                          recipe,
-                                          "expected recipe to exist"
-                                        );
-                                        draft.recipes[id] = {
-                                          ...recipe,
-                                          ...idea,
-                                        };
-                                      }
-                                    });
-                                })
-                              ),
-                            },
-                            RECIPE_IDEAS_METADATA_COMPLETE: {
-                              actions: assign(({ context, event }) =>
-                                produce(context, (draft) => {
-                                  context.suggestedRecipes
-                                    .slice(1)
-                                    .forEach((id, index) => {
-                                      const idea = event.data.ideas?.[index];
-                                      if (idea) {
-                                        const recipe = context.recipes[id];
-                                        assert(
-                                          recipe,
-                                          "expected recipe to exist"
-                                        );
-                                        draft.recipes[id] = {
-                                          ...recipe,
-                                          ...idea,
-                                          metadataComplete: true,
-                                        };
-                                      }
-                                    });
-                                })
-                              ),
+                            invoke: {
+                              input: ({ context, event }) => {
+                                const recipeId = context.suggestedRecipes[0];
+                                assert(
+                                  recipeId,
+                                  "expected recipeId to be in suggestedRecipes at index -"
+                                );
+                                return {
+                                  prompt: context.prompt,
+                                  tokens: context.tokens,
+                                  recipeId,
+                                };
+                              },
+                              src: "generateInstantRecipe",
+                              onDone: "Complete",
                             },
                           },
-                          invoke: {
-                            input: ({ context }) => {
-                              assert(
-                                context.suggestedRecipes.length === 6,
-                                "expected there to be 6 suggested recipeIds when generating recipe idea metadata"
-                              );
-                              const instantRecipeId =
-                                context.suggestedRecipes[0];
-                              assert(
-                                instantRecipeId,
-                                "expected instantRecipeId when generating recipe ideas"
-                              );
-                              const recipe = context.recipes[instantRecipeId];
-
-                              if (
-                                !(
-                                  recipe?.name &&
-                                  recipe?.description &&
-                                  recipe.ingredients?.length
-                                )
-                              ) {
-                                debugger;
-                              }
-
-                              assert(
-                                recipe?.name && recipe?.description,
-                                "expected instant recipe to exist"
-                              );
-
-                              return {
-                                prompt: context.prompt,
-                                tokens: context.tokens,
-                                instantRecipe: {
-                                  name: recipe.name,
-                                  description: recipe.description,
-                                  ingredients: recipe.ingredients || [],
-                                },
-                              };
-                            },
-                            src: "generateRecipeIdeasMetadata",
-                            onDone: "Complete",
+                          Complete: {
+                            type: "final",
                           },
                         },
-                        Complete: {
-                          on: {
-                            // VIEW_RECIPE
-                            // LOAD_MORE
+                      },
+                      Metadata: {
+                        initial: "Idle",
+                        states: {
+                          Idle: {
+                            on: {
+                              INSTANT_RECIPE_PROGRESS: {
+                                target: "Generating",
+                                guard: ({ event }) => !!event.data.yield,
+                              },
+                            },
+                          },
+                          Generating: {
+                            on: {
+                              RECIPE_IDEAS_METADATA_START: {
+                                actions: assign(({ context, event }) =>
+                                  produce(context, (draft) => {
+                                    context.suggestedRecipes
+                                      .slice(1)
+                                      .forEach((id) => {
+                                        const recipe = draft.recipes[id];
+                                        assert(
+                                          recipe,
+                                          "expected recipe when updating recipe progress"
+                                        );
+                                        draft.recipes[id] = {
+                                          ...recipe,
+                                          started: true,
+                                        };
+                                      });
+                                  })
+                                ),
+                              },
+                              RECIPE_IDEAS_METADATA_PROGRESS: {
+                                actions: assign(({ context, event }) =>
+                                  produce(context, (draft) => {
+                                    context.suggestedRecipes
+                                      .slice(1)
+                                      .forEach((id, index) => {
+                                        const idea = event.data.ideas?.[index];
+                                        if (idea) {
+                                          const recipe = context.recipes[id];
+                                          assert(
+                                            recipe,
+                                            "expected recipe to exist"
+                                          );
+                                          draft.recipes[id] = {
+                                            ...recipe,
+                                            ...idea,
+                                          };
+                                        }
+                                      });
+                                  })
+                                ),
+                              },
+                              RECIPE_IDEAS_METADATA_COMPLETE: {
+                                actions: assign(({ context, event }) =>
+                                  produce(context, (draft) => {
+                                    context.suggestedRecipes
+                                      .slice(1)
+                                      .forEach((id, index) => {
+                                        const idea = event.data.ideas?.[index];
+                                        if (idea) {
+                                          const recipe = context.recipes[id];
+                                          assert(
+                                            recipe,
+                                            "expected recipe to exist"
+                                          );
+                                          draft.recipes[id] = {
+                                            ...recipe,
+                                            ...idea,
+                                            metadataComplete: true,
+                                          };
+                                        }
+                                      });
+                                  })
+                                ),
+                              },
+                            },
+                            invoke: {
+                              input: ({ context }) => {
+                                assert(
+                                  context.suggestedRecipes.length === 6,
+                                  "expected there to be 6 suggested recipeIds when generating recipe idea metadata"
+                                );
+                                const instantRecipeId =
+                                  context.suggestedRecipes[0];
+                                assert(
+                                  instantRecipeId,
+                                  "expected instantRecipeId when generating recipe ideas"
+                                );
+                                const recipe = context.recipes[instantRecipeId];
+
+                                if (
+                                  !(
+                                    recipe?.name &&
+                                    recipe?.description &&
+                                    recipe.ingredients?.length
+                                  )
+                                ) {
+                                  debugger;
+                                }
+
+                                assert(
+                                  recipe?.name && recipe?.description,
+                                  "expected instant recipe to exist"
+                                );
+
+                                return {
+                                  prompt: context.prompt,
+                                  tokens: context.tokens,
+                                  instantRecipe: {
+                                    name: recipe.name,
+                                    description: recipe.description,
+                                    ingredients: recipe.ingredients || [],
+                                  },
+                                };
+                              },
+                              src: "generateRecipeIdeasMetadata",
+                              onDone: "Complete",
+                            },
+                          },
+                          Complete: {
+                            on: {
+                              // VIEW_RECIPE
+                              // LOAD_MORE
+                            },
                           },
                         },
                       },
@@ -2430,77 +2447,162 @@ export const pageSessionMachine = setup({
           },
         },
       },
-    },
 
-    Auth: {
-      initial: "Uninitialized",
-      //  ? "Anonymous" : "LoggedIn",
-      on: {
-        UPDATE_SESSION: {
-          target: ".LoggedIn",
-        },
-      },
-      states: {
-        Uninitialized: {
-          always: [
-            {
-              target: "Anonymous",
-              guard: ({ context }) => context.initialCaller.type === "guest",
-            },
-            {
-              target: "LoggedIn",
-            },
-          ],
-        },
-        Anonymous: {
-          on: {},
-          type: "parallel",
-          states: {},
-        },
-        Registering: {
-          initial: "InputtingEmail",
-          onDone: "LoggedIn",
-          on: {
-            CANCEL: "Anonymous",
-            SUGGEST_CHEF_NAMES_START: {
-              actions: assign(({ context }) =>
-                produce(context, (draft) => {
-                  draft.previousSuggestedChefnames =
-                    context.previousSuggestedChefnames.concat(
-                      context.suggestedChefnames
-                    );
-                  draft.suggestedChefnames = [];
-                })
-              ),
-            },
-            SUGGEST_CHEF_NAMES_PROGRESS: {
-              actions: assign({
-                suggestedChefnames: ({ event, context }) => {
-                  const names = event.data.names;
-                  return names || context.suggestedChefnames;
-                },
-              }),
-            },
-            SUGGEST_CHEF_NAMES_COMPLETE: {
-              actions: assign({
-                suggestedChefnames: ({ event, context }) => {
-                  const names = event.data.names;
-                  return names;
-                },
-              }),
-            },
+      Auth: {
+        initial: "Uninitialized",
+        //  ? "Anonymous" : "LoggedIn",
+        on: {
+          UPDATE_SESSION: {
+            target: ".LoggedIn",
           },
-          states: {
-            InputtingEmail: {
-              on: {
-                CHANGE: {
-                  guard: "didChangeEmailInput",
-                  actions: assign({
-                    email: ({ event }) => event.value,
-                  }),
+        },
+        states: {
+          Uninitialized: {
+            always: [
+              {
+                target: "Anonymous",
+                guard: ({ context }) => context.initialCaller.type === "guest",
+              },
+              {
+                target: "LoggedIn",
+              },
+            ],
+          },
+          Anonymous: {
+            on: {},
+            type: "parallel",
+            states: {},
+          },
+          Registering: {
+            initial: "InputtingEmail",
+            onDone: "LoggedIn",
+            on: {
+              CANCEL: "Anonymous",
+              SUGGEST_CHEF_NAMES_START: {
+                actions: assign(({ context }) =>
+                  produce(context, (draft) => {
+                    draft.previousSuggestedChefnames =
+                      context.previousSuggestedChefnames.concat(
+                        context.suggestedChefnames
+                      );
+                    draft.suggestedChefnames = [];
+                  })
+                ),
+              },
+              SUGGEST_CHEF_NAMES_PROGRESS: {
+                actions: assign({
+                  suggestedChefnames: ({ event, context }) => {
+                    const names = event.data.names;
+                    return names || context.suggestedChefnames;
+                  },
+                }),
+              },
+              SUGGEST_CHEF_NAMES_COMPLETE: {
+                actions: assign({
+                  suggestedChefnames: ({ event, context }) => {
+                    const names = event.data.names;
+                    return names;
+                  },
+                }),
+              },
+            },
+            states: {
+              InputtingEmail: {
+                on: {
+                  CHANGE: {
+                    guard: "didChangeEmailInput",
+                    actions: assign({
+                      email: ({ event }) => event.value,
+                    }),
+                  },
+                  SUBMIT: [
+                    {
+                      actions: spawnChild("generateChefNameSuggestions", {
+                        input: ({ context }) => {
+                          assert(
+                            context.email,
+                            "expected email when generating chef name suggestions"
+                          );
+
+                          const recipeId =
+                            context.suggestedRecipes[context.currentItemIndex];
+                          assert(
+                            recipeId,
+                            "expected recipeId when generating chef name suggestions"
+                          );
+                          const recipe = context.recipes[recipeId];
+                          assert(
+                            recipe?.name,
+                            "expected recipe name when generating chef name sueggestions"
+                          );
+                          assert(
+                            recipe?.description,
+                            "expected recipe name when generating chef name sueggestions"
+                          );
+
+                          return {
+                            email: context.email,
+                            previousSuggestions:
+                              context.previousSuggestedChefnames,
+                            prompt: context.prompt,
+                            tokens: context.tokens,
+                            personalizationContext: context.sessionSnapshot
+                              ?.context
+                              ? getPersonalizationContext(
+                                  context.sessionSnapshot.context
+                                )
+                              : undefined,
+                            selectedRecipe: {
+                              name: recipe.name,
+                              description: recipe.description,
+                            },
+                          };
+                        },
+                      }),
+                      target: ".Checking",
+                    },
+                  ],
                 },
-                SUBMIT: [
+                initial: "Inputting",
+                states: {
+                  Inputting: {},
+                  Checking: {
+                    invoke: {
+                      src: "checkIfNewUser",
+                      input: ({ context }) => {
+                        assert(
+                          context.email,
+                          "expected email address when check if new user"
+                        );
+                        return { email: context.email };
+                      },
+                      onDone: {
+                        target: "Complete",
+                        actions: assign({
+                          isNewUser: ({ event }) => event.output,
+                        }),
+                      },
+                    },
+                  },
+                  Complete: {
+                    type: "final",
+                  },
+                },
+                onDone: [
                   {
+                    target: "InputtingChefName",
+                    guard: ({ context }) => !!context.isNewUser,
+                  },
+                  {
+                    target: "InputtingOTP",
+                  },
+                ],
+              },
+              InputtingChefName: {
+                initial: "Inputting",
+                onDone: "InputtingOTP",
+                on: {
+                  REFRESH: {
                     actions: spawnChild("generateChefNameSuggestions", {
                       input: ({ context }) => {
                         assert(
@@ -2529,13 +2631,13 @@ export const pageSessionMachine = setup({
                           previousSuggestions:
                             context.previousSuggestedChefnames,
                           prompt: context.prompt,
-                          tokens: context.tokens,
                           personalizationContext: context.sessionSnapshot
                             ?.context
                             ? getPersonalizationContext(
                                 context.sessionSnapshot.context
                               )
                             : undefined,
+                          tokens: context.tokens,
                           selectedRecipe: {
                             name: recipe.name,
                             description: recipe.description,
@@ -2543,590 +2645,513 @@ export const pageSessionMachine = setup({
                         };
                       },
                     }),
-                    target: ".Checking",
                   },
-                ],
-              },
-              initial: "Inputting",
-              states: {
-                Inputting: {},
-                Checking: {
-                  invoke: {
-                    src: "checkIfNewUser",
-                    input: ({ context }) => {
-                      assert(
-                        context.email,
-                        "expected email address when check if new user"
-                      );
-                      return { email: context.email };
+                },
+                states: {
+                  Inputting: {
+                    on: {
+                      SUBMIT: "Complete",
                     },
-                    onDone: {
-                      target: "Complete",
-                      actions: assign({
-                        isNewUser: ({ event }) => event.output,
+                  },
+                  Complete: {
+                    type: "final",
+                  },
+                },
+              },
+              InputtingOTP: {
+                on: {
+                  AUTHENTICATE: {
+                    description:
+                      "Called by the server when a user authenticates this session",
+                    target: "Complete",
+                    guard: ({ event }) => event.caller.type === "system",
+                    actions: [
+                      assign({
+                        uniqueId: ({ event }) => event.userId,
                       }),
-                    },
-                  },
-                },
-                Complete: {
-                  type: "final",
-                },
-              },
-              onDone: [
-                {
-                  target: "InputtingChefName",
-                  guard: ({ context }) => !!context.isNewUser,
-                },
-                {
-                  target: "InputtingOTP",
-                },
-              ],
-            },
-            InputtingChefName: {
-              initial: "Inputting",
-              onDone: "InputtingOTP",
-              on: {
-                REFRESH: {
-                  actions: spawnChild("generateChefNameSuggestions", {
-                    input: ({ context }) => {
-                      assert(
-                        context.email,
-                        "expected email when generating chef name suggestions"
-                      );
+                      spawnChild("updateChefName", {
+                        input: ({ context, event }) => {
+                          assert(
+                            event.type === "AUTHENTICATE",
+                            "expected authenticate event"
+                          );
 
-                      const recipeId =
-                        context.suggestedRecipes[context.currentItemIndex];
-                      assert(
-                        recipeId,
-                        "expected recipeId when generating chef name suggestions"
-                      );
-                      const recipe = context.recipes[recipeId];
-                      assert(
-                        recipe?.name,
-                        "expected recipe name when generating chef name sueggestions"
-                      );
-                      assert(
-                        recipe?.description,
-                        "expected recipe name when generating chef name sueggestions"
-                      );
-
-                      return {
-                        email: context.email,
-                        previousSuggestions: context.previousSuggestedChefnames,
-                        prompt: context.prompt,
-                        personalizationContext: context.sessionSnapshot?.context
-                          ? getPersonalizationContext(
-                              context.sessionSnapshot.context
-                            )
-                          : undefined,
-                        tokens: context.tokens,
-                        selectedRecipe: {
-                          name: recipe.name,
-                          description: recipe.description,
+                          const { chefname } = context;
+                          assert(chefname, "expected chefname to be set");
+                          return { chefname, userId: event.userId };
                         },
-                      };
-                    },
-                  }),
-                },
-              },
-              states: {
-                Inputting: {
-                  on: {
-                    SUBMIT: "Complete",
+                      }),
+                      spawnChild("saveRecipeToListName", {
+                        input: ({ context, event }) => {
+                          assert(
+                            event.type === "AUTHENTICATE",
+                            "expected authenticate event"
+                          );
+                          assert(
+                            context.recipeIdToSave,
+                            "expected recipeId to save"
+                          );
+                          assert(
+                            context.currentListSlug,
+                            "expected currentListSlug to be set"
+                          );
+                          const currentList =
+                            context.listsBySlug?.[context.currentListSlug];
+                          assert(currentList, "expected currentList to be set");
+
+                          return {
+                            recipeId: context.recipeIdToSave,
+                            userId: event.userId,
+                            listName: currentList.name,
+                          };
+                        },
+                      }),
+                    ],
                   },
                 },
-                Complete: {
-                  type: "final",
+              },
+              Complete: {
+                type: "final",
+              },
+            },
+          },
+          LoggedIn: {},
+        },
+      },
+
+      Quiz: {
+        initial: "Closed",
+        states: {
+          Closed: {
+            on: {
+              START_ONBOARDING: "Open",
+              ADD_TOKEN: "Open",
+            },
+          },
+          Open: {
+            on: {
+              CLOSE: "Closed",
+            },
+          },
+        },
+      },
+
+      Profile: {
+        type: "parallel",
+
+        states: {
+          Name: {
+            initial: "Uninitialized",
+            states: {
+              Uninitialized: {
+                on: {
+                  CONNECT: {
+                    target: "Initializing",
+                    guard: ({ event }) => {
+                      return event.caller.type === "user";
+                    },
+                  },
+                  AUTHENTICATE: {
+                    target: "Initializing",
+                  },
+                },
+              },
+              Initializing: {
+                invoke: {
+                  src: "getChefName",
+                  input: ({ event }) => {
+                    assert("caller" in event, "expected caller");
+                    const userId = event.caller.id;
+                    return { userId };
+                  },
+                  onDone: {
+                    actions: assign({
+                      chefname: ({ event }) => {
+                        return event.output;
+                      },
+                    }),
+                  },
                 },
               },
             },
-            InputtingOTP: {
-              on: {
-                AUTHENTICATE: {
-                  description:
-                    "Called by the server when a user authenticates this session",
-                  target: "Complete",
-                  guard: ({ event }) => event.caller.type === "system",
-                  actions: [
-                    assign({
-                      uniqueId: ({ event }) => event.userId,
-                    }),
-                    spawnChild("updateChefName", {
-                      input: ({ context, event }) => {
-                        assert(
-                          event.type === "AUTHENTICATE",
-                          "expected authenticate event"
-                        );
+          },
 
-                        const { chefname } = context;
-                        assert(chefname, "expected chefname to be set");
-                        return { chefname, userId: event.userId };
-                      },
-                    }),
-                    spawnChild("saveRecipeToListName", {
-                      input: ({ context, event }) => {
-                        assert(
-                          event.type === "AUTHENTICATE",
-                          "expected authenticate event"
-                        );
-                        assert(
-                          context.recipeIdToSave,
-                          "expected recipeId to save"
-                        );
-                        assert(
-                          context.currentListSlug,
-                          "expected currentListSlug to be set"
-                        );
-                        const currentList =
-                          context.listsBySlug?.[context.currentListSlug];
-                        assert(currentList, "expected currentList to be set");
-
-                        return {
-                          recipeId: context.recipeIdToSave,
-                          userId: event.userId,
-                          listName: currentList.name,
-                        };
-                      },
-                    }),
+          Available: {
+            initial: "Uninitialized",
+            on: {
+              CHANGE: {
+                target: ".Holding",
+                guard: "didChangeChefNameInput",
+                actions: assign(({ context, event }) =>
+                  produce(context, (draft) => {
+                    draft.chefname = event.value;
+                  })
+                ),
+              },
+            },
+            states: {
+              Uninitialized: {},
+              No: {},
+              Holding: {
+                after: {
+                  500: {
+                    target: "Loading",
+                    guard: ({ context }) =>
+                      !!context.chefname && context.chefname.length > 0,
+                  },
+                },
+              },
+              Loading: {
+                invoke: {
+                  id: "checkChefNameAvailability",
+                  src: "checkChefNameAvailability",
+                  input: ({ context }) => {
+                    assert(context.chefname, "expected chefname");
+                    return {
+                      chefname: context.chefname,
+                    };
+                  },
+                  onDone: [
+                    {
+                      target: "Yes",
+                      guard: ({ event }) => event.output,
+                    },
+                    {
+                      target: "No",
+                    },
                   ],
                 },
               },
+              Yes: {},
             },
-            Complete: {
-              type: "final",
-            },
-          },
-        },
-        LoggedIn: {},
-      },
-    },
-
-    Quiz: {
-      initial: "Closed",
-      states: {
-        Closed: {
-          on: {
-            START_ONBOARDING: "Open",
-            ADD_TOKEN: "Open",
-          },
-        },
-        Open: {
-          on: {
-            CLOSE: "Closed",
           },
         },
       },
-    },
-
-    Profile: {
-      type: "parallel",
-
-      states: {
-        Name: {
-          initial: "Uninitialized",
-          states: {
-            Uninitialized: {
-              on: {
-                CONNECT: {
-                  target: "Initializing",
-                  guard: ({ event }) => {
-                    return event.caller.type === "user";
-                  },
-                },
-                AUTHENTICATE: {
-                  target: "Initializing",
-                },
-              },
-            },
-            Initializing: {
-              invoke: {
-                src: "getChefName",
-                input: ({ event }) => {
-                  assert("caller" in event, "expected caller");
-                  const userId = event.caller.id;
-                  return { userId };
-                },
-                onDone: {
-                  actions: assign({
-                    chefname: ({ event }) => {
-                      return event.output;
-                    },
-                  }),
-                },
-              },
-            },
-          },
-        },
-
-        Available: {
-          initial: "Uninitialized",
-          on: {
-            CHANGE: {
-              target: ".Holding",
-              guard: "didChangeChefNameInput",
-              actions: assign(({ context, event }) =>
-                produce(context, (draft) => {
-                  draft.chefname = event.value;
-                })
-              ),
-            },
-          },
-          states: {
-            Uninitialized: {},
-            No: {},
-            Holding: {
-              after: {
-                500: {
-                  target: "Loading",
-                  guard: ({ context }) =>
-                    !!context.chefname && context.chefname.length > 0,
-                },
-              },
-            },
-            Loading: {
-              invoke: {
-                id: "checkChefNameAvailability",
-                src: "checkChefNameAvailability",
-                input: ({ context }) => {
-                  assert(context.chefname, "expected chefname");
-                  return {
-                    chefname: context.chefname,
-                  };
-                },
-                onDone: [
-                  {
-                    target: "Yes",
-                    guard: ({ event }) => event.output,
-                  },
-                  {
-                    target: "No",
-                  },
+      Selection: {
+        type: "parallel",
+        states: {
+          Data: {
+            on: {
+              FULL_RECIPE_FROM_SUGGESTION_PROGRESS: {
+                actions: [
+                  assign(({ context, event }) =>
+                    produce(context, (draft) => {
+                      const recipe = draft.recipes[event.id];
+                      assert(
+                        recipe,
+                        "expected recipe when updating full recipe progress"
+                      );
+                      draft.recipes[event.id] = {
+                        ...recipe,
+                        metadataComplete: !!event.data.yield,
+                        ...event.data,
+                      };
+                    })
+                  ),
                 ],
               },
-            },
-            Yes: {},
-          },
-        },
-      },
-    },
-    Selection: {
-      type: "parallel",
-      states: {
-        Data: {
-          on: {
-            FULL_RECIPE_FROM_SUGGESTION_PROGRESS: {
-              actions: [
-                assign(({ context, event }) =>
-                  produce(context, (draft) => {
-                    const recipe = draft.recipes[event.id];
-                    assert(
-                      recipe,
-                      "expected recipe when updating full recipe progress"
-                    );
-                    draft.recipes[event.id] = {
-                      ...recipe,
-                      metadataComplete: !!event.data.yield,
-                      ...event.data,
-                    };
-                  })
-                ),
-              ],
-            },
-            FULL_RECIPE_FROM_SUGGESTION_COMPLETE: {
-              actions: [
-                assign(({ context, event }) =>
-                  produce(context, (draft) => {
-                    const recipe = draft.recipes[event.id];
-                    assert(recipe, "expected recipe");
-                    assert(recipe.name, "expected recipe name");
-                    draft.recipes[event.id] = {
-                      ...recipe,
-                      ...event.data,
-                      slug: getSlug({
+              FULL_RECIPE_FROM_SUGGESTION_COMPLETE: {
+                actions: [
+                  assign(({ context, event }) =>
+                    produce(context, (draft) => {
+                      const recipe = draft.recipes[event.id];
+                      assert(recipe, "expected recipe");
+                      assert(recipe.name, "expected recipe name");
+                      draft.recipes[event.id] = {
+                        ...recipe,
+                        ...event.data,
+                        slug: getSlug({
+                          id: recipe.id,
+                          name: recipe.name,
+                        }),
+                        complete: true,
+                      };
+                    })
+                  ),
+                  spawnChild("createNewRecipe", {
+                    input: ({ context, event }) => {
+                      assert(
+                        event.type === "FULL_RECIPE_FROM_SUGGESTION_COMPLETE",
+                        "expected recipe to be created"
+                      );
+                      const recipe = context.recipes[event.id];
+
+                      assert(recipe, "expected recipe with id when reating");
+
+                      return {
+                        recipe,
+                        prompt: "suggestion",
+                        tokens: context.tokens,
+                        createdBy: context.uniqueId,
+                      };
+                    },
+                  }),
+                ],
+              },
+              SELECT_RECIPE_SUGGESTION: {
+                description:
+                  "Generate full recipe if we don't already have this recipe",
+                guard: ({ context, event }) => {
+                  const feedItemId =
+                    context.sessionSnapshot?.context.feedItemIds[
+                      event.itemIndex
+                    ];
+                  assert(feedItemId, "couldnt find feed item id");
+                  const feedItem =
+                    context.sessionSnapshot?.context.feedItemsById[feedItemId];
+                  assert(feedItem, "expected feedItem");
+                  assert(
+                    feedItem.category,
+                    "expected feedItem to have cateogry"
+                  );
+                  assert(feedItem.recipes, "expected feedItem to have recipes");
+                  const recipe = feedItem.recipes[event.recipeIndex];
+                  assert(recipe, "expected to find recipe in feedItem");
+                  assert(recipe.id, "expected to find recipe.name");
+
+                  return !context.recipes[recipe.id];
+                },
+                actions: [
+                  spawnChild("generateFullRecipeFromSuggestion", {
+                    input: ({ context, event }) => {
+                      assertEvent(event, "SELECT_RECIPE_SUGGESTION");
+                      const feedItemId =
+                        context.sessionSnapshot?.context.feedItemIds[
+                          event.itemIndex
+                        ];
+                      assert(feedItemId, "couldnt find feed item id");
+                      const feedItem =
+                        context.sessionSnapshot?.context.feedItemsById[
+                          feedItemId
+                        ];
+                      assert(feedItem, "expected feedItem");
+                      assert(
+                        feedItem.category,
+                        "expected feedItem to have cateogry"
+                      );
+                      assert(
+                        feedItem.recipes,
+                        "expected feedItem to have recipes"
+                      );
+                      const recipe = feedItem.recipes[event.recipeIndex];
+                      assert(recipe, "expected to find recipe in feedItem");
+                      assert(recipe.id, "expected to find recipe.name");
+                      assert(recipe.name, "expected to find recipe.name");
+                      assert(recipe.tagline, "expected to find recipe.tagline");
+
+                      return {
                         id: recipe.id,
+                        category: feedItem.category,
                         name: recipe.name,
-                      }),
-                      complete: true,
-                    };
-                  })
-                ),
-                spawnChild("createNewRecipe", {
-                  input: ({ context, event }) => {
-                    assert(
-                      event.type === "FULL_RECIPE_FROM_SUGGESTION_COMPLETE",
-                      "expected recipe to be created"
-                    );
-                    const recipe = context.recipes[event.id];
-
-                    assert(recipe, "expected recipe with id when reating");
-
-                    return {
-                      recipe,
-                      prompt: "suggestion",
-                      tokens: context.tokens,
-                      createdBy: context.uniqueId,
-                    };
-                  },
-                }),
-              ],
-            },
-            SELECT_RECIPE_SUGGESTION: {
-              description:
-                "Generate full recipe if we don't already have this recipe",
-              guard: ({ context, event }) => {
-                const feedItemId =
-                  context.sessionSnapshot?.context.feedItemIds[event.itemIndex];
-                assert(feedItemId, "couldnt find feed item id");
-                const feedItem =
-                  context.sessionSnapshot?.context.feedItemsById[feedItemId];
-                assert(feedItem, "expected feedItem");
-                assert(feedItem.category, "expected feedItem to have cateogry");
-                assert(feedItem.recipes, "expected feedItem to have recipes");
-                const recipe = feedItem.recipes[event.recipeIndex];
-                assert(recipe, "expected to find recipe in feedItem");
-                assert(recipe.id, "expected to find recipe.name");
-
-                return !context.recipes[recipe.id];
-              },
-              actions: [
-                spawnChild("generateFullRecipeFromSuggestion", {
-                  input: ({ context, event }) => {
-                    assertEvent(event, "SELECT_RECIPE_SUGGESTION");
-                    const feedItemId =
-                      context.sessionSnapshot?.context.feedItemIds[
-                        event.itemIndex
-                      ];
-                    assert(feedItemId, "couldnt find feed item id");
-                    const feedItem =
-                      context.sessionSnapshot?.context.feedItemsById[
-                        feedItemId
-                      ];
-                    assert(feedItem, "expected feedItem");
-                    assert(
-                      feedItem.category,
-                      "expected feedItem to have cateogry"
-                    );
-                    assert(
-                      feedItem.recipes,
-                      "expected feedItem to have recipes"
-                    );
-                    const recipe = feedItem.recipes[event.recipeIndex];
-                    assert(recipe, "expected to find recipe in feedItem");
-                    assert(recipe.id, "expected to find recipe.name");
-                    assert(recipe.name, "expected to find recipe.name");
-                    assert(recipe.tagline, "expected to find recipe.tagline");
-
-                    return {
-                      id: recipe.id,
-                      category: feedItem.category,
-                      name: recipe.name,
-                      tagline: recipe.tagline,
-                    };
-                  },
-                }),
-                assign(({ context, event }) =>
-                  produce(context, (draft) => {
-                    const feedItemId =
-                      context.sessionSnapshot?.context.feedItemIds[
-                        event.itemIndex
-                      ];
-                    assert(feedItemId, "couldnt find feed item id");
-                    const feedItem =
-                      context.sessionSnapshot?.context.feedItemsById[
-                        feedItemId
-                      ];
-                    assert(feedItem, "expected feedItem");
-                    assert(
-                      feedItem.category,
-                      "expected feedItem to have cateogry"
-                    );
-                    assert(
-                      feedItem.recipes,
-                      "expected feedItem to have recipes"
-                    );
-                    const recipe = feedItem.recipes[event.recipeIndex];
-                    assert(recipe, "expected to find recipe in feedItem");
-                    assert(recipe.id, "expected to find recipe.name");
-
-                    // assert(recipe.name, "expected to find recipe.name");
-
-                    draft.recipes[recipe.id] = {
-                      id: recipe.id,
-                      versionId: 0,
-                      started: true,
-                      matchPercent: undefined,
-                      fullStarted: true,
-                      complete: false,
-                      metadataComplete: false,
-                      name: recipe.name,
-                    };
-                  })
-                ),
-              ],
-            },
-          },
-          initial: "Idle",
-          states: {
-            Idle: {
-              on: {
-                SESSION_UPDATE: [
-                  {
-                    target: "Loading",
-                    guard: ({ context, event }) => {
-                      return !!event.snapshot.context.selectedRecipeIds.filter(
-                        (id) => !context.recipes[id]
-                      ).length;
+                        tagline: recipe.tagline,
+                      };
                     },
-                  },
-                  {
-                    target: "Complete",
-                  },
+                  }),
+                  assign(({ context, event }) =>
+                    produce(context, (draft) => {
+                      const feedItemId =
+                        context.sessionSnapshot?.context.feedItemIds[
+                          event.itemIndex
+                        ];
+                      assert(feedItemId, "couldnt find feed item id");
+                      const feedItem =
+                        context.sessionSnapshot?.context.feedItemsById[
+                          feedItemId
+                        ];
+                      assert(feedItem, "expected feedItem");
+                      assert(
+                        feedItem.category,
+                        "expected feedItem to have cateogry"
+                      );
+                      assert(
+                        feedItem.recipes,
+                        "expected feedItem to have recipes"
+                      );
+                      const recipe = feedItem.recipes[event.recipeIndex];
+                      assert(recipe, "expected to find recipe in feedItem");
+                      assert(recipe.id, "expected to find recipe.name");
+
+                      // assert(recipe.name, "expected to find recipe.name");
+
+                      draft.recipes[recipe.id] = {
+                        id: recipe.id,
+                        versionId: 0,
+                        started: true,
+                        matchPercent: undefined,
+                        fullStarted: true,
+                        complete: false,
+                        metadataComplete: false,
+                        name: recipe.name,
+                      };
+                    })
+                  ),
                 ],
               },
             },
-            Loading: {
-              invoke: {
-                src: "getRecipes",
-                input: ({ context, event }) => {
-                  return {
-                    recipeIds: [
-                      ...context.sessionSnapshot?.context.selectedRecipeIds.filter(
-                        (id) => !context.recipes[id]
-                      )!,
-                    ],
-                  };
-                },
-                onDone: {
-                  target: "Complete",
-                  actions: assign(({ context, event }) => {
-                    return produce(context, (draft) => {
-                      event.output.forEach(({ recipe }) => {
-                        if (!draft.recipes[recipe.id]) {
-                          draft.recipes[recipe.id] = {
-                            ...recipe,
-                            matchPercent: undefined,
-                            complete: true,
-                            started: true,
-                            metadataComplete: true,
-                            fullStarted: true,
-                          };
-                        }
-                      });
-                    });
-                  }),
+            initial: "Idle",
+            states: {
+              Idle: {
+                on: {
+                  SESSION_UPDATE: [
+                    {
+                      target: "Loading",
+                      guard: ({ context, event }) => {
+                        return !!event.snapshot.context.selectedRecipeIds.filter(
+                          (id) => !context.recipes[id]
+                        ).length;
+                      },
+                    },
+                    {
+                      target: "Complete",
+                    },
+                  ],
                 },
               },
-            },
-            Complete: {},
-          },
-        },
-      },
-    },
-    ListCreate: {
-      initial: "False",
-      states: {
-        False: {
-          on: {
-            CREATE_LIST: "True",
-          },
-        },
-        True: {
-          on: {
-            CHANGE: {
-              guard: "didChangeListNameInput",
-              actions: assign({
-                listName: ({ event }) => {
-                  return event.value;
-                },
-              }),
-            },
-            SUBMIT: {
-              target: "Saving",
-              // todo guard
-              actions: assign({
-                currentListSlug: ({ context }) => {
-                  const listName = ListNameSchema.parse(context.listName);
-                  return sentenceToSlug(listName);
-                },
-              }),
-            },
-          },
-        },
-        Saving: {
-          invoke: {
-            src: "createNewList",
-            input: ({ context, event }) => {
-              const listName = ListNameSchema.parse(context.listName);
-              assert("caller" in event, "expected caller in event");
-
-              const recipeIdsToAdd =
-                context.sessionSnapshot?.context.selectedRecipeIds;
-              assert(recipeIdsToAdd, "expected recipeIds to add");
-
-              return {
-                listName,
-                userId: event.caller.id,
-                recipeIdsToAdd,
-              };
-            },
-            onDone: {
-              actions: assign({
-                listsBySlug: ({ context, event }) =>
-                  produce(context.listsBySlug, (draft) => {
-                    assert(draft, "expected lists to be fetched alredy");
-                    draft[event.output.slug] = {
-                      ...event.output,
-                      recipeCount: 1,
+              Loading: {
+                invoke: {
+                  src: "getRecipes",
+                  input: ({ context, event }) => {
+                    return {
+                      recipeIds: [
+                        ...context.sessionSnapshot?.context.selectedRecipeIds.filter(
+                          (id) => !context.recipes[id]
+                        )!,
+                      ],
                     };
-                  }),
-              }),
+                  },
+                  onDone: {
+                    target: "Complete",
+                    actions: assign(({ context, event }) => {
+                      return produce(context, (draft) => {
+                        event.output.forEach(({ recipe }) => {
+                          if (!draft.recipes[recipe.id]) {
+                            draft.recipes[recipe.id] = {
+                              ...recipe,
+                              matchPercent: undefined,
+                              complete: true,
+                              started: true,
+                              metadataComplete: true,
+                              fullStarted: true,
+                            };
+                          }
+                        });
+                      });
+                    }),
+                  },
+                },
+              },
+              Complete: {},
             },
-            // actions: [
-            //   assign({
-            //     currentListSlug: ({ context }) => {
-            //       const listName = ListNameSchema.parse(
-            //         context.listName
-            //       );
-            //       // todo verify this somewhere that its unique
-            //       return listName;
-            //     },
-            //   }),
-            // ],
           },
+        },
+      },
+      ListCreate: {
+        initial: "False",
+        states: {
+          False: {
+            on: {
+              CREATE_LIST: "True",
+            },
+          },
+          True: {
+            on: {
+              CHANGE: {
+                guard: "didChangeListNameInput",
+                actions: assign({
+                  listName: ({ event }) => {
+                    return event.value;
+                  },
+                }),
+              },
+              SUBMIT: {
+                target: "Saving",
+                // todo guard
+                actions: assign({
+                  currentListSlug: ({ context }) => {
+                    const listName = ListNameSchema.parse(context.listName);
+                    return sentenceToSlug(listName);
+                  },
+                }),
+              },
+            },
+          },
+          Saving: {
+            invoke: {
+              src: "createNewList",
+              input: ({ context, event }) => {
+                const listName = ListNameSchema.parse(context.listName);
+                assert("caller" in event, "expected caller in event");
 
-          // spawnChild("createNewList", {
-          //   input: ({ context, event }) => {
-          //     const listName = ListNameSchema.parse(
-          //       context.listName
-          //     );
-          //     assert(
-          //       "caller" in event,
-          //       "expected caller in event"
-          //     );
+                const recipeIdsToAdd =
+                  context.sessionSnapshot?.context.selectedRecipeIds;
+                assert(recipeIdsToAdd, "expected recipeIds to add");
 
-          //     const recipeIdToAdd =
-          //       context.suggestedRecipes[
-          //         context.currentItemIndex
-          //       ];
-          //     assert(
-          //       recipeIdToAdd,
-          //       "expected recipeToAdd when creating list"
-          //     );
+                return {
+                  listName,
+                  userId: event.caller.id,
+                  recipeIdsToAdd,
+                };
+              },
+              onDone: {
+                actions: assign({
+                  listsBySlug: ({ context, event }) =>
+                    produce(context.listsBySlug, (draft) => {
+                      assert(draft, "expected lists to be fetched alredy");
+                      draft[event.output.slug] = {
+                        ...event.output,
+                        recipeCount: 1,
+                      };
+                    }),
+                }),
+              },
+              // actions: [
+              //   assign({
+              //     currentListSlug: ({ context }) => {
+              //       const listName = ListNameSchema.parse(
+              //         context.listName
+              //       );
+              //       // todo verify this somewhere that its unique
+              //       return listName;
+              //     },
+              //   }),
+              // ],
+            },
 
-          //     return {
-          //       listName,
-          //       userId: event.caller.id,
-          //       recipeIdToAdd,
-          //     };
-          //   },
-          // }),
+            // spawnChild("createNewList", {
+            //   input: ({ context, event }) => {
+            //     const listName = ListNameSchema.parse(
+            //       context.listName
+            //     );
+            //     assert(
+            //       "caller" in event,
+            //       "expected caller in event"
+            //     );
+
+            //     const recipeIdToAdd =
+            //       context.suggestedRecipes[
+            //         context.currentItemIndex
+            //       ];
+            //     assert(
+            //       recipeIdToAdd,
+            //       "expected recipeToAdd when creating list"
+            //     );
+
+            //     return {
+            //       listName,
+            //       userId: event.caller.id,
+            //       recipeIdToAdd,
+            //     };
+            //   },
+            // }),
+          },
         },
       },
     },
-  },
-});
+  });
+  return pageSessionMachine;
+};
 
-export type PageSessionMachine = typeof pageSessionMachine;
+export type PageSessionMachine = ReturnType<typeof createPageSessionMachine>;
 export type PageSessionSnapshot = SnapshotFrom<PageSessionMachine>;
 export type PageSessionState = StateValueFrom<PageSessionMachine>;
 

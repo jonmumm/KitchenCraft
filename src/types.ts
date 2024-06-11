@@ -4,7 +4,7 @@ import { Operation } from "fast-json-patch";
 import type * as Party from "partykit/server";
 import { PostHog } from "posthog-node";
 import { Observable } from "rxjs";
-import { AnyStateMachine, SnapshotFrom } from "xstate";
+import { AnyStateMachine, SnapshotFrom, StateMachine } from "xstate";
 import type { z } from "zod";
 import { FeedTopicsEvent } from "./app/feed-topics.stream";
 import { HomepageCategoriesEvent } from "./app/homepage-categories.stream";
@@ -490,7 +490,6 @@ export type SessionContext = {
   userId: string;
   authenticated: boolean;
   experienceLevel?: ExperienceLevel;
-  storage: Party.Storage;
   groceryStores?: string;
   shoppingFrequency?: string;
   typicalGroceries?: string;
@@ -571,4 +570,20 @@ export type PartyMap = Record<
   {
     get(id: string): Party.Stub;
   }
+>;
+
+
+type WithIdInput = { id: string };
+export type AnyStateMachineWithIdInput = StateMachine<
+  any, // context
+  any, // event
+  any, // children
+  any, // actor
+  any, // action
+  any, // guard
+  any, // delay
+  any, // state value
+  any, // tag
+  WithIdInput, // input, now explicitly requiring an object with an id of type string
+  any // output
 >;

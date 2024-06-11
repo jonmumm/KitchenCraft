@@ -1,7 +1,11 @@
-import { createMachineServer } from "@/lib/actor-kit";
+import { createMachineServer } from "@/lib/actor-kit/createMachineServer";
 import { AppEventSchema } from "@/schema";
-import { sessionMachine } from "./session-machine";
+import { createSessionMachine } from "./session-machine";
 
-const SessionServer = createMachineServer(sessionMachine, AppEventSchema);
+const SessionServer = createMachineServer(
+  createSessionMachine,
+  AppEventSchema,
+  true
+);
 
 export default SessionServer;

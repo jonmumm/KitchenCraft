@@ -1,5 +1,5 @@
 import { pageSessionMachine } from "@/app/page-session-machine";
-import { createActorHTTPClient } from "@/lib/actor-kit";
+import { createActorHTTPClient } from "@/lib/actor-kit/createActorHTTPClient";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { verifyToken } from "@/lib/jwt-tokens";
 import assert from "assert";

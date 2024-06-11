@@ -4,7 +4,7 @@ import { userMachine } from "@/app/user-machine";
 import { getProfileByUserId } from "@/db/queries";
 import { getServerSession } from "next-auth";
 import { cache } from "react";
-import { createActorHTTPClient } from "../actor-kit";
+import { createActorHTTPClient } from "../actor-kit/createActorHTTPClient";
 import { withSpan } from "../observability";
 import { getGuestId, getUserId } from "../session";
 import { authOptions } from "./options";
