@@ -1,132 +1,115 @@
+"use client";
+
 import { ModeToggle } from "@/components/dark-mode-toggle";
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
-import { Skeleton } from "@/components/display/skeleton";
-import { Progress } from "@/components/feedback/progress";
 import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
-import { AsyncRenderFirstValue } from "@/components/util/async-render-first-value";
-import { RenderFirstValue } from "@/components/util/render-first-value";
 import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditional-renderer";
-import { db } from "@/db";
+import { UserSnapshotConditionalRenderer } from "@/components/util/user-snapshot-conditional-renderer";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import {
-  getActiveSubscriptionForUserId,
-  getMembersBySubscriptionId,
-  getProfileByUserId,
-} from "@/db/queries";
-import { getNextAuthSession } from "@/lib/auth/session";
+  selectProfileName,
+  selectUserEmail,
+} from "@/selectors/page-session.selectors";
 import { ChefHatIcon, GithubIcon, YoutubeIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
 import { FaDiscord } from "react-icons/fa";
-import {
-  Observable,
-  combineLatest,
-  from,
-  map,
-  of,
-  shareReplay,
-  switchMap,
-  take,
-} from "rxjs";
 import {
   AppInstallContainer,
   NotificationsSetting,
   NotificationsSwitch,
 } from "./components.client";
 
-export async function MainMenu({ className }: { className?: string }) {
-  const session = await getNextAuthSession();
+export function MainMenu({ className }: { className?: string }) {
+  const profileSlug = usePageSessionSelector(selectProfileName);
 
-  const userId = session?.user.id;
-  const email = session?.user.email;
-  let profileSlug: string | undefined;
+  const email = usePageSessionSelector(selectUserEmail);
+
   // let stripeCustomerId$: Observable<string | undefined>;
-  let activeSubscription$: Observable<
-    { id: number; managingUserId: string } | undefined
-  >;
+  // let activeSubscription$: Observable<
+  //   { id: number; managingUserId: string } | undefined
+  // >;
 
-  if (userId) {
-    profileSlug = (await getProfileByUserId(userId))?.profileSlug;
-    // stripeCustomerId$ = from(getStripeCustomerId(db, userId)).pipe(
-    //   shareReplay(1)
-    // );
-    activeSubscription$ = from(getActiveSubscriptionForUserId(db, userId)).pipe(
-      shareReplay(1)
-    );
-  } else {
-    // stripeCustomerId$ = of(undefined);
-    activeSubscription$ = of(undefined);
-  }
+  // if (userId) {
+  //   profileSlug = (await getProfileByUserId(userId))?.profileSlug;
+  //   // stripeCustomerId$ = from(getStripeCustomerId(db, userId)).pipe(
+  //   //   shareReplay(1)
+  //   // );
+  //   activeSubscription$ = from(getActiveSubscriptionForUserId(db, userId)).pipe(
+  //     shareReplay(1)
+  //   );
+  // } else {
+  //   // stripeCustomerId$ = of(undefined);
+  //   activeSubscription$ = of(undefined);
+  // }
 
-  const quotaLimit$ = of(3);
-  const usage$ = of(1);
-  const memberCount$ = activeSubscription$.pipe(
-    switchMap((s) => from(getMembersBySubscriptionId(db, s?.id!))),
-    map((members) => members.length),
-    take(1)
-  );
-  const memberCountLimit$ = of(5);
+  // const usage$ = of(1);
+  // const memberCount$ = activeSubscription$.pipe(
+  //   switchMap((s) => from(getMembersBySubscriptionId(db, s?.id!))),
+  //   map((members) => members.length),
+  //   take(1)
+  // );
+  // const memberCountLimit$ = of(5);
 
-  const SubscriptionMemberCountCurrent = () => {
-    return (
-      <AsyncRenderFirstValue
-        observable={memberCount$}
-        render={(memberCount) => {
-          return <>{memberCount}</>;
-        }}
-        fallback={<Skeleton className="w-4 h-4" />}
-      />
-    );
-  };
+  // const SubscriptionMemberCountCurrent = () => {
+  //   return (
+  //     <AsyncRenderFirstValue
+  //       observable={memberCount$}
+  //       render={(memberCount) => {
+  //         return <>{memberCount}</>;
+  //       }}
+  //       fallback={<Skeleton className="w-4 h-4" />}
+  //     />
+  //   );
+  // };
 
-  const SubscriptionMemberCountLimit = () => {
-    return (
-      <AsyncRenderFirstValue
-        observable={memberCountLimit$}
-        render={(limit) => {
-          return <>{limit}</>;
-        }}
-        fallback={<Skeleton className="w-4 h-4" />}
-      />
-    );
-  };
+  // const SubscriptionMemberCountLimit = () => {
+  //   return (
+  //     <AsyncRenderFirstValue
+  //       observable={memberCountLimit$}
+  //       render={(limit) => {
+  //         return <>{limit}</>;
+  //       }}
+  //       fallback={<Skeleton className="w-4 h-4" />}
+  //     />
+  //   );
+  // };
 
   return (
     <>
-      <SessionSnapshotConditionalRenderer
-        matchedState={{ Auth: "Authenticated" }}
-        not
+      <UserSnapshotConditionalRenderer
+        matchedState={{ Email: { Saved: "False" } }}
       >
         <Button size="xl" event={{ type: "SIGN_IN" }}>
           Sign In
         </Button>
         <Separator />
-      </SessionSnapshotConditionalRenderer>
-      <SessionSnapshotConditionalRenderer
-        matchedState={{ Auth: "Authenticated" }}
+      </UserSnapshotConditionalRenderer>
+      <UserSnapshotConditionalRenderer
+        matchedState={{ Email: { Saved: "True" } }}
       >
         <div className="flex flex-col gap-1 items-center justify-center">
           <Label className="uppercase text-xs font-bold text-accent-foreground">
             Chef
           </Label>
           <div className="flex flex-col gap-2 items-center justify-center">
-            <Link href={`/@${profileSlug}`}>
-              <Badge variant="outline">
-                <h3 className="font-bold text-xl">
-                  <div className="flex flex-col gap-1 items-center">
-                    <div className="flex flex-row gap-1 items-center">
-                      <ChefHatIcon />
-                      <span>
-                        <span className="underline">{profileSlug}</span>
-                      </span>
-                    </div>
+            {/* <Link href={`/@${profileSlug}`}> */}
+            <Badge variant="outline">
+              <h3 className="font-bold text-xl">
+                <div className="flex flex-col gap-1 items-center">
+                  <div className="flex flex-row gap-1 items-center">
+                    <ChefHatIcon />
+                    <span>
+                      <span className="underline">{profileSlug}</span>
+                    </span>
                   </div>
-                </h3>
-              </Badge>{" "}
-            </Link>
+                </div>
+              </h3>
+            </Badge>
+            {/* </Link> */}
             <Link
               href={`/@${profileSlug}`}
               className="text-muted-foreground text-xs"
@@ -243,7 +226,7 @@ export async function MainMenu({ className }: { className?: string }) {
             }}
             fallback={<Skeleton className="h-12 w-full" />}
           /> */}
-        <div className="flex flex-row gap-3 items-center justify-between">
+        {/* <div className="flex flex-row gap-3 items-center justify-between">
           <Label className="uppercase text-xs font-bold text-accent-foreground">
             Subscription
           </Label>
@@ -293,8 +276,8 @@ export async function MainMenu({ className }: { className?: string }) {
               />
             </Suspense>
           </div>
-        </div>
-        <Separator />
+        </div> */}
+        {/* <Separator />
         <Suspense fallback={null}>
           <RenderFirstValue
             observable={activeSubscription$}
@@ -318,8 +301,8 @@ export async function MainMenu({ className }: { className?: string }) {
               );
             }}
           />
-        </Suspense>
-        <NotificationsSetting>
+        </Suspense> */}
+        {/* <NotificationsSetting>
           <div className="flex flex-row gap-3 items-center justify-between">
             <Label className="uppercase text-xs font-bold text-accent-foreground">
               Notifications
@@ -329,17 +312,15 @@ export async function MainMenu({ className }: { className?: string }) {
             </div>
           </div>
           <Separator />
-        </NotificationsSetting>
-      </SessionSnapshotConditionalRenderer>
+        </NotificationsSetting> */}
+      </UserSnapshotConditionalRenderer>
       <div className="flex flex-row gap-1 items-center justify-between">
         <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
           Theme
         </Label>
         <ModeToggle />
       </div>
-      <SessionSnapshotConditionalRenderer
-        matchedState={{ Auth: "Authenticated" }}
-      >
+      <UserSnapshotConditionalRenderer matchedState={{ Email: "Saved" }}>
         <Separator />
         <div className="flex justify-center">
           <Button
@@ -350,7 +331,7 @@ export async function MainMenu({ className }: { className?: string }) {
             Sign Out
           </Button>
         </div>
-      </SessionSnapshotConditionalRenderer>
+      </UserSnapshotConditionalRenderer>
       <Separator />
       <div className="flex flex-row gap-2 justify-center">
         <div className="flex flex-row justify-center gap-2">

@@ -49,7 +49,7 @@ const emailFormSchema = z.object({
 });
 
 const profileNameFormSchema = z.object({
-  profileName: z.string().min(3).max(20),
+  profileName: z.string().min(3).max(30),
 });
 
 export default function Results() {
@@ -61,15 +61,17 @@ export default function Results() {
     Onboarding: { Summary: "Topics" },
   });
   const isEmailAddressInUse = useUserMatchesState({
-    Onboarding: { Summary: { Email: "InUse" } },
+    Email: { Availability: "Unavailable" },
   });
   const isSendingWelcomeEmail = useUserMatchesState({
-    Onboarding: { Summary: { Email: "Sending" } },
+    Email: { WelcomeEmail: "Sending" },
   });
-  const isOnEmail = useUserMatchesState({
-    Onboarding: { Summary: "Email" },
+  const isWelcomeEmailSent = useUserMatchesState({
+    Email: { WelcomeEmail: "Sent" },
   });
-  const isWelcomeEmailSent = !isOnEmail && !isSelectingTopics;
+  const isInputtingProfileName = useUserMatchesState({
+    Onboarding: { Summary: "ProfileName" },
+  });
 
   const [isEmailInputComplete, setIsEmailInputComplete] = useState(false);
   const emailForm = useForm({
@@ -271,7 +273,7 @@ export default function Results() {
           </Delay>
         </>
       )}
-      {isWelcomeEmailSent && (
+      {isInputtingProfileName && (
         <Delay delay={0}>
           <Card>
             <CardHeader>

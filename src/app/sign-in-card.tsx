@@ -25,7 +25,7 @@ import { Button } from "@/components/input/button";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSend } from "@/hooks/useSend";
 import { useSessionMatchesState } from "@/hooks/useSessionMatchesState";
-import { selectSessionEmail } from "@/selectors/page-session.selectors";
+import { selectUserEmail } from "@/selectors/page-session.selectors";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -67,7 +67,7 @@ function SignInForm() {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: selectSessionEmail(store.get()) || "",
+      email: selectUserEmail(store.get()) || "",
     },
   });
   const send = useSend();

@@ -26,7 +26,7 @@ import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
-import { selectSessionEmail } from "@/selectors/page-session.selectors";
+import { selectUserEmail } from "@/selectors/page-session.selectors";
 import { ExternalLinkIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { ClipboardEventHandler, useCallback, useEffect, useState } from "react";
@@ -44,7 +44,7 @@ export default function EmailCodeCard() {
   //       ? "https://mail.google.com"
   //       : "googlegmail://"
   //     : undefined;
-  const email = usePageSessionSelector(selectSessionEmail);
+  const email = usePageSessionSelector(selectUserEmail);
 
   return (
     <Card className="overflow-x-hidden">

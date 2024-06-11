@@ -1,3 +1,4 @@
+import { sendWelcomeEmail } from "@/actors/sendWelcomeEmail";
 import { ProfileSchema, ProfileTable, UsersTable } from "@/db";
 import { getPersonalizationContext } from "@/lib/llmContext";
 import { assert } from "@/lib/utils";
@@ -10,11 +11,13 @@ import * as Party from "partykit/server";
 import {
   SnapshotFrom,
   StateValueFrom,
+  and,
   assign,
   fromEventObservable,
   fromPromise,
   setup,
   spawnChild,
+  stateIn,
 } from "xstate";
 import { z } from "zod";
 import { FeedTopicsStream } from "./feed-topics.stream";
@@ -36,6 +39,35 @@ export const userMachine = setup({
     events: {} as UserEvent,
   },
   actors: {
+    setEmailOnUser: fromPromise(
+      async ({ input }: { input: { userId: string; email: string } }) => {
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          await db
+            .update(UsersTable)
+            .set({ email: input.email })
+            .where(eq(UsersTable.id, input.userId))
+            .execute();
+        } finally {
+          await client.end();
+        }
+      }
+    ),
+    createUser: fromPromise(
+      async ({ input }: { input: { userId: string } }) => {
+        const client = createClient();
+        await client.connect();
+        const db = drizzle(client);
+        try {
+          await db.insert(UsersTable).values({ id: input.userId }).execute();
+          return null;
+        } finally {
+          await client.end();
+        }
+      }
+    ),
     checkIfEmailAvailable: fromPromise(
       async ({ input }: { input: { email: string } }) => {
         const client = createClient();
@@ -84,11 +116,7 @@ export const userMachine = setup({
       ({ input }: { input: SuggestProfileNamesInput }) =>
         new SuggestProfileNamesStream().getObservable(input)
     ),
-    sendWelcomeEmail: fromPromise(
-      async ({ input }: { input: { email: string } }) => {
-        return "";
-      }
-    ),
+    sendWelcomeEmail,
   },
   guards: {
     didChangeProfileNameInput: ({ context, event }) => {
@@ -121,6 +149,180 @@ export const userMachine = setup({
       states: {
         Ready: {
           type: "final",
+        },
+      },
+    },
+    UserRow: {
+      initial: "NotExists",
+      states: {
+        NotExists: {
+          on: {
+            HEARTBEAT: "Creating",
+          },
+        },
+        Creating: {
+          invoke: {
+            src: "createUser",
+            input: ({ context, event }) => {
+              return {
+                userId: context.id,
+              };
+            },
+            onDone: "Created",
+          },
+        },
+        Error: {
+          on: {
+            HEARTBEAT: "Creating",
+          },
+        },
+        Created: {},
+      },
+    },
+    ProfileName: {
+      initial: "Uninitialized",
+      states: {
+        Uninitialized: {},
+        Checking: {},
+        Claimed: {},
+      },
+    },
+
+    Email: {
+      type: "parallel",
+      states: {
+        Availability: {
+          initial: "Uninitialized",
+          states: {
+            Uninitialized: {
+              on: {
+                CHANGE: {
+                  target: "Inputting",
+                  guard: "didChangeEmailInput",
+                  actions: assign({
+                    email: ({ event }) => event.value,
+                  }),
+                },
+              },
+            },
+            Inputting: {
+              on: {
+                SUBMIT: {
+                  target: "Checking",
+                  guard: ({ context }) =>
+                    z.string().email().safeParse(context.email).success,
+                },
+                CHANGE: {
+                  reenter: true,
+                  target: "Inputting",
+                  guard: "didChangeEmailInput",
+                  actions: assign({
+                    email: ({ event }) => event.value,
+                  }),
+                },
+              },
+            },
+            Checking: {
+              invoke: {
+                src: "checkIfEmailAvailable",
+                input: ({ context }) => {
+                  assert(context.email, "expected email when checking");
+                  return {
+                    email: context.email,
+                  };
+                },
+                onDone: [
+                  {
+                    guard: ({ event }) => event.output,
+                    target: "Available",
+                  },
+                  {
+                    target: "Unavailable",
+                  },
+                ],
+              },
+            },
+            Unavailable: {
+              on: {
+                CHANGE: {
+                  target: "Inputting",
+                  guard: "didChangeEmailInput",
+                  actions: assign({
+                    email: ({ event }) => event.value,
+                  }),
+                },
+              },
+            },
+            Available: {},
+          },
+        },
+
+        WelcomeEmail: {
+          initial: "Unsent",
+          states: {
+            Unsent: {
+              always: {
+                target: "Sending",
+                guard: stateIn({ Email: { Availability: "Available" } }),
+              },
+            },
+            Sending: {
+              invoke: {
+                src: "sendWelcomeEmail",
+                input: ({ context, event }) => {
+                  const email = z.string().email().parse(context.email);
+                  return { email };
+                },
+                onDone: "Sent",
+              },
+            },
+            Sent: {
+              type: "final",
+            },
+          },
+        },
+        Verification: {
+          initial: "Unverified",
+          states: {
+            Unverified: {
+              on: {
+                // Link click?
+                // Can we send a system event
+              },
+            },
+            Verified: {},
+          },
+        },
+        Saved: {
+          initial: "False",
+          states: {
+            False: {
+              always: {
+                target: "InProgress",
+                guard: and([
+                  stateIn({ Email: { Availability: "Available" } }),
+                  stateIn({ UserRow: "Created" }),
+                ]),
+              },
+            },
+            InProgress: {
+              invoke: {
+                src: "setEmailOnUser",
+                onDone: "True",
+                input: ({ context, event }) => {
+                  const email = z.string().email().parse(context.email);
+
+                  return {
+                    userId: context.id,
+                    email,
+                  };
+                },
+              },
+            },
+            True: {
+              type: "final",
+            },
+          },
         },
       },
     },
@@ -318,78 +520,28 @@ export const userMachine = setup({
               },
             },
             Email: {
-              onDone: "ProfileName",
-              on: {
-                CHANGE: {
-                  target: ".Inputting",
-                  guard: "didChangeEmailInput",
-                  actions: assign({
-                    email: ({ event }) => event.value,
-                  }),
-                },
-                SUBMIT: {
-                  guard: ({ context }) =>
-                    z.string().email().safeParse(context.email).success,
-                  target: ".Checking",
-                },
-              },
-              initial: "Inputting",
-              states: {
-                Inputting: {},
-                Checking: {
-                  invoke: {
-                    src: "checkIfEmailAvailable",
-                    input: ({ context }) => {
-                      assert(context.email, "expected email when checking");
-                      return {
-                        email: context.email,
-                      };
-                    },
-                    onDone: [
-                      {
-                        guard: ({ event }) => event.output,
-                        target: "Sending",
-                      },
-                      {
-                        target: "InUse",
-                      },
-                    ],
-                  },
-                },
-                InUse: {},
-                Sending: {
-                  entry: spawnChild("generateProfileNameSuggestions", {
-                    input: ({ context, event }) => {
-                      assert(
-                        context.email,
-                        "expected email when generating profile name suggestions"
+              always: {
+                target: "ProfileName",
+                guard: stateIn({ Email: { Availability: "Available" } }),
+                actions: spawnChild("generateProfileNameSuggestions", {
+                  input: ({ context }) => {
+                    assert(
+                      context.email,
+                      "expected email when generating profile name suggestions"
+                    );
+                    const previousSuggestions =
+                      context.previousSuggestedProfileNames.concat(
+                        context.suggestedProfileNames
                       );
-                      return {
-                        email: context.email,
-                        previousSuggestions: [],
-                        preferences: context.preferenceQuestionResults,
-                        personalizationContext:
-                          getPersonalizationContext(context),
-                      };
-                    },
-                  }),
-                  invoke: {
-                    src: "sendWelcomeEmail",
-                    input: ({ context }) => {
-                      assert(
-                        context.email,
-                        "expected email when sending welcome email"
-                      );
-                      return {
-                        email: context.email,
-                      };
-                    },
-                    onDone: "Sent",
+                    return {
+                      email: context.email,
+                      previousSuggestions,
+                      preferences: {},
+                      personalizationContext:
+                        "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
+                    };
                   },
-                },
-                Sent: {
-                  type: "final",
-                },
+                }),
               },
             },
             ProfileName: {
