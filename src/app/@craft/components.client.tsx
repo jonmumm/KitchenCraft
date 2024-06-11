@@ -51,7 +51,7 @@ import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-s
 import { z } from "zod";
 import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
-import { SessionStoreSnapshot } from "../page-session-store-provider";
+import { PageSessionStoreSnapshot } from "../page-session-store-provider";
 import { PageSessionContext } from "../page-session-store.context";
 import { buildInput, isEqual } from "../utils";
 import { SuggestedRecipeCard } from "./suggested-recipe-craft.component";
@@ -1171,7 +1171,7 @@ export const BadgeList = ({ children }: { children: ReactNode }) => {
   return <div className="px-4 flex flex-row gap-2 flex-wrap">{children}</div>;
 };
 
-const selectSuggestedIngredients = (snapshot: SessionStoreSnapshot) => {
+const selectSuggestedIngredients = (snapshot: PageSessionStoreSnapshot) => {
   return (
     snapshot.context.sessionSnapshot?.context.suggestedIngredients || []
   );
@@ -1228,12 +1228,12 @@ export const SuggestedIngredientsSection = () => {
   );
 };
 
-const selectSuggestedTags = (snapshot: SessionStoreSnapshot) => {
+const selectSuggestedTags = (snapshot: PageSessionStoreSnapshot) => {
   return snapshot.context.sessionSnapshot?.context.suggestedTags || [];
 };
 
 const selectIsGeneratingSuggestedIngredients = (
-  snapshot: SessionStoreSnapshot
+  snapshot: PageSessionStoreSnapshot
 ) => {
   const value = snapshot.context.sessionSnapshot?.value;
   return (
@@ -1243,7 +1243,7 @@ const selectIsGeneratingSuggestedIngredients = (
   );
 };
 
-const selectIsGeneratingSuggestedTags = (snapshot: SessionStoreSnapshot) => {
+const selectIsGeneratingSuggestedTags = (snapshot: PageSessionStoreSnapshot) => {
   const value = snapshot.context.sessionSnapshot?.value;
   return (
     typeof value?.Suggestions === "object" &&

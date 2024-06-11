@@ -1,6 +1,4 @@
-import { pageSessionMachine } from "@/app/page-session-machine";
-import { sessionMachine } from "@/app/session-machine";
-import { userMachine } from "@/app/user-machine";
+import type { SessionMachine } from "@/app/session-machine";
 import { getProfileByUserId } from "@/db/queries";
 import { getServerSession } from "next-auth";
 import { cache } from "react";
@@ -8,6 +6,8 @@ import { createActorHTTPClient } from "../actor-kit/createActorHTTPClient";
 import { withSpan } from "../observability";
 import { getGuestId, getUserId } from "../session";
 import { authOptions } from "./options";
+import { PageSessionMachine } from "@/app/page-session-machine";
+import { UserMachine } from "@/app/user-machine";
 
 export const getNextAuthSession = withSpan(
   cache(async () => {
@@ -43,7 +43,7 @@ export const getUniqueIdType = withSpan(
 
 export const getUserActorClient = withSpan(
   cache(async () => {
-    return createActorHTTPClient<typeof userMachine, "user">({
+    return createActorHTTPClient<UserMachine, "user">({
       type: "user",
       caller: {
         id: getUserId(),
@@ -56,7 +56,7 @@ export const getUserActorClient = withSpan(
 
 export const getSessionActorClient = withSpan(
   cache(async () => {
-    return createActorHTTPClient<typeof sessionMachine, "user">({
+    return createActorHTTPClient<SessionMachine, "user">({
       type: "session",
       caller: {
         id: getUserId(),
@@ -69,7 +69,7 @@ export const getSessionActorClient = withSpan(
 
 export const getPageSessionActorClient = withSpan(
   cache(async () => {
-    return createActorHTTPClient<typeof pageSessionMachine, "user">({
+    return createActorHTTPClient<PageSessionMachine, "user">({
       type: "page_session",
       caller: {
         id: getUserId(),

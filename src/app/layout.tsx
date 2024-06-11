@@ -51,7 +51,7 @@ import {
   UpgradeAccountCard,
 } from "./components.client";
 import EmailCodeCard from "./email-code-card";
-import { SessionStoreProvider } from "./page-session-store-provider";
+import { PageSessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
 import { SignInCard } from "./sign-in-card";
 import "./styles.css";
@@ -178,7 +178,7 @@ export default async function RootLayout(
       </head>
       {/* // TODO allow server-actor to send events before rendering... */}
       {/* Enables server to centralize logic in a machine across routes */}
-      <SessionStoreProvider initial={snapshot}>
+      <PageSessionStoreProvider initial={snapshot}>
         <ApplicationProvider
           nextAuthSession={nextAuthSession}
           appSessionId={parseCookie("appSessionId")}
@@ -226,7 +226,7 @@ export default async function RootLayout(
             </Body>
           </ActorProvider>
         </ApplicationProvider>
-      </SessionStoreProvider>
+      </PageSessionStoreProvider>
     </html>
   );
 }

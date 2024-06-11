@@ -1,4 +1,4 @@
-import { pageSessionMachine } from "@/app/page-session-machine";
+import type { PageSessionMachine } from "@/app/page-session-machine";
 import { createActorHTTPClient } from "@/lib/actor-kit/createActorHTTPClient";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { verifyToken } from "@/lib/jwt-tokens";
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const userId = await getCurrentUserId();
   assert(userId, "expected userId");
 
-  const client = createActorHTTPClient<typeof pageSessionMachine, "system">({
+  const client = createActorHTTPClient<PageSessionMachine, "system">({
     type: "page_session",
     caller: {
       id: randomUUID(),
