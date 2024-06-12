@@ -1,4 +1,6 @@
+import { PageSessionMachine } from "@/app/page-session-machine";
 import type { SessionMachine } from "@/app/session-machine";
+import { UserMachine } from "@/app/user-machine";
 import { getProfileByUserId } from "@/db/queries";
 import { getServerSession } from "next-auth";
 import { cache } from "react";
@@ -6,8 +8,6 @@ import { createActorHTTPClient } from "../actor-kit/createActorHTTPClient";
 import { withSpan } from "../observability";
 import { getGuestId, getUserId } from "../session";
 import { authOptions } from "./options";
-import { PageSessionMachine } from "@/app/page-session-machine";
-import { UserMachine } from "@/app/user-machine";
 
 export const getNextAuthSession = withSpan(
   cache(async () => {

@@ -3,8 +3,8 @@
 import { atom } from "nanostores";
 import { ReactNode, useState } from "react";
 import { ActorRefFrom, SnapshotFrom } from "xstate";
-import { PageSessionContext } from "./page-session-store.context";
 import { PageSessionMachine } from "./page-session-machine";
+import { PageSessionContext } from "./page-session-store.context";
 
 export type PageSessionStoreSnapshot = SnapshotFrom<
   ActorRefFrom<PageSessionMachine>
