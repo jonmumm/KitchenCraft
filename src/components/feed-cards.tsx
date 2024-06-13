@@ -585,7 +585,7 @@ export const MyRecipeLists = () => {
               </MyRecipeListItemRecipeCount>
             </MyRecipeListItemContent>
           </MyRecipeListItemCard>
-          {new Array(4).fill(0).map((items, index) => {
+          {new Array(3).fill(0).map((items, index) => {
             return (
               <MyRecipeListItemCard variant="locontrast" key={index}>
                 <MyRecipeListItemContent className="flex flex-col gap-2 justify-end h-full py-4 text-muted-foreground text-sm">
@@ -597,6 +597,16 @@ export const MyRecipeLists = () => {
               </MyRecipeListItemCard>
             );
           })}
+          <Separator orientation="vertical" />
+          <MyRecipeListItemCard variant="locontrast">
+            <MyRecipeListItemContent>
+              <span className="text-lg">➕</span>
+              <MyRecipeListItemTitle>Create</MyRecipeListItemTitle>
+              <MyRecipeListItemRecipeCount>
+                New List
+              </MyRecipeListItemRecipeCount>
+            </MyRecipeListItemContent>
+          </MyRecipeListItemCard>
         </div>
       </div>
     </div>
