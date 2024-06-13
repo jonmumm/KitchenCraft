@@ -18,7 +18,7 @@ import {
   MoreVerticalIcon,
   ScrollIcon,
   ShoppingBasketIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo } from "react";
@@ -32,7 +32,7 @@ import {
   CardTitle,
 } from "./display/card";
 import { Separator } from "./display/separator";
-import { SkeletonSentence } from "./display/skeleton";
+import { Skeleton, SkeletonSentence } from "./display/skeleton";
 import { ExitButton } from "./exit-button";
 import { Ingredients } from "./ingredients";
 import { Button } from "./input/button";
@@ -585,6 +585,18 @@ export const MyRecipeLists = () => {
               </MyRecipeListItemRecipeCount>
             </MyRecipeListItemContent>
           </MyRecipeListItemCard>
+          {new Array(4).fill(0).map((items, index) => {
+            return (
+              <MyRecipeListItemCard variant="locontrast" key={index}>
+                <MyRecipeListItemContent className="flex flex-col gap-2 justify-end h-full py-4 text-muted-foreground text-sm">
+                  {/* Empty */}
+                  <SkeletonSentence numWords={1} className="h-4 animate-none" />
+                  <Skeleton className="w-10 h-3 animate-none" />
+                  {/* <Badge variant="secondary">New List</Badge> */}
+                </MyRecipeListItemContent>
+              </MyRecipeListItemCard>
+            );
+          })}
         </div>
       </div>
     </div>
