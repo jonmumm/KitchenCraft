@@ -9,6 +9,7 @@ import { SkeletonSentence } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { getTimezone } from "@/lib/headers";
 import { CheckIcon, RefreshCwIcon } from "lucide-react";
+import { MyRecipesSection } from "./my-recipes-section";
 
 export default function Loading() {
   const timezone = getTimezone();
@@ -20,7 +21,8 @@ export default function Loading() {
   });
 
   return (
-    <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
+    <div className="flex flex-col sm:gap-4 mt-0 sm:mt-10">
+      <MyRecipesSection />
       <div className="px-4 mt-8 max-w-3xl w-full mx-auto">
         <h3 className="text-lg font-medium">
           Today&apos;s Cookbook

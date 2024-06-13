@@ -18,7 +18,7 @@ import {
   MoreVerticalIcon,
   ScrollIcon,
   ShoppingBasketIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo } from "react";
@@ -34,7 +34,6 @@ import {
 import { Separator } from "./display/separator";
 import { SkeletonSentence } from "./display/skeleton";
 import { ExitButton } from "./exit-button";
-import { FavoriteButton } from "./favorite-button";
 import { Ingredients } from "./ingredients";
 import { Button } from "./input/button";
 import {
@@ -47,13 +46,13 @@ import {
 } from "./input/dropdown-menu";
 import { Instructions } from "./instructions";
 import { RecipeMoreDropdownButton } from "./recipe-more-dropdown-button";
+import { RecipeSelectCircleButton } from "./recipe-select-circle-button";
 import { SaveButton } from "./save-button";
 import { useScrollLock } from "./scroll-lock";
 import { ShareButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
-import { RecipeSelectCircleButton } from "./recipe-select-circle-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
