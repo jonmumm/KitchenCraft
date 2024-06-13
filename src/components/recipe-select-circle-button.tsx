@@ -34,7 +34,7 @@ export const RecipeSelectCircleButton = ({
       variant="outline"
       size="icon"
     >
-      <CheckIcon className={!isSelected ? "opacity-30" : "block"} />
+      <CheckIcon className={!isSelected ? "opacity-80" : "block text-purple-600"} />
     </Button>
   );
 };

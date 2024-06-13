@@ -24,6 +24,18 @@ export const RecipeMoreDropdownButton = () => {
           <DropdownMenuItem className="text-muted-foreground">
             <div>
               {/* <EventTrigger event={{type: "ADD_TO_LIST"}}>  */}
+              <span role="img" aria-label="open-in-new-tab" className="mr-2">
+                ➕
+              </span>
+              <span className="text-muted-foreground">Open in </span>
+              <span className="text-foreground font-semibold">New Tab</span>
+            </div>
+            {/* </EventTrigger> */}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-muted-foreground">
+            <div>
+              {/* <EventTrigger event={{type: "ADD_TO_LIST"}}>  */}
               <span role="img" aria-label="add-to-make-later" className="mr-2">
                 ⏰
               </span>
@@ -36,7 +48,7 @@ export const RecipeMoreDropdownButton = () => {
           <DropdownMenuItem className="text-muted-foreground">
             <div>
               <span role="img" aria-label="add-to-new-list" className="mr-2">
-                ➕
+                📜
               </span>
               <span className="text-muted-foreground">Add to </span>{" "}
               <span className="text-foreground font-semibold">New List</span>
@@ -48,7 +60,7 @@ export const RecipeMoreDropdownButton = () => {
               <span role="img" aria-label="modify-recipe" className="mr-2">
                 ✏️
               </span>
-              <span className="font-semibold text-foreground">Modify </span>
+              <span className="font-semibold text-foreground">Edit </span>
               <span className="text-foreground-muted">this Recipe</span>
             </div>
           </DropdownMenuItem>
