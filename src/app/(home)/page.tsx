@@ -1,6 +1,8 @@
-import { FeedCards } from "@/components/feed-cards";
+import { Badge } from "@/components/display/badge";
+import { FeedCards, MyRecipeLists } from "@/components/feed-cards";
 import { getNextAuthSession } from "@/lib/auth/session";
 import { getTimezone } from "@/lib/headers";
+import { MoveRightIcon } from "lucide-react";
 import { getHotRecipes } from "../../db/queries";
 
 export default async function Page({
@@ -38,8 +40,17 @@ export default async function Page({
   }
 
   return (
-    <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
-      <div>My Recipes</div>
+    <div className="flex flex-col sm:gap-4 mt-0 sm:mt-10">
+      <div className="px-4 mt-8 max-w-3xl w-full mx-auto flex flex-row justify-between items-center mb-2">
+        <h3 className="text-md font-semibold">My Recipes</h3>
+        <Badge variant="outline">
+          View All
+          <MoveRightIcon className="ml-1" size={14} />
+        </Badge>
+      </div>
+      <div>
+        <MyRecipeLists />
+      </div>
 
       <div className="px-4 mt-8 max-w-3xl w-full mx-auto flex flex-row justify-between items-center">
         <h3 className="text-lg font-medium">

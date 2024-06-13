@@ -12,11 +12,11 @@ import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import {
+  CheckCircleIcon,
   ChefHatIcon,
   GripVerticalIcon,
   HomeIcon,
-  ListIcon,
-  Loader2Icon,
+  Loader2Icon
 } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { FooterTabTitle, ReactiveFooter } from "./components.client";
@@ -51,7 +51,7 @@ export async function Footer({
             >
               <div className="indicator">
                 <ListIndicator />
-                <ListIcon />
+                <CheckCircleIcon />
               </div>
               {/* <div className="indicator">
       <ListIndicator />

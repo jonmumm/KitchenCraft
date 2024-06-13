@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo } from "react";
+import { twc } from "react-twc";
 import { CameraButton } from "./camera-button";
 import { Badge } from "./display/badge";
 import {
@@ -529,6 +530,69 @@ const FeedCardRecipeItem = (input: {
         </>
       )}
     </Card>
+  );
+};
+
+const MyRecipeListItemContent = twc.div`flex flex-col gap-1 px-3 min-w-[5rem] items-start`;
+const MyRecipeListItemTitle = twc.h4`font-semibold truncate`;
+const MyRecipeListItemRecipeCount = twc.div`text-muted-foreground`;
+const MyRecipeListItemCard = twc(
+  Card
+)`carousel-item h-24 flex flex-row gap-2 justify-start items-center`;
+
+export const MyRecipeLists = () => {
+  return (
+    <div className="relative h-24">
+      <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-row justify-center">
+        <div className="carousel carousel-center pl-2 pr-2 space-x-2">
+          {/* <MyRecipeListItemCard variant="locontrast">
+            <MyRecipeListItemContent>
+              <span className="text-lg">✅</span>
+              <MyRecipeListItemTitle>Selected</MyRecipeListItemTitle>
+              <MyRecipeListItemRecipeCount>
+                0 recipes
+              </MyRecipeListItemRecipeCount>
+            </MyRecipeListItemContent>
+          </MyRecipeListItemCard> */}
+          <MyRecipeListItemCard variant="locontrast">
+            <MyRecipeListItemContent>
+              <span className="text-lg">⏰</span>
+              <MyRecipeListItemTitle>Make Later</MyRecipeListItemTitle>
+              <MyRecipeListItemRecipeCount>
+                32 recipes
+              </MyRecipeListItemRecipeCount>
+            </MyRecipeListItemContent>
+          </MyRecipeListItemCard>
+          <MyRecipeListItemCard variant="locontrast">
+            <MyRecipeListItemContent>
+              <span className="text-lg">❤️</span>
+              <MyRecipeListItemTitle>Favorites</MyRecipeListItemTitle>
+              <MyRecipeListItemRecipeCount>
+                5 recipes
+              </MyRecipeListItemRecipeCount>
+            </MyRecipeListItemContent>
+          </MyRecipeListItemCard>
+          <MyRecipeListItemCard variant="locontrast">
+            <MyRecipeListItemContent>
+              <span className="text-lg">👍</span>
+              <MyRecipeListItemTitle>Liked</MyRecipeListItemTitle>
+              <MyRecipeListItemRecipeCount>
+                0 recipes
+              </MyRecipeListItemRecipeCount>
+            </MyRecipeListItemContent>
+          </MyRecipeListItemCard>
+          <MyRecipeListItemCard variant="locontrast">
+            <MyRecipeListItemContent>
+              <span className="text-lg">👥</span>
+              <MyRecipeListItemTitle>Recently Shared</MyRecipeListItemTitle>
+              <MyRecipeListItemRecipeCount>
+                8 recipes
+              </MyRecipeListItemRecipeCount>
+            </MyRecipeListItemContent>
+          </MyRecipeListItemCard>
+        </div>
+      </div>
+    </div>
   );
 };
 
