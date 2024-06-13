@@ -595,18 +595,6 @@ export const MyRecipeLists = () => {
               </MyRecipeListItemRecipeCount>
             </MyRecipeListItemContent>
           </MyRecipeListItemCard>
-          {new Array(3).fill(0).map((items, index) => {
-            return (
-              <MyRecipeListItemCard variant="locontrast" key={index}>
-                <MyRecipeListItemContent className="flex flex-col gap-2 justify-end h-full py-4 text-muted-foreground text-sm">
-                  {/* Empty */}
-                  <SkeletonSentence numWords={1} className="h-4 animate-none" />
-                  <Skeleton className="w-10 h-3 animate-none" />
-                  {/* <Badge variant="secondary">New List</Badge> */}
-                </MyRecipeListItemContent>
-              </MyRecipeListItemCard>
-            );
-          })}
           <Separator orientation="vertical" />
           <MyRecipeListItemCard variant="locontrast">
             <MyRecipeListItemContent>
@@ -617,6 +605,21 @@ export const MyRecipeLists = () => {
               </MyRecipeListItemRecipeCount>
             </MyRecipeListItemContent>
           </MyRecipeListItemCard>
+          {new Array(3).fill(0).map((items, index) => {
+            return (
+              <MyRecipeListItemCard variant="locontrast" key={index}>
+                <MyRecipeListItemContent>
+                  {/* Empty */}
+                  <span className="text-lg opacity-0">∅</span>
+                  <MyRecipeListItemTitle className="text-muted-foreground">
+                    Empty
+                  </MyRecipeListItemTitle>
+                  <Skeleton className="w-10 h-3 animate-none dark:bg-slate-600" />
+                  {/* <Badge variant="secondary">New List</Badge> */}
+                </MyRecipeListItemContent>
+              </MyRecipeListItemCard>
+            );
+          })}
         </div>
       </div>
     </div>
