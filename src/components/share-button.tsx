@@ -49,8 +49,9 @@ export const ShareButton = ({
 
   if (!slug) {
     return (
-      <Button variant="ghost" className="flex-2" disabled size="icon">
-        <ShareIcon />
+      <Button variant="outline" className="flex-2" disabled>
+        Share
+        <ShareIcon className="ml-1" />
       </Button>
     );
   }
@@ -61,10 +62,10 @@ export const ShareButton = ({
         <PopoverTrigger asChild>
           <Button
             variant={!showCopied ? "outline" : "secondary"}
-            size="icon"
             event={{ type: "SHARE", slug }}
           >
-            <ShareIcon />
+            Share
+            <ShareIcon className="ml-1" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-fit px-2 py-1 z-90">

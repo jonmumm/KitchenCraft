@@ -59,6 +59,8 @@ import {
 } from "./rating/queries";
 import { RatingValue } from "./rating/types";
 import { CameraButton } from "@/components/camera-button";
+import { SaveButton } from "@/components/save-button";
+import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
 
 // export const maxDuration = 300;
 // export const dynamic = "force-dynamic";
@@ -374,10 +376,12 @@ export default async function Page(props: Props) {
                     Select <CheckIcon className="ml-2" />
                   </Button> */}
                   {/* <PrintButton slug={recipe?.slug} /> */}
-                  <CameraButton slug={recipe?.slug} />
+                  {/* <CameraButton slug={recipe?.slug} /> */}
+                  <SaveButton id={recipe?.id} />
                   <ShareButton slug={slug} name={name} />
-                  <FavoriteButton id={recipe?.id} />
-                  <RecipeSelectButton id={recipe.id} />
+                  <RecipeSelectCircleButton id={recipe?.id} />
+                  {/* <FavoriteButton id={recipe?.id} /> */}
+                  {/* <RecipeSelectButton id={recipe.id} /> */}
                   <RecipeMoreDropdownButton />
                 </div>
                 <Separator />

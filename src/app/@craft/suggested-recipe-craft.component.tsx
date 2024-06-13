@@ -1,6 +1,5 @@
 "use client";
 
-import { CameraButton } from "@/components/camera-button";
 import { Badge } from "@/components/display/badge";
 import { Card, CardDescription, CardTitle } from "@/components/display/card";
 import {
@@ -9,13 +8,13 @@ import {
 } from "@/components/display/collapsible";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
-import { FavoriteButton } from "@/components/favorite-button";
+import { ExitButton } from "@/components/exit-button";
 import { Ingredients } from "@/components/ingredients";
 import EventTrigger from "@/components/input/event-trigger";
 import { Instructions } from "@/components/instructions";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
-import { RecipeSelectButton } from "@/components/recipe-select-button";
 import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
+import { SaveButton } from "@/components/save-button";
 import ScrollLockComponent from "@/components/scroll-lock";
 import { ShareButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
@@ -31,11 +30,7 @@ import { cn } from "@/lib/utils";
 import { createRecipeIsSelectedSelector } from "@/selectors/page-session.selectors";
 import { ExtractAppEvent } from "@/types";
 import { Portal } from "@radix-ui/react-portal";
-import {
-  ScrollIcon,
-  ShoppingBasketIcon,
-  XIcon
-} from "lucide-react";
+import { ScrollIcon, ShoppingBasketIcon, XIcon } from "lucide-react";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { AppSnapshot } from "../app-machine";
 import { RecipeDetailOverlay } from "../components.client";
@@ -133,37 +128,16 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               )}
             </div>
 
-            <div>
-              <RecipeSelectCircleButton id={recipe?.id} />
-            </div>
-            {/* {isExpanded && (
-              <div className="flex flex-col gap-2 items-center">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  autoFocus={false}
-                  event={{ type: "EXIT" }}
-                >
-                  <XCircleIcon />
-                </Button>
-                {recipe?.slug ? (
-                  <Link href={`/recipe/${recipe.slug}`} target="_blank">
-                    <Button size="icon" variant="ghost" autoFocus={false}>
-                      <ExternalLinkIcon />
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    autoFocus={false}
-                    disabled
-                  >
-                    <ExternalLinkIcon />
-                  </Button>
-                )}
+            {!isExpanded && (
+              <div>
+                <RecipeSelectCircleButton id={recipe?.id} />
               </div>
-            )} */}
+            )}
+            {isExpanded && (
+              <div className="flex flex-col gap-2 items-center">
+                <ExitButton />
+              </div>
+            )}
             {/* {!isExpanded && recipe?.id && recipe.name && (
               <div className="flex flex-col justify-center">
                 <Button
@@ -209,9 +183,11 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             {isExpanded && recipe?.metadataComplete && (
               <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
                 {/* <PrintButton slug={recipe?.slug} /> */}
-                <CameraButton slug={recipe?.slug} />
-                <FavoriteButton id={recipe?.id} />
+                {/* <CameraButton slug={recipe?.slug} /> */}
+                {/* <FavoriteButton id={recipe?.id} /> */}
+                <SaveButton id={recipe?.id} />
                 <ShareButton slug={recipe.slug} name={recipe.name} />
+                <RecipeSelectCircleButton id={recipe.id} />
                 {/* <RecipeSelectButton id={recipe.id} /> */}
                 <RecipeMoreDropdownButton />
               </div>

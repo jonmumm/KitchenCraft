@@ -39,7 +39,6 @@ import { Popover } from "@/components/layout/popover";
 import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
-import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
 import { useScrollLock } from "@/components/scroll-lock";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
@@ -117,6 +116,8 @@ import { AppContext } from "./context";
 import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
 import { PageSessionSnapshot } from "./page-session-machine";
+import { SaveButton } from "@/components/save-button";
+import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -355,7 +356,7 @@ const CurrentListCarouselItem = ({
               <CardTitle className="px-4">
                 <div className="flex flex-row gap-2 justify-between">
                   <RecipeName />
-                  <RecipeSelectCircleButton id={recipe?.id} />
+                  {/* <RecipeSelectCircleButton id={recipe?.id} /> */}
                 </div>
                 {/* {recipe?.slug ? (
                   <Link
@@ -403,10 +404,11 @@ const CurrentListCarouselItem = ({
               <>
                 <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
                   {/* <PrintButton slug={recipe?.slug} /> */}
-                  <CameraButton slug={recipe?.slug} />
-                  <FavoriteButton id={recipe?.id} />
+                  {/* <CameraButton slug={recipe?.slug} /> */}
+                  {/* <FavoriteButton id={recipe?.id} /> */}
+                  <SaveButton id={recipe?.id} />
                   <ShareButton slug={recipe.slug} name={recipe.name} />
-                  {/* <RecipeSelectButton id={recipe.id} /> */}
+                  <RecipeSelectCircleButton id={recipe.id} />
                   <RecipeMoreDropdownButton />
                 </div>
                 <Separator />

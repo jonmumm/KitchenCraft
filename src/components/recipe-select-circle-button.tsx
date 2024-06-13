@@ -1,3 +1,5 @@
+"use client";
+
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { cn } from "@/lib/utils";
 import { createRecipeIsSelectedSelector } from "@/selectors/page-session.selectors";

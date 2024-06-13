@@ -20,11 +20,9 @@ import {
   ShoppingBasketIcon,
   XIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo } from "react";
 import { twc } from "react-twc";
-import { CameraButton } from "./camera-button";
 import { Badge } from "./display/badge";
 import {
   Card,
@@ -35,6 +33,7 @@ import {
 } from "./display/card";
 import { Separator } from "./display/separator";
 import { SkeletonSentence } from "./display/skeleton";
+import { ExitButton } from "./exit-button";
 import { FavoriteButton } from "./favorite-button";
 import { Ingredients } from "./ingredients";
 import { Button } from "./input/button";
@@ -48,12 +47,13 @@ import {
 } from "./input/dropdown-menu";
 import { Instructions } from "./instructions";
 import { RecipeMoreDropdownButton } from "./recipe-more-dropdown-button";
-import { RecipeSuggestionSelectButton } from "./recipe-suggestion-select-button";
+import { SaveButton } from "./save-button";
 import { useScrollLock } from "./scroll-lock";
 import { ShareButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
+import { RecipeSelectCircleButton } from "./recipe-select-circle-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -431,20 +431,14 @@ const FeedCardRecipeItem = (input: {
         {!isInRecipeDetails ? (
           <>
             <div className="self-end">
-              <FavoriteButton id={recipe?.id} />
+              <ExternalLinkIcon />
+              {/* <FavoriteButton id={recipe?.id} /> */}
             </div>
           </>
         ) : (
           <div className="flex flex-col gap-2">
-            {/* <Button
-              size="icon"
-              variant="ghost"
-              autoFocus={false}
-              event={{ type: "EXIT" }}
-            >
-              <XCircleIcon />
-            </Button> */}
-            {recipe?.slug ? (
+            <ExitButton />
+            {/* {recipe?.slug ? (
               <Link href={`/recipe/${recipe.slug}`} target="_blank">
                 <Button size="icon" variant="ghost" autoFocus={false}>
                   <ExternalLinkIcon />
@@ -454,7 +448,7 @@ const FeedCardRecipeItem = (input: {
               <Button size="icon" variant="ghost" autoFocus={false} disabled>
                 <ExternalLinkIcon />
               </Button>
-            )}
+            )} */}
           </div>
         )}
       </div>
@@ -476,13 +470,15 @@ const FeedCardRecipeItem = (input: {
             >
               {/* <RecipeSelectButton id={recipe.id} /> */}
               {/* <PrintButton slug={recipe?.slug} /> */}
-              <CameraButton slug={recipe?.slug} />
+              {/* <CameraButton slug={recipe?.slug} /> */}
+              <SaveButton id={recipe?.id} />
               <ShareButton slug={recipe.slug} name={recipe.name} />
-              <FavoriteButton id={recipe?.id} />
+              <RecipeSelectCircleButton id={recipe?.id} />
+              {/* <FavoriteButton id={recipe?.id} />
               <RecipeSuggestionSelectButton
                 itemIndex={input.itemIndex}
                 recipeIndex={input.recipeIndex}
-              />
+              /> */}
               <RecipeMoreDropdownButton />
               {/* <PrintButton slug={recipe?.slug} /> */}
             </div>

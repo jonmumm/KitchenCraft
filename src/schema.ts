@@ -1106,7 +1106,13 @@ const FavoriteRecipeSchema = z.object({
   id: z.string(),
 });
 
+const SaveRecipeEventSchema = z.object({
+  type: z.literal("SAVE_RECIPE"),
+  recipeId: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  SaveRecipeEventSchema,
   FavoriteRecipeSchema,
   SelectTopicEventSchema,
   SelectQuestionOptionEventSchema,
