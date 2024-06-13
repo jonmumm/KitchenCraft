@@ -5,6 +5,12 @@ export const selectCurrentListRecipeIds = (state: PageSessionSnapshot) => {
   return state.context.sessionSnapshot?.context.selectedRecipeIds || [];
 };
 
+export const selectPromptIsDirty = (state: PageSessionSnapshot) =>
+  state.context.prompt.length === 0;
+
+export const selectPromptIsPristine = (state: PageSessionSnapshot) =>
+  state.context.prompt.length > 0;
+
 export const selectUserEmail = (state: PageSessionSnapshot) =>
   state.context.userSnapshot?.context.email;
 
@@ -17,6 +23,13 @@ export const selectFeedItemIds = (state: PageSessionSnapshot) =>
 export const selectNumFeedItemIds = createSelector(
   selectFeedItemIds,
   (items) => items.length
+);
+
+export const selectHasRecipesSelected = createSelector(
+  selectSelectedRecipeCount,
+  (count) => {
+    return count > 0;
+  }
 );
 
 export const selectProfileName = (state: PageSessionSnapshot) => {
@@ -102,4 +115,8 @@ export const selectSuggestedFeedTopics = (state: PageSessionSnapshot) => {
 
 export const selectSelectedFeedTopics = (state: PageSessionSnapshot) => {
   return state.context.userSnapshot?.context.selectedFeedTopics;
+};
+
+export const selectSuggestedIngredients = (snapshot: PageSessionSnapshot) => {
+  return snapshot.context.sessionSnapshot?.context.suggestedIngredients || [];
 };

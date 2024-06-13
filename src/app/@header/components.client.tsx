@@ -399,7 +399,7 @@ export const MyRecipesBadge = () => {
         className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
       >
         <ListIcon className="mr-2" />
-        My Cookbook
+        Selected
       </Badge>
     </div>
   );

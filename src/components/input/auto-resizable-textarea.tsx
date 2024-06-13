@@ -6,12 +6,13 @@ import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { PageSessionContext } from "@/app/page-session-store.context";
 import { useAppMatchesStateHandler } from "@/hooks/useAppMatchesStateHandler";
 // import { session$ } from "@/app/session-store";
-import { usePromptIsPristine } from "@/hooks/useCraftIsOpen";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { useSelectorCallback } from "@/hooks/useSelectorCallback";
 import { useSend } from "@/hooks/useSend";
 import { assert, shuffle } from "@/lib/utils";
+import { selectPromptIsPristine } from "@/selectors/page-session.selectors";
 import { ExtractAppEvent } from "@/types";
 import { produce } from "immer";
 
@@ -144,7 +145,7 @@ const AutoResizableTextarea: React.FC<
     sizeClassMap[size]?.textSize || sizeClassMap["md"].textSize;
 
   const Placeholder = () => {
-    const isPristine = usePromptIsPristine();
+    const isPristine = usePageSessionSelector(selectPromptIsPristine);
 
     return (
       isPristine && (
@@ -179,7 +180,7 @@ const AutoResizableTextarea: React.FC<
     );
 
     const PlaceholderAnimation = () => {
-      const isPristine = usePromptIsPristine();
+      const isPristine = usePageSessionSelector(selectPromptIsPristine);
       const placeholdersGenerating = usePageSessionMatchesState({
         Craft: { Generators: { Placeholder: "Generating" } },
       });

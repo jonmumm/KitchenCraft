@@ -6,8 +6,8 @@ import {
 } from "@/components/layout/responsive-dialog";
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
-import { AppSnapshotConditionalRenderer } from "@/components/util/app-snapshot-conditional-renderer";
-import { SessionSnapshotConditionalRenderer } from "@/components/util/session-snapshot-conditional-renderer";
+import { AppMatches } from "@/components/util/app-matches";
+import { SessionSnapshotMatches } from "@/components/util/session-matches";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
   getCurrentEmail,
@@ -53,8 +53,10 @@ import {
 import EmailCodeCard from "./email-code-card";
 import { PageSessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
+import { ShareDetailsCard } from "./share-details-card";
 import { SignInCard } from "./sign-in-card";
 import "./styles.css";
+
 export const revalidate = 0;
 
 const APP_NAME = "KitchenCraft";
@@ -215,6 +217,7 @@ export default async function RootLayout(
                 {canInstallPWA && <SafariInstallPrompt />}
                 <RegistrationDialog />
                 <SaveDialog />
+                <ShareDialog />
                 <SignInDialog />
                 <PersonalizationSettingsDialog />
                 <UpgradeAccountDialog />
@@ -252,7 +255,7 @@ const SignInDialog = () => {
 
   return (
     <>
-      <SessionSnapshotConditionalRenderer
+      <SessionSnapshotMatches
         matchedState={{ Auth: { SigningIn: "Inputting" } }}
       >
         <ResponsiveDialog open isMobile={isMobile}>
@@ -261,8 +264,8 @@ const SignInDialog = () => {
             <SignInCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
-      </SessionSnapshotConditionalRenderer>
-      <SessionSnapshotConditionalRenderer
+      </SessionSnapshotMatches>
+      <SessionSnapshotMatches
         matchedState={{ Auth: { SigningIn: "WaitingForCode" } }}
         initialValueOverride={false}
       >
@@ -272,8 +275,23 @@ const SignInDialog = () => {
             <EmailCodeCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
-      </SessionSnapshotConditionalRenderer>
+      </SessionSnapshotMatches>
     </>
+  );
+};
+
+const ShareDialog = () => {
+  const isMobile = getIsMobile();
+
+  return (
+    <AppMatches matchedState={{ Share: { Open: "True" } }}>
+      <ResponsiveDialog open isMobile={isMobile}>
+        <ResponsiveDialogOverlay event={{ type: "CANCEL" }} className="z-80" />
+        <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl z-90">
+          <ShareDetailsCard />
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    </AppMatches>
   );
 };
 
@@ -346,22 +364,22 @@ const SaveDialog = () => {
   const isMobile = getIsMobile();
   return (
     <>
-      <AppSnapshotConditionalRenderer matchedState={IS_SELECTING_LIST}>
+      <AppMatches matchedState={IS_SELECTING_LIST}>
         <ResponsiveDialog open isMobile={isMobile}>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent>
             <SelectListCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
-      </AppSnapshotConditionalRenderer>
-      <AppSnapshotConditionalRenderer matchedState={IS_CREATING_LIST}>
+      </AppMatches>
+      <AppMatches matchedState={IS_CREATING_LIST}>
         <ResponsiveDialog open isMobile={isMobile}>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent>
             <CreateNewListCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
-      </AppSnapshotConditionalRenderer>
+      </AppMatches>
     </>
   );
 };

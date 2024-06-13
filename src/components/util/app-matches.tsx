@@ -4,15 +4,15 @@ import type { AppState } from "@/app/app-machine";
 import { useAppMatchesState } from "@/hooks/useAppMatchesState";
 import { ReactNode } from "react";
 
-interface SessionSnapshotConditionalRendererProps {
+interface AppMatchesProps {
   matchedState: AppState;
   children: ReactNode;
   initialValueOverride?: boolean;
   not?: boolean;
 }
 
-export const AppSnapshotConditionalRenderer = (
-  props: SessionSnapshotConditionalRendererProps
+export const AppMatches = (
+  props: AppMatchesProps
 ) => {
   const active = useAppMatchesState(props.matchedState);
 

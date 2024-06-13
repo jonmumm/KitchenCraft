@@ -952,13 +952,16 @@ export const createAppMachine = ({
               const { sessionSnapshot } = store.get().context;
               assert(sessionSnapshot, "expected browser session snapshot");
 
-              toast.custom((t) => (
-                <RecipeAddedToast
-                  name={name}
-                  toastId={t}
-                  itemIndex={sessionSnapshot.context.selectedRecipeIds.length}
-                />
-              ));
+              toast.custom(
+                (t) => (
+                  <RecipeAddedToast
+                    name={name}
+                    toastId={t}
+                    itemIndex={sessionSnapshot.context.selectedRecipeIds.length}
+                  />
+                ),
+                { position: "top-right" }
+              );
             },
           },
           SELECT_RECIPE_SUGGESTION: {
@@ -982,13 +985,16 @@ export const createAppMachine = ({
               if (self.getSnapshot().matches({ Selection: "" })) {
               }
 
-              toast.custom((t) => (
-                <RecipeAddedToast
-                  name={name}
-                  toastId={t}
-                  itemIndex={sessionSnapshot.context.selectedRecipeIds.length}
-                />
-              ));
+              toast.custom(
+                (t) => (
+                  <RecipeAddedToast
+                    name={name}
+                    toastId={t}
+                    itemIndex={sessionSnapshot.context.selectedRecipeIds.length}
+                  />
+                ),
+                { position: "top-center" }
+              );
             },
           },
         },
@@ -1054,6 +1060,26 @@ export const createAppMachine = ({
           },
         },
       },
+      Share: {
+        type: "parallel",
+        states: {
+          Open: {
+            initial: "False",
+            states: {
+              False: {
+                on: {
+                  SHARE_SELECTED: "True",
+                },
+              },
+              True: {
+                on: {
+                  CANCEL: "False",
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 };
@@ -1069,12 +1095,12 @@ const RecipeAddedToast = ({
 }) => {
   const send = useSend();
   return (
-    <Card className="flex flex-row gap-2 justify-between items-center w-full max-w-[356px] p-4 shadow-xl">
+    <Card className="flex flex-row gap-2 justify-between items-center w-full max-w-[356px] p-2 shadow-xl" variant="hicontrast">
       <div className="flex flex-col gap-1 flex-1 w-full">
         <div className="font-semibold">{name}</div>
         <div className="text-muted-foreground text-xs">
           Added to{" "}
-          <span className="text-foreground font-semibold">Selected</span>
+          <span className="font-semibold">Selected</span>
         </div>
       </div>
       <div className="flex items-center justify-center">

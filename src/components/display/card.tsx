@@ -36,7 +36,7 @@ const Card = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & {
     event?: AppEvent;
     eventOnView?: AppEvent;
-    variant?: "interactive" | "default" | "hicontrast" | "locontrast";
+    variant?: "interactive" | "default" | "hicontrast" | "locontrast" | "medcontrast";
   }
 >(
   (

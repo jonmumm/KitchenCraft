@@ -1,26 +1,20 @@
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
-import { Button } from "@/components/input/button";
 import KeyboardAvoidingView from "@/components/layout/keyboard-avoiding-view";
+import { AppMatches } from "@/components/util/app-matches";
 import ClientOnly from "@/components/util/client-only";
 import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
-import {
-  Loader2Icon,
-  MoveRightIcon,
-  PlusCircleIcon,
-  ShareIcon,
-  TagIcon,
-} from "lucide-react";
+import { TagIcon } from "lucide-react";
 import { ReactNode } from "react";
 import {
   Container,
   CraftEmpty,
   CraftNotEmpty,
-  CraftNotReadyToSave,
-  CraftReadyToSave,
+  HasRecipesSelected,
   Section,
   SectionLabel,
+  SelectedRecipesBar,
   SuggestedIngredientsSection,
   SuggestedRecipeCards,
   SuggestedTagsSection,
@@ -212,37 +206,13 @@ export const NewRecipeResultsView = () => {
       </Container>
       <Footer>
         <ClientOnly>
-          <CraftNotEmpty>
+          <HasRecipesSelected>
             <div className="max-w-3xl w-full standalone:mb-10 mx-auto overflow-hidden">
-              <div className="flex flex-row gap-2 items-center w-full p-2 justify-between">
-                {/* <CloseButton /> */}
-                {/* <ClearButton /> */}
-                {/* <UndoButton /> */}
-                {/* <PrevButton /> */}
-                {/* <SaveRecipeBadge /> */}
-                {/* <AddedRecipeCard /> */}
-                {/* <CraftSaving>
-                  <Badge variant="secondary" className="shadow-xl">
-                    Saving <span>My Recipe clanem</span>
-                    <span className="text-xs animate-spin ml-2">🧪</span>
-                  </Badge>
-                </CraftSaving> */}
-                {/* <GoToButton /> */}
-                {/* <ShareButton /> */}
-                {/* <LikeButton /> */}
-                {/* <NextButton /> */}
-              </div>
+              <AppMatches not matchedState={{ MyCookbook: { Open: "True" } }}>
+                <SelectedRecipesBar />
+              </AppMatches>
             </div>
-          </CraftNotEmpty>
-          {/* <CraftEmpty>
-            <div className="max-w-3xl w-full standalone:mb-10 mx-auto">
-              <div className="flex flex-row gap-2 items-center w-full bg-slate-50 dark:bg-slate-950 p-2 border-t-2 border-solid border-slate-200 dark:border-slate-800 justify-center">
-                <CloseButton />
-                <ClearButton />
-                <UndoButton />
-              </div>
-            </div>
-          </CraftEmpty> */}
+          </HasRecipesSelected>
         </ClientOnly>
       </Footer>
     </>
@@ -298,7 +268,6 @@ const SuggestedRecipesSection = () => {
     </CraftNotEmpty>
   );
 };
-
 
 const Footer = ({ children }: { children: ReactNode }) => {
   return <KeyboardAvoidingView>{children}</KeyboardAvoidingView>;

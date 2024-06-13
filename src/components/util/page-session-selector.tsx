@@ -1,3 +1,5 @@
+"use client";
+
 import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { ReactNode } from "react";

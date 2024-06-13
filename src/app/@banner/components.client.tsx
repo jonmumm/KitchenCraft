@@ -1,6 +1,6 @@
 "use client";
 
-import { UserSnapshotConditionalRenderer } from "@/components/util/user-snapshot-conditional-renderer";
+import { UserSnapshotConditionalRenderer } from "@/components/util/user-matches";
 import { ReactNode } from "react";
 
 export const IsOnboaridngInComplete = ({

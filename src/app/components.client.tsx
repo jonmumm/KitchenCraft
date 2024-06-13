@@ -32,18 +32,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/layout/popover";
+import { Popover } from "@/components/layout/popover";
 import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
-import { RecipeSelectButton } from "@/components/recipe-select-button";
+import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
 import { useScrollLock } from "@/components/scroll-lock";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
@@ -54,21 +50,22 @@ import { ShareButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { PageSessionSelector } from "@/components/util/page-session-selector";
 import { Yield } from "@/components/yield";
 import { useAppContext } from "@/hooks/useAppContext";
-import { useCraftIsOpen, usePromptIsDirty } from "@/hooks/useCraftIsOpen";
+import { useAppSelector } from "@/hooks/useAppSelector";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
+import { selectCraftIsOpen } from "@/selectors/app.selectors";
 import {
   createRecipeIsSelectedSelector,
   createRecipeSelector,
   createSelectedRecipeAtIndexSelector,
   selectCurrentListRecipeIds,
+  selectPromptIsDirty,
   selectSelectedRecipeCount,
 } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
@@ -83,7 +80,6 @@ import {
   ChevronRightIcon,
   ChevronsUpDown,
   Circle,
-  ExternalLinkIcon,
   HeartIcon,
   PlusCircleIcon,
   PlusSquareIcon,
@@ -91,10 +87,9 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   ComponentPropsWithoutRef,
@@ -117,10 +112,10 @@ import {
   EnterEmailForm,
   EnterListNameForm,
 } from "./@craft/components.client";
+import { AppSnapshot } from "./app-machine";
 import { AppContext } from "./context";
 import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
-import { AppSnapshot } from "./app-machine";
 import { PageSessionSnapshot } from "./page-session-machine";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -132,8 +127,8 @@ export const Body = ({
   children: ReactNode;
   isPWA: boolean;
 }) => {
-  const craftIsOpen = useCraftIsOpen();
-  const promptIsDirty = usePromptIsDirty();
+  const craftIsOpen = useAppSelector(selectCraftIsOpen);
+  const promptIsDirty = usePageSessionSelector(selectPromptIsDirty);
 
   return (
     <body
@@ -358,7 +353,11 @@ const CurrentListCarouselItem = ({
           <ScrollArea className="absolute inset-0">
             <div className="h-fit flex flex-col gap-2 py-4">
               <CardTitle className="px-4">
-                {recipe?.slug ? (
+                <div className="flex flex-row gap-2 justify-between">
+                  <RecipeName />
+                  <RecipeSelectCircleButton id={recipe?.id} />
+                </div>
+                {/* {recipe?.slug ? (
                   <Link
                     href={`/recipe/${recipe.slug}`}
                     target="_blank"
@@ -381,7 +380,7 @@ const CurrentListCarouselItem = ({
                       <ExternalLinkIcon />
                     </Button>
                   </div>
-                )}
+                )} */}
               </CardTitle>
               {recipe?.description ? (
                 <CardDescription className="px-4">
@@ -407,7 +406,7 @@ const CurrentListCarouselItem = ({
                   <CameraButton slug={recipe?.slug} />
                   <FavoriteButton id={recipe?.id} />
                   <ShareButton slug={recipe.slug} name={recipe.name} />
-                  <RecipeSelectButton id={recipe.id} />
+                  {/* <RecipeSelectButton id={recipe.id} /> */}
                   <RecipeMoreDropdownButton />
                 </div>
                 <Separator />
@@ -571,17 +570,17 @@ export const MyRecipesScreen = () => {
         </NoRecipesSelected>
         <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
           <IsShareable>
-            <SharePopover>
+            <Button className="shadow-md" event={{ type: "SHARE_SELECTED" }}>
+              <ShareIcon size={16} className="mr-1" />
+              Share (<CurrentListCount />)
+            </Button>
+            {/* <SharePopover>
               <PopoverTrigger asChild>
-                <Button className="shadow-md">
-                  <ShareIcon size={16} className="mr-1" />
-                  Share (<CurrentListCount />)
-                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-fit px-2 py-1 z-90">
                 URL Copied!
               </PopoverContent>
-            </SharePopover>
+            </SharePopover> */}
             <Button
               className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white"
               event={{ type: "ADD_SELECTED" }}

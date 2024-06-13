@@ -2,7 +2,7 @@ import { Button } from "@/components/input/button";
 import { DateTime } from "luxon";
 
 import { Badge } from "@/components/display/badge";
-import { Card, CardHeader } from "@/components/display/card";
+import { Card, CardContent, CardHeader } from "@/components/display/card";
 import { Separator } from "@/components/display/separator";
 import {
   Highlight,
@@ -20,15 +20,14 @@ import {
   SheetTrigger,
 } from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
-import { CardContent } from "@/components/ui/card";
 import { getProfileByUserId } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile, getTimezone } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import { ChefHatIcon, InfoIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, ChefHatIcon, InfoIcon } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
-import { CurrentListButton, MyRecipesBadge } from "./components.client";
+import { MyRecipesBadge } from "./components.client";
 
 export default async function Page({}) {
   const userId = await getCurrentUserId();
@@ -116,7 +115,9 @@ export default async function Page({}) {
                           <ExamplePrompt prompt="Create a keto-friendly lasagna recipe." />
                           <ExamplePrompt prompt="Mix strawberries and basil for an appetizer." />
                         </ul>
-                        <p className="text-muted-foreground text-xs mt-4">Tap one to try it</p>
+                        <p className="text-muted-foreground text-xs mt-4">
+                          Tap one to try it
+                        </p>
                       </CardContent>
                     </Card>
                   </PopoverContent>
@@ -124,6 +125,16 @@ export default async function Page({}) {
               </div>
             </div>
             <div className="flex flex-row gap-2 items-center">
+              <div className="hidden crafting:flex flex-col gap-3 items-center">
+                <Button
+                  variant={"outline"}
+                  size="icon"
+                  event={{ type: "CLOSE" }}
+                  className="text-xs text-semibold rounded-full"
+                >
+                  <ArrowLeftIcon />
+                </Button>
+              </div>
               <Highlight active={false}>
                 <HighlightTarget>
                   <CraftCTA initialAutoFocus={!getIsMobile()} />
@@ -133,7 +144,7 @@ export default async function Page({}) {
                   new compoennt
                 </HighlightContent>
               </Highlight>
-              <div className="hidden crafting:flex flex-col gap-3 items-center">
+              {/* <div className="hidden crafting:flex flex-col gap-3 items-center">
                 <Button
                   variant={"outline"}
                   size="icon"
@@ -141,9 +152,8 @@ export default async function Page({}) {
                   className="text-xs text-semibold rounded-full"
                 >
                   <XIcon />
-                </Button>
-                <CurrentListButton />
-              </div>
+                </Button> */}
+              {/* <CurrentListButton /> */}
             </div>
           </div>
         </div>

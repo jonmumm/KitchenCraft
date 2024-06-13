@@ -6,7 +6,7 @@ import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
-import { UserSnapshotConditionalRenderer } from "@/components/util/user-snapshot-conditional-renderer";
+import { UserSnapshotConditionalRenderer } from "@/components/util/user-matches";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import {
   selectProfileName,

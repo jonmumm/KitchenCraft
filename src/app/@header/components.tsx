@@ -16,11 +16,10 @@ import {
   ChefHatIcon,
   ChevronRightIcon,
   GripVerticalIcon,
-  ListIcon,
+  XIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AddedTokens, HasTokens } from "../@craft/components.client";
 import {
   BackButton,
   CraftInput,
@@ -39,8 +38,6 @@ export async function HeaderWithInput({
 }) {
   const backPath = getRefererPath();
   const hasHistory = !!backPath;
-  const userId = await getCurrentUserId();
-  const profile = userId ? await getProfileByUserId(userId) : undefined;
 
   const back = (async (lastUrl?: string) => {
     "use server";
@@ -74,12 +71,12 @@ export async function HeaderWithInput({
             <CraftCTA />
           </div>
           <div className="hidden crafting:block">
-            <Button variant={"ghost"} event={{ type: "VIEW_LIST" }}>
+            {/* <Button variant={"ghost"} event={{ type: "VIEW_LIST" }}>
               <ListIcon />
-            </Button>
-            {/* <Button variant={"ghost"} event={{ type: "CLOSE" }}>
-              Close
             </Button> */}
+            <Button variant={"ghost"} event={{ type: "CLOSE" }}>
+              <XIcon />
+            </Button>
           </div>
           <div className="hidden crafting:hidden right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
             <div className="flex flex-row gap-1 items-center">
@@ -121,9 +118,6 @@ export const CraftCTA = ({
         {/* <CraftPromptNotEmpty>
         <CraftAutoComplete />
       </CraftPromptNotEmpty> */}
-        <HasTokens>
-          <AddedTokens />
-        </HasTokens>
         <CraftInput
           initialAutoFocus={initialAutoFocus}
           // autoFocus={autoFocus}

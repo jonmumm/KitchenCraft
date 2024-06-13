@@ -14,22 +14,23 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
+import { PageSessionSelector } from "@/components/util/page-session-selector";
 import { useEventHandler } from "@/hooks/useEventHandler";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { assert, cn, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, ListNameSchema } from "@/schema";
+import {
+  selectHasRecipesSelected,
+  selectSelectedRecipeCount,
+} from "@/selectors/page-session.selectors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
-import {
-  CarrotIcon,
-  MoveLeftIcon,
-  TagIcon,
-  XIcon
-} from "lucide-react";
+import { BookmarkIcon, CarrotIcon, ListIcon, ShareIcon, TagIcon } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -43,7 +44,7 @@ import {
   useImperativeHandle,
   useRef,
   useState,
-  useSyncExternalStore
+  useSyncExternalStore,
 } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { twc } from "react-twc";
@@ -51,9 +52,7 @@ import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-s
 import { z } from "zod";
 import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
-import { PageSessionStoreSnapshot } from "../page-session-store-provider";
 import { PageSessionContext } from "../page-session-store.context";
-import { buildInput, isEqual } from "../utils";
 import { SuggestedRecipeCard } from "./suggested-recipe-craft.component";
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
@@ -63,6 +62,19 @@ export const CraftEmpty = ({ children }: { children: ReactNode }) => {
 
   return !numTokens && promptLength === 0 ? <>{children}</> : null;
 };
+
+
+export const IsCrafting = ({ children }: { children: ReactNode }) => (
+  <PageSessionSelector selector={selectHasRecipesSelected}>
+    {children}
+  </PageSessionSelector>
+);
+
+export const HasRecipesSelected = ({ children }: { children: ReactNode }) => (
+  <PageSessionSelector selector={selectHasRecipesSelected}>
+    {children}
+  </PageSessionSelector>
+);
 
 export const CraftNotReadyToSave = ({ children }: { children: ReactNode }) => {
   const recipe = useCurrentRecipe();
@@ -94,12 +106,6 @@ export const CraftPromptNotEmpty = ({ children }: { children: ReactNode }) => {
   return promptLength !== 0 ? <>{children}</> : null;
 };
 
-export const HasTokens = ({ children }: { children: ReactNode }) => {
-  const numTokens = useNumTokens();
-
-  return numTokens !== 0 ? <>{children}</> : null;
-};
-
 export const CraftNotOpen = ({ children }: { children: ReactNode }) => {
   const actor = useContext(AppContext);
   const saving = useSelector(
@@ -115,82 +121,11 @@ export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
   return promptLength !== 0 ? <>{children}</> : null;
 };
 
-// const selectIsShowingAddedRecipe = (state: CraftSnapshot) =>
-//   state.matches({ Auth: { LoggedIn: { Adding: { False: "Added" } } } });
-
-const VisibilityControl = ({
-  visible,
-  children,
-}: {
-  visible: boolean;
-  children: ReactNode;
-}) => {
-  const style = {
-    display: visible ? "block" : "none",
-  };
-
-  return (
-    <div suppressHydrationWarning style={style}>
-      {children}
-    </div>
-  );
-};
-
-
-// const InstantRecipeIcon = () => {
-//   const actor = useContext(CraftContext);
-//   const isTyping = useSelector(actor, (state) =>
-//     state.matches({ Typing: "True" })
-//   );
-//   const promptLength = useSelector(actor, selectPromptLength);
-//   const hasInstantRecipe = useSelector(
-//     actor,
-//     (state) => !!state.context.instantRecipeMetadata
-//   );
-//   const isLoading = useSelector(actor, selectIsInstantRecipeLoading);
-
-//   return isTyping ? (
-//     <EllipsisAnimation />
-//   ) : isLoading ? (
-//     <LoaderIcon className="animate-spin" />
-//   ) : hasInstantRecipe ? (
-//     <Badge variant="outline">Craft</Badge>
-//   ) : (
-//     <Badge variant="outline">
-//       <Skeleton className="w-8 h-4" />
-//     </Badge>
-//   );
-// };
-
 export const CraftingPlacholder = () => {
   const actor = useContext(AppContext);
   const selection = useSelector(actor, (state) => state.context.selection);
 
   return selection && <RecipeCraftingPlaceholder />;
-};
-
-export const AddedTokens = () => {
-  const tokens = useTokens();
-  return (
-    <div className="flex flex-row flex-wrap gap-2 px-4 mt-2">
-      {tokens.map((token) => {
-        return (
-          <Badge
-            className="flex flex-row gap-1"
-            variant="secondary"
-            key={token}
-            event={{
-              type: "REMOVE_TOKEN",
-              token,
-            }}
-          >
-            <span>{token}</span>
-            <XIcon size={13} />
-          </Badge>
-        );
-      })}
-    </div>
-  );
 };
 
 export const SuggestedRecipeCards = () => {
@@ -239,27 +174,6 @@ const useNumTokens = () => {
     },
     (tokens) => tokens.length
   );
-};
-
-const useTokens = () => {
-  const session$ = usePageSessionStore();
-
-  // return session$.get().context.tokens;
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context;
-    },
-    () => session$.get().context,
-    ({ tokens }) => {
-      return tokens;
-    },
-    isEqual
-  );
-  // const { context } = useStore(session$);
-
-  // console.log("use tokens");
-  // return context.tokens;
 };
 
 const useNumCards = () => {
@@ -931,95 +845,6 @@ const PlaceholderAnimatingInput = forwardRef<
 });
 PlaceholderAnimatingInput.displayName = "PlaceholderAnimatingInput";
 
-export const ClearButton = () => {
-  const session$ = useContext(PageSessionContext);
-  const session = useStore(session$);
-  const disabled = buildInput(session.context).length === 0;
-  return (
-    <div className="flex flex-row justify-center pointer-events-none">
-      <Button
-        event={{ type: "CLEAR", all: true }}
-        size="lg"
-        className="pointer-events-auto px-3 py-2 cursor-pointer"
-        variant="outline"
-        disabled={disabled}
-      >
-         Clear
-      </Button>
-    </div>
-  );
-};
-
-export const UndoButton = () => {
-  const session$ = useContext(PageSessionContext);
-  const session = useStore(session$);
-  const disabled = session.context.undoOperations.length === 0;
-
-  return (
-    <div className="flex flex-row justify-center pointer-events-none">
-      <Button
-        event={{ type: "UNDO" }}
-        size="lg"
-        className="pointer-events-auto px-3 py-2 cursor-pointer"
-        variant="outline"
-        disabled={disabled}
-      >
-        Undo
-      </Button>
-    </div>
-  );
-};
-
-// export const GoToButton = () => {
-//   // const index = use
-//   // const index = useCur
-//   const index = useCurrentItemIndex();
-//   return (
-//     <div
-//       className={cn(
-//         "flex-row justify-center pointer-events-none",
-//         index ? "flex" : "invisible"
-//       )}
-//     >
-//       {index && (
-//         <Button
-//           event={{ type: "PREV" }}
-//           size="lg"
-//           className="pointer-events-auto px-3 py-2 cursor-pointer shadow-xl rounded-full flex flex-row gap-1 items-center"
-//           variant="secondary"
-//         >
-//           <span>Open Recipe</span>
-//           <ExternalLinkIcon size={15} />
-//         </Button>
-//       )}
-//     </div>
-//   );
-// };
-
-export const PrevButton = () => {
-  // const index = use
-  // const index = useCur
-  const index = useCurrentItemIndex();
-  return (
-    <div
-      className={cn(
-        "flex-row justify-center pointer-events-none",
-        index ? "flex" : "invisible"
-      )}
-    >
-      {index && (
-        <Button
-          event={{ type: "PREV" }}
-          size="lg"
-          className="pointer-events-auto px-3 py-2 cursor-pointer shadow-xl rounded-full"
-        >
-          <MoveLeftIcon size={32} />
-        </Button>
-      )}
-    </div>
-  );
-};
-
 interface WaitForOptions {
   timeout?: number;
 }
@@ -1171,10 +996,8 @@ export const BadgeList = ({ children }: { children: ReactNode }) => {
   return <div className="px-4 flex flex-row gap-2 flex-wrap">{children}</div>;
 };
 
-const selectSuggestedIngredients = (snapshot: PageSessionStoreSnapshot) => {
-  return (
-    snapshot.context.sessionSnapshot?.context.suggestedIngredients || []
-  );
+const selectSuggestedIngredients = (snapshot: PageSessionSnapshot) => {
+  return snapshot.context.sessionSnapshot?.context.suggestedIngredients || [];
 };
 
 const IngredientsLabel = () => {
@@ -1228,12 +1051,12 @@ export const SuggestedIngredientsSection = () => {
   );
 };
 
-const selectSuggestedTags = (snapshot: PageSessionStoreSnapshot) => {
+const selectSuggestedTags = (snapshot: PageSessionSnapshot) => {
   return snapshot.context.sessionSnapshot?.context.suggestedTags || [];
 };
 
 const selectIsGeneratingSuggestedIngredients = (
-  snapshot: PageSessionStoreSnapshot
+  snapshot: PageSessionSnapshot
 ) => {
   const value = snapshot.context.sessionSnapshot?.value;
   return (
@@ -1243,7 +1066,7 @@ const selectIsGeneratingSuggestedIngredients = (
   );
 };
 
-const selectIsGeneratingSuggestedTags = (snapshot: PageSessionStoreSnapshot) => {
+const selectIsGeneratingSuggestedTags = (snapshot: PageSessionSnapshot) => {
   const value = snapshot.context.sessionSnapshot?.value;
   return (
     typeof value?.Suggestions === "object" &&
@@ -1300,4 +1123,35 @@ export const SuggestedTagsSection = () => {
 
 const TagsLabel = () => {
   return <SectionLabel icon={TagIcon} title="Tags" />;
+};
+
+export const SelectedRecipesBar = () => {
+  const numSelected = usePageSessionSelector(selectSelectedRecipeCount);
+
+  return (
+    <div className="px-2 pb-2 z-50 pointer-events-auto">
+      <Card
+        className="flex flex-row gap-2 p-1 justify-between items-center"
+        variant="locontrast"
+      >
+        <Button size="sm" variant="ghost" event={{ type: "SHARE_SELECTED" }}>
+          <ShareIcon className="mr-1" size={14} />
+          Share
+        </Button>
+        <div className="flex-1">
+          <Button
+            variant="secondary"
+            className="text-sm font-semibold w-full"
+            event={{ type: "VIEW_LIST" }}
+          >
+            {numSelected} Selected
+          </Button>
+        </div>
+        <Button size="sm" variant="ghost">
+          Save
+          <BookmarkIcon className="ml-1" size={14} />
+        </Button>
+      </Card>
+    </div>
+  );
 };

@@ -2,7 +2,6 @@ import { FeedCards } from "@/components/feed-cards";
 import { getNextAuthSession } from "@/lib/auth/session";
 import { getTimezone } from "@/lib/headers";
 import { getHotRecipes } from "../../db/queries";
-import { RefreshFeedButton } from "./refresh-feed-button";
 
 export default async function Page({
   searchParams,
@@ -40,6 +39,8 @@ export default async function Page({
 
   return (
     <div className="flex flex-col sm:gap-10 mt-0 sm:mt-10">
+      <div>My Recipes</div>
+
       <div className="px-4 mt-8 max-w-3xl w-full mx-auto flex flex-row justify-between items-center">
         <h3 className="text-lg font-medium">
           Today&apos;s Cookbook

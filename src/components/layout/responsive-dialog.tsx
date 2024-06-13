@@ -2,11 +2,19 @@
 
 import { Dialog, DialogContent } from "@/components/layout/dialog";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/layout/sheet";
+import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
+import { AppEvent } from "@/types";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { DialogOverlay } from "@radix-ui/react-dialog";
-import { createContext, forwardRef, useContext } from "react";
+import {
+  MouseEventHandler,
+  createContext,
+  forwardRef,
+  useContext,
+  useMemo,
+} from "react";
 
 // Creating the MobileContext
 const MobileContext = createContext(false);
@@ -65,12 +73,29 @@ const ResponsiveDialogTrigger: React.FC<DialogPrimitive.DialogTriggerProps> = ({
   );
 };
 
-const ResponsiveDialogOverlay: React.FC<DialogPrimitive.DialogOverlayProps> = (
-  props
-) => {
+const ResponsiveDialogOverlay: React.FC<
+  DialogPrimitive.DialogOverlayProps & { event?: AppEvent }
+> = ({ event, ...props }) => {
   const isMobile = useContext(MobileContext);
+  const send = useSend();
+  const handleClick = useMemo(() => {
+    if (event) {
+      const handler: MouseEventHandler<HTMLDivElement> = (e) => {
+        send(event);
+        e.preventDefault();
+        e.stopPropagation();
+      };
+      return handler;
+    } else {
+      return props.onClick;
+    }
+  }, [event, props, send]);
 
-  return isMobile ? <SheetOverlay {...props} /> : <DialogOverlay {...props} />;
+  return isMobile ? (
+    <SheetOverlay onClick={handleClick} {...props} />
+  ) : (
+    <DialogOverlay onClick={handleClick} {...props} />
+  );
 };
 
 export {

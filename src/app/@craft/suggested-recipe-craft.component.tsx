@@ -11,10 +11,8 @@ import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { FavoriteButton } from "@/components/favorite-button";
 import { Ingredients } from "@/components/ingredients";
-import { Button } from "@/components/input/button";
 import EventTrigger from "@/components/input/event-trigger";
 import { Instructions } from "@/components/instructions";
-import { PrintButton } from "@/components/print-button";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
 import { RecipeSelectButton } from "@/components/recipe-select-button";
 import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
@@ -23,6 +21,7 @@ import { ShareButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { Yield } from "@/components/yield";
+import { useAppContext } from "@/hooks/useAppContext";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { useSelector } from "@/hooks/useSelector";
@@ -33,17 +32,13 @@ import { createRecipeIsSelectedSelector } from "@/selectors/page-session.selecto
 import { ExtractAppEvent } from "@/types";
 import { Portal } from "@radix-ui/react-portal";
 import {
-  ExternalLinkIcon,
   ScrollIcon,
   ShoppingBasketIcon,
-  XCircleIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
-import Link from "next/link";
 import { ReactNode, useCallback, useMemo, useState } from "react";
-import { RecipeDetailOverlay } from "../components.client";
 import { AppSnapshot } from "../app-machine";
-import { useAppContext } from "@/hooks/useAppContext";
+import { RecipeDetailOverlay } from "../components.client";
 
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const recipe = useSuggestedRecipeAtIndex(index);
@@ -138,12 +133,10 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               )}
             </div>
 
-            {!isExpanded && (
-              <div>
-                <RecipeSelectCircleButton id={recipe?.id} />
-              </div>
-            )}
-            {isExpanded && (
+            <div>
+              <RecipeSelectCircleButton id={recipe?.id} />
+            </div>
+            {/* {isExpanded && (
               <div className="flex flex-col gap-2 items-center">
                 <Button
                   size="icon"
@@ -170,7 +163,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                   </Button>
                 )}
               </div>
-            )}
+            )} */}
             {/* {!isExpanded && recipe?.id && recipe.name && (
               <div className="flex flex-col justify-center">
                 <Button
@@ -219,7 +212,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 <CameraButton slug={recipe?.slug} />
                 <FavoriteButton id={recipe?.id} />
                 <ShareButton slug={recipe.slug} name={recipe.name} />
-                <RecipeSelectButton id={recipe.id} />
+                {/* <RecipeSelectButton id={recipe.id} /> */}
                 <RecipeMoreDropdownButton />
               </div>
             )}

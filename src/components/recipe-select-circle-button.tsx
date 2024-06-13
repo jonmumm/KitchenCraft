@@ -32,7 +32,7 @@ export const RecipeSelectCircleButton = ({
       variant="outline"
       size="icon"
     >
-      <CheckIcon className={!isSelected ? "hidden" : "block"} />
+      <CheckIcon className={!isSelected ? "opacity-30" : "block"} />
     </Button>
   );
 };

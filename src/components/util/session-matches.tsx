@@ -11,7 +11,7 @@ interface SessionSnapshotConditionalRendererProps {
   not?: boolean;
 }
 
-export const SessionSnapshotConditionalRenderer = (
+export const SessionSnapshotMatches = (
   props: SessionSnapshotConditionalRendererProps
 ) => {
   const active = useSessionMatchesState(props.matchedState);
