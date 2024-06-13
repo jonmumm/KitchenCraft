@@ -21,6 +21,7 @@ import { AppEvent } from "@/types";
 import { useStore } from "@nanostores/react";
 import {
   ArrowLeftIcon,
+  CheckCircleIcon,
   ChevronRight,
   ListIcon,
   Settings2Icon
@@ -398,7 +399,7 @@ export const MyRecipesBadge = () => {
         event={{ type: "VIEW_LIST" }}
         className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
       >
-        <ListIcon className="mr-2" />
+        <CheckCircleIcon className="mr-2" />
         Selected
       </Badge>
     </div>
@@ -410,7 +411,7 @@ export const CurrentListButton = () => {
     <div className="indicator">
       <ListIndicator />
       <Button variant={"outline"} event={{ type: "VIEW_LIST" }} size="icon">
-        <ListIcon />
+        <CheckCircleIcon />
       </Button>
     </div>
   );
