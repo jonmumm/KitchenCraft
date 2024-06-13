@@ -264,7 +264,9 @@ export function MainMenu({ className }: { className?: string }) {
         </Label>
         <ModeToggle />
       </div>
-      <UserSnapshotConditionalRenderer matchedState={{ Email: "Saved" }}>
+      <UserSnapshotConditionalRenderer
+        matchedState={{ Email: { Saved: "True" } }}
+      >
         <Separator />
         <div className="flex justify-center">
           <Button

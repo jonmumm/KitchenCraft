@@ -21,7 +21,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ReactNode, useEffect, useMemo } from "react";
+import { ReactNode, useCallback, useEffect, useMemo } from "react";
 import { twc } from "react-twc";
 import { Badge } from "./display/badge";
 import {
@@ -53,6 +53,7 @@ import { ShareButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
+import { PageSessionSnapshot } from "@/app/page-session-machine";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -70,7 +71,7 @@ const FeedCardItem = ({ index }: { index: number }) => {
     (state) => state.context.focusedRecipeId
   );
 
-  const isInFocus = usePageSessionSelector((state) => {
+  const selectIsInFocus = useCallback((state: PageSessionSnapshot) => {
     const feedItemId =
       state.context.sessionSnapshot?.context.feedItemIds[index];
     return feedItemId && focusedRecipeId
@@ -78,7 +79,8 @@ const FeedCardItem = ({ index }: { index: number }) => {
           feedItemId
         ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
       : false;
-  });
+  }, [index, focusedRecipeId])
+  const isInFocus = usePageSessionSelector(selectIsInFocus);
 
   return (
     <Card

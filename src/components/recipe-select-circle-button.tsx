@@ -29,12 +29,16 @@ export const RecipeSelectCircleButton = ({
       }
       className={cn(
         "rounded-full",
-        isSelected ? "border-purple-700 border-2 border-solid" : ""
+        isSelected
+          ? "border-purple-700 border-2 border-solid bg-purple-900 hover:bg-purple-800"
+          : ""
       )}
       variant="outline"
       size="icon"
     >
-      <CheckIcon className={!isSelected ? "opacity-80" : "block text-purple-600"} />
+      <CheckIcon
+        className={!isSelected ? "" : "block text-white"}
+      />
     </Button>
   );
 };
