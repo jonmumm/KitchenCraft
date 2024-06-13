@@ -35,14 +35,22 @@ export const RecipeMoreDropdownButton = () => {
           <DropdownMenuSeparator />
           <DropdownMenuItem className="text-muted-foreground">
             <div>
-              {/* <EventTrigger event={{type: "ADD_TO_LIST"}}>  */}
-              <span role="img" aria-label="add-to-make-later" className="mr-2">
-                ⏰
+              <span role="img" aria-label="add-to-favorites" className="mr-2">
+                🖨️
               </span>
-              <span className="text-muted-foreground">Add to </span>
-              <span className="text-foreground font-semibold">Make Later</span>
+              <span className="text-foreground font-semibold">Print </span>
+              <span className="text-foreground-muted">this Recipe</span>
             </div>
-            {/* </EventTrigger> */}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-muted-foreground">
+            <div>
+              <span role="img" aria-label="modify-recipe" className="mr-2">
+                ✏️
+              </span>
+              <span className="font-semibold text-foreground">Edit </span>
+              <span className="text-foreground-muted">this Recipe</span>
+            </div>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="text-muted-foreground">
@@ -57,11 +65,23 @@ export const RecipeMoreDropdownButton = () => {
           <DropdownMenuSeparator />
           <DropdownMenuItem className="text-muted-foreground">
             <div>
-              <span role="img" aria-label="modify-recipe" className="mr-2">
-                ✏️
+              {/* <EventTrigger event={{type: "ADD_TO_LIST"}}>  */}
+              <span role="img" aria-label="add-to-make-later" className="mr-2">
+                ⏰
               </span>
-              <span className="font-semibold text-foreground">Edit </span>
-              <span className="text-foreground-muted">this Recipe</span>
+              <span className="text-muted-foreground">Add to </span>
+              <span className="text-foreground font-semibold">Make Later</span>
+            </div>
+            {/* </EventTrigger> */}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-muted-foreground">
+            <div>
+              <span role="img" aria-label="add-to-favorites" className="mr-2">
+                ❤️
+              </span>
+              <span className="text-muted-foreground">Add to </span>{" "}
+              <span className="text-foreground font-semibold">Favorites</span>
             </div>
           </DropdownMenuItem>
         </DropdownMenuGroup>
