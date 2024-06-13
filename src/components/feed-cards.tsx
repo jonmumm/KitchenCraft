@@ -1,6 +1,8 @@
 "use client";
 
+import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { useAppContext } from "@/hooks/useAppContext";
+import { useAppMatchesState } from "@/hooks/useAppMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { useSelector } from "@/hooks/useSelector";
 import { cn } from "@/lib/utils";
@@ -53,7 +55,6 @@ import { ShareButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
-import { PageSessionSnapshot } from "@/app/page-session-machine";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -71,16 +72,23 @@ const FeedCardItem = ({ index }: { index: number }) => {
     (state) => state.context.focusedRecipeId
   );
 
-  const selectIsInFocus = useCallback((state: PageSessionSnapshot) => {
-    const feedItemId =
-      state.context.sessionSnapshot?.context.feedItemIds[index];
-    return feedItemId && focusedRecipeId
-      ? !!state.context.sessionSnapshot?.context.feedItemsById[
-          feedItemId
-        ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
-      : false;
-  }, [index, focusedRecipeId])
-  const isInFocus = usePageSessionSelector(selectIsInFocus);
+  const selectIsFocusedOnThisRecipe = useCallback(
+    (state: PageSessionSnapshot) => {
+      const feedItemId =
+        state.context.sessionSnapshot?.context.feedItemIds[index];
+      return feedItemId && focusedRecipeId
+        ? !!state.context.sessionSnapshot?.context.feedItemsById[
+            feedItemId
+          ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
+        : false;
+    },
+    [index, focusedRecipeId]
+  );
+  const isFocusedOnThisRecipe = usePageSessionSelector(
+    selectIsFocusedOnThisRecipe
+  );
+  const isRecipeDetailOpen = useAppMatchesState({ RecipeDetail: "Open" });
+  const isInFocus = isRecipeDetailOpen && isFocusedOnThisRecipe;
 
   return (
     <Card
