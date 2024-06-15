@@ -12,7 +12,7 @@ export const selectPromptIsPristine = (state: PageSessionSnapshot) =>
   state.context.prompt.length > 0;
 
 export const selectUserEmail = (state: PageSessionSnapshot) =>
-  state.context.userSnapshot?.context.email;
+  state.context.sessionSnapshot?.context.email;
 
 export const selectSelectedRecipeCount = (state: PageSessionSnapshot) =>
   state.context.sessionSnapshot?.context.selectedRecipeIds?.length || 0;
@@ -120,3 +120,12 @@ export const selectSelectedFeedTopics = (state: PageSessionSnapshot) => {
 export const selectSuggestedIngredients = (snapshot: PageSessionSnapshot) => {
   return snapshot.context.sessionSnapshot?.context.suggestedIngredients || [];
 };
+
+export const createListBySlugSelector =
+  (slug: string) => (state: PageSessionSnapshot) => {
+    const listsById = state.context.userSnapshot?.context.listsById;
+    if (!listsById) {
+      return undefined;
+    }
+    return Object.values(listsById).find((list) => list.slug === slug);
+  };

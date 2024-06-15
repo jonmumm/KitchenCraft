@@ -378,7 +378,17 @@ export const createSessionMachine = ({
                 onDone: "SendingEmail",
                 states: {
                   Waiting: {},
-                  Error: {},
+                  Error: {
+                    on: {
+                      CHANGE: {
+                        target: "Waiting",
+                        guard: ({ event }) => event.name === "email",
+                        actions: assign({
+                          email: ({ event }) => event.value,
+                        }),
+                      },
+                    },
+                  },
                   Validating: {
                     invoke: {
                       src: "fetchUserIdForEmail",

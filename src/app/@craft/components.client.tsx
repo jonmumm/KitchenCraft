@@ -53,7 +53,7 @@ import { z } from "zod";
 import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
-import { SuggestedRecipeCard } from "./suggested-recipe-craft.component";
+import { SuggestedRecipeCard } from "./suggested-recipe-card";
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const actor = useContext(AppContext);
@@ -499,13 +499,6 @@ const selectIsLoadingChefNameAvailability = (snapshot: PageSessionSnapshot) => {
     (stateValue.Profile.Available === "Loading" ||
       stateValue.Profile.Available === "Holding")
   );
-};
-
-const selectSelectedList = (snapshot: PageSessionSnapshot) => {
-  if (snapshot.context.listsBySlug && snapshot.context.currentListSlug) {
-    return snapshot.context.listsBySlug[snapshot.context.currentListSlug];
-  }
-  return undefined;
 };
 
 const selectIsChefNameAvailable = (snapshot: PageSessionSnapshot) => {

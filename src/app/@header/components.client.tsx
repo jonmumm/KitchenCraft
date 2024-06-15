@@ -23,7 +23,6 @@ import {
   ArrowLeftIcon,
   CheckCircleIcon,
   ChevronRight,
-  ListIcon,
   Settings2Icon
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -209,7 +208,7 @@ export const CraftInput = ({
       (state) => !state.matches({ Open: "False" })
     );
     return !isOpen ? (
-      <Button variant="ghost" size="icon" disabled>
+      <Button variant="ghost" size="icon" className="text-muted-foreground active:bg-transparent hover:bg-transparent" event={{ type: "NEW_RECIPE" }}>
         <ChevronRight />
       </Button>
     ) : (

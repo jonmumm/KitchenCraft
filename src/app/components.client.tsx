@@ -1,6 +1,5 @@
 "use client";
 
-import { CameraButton } from "@/components/camera-button";
 import { CurrentListCount } from "@/components/current-list-count";
 import {
   Accordion,
@@ -24,21 +23,17 @@ import {
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
-import { FavoriteButton } from "@/components/favorite-button";
 import { Ingredients } from "@/components/ingredients";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuTrigger,
-} from "@/components/input/dropdown-menu";
+import { DropdownMenuRadioGroup } from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
 import { Popover } from "@/components/layout/popover";
 import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
+import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
+import { SaveButton } from "@/components/save-button";
 import { useScrollLock } from "@/components/scroll-lock";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
@@ -74,7 +69,6 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsUpDown,
@@ -116,8 +110,6 @@ import { AppContext } from "./context";
 import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
 import { PageSessionSnapshot } from "./page-session-machine";
-import { SaveButton } from "@/components/save-button";
-import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -519,23 +511,23 @@ export const MyRecipesScreen = () => {
               CLEAR
             </Badge>
           </HasSelectedRecipes>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex-1 flex justify-center">
-              <Badge
-                variant="outline"
-                className="flex gap-2 justify-between text-center text-lg font-bold px-4 py-2 w-full bg-card shadow-lg sm:w-80"
-              >
-                <ChevronDownIcon />
-                <span>Selected</span>
-                <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
-                  <CurrentListCount />
-                </span>
-              </Badge>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="z-90">
+          {/* <DropdownMenu> */}
+          {/* <DropdownMenuTrigger className="flex-1 flex justify-center"> */}
+          <Badge
+            variant="outline"
+            className="flex gap-2 justify-center text-lg font-bold px-4 py-2 w-full bg-card shadow-lg sm:w-80"
+          >
+            {/* <ChevronDownIcon /> */}
+            <span>Selected</span>
+            <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
+              <CurrentListCount />
+            </span>
+          </Badge>
+          {/* </DropdownMenuTrigger> */}
+          {/* <DropdownMenuContent className="z-90">
               <MyRecipeListsRadioGroup />
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenuContent> */}
+          {/* </DropdownMenu> */}
           <Button
             variant="ghost"
             size="icon"
@@ -913,44 +905,24 @@ export const IsInputtingEmail = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
-const useIsLoadingRecipeLists = () => {
-  const session$ = usePageSessionStore();
+// const useIsLoadingRecipeLists = () => {
+//   const session$ = usePageSessionStore();
 
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().value;
-    },
-    () => {
-      return session$.get().value;
-    },
-    (value) =>
-      typeof value.Craft === "object" &&
-      typeof value.Craft.Adding === "object" &&
-      typeof value.Craft.Adding.True === "object" &&
-      value.Craft.Adding.True.Lists === "Fetching"
-  );
-};
-
-const useSortedRecipeLists = () => {
-  const session$ = usePageSessionStore();
-
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context.listsBySlug;
-    },
-    () => {
-      return session$.get().context.listsBySlug;
-    },
-    (listsBySlug) =>
-      listsBySlug
-        ? Object.values(listsBySlug)
-            .filter(({ slug }) => slug !== "liked" && slug !== "make-later")
-            .toSorted((a, b) => (a.createdAt > b.createdAt ? -1 : 1))
-        : []
-  );
-};
+//   return useSyncExternalStoreWithSelector(
+//     session$.subscribe,
+//     () => {
+//       return session$.get().value;
+//     },
+//     () => {
+//       return session$.get().value;
+//     },
+//     (value) =>
+//       typeof value.Craft === "object" &&
+//       typeof value.Craft.Adding === "object" &&
+//       typeof value.Craft.Adding.True === "object" &&
+//       value.Craft.Adding.True.Lists === "Fetching"
+//   );
+// };
 
 const useSuggestedListNames = () => {
   const session$ = usePageSessionStore();
@@ -984,15 +956,17 @@ const useSuggestedChefnames = () => {
 
 export const SelectListCard = () => {
   const RecentLists = () => {
-    const lists = useSortedRecipeLists();
-    const isLoading = useIsLoadingRecipeLists();
-    const items = new Array(6).fill("");
+    // const lists = useSortedRecipeLists();
+    // const isLoading = useIsLoadingRecipeLists();
+    const lists = usePageSessionSelector((state) => {
+      return state.context.userSnapshot?.context.listsById || {};
+    });
 
     return (
       <div className="flex flex-col gap-2 px-4">
-        {items.map((item, index) => {
+        {Object.values(lists).map((item, index) => {
           const name = lists[index]?.name;
-          const count = lists[index]?.recipeCount;
+          const count = lists[index]?.count;
           const createdAt = lists[index]?.createdAt;
           const listSlug = lists[index]?.slug;
           return (
@@ -1005,8 +979,6 @@ export const SelectListCard = () => {
                 <h4 className="font-semibold">
                   {name ? (
                     <>{name}</>
-                  ) : isLoading ? (
-                    <SkeletonSentence className="h-6" numWords={2} />
                   ) : (
                     <span className="text-muted-foreground">Empty</span>
                   )}
@@ -1020,11 +992,6 @@ export const SelectListCard = () => {
                       Created {formatCreateTime(createdAt)}
                     </span>
                   </div>
-                ) : isLoading ? (
-                  <SkeletonSentence
-                    className="h-4 text-gray-500 dark:text-gray-400"
-                    numWords={3}
-                  />
                 ) : (
                   <span className="text-xs text-muted-foreground">
                     Press to create
@@ -1034,10 +1001,6 @@ export const SelectListCard = () => {
               {listSlug ? (
                 <Button size="sm" event={{ type: "SELECT_LIST", listSlug }}>
                   Select
-                </Button>
-              ) : isLoading ? (
-                <Button size="sm" variant="outline">
-                  <Skeleton className="h-4 w-10" />
                 </Button>
               ) : (
                 <Button

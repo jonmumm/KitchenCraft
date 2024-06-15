@@ -25,6 +25,7 @@ import { Button } from "@/components/input/button";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSend } from "@/hooks/useSend";
 import { useSessionMatchesState } from "@/hooks/useSessionMatchesState";
+import { useSessionMatchesStateHandler } from "@/hooks/useSessionMatchesStateHandler";
 import { selectUserEmail } from "@/selectors/page-session.selectors";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -63,6 +64,13 @@ function SignInForm() {
   });
 
   const store = usePageSessionStore();
+
+  useSessionMatchesStateHandler(
+    { Auth: { SigningIn: { Inputting: "Error" } } },
+    () => {
+      setDisabled(false);
+    }
+  );
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -138,7 +146,7 @@ function SignInForm() {
           )}
         />
         <Button disabled={disabled} type="submit" className="w-full" size="lg">
-          {disabled ? "Loading..." : "Submit"}
+          {disabled ? (hasError ? "Error" : "Loading...") : "Submit"}
         </Button>
       </form>
     </Form>

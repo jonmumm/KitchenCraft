@@ -86,6 +86,8 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           "carousel-item relative flex flex-col w-full max-w-3xl mx-auto",
           !isExpanded && isSelected
             ? "border-purple-500 border-2 border-solid shadow-xl"
+            : !isExpanded && recipe?.name
+            ? "hover:bg-slate-100 dark:hover:bg-slate-900 active:bg-slate-200 dark:active:bg-slate-800 cursor-pointer"
             : ""
         )}
       >
@@ -94,10 +96,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             recipe?.id ? { type: "VIEW_RECIPE", id: recipe.id } : undefined
           }
           disabled={isExpanded}
-          className={cn(
-            "flex flex-col p-4",
-            recipe?.id ? "cursor-pointer" : ""
-          )}
+          className={cn("flex flex-col p-4")}
         >
           <div className="flex flex-row gap-2 w-full">
             <div className="flex flex-col gap-2 w-full">

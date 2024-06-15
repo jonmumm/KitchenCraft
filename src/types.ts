@@ -353,6 +353,7 @@ export type ObservableType<T> = T extends Observable<infer U> ? U : never;
 
 export type RecipeBase = z.infer<typeof RecipeBaseSchema>;
 
+export type Values<T> = T[keyof T];
 export type FeatureId = (typeof featureIdEnum.enumValues)[number];
 
 export type MediaFragmentLiteral = z.infer<typeof MediaFragmentLiteralSchema>;
@@ -472,17 +473,20 @@ export type UserContext = {
   // feedItemIds: string[];
   // generationIdSets: Record<string, string[]>;
   // listIds: string[];
-  // listsById: Record<
-  //   string,
-  //   {
-  //     id: string;
-  //     name?: string;
-  //     slug?: string;
-  //     isPublic: boolean;
-  //     count: number;
-  //     idSet: Record<string, true>;
-  //   }
-  // >;
+  listsById: Record<
+    string,
+    {
+      id: string;
+      name: string;
+      icon?: string;
+      slug: string;
+      public: boolean;
+      created: boolean;
+      count: number;
+      idSet: Record<string, true>;
+      createdAt: string;
+    }
+  >;
 };
 
 export type SessionContext = {
@@ -571,7 +575,6 @@ export type PartyMap = Record<
     get(id: string): Party.Stub;
   }
 >;
-
 
 type WithIdInput = { id: string };
 export type AnyStateMachineWithIdInput = StateMachine<

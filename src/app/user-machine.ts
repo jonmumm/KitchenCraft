@@ -4,6 +4,7 @@ import { getPersonalizationContext } from "@/lib/llmContext";
 import { assert } from "@/lib/utils";
 import { PartyMap, UserContext, UserEvent } from "@/types";
 import { createClient } from "@vercel/postgres";
+import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 import { produce } from "immer";
@@ -139,6 +140,8 @@ export const createUserMachine = ({
     id: "UserMachine",
     type: "parallel",
     context: ({ input }) => {
+      const listsById = initializeListsById();
+
       return {
         ...input,
         preferenceQuestionResults: {},
@@ -149,6 +152,7 @@ export const createUserMachine = ({
         preferences: {},
         diet: {},
         previousSuggestedProfileNames: [],
+        listsById,
       };
     },
     states: {
@@ -623,3 +627,57 @@ export const createUserMachine = ({
 export type UserMachine = ReturnType<typeof createUserMachine>;
 export type UserSnapshot = SnapshotFrom<UserMachine>;
 export type UserState = StateValueFrom<UserMachine>;
+
+const initializeListsById = () => {
+  const makeLaterId = randomUUID();
+  const favoritesId = randomUUID();
+  const likedId = randomUUID();
+  const recentlySharedId = randomUUID();
+
+  return {
+    [makeLaterId]: {
+      id: makeLaterId,
+      name: "Make Later",
+      icon: "⏰",
+      slug: "make-later",
+      public: true,
+      created: false,
+      count: 0,
+      idSet: {},
+      createdAt: new Date().toISOString(),
+    },
+    [favoritesId]: {
+      id: favoritesId,
+      name: "Favorites",
+      icon: "❤️",
+      slug: "favorites",
+      public: true,
+      created: false,
+      count: 0,
+      idSet: {},
+      createdAt: new Date().toISOString(),
+    },
+    [likedId]: {
+      id: likedId,
+      name: "Liked",
+      icon: "👍",
+      slug: "liked",
+      public: true,
+      created: false,
+      count: 0,
+      idSet: {},
+      createdAt: new Date().toISOString(),
+    },
+    [recentlySharedId]: {
+      id: recentlySharedId,
+      name: "Recently Shared",
+      icon: "👥",
+      slug: "recently-shared",
+      public: true,
+      created: false,
+      count: 0,
+      idSet: {},
+      createdAt: new Date().toISOString(),
+    },
+  } satisfies UserContext["listsById"];
+};

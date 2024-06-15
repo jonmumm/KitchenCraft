@@ -11,7 +11,7 @@ import {
   createFeedItemRecipeAtIndexSelector,
   createRecipeIsSelectedSelector,
   createRecipeSelector,
-  selectNumFeedItemIds,
+  selectNumFeedItemIds
 } from "@/selectors/page-session.selectors";
 import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode, useCallback, useEffect, useMemo } from "react";
-import { twc } from "react-twc";
 import { Badge } from "./display/badge";
 import {
   Card,
@@ -34,7 +33,7 @@ import {
   CardTitle,
 } from "./display/card";
 import { Separator } from "./display/separator";
-import { Skeleton, SkeletonSentence } from "./display/skeleton";
+import { SkeletonSentence } from "./display/skeleton";
 import { ExitButton } from "./exit-button";
 import { Ingredients } from "./ingredients";
 import { Button } from "./input/button";
@@ -535,94 +534,6 @@ const FeedCardRecipeItem = (input: {
         </>
       )}
     </Card>
-  );
-};
-
-const MyRecipeListItemContent = twc.div`flex flex-col gap-1 px-3 min-w-[5rem] items-start`;
-const MyRecipeListItemTitle = twc.h4`font-semibold truncate`;
-const MyRecipeListItemRecipeCount = twc.div`text-muted-foreground`;
-const MyRecipeListItemCard = twc(
-  Card
-)`carousel-item h-24 flex flex-row gap-2 justify-start items-center`;
-
-export const MyRecipeLists = () => {
-  return (
-    <div className="relative h-24">
-      <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-row justify-center">
-        <div className="carousel carousel-center pl-2 pr-2 space-x-2">
-          {/* <MyRecipeListItemCard variant="locontrast">
-            <MyRecipeListItemContent>
-              <span className="text-lg">✅</span>
-              <MyRecipeListItemTitle>Selected</MyRecipeListItemTitle>
-              <MyRecipeListItemRecipeCount>
-                0 recipes
-              </MyRecipeListItemRecipeCount>
-            </MyRecipeListItemContent>
-          </MyRecipeListItemCard> */}
-          <MyRecipeListItemCard variant="locontrast">
-            <MyRecipeListItemContent>
-              <span className="text-lg">⏰</span>
-              <MyRecipeListItemTitle>Make Later</MyRecipeListItemTitle>
-              <MyRecipeListItemRecipeCount>
-                32 recipes
-              </MyRecipeListItemRecipeCount>
-            </MyRecipeListItemContent>
-          </MyRecipeListItemCard>
-          <MyRecipeListItemCard variant="locontrast">
-            <MyRecipeListItemContent>
-              <span className="text-lg">❤️</span>
-              <MyRecipeListItemTitle>Favorites</MyRecipeListItemTitle>
-              <MyRecipeListItemRecipeCount>
-                5 recipes
-              </MyRecipeListItemRecipeCount>
-            </MyRecipeListItemContent>
-          </MyRecipeListItemCard>
-          <MyRecipeListItemCard variant="locontrast">
-            <MyRecipeListItemContent>
-              <span className="text-lg">👍</span>
-              <MyRecipeListItemTitle>Liked</MyRecipeListItemTitle>
-              <MyRecipeListItemRecipeCount>
-                0 recipes
-              </MyRecipeListItemRecipeCount>
-            </MyRecipeListItemContent>
-          </MyRecipeListItemCard>
-          <MyRecipeListItemCard variant="locontrast">
-            <MyRecipeListItemContent>
-              <span className="text-lg">👥</span>
-              <MyRecipeListItemTitle>Recently Shared</MyRecipeListItemTitle>
-              <MyRecipeListItemRecipeCount>
-                8 recipes
-              </MyRecipeListItemRecipeCount>
-            </MyRecipeListItemContent>
-          </MyRecipeListItemCard>
-          <Separator orientation="vertical" />
-          <MyRecipeListItemCard variant="locontrast">
-            <MyRecipeListItemContent>
-              <span className="text-lg">➕</span>
-              <MyRecipeListItemTitle>Create</MyRecipeListItemTitle>
-              <MyRecipeListItemRecipeCount>
-                New List
-              </MyRecipeListItemRecipeCount>
-            </MyRecipeListItemContent>
-          </MyRecipeListItemCard>
-          {new Array(3).fill(0).map((items, index) => {
-            return (
-              <MyRecipeListItemCard variant="locontrast" key={index}>
-                <MyRecipeListItemContent>
-                  {/* Empty */}
-                  <span className="text-lg opacity-0">∅</span>
-                  <MyRecipeListItemTitle className="text-muted-foreground">
-                    Empty
-                  </MyRecipeListItemTitle>
-                  <Skeleton className="w-10 h-3 animate-none dark:bg-slate-600" />
-                  {/* <Badge variant="secondary">New List</Badge> */}
-                </MyRecipeListItemContent>
-              </MyRecipeListItemCard>
-            );
-          })}
-        </div>
-      </div>
-    </div>
   );
 };
 

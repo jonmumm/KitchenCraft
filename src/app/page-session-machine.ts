@@ -28,12 +28,11 @@ import {
   PartialRecipe,
   PartyMap,
   ProductType,
-  RecipeList,
   ServerPartySocket,
   SystemEvent,
   UserPreferenceType,
   UserPreferences,
-  WithCaller,
+  WithCaller
 } from "@/types";
 import { createClient } from "@vercel/postgres";
 import { randomUUID } from "crypto";
@@ -93,12 +92,12 @@ import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { UserSnapshot } from "./user-machine";
 import { buildInput } from "./utils";
 
-type ListsBySlugRecord = Record<
-  string,
-  Pick<RecipeList, "name" | "slug" | "createdAt"> & {
-    recipeCount: number;
-  }
->;
+// type ListsBySlugRecord = Record<
+//   string,
+//   Pick<RecipeList, "name" | "slug" | "createdAt"> & {
+//     recipeCount: number;
+//   }
+// >;
 
 // const autoSuggestionOutputSchemas = {
 //   tags: InstantRecipeMetadataPredictionOutputSchema,
@@ -176,7 +175,6 @@ export type PageSessionContext = {
   modifiedPreferences: Partial<Record<keyof UserPreferences, true>>;
   sessionSnapshot: SessionSnapshot | undefined;
   userSnapshot: UserSnapshot | undefined;
-  listsBySlug: ListsBySlugRecord | undefined;
 };
 
 export type PageSessionEvent =
@@ -670,20 +668,20 @@ export const createPageSessionMachine = ({
         numCompletedRecipeMetadata: 0,
         numCompletedRecipes: 0,
       }),
-      incrementRecipeCountForCurrentList: assign({
-        listsBySlug: ({ context }) => {
-          return produce(context.listsBySlug, (draft) => {
-            assert(draft, "expected listsBySlug when saving");
-            assert(
-              context.currentListSlug,
-              "expected currentListSlug when saving"
-            );
-            const list = draft[context.currentListSlug];
-            assert(list, "expected list when saving");
-            list.recipeCount = list.recipeCount + 1;
-          });
-        },
-      }),
+      // incrementRecipeCountForCurrentList: assign({
+      //   // listsBySlug: ({ context }) => {
+      //   //   return produce(context.listsBySlug, (draft) => {
+      //   //     assert(draft, "expected listsBySlug when saving");
+      //   //     assert(
+      //   //       context.currentListSlug,
+      //   //       "expected currentListSlug when saving"
+      //   //     );
+      //   //     const list = draft[context.currentListSlug];
+      //   //     assert(list, "expected list when saving");
+      //   //     list.recipeCount = list.recipeCount + 1;
+      //   //   });
+      //   // },
+      // }),
       assignRecipeIdToSave: assign({
         recipeIdToSave: ({ context }) => {
           const recipeId = context.suggestedRecipes[context.currentItemIndex];
@@ -694,29 +692,29 @@ export const createPageSessionMachine = ({
       assighChefName: assign(({ context }) => {
         return context;
       }),
-      assignListSelection: assign({
-        currentListSlug: ({ event }) => {
-          assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
-          return event.listSlug;
-        },
-        listsBySlug: ({ event, context }) =>
-          produce(context.listsBySlug, (draft) => {
-            assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
+      // assignListSelection: assign({
+      //   currentListSlug: ({ event }) => {
+      //     assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
+      //     return event.listSlug;
+      //   },
+      //   // listsBySlug: ({ event, context }) =>
+      //   //   produce(context.listsBySlug, (draft) => {
+      //   //     assert(event.type === "SELECT_LIST", "expected SELECT_LIST EVENT");
 
-            const defaultList = defaultLists[event.listSlug];
-            if (!draft) {
-              draft = {};
-            }
+      //   //     const defaultList = defaultLists[event.listSlug];
+      //   //     if (!draft) {
+      //   //       draft = {};
+      //   //     }
 
-            if (defaultList) {
-              draft[event.listSlug] = {
-                ...defaultList,
-                createdAt: new Date().toISOString() as unknown as Date,
-                recipeCount: 1,
-              };
-            }
-          }),
-      }),
+      //   //     if (defaultList) {
+      //   //       draft[event.listSlug] = {
+      //   //         ...defaultList,
+      //   //         createdAt: new Date().toISOString() as unknown as Date,
+      //   //         recipeCount: 1,
+      //   //       };
+      //   //     }
+      //   //   }),
+      // }),
     },
   }).createMachine({
     id: "UserAppMachine",
@@ -761,7 +759,6 @@ export const createPageSessionMachine = ({
       productIdViewCounts: {},
       undoOperations: [],
       redoOperations: [],
-      listsBySlug: undefined,
       sessionAccessToken: input.sessionAccessToken,
       userAccessToken: input.userAccessToken,
     }),
@@ -1286,50 +1283,50 @@ export const createPageSessionMachine = ({
                   CANCEL: "False",
                 },
                 states: {
-                  Lists: {
-                    initial: "Initializing",
-                    states: {
-                      Initializing: {
-                        always: [
-                          {
-                            target: "Fetching",
-                            guard: ({ context }) => !context.listsBySlug,
-                          },
-                          {
-                            target: "Complete",
-                          },
-                        ],
-                      },
-                      Fetching: {
-                        invoke: {
-                          src: "getAllListsForUserWithRecipeCount",
-                          input: ({ event }) => {
-                            assert(
-                              "caller" in event,
-                              "expected caller in event"
-                            );
-                            return { userId: event.caller.id };
-                          },
-                          onDone: {
-                            target: "Complete",
-                            actions: assign(({ context, event }) => {
-                              return produce(context, (draft) => {
-                                if (event.output.success) {
-                                  draft.listsBySlug = {};
-                                  event.output.result?.forEach((item) => {
-                                    draft.listsBySlug![item.slug] = item;
-                                  });
-                                }
-                              });
-                            }),
-                          },
-                        },
-                      },
-                      Complete: {
-                        type: "final",
-                      },
-                    },
-                  },
+                  // Lists: {
+                  //   initial: "Initializing",
+                  //   states: {
+                  //     Initializing: {
+                  //       always: [
+                  //         {
+                  //           target: "Fetching",
+                  //           guard: ({ context }) => !context.listsBySlug,
+                  //         },
+                  //         {
+                  //           target: "Complete",
+                  //         },
+                  //       ],
+                  //     },
+                  //     Fetching: {
+                  //       invoke: {
+                  //         src: "getAllListsForUserWithRecipeCount",
+                  //         input: ({ event }) => {
+                  //           assert(
+                  //             "caller" in event,
+                  //             "expected caller in event"
+                  //           );
+                  //           return { userId: event.caller.id };
+                  //         },
+                  //         onDone: {
+                  //           target: "Complete",
+                  //           actions: assign(({ context, event }) => {
+                  //             return produce(context, (draft) => {
+                  //               if (event.output.success) {
+                  //                 draft.listsBySlug = {};
+                  //                 event.output.result?.forEach((item) => {
+                  //                   draft.listsBySlug![item.slug] = item;
+                  //                 });
+                  //               }
+                  //             });
+                  //           }),
+                  //         },
+                  //       },
+                  //     },
+                  //     Complete: {
+                  //       type: "final",
+                  //     },
+                  //   },
+                  // },
                 },
               },
             },
@@ -2681,31 +2678,31 @@ export const createPageSessionMachine = ({
                           return { chefname, userId: event.userId };
                         },
                       }),
-                      spawnChild("saveRecipeToListName", {
-                        input: ({ context, event }) => {
-                          assert(
-                            event.type === "AUTHENTICATE",
-                            "expected authenticate event"
-                          );
-                          assert(
-                            context.recipeIdToSave,
-                            "expected recipeId to save"
-                          );
-                          assert(
-                            context.currentListSlug,
-                            "expected currentListSlug to be set"
-                          );
-                          const currentList =
-                            context.listsBySlug?.[context.currentListSlug];
-                          assert(currentList, "expected currentList to be set");
+                      // spawnChild("saveRecipeToListName", {
+                      //   input: ({ context, event }) => {
+                      //     assert(
+                      //       event.type === "AUTHENTICATE",
+                      //       "expected authenticate event"
+                      //     );
+                      //     assert(
+                      //       context.recipeIdToSave,
+                      //       "expected recipeId to save"
+                      //     );
+                      //     assert(
+                      //       context.currentListSlug,
+                      //       "expected currentListSlug to be set"
+                      //     );
+                      //     const currentList =
+                      //       context.listsBySlug?.[context.currentListSlug];
+                      //     assert(currentList, "expected currentList to be set");
 
-                          return {
-                            recipeId: context.recipeIdToSave,
-                            userId: event.userId,
-                            listName: currentList.name,
-                          };
-                        },
-                      }),
+                      //     return {
+                      //       recipeId: context.recipeIdToSave,
+                      //       userId: event.userId,
+                      //       listName: currentList.name,
+                      //     };
+                      //   },
+                      // }),
                     ],
                   },
                 },
@@ -3093,16 +3090,16 @@ export const createPageSessionMachine = ({
                 };
               },
               onDone: {
-                actions: assign({
-                  listsBySlug: ({ context, event }) =>
-                    produce(context.listsBySlug, (draft) => {
-                      assert(draft, "expected lists to be fetched alredy");
-                      draft[event.output.slug] = {
-                        ...event.output,
-                        recipeCount: 1,
-                      };
-                    }),
-                }),
+                // actions: assign({
+                //   listsBySlug: ({ context, event }) =>
+                //     produce(context.listsBySlug, (draft) => {
+                //       assert(draft, "expected lists to be fetched alredy");
+                //       draft[event.output.slug] = {
+                //         ...event.output,
+                //         recipeCount: 1,
+                //       };
+                //     }),
+                // }),
               },
               // actions: [
               //   assign({
