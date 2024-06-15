@@ -32,6 +32,10 @@ export const selectHasRecipesSelected = createSelector(
   }
 );
 
+export const selectUserId = (state: PageSessionSnapshot) => {
+  return state.context.userSnapshot?.context.id!; // same to assume always there
+};
+
 export const selectProfileName = (state: PageSessionSnapshot) => {
   return state.context.userSnapshot?.context.profileName;
 };
@@ -39,6 +43,36 @@ export const selectProfileName = (state: PageSessionSnapshot) => {
 export const selectSuggestedProfileNames = (state: PageSessionSnapshot) => {
   return state.context.userSnapshot?.context.suggestedProfileNames || [];
 };
+
+export const createUrlForListIdSelector =
+  (listId?: string) => (state: PageSessionSnapshot) => {
+    if (!listId) {
+      return undefined;
+    }
+
+    const listsById = state.context.userSnapshot?.context.listsById;
+    if (!listsById) {
+      return undefined;
+    }
+
+    const list = listsById[listId];
+    if (!list) {
+      return undefined;
+    }
+
+    const profileName = selectProfileName(state);
+    const userId = selectUserId(state);
+
+    if (profileName && list.slug) {
+      return `/@${profileName}/${list.slug}`;
+    }
+
+    if (list.slug) {
+      return `/user/${userId}/${list.slug}`;
+    }
+
+    return `/list/${listId}`;
+  };
 
 export const createRecipeSelector =
   (id?: string) => (state: PageSessionSnapshot) => {

@@ -80,6 +80,7 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
+  XCircleIcon,
   XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
@@ -530,7 +531,6 @@ export const MyRecipesScreen = () => {
           {/* </DropdownMenu> */}
           <Button
             variant="ghost"
-            size="icon"
             event={{ type: "EXIT" }}
             className="text-xs text-semibold shadow-md bg-card rounded-full"
           >
@@ -961,6 +961,7 @@ export const SelectListCard = () => {
     const lists = usePageSessionSelector((state) => {
       return state.context.userSnapshot?.context.listsById || {};
     });
+    console.log({ lists });
 
     return (
       <div className="flex flex-col gap-2 px-4">
@@ -1048,7 +1049,6 @@ export const SelectListCard = () => {
           + Create List
         </Button>
         <Separator />
-        <LikedRecipesCard />
         <MakeLaterCard />
       </div>
       <div className="mt-1">
@@ -1131,12 +1131,13 @@ export const CreateNewListCard = () => {
   );
 };
 
+const ListItemCard = twc(
+  Card
+)`p-4 flex items-center justify-between cursor-pointer`;
+
 const LikedRecipesCard = () => {
   return (
-    <Card
-      className="p-4 flex items-center justify-between cursor-pointer"
-      event={{ type: "SELECT_LIST", listSlug: "liked" }}
-    >
+    <ListItemCard event={{ type: "SELECT_LIST", listSlug: "liked" }}>
       <div className="grid gap-2">
         <h4 className="font-semibold">Liked</h4>
         <p className="text-xs text-muted-foreground">
@@ -1146,7 +1147,7 @@ const LikedRecipesCard = () => {
         </p>
       </div>
       <Button size="sm">Select</Button>
-    </Card>
+    </ListItemCard>
   );
 };
 

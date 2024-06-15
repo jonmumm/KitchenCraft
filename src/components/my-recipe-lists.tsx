@@ -1,21 +1,24 @@
 "use client";
 
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
-import { createListBySlugSelector } from "@/selectors/page-session.selectors";
+import { createListBySlugSelector, createUrlForListIdSelector } from "@/selectors/page-session.selectors";
+import Link from "next/link";
+import { useMemo } from "react";
 import { twc } from "react-twc";
 import { Card } from "./display/card";
 import { Separator } from "./display/separator";
 import { Skeleton } from "./display/skeleton";
+
 
 export const MyRecipeLists = () => {
   return (
     <div className="relative h-24">
       <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-row justify-center">
         <div className="carousel carousel-center pl-2 pr-2 space-x-2">
-          <MyRecipeListItemBySlug slug="make-later" />
-          <MyRecipeListItemBySlug slug="favorites" />
-          <MyRecipeListItemBySlug slug="liked" />
-          <MyRecipeListItemBySlug slug="recently-shared" />
+          <MyRecipeListCardBySlug slug="make-later" />
+          <MyRecipeListCardBySlug slug="favorites" />
+          <MyRecipeListCardBySlug slug="liked" />
+          <MyRecipeListCardBySlug slug="recently-shared" />
           <Separator orientation="vertical" />
           <MyRecipeListItemCard variant="locontrast">
             <MyRecipeListItemContent>
@@ -52,30 +55,37 @@ const MyRecipeListItemCard = twc(
   Card
 )`carousel-item h-24 flex flex-row gap-2 justify-start items-center cursor-pointer hover:bg-slate-100 active:bg-slate-300 dark:hover:bg-slate-900 dark:active:bg-slate-700`;
 
-const MyRecipeListItemBySlug = ({ slug }: { slug: string }) => {
+const MyRecipeListCardBySlug = ({ slug }: { slug: string }) => {
   const selectList = createListBySlugSelector(slug);
   const list = usePageSessionSelector(selectList);
-  console.log({ list });
+
+  const selectListUrl = useMemo(
+    () => createUrlForListIdSelector(list?.id),
+    [list?.id]
+  );
+  const listUrl = usePageSessionSelector(selectListUrl);
 
   return (
-    <MyRecipeListItemCard variant="locontrast" event={{ type: "VIEW_LIST" }}>
-      <MyRecipeListItemContent>
-        <span className="text-lg">
-          {list?.icon ? <>{list.icon}</> : <>&nbsp;</>}
-        </span>
-        <MyRecipeListItemTitle>
-          {list?.name ? <>{list.name}</> : <Skeleton className="w-12 h-4" />}
-        </MyRecipeListItemTitle>
-        <MyRecipeListItemRecipeCount>
-          {list?.count !== undefined ? (
-            <>
-              {list?.count} {list?.count === 1 ? "recipe" : "recipes"}
-            </>
-          ) : (
-            <Skeleton className="w-10 h-3 animate-none dark:bg-slate-600" />
-          )}
-        </MyRecipeListItemRecipeCount>
-      </MyRecipeListItemContent>
-    </MyRecipeListItemCard>
+    <Link href={listUrl || ""} prefetch target="_blank">
+      <MyRecipeListItemCard variant="locontrast">
+        <MyRecipeListItemContent>
+          <span className="text-lg">
+            {list?.icon ? <>{list.icon}</> : <>&nbsp;</>}
+          </span>
+          <MyRecipeListItemTitle>
+            {list?.name ? <>{list.name}</> : <Skeleton className="w-12 h-4" />}
+          </MyRecipeListItemTitle>
+          <MyRecipeListItemRecipeCount>
+            {list?.count !== undefined ? (
+              <>
+                {list?.count} {list?.count === 1 ? "recipe" : "recipes"}
+              </>
+            ) : (
+              <Skeleton className="w-10 h-3 animate-none dark:bg-slate-600" />
+            )}
+          </MyRecipeListItemRecipeCount>
+        </MyRecipeListItemContent>
+      </MyRecipeListItemCard>
+    </Link>
   );
 };
