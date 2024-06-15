@@ -23,7 +23,7 @@ import {
   ArrowLeftIcon,
   CheckCircleIcon,
   ChevronRight,
-  Settings2Icon
+  XCircleIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -208,7 +208,12 @@ export const CraftInput = ({
       (state) => !state.matches({ Open: "False" })
     );
     return !isOpen ? (
-      <Button variant="ghost" size="icon" className="text-muted-foreground active:bg-transparent hover:bg-transparent" event={{ type: "NEW_RECIPE" }}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-muted-foreground active:bg-transparent hover:bg-transparent self-start -mr-2"
+        event={{ type: "NEW_RECIPE" }}
+      >
         <ChevronRight />
       </Button>
     ) : (
@@ -219,7 +224,7 @@ export const CraftInput = ({
   return (
     <div
       className={cn(
-        "flex flex-row gap-2 items-stretch justify-between w-full relative",
+        "flex flex-row gap-2 items-end justify-between w-full relative",
         className
       )}
     >
@@ -245,33 +250,42 @@ export const CraftInput = ({
       />
       <CraftEmpty>
         <div className="flex flex-col justify-start items-start h-full">
-          <Button
+          {/* <Button
+            size="icon"
+            variant="outline"
+            className="mr-2 self-end"
+            disabled
+          >
+            <ArrowUpIcon className="opacity-60" />
+          </Button> */}
+          {/* <Button
             onClick={handleOpenSettings}
             size="icon"
             variant="outline"
             className="mr-2"
           >
             <Settings2Icon className="opacity-60" />
-          </Button>
+          </Button> */}
         </div>
       </CraftEmpty>
       <CraftNotEmpty>
         <div className="flex flex-col gap-2 justify-between items-end self-stretch">
           <Button
-            size="icon"
-            variant="outline"
-            className="mr-2"
-            onClick={handleOpenSettings}
-          >
-            <Settings2Icon />
-          </Button>
-          <Button
             event={{ type: "CLEAR" }}
             variant="ghost"
-            className="mr-1 text-xs font-semibold px-1 h-10"
+            className="mr-2 text-xs font-semibold px-1 h-10"
+            size="icon"
           >
-            CLEAR
+            <XCircleIcon />
           </Button>
+          {/* <Button
+            size="icon"
+            variant="outline"
+            className="mr-2 self-end"
+            disabled
+          >
+            <ArrowUpIcon className="opacity-60" />
+          </Button> */}
         </div>
       </CraftNotEmpty>
       <script
