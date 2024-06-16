@@ -37,7 +37,7 @@ export const ListIndicator = () => {
         <span className={"indicator-item"}>
           <span
             className={cn(
-              "badge bg-purple-500 text-white p-1 text-xs",
+              "badge bg-purple-500 text-white p-1 text-xs border-none",
               justSelected ? "animate-bounce" : ""
             )}
           >

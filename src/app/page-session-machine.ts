@@ -32,7 +32,7 @@ import {
   SystemEvent,
   UserPreferenceType,
   UserPreferences,
-  WithCaller
+  WithCaller,
 } from "@/types";
 import { createClient } from "@vercel/postgres";
 import { randomUUID } from "crypto";
@@ -46,6 +46,7 @@ import {
   StateValueFrom,
   assertEvent,
   assign,
+  enqueueActions,
   fromEventObservable,
   fromPromise,
   setup,
@@ -92,18 +93,8 @@ import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { UserSnapshot } from "./user-machine";
 import { buildInput } from "./utils";
 
-// type ListsBySlugRecord = Record<
-//   string,
-//   Pick<RecipeList, "name" | "slug" | "createdAt"> & {
-//     recipeCount: number;
-//   }
-// >;
-
-// const autoSuggestionOutputSchemas = {
-//   tags: InstantRecipeMetadataPredictionOutputSchema,
-//   ingredients: InstantRecipeMetadataPredictionOutputSchema,
-//   recipes: SuggestionPredictionOutputSchema,
-// };
+export const SESSION_ACTOR_ID = "sessionActor";
+export const USER_ACTOR_ID = "userActor";
 
 type NewRecipeProductKeywordEvent = {
   type: "NEW_RECIPE_PRODUCT_KEYWORD";
@@ -356,7 +347,7 @@ export const createPageSessionMachine = ({
                   createdAt: ListTable.createdAt,
                 });
               const list = result[0];
-              assert(list, "expected list to be created");
+              assert(list, "recipe_in_use");
 
               if (input.recipeIdsToAdd.length) {
                 await tx.insert(ListRecipeTable).values(
@@ -370,6 +361,13 @@ export const createPageSessionMachine = ({
 
               return list;
             });
+          } catch (error) {
+            const parsedError = DatabaseErrorSchema.safeParse(error);
+            if (parsedError.success) {
+              throw parsedError.data;
+            } else {
+              throw error;
+            }
           } finally {
             await client.end();
           }
@@ -717,7 +715,7 @@ export const createPageSessionMachine = ({
       // }),
     },
   }).createMachine({
-    id: "UserAppMachine",
+    id: "PageSessionMachine",
     context: ({ input }) => ({
       onboardingInput: {},
       currentListRecipeIndex: 0,
@@ -741,6 +739,7 @@ export const createPageSessionMachine = ({
       currentListSlug: undefined,
       currentListId: undefined,
       numCompletedRecipes: 0,
+      errorKeys: {},
       numCompletedRecipeMetadata: 0,
       tokens: [],
       recipes: {},
@@ -822,6 +821,7 @@ export const createPageSessionMachine = ({
               },
             },
             invoke: {
+              id: SESSION_ACTOR_ID,
               src: "listenSession",
               input: () => {
                 assert(
@@ -877,6 +877,7 @@ export const createPageSessionMachine = ({
               },
             },
             invoke: {
+              id: USER_ACTOR_ID,
               src: "listenUser",
               input: ({ context }) => {
                 assert(userSocket, "expected userSocket to be initialized");
@@ -2762,6 +2763,7 @@ export const createPageSessionMachine = ({
                     return { userId };
                   },
                   onDone: {
+                    target: "Initialized",
                     actions: assign({
                       chefname: ({ event }) => {
                         return event.output;
@@ -2770,6 +2772,7 @@ export const createPageSessionMachine = ({
                   },
                 },
               },
+              Initialized: {},
             },
           },
 
@@ -3042,8 +3045,9 @@ export const createPageSessionMachine = ({
           },
         },
       },
-      ListCreate: {
+      ListCreating: {
         initial: "False",
+        onDone: ".False",
         states: {
           False: {
             on: {
@@ -3052,6 +3056,7 @@ export const createPageSessionMachine = ({
           },
           True: {
             on: {
+              CANCEL: "False",
               CHANGE: {
                 guard: "didChangeListNameInput",
                 actions: assign({
@@ -3082,6 +3087,7 @@ export const createPageSessionMachine = ({
                 const recipeIdsToAdd =
                   context.sessionSnapshot?.context.selectedRecipeIds;
                 assert(recipeIdsToAdd, "expected recipeIds to add");
+                console.log("userId", context.userSnapshot?.context.id);
 
                 return {
                   listName,
@@ -3090,28 +3096,29 @@ export const createPageSessionMachine = ({
                 };
               },
               onDone: {
-                // actions: assign({
-                //   listsBySlug: ({ context, event }) =>
-                //     produce(context.listsBySlug, (draft) => {
-                //       assert(draft, "expected lists to be fetched alredy");
-                //       draft[event.output.slug] = {
-                //         ...event.output,
-                //         recipeCount: 1,
-                //       };
-                //     }),
-                // }),
+                target: "Saved",
+                actions: enqueueActions(({ enqueue, event, context }) => {
+                  const listName = ListNameSchema.parse(context.listName);
+
+                  enqueue.raise({
+                    type: "LIST_CREATED",
+                    id: event.output.id,
+                    name: listName,
+                    slug: sentenceToSlug(listName),
+                    caller: {
+                      id: context.pageSessionId,
+                      type: "system",
+                    },
+                  });
+                }),
+                // actions: raise((f) => {
+                //   return {
+                //     type: "LIST_CREATED",
+                //     id: ""
+                //   }
+                // })
               },
-              // actions: [
-              //   assign({
-              //     currentListSlug: ({ context }) => {
-              //       const listName = ListNameSchema.parse(
-              //         context.listName
-              //       );
-              //       // todo verify this somewhere that its unique
-              //       return listName;
-              //     },
-              //   }),
-              // ],
+              onError: "Error",
             },
 
             // spawnChild("createNewList", {
@@ -3140,6 +3147,72 @@ export const createPageSessionMachine = ({
             //     };
             //   },
             // }),
+          },
+          Error: {
+            initial: "Parsing",
+            states: {
+              Parsing: {
+                always: [
+                  {
+                    target: "DuplicateName",
+                    guard: ({ event }) => {
+                      if ("error" in event) {
+                        const error = DatabaseErrorSchema.parse(event.error);
+
+                        if (error.code === "23505") {
+                          return true;
+                        }
+                      }
+                      return false;
+                    },
+                  },
+                  {
+                    target: "Unknown",
+                  },
+                ],
+              },
+              DuplicateName: {},
+              Unknown: {},
+            },
+            // entry: assign({
+            //   errorKeys: ({ context, event }) =>
+            //     produce(context.errorKeys, (draft) => {
+            //       if ("error" in event) {
+            //         const error = DatabaseErrorSchema.parse(event.error);
+
+            //         if (error.code === "23505") {
+            //           draft.newListName = "duplicate_name";
+            //         } else {
+            //           draft.newListName = "unknown";
+            //         }
+            //       }
+            //     }),
+            // }),
+            // entry: ({ event }) => {
+            //   if ("error" in event) {
+            //     const error = DatabaseErrorSchema.parse(event.error);
+            //     console.log(error);
+            //   }
+            // },
+            on: {
+              CHANGE: {
+                target: "True",
+                guard: "didChangeListNameInput",
+                actions: assign({
+                  listName: ({ event }) => {
+                    return event.value;
+                  },
+                }),
+              },
+            },
+          },
+          Saved: {
+            entry: [
+              assign({
+                listName: undefined,
+              }),
+            ],
+            type: "final",
           },
         },
       },
@@ -3420,3 +3493,23 @@ function getSortedUnstartedRecipes(
 
   return unstartedRecipes;
 }
+
+const DatabaseErrorSchema = z.object({
+  length: z.number(),
+  severity: z.string(),
+  code: z.enum(["23505", "UNKNOWN"]),
+  detail: z.string(),
+  hint: z.string().optional(),
+  position: z.string().optional(),
+  internalPosition: z.string().optional(),
+  internalQuery: z.string().optional(),
+  where: z.string().optional(),
+  schema: z.string(),
+  table: z.string(),
+  column: z.string().optional(),
+  dataType: z.string().optional(),
+  constraint: z.string(),
+  file: z.string(),
+  line: z.string(),
+  routine: z.string(),
+});

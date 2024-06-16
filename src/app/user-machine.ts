@@ -1,5 +1,5 @@
 import { sendWelcomeEmail } from "@/actors/sendWelcomeEmail";
-import { ProfileSchema, ProfileTable, UsersTable } from "@/db";
+import { ListTable, ProfileSchema, ProfileTable, UsersTable } from "@/db";
 import { getPersonalizationContext } from "@/lib/llmContext";
 import { assert } from "@/lib/utils";
 import { PartyMap, UserContext, UserEvent } from "@/types";
@@ -94,6 +94,23 @@ export const createUserMachine = ({
           }
         }
       ),
+      fetchListById: fromPromise(
+        async ({ input }: { input: { listId: string } }) => {
+          const client = createClient();
+          await client.connect();
+          const db = drizzle(client);
+          try {
+            const list = await db
+              .select()
+              .from(ListTable)
+              .where(eq(ListTable.id, input.listId))
+              .execute();
+            return list[0]; // Assuming listId is unique and returns a single list
+          } finally {
+            await client.end();
+          }
+        }
+      ),
       generateFeedTopics: fromEventObservable(
         ({
           input,
@@ -128,6 +145,9 @@ export const createUserMachine = ({
       sendWelcomeEmail,
     },
     guards: {
+      didChangeListNameInput: ({ event }) => {
+        return event.type === "CHANGE" && event.name === "listName";
+      },
       didChangeProfileNameInput: ({ context, event }) => {
         return event.type === "CHANGE" && event.name === "profileName";
       },
@@ -152,6 +172,7 @@ export const createUserMachine = ({
         preferences: {},
         diet: {},
         previousSuggestedProfileNames: [],
+        recentListIds: [],
         listsById,
       };
     },
@@ -616,6 +637,55 @@ export const createUserMachine = ({
           },
           Complete: {
             type: "final",
+          },
+        },
+      },
+      Lists: {
+        on: {
+          LIST_CREATED: {
+            // todo also write an action called
+            // fetchListById
+            // and then use the output to set it on
+            // listsById
+            actions: [
+              assign({
+                recentListIds: ({ context, event }) =>
+                  produce(context.recentListIds, (draft) => {
+                    draft.unshift(event.id);
+                  }),
+                listsById: ({ context, event }) =>
+                  produce(context.listsById, (draft) => {
+                    draft[event.id] = {
+                      id: event.id,
+                      name: event.name,
+                      slug: event.slug,
+                      created: true,
+                      count: 0,
+                      public: true,
+                      idSet: {},
+                      createdAt: new Date().toISOString(),
+                      // id: recentlySharedId,
+                      // name: "Recently Shared",
+                      // icon: "👥",
+                      // slug: "recently-shared",
+                      // public: true,
+                      // created: false,
+                      // count: 0,
+                      // idSet: {},
+                      // createdAt: new Date().toISOString(),
+                    };
+                  }),
+              }),
+
+              // spawnChild("fetchListById", {
+              //   input: ({ event }) => {
+              //     assertEvent(event, "LIST_CREATED");
+              //     return {
+              //       listId: event.id,
+              //     };
+              //   },
+              // }),
+            ],
           },
         },
       },

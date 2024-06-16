@@ -1,6 +1,14 @@
 import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { createSelector } from "reselect";
 
+// this is a poc to be able to select a child actor in a typesafe way
+// const selectSessionActor = (state: PageSessionSnapshot) => {
+//   return state.children[SESSION_ACTOR_ID];
+// };
+// const selectUserActor = (state: PageSessionSnapshot) => {
+//   return state.children[USER_ACTOR_ID];
+// };
+
 export const selectCurrentListRecipeIds = (state: PageSessionSnapshot) => {
   return state.context.sessionSnapshot?.context.selectedRecipeIds || [];
 };
@@ -155,6 +163,18 @@ export const selectSuggestedIngredients = (snapshot: PageSessionSnapshot) => {
   return snapshot.context.sessionSnapshot?.context.suggestedIngredients || [];
 };
 
+export const createListByIdSelector =
+  (id?: string) => (state: PageSessionSnapshot) => {
+    const listsById = state.context.userSnapshot?.context.listsById;
+    if (!listsById) {
+      return undefined;
+    }
+    if (!id) {
+      return undefined;
+    }
+    return listsById[id];
+  };
+
 export const createListBySlugSelector =
   (slug: string) => (state: PageSessionSnapshot) => {
     const listsById = state.context.userSnapshot?.context.listsById;
@@ -163,3 +183,7 @@ export const createListBySlugSelector =
     }
     return Object.values(listsById).find((list) => list.slug === slug);
   };
+
+export const selectRecentListIds = (state: PageSessionSnapshot) => {
+  return state.context.userSnapshot?.context.recentListIds || [];
+};

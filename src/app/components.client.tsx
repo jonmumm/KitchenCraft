@@ -44,6 +44,7 @@ import { ShareButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { Yield } from "@/components/yield";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
@@ -69,6 +70,7 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
+  BookmarkIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsUpDown,
@@ -80,7 +82,6 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XCircleIcon,
   XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
@@ -520,7 +521,7 @@ export const MyRecipesScreen = () => {
           >
             {/* <ChevronDownIcon /> */}
             <span>Selected</span>
-            <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
+            <span className="ml-1 text-sm font-semibold text-white bg-purple-700 px-1 rounded">
               <CurrentListCount />
             </span>
           </Badge>
@@ -576,11 +577,12 @@ export const MyRecipesScreen = () => {
               </PopoverContent>
             </SharePopover> */}
             <Button
-              className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white"
+              variant="primary"
+              className="shadow-md"
               event={{ type: "ADD_SELECTED" }}
             >
-              <PlusSquareIcon size={16} className="mr-1" />
-              Add (<CurrentListCount />) to...
+              <BookmarkIcon size={16} className="mr-1" />
+              Save (<CurrentListCount />) to...
             </Button>
           </IsShareable>
           <NoRecipesSelected>
@@ -588,10 +590,7 @@ export const MyRecipesScreen = () => {
               <ShareIcon size={16} className="mr-1" />
               Share (<CurrentListCount />) to...
             </Button>
-            <Button
-              className="shadow-md bg-purple-700 hover:bg-purple-600 active:bg-purple-800 text-white"
-              disabled
-            >
+            <Button className="shadow-md" variant="primary" disabled>
               <PlusCircleIcon size={16} className="mr-1" />
               Add (<CurrentListCount />) to...
             </Button>
@@ -1107,8 +1106,19 @@ export const CreateNewListCard = () => {
     <Card className="py-4">
       <div className="flex flex-row gap-1 items-center justify-between px-4">
         <div className="flex flex-col gap-1 mb-2">
-          <CardTitle>New Recipe List</CardTitle>
-          <CardDescription>Enter a name for your new list.</CardDescription>
+          <PageSessionMatches matchedState={{ ListCreating: "True" }}>
+            <CardTitle>New Recipe List</CardTitle>
+            <CardDescription>Enter a name for your new list.</CardDescription>
+          </PageSessionMatches>
+          <PageSessionMatches
+            matchedState={{ ListCreating: { Error: "DuplicateName" } }}
+          >
+            <CardTitle className="text-error">Duplicate Name</CardTitle>
+            <CardDescription>
+              You have already created a list with this name. Try changing it to
+              something else.
+            </CardDescription>
+          </PageSessionMatches>
           {/* <div className="flex flex-row justify-between items-center">
               <Label className="uppercase text-xs text-muted-foreground">
                 Recent

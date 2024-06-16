@@ -7,6 +7,7 @@ import {
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppMatches } from "@/components/util/app-matches";
+import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { SessionSnapshotMatches } from "@/components/util/session-matches";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
@@ -27,7 +28,7 @@ import {
 } from "@/lib/session";
 import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
-import { IS_CREATING_LIST, IS_SELECTING_LIST } from "@/states/app.states";
+import { IS_SELECTING_LIST } from "@/states/app.states";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { ReactNode } from "react";
@@ -372,14 +373,17 @@ const SaveDialog = () => {
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </AppMatches>
-      <AppMatches matchedState={IS_CREATING_LIST}>
+      <PageSessionMatches
+        matchedState={{ ListCreating: "True" }}
+        or={{ ListCreating: "Error" }}
+      >
         <ResponsiveDialog open isMobile={isMobile}>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent>
             <CreateNewListCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
-      </AppMatches>
+      </PageSessionMatches>
     </>
   );
 };

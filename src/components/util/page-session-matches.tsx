@@ -6,17 +6,21 @@ import { ReactNode } from "react";
 
 interface PageSessionMatches {
   matchedState: PageSessionState;
+  and?: PageSessionState;
+  or?: PageSessionState;
   children: ReactNode;
   initialValueOverride?: boolean;
 }
 
 export const PageSessionMatches = (props: PageSessionMatches) => {
   const active = usePageSessionMatchesState(props.matchedState);
+  const andActive = props.and ? usePageSessionMatchesState(props.and) : true;
+  const orActive = props.or ? usePageSessionMatchesState(props.or) : false;
 
-  const initialValue =
+  const value =
     typeof props.initialValueOverride === "boolean"
       ? props.initialValueOverride
-      : active;
+      : (active && andActive) || orActive;
 
-  return initialValue ? <>{props.children}</> : <></>;
+  return value ? <>{props.children}</> : <></>;
 };

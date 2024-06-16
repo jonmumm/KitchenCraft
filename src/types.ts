@@ -473,6 +473,7 @@ export type UserContext = {
   // feedItemIds: string[];
   // generationIdSets: Record<string, string[]>;
   // listIds: string[];
+  recentListIds: string[];
   listsById: Record<
     string,
     {

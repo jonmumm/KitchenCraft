@@ -30,7 +30,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
-import { BookmarkIcon, CarrotIcon, ListIcon, ShareIcon, TagIcon } from "lucide-react";
+import { BookmarkIcon, CarrotIcon, ShareIcon, TagIcon } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -62,7 +62,6 @@ export const CraftEmpty = ({ children }: { children: ReactNode }) => {
 
   return !numTokens && promptLength === 0 ? <>{children}</> : null;
 };
-
 
 export const IsCrafting = ({ children }: { children: ReactNode }) => (
   <PageSessionSelector selector={selectHasRecipesSelected}>
@@ -667,14 +666,14 @@ export const EnterChefNameForm = () => {
 };
 
 export const EnterListNameForm = () => {
-  const session$ = useContext(PageSessionContext);
+  const store = useContext(PageSessionContext);
   const [disabled, setDisabled] = useState(false);
   const send = useSend();
 
   const form = useForm({
     resolver: zodResolver(listNameFormSchema),
     defaultValues: {
-      listName: "",
+      listName: store.get().context.listName || "",
     },
   });
 
@@ -690,7 +689,7 @@ export const EnterListNameForm = () => {
       setDisabled(true);
       send({ type: "SUBMIT" });
     },
-    [session$, send]
+    [store, send]
   );
 
   return (
@@ -1127,20 +1126,21 @@ export const SelectedRecipesBar = () => {
         className="flex flex-row gap-2 p-1 justify-between items-center"
         variant="locontrast"
       >
-        <Button size="sm" variant="ghost" event={{ type: "SHARE_SELECTED" }}>
+        <Button event={{ type: "SHARE_SELECTED" }}>
           <ShareIcon className="mr-1" size={14} />
           Share
         </Button>
         <div className="flex-1">
           <Button
-            variant="secondary"
-            className="text-sm font-semibold w-full"
+            variant="outline"
+            className="text-sm font-semibold w-full "
             event={{ type: "VIEW_LIST" }}
           >
-            {numSelected} Selected
+            Selected
+            <span className="bg-purple-700 text-white rounded-full text-center ml-1 px-1">{numSelected}</span>
           </Button>
         </div>
-        <Button size="sm" variant="ghost">
+        <Button variant="primary">
           Save
           <BookmarkIcon className="ml-1" size={14} />
         </Button>

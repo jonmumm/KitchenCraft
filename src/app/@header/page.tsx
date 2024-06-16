@@ -111,9 +111,11 @@ export default async function Page({}) {
                       </CardHeader>
                       <CardContent>
                         <ul>
-                          <ExamplePrompt prompt="Combine sushi and burritos into a fusion dish." />
-                          <ExamplePrompt prompt="Create a keto-friendly lasagna recipe." />
-                          <ExamplePrompt prompt="Mix strawberries and basil for an appetizer." />
+                          <ExamplePrompt prompt="Cole slaw and gochujang" />
+                          <ExamplePrompt prompt="sushi, burrito, fusion dish." />
+                          <ExamplePrompt prompt="keto-friendly lasagna recipe." />
+                          <ExamplePrompt prompt="2.6 lb pork shoulder, instant pot" />
+                          <ExamplePrompt prompt="strawberries basil appetizer." />
                         </ul>
                         <p className="text-muted-foreground text-xs mt-4">
                           Tap one to try it

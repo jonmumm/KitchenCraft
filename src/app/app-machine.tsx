@@ -3,8 +3,7 @@ import { arraysEqual, assert, isMobile } from "@/lib/utils";
 import {
   AppEvent,
   InstantRecipeMetadataPredictionOutput,
-  SuggestionPredictionOutput,
-  SuggestionsInput,
+  SuggestionPredictionOutput
 } from "@/types";
 import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
@@ -1014,23 +1013,38 @@ export const createAppMachine = ({
                   SELECT_LIST: "False",
                   SUBMIT: "False",
                 },
-                type: "parallel",
-                states: {
-                  Creating: {
-                    initial: "False",
-                    states: {
-                      False: {
-                        on: {
-                          CREATE_LIST: "True",
-                        },
-                      },
-                      True: {
-                        on: {
-                          CANCEL: "False",
-                        },
-                      },
-                    },
-                  },
+                // type: "parallel",
+                // states: {
+                //   Creating: {
+                //     initial: "False",
+                //     states: {
+                //       False: {
+                //         on: {
+                //           CREATE_LIST: "True",
+                //         },
+                //       },
+                //       True: {
+                //         on: {
+                //           CANCEL: "False",
+                //         },
+                //       },
+                //     },
+                //   },
+                // },
+              },
+            },
+          },
+          Creating: {
+            initial: "False",
+            states: {
+              False: {
+                on: {
+                  CREATE_LIST: "True",
+                },
+              },
+              True: {
+                on: {
+                  CANCEL: "False",
                 },
               },
             },

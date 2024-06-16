@@ -1035,6 +1035,13 @@ const CreateListEventSchema = z.object({
   type: z.literal("CREATE_LIST"),
 });
 
+const ListCreatedEventSchema = z.object({
+  type: z.literal("LIST_CREATED"),
+  id: z.string(),
+  slug: z.string(),
+  name: z.string()
+});
+
 const ChangeListEventSchema = z.object({
   type: z.literal("CHANGE_LIST"),
 });
@@ -1114,6 +1121,7 @@ const SaveRecipeEventSchema = z.object({
 export const AppEventSchema = z.discriminatedUnion("type", [
   SaveRecipeEventSchema,
   FavoriteRecipeSchema,
+  ListCreatedEventSchema,
   SelectTopicEventSchema,
   SelectQuestionOptionEventSchema,
   RefreshFeedEventSchema,
