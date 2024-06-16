@@ -26,6 +26,7 @@ module.exports = withPWA({
       },
     ],
   },
+  productionBrowserSourceMaps: true,
   experimental: {
     instrumentationHook: true,
   },
