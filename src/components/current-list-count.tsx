@@ -1,3 +1,5 @@
+"use client";
+
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { selectSelectedRecipeCount } from "@/selectors/page-session.selectors";
 

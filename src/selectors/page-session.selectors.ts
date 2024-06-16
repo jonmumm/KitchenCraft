@@ -9,7 +9,7 @@ import { createSelector } from "reselect";
 //   return state.children[USER_ACTOR_ID];
 // };
 
-export const selectCurrentListRecipeIds = (state: PageSessionSnapshot) => {
+export const selectSelectedRecipeIds = (state: PageSessionSnapshot) => {
   return state.context.sessionSnapshot?.context.selectedRecipeIds || [];
 };
 

@@ -59,7 +59,7 @@ import {
   createRecipeIsSelectedSelector,
   createRecipeSelector,
   createSelectedRecipeAtIndexSelector,
-  selectCurrentListRecipeIds,
+  selectSelectedRecipeIds,
   selectPromptIsDirty,
   selectSelectedRecipeCount,
 } from "@/selectors/page-session.selectors";
@@ -464,7 +464,7 @@ const useSelectedRecipeAtIndex = (index: number) => {
 
 export const MyRecipesScreen = () => {
   const session$ = usePageSessionStore();
-  const [recipeIds] = useState(selectCurrentListRecipeIds(session$.get()));
+  const [recipeIds] = useState(selectSelectedRecipeIds(session$.get()));
   const [numItems] = useState(Math.max(recipeIds.length, 3));
   const [items] = useState(new Array(numItems).fill(0));
   useScrollLock(true);
@@ -1327,7 +1327,7 @@ const MyRecipeListsRadioGroup = () => {
   );
 
   const actor = useAppContext();
-  const recipeIds = usePageSessionSelector(selectCurrentListRecipeIds);
+  const recipeIds = usePageSessionSelector(selectSelectedRecipeIds);
 
   return (
     <DropdownMenuRadioGroup
