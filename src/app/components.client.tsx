@@ -59,9 +59,9 @@ import {
   createRecipeIsSelectedSelector,
   createRecipeSelector,
   createSelectedRecipeAtIndexSelector,
-  selectSelectedRecipeIds,
   selectPromptIsDirty,
   selectSelectedRecipeCount,
+  selectSelectedRecipeIds,
 } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
@@ -77,12 +77,11 @@ import {
   Circle,
   HeartIcon,
   PlusCircleIcon,
-  PlusSquareIcon,
   RefreshCwIcon,
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -843,31 +842,13 @@ export const IsInputtingChefName = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
-const selectIsCreatingList = (state: AppSnapshot) => {
-  return state.matches({
-    Lists: { Selecting: { True: { Creating: "True" } } },
-  });
-};
-// state.matches({
-//   Auth: { LoggedIn: { Adding: { True: { ListCreating: "True" } } } },
-// });
-
 const selectIsSelectingList = (state: AppSnapshot) => {
   return state.matches({ Lists: { Selecting: "True" } });
 };
-// state.matches({ Auth: { LoggedIn: { Adding: "True" } } }) &&
-// !selectIsCreatingList(state);
 
 export const IsSelectingList = (props: { children: ReactNode }) => {
   const actor = useContext(AppContext);
   const active = useSelector(actor, selectIsSelectingList);
-  return active ? <>{props.children}</> : null;
-};
-
-export const IsCreatingList = (props: { children: ReactNode }) => {
-  const actor = useContext(AppContext);
-  const active = useSelector(actor, selectIsCreatingList);
-
   return active ? <>{props.children}</> : null;
 };
 

@@ -4,7 +4,7 @@ import { PageSessionState } from "@/app/page-session-machine";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { ReactNode } from "react";
 
-interface PageSessionMatches {
+interface PageSessionMatchesProps {
   matchedState: PageSessionState;
   and?: PageSessionState;
   or?: PageSessionState;
@@ -12,15 +12,18 @@ interface PageSessionMatches {
   initialValueOverride?: boolean;
 }
 
-export const PageSessionMatches = (props: PageSessionMatches) => {
+export const PageSessionMatches = (props: PageSessionMatchesProps) => {
   const active = usePageSessionMatchesState(props.matchedState);
-  const andActive = props.and ? usePageSessionMatchesState(props.and) : true;
-  const orActive = props.or ? usePageSessionMatchesState(props.or) : false;
+  const matchesAnd = usePageSessionMatchesState(props.and || {});
+  const matchesOr = usePageSessionMatchesState(props.or || {});
+
+  const andActive = props.and ? matchesAnd : true;
+  const orActive = props.or ? matchesOr : false;
 
   const value =
     typeof props.initialValueOverride === "boolean"
       ? props.initialValueOverride
       : (active && andActive) || orActive;
 
-  return value ? <>{props.children}</> : <></>;
+  return value ? <>{props.children}</> : null;
 };
