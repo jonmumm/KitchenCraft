@@ -172,7 +172,6 @@ export const createUserMachine = ({
         preferences: {},
         diet: {},
         previousSuggestedProfileNames: [],
-        recentListIds: [],
         listsById,
       };
     },
@@ -651,7 +650,11 @@ export const createUserMachine = ({
               assign({
                 recentListIds: ({ context, event }) =>
                   produce(context.recentListIds, (draft) => {
-                    draft.unshift(event.id);
+                    if (!draft) {
+                      draft = [event.id];
+                    } else {
+                      draft.unshift(event.id);
+                    }
                   }),
                 listsById: ({ context, event }) =>
                   produce(context.listsById, (draft) => {
