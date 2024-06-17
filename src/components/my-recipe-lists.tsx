@@ -16,36 +16,22 @@ import { Skeleton } from "./display/skeleton";
 
 export const MyRecipeLists = () => {
   const recentListIds = usePageSessionSelector(selectRecentListIds);
-  console.log({ recentListIds });
-  const numEmpty = Math.max(3 - recentListIds.length, 0);
+  const numEmpty = recentListIds ? Math.max(3 - recentListIds.length, 0) : 3;
 
   return (
     <div className="relative h-24">
       <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-row justify-center">
         <div className="carousel carousel-center pl-2 pr-2 space-x-2">
-          {recentListIds
-            .filter((_, idx) => idx < 3)
-            .map((listId) => {
-              return <MyRecipeListCardById id={listId} key={listId} />;
-            })}
+          {recentListIds &&
+            recentListIds
+              .filter((_, idx) => idx < 3)
+              .map((listId) => {
+                return <MyRecipeListCardById id={listId} key={listId} />;
+              })}
           <MyRecipeListCardBySlug slug="make-later" />
           <MyRecipeListCardBySlug slug="liked" />
           <MyRecipeListCardBySlug slug="recently-shared" />
           <MyRecipeListCardBySlug slug="favorites" />
-
-          {/* {new Array(numRecent).fill(0).map((items, index) => {
-            return (
-              <MyRecipeListItemCard variant="locontrast" key={index}>
-                <MyRecipeListItemContent>
-                  <span className="text-lg opacity-0">∅</span>
-                  <MyRecipeListItemTitle className="text-muted-foreground">
-                    Empty
-                  </MyRecipeListItemTitle>
-                  <Skeleton className="w-10 h-3 animate-none dark:bg-slate-600" />
-                </MyRecipeListItemContent>
-              </MyRecipeListItemCard>
-            );
-          })} */}
           <Separator orientation="vertical" />
           <MyRecipeListItemCard
             event={{ type: "CREATE_LIST" }}

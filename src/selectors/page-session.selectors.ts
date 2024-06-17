@@ -184,13 +184,6 @@ export const createListBySlugSelector =
     return Object.values(listsById).find((list) => list.slug === slug);
   };
 
-  export const selectRecentListIds = (state: PageSessionSnapshot) => {
-    console.log('State:', state);
-    console.log('State context:', state.context);
-    console.log('UserSnapshot:', state.context?.userSnapshot);
-    console.log('UserSnapshot context:', state.context?.userSnapshot?.context);
-    console.log('RecentListIds:', state.context?.userSnapshot?.context?.recentListIds);
-  
-    return state.context?.userSnapshot?.context?.recentListIds ?? [];
-  };
-  
+export const selectRecentListIds = (state: PageSessionSnapshot) => {
+  return state.context?.userSnapshot?.context.recentListIds;
+};
