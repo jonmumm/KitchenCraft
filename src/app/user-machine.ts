@@ -647,15 +647,16 @@ export const createUserMachine = ({
             // and then use the output to set it on
             // listsById
             actions: [
+              assign(({ context, event }) =>
+                produce(context, (draft) => {
+                  if (!draft.recentListIds) {
+                    draft.recentListIds = [event.id];
+                  } else {
+                    draft.recentListIds.unshift(event.id);
+                  }
+                })
+              ),
               assign({
-                recentListIds: ({ context, event }) =>
-                  produce(context.recentListIds, (draft) => {
-                    if (!draft) {
-                      draft = [event.id];
-                    } else {
-                      draft.unshift(event.id);
-                    }
-                  }),
                 listsById: ({ context, event }) =>
                   produce(context.listsById, (draft) => {
                     draft[event.id] = {
@@ -667,15 +668,6 @@ export const createUserMachine = ({
                       public: true,
                       idSet: {},
                       createdAt: new Date().toISOString(),
-                      // id: recentlySharedId,
-                      // name: "Recently Shared",
-                      // icon: "👥",
-                      // slug: "recently-shared",
-                      // public: true,
-                      // created: false,
-                      // count: 0,
-                      // idSet: {},
-                      // createdAt: new Date().toISOString(),
                     };
                   }),
               }),
