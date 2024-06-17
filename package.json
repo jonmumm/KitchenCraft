@@ -50,6 +50,7 @@
     "@radix-ui/react-toggle-group": "^1.0.4",
     "@react-spring/web": "^9.7.3",
     "@sanity/eventsource": "^5.0.1",
+    "@sentry/nextjs": "^8.9.2",
     "@splidejs/react-splide": "^0.7.12",
     "@splidejs/splide": "^4.1.4",
     "@stripe/react-stripe-js": "^2.4.0",

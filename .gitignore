@@ -45,3 +45,6 @@ next-env.d.ts
 
 # partykit
 .partykit*
+
+# Sentry Config File
+.env.sentry-build-plugin

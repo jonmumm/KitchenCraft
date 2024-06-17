@@ -2,16 +2,19 @@
 
 import { Button } from "@/components/input/button";
 import { TypeLogo } from "@/components/logo";
+import * as Sentry from "@sentry/nextjs";
+import Error from "next/error";
 import { useEffect } from "react";
 
 export default function GlobalError({
-  error,
-  // reset,
+  error, // reset,
 }: {
   error: Error & { digest?: string };
   // reset: () => void;
 }) {
-  // TODO report an error server side here...
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
 
   return (
     <html>
