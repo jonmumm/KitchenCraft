@@ -185,5 +185,5 @@ export const createListBySlugSelector =
   };
 
 export const selectRecentListIds = (state: PageSessionSnapshot) => {
-  return state.context.userSnapshot?.context.recentListIds || [];
+  return state.context.userSnapshot?.context?.recentListIds ?? [];
 };
