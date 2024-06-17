@@ -1,0 +1,6 @@
+{
+  "ShareDetails": {
+    "title": "Share Details",
+    "recipesCount": "{count, plural, one {This # recipe will be shared} other {These # recipes will be shared}}"
+  }
+}

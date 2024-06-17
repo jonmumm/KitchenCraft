@@ -1,4 +1,5 @@
-import { CurrentListCount } from "@/components/current-list-count";
+"use client";
+
 import {
   Card,
   CardContent,
@@ -11,24 +12,32 @@ import { Separator } from "@/components/display/separator";
 import CanShare from "@/components/features/can-share";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
+import { selectSelectedRecipeCount } from "@/selectors/page-session.selectors";
 import { ClipboardCopyIcon, SendHorizonalIcon } from "lucide-react";
-import { twc } from "react-twc";
+import { useTranslations } from "next-intl";
 import { ShareDetailsPreviewCarousel } from "./share-details-preview-carousel";
 
 export const ShareDetailsCard = () => {
+  const t = useTranslations("ShareDetails");
+
+  const selectedRecipeCount = usePageSessionSelector(selectSelectedRecipeCount);
+
   return (
-    <Card>
+    <Card className="max-w-3xl overflow-hidden">
       <CardHeader>
-        <CardTitle>Share Details</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          These <CurrentListCount /> recipes will be shared.
+          {t("recipesCount", { count: selectedRecipeCount })}
         </CardDescription>
       </CardHeader>
-      <ShareDetailsPreviewCarousel />
+      <div className="max-w-full">
+        <ShareDetailsPreviewCarousel />
+      </div>
       <Separator className="my-4" />
       <CardContent className="py-4 flex flex-col gap-2">
         <div className="flex flex-row gap-2">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 items-center w-full">
             <Label className="font-semibold text-center">
               Give this list a name:
             </Label>

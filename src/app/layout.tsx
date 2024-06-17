@@ -30,6 +30,8 @@ import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
 import { IS_SELECTING_LIST } from "@/states/app.states";
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import Script from "next/script";
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
@@ -115,6 +117,8 @@ export default async function RootLayout(
   },
   params: Record<string, string>
 ) {
+  const locale = await getLocale();
+  const messages = await getMessages(); // todo can optimize this later, provide all now
   const uniqueId = await getUniqueId();
   const currentEmail = await getCurrentEmail();
   const appInstallToken = await createAppInstallToken(uniqueId, currentEmail);
@@ -151,7 +155,7 @@ export default async function RootLayout(
   assert(snapshot, "expected snapshot");
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <link
           rel="apple-touch-icon"
@@ -194,39 +198,41 @@ export default async function RootLayout(
             // reauthenticate={reauthenticate.bind(null, pageSessionId)}
           >
             <Body isPWA={!!parseCookie("appSessionId")}>
-              {/* next-themes uses the color-scheme CSS property to differentiate light and dark themes,
+              <NextIntlClientProvider messages={messages}>
+                {/* next-themes uses the color-scheme CSS property to differentiate light and dark themes,
                 but Tailwind is watching for a CSS class. */}
-              <Script id="theme-detector">{`
+                <Script id="theme-detector">{`
                 const theme = document.documentElement.style.colorScheme
                 document.documentElement.classList.add(theme)
               `}</Script>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-              >
-                <div className="min-h-screen flex flex-col">
-                  <div>{banner}</div>
-                  <CraftStickyHeader>{header}</CraftStickyHeader>
-                  <div className="crafting:hidden">{children}</div>
-                  <div className="flex-1 hidden crafting:flex flex-col">
-                    {craft}
+                <ThemeProvider
+                  attribute="class"
+                  defaultTheme="system"
+                  enableSystem
+                  disableTransitionOnChange
+                >
+                  <div className="min-h-screen flex flex-col">
+                    <div>{banner}</div>
+                    <CraftStickyHeader>{header}</CraftStickyHeader>
+                    <div className="crafting:hidden">{children}</div>
+                    <div className="flex-1 hidden crafting:flex flex-col">
+                      {craft}
+                    </div>
                   </div>
-                </div>
-                <div className="sticky bottom-0 z-20">{footer}</div>
-                {canInstallPWA && <SafariInstallPrompt />}
-                <RegistrationDialog />
-                <SaveDialog />
-                <ShareDialog />
-                <SignInDialog />
-                <PersonalizationSettingsDialog />
-                <UpgradeAccountDialog />
-                <MyRecipes />
-              </ThemeProvider>
-              <Toaster className="z-100" />
-              <SearchParamsToastMessage />
-              <LegacyToaster />
+                  <div className="sticky bottom-0 z-20">{footer}</div>
+                  {canInstallPWA && <SafariInstallPrompt />}
+                  <RegistrationDialog />
+                  <SaveDialog />
+                  <ShareDialog />
+                  <SignInDialog />
+                  <PersonalizationSettingsDialog />
+                  <UpgradeAccountDialog />
+                  <MyRecipes />
+                </ThemeProvider>
+                <Toaster className="z-100" />
+                <SearchParamsToastMessage />
+                <LegacyToaster />
+              </NextIntlClientProvider>
             </Body>
           </ActorProvider>
         </ApplicationProvider>

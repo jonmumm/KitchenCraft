@@ -1,5 +1,8 @@
-/** @type {import('next').NextConfig} */
+const createNextIntlPlugin = require("next-intl/plugin");
 
+const withNextIntl = createNextIntlPlugin();
+
+/** @type {import('next').NextConfig} */
 const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
   customWorkerSrc: "src/service-worker",
@@ -32,14 +35,12 @@ module.exports = withPWA({
   },
 });
 
-
 // Injected content via Sentry wizard below
 
 const { withSentryConfig } = require("@sentry/nextjs");
 
-module.exports = withSentryConfig(
-  module.exports,
-  {
+module.exports = withNextIntl(
+  withSentryConfig(module.exports, {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
 
@@ -72,5 +73,5 @@ module.exports = withSentryConfig(
     // https://docs.sentry.io/product/crons/
     // https://vercel.com/docs/cron-jobs
     automaticVercelMonitors: true,
-  }
+  })
 );
