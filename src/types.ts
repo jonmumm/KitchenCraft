@@ -474,7 +474,7 @@ export type UserContext = {
   // generationIdSets: Record<string, string[]>;
   // listIds: string[];
   recentListIds?: string[];
-  listsById: Record<
+  listsById?: Record<
     string,
     {
       id: string;

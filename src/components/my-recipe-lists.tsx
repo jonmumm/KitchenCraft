@@ -15,16 +15,17 @@ import { Separator } from "./display/separator";
 import { Skeleton } from "./display/skeleton";
 
 export const MyRecipeLists = () => {
-  const recentListIds = usePageSessionSelector(selectRecentListIds).slice(0, 3);
-  const numEmpty = Math.max(3 - recentListIds.length, 0);
+  // const recentListIds = usePageSessionSelector(selectRecentListIds).slice(0, 3);
+  // const numEmpty = Math.max(3 - recentListIds.length, 0);
+  const numEmpty = 3;
 
   return (
     <div className="relative h-24">
       <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-row justify-center">
         <div className="carousel carousel-center pl-2 pr-2 space-x-2">
-          {recentListIds.map((listId) => {
+          {/* {recentListIds.map((listId) => {
             return <MyRecipeListCardById id={listId} key={listId} />;
-          })}
+          })} */}
           <MyRecipeListCardBySlug slug="make-later" />
           <MyRecipeListCardBySlug slug="liked" />
           <MyRecipeListCardBySlug slug="recently-shared" />
