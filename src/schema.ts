@@ -1118,7 +1118,13 @@ const SaveRecipeEventSchema = z.object({
   recipeId: z.string(),
 });
 
+const PressButtonEventSchema = z.object({
+  type: z.literal("PRESS_BUTTON"),
+  buttonId: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  PressButtonEventSchema,
   SaveRecipeEventSchema,
   FavoriteRecipeSchema,
   ListCreatedEventSchema,

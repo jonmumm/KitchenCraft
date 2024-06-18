@@ -474,20 +474,6 @@ export type UserContext = {
   // generationIdSets: Record<string, string[]>;
   // listIds: string[];
   recentListIds?: string[];
-  listsById: Record<
-    string,
-    {
-      id: string;
-      name: string;
-      icon?: string;
-      slug: string;
-      public: boolean;
-      created: boolean;
-      count: number;
-      idSet: Record<string, true>;
-      createdAt: string;
-    }
-  >;
 };
 
 export type SessionContext = {
@@ -498,7 +484,7 @@ export type SessionContext = {
   groceryStores?: string;
   shoppingFrequency?: string;
   typicalGroceries?: string;
-  selectedRecipeIds: string[];
+  selectedRecipeIds?: string[];
   selectedListId?: string;
   equipment: EquipmentSettings;
   profileName?: string;
@@ -530,17 +516,17 @@ export type SessionContext = {
   feedItemIds: string[];
   generationIdSets: Record<string, string[]>;
   listIds: string[];
-  listsById: Record<
-    string,
-    {
-      id: string;
-      name?: string;
-      slug?: string;
-      isPublic: boolean;
-      count: number;
-      idSet: Record<string, true>;
-    }
-  >;
+  // listsById: Record<
+  //   string,
+  //   {
+  //     id: string;
+  //     name?: string;
+  //     slug?: string;
+  //     isPublic: boolean;
+  //     count: number;
+  //     idSet: Record<string, true>;
+  //   }
+  // >;
 };
 
 type WithConnect<T extends string> = `${T}_CONNECT`;

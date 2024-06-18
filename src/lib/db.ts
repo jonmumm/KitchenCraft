@@ -1,160 +1,39 @@
-import { TimeParam } from "@/app/(home)/types";
-import {
-  LLMMessageSetIdSchema,
-  LLMMessageSetSchema,
-  MessageSchema,
-  TempRecipeSchema,
-  ResultSchema,
-  SlugSchema,
-  SuggestionSchema,
-} from "@/schema";
-import { LLMMessageSetId, RecipeSlug } from "@/types";
-import { kv as _kv } from "@/lib/kv";
+import { createClient } from "@vercel/postgres";
+import { drizzle } from "drizzle-orm/vercel-postgres";
 import { z } from "zod";
 
-type KV = typeof _kv;
+export const DatabaseErrorSchema = z.object({
+  length: z.number(),
+  severity: z.string(),
+  code: z.enum(["23505", "UNKNOWN"]),
+  detail: z.string(),
+  hint: z.string().optional(),
+  position: z.string().optional(),
+  internalPosition: z.string().optional(),
+  internalQuery: z.string().optional(),
+  where: z.string().optional(),
+  schema: z.string(),
+  table: z.string(),
+  column: z.string().optional(),
+  dataType: z.string().optional(),
+  constraint: z.string(),
+  file: z.string(),
+  line: z.string(),
+  routine: z.string(),
+});
 
-// const CraftSchema = z.object({
-//   message
-// });
-
-export const getRecentRecipeSlugs = async (kv: KV) =>
-  z
-    .array(SlugSchema)
-    .parse(await kv.zrange(`recipes:new`, 0, -1, { rev: true }));
-
-export const getTopRecipes = async (kv: KV) => {
-  // Fetch slugs/keys for the recipes
-  const slugs = await kv.zrange(`recipes:new`, 0, -1, { rev: true });
-
-  // Create a multi-execution context
-  const multi = kv.multi();
-
-  // Queue up the commands to fetch each recipe
-  slugs.forEach((slug) => {
-    multi.hgetall(`recipe:${slug}`);
-  });
-
-  // Execute all queued commands in a single round trip
-  const results = await multi.exec();
-
-  // Parse and return the recipes
-  return results
-    .map((result) => {
-      return TempRecipeSchema.parse(result);
-    })
-    .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
+export const connectToDatabase = async () => {
+  const client = createClient();
+  await client.connect();
+  const db = drizzle(client);
+  return { client, db };
 };
 
-export const getMyRecentRecipes = async (kv: KV) => {
-  // Fetch slugs/keys for the recipes
-  const slugs = await kv.zrange(`recipes:new`, 0, -1, { rev: true });
-
-  // Create a multi-execution context
-  const multi = kv.multi();
-
-  // Queue up the commands to fetch each recipe
-  slugs.forEach((slug) => {
-    multi.hgetall(`recipe:${slug}`);
-  });
-
-  // Execute all queued commands in a single round trip
-  const results = await multi.exec();
-
-  // Parse and return the recipes
-  return results
-    .map((result) => {
-      return TempRecipeSchema.parse(result);
-    })
-    .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
-};
-
-export const getBestRecipes = async (timeParam: TimeParam, kv: KV) => {
-  // Fetch slugs/keys for the recipes
-  const slugs = await kv.zrange(`recipes:new`, 0, -1, { rev: true });
-
-  // Create a multi-execution context
-  const multi = kv.multi();
-
-  // Queue up the commands to fetch each recipe
-  slugs.forEach((slug) => {
-    multi.hgetall(`recipe:${slug}`);
-  });
-
-  // Execute all queued commands in a single round trip
-  const results = await multi.exec();
-
-  // Parse and return the recipes
-  return results
-    .map((result) => {
-      return TempRecipeSchema.parse(result);
-    })
-    .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
-};
-
-export const getRecentRecipes = async (kv: KV) => {
-  // Fetch slugs/keys for the recipes
-  const slugs = await kv.zrange(`recipes:new`, 0, -1, { rev: true });
-
-  // Create a multi-execution context
-  const multi = kv.multi();
-
-  // Queue up the commands to fetch each recipe
-  slugs.forEach((slug) => {
-    multi.hgetall(`recipe:${slug}`);
-  });
-
-  // Execute all queued commands in a single round trip
-  const results = await multi.exec();
-
-  // Parse and return the recipes
-  return results
-    .map((result) => {
-      return TempRecipeSchema.parse(result);
-    })
-    .filter((recipe) => recipe !== null); // Filter out any nulls from parsing errors
-};
-
-// export const getCraft = async (kv: KV, id: string) =>
-//   CraftSchema.parse(await kv.hgetall(`craft:${id}`));
-
-export const getRecipe = async (kv: KV, slug: RecipeSlug) =>
-  TempRecipeSchema.parse(await kv.hgetall(`recipe:${slug}`));
-
-export const getModificationMessages = async (kv: KV, slug: RecipeSlug) => {
-  const messageSetId = await LLMMessageSetIdSchema.parse(
-    await kv.hget(`recipe:${slug}`, "modificationsMessageSet")
-  );
-  return await getLLMMessageSet(kv, messageSetId);
-};
-
-export const getMessage = async (kv: KV, id: string) =>
-  MessageSchema.parse(await kv.hgetall(`message:${id}`));
-
-export const getLLMMessageSet = async (
-  kv: typeof _kv,
-  messageSetId: LLMMessageSetId
-) => {
-  const [systemMessage, userMessage, assistantMessage] = await Promise.all([
-    await getMessage(kv, messageSetId[0]),
-    await getMessage(kv, messageSetId[1]),
-    await getMessage(kv, messageSetId[2]),
-  ]);
-
-  return LLMMessageSetSchema.parse([
-    systemMessage,
-    userMessage,
-    assistantMessage,
-  ]);
-};
-
-export const getSuggestions = async (kv: typeof _kv, inputHash: string) => {
-  const output = await kv.hget(`suggestions:${inputHash}`, "output");
-  return z.object({ suggestions: z.array(SuggestionSchema) }).parse(output);
-};
-
-export const getResult = async (kv: typeof _kv, id: string) => {
-  const resultKey = `result:${id}`;
-  const result = await kv.hgetall(resultKey);
-  return ResultSchema.parse(result);
+export const handleDatabaseError = (error: any) => {
+  const parsedError = DatabaseErrorSchema.safeParse(error);
+  if (parsedError.success) {
+    throw parsedError.data;
+  } else {
+    throw error;
+  }
 };

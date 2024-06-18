@@ -77,8 +77,23 @@ export const createMachineServer = <
             storage: this.room.storage,
             parties: this.room.context.parties,
           });
+
+          const snapshot = JSON.parse(persistentSnapshot as string);
+          // if ("context" in snapshot) {
+          //   console.log("ctx", snapshot.context);
+          // }
+          // if ("value" in snapshot) {
+          //   const resolvedState = machine.resolveState({
+          //     value: snapshot.value,
+          //   } as any);
+          //   console.log(resolvedState, snapshot.value);
+          // }
+
+          // machine.
+          // debugger;
+          // console.log(machine);
           this.actor = createActor(machine, {
-            snapshot: JSON.parse(persistentSnapshot as string),
+            snapshot,
           });
           this.actor.start();
         }

@@ -7,19 +7,20 @@ import { initializeUserSocket } from "@/actors/initializeUserSocket";
 import { ListenSessionEvent, listenSession } from "@/actors/listenSession";
 import { ListenUserEvent, listenUser } from "@/actors/listenUser";
 import {
-  ListRecipeTable,
-  ListTable,
   ProfileTable,
   RecipesTable,
   UserPreferencesTable,
   UsersTable,
 } from "@/db";
 import { NewRecipe } from "@/db/types";
+import { DatabaseErrorSchema, handleDatabaseError } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
 import { getPersonalizationContext } from "@/lib/llmContext";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
 import { assert, assertType, sentenceToSlug } from "@/lib/utils";
+import { createNewListWithRecipeIds } from "@/queries/createNewListWithRecipeIds";
+import { getNewSharedListName } from "@/queries/getAvailableSharedListName";
 import { ListNameSchema } from "@/schema";
 import {
   AdInstance,
@@ -120,6 +121,18 @@ type Recipe = PartialRecipe & {
   fullStarted: boolean;
 };
 
+type List = {
+  id: string;
+  name: string;
+  icon?: string;
+  slug: string;
+  public: boolean;
+  created: boolean;
+  count: number;
+  idSet: Record<string, true>;
+  createdAt: string;
+};
+
 export type PageSessionContext = {
   onboardingInput: {
     mealType?: string | undefined;
@@ -166,6 +179,9 @@ export type PageSessionContext = {
   modifiedPreferences: Partial<Record<keyof UserPreferences, true>>;
   sessionSnapshot: SessionSnapshot | undefined;
   userSnapshot: UserSnapshot | undefined;
+  sharingListId?: string;
+  shareNameInput?: string;
+  listsById?: Record<string, List>;
 };
 
 export type PageSessionEvent =
@@ -216,6 +232,25 @@ export const createPageSessionMachine = ({
       initializeUserSocket,
       listenSession,
       listenUser,
+      getNewSharedListName: fromPromise(
+        async ({ input }: { input: { userId: string; timezone: string } }) => {
+          const client = createClient();
+          try {
+            await client.connect();
+            const db = drizzle(client);
+            return await getNewSharedListName(db, input.userId, input.timezone);
+          } catch (ex) {
+            handleDatabaseError(ex);
+          } finally {
+            await client.end();
+          }
+        }
+      ),
+      createSharedList: fromPromise(async () => {
+        return {
+          id,
+        };
+      }),
       updateChefName: fromPromise(
         async ({
           input,
@@ -226,9 +261,9 @@ export const createPageSessionMachine = ({
           };
         }) => {
           const client = createClient();
-          await client.connect();
-          const db = drizzle(client);
           try {
+            await client.connect();
+            const db = drizzle(client);
             return await db
               .update(ProfileTable)
               .set({ profileSlug: input.chefname })
@@ -241,10 +276,9 @@ export const createPageSessionMachine = ({
       getRecipes: fromPromise(
         async ({ input }: { input: { recipeIds: string[] } }) => {
           const client = createClient();
-          await client.connect();
-          const db = drizzle(client);
-
           try {
+            await client.connect();
+            const db = drizzle(client);
             const maxVersionSubquery = db
               .select({
                 recipeId: RecipesTable.id,
@@ -304,9 +338,9 @@ export const createPageSessionMachine = ({
           };
         }) => {
           const client = createClient();
-          await client.connect();
-          const db = drizzle(client);
           try {
+            await client.connect();
+            const db = drizzle(client);
             return !(
               await db
                 .select()
@@ -333,33 +367,10 @@ export const createPageSessionMachine = ({
           const db = drizzle(client);
           try {
             return await db.transaction(async (tx) => {
-              const result = await tx
-                .insert(ListTable)
-                .values({
-                  name: input.listName,
-                  slug: sentenceToSlug(input.listName),
-                  createdBy: input.userId,
-                })
-                .returning({
-                  id: ListTable.id,
-                  name: ListTable.name,
-                  slug: ListTable.slug,
-                  createdAt: ListTable.createdAt,
-                });
-              const list = result[0];
-              assert(list, "recipe_in_use");
-
-              if (input.recipeIdsToAdd.length) {
-                await tx.insert(ListRecipeTable).values(
-                  input.recipeIdsToAdd.map((recipeId) => ({
-                    userId: input.userId,
-                    listId: list.id,
-                    recipeId,
-                  }))
-                );
-              }
-
-              return list;
+              return await createNewListWithRecipeIds({
+                db: tx,
+                ...input,
+              });
             });
           } catch (error) {
             const parsedError = DatabaseErrorSchema.safeParse(error);
@@ -760,6 +771,8 @@ export const createPageSessionMachine = ({
       redoOperations: [],
       sessionAccessToken: input.sessionAccessToken,
       userAccessToken: input.userAccessToken,
+      listsById: initializeListsById(),
+      shareNameInput: undefined,
     }),
     type: "parallel",
     states: {
@@ -2996,7 +3009,8 @@ export const createPageSessionMachine = ({
                     {
                       target: "Loading",
                       guard: ({ context, event }) => {
-                        return !!event.snapshot.context.selectedRecipeIds.filter(
+                        // console.log(event);
+                        return !!event.snapshot.context.selectedRecipeIds?.filter(
                           (id) => !context.recipes[id]
                         ).length;
                       },
@@ -3013,7 +3027,7 @@ export const createPageSessionMachine = ({
                   input: ({ context, event }) => {
                     return {
                       recipeIds: [
-                        ...context.sessionSnapshot?.context.selectedRecipeIds.filter(
+                        ...context.sessionSnapshot?.context.selectedRecipeIds?.filter(
                           (id) => !context.recipes[id]
                         )!,
                       ],
@@ -3041,6 +3055,144 @@ export const createPageSessionMachine = ({
                 },
               },
               Complete: {},
+            },
+          },
+        },
+      },
+      Share: {
+        type: "parallel",
+        states: {
+          Open: {
+            initial: "False",
+            states: {
+              False: {
+                on: {
+                  SHARE_SELECTED: "True",
+                },
+              },
+              True: {
+                on: {
+                  CANCEL: "False",
+                },
+              },
+            },
+          },
+          Record: {
+            initial: "Uninitialized",
+            on: {
+              // todo clear it out here
+              CLEAR_LIST: ".Uninitialized",
+              SELECT_RECIPE: ".Uninitialized",
+              UNSELECT: ".Uninitialized",
+            },
+            states: {
+              Uninitialized: {
+                entry: assign({
+                  shareNameInput: undefined,
+                  sharingListId: undefined,
+                }),
+                on: {
+                  SHARE_SELECTED: "GettingName",
+                },
+              },
+              GettingName: {
+                invoke: {
+                  src: "getNewSharedListName",
+                  input: ({ context }) => {
+                    const userId = context.userSnapshot?.context.id;
+                    assert(userId, "expected userId when saving");
+                    const timezone = context.userSnapshot?.context.timezone;
+                    assert(timezone, "expected user timezone to be set");
+
+                    return {
+                      userId: userId,
+                      timezone,
+                    };
+                  },
+                  onDone: {
+                    target: "Creating",
+                    actions: assign({
+                      shareNameInput: ({ event }) => event.output,
+                    }),
+                  },
+                  onError: "Error",
+                },
+              },
+              Creating: {
+                invoke: {
+                  src: "createNewList",
+                  input: ({ context }) => {
+                    const recipeIdsToAdd =
+                      context.sessionSnapshot?.context.selectedRecipeIds;
+                    assert(
+                      recipeIdsToAdd,
+                      "expected there to be at least one recipe id one creating shared list"
+                    );
+
+                    const listName = context.shareNameInput;
+                    assert(
+                      listName,
+                      "expected shareNameInput to exist to use as listName when creating list"
+                    );
+
+                    const userId = context.userSnapshot?.context.id;
+                    assert(userId, "expected userId when saving share dlist");
+
+                    return {
+                      userId,
+                      listName,
+                      recipeIdsToAdd,
+                    };
+                  },
+                  onDone: {
+                    target: "Created",
+                    actions: assign(({ context, event }) =>
+                      produce(context, (draft) => {
+                        draft.sharingListId = event.output.id;
+                        if (!draft.listsById) {
+                          draft.listsById = {};
+                        }
+
+                        const { id, name, slug, createdAt } = event.output;
+                        draft.listsById[id] = {
+                          id,
+                          name,
+                          slug,
+                          created: true,
+                          count: Object.values(event.output.idSet).length,
+                          public: true,
+                          idSet: event.output.idSet,
+                          createdAt: createdAt.toISOString(),
+                        };
+                      })
+                    ),
+                    // actions: assign({
+                    //   sharingListId: ({ event }) => event.output.id,
+                    //   listsById: ({ context, event }) =>
+                    //     produce(context.listsById, (draft) => {
+                    //       const { id, name, slug, createdAt } = event.output;
+                    //       draft[id] = {
+                    //         id,
+                    //         name,
+                    //         slug,
+                    //         created: true,
+                    //         count: Object.values(event.output.idSet).length,
+                    //         public: true,
+                    //         idSet: event.output.idSet,
+                    //         createdAt: createdAt.toISOString(),
+                    //       };
+                    //     }),
+                    // }),
+                  },
+                  onError: "Error",
+                },
+              },
+              Error: { entry: console.error },
+              Updating: {},
+              Created: {},
+              Complete: {
+                type: "final",
+              },
             },
           },
         },
@@ -3097,20 +3249,41 @@ export const createPageSessionMachine = ({
               },
               onDone: {
                 target: "Saved",
-                actions: enqueueActions(({ enqueue, event, context }) => {
-                  const listName = ListNameSchema.parse(context.listName);
+                actions: [
+                  assign(({ context, event }) =>
+                    produce(context, (draft) => {
+                      if (!draft.listsById) {
+                        draft.listsById = {};
+                      }
 
-                  enqueue.raise({
-                    type: "LIST_CREATED",
-                    id: event.output.id,
-                    name: listName,
-                    slug: sentenceToSlug(listName),
-                    caller: {
-                      id: context.pageSessionId,
-                      type: "system",
-                    },
-                  });
-                }),
+                      const { id, name, slug, createdAt } = event.output;
+                      draft.listsById[id] = {
+                        id,
+                        name,
+                        slug,
+                        created: true,
+                        count: Object.values(event.output.idSet).length,
+                        public: true,
+                        idSet: event.output.idSet,
+                        createdAt: createdAt.toISOString(),
+                      };
+                    })
+                  ),
+                  enqueueActions(({ enqueue, event, context }) => {
+                    const listName = ListNameSchema.parse(context.listName);
+
+                    enqueue.raise({
+                      type: "LIST_CREATED",
+                      id: event.output.id,
+                      name: event.output.name,
+                      slug: event.output.slug,
+                      caller: {
+                        id: context.pageSessionId,
+                        type: "system",
+                      },
+                    });
+                  }),
+                ],
                 // actions: raise((f) => {
                 //   return {
                 //     type: "LIST_CREATED",
@@ -3494,22 +3667,56 @@ function getSortedUnstartedRecipes(
   return unstartedRecipes;
 }
 
-const DatabaseErrorSchema = z.object({
-  length: z.number(),
-  severity: z.string(),
-  code: z.enum(["23505", "UNKNOWN"]),
-  detail: z.string(),
-  hint: z.string().optional(),
-  position: z.string().optional(),
-  internalPosition: z.string().optional(),
-  internalQuery: z.string().optional(),
-  where: z.string().optional(),
-  schema: z.string(),
-  table: z.string(),
-  column: z.string().optional(),
-  dataType: z.string().optional(),
-  constraint: z.string(),
-  file: z.string(),
-  line: z.string(),
-  routine: z.string(),
-});
+const initializeListsById = () => {
+  const makeLaterId = randomUUID();
+  const favoritesId = randomUUID();
+  const likedId = randomUUID();
+  const recentlySharedId = randomUUID();
+
+  return {
+    [makeLaterId]: {
+      id: makeLaterId,
+      name: "Make Later",
+      icon: "⏰",
+      slug: "make-later",
+      public: true,
+      created: false,
+      count: 0,
+      idSet: {},
+      createdAt: new Date().toISOString(),
+    },
+    [favoritesId]: {
+      id: favoritesId,
+      name: "Favorites",
+      icon: "❤️",
+      slug: "favorites",
+      public: true,
+      created: false,
+      count: 0,
+      idSet: {},
+      createdAt: new Date().toISOString(),
+    },
+    [likedId]: {
+      id: likedId,
+      name: "Liked",
+      icon: "👍",
+      slug: "liked",
+      public: true,
+      created: false,
+      count: 0,
+      idSet: {},
+      createdAt: new Date().toISOString(),
+    },
+    [recentlySharedId]: {
+      id: recentlySharedId,
+      name: "Recently Shared",
+      icon: "👥",
+      slug: "recently-shared",
+      public: true,
+      created: false,
+      count: 0,
+      idSet: {},
+      createdAt: new Date().toISOString(),
+    },
+  } satisfies PageSessionContext["listsById"];
+};

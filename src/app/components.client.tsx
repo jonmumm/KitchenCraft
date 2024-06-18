@@ -464,7 +464,7 @@ const useSelectedRecipeAtIndex = (index: number) => {
 export const MyRecipesScreen = () => {
   const session$ = usePageSessionStore();
   const [recipeIds] = useState(selectSelectedRecipeIds(session$.get()));
-  const [numItems] = useState(Math.max(recipeIds.length, 3));
+  const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
   const [items] = useState(new Array(numItems).fill(0));
   useScrollLock(true);
 
@@ -542,7 +542,7 @@ export const MyRecipesScreen = () => {
             {items.map((id, index) => (
               <CurrentListCarouselItem
                 key={index}
-                id={recipeIds[index]}
+                id={recipeIds?.[index]}
                 index={index}
               />
             ))}
@@ -939,7 +939,7 @@ export const SelectListCard = () => {
     // const lists = useSortedRecipeLists();
     // const isLoading = useIsLoadingRecipeLists();
     const lists = usePageSessionSelector((state) => {
-      return state.context.userSnapshot?.context.listsById || {};
+      return state.context.listsById || {};
     });
     console.log({ lists });
 

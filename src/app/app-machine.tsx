@@ -933,7 +933,7 @@ export const createAppMachine = ({
                   <RecipeAddedToast
                     name={name}
                     toastId={t}
-                    itemIndex={sessionSnapshot.context.selectedRecipeIds.length}
+                    itemIndex={sessionSnapshot.context.selectedRecipeIds?.length || 0}
                   />
                 ),
                 { position: "top-right" }
@@ -966,7 +966,7 @@ export const createAppMachine = ({
                   <RecipeAddedToast
                     name={name}
                     toastId={t}
-                    itemIndex={sessionSnapshot.context.selectedRecipeIds.length}
+                    itemIndex={sessionSnapshot.context.selectedRecipeIds?.length || 0}
                   />
                 ),
                 { position: "top-center" }

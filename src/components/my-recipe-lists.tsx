@@ -4,7 +4,7 @@ import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import {
   createListByIdSelector,
   createListBySlugSelector,
-  createUrlForListIdSelector,
+  createPathForListIdSelector,
   selectRecentListIds,
 } from "@/selectors/page-session.selectors";
 import Link from "next/link";
@@ -76,7 +76,7 @@ const MyRecipeListCardById = ({ id }: { id: string }) => {
   const list = usePageSessionSelector(selectList);
 
   const selectListUrl = useMemo(
-    () => createUrlForListIdSelector(list?.id),
+    () => createPathForListIdSelector(list?.id),
     [list?.id]
   );
   const listUrl = usePageSessionSelector(selectListUrl);
@@ -111,7 +111,7 @@ const MyRecipeListCardBySlug = ({ slug }: { slug: string }) => {
   const list = usePageSessionSelector(selectList);
 
   const selectListUrl = useMemo(
-    () => createUrlForListIdSelector(list?.id),
+    () => createPathForListIdSelector(list?.id),
     [list?.id]
   );
   const listUrl = usePageSessionSelector(selectListUrl);

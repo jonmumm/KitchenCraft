@@ -257,7 +257,6 @@ export const createSessionMachine = ({
         feedItemIds: [],
         feedItemsById: {},
         listIds: [],
-        listsById: {},
       };
     },
     on: {
@@ -723,7 +722,7 @@ export const createSessionMachine = ({
                   );
                   return (
                     !!recipe?.id &&
-                    !context.selectedRecipeIds.includes(recipe.id)
+                    !context.selectedRecipeIds?.includes(recipe.id)
                   );
                 },
                 actions: [
@@ -746,19 +745,19 @@ export const createSessionMachine = ({
                         assert(recipe.id, `expected to have recipe id`);
 
                         // const recipeId = context.feedItems[context.feedItemIds[event.itemIndex]]
-                        draft.push(recipe.id);
+                        draft && draft.push(recipe.id);
                       }),
                   }),
                 ],
               },
               SELECT_RECIPE: {
                 guard: ({ context, event }) =>
-                  !context.selectedRecipeIds.includes(event.id),
+                  !context.selectedRecipeIds?.includes(event.id),
                 actions: [
                   assign({
                     selectedRecipeIds: ({ context, event }) =>
                       produce(context.selectedRecipeIds, (draft) => {
-                        draft.push(event.id);
+                        draft && draft.push(event.id);
                       }),
                   }),
                 ],
@@ -767,7 +766,7 @@ export const createSessionMachine = ({
               UNSELECT: {
                 actions: assign({
                   selectedRecipeIds: ({ context, event }) =>
-                    context.selectedRecipeIds.filter(
+                    context.selectedRecipeIds?.filter(
                       (item) => item !== event.id
                     ),
                 }),
@@ -1002,56 +1001,9 @@ export const createSessionMachine = ({
         },
       },
       Lists: {
-        initial: "Loading",
-        states: {
-          Loading: {
-            invoke: {
-              src: "fetchLists",
-              input: ({ context }) => {
-                return {
-                  userId: context.userId,
-                };
-              },
-              onDone: {
-                target: "Ready",
-                actions: assign(({ context, event }) => {
-                  return produce(context, (draft) => {
-                    const recipeIdsByListId: Record<
-                      string,
-                      Record<string, true>
-                    > = {};
-                    event.output.listRecipes.forEach(({ recipeId, listId }) => {
-                      if (!recipeIdsByListId[listId]) {
-                        recipeIdsByListId[listId] = {};
-                      }
-                      recipeIdsByListId[listId]![recipeId] = true;
-                    });
-
-                    event.output.lists.forEach((list) => {
-                      const idSet = recipeIdsByListId[list.id];
-                      assert(idSet, "expected idSet for list: " + list.id);
-
-                      draft.listIds.push(list.id);
-                      draft.listsById[list.id] = {
-                        id: list.id,
-                        name: list.name,
-                        slug: list.slug,
-                        isPublic: true,
-                        count: Object.keys(idSet).length,
-                        idSet,
-                      };
-                    });
-                  });
-                }),
-              },
-            },
-          },
-          Ready: {
-            on: {
-              ADD_SELECTED: {},
-            },
-          },
-        },
+        // todo cant remove because it will cause errors
+        // on persisted state
+        // figure out how to cleanup when restoring
       },
     },
   });

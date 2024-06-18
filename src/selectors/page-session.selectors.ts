@@ -10,7 +10,7 @@ import { createSelector } from "reselect";
 // };
 
 export const selectSelectedRecipeIds = (state: PageSessionSnapshot) => {
-  return state.context.sessionSnapshot?.context.selectedRecipeIds || [];
+  return state.context.sessionSnapshot?.context.selectedRecipeIds;
 };
 
 export const selectPromptIsDirty = (state: PageSessionSnapshot) =>
@@ -52,13 +52,13 @@ export const selectSuggestedProfileNames = (state: PageSessionSnapshot) => {
   return state.context.userSnapshot?.context.suggestedProfileNames || [];
 };
 
-export const createUrlForListIdSelector =
+export const createPathForListIdSelector =
   (listId?: string) => (state: PageSessionSnapshot) => {
     if (!listId) {
       return undefined;
     }
 
-    const listsById = state.context.userSnapshot?.context.listsById;
+    const listsById = state.context.listsById;
     if (!listsById) {
       return undefined;
     }
@@ -93,7 +93,7 @@ export const createRecipeSelector =
 export const createSelectedRecipeAtIndexSelector = (index: number) => {
   return (state: PageSessionSnapshot) => {
     return state.context.recipes?.[
-      state.context.sessionSnapshot?.context.selectedRecipeIds[index] || -1
+      state.context.sessionSnapshot?.context.selectedRecipeIds?.[index] || -1
     ];
   };
 };
@@ -125,7 +125,7 @@ export const createRecipeIsFavoritedSelector =
       return undefined;
     }
     // todo find the
-    const listsById = state.context.sessionSnapshot?.context.listsById;
+    const listsById = state.context.listsById;
     if (!listsById) {
       return undefined;
     }
@@ -146,7 +146,7 @@ export const createRecipeIsSelectedSelector =
     if (!id) {
       return false;
     }
-    return state.context.sessionSnapshot?.context.selectedRecipeIds.includes(
+    return state.context.sessionSnapshot?.context.selectedRecipeIds?.includes(
       id
     );
   };
@@ -165,7 +165,7 @@ export const selectSuggestedIngredients = (snapshot: PageSessionSnapshot) => {
 
 export const createListByIdSelector =
   (id?: string) => (state: PageSessionSnapshot) => {
-    const listsById = state.context.userSnapshot?.context.listsById;
+    const listsById = state.context.listsById;
     if (!listsById) {
       return undefined;
     }
@@ -177,7 +177,7 @@ export const createListByIdSelector =
 
 export const createListBySlugSelector =
   (slug: string) => (state: PageSessionSnapshot) => {
-    const listsById = state.context.userSnapshot?.context.listsById;
+    const listsById = state.context.listsById;
     if (!listsById) {
       return undefined;
     }
@@ -186,4 +186,52 @@ export const createListBySlugSelector =
 
 export const selectRecentListIds = (state: PageSessionSnapshot) => {
   return state.context.userSnapshot?.context.recentListIds;
+};
+
+const selectSharingListId = (state: PageSessionSnapshot) =>
+  state.context.sharingListId;
+
+export const selectSharingList = (state: PageSessionSnapshot) => {
+  if (state.context.sharingListId) {
+    return state.context.listsById?.[state.context.sharingListId];
+  }
+  return undefined;
+};
+
+export const selectSharingListIsCreated = ({
+  context,
+}: PageSessionSnapshot) => {
+  return context.sharingListId
+    ? !!context.listsById?.[context.sharingListId]
+    : undefined;
+};
+
+export const selectSharingListPath = (state: PageSessionSnapshot) => {
+  const listId = state.context.sharingListId;
+  if (!listId) {
+    return undefined;
+  }
+
+  const listsById = state.context.listsById;
+  if (!listsById) {
+    return undefined;
+  }
+
+  const list = listsById[listId];
+  if (!list) {
+    return undefined;
+  }
+
+  const profileName = selectProfileName(state);
+  const userId = selectUserId(state);
+
+  if (profileName && list.slug) {
+    return `/@${profileName}/${list.slug}`;
+  }
+
+  if (list.slug) {
+    return `/user/${userId}/${list.slug}`;
+  }
+
+  return `/list/${listId}`;
 };

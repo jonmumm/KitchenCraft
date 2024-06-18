@@ -14,7 +14,7 @@ export const ShareDetailsPreviewCarousel = () => {
 
   return (
     <div className="carousel carousel-center pl-4 pr-4 space-x-2 w-full">
-      {selectedRecipeIds.map((id) => {
+      {selectedRecipeIds && selectedRecipeIds.map((id) => {
         return <ShareDetailsPreviewCarouselItem key={id} id={id} />;
       })}
     </div>
