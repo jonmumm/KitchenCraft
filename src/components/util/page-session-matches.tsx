@@ -8,6 +8,7 @@ interface PageSessionMatchesProps {
   matchedState: PageSessionState;
   and?: PageSessionState;
   or?: PageSessionState;
+  not?: boolean;
   children: ReactNode;
   initialValueOverride?: boolean;
 }
@@ -25,5 +26,7 @@ export const PageSessionMatches = (props: PageSessionMatchesProps) => {
       ? props.initialValueOverride
       : (active && andActive) || orActive;
 
-  return value ? <>{props.children}</> : null;
+  const finalValue = props.not ? !value : value;
+
+  return finalValue ? <>{props.children}</> : null;
 };

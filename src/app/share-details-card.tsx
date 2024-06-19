@@ -14,12 +14,8 @@ import { SkeletonSentence } from "@/components/display/skeleton";
 import CanShare from "@/components/features/can-share";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/layout/popover";
 import { atomBooleanComponent } from "@/components/util/atom-boolean-component";
+import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
@@ -37,7 +33,7 @@ import {
   ExternalLinkIcon,
   Loader2Icon,
   SendHorizonalIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import { atom } from "nanostores";
 import { useTranslations } from "next-intl";
@@ -53,10 +49,6 @@ import { ShareDetailsPreviewCarousel } from "./share-details-preview-carousel";
 
 export const ShareDetailsCard = () => {
   const t = useTranslations("ShareDetails");
-
-  useEventHandler("CLOSE", () => {
-    complete$.set(false);
-  });
 
   const nameIsTaken = usePageSessionMatchesState({ Share: { Name: "Taken" } });
   const nameIsAvailable = usePageSessionMatchesState({
@@ -84,8 +76,8 @@ export const ShareDetailsCard = () => {
   const handlePressCopy = useCallback(() => {
     const path = selectSharingListPath(store.get());
     const { origin } = window.location;
+    send({ type: "COPY_LINK" });
     const url = `${origin}${path}`;
-    complete$.set(true);
 
     if ("clipboard" in navigator) {
       // @ts-ignore
@@ -96,10 +88,9 @@ export const ShareDetailsCard = () => {
         setShowCopied(false);
       }, 3000);
     }
-  }, [setShowCopied, store]);
+  }, [setShowCopied, store, send]);
 
   const handlePressSend = useCallback(() => {
-    complete$.set(true);
     const path = selectSharingListPath(store.get());
     const { origin } = window.location;
     const url = `${origin}${path}`;
@@ -124,7 +115,10 @@ export const ShareDetailsCard = () => {
   return (
     <Card className="max-w-3xl overflow-hidden">
       <CardHeader className="flex flex-row justify-between">
-        <IsComplete not>
+        <PageSessionMatches
+          matchedState={{ Share: { Record: "Complete" } }}
+          not
+        >
           <IsEditingName>
             <div>
               <CardTitle>Share Name</CardTitle>
@@ -150,8 +144,8 @@ export const ShareDetailsCard = () => {
               </Button>
             </div>
           </IsEditingName>
-        </IsComplete>
-        <IsComplete>
+        </PageSessionMatches>
+        <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }}>
           <CanShare not>
             <div>
               <CardTitle className="flex flex-row gap-2 justify-between items-center">
@@ -195,9 +189,9 @@ export const ShareDetailsCard = () => {
               </CardTitle>
             </div>
           </CanShare>
-        </IsComplete>
+        </PageSessionMatches>
       </CardHeader>
-      <IsComplete not>
+      <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }} not>
         <IsEditingName not>
           <div className="max-w-full">
             <ShareDetailsPreviewCarousel />
@@ -248,37 +242,24 @@ export const ShareDetailsCard = () => {
           </IsEditingName>
           <IsEditingName not>
             <CanShare not>
-              <Popover open={showCopied} onOpenChange={handlePressCopy}>
-                <PopoverTrigger asChild>
-                  <Button
-                    autoFocus={false}
-                    size="xl"
-                    event={{ type: "COPY_LINK" }}
-                    disabled={
-                      !sharingListIsCreated || showCopied || nameIsTaken
-                    }
-                  >
-                    {sharingListIsCreated ? (
-                      <>
-                        <span>Get Link</span>
-                        <ClipboardCopyIcon className="ml-2" />
-                      </>
-                    ) : (
-                      <>
-                        <span>Creating</span>
-                        <Loader2Icon className="ml-2 animate-spin" />
-                      </>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-fit max-w-[90vw] p-3 z-100">
-                  <h4 className="text-lg font-medium">Link Copied!</h4>
-                  <div className="text-xs text-muted-foreground">
-                    kitchencraft.ai
-                    <SharingRecipeListPath />
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <Button
+                autoFocus={false}
+                size="xl"
+                event={{ type: "COPY_LINK" }}
+                disabled={!sharingListIsCreated || showCopied || nameIsTaken}
+              >
+                {sharingListIsCreated ? (
+                  <>
+                    <span>Get Link</span>
+                    <ClipboardCopyIcon className="ml-2" />
+                  </>
+                ) : (
+                  <>
+                    <span>Creating</span>
+                    <Loader2Icon className="ml-2 animate-spin" />
+                  </>
+                )}
+              </Button>
             </CanShare>
             <CanShare>
               <Button
@@ -302,8 +283,8 @@ export const ShareDetailsCard = () => {
             </CanShare>
           </IsEditingName>
         </CardContent>
-      </IsComplete>
-      <IsComplete>
+      </PageSessionMatches>
+      <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }}>
         <CardContent className="flex flex-row gap-2">
           <PageSessionSelectorLink
             target="_blank"
@@ -320,16 +301,14 @@ export const ShareDetailsCard = () => {
             </Button>
           </div>
         </CardContent>
-      </IsComplete>
+      </PageSessionMatches>
     </Card>
   );
 };
 
 const editingName$ = atom(false);
-const complete$ = atom(false);
 
 const IsEditingName = atomBooleanComponent(editingName$);
-const IsComplete = atomBooleanComponent(complete$);
 
 const ShareNameRow = () => {
   const editing = useStore(editingName$);

@@ -3124,7 +3124,6 @@ export const createPageSessionMachine = ({
               CLEAR_LIST: ".Uninitialized",
               SELECT_RECIPE: ".Uninitialized",
               UNSELECT: ".Uninitialized",
-              CLOSE: ".Uninitialized", // this is when it's complete, not when cancelled
             },
             states: {
               Uninitialized: {
@@ -3229,10 +3228,15 @@ export const createPageSessionMachine = ({
                 },
               },
               Error: { entry: console.error },
-              Created: {},
-              // Complete: {
-              //   type: "final",
-              // },
+              Created: {
+                on: {
+                  COPY_LINK: "Complete",
+                  SHARE_PRESS: "Complete",
+                },
+              },
+              Complete: {
+                type: "final",
+              },
             },
           },
           Name: {

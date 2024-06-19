@@ -42,7 +42,7 @@ import {
   CreateNewListCard,
   EnterChefNameCard,
   EnterEmailCard,
-  IsInMyCookbook,
+  IsInSelectedRecipes,
   IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
@@ -227,7 +227,7 @@ export default async function RootLayout(
                   <SignInDialog />
                   <PersonalizationSettingsDialog />
                   <UpgradeAccountDialog />
-                  <MyRecipes />
+                  <SelectedRecipes />
                 </ThemeProvider>
                 <Toaster className="z-100" />
                 <SearchParamsToastMessage />
@@ -319,11 +319,11 @@ const PersonalizationSettingsDialog = () => {
   );
 };
 
-const MyRecipes = () => {
+const SelectedRecipes = () => {
   return (
-    <IsInMyCookbook>
+    <IsInSelectedRecipes>
       <MyRecipesScreen />
-    </IsInMyCookbook>
+    </IsInSelectedRecipes>
   );
 };
 

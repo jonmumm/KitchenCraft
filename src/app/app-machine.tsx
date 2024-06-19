@@ -652,6 +652,7 @@ export const createAppMachine = ({
               TOGGLE: "False",
               // BACK: "False",
               CLOSE: "False",
+              SHARE_SELECTED: "False",
               REMOVE_TOKEN: {
                 // todo, conditionally focus the input if there is no prompt
               },
@@ -866,6 +867,7 @@ export const createAppMachine = ({
                   ADD_SELECTED: "False",
                   NEW_RECIPE: "False",
                   EXIT: "False",
+                  SHARE_SELECTED: "False",
                 },
               },
             },

@@ -20,3 +20,25 @@ export const PageSessionSelector = <T,>(props: PageSessionSelectorProps<T>) => {
 
   return initialValue ? <>{props.children}</> : <></>;
 };
+
+interface PageSessionSelectorComponentProps {
+  selector: (snapshot: PageSessionSnapshot) => boolean;
+  children: ReactNode;
+  not?: boolean;
+}
+
+export const pageSessionSelectorComponent = (
+  selector: (snapshot: PageSessionSnapshot) => boolean
+) => {
+  const Component = ({ children, not }: PageSessionSelectorComponentProps) => {
+    const selectedValue = usePageSessionSelector(selector);
+    return (!not && selectedValue) || (not && !selectedValue) ? (
+      <>{children}</>
+    ) : (
+      <></>
+    );
+  };
+
+  Component.displayName = `PageSessionSelectorComponent(${selector.toString()})`;
+  return Component;
+};
