@@ -3234,9 +3234,7 @@ export const createPageSessionMachine = ({
                   SHARE_PRESS: "Complete",
                 },
               },
-              Complete: {
-                type: "final",
-              },
+              Complete: {},
             },
           },
           Name: {
