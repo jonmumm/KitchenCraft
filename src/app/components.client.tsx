@@ -40,7 +40,7 @@ import { EquipmentCard } from "@/components/settings/equipment-card";
 import { ExperienceCard } from "@/components/settings/experience-card";
 import { GroceryQuestions } from "@/components/settings/grocery";
 import { PreferenceCard } from "@/components/settings/preference-card";
-import { ShareButton } from "@/components/share-button";
+import { ShareRecipeButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -400,7 +400,7 @@ const CurrentListCarouselItem = ({
                   {/* <CameraButton slug={recipe?.slug} /> */}
                   {/* <FavoriteButton id={recipe?.id} /> */}
                   <SaveButton id={recipe?.id} />
-                  <ShareButton slug={recipe.slug} name={recipe.name} />
+                  <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
                   <RecipeSelectCircleButton id={recipe.id} />
                   <RecipeMoreDropdownButton />
                 </div>

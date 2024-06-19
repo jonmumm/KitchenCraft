@@ -532,6 +532,13 @@ const SetUsernameEventSchema = z.object({
   value: SlugSchema,
 });
 
+const FieldNameSchema = z.union([z.enum(["showNameInput"]), z.string()]);
+
+const BlurEventSchema = z.object({
+  type: z.literal("BLUR"),
+  name: z.union([FieldNameSchema, z.string()]),
+});
+
 const ChangeEventSchema = z.object({
   type: z.literal("CHANGE"),
   name: z.string(),
@@ -795,14 +802,20 @@ export const ShareEventSchema = z.object({
   slug: SlugSchema,
 });
 
+
+const SharePressEventSchema = z.object({
+  type: z.literal("SHARE_PRESS"),
+  url: z.string().url(),
+});
+
 const ShareCompleteEventSchema = z.object({
   type: z.literal("SHARE_COMPLETE"),
-  slug: SlugSchema,
+  url: z.string().url(),
 });
 
 const ShareCancelEventSchema = z.object({
   type: z.literal("SHARE_CANCEL"),
-  slug: SlugSchema,
+  url: z.string().url(),
 });
 
 const PressResultBadgeEventShema = z.object({
@@ -1039,7 +1052,7 @@ const ListCreatedEventSchema = z.object({
   type: z.literal("LIST_CREATED"),
   id: z.string(),
   slug: z.string(),
-  name: z.string()
+  name: z.string(),
 });
 
 const ChangeListEventSchema = z.object({
@@ -1123,7 +1136,12 @@ const PressButtonEventSchema = z.object({
   buttonId: z.string(),
 });
 
+const CopyLinkEventSchema = z.object({
+  type: z.literal("COPY_LINK"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  CopyLinkEventSchema,
   PressButtonEventSchema,
   SaveRecipeEventSchema,
   FavoriteRecipeSchema,
@@ -1190,6 +1208,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   SearchParamsEventSchema,
   HashChangeEventSchema,
   ShareEventSchema,
+  SharePressEventSchema,
   ShareCompleteEventSchema,
   ShareCancelEventSchema,
   UpvoteEventSchema,
@@ -1225,6 +1244,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   SubmitPromptEventSchema,
   FocusPromptEventSchema,
   BlurPromptEventSchema,
+  BlurEventSchema,
   InitEventSchema,
   BackEventSchema,
   UndoEventSchema,

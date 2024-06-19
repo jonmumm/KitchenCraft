@@ -933,7 +933,9 @@ export const createAppMachine = ({
                   <RecipeAddedToast
                     name={name}
                     toastId={t}
-                    itemIndex={sessionSnapshot.context.selectedRecipeIds?.length || 0}
+                    itemIndex={
+                      sessionSnapshot.context.selectedRecipeIds?.length || 0
+                    }
                   />
                 ),
                 { position: "top-right" }
@@ -966,7 +968,9 @@ export const createAppMachine = ({
                   <RecipeAddedToast
                     name={name}
                     toastId={t}
-                    itemIndex={sessionSnapshot.context.selectedRecipeIds?.length || 0}
+                    itemIndex={
+                      sessionSnapshot.context.selectedRecipeIds?.length || 0
+                    }
                   />
                 ),
                 { position: "top-center" }
@@ -1065,6 +1069,24 @@ export const createAppMachine = ({
               True: {
                 on: {
                   CANCEL: "False",
+                  SHARE_PRESS: "False",
+                },
+                onDone: "False",
+                initial: "Idle",
+                states: {
+                  Idle: {
+                    on: {
+                      COPY_LINK: "Closing",
+                    },
+                  },
+                  Closing: {
+                    after: {
+                      3000: "Closed",
+                    },
+                  },
+                  Closed: {
+                    type: "final",
+                  },
                 },
               },
             },

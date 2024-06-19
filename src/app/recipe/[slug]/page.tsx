@@ -13,7 +13,7 @@ import { Button } from "@/components/input/button";
 import { PrintButton } from "@/components/print-button";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
 import { RecipeSelectButton } from "@/components/recipe-select-button";
-import { ShareButton } from "@/components/share-button";
+import { ShareRecipeButton } from "@/components/share-button";
 import { db } from "@/db";
 import {
   findLatestRecipeVersion,
@@ -378,7 +378,7 @@ export default async function Page(props: Props) {
                   {/* <PrintButton slug={recipe?.slug} /> */}
                   {/* <CameraButton slug={recipe?.slug} /> */}
                   <SaveButton id={recipe?.id} />
-                  <ShareButton slug={slug} name={name} />
+                  <ShareRecipeButton slug={slug} name={name} />
                   <RecipeSelectCircleButton id={recipe?.id} />
                   {/* <FavoriteButton id={recipe?.id} /> */}
                   {/* <RecipeSelectButton id={recipe.id} /> */}

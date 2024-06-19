@@ -1,4 +1,5 @@
 import { PageSessionSnapshot } from "@/app/page-session-machine";
+import { sentenceToSlug } from "@/lib/utils";
 import { createSelector } from "reselect";
 
 // this is a poc to be able to select a child actor in a typesafe way
@@ -217,21 +218,19 @@ export const selectSharingListPath = (state: PageSessionSnapshot) => {
     return undefined;
   }
 
-  const list = listsById[listId];
-  if (!list) {
-    return undefined;
-  }
-
   const profileName = selectProfileName(state);
   const userId = selectUserId(state);
+  const shareName = selectShareNameInput(state);
+  const slug = sentenceToSlug(shareName || "");
 
-  if (profileName && list.slug) {
-    return `/@${profileName}/${list.slug}`;
+  if (profileName) {
+    return `/@${profileName}/${slug}`;
   }
 
-  if (list.slug) {
-    return `/user/${userId}/${list.slug}`;
-  }
-
-  return `/list/${listId}`;
+  return `/user/${userId}/${slug}`;
 };
+
+// export const selectShareNameIsTaken = (state: PageSessionSnapshot) =>
+//   state.matches({ Share: { Record: { Cre } } });
+export const selectShareNameInput = (state: PageSessionSnapshot) =>
+  state.context.shareNameInput;

@@ -7,6 +7,7 @@ import { initializeUserSocket } from "@/actors/initializeUserSocket";
 import { ListenSessionEvent, listenSession } from "@/actors/listenSession";
 import { ListenUserEvent, listenUser } from "@/actors/listenUser";
 import {
+  ListTable,
   ProfileTable,
   RecipesTable,
   UserPreferencesTable,
@@ -315,6 +316,36 @@ export const createPageSessionMachine = ({
           };
         }) => {
           return await getChefNameByUserId(input.userId);
+        }
+      ),
+      checkShareNameAvailability: fromPromise(
+        async ({
+          input,
+        }: {
+          input: {
+            userId: string;
+            shareName: string;
+          };
+        }) => {
+          const client = createClient();
+          // todo also check against the resreved namesd
+          try {
+            await client.connect();
+            const db = drizzle(client);
+            return !(
+              await db
+                .select()
+                .from(ListTable)
+                .where(
+                  and(
+                    eq(ListTable.createdBy, input.userId),
+                    eq(ListTable.slug, sentenceToSlug(input.shareName))
+                  )
+                )
+            )[0];
+          } finally {
+            await client.end();
+          }
         }
       ),
       checkChefNameAvailability: fromPromise(
@@ -664,6 +695,9 @@ export const createPageSessionMachine = ({
       shouldCreateNewAds: ({ context }) => {
         Object.values(context.adInstances).map((item) => item.product);
         return false;
+      },
+      didChangeShareNameInput: ({ event }) => {
+        return event.type === "CHANGE" && event.name === "shareNameInput";
       },
     },
     actions: {
@@ -3073,6 +3107,12 @@ export const createPageSessionMachine = ({
               True: {
                 on: {
                   CANCEL: "False",
+                  CHANGE: {
+                    guard: "didChangeShareNameInput",
+                    actions: assign({
+                      shareNameInput: ({ event }) => event.value.trim(),
+                    }),
+                  },
                 },
               },
             },
@@ -3188,10 +3228,69 @@ export const createPageSessionMachine = ({
                 },
               },
               Error: { entry: console.error },
-              Updating: {},
               Created: {},
-              Complete: {
-                type: "final",
+              // Complete: {
+              //   type: "final",
+              // },
+            },
+          },
+          Name: {
+            initial: "Available",
+            on: {
+              CHANGE: {
+                target: ".Waiting",
+                guard: "didChangeShareNameInput",
+              },
+            },
+            states: {
+              Available: {
+                entry: () => console.log("available"),
+              },
+              Waiting: {
+                after: {
+                  1000: {
+                    target: "Checking",
+                    guard: ({ context }) => {
+                      const nameLength =
+                        context.shareNameInput?.trim().length || 0;
+                      return nameLength > 0;
+                    },
+                  },
+                },
+              },
+              Checking: {
+                invoke: {
+                  src: "checkShareNameAvailability",
+                  input: ({ context }) => {
+                    assert(
+                      context.shareNameInput,
+                      "expected shareNameInput to exist"
+                    );
+                    const userId = context.userSnapshot?.context.id;
+                    assert(
+                      userId,
+                      "expected userId when checking share name availability"
+                    );
+
+                    return {
+                      userId,
+                      shareName: context.shareNameInput.trim(),
+                    };
+                  },
+                  onDone: [
+                    {
+                      target: "Available",
+                      guard: ({ event }) => event.output,
+                    },
+                    {
+                      target: "Taken",
+                    },
+                  ],
+                },
+              },
+              Error: {},
+              Taken: {
+                entry: () => console.log("taken"),
               },
             },
           },
@@ -3239,7 +3338,6 @@ export const createPageSessionMachine = ({
                 const recipeIdsToAdd =
                   context.sessionSnapshot?.context.selectedRecipeIds;
                 assert(recipeIdsToAdd, "expected recipeIds to add");
-                console.log("userId", context.userSnapshot?.context.id);
 
                 return {
                   listName,
@@ -3451,31 +3549,6 @@ const defaultPlaceholders = [
   "roast veggies",
   "grill bbq",
 ];
-
-// const getGoogleResultsForAffiliateProducts = async (keyword: string) => {
-//   let query: string;
-//   switch (type) {
-//     case "book":
-//       query = `book ${keyword}`;
-//       break;
-//     case "equipment":
-//       query = `kitchen ${keyword}`;
-//       break;
-//     default:
-//       query = keyword;
-//   }
-
-//   const googleSearchResponse = await fetch(
-//     `https://www.googleapis.com/customsearch/v1?key=${
-//       privateEnv.GOOGLE_CUSTOM_SEARCH_API_KEY
-//     }&cx=${privateEnv.GOOGLE_CUSTOM_SEARCH_ENGINE_ID}&q=${encodeURIComponent(
-//       query
-//     )}`
-//   );
-
-//   const result = await googleSearchResponse.json();
-//   return result;
-// };
 
 interface RecipeFunctionArgs {
   suggestedRecipes: string[];

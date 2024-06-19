@@ -32,10 +32,10 @@ export const ShareSelectedButton = ({
           url,
         })
         .then(() => {
-          send({ type: "SHARE_COMPLETE", slug });
+          send({ type: "SHARE_COMPLETE", url: slug });
         })
         .catch(() => {
-          send({ type: "SHARE_CANCEL", slug });
+          send({ type: "SHARE_CANCEL", url: slug });
         });
     } else if ("clipboard" in navigator) {
       // @ts-ignore

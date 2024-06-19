@@ -16,7 +16,7 @@ import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-butt
 import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
 import { SaveButton } from "@/components/save-button";
 import ScrollLockComponent from "@/components/scroll-lock";
-import { ShareButton } from "@/components/share-button";
+import { ShareRecipeButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { Yield } from "@/components/yield";
@@ -185,7 +185,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 {/* <CameraButton slug={recipe?.slug} /> */}
                 {/* <FavoriteButton id={recipe?.id} /> */}
                 <SaveButton id={recipe?.id} />
-                <ShareButton slug={recipe.slug} name={recipe.name} />
+                <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
                 <RecipeSelectCircleButton id={recipe.id} />
                 {/* <RecipeSelectButton id={recipe.id} /> */}
                 <RecipeMoreDropdownButton />

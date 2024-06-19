@@ -50,7 +50,7 @@ import { RecipeMoreDropdownButton } from "./recipe-more-dropdown-button";
 import { RecipeSelectCircleButton } from "./recipe-select-circle-button";
 import { SaveButton } from "./save-button";
 import { useScrollLock } from "./scroll-lock";
-import { ShareButton } from "./share-button";
+import { ShareRecipeButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
@@ -480,7 +480,7 @@ const FeedCardRecipeItem = (input: {
               {/* <PrintButton slug={recipe?.slug} /> */}
               {/* <CameraButton slug={recipe?.slug} /> */}
               <SaveButton id={recipe?.id} />
-              <ShareButton slug={recipe.slug} name={recipe.name} />
+              <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
               <RecipeSelectCircleButton id={recipe?.id} />
               {/* <FavoriteButton id={recipe?.id} />
               <RecipeSuggestionSelectButton

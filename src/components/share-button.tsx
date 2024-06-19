@@ -6,12 +6,14 @@ import { useCallback, useState } from "react";
 import { Button } from "./input/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./layout/popover";
 
-export const ShareButton = ({
+export const ShareRecipeButton = ({
   slug,
   name,
+  className,
 }: {
   slug?: string;
   name?: string;
+  className?: string;
 }) => {
   const [showCopied, setShowCopied] = useState(false);
   const send = useSend();
@@ -31,10 +33,10 @@ export const ShareButton = ({
           url,
         })
         .then(() => {
-          send({ type: "SHARE_COMPLETE", slug });
+          send({ type: "SHARE_COMPLETE", url: slug });
         })
         .catch(() => {
-          send({ type: "SHARE_CANCEL", slug });
+          send({ type: "SHARE_CANCEL", url: slug });
         });
     } else if ("clipboard" in navigator) {
       // @ts-ignore
@@ -57,21 +59,19 @@ export const ShareButton = ({
   }
 
   return (
-    <div className="flex-2">
-      <Popover open={showCopied} onOpenChange={handlePressCopy}>
-        <PopoverTrigger asChild>
-          <Button
-            variant={!showCopied ? "outline" : "secondary"}
-            event={{ type: "SHARE", slug }}
-          >
-            Share
-            <ShareIcon className="ml-1" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-fit px-2 py-1 z-90">
-          URL Copied!
-        </PopoverContent>
-      </Popover>
-    </div>
+    <Popover open={showCopied} onOpenChange={handlePressCopy}>
+      <PopoverTrigger asChild>
+        <Button
+          variant={!showCopied ? "outline" : "secondary"}
+          event={{ type: "SHARE", slug }}
+        >
+          Share
+          <ShareIcon className="ml-1" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-fit px-2 py-1 z-90">
+        URL Copied!
+      </PopoverContent>
+    </Popover>
   );
 };
