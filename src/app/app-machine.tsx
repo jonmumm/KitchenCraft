@@ -1074,23 +1074,6 @@ export const createAppMachine = ({
                   CLOSE: "False",
                   // SHARE_PRESS: "False",
                 },
-                onDone: "False",
-                initial: "Idle",
-                states: {
-                  Idle: {
-                    on: {
-                      COPY_LINK: "Closing",
-                    },
-                  },
-                  Closing: {
-                    after: {
-                      3000: "Closed",
-                    },
-                  },
-                  Closed: {
-                    type: "final",
-                  },
-                },
               },
             },
           },

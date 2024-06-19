@@ -69,7 +69,7 @@ export const ShareDetailsCard = () => {
     selectSharingListIsCreated
   );
 
-  const [showCopied, setShowCopied] = useState(false);
+  // const [showCopied, setShowCopied] = useState(false);
   const send = useSend();
   const store = usePageSessionStore();
 
@@ -83,12 +83,12 @@ export const ShareDetailsCard = () => {
       // @ts-ignore
       navigator.clipboard.writeText(url);
 
-      setShowCopied(true);
-      setTimeout(() => {
-        setShowCopied(false);
-      }, 3000);
+      // setShowCopied(true);
+      // setTimeout(() => {
+      //   setShowCopied(false);
+      // }, 3000);
     }
-  }, [setShowCopied, store, send]);
+  }, [store, send]);
 
   const handlePressSend = useCallback(() => {
     const path = selectSharingListPath(store.get());
@@ -246,7 +246,7 @@ export const ShareDetailsCard = () => {
                 autoFocus={false}
                 size="xl"
                 event={{ type: "COPY_LINK" }}
-                disabled={!sharingListIsCreated || showCopied || nameIsTaken}
+                disabled={!sharingListIsCreated || nameIsTaken}
               >
                 {sharingListIsCreated ? (
                   <>
