@@ -460,6 +460,28 @@ export const ListTable = pgTable(
   }
 );
 
+// export const UserListTable = pgTable(
+//   "user_list",
+//   {
+//     id: uuid("id").defaultRandom().primaryKey(),
+//     listId: text("user_id")
+//       .notNull()
+//       .references(() => ListTable.id, { onDelete: "cascade" }), // Link to UsersTable
+//     userId: text("user_id")
+//       .notNull()
+//       .references(() => UsersTable.id, { onDelete: "cascade" }), // Link to UsersTable
+//     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(), // Timestamp of when the recipe was added
+//   },
+//   (table) => {
+//     return {
+//       unq: unique("user_id_by_liser_id_unique_idx").on(
+//         table.userId,
+//         table.listId
+//       ),
+//     };
+//   }
+// );
+
 export const ListSchema = createSelectSchema(ListTable);
 
 export const ListRecipeTable = pgTable(

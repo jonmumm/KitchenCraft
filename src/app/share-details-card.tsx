@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/layout/popover";
 import { atomBooleanComponent } from "@/components/util/atom-boolean-component";
+import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
@@ -33,9 +34,10 @@ import {
 import { useStore } from "@nanostores/react";
 import {
   ClipboardCopyIcon,
+  ExternalLinkIcon,
   Loader2Icon,
   SendHorizonalIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import { atom } from "nanostores";
 import { useTranslations } from "next-intl";
@@ -51,6 +53,10 @@ import { ShareDetailsPreviewCarousel } from "./share-details-preview-carousel";
 
 export const ShareDetailsCard = () => {
   const t = useTranslations("ShareDetails");
+
+  useEventHandler("CLOSE", () => {
+    complete$.set(false);
+  });
 
   const nameIsTaken = usePageSessionMatchesState({ Share: { Name: "Taken" } });
   const nameIsAvailable = usePageSessionMatchesState({
@@ -79,6 +85,7 @@ export const ShareDetailsCard = () => {
     const path = selectSharingListPath(store.get());
     const { origin } = window.location;
     const url = `${origin}${path}`;
+    complete$.set(true);
 
     if ("clipboard" in navigator) {
       // @ts-ignore
@@ -92,6 +99,7 @@ export const ShareDetailsCard = () => {
   }, [setShowCopied, store]);
 
   const handlePressSend = useCallback(() => {
+    complete$.set(true);
     const path = selectSharingListPath(store.get());
     const { origin } = window.location;
     const url = `${origin}${path}`;
@@ -116,160 +124,222 @@ export const ShareDetailsCard = () => {
   return (
     <Card className="max-w-3xl overflow-hidden">
       <CardHeader className="flex flex-row justify-between">
-        <IsEditing>
-          <div>
-            <CardTitle>Share Name</CardTitle>
-            <CardDescription className="text-xs mt-2">
-              To be available @
-              <div className="border border-muted rounded-lg border-solid p-2 mt-3">
-                kitchencraft.ai
-                <SharingRecipeListPath />
-              </div>
-            </CardDescription>
-          </div>
-        </IsEditing>
-        <IsEditing not>
-          <div>
-            <CardTitle>{t("title")}</CardTitle>
-            <CardDescription>
-              {t("recipesCount", { count: selectedRecipeCount })}
-            </CardDescription>
-          </div>
-          <div>
-            <Button variant="ghost" size="icon" event={{ type: "CANCEL" }}>
-              <XIcon />
-            </Button>
-          </div>
-        </IsEditing>
-      </CardHeader>
-      <IsEditing not>
-        <div className="max-w-full">
-          <ShareDetailsPreviewCarousel />
-        </div>
-        <Separator className="my-4" />
-      </IsEditing>
-      <CardContent className="py-4 flex flex-col gap-2">
-        <div className="flex flex-row gap-2">
-          <div className="flex flex-col gap-2 w-full">
-            <ShareNameRow />
-            <IsEditing>
-              {nameIsAvailable && (
-                <div className="text-xs test-semibold text-success opacity-0">Available</div>
-              )}
-              {nameCheckWaiting && (
-                <div className="text-muted-foreground text-xs flex flex-row gap-2 opacity-0">
-                  <span>Inputting</span>
-                </div>
-              )}
-              {nameIsChecking && (
-                <div className="text-muted-foreground text-xs flex flex-row gap-2">
-                  <span>Checking</span>
-                  <Loader2Icon size={14} className="animate-spin ml-1" />
-                </div>
-              )}
-            </IsEditing>
-            {nameIsTaken && (
-              <div className="text-error text-xs">
-                This name is not available.
-              </div>
-            )}
-
-            {/* <Separator /> */}
-            {/* <p className="text-xs border border-card-muted border-solid rounded-lg p-4 w-full">
-              <span className="text-muted-foreground uppercase font-semibold">URL</span>
-              <br /> kitchencraft.ai
-              <span>
-                <SharingRecipeListPath />
-              </span>
-            </p> */}
-          </div>
-        </div>
-      </CardContent>
-      <CardContent className="py-4 flex flex-col gap-2 mb-4">
-        <IsEditing>
-          <Button
-            size="xl"
-            disabled={!sharingListIsCreated || nameIsTaken}
-            onClick={() => {
-              editing$.set(false);
-            }}
-          >
-            Done
-          </Button>
-        </IsEditing>
-        <IsEditing not>
-          <CanShare not>
-            <Popover open={showCopied} onOpenChange={handlePressCopy}>
-              <PopoverTrigger asChild>
-                <Button
-                  autoFocus={false}
-                  size="xl"
-                  event={{ type: "COPY_LINK" }}
-                  disabled={!sharingListIsCreated || showCopied || nameIsTaken}
-                >
-                  {sharingListIsCreated ? (
-                    <>
-                      <span>Get Link</span>
-                      <ClipboardCopyIcon className="ml-2" />
-                    </>
-                  ) : (
-                    <>
-                      <span>Creating</span>
-                      <Loader2Icon className="ml-2 animate-spin" />
-                    </>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-fit max-w-[90vw] p-3 z-100">
-                <h4 className="text-lg font-medium">Link Copied!</h4>
-                <div className="text-xs text-muted-foreground">
+        <IsComplete not>
+          <IsEditingName>
+            <div>
+              <CardTitle>Share Name</CardTitle>
+              <CardDescription className="text-xs mt-2">
+                To be available @
+                <div className="border border-muted rounded-lg border-solid p-2 mt-3 bg-secondary">
                   kitchencraft.ai
                   <SharingRecipeListPath />
                 </div>
-              </PopoverContent>
-            </Popover>
+              </CardDescription>
+            </div>
+          </IsEditingName>
+          <IsEditingName not>
+            <div>
+              <CardTitle>{t("title")}</CardTitle>
+              <CardDescription>
+                {t("recipesCount", { count: selectedRecipeCount })}
+              </CardDescription>
+            </div>
+            <div>
+              <Button variant="ghost" size="icon" event={{ type: "CANCEL" }}>
+                <XIcon />
+              </Button>
+            </div>
+          </IsEditingName>
+        </IsComplete>
+        <IsComplete>
+          <CanShare not>
+            <div>
+              <CardTitle className="flex flex-row gap-2 justify-between items-center">
+                <div className="flex flex-row gap-2 flex-1">
+                  <ClipboardCopyIcon />
+                  <span>Link Copied!</span>
+                </div>
+                <div>
+                  <Button variant="ghost" size="icon" event={{ type: "CLOSE" }}>
+                    <XIcon />
+                  </Button>
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs mt-2">
+                <div>The URL has been copied to your clipboard to share:</div>
+                <div className="border border-muted rounded-lg border-solid bg-secondary p-2 mt-3">
+                  kitchencraft.ai
+                  <SharingRecipeListPath />
+                </div>
+              </CardDescription>
+            </div>
           </CanShare>
           <CanShare>
+            <div>
+              <CardTitle className="flex flex-row gap-2 justify-between items-center">
+                <div className="flex flex-col gap-1">
+                  <span>Share Complete</span>
+                  <CardDescription className="text-xs mt-2">
+                    Would you like to save this list to your recipes?
+                  </CardDescription>
+                </div>
+                <div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    event={{ type: "CANCEL" }}
+                  >
+                    <XIcon />
+                  </Button>
+                </div>
+              </CardTitle>
+            </div>
+          </CanShare>
+        </IsComplete>
+      </CardHeader>
+      <IsComplete not>
+        <IsEditingName not>
+          <div className="max-w-full">
+            <ShareDetailsPreviewCarousel />
+          </div>
+          <Separator className="my-4" />
+        </IsEditingName>
+        <CardContent className="py-4 flex flex-col gap-2">
+          <div className="flex flex-row gap-2">
+            <div className="flex flex-col gap-2 w-full">
+              <ShareNameRow />
+              <IsEditingName>
+                {nameIsAvailable && (
+                  <div className="text-xs test-semibold text-success opacity-0">
+                    Available
+                  </div>
+                )}
+                {nameCheckWaiting && (
+                  <div className="text-muted-foreground text-xs flex flex-row gap-2 opacity-0">
+                    <span>Inputting</span>
+                  </div>
+                )}
+                {nameIsChecking && (
+                  <div className="text-muted-foreground text-xs flex flex-row gap-2">
+                    <span>Checking</span>
+                    <Loader2Icon size={14} className="animate-spin ml-1" />
+                  </div>
+                )}
+              </IsEditingName>
+              {nameIsTaken && (
+                <div className="text-error text-xs">
+                  This name is not available.
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+        <CardContent className="py-4 flex flex-col gap-2 mb-4">
+          <IsEditingName>
             <Button
-              autoFocus={false}
               size="xl"
               disabled={!sharingListIsCreated || nameIsTaken}
-              onClick={handlePressSend}
+              onClick={() => {
+                editingName$.set(false);
+              }}
             >
-              {sharingListIsCreated ? (
-                <>
-                  <span>Send</span>
-                  <SendHorizonalIcon className="ml-2" />
-                </>
-              ) : (
-                <>
-                  <span>Creating</span>
-                  <Loader2Icon className="ml-2 animate-spin" />
-                </>
-              )}
+              Done
             </Button>
-          </CanShare>
-        </IsEditing>
-      </CardContent>
+          </IsEditingName>
+          <IsEditingName not>
+            <CanShare not>
+              <Popover open={showCopied} onOpenChange={handlePressCopy}>
+                <PopoverTrigger asChild>
+                  <Button
+                    autoFocus={false}
+                    size="xl"
+                    event={{ type: "COPY_LINK" }}
+                    disabled={
+                      !sharingListIsCreated || showCopied || nameIsTaken
+                    }
+                  >
+                    {sharingListIsCreated ? (
+                      <>
+                        <span>Get Link</span>
+                        <ClipboardCopyIcon className="ml-2" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Creating</span>
+                        <Loader2Icon className="ml-2 animate-spin" />
+                      </>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-fit max-w-[90vw] p-3 z-100">
+                  <h4 className="text-lg font-medium">Link Copied!</h4>
+                  <div className="text-xs text-muted-foreground">
+                    kitchencraft.ai
+                    <SharingRecipeListPath />
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </CanShare>
+            <CanShare>
+              <Button
+                autoFocus={false}
+                size="xl"
+                disabled={!sharingListIsCreated || nameIsTaken}
+                onClick={handlePressSend}
+              >
+                {sharingListIsCreated ? (
+                  <>
+                    <span>Send</span>
+                    <SendHorizonalIcon className="ml-2" />
+                  </>
+                ) : (
+                  <>
+                    <span>Creating</span>
+                    <Loader2Icon className="ml-2 animate-spin" />
+                  </>
+                )}
+              </Button>
+            </CanShare>
+          </IsEditingName>
+        </CardContent>
+      </IsComplete>
+      <IsComplete>
+        <CardContent className="flex flex-row gap-2">
+          <PageSessionSelectorLink
+            target="_blank"
+            selector={selectSharingListPath}
+            className="flex-1"
+          >
+            <Button variant="outline" size="xl" className="w-full">
+              Open <ExternalLinkIcon className="ml-2" />
+            </Button>
+          </PageSessionSelectorLink>
+          <div className="flex-1">
+            <Button event={{ type: "CLOSE" }} size="xl" className="w-full">
+              Done
+            </Button>
+          </div>
+        </CardContent>
+      </IsComplete>
     </Card>
   );
 };
 
-const editing$ = atom(false);
+const editingName$ = atom(false);
 const complete$ = atom(false);
 
-const IsEditing = atomBooleanComponent(editing$);
+const IsEditingName = atomBooleanComponent(editingName$);
 const IsComplete = atomBooleanComponent(complete$);
 
 const ShareNameRow = () => {
-  const editing = useStore(editing$);
+  const editing = useStore(editingName$);
   const inputRef = useRef<HTMLInputElement>(null);
   const store = usePageSessionStore();
 
   const nameIsTaken = usePageSessionMatchesState({ Share: { Name: "Taken" } });
 
   useEventHandler("PRESS_BUTTON", () => {
-    editing$.set(true);
+    editingName$.set(true);
   });
 
   useEffect(() => {
@@ -284,7 +354,7 @@ const ShareNameRow = () => {
 
   const handleKeyDown: KeyboardEventHandler = useCallback((event) => {
     if (event.key === "Enter") {
-      editing$.set(false);
+      editingName$.set(false);
     }
   }, []);
   const send = useSend();
@@ -303,7 +373,7 @@ const ShareNameRow = () => {
     );
 
   const handleBlur = useCallback(() => {
-    editing$.set(false);
+    // editing$.set(false);
     send({ type: "BLUR", name: FIELD_NAME });
   }, [send]);
 
@@ -315,7 +385,7 @@ const ShareNameRow = () => {
     <div className="flex flex-row justify-between items-center w-full">
       <div className="flex flex-col gap-2 items-start w-full flex-1">
         <Label className="text-muted-foreground uppercase text-xs">Name</Label>
-        {!editing ? (
+        <IsEditingName not>
           <h4 className="font-semibold">
             {shareName ? (
               <>{shareName}</>
@@ -323,7 +393,8 @@ const ShareNameRow = () => {
               <SkeletonSentence numWords={3} className="h-6" />
             )}
           </h4>
-        ) : (
+        </IsEditingName>
+        <IsEditingName>
           <Input
             ref={inputRef}
             onChange={handleShareNameChange}
@@ -332,7 +403,7 @@ const ShareNameRow = () => {
             type="text"
             defaultValue={shareName}
           />
-        )}
+        </IsEditingName>
       </div>
 
       <div>

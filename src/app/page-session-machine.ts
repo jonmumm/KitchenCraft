@@ -3124,6 +3124,7 @@ export const createPageSessionMachine = ({
               CLEAR_LIST: ".Uninitialized",
               SELECT_RECIPE: ".Uninitialized",
               UNSELECT: ".Uninitialized",
+              CLOSE: ".Uninitialized", // this is when it's complete, not when cancelled
             },
             states: {
               Uninitialized: {

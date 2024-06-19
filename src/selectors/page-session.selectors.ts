@@ -208,16 +208,6 @@ export const selectSharingListIsCreated = ({
 };
 
 export const selectSharingListPath = (state: PageSessionSnapshot) => {
-  const listId = state.context.sharingListId;
-  if (!listId) {
-    return undefined;
-  }
-
-  const listsById = state.context.listsById;
-  if (!listsById) {
-    return undefined;
-  }
-
   const profileName = selectProfileName(state);
   const userId = selectUserId(state);
   const shareName = selectShareNameInput(state);

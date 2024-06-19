@@ -1069,7 +1069,8 @@ export const createAppMachine = ({
               True: {
                 on: {
                   CANCEL: "False",
-                  SHARE_PRESS: "False",
+                  CLOSE: "False",
+                  // SHARE_PRESS: "False",
                 },
                 onDone: "False",
                 initial: "Idle",
