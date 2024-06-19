@@ -238,7 +238,7 @@ export const createSessionMachine = ({
     context: ({ input }) => {
       return {
         id: input.id,
-        userId: input.initialCaller.id,
+        userId: input.initialCaller?.id,
         authenticated: false,
         equipment: {},
         preferences: {},
@@ -999,11 +999,6 @@ export const createSessionMachine = ({
             },
           },
         },
-      },
-      Lists: {
-        // todo cant remove because it will cause errors
-        // on persisted state
-        // figure out how to cleanup when restoring
       },
     },
   });

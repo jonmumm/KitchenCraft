@@ -9,18 +9,20 @@ import {
   WithCloudFlareProps,
 } from "@/types";
 import { randomUUID } from "crypto";
-import { compare } from "fast-json-patch";
+import { applyPatch, compare } from "fast-json-patch";
 import { SignJWT, jwtVerify } from "jose";
 import type * as Party from "partykit/server";
 import { PostHog } from "posthog-node";
 import {
   Actor,
+  AnyMachineSnapshot,
   AnyStateMachine,
   EventFrom,
   InputFrom,
   SnapshotFrom,
   Subscription,
   createActor,
+  getInitialSnapshot,
   waitFor,
 } from "xstate";
 import { z } from "zod";
@@ -72,29 +74,32 @@ export const createMachineServer = <
         );
 
         if (persistentSnapshot) {
-          const machine = createMachine({
+          const input = {
             id: this.room.id,
             storage: this.room.storage,
             parties: this.room.context.parties,
-          });
+          } as any;
+
+          const machine = createMachine(input);
 
           const snapshot = JSON.parse(persistentSnapshot as string);
-          // if ("context" in snapshot) {
-          //   console.log("ctx", snapshot.context);
-          // }
-          // if ("value" in snapshot) {
-          //   const resolvedState = machine.resolveState({
-          //     value: snapshot.value,
-          //   } as any);
-          //   console.log(resolvedState, snapshot.value);
-          // }
+          const initialSnap = getInitialSnapshot(
+            machine,
+            input
+          ) as AnyMachineSnapshot;
 
-          // machine.
-          // debugger;
-          // console.log(machine);
-          this.actor = createActor(machine, {
-            snapshot,
-          });
+          const operations = compare(snapshot.value, initialSnap.value);
+          const filteredOperations = operations.filter(
+            (operation) => operation.op === "add" || operation.op === "remove"
+          );
+
+          // Modify the snapshot to add or remove any states
+          // that were changed on the machine
+          // todo: log these values somewhere so easy to recover
+          // todo: do the same for context
+          applyPatch(snapshot.value, filteredOperations);
+
+          this.actor = createActor(machine, { snapshot, input: input as any });
           this.actor.start();
         }
       }

@@ -207,6 +207,7 @@ export const createUserMachine = ({
           Created: {},
         },
       },
+
       ProfileName: {
         initial: "Uninitialized",
         states: {
