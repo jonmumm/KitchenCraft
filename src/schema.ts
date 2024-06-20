@@ -650,8 +650,8 @@ const CloseEventSchema = z.object({
   type: z.literal("CLOSE"),
 });
 
-const AddSelectEventSchema = z.object({
-  type: z.literal("ADD_SELECTED"),
+const SaveSelectedEventSchema = z.object({
+  type: z.literal("SAVE_SELECTED"),
 });
 
 const UnselectEventSchema = z.object({
@@ -1226,7 +1226,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ModifyRecipeScaleEventSchema,
   ModifyRecipeDietaryEventSchema,
   SaveEventSchema,
-  AddSelectEventSchema,
+  SaveSelectedEventSchema,
   UnselectEventSchema,
   CloseEventSchema,
   NewRecipeEventSchema,

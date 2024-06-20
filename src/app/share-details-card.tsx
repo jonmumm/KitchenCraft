@@ -250,7 +250,7 @@ export const ShareDetailsCard = () => {
               >
                 {sharingListIsCreated ? (
                   <>
-                    <span>Get Link</span>
+                    <span>Copy Link</span>
                     <ClipboardCopyIcon className="ml-2" />
                   </>
                 ) : (

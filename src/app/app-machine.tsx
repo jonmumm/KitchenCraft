@@ -653,6 +653,7 @@ export const createAppMachine = ({
               // BACK: "False",
               CLOSE: "False",
               SHARE_SELECTED: "False",
+              SAVE_SELECTED: "False",
               REMOVE_TOKEN: {
                 // todo, conditionally focus the input if there is no prompt
               },
@@ -864,7 +865,7 @@ export const createAppMachine = ({
               },
               True: {
                 on: {
-                  ADD_SELECTED: "False",
+                  SAVE_SELECTED: "False",
                   NEW_RECIPE: "False",
                   EXIT: "False",
                   SHARE_SELECTED: "False",
@@ -1010,7 +1011,7 @@ export const createAppMachine = ({
             states: {
               False: {
                 on: {
-                  ADD_SELECTED: "True",
+                  SAVE_SELECTED: "True",
                 },
               },
               True: {

@@ -1,1 +1,0 @@
-ALTER TABLE "recipe" ALTER COLUMN "createdBy" DROP NOT NULL;

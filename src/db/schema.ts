@@ -29,7 +29,6 @@ export const featureIdEnum = pgEnum("feature_id", [
   "email:products",
   "email:top_recipes",
   "email:tips_and_tricks",
-  "email:awards",
   "craft:instant-recipe",
   "craft:suggested-recipes",
   "recipe:create",
@@ -67,7 +66,10 @@ export const VerificationTokensTable = pgTable(
     expires: timestamp("expires", { mode: "date" }).notNull(),
   },
   (vt) => ({
-    compoundKey: primaryKey(vt.identifier, vt.token),
+    verificationtoken_identifier_token_pk: primaryKey({
+      columns: [vt.identifier, vt.token],
+      name: "verificationtoken_identifier_token_pk",
+    }),
   })
 );
 
@@ -152,7 +154,7 @@ export const NewMediaSchema = createInsertSchema(MediaTable);
 export const RecipeMediaTable = pgTable(
   "recipe_media",
   {
-    recipeId: uuid("recipe_id"),
+    recipeId: uuid("recipe_id").notNull(),
     mediaId: uuid("media_id")
       .notNull()
       .references(() => MediaTable.id),
@@ -243,13 +245,13 @@ export const NewFeatureSchema = createInsertSchema(FeaturesTable);
 export const UserFeatureState = pgTable(
   "user_feature_state",
   {
-    userId: text("user_id"),
+    userId: text("user_id").notNull(),
     featureId: featureIdEnum("feature_id").notNull(),
     enabled: boolean("enabled").notNull().default(true),
     timestamp: timestamp("timestamp").defaultNow(),
   },
   (table) => ({
-    compoundKey: primaryKey(table.userId, table.featureId),
+    compoundKey: primaryKey({ columns: [table.userId, table.featureId] }),
   })
 );
 
@@ -373,7 +375,7 @@ export const RecipeRatingsTable = pgTable(
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(), // Timestamp when the rating was created
   },
   (table) => ({
-    compoundKey: primaryKey(table.userId, table.recipeSlug),
+    compoundKey: primaryKey({ columns: [table.userId, table.recipeSlug] }),
   })
 );
 
@@ -388,9 +390,8 @@ interface EditHistoryEntry {
 
 export const RecipeComments = pgTable("recipe_comments", {
   id: bigserial("id", { mode: "number" }).notNull().primaryKey(), // Primary key
-  recipeId: uuid("recipe_id")
-    .notNull()
-    .references(() => RecipesTable.id), // Foreign key to the Recipes table
+  recipeId: uuid("recipe_id").notNull(),
+  // .references(() => RecipesTable.id), // Foreign key to the Recipes table
   userId: text("user_id").notNull(),
   mediaIds: jsonb("mediaIds").$type<string[]>(),
   comment: text("comment").notNull(), // Text of the comment
@@ -460,27 +461,29 @@ export const ListTable = pgTable(
   }
 );
 
-// export const UserListTable = pgTable(
-//   "user_list",
-//   {
-//     id: uuid("id").defaultRandom().primaryKey(),
-//     listId: text("user_id")
-//       .notNull()
-//       .references(() => ListTable.id, { onDelete: "cascade" }), // Link to UsersTable
-//     userId: text("user_id")
-//       .notNull()
-//       .references(() => UsersTable.id, { onDelete: "cascade" }), // Link to UsersTable
-//     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(), // Timestamp of when the recipe was added
-//   },
-//   (table) => {
-//     return {
-//       unq: unique("user_id_by_liser_id_unique_idx").on(
-//         table.userId,
-//         table.listId
-//       ),
-//     };
-//   }
-// );
+export const UserListTable = pgTable(
+  "user_list",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    listId: uuid("list_id")
+      .notNull()
+      .references(() => ListTable.id, { onDelete: "cascade" }), // Link to UsersTable
+    userId: text("user_id")
+      .notNull()
+      .references(() => UsersTable.id, { onDelete: "cascade" }), // Link to UsersTable
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(), // Timestamp of when the recipe was added
+  },
+  (table) => {
+    return {
+      unq: unique("user_id_by_list_id_unique_idx").on(
+        table.userId,
+        table.listId
+      ),
+    };
+  }
+);
+export const UserListSchema = createSelectSchema(UserListTable);
+export const NewUserListSchema = createInsertSchema(UserListTable);
 
 export const ListSchema = createSelectSchema(ListTable);
 

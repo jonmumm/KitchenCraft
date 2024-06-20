@@ -1,1 +1,0 @@
-ALTER TABLE "amazon_affiliate_product" ALTER COLUMN "type" SET NOT NULL;

@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
+import MarkdownRenderer from "@/components/display/markdown";
 import { Skeleton } from "@/components/display/skeleton";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
@@ -1013,6 +1014,11 @@ export const SuggestedIngredientsSection = () => {
   return (
     <CraftEmpty>
       <Section className="max-w-3xl mx-auto">
+        <Badge variant="secondary">
+          <MarkdownRenderer variant="single_line" markdownText="**Did you know?** You *can* to this cool thing" />
+        </Badge>
+      </Section>
+      <Section className="max-w-3xl mx-auto">
         <IngredientsLabel />
         <BadgeList>
           {items
@@ -1137,10 +1143,12 @@ export const SelectedRecipesBar = () => {
             event={{ type: "VIEW_LIST" }}
           >
             Selected
-            <span className="bg-purple-700 text-white rounded-full text-center ml-1 px-1">{numSelected}</span>
+            <span className="bg-purple-700 text-white rounded-full text-center ml-1 px-1">
+              {numSelected}
+            </span>
           </Button>
         </div>
-        <Button variant="primary">
+        <Button event={{ type: "SAVE_SELECTED" }}>
           Save
           <BookmarkIcon className="ml-1" size={14} />
         </Button>

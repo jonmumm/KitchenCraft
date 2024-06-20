@@ -26,4 +26,11 @@
 .markdown li p:first-child {
   @apply inline;
 }
-/* Add more styles as needed */
+
+/* Styles for multi_line variant */
+.singleLine p,
+.singleLine h2,
+.singleLine h3,
+.singleLine h4 {
+  margin-bottom: 0;
+}

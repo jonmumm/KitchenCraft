@@ -26,7 +26,12 @@ import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Ingredients } from "@/components/ingredients";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
-import { DropdownMenuRadioGroup } from "@/components/input/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuTrigger,
+} from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
 import { Popover } from "@/components/layout/popover";
 import { ScrollArea } from "@/components/layout/scroll-area";
@@ -71,6 +76,7 @@ import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
   BookmarkIcon,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronsUpDown,
@@ -81,7 +87,7 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -512,23 +518,30 @@ export const MyRecipesScreen = () => {
               CLEAR
             </Badge>
           </HasSelectedRecipes>
-          {/* <DropdownMenu> */}
-          {/* <DropdownMenuTrigger className="flex-1 flex justify-center"> */}
-          <Badge
-            variant="outline"
-            className="flex gap-2 justify-center text-lg font-bold px-4 py-2 w-full bg-card shadow-lg sm:w-80"
-          >
-            {/* <ChevronDownIcon /> */}
-            <span>Selected</span>
-            <span className="ml-1 text-sm font-semibold text-white bg-purple-700 px-1 rounded">
-              <CurrentListCount />
-            </span>
-          </Badge>
-          {/* </DropdownMenuTrigger> */}
-          {/* <DropdownMenuContent className="z-90">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex-1 flex justify-center">
+              <Badge
+                variant="outline"
+                className="flex gap-2 justify-between text-lg font-bold px-3 py-2 w-full bg-card shadow-lg sm:w-80"
+              >
+                <div className="flex-1 text-start">
+                  <span className="ml-2 mr-2">✅</span>
+                  <span>Selected</span>
+                </div>
+                <span className="ml-1 text-sm font-semibold text-white bg-purple-700 px-1 rounded">
+                  <CurrentListCount />
+                </span>
+                <div>
+                  <Button size="icon" className="rounded-full p-2" variant="secondary">
+                    <ChevronDownIcon />
+                  </Button>
+                </div>
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="z-90">
               <MyRecipeListsRadioGroup />
-            </DropdownMenuContent> */}
-          {/* </DropdownMenu> */}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="ghost"
             event={{ type: "EXIT" }}
@@ -575,11 +588,7 @@ export const MyRecipesScreen = () => {
                 URL Copied!
               </PopoverContent>
             </SharePopover> */}
-            <Button
-              variant="primary"
-              className="shadow-md"
-              event={{ type: "ADD_SELECTED" }}
-            >
+            <Button className="shadow-md" event={{ type: "SAVE_SELECTED" }}>
               <BookmarkIcon size={16} className="mr-1" />
               Save (<CurrentListCount />) to...
             </Button>

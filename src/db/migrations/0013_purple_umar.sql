@@ -1,1 +1,0 @@
-ALTER TABLE "amazon_affiliate_product" DROP COLUMN IF EXISTS "description";
