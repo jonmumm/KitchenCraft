@@ -147,7 +147,7 @@ export const ShareDetailsCard = () => {
         </PageSessionMatches>
         <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }}>
           <CanShare not>
-            <div>
+            <div className="w-full">
               <CardTitle className="flex flex-row gap-2 justify-between items-center">
                 <div className="flex flex-row gap-2 flex-1">
                   <ClipboardCopyIcon />
@@ -169,7 +169,7 @@ export const ShareDetailsCard = () => {
             </div>
           </CanShare>
           <CanShare>
-            <div>
+            <div className="w-full">
               <CardTitle className="flex flex-row gap-2 justify-between items-center">
                 <div className="flex flex-col gap-1">
                   <span>Share Complete</span>
