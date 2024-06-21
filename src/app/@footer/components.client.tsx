@@ -7,6 +7,7 @@ declare global {
   }
 }
 
+import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import React, {
@@ -32,6 +33,21 @@ export const FooterTabTitle = ({
     >
       {children}
     </span>
+  );
+};
+
+export const SelectedLink = ({ children }: { children: ReactNode }) => {
+  return (
+    <PageSessionSelectorLink
+      selector={(state) => {
+        const profileName = state.context.userSnapshot?.context.profileName;
+        return profileName
+          ? `/@${state.context.userSnapshot?.context.profileName}#selected`
+          : undefined;
+      }}
+    >
+      {children}
+    </PageSessionSelectorLink>
   );
 };
 
@@ -82,7 +98,6 @@ export const ReactiveFooter = ({
   );
 };
 
-
 export const SettingsTabLink = ({
   children,
   className,
@@ -101,7 +116,7 @@ export const SettingsTabLink = ({
   const handleClick = useCallback(() => {
     send({ type: "NEW_RECIPE" });
   }, [send]);
-  
+
   return (
     <>
       <div

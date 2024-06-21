@@ -88,16 +88,22 @@ export const createMachineServer = <
             input
           ) as AnyMachineSnapshot;
 
-          const operations = compare(snapshot.value, initialSnap.value);
-          const filteredOperations = operations.filter(
+          const valueOperations = compare(snapshot.value, initialSnap.value);
+          const filteredValueOperations = valueOperations.filter(
             (operation) => operation.op === "add" || operation.op === "remove"
           );
 
-          // Modify the snapshot to add or remove any states
-          // that were changed on the machine
+          const contextOperations = compare(
+            snapshot.context,
+            initialSnap.context
+          );
+          const filteredContextOperations = contextOperations.filter(
+            (operation) => operation.op === "add"
+          );
           // todo: log these values somewhere so easy to recover
-          // todo: do the same for context
-          applyPatch(snapshot.value, filteredOperations);
+
+          applyPatch(snapshot.value, filteredValueOperations);
+          applyPatch(snapshot.context, filteredContextOperations);
 
           this.actor = createActor(machine, { snapshot, input: input as any });
           this.actor.start();

@@ -3,7 +3,7 @@ import { arraysEqual, assert, isMobile } from "@/lib/utils";
 import {
   AppEvent,
   InstantRecipeMetadataPredictionOutput,
-  SuggestionPredictionOutput
+  SuggestionPredictionOutput,
 } from "@/types";
 import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
@@ -805,7 +805,7 @@ export const createAppMachine = ({
           },
         },
       },
-      MyCookbook: {
+      MyRecipes: {
         type: "parallel",
         on: {
           MOUNT_CAROUSEL: {
@@ -848,6 +848,12 @@ export const createAppMachine = ({
             states: {
               False: {
                 on: {
+                  HASH_CHANGE: {
+                    target: "True",
+                    guard: () => {
+                      return window.location.hash.length > 0;
+                    },
+                  },
                   VIEW_LIST: [
                     {
                       target: "True",
@@ -864,6 +870,12 @@ export const createAppMachine = ({
                 },
               },
               True: {
+                always: {
+                  target: "False",
+                  guard: () => {
+                    return window.location.hash.length === 0;
+                  },
+                },
                 on: {
                   SAVE_SELECTED: "False",
                   NEW_RECIPE: "False",
@@ -921,7 +933,7 @@ export const createAppMachine = ({
           SELECT_RECIPE: {
             actions: ({ event, self }) => {
               if (
-                self.getSnapshot().matches({ MyCookbook: { Open: "True" } })
+                self.getSnapshot().matches({ MyRecipes: { Open: "True" } })
               ) {
                 return;
               }

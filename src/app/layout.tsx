@@ -42,18 +42,17 @@ import {
   CreateNewListCard,
   EnterChefNameCard,
   EnterEmailCard,
-  IsInSelectedRecipes,
   IsInPersonalizationSettings,
   IsInputtingChefName,
   IsInputtingEmail,
   IsUpgradingAccount,
-  MyRecipesScreen,
   PersonalizationSettingsMenu,
   SearchParamsToastMessage,
   SelectListCard,
-  UpgradeAccountCard,
+  UpgradeAccountCard
 } from "./components.client";
 import EmailCodeCard from "./email-code-card";
+import { MyRecipesScreen } from "./my-recipes-screen";
 import { PageSessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
 import { ShareDetailsCard } from "./share-details-card";
@@ -195,7 +194,6 @@ export default async function RootLayout(
             id={pageSessionId}
             connectionId={connectionId}
             token={token}
-            // reauthenticate={reauthenticate.bind(null, pageSessionId)}
           >
             <Body isPWA={!!parseCookie("appSessionId")}>
               <NextIntlClientProvider messages={messages}>
@@ -227,7 +225,7 @@ export default async function RootLayout(
                   <SignInDialog />
                   <PersonalizationSettingsDialog />
                   <UpgradeAccountDialog />
-                  <SelectedRecipes />
+                  <MyRecipes />
                 </ThemeProvider>
                 <Toaster className="z-100" />
                 <SearchParamsToastMessage />
@@ -319,11 +317,11 @@ const PersonalizationSettingsDialog = () => {
   );
 };
 
-const SelectedRecipes = () => {
+const MyRecipes = () => {
   return (
-    <IsInSelectedRecipes>
+    <AppMatches matchedState={{ MyRecipes: { Open: "True" } }}>
       <MyRecipesScreen />
-    </IsInSelectedRecipes>
+    </AppMatches>
   );
 };
 
@@ -384,8 +382,8 @@ const SaveDialog = () => {
         or={{ ListCreating: "Error" }}
       >
         <ResponsiveDialog open isMobile={isMobile}>
-          <ResponsiveDialogOverlay />
-          <ResponsiveDialogContent>
+          <ResponsiveDialogOverlay className="z-95" />
+          <ResponsiveDialogContent className="z-100">
             <CreateNewListCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>

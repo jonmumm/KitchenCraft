@@ -34,6 +34,7 @@ import { Label } from "@radix-ui/react-label";
 import { BookmarkIcon, CarrotIcon, ShareIcon, TagIcon } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FC,
@@ -1015,7 +1016,10 @@ export const SuggestedIngredientsSection = () => {
     <CraftEmpty>
       <Section className="max-w-3xl mx-auto">
         <Badge variant="secondary">
-          <MarkdownRenderer variant="single_line" markdownText="**Did you know?** You *can* to this cool thing" />
+          <MarkdownRenderer
+            variant="single_line"
+            markdownText="**Did you know?** You *can* to this cool thing"
+          />
         </Badge>
       </Section>
       <Section className="max-w-3xl mx-auto">
@@ -1132,23 +1136,24 @@ export const SelectedRecipesBar = () => {
         className="flex flex-row gap-2 p-1 justify-between items-center"
         variant="locontrast"
       >
-        <Button event={{ type: "SHARE_SELECTED" }}>
+        <Button variant="outline" event={{ type: "SHARE_SELECTED" }}>
           <ShareIcon className="mr-1" size={14} />
           Share
         </Button>
         <div className="flex-1">
-          <Button
-            variant="outline"
-            className="text-sm font-semibold w-full "
-            event={{ type: "VIEW_LIST" }}
-          >
-            Selected
-            <span className="bg-purple-700 text-white rounded-full text-center ml-1 px-1">
-              {numSelected}
-            </span>
-          </Button>
+          <Link href="#selected">
+            <Button
+              variant="secondary"
+              className="text-sm font-semibold w-full "
+            >
+              Selected
+              <span className="bg-purple-700 text-white rounded-full text-center ml-1 px-1">
+                {numSelected}
+              </span>
+            </Button>
+          </Link>
         </div>
-        <Button event={{ type: "SAVE_SELECTED" }}>
+        <Button variant="outline" event={{ type: "SAVE_SELECTED" }}>
           Save
           <BookmarkIcon className="ml-1" size={14} />
         </Button>

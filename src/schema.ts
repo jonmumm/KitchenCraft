@@ -1140,8 +1140,14 @@ const CopyLinkEventSchema = z.object({
   type: z.literal("COPY_LINK"),
 });
 
+const PopStateEventSchema = z.object({
+  type: z.literal("POP_STATE"),
+  nativeEvent: z.custom<PopStateEvent>()
+})
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   CopyLinkEventSchema,
+  PopStateEventSchema,
   PressButtonEventSchema,
   SaveRecipeEventSchema,
   FavoriteRecipeSchema,

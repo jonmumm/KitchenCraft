@@ -2,6 +2,7 @@
 import { Badge } from "@/components/display/badge";
 import { Card } from "@/components/display/card";
 import { useSend } from "@/hooks/useSend";
+import Link from "next/link";
 import { toast } from "sonner";
 
 export const RecipeAddedToast = ({
@@ -26,14 +27,16 @@ export const RecipeAddedToast = ({
         </div>
       </div>
       <div className="flex items-center justify-center">
-        <Badge
-          onClick={() => {
-            toast.dismiss(toastId);
-            send({ type: "VIEW_LIST", itemIndex });
-          }}
-        >
-          View
-        </Badge>
+        <Link href={`?itemIndex=${itemIndex}#selected`}>
+          <Badge
+            onClick={() => {
+              toast.dismiss(toastId);
+              // send({ type: "VIEW_LIST", itemIndex });
+            }}
+          >
+            View
+          </Badge>
+        </Link>
       </div>
     </Card>
   );

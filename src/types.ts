@@ -440,7 +440,7 @@ export type UserContext = {
   shoppingFrequency?: string;
   typicalGroceries?: string;
   equipment: EquipmentSettings;
-  profileName?: string;
+  profileName: string;
   email?: string;
   diet: DietSettings;
   preferences: TasteSettings;
@@ -473,7 +473,8 @@ export type UserContext = {
   // feedItemIds: string[];
   // generationIdSets: Record<string, string[]>;
   // listIds: string[];
-  recentListIds?: string[];
+  recentCreatedListIds: string[];
+  recentSharedListIds: string[];
 };
 
 export type SessionContext = {

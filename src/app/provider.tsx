@@ -18,8 +18,8 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { ReactNode, useContext, useEffect, useRef, useState } from "react";
-import { AppContext } from "./context";
 import { createAppMachine } from "./app-machine";
+import { AppContext } from "./context";
 import { PageSessionContext } from "./page-session-store.context";
 
 // export const ApplicationContext = createContext()
@@ -159,8 +159,7 @@ const PopStateEventsProvider = () => {
       // setTimeout(() => {
       //   console.log("POPSTATE", event.state);
       // }, 5000);
-      event.preventDefault();
-      // send({ type: "HASH_CHANGE", hash: window.location.hash });
+      send({ type: "POP_STATE", nativeEvent: event });
     }
 
     // Add the event listener for hash changes

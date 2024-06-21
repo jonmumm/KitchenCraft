@@ -5,7 +5,7 @@ import {
   createListByIdSelector,
   createListBySlugSelector,
   createPathForListIdSelector,
-  selectRecentListIds,
+  selectRecentCreatedListIds,
 } from "@/selectors/page-session.selectors";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -15,22 +15,26 @@ import { Separator } from "./display/separator";
 import { Skeleton } from "./display/skeleton";
 
 export const MyRecipeLists = () => {
-  const recentListIds = usePageSessionSelector(selectRecentListIds);
-  const numEmpty = recentListIds ? Math.max(3 - recentListIds.length, 0) : 3;
+  const recentCreatedListIds = usePageSessionSelector(
+    selectRecentCreatedListIds
+  );
+  const numEmpty = recentCreatedListIds
+    ? Math.max(3 - recentCreatedListIds.length, 0)
+    : 3;
 
   return (
     <div className="relative h-24">
       <div className="absolute top-0 w-screen left-1/2 transform -translate-x-1/2 z-10 flex flex-row justify-center">
         <div className="carousel carousel-center pl-2 pr-2 space-x-2">
-          {recentListIds &&
-            recentListIds
+          {recentCreatedListIds &&
+            recentCreatedListIds
               .filter((_, idx) => idx < 3)
               .map((listId) => {
                 return <MyRecipeListCardById id={listId} key={listId} />;
               })}
           <MyRecipeListCardBySlug slug="make-later" />
+          <MyRecipeListCardBySlug slug="commented" />
           <MyRecipeListCardBySlug slug="liked" />
-          <MyRecipeListCardBySlug slug="recently-shared" />
           <MyRecipeListCardBySlug slug="favorites" />
           <Separator orientation="vertical" />
           <MyRecipeListItemCard
@@ -110,14 +114,8 @@ const MyRecipeListCardBySlug = ({ slug }: { slug: string }) => {
   const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
   const list = usePageSessionSelector(selectList);
 
-  const selectListUrl = useMemo(
-    () => createPathForListIdSelector(list?.id),
-    [list?.id]
-  );
-  const listUrl = usePageSessionSelector(selectListUrl);
-
   return (
-    <Link href={listUrl || ""} prefetch target="_blank">
+    <Link href={`#${slug}`}>
       <MyRecipeListItemCard variant="locontrast">
         <MyRecipeListItemContent>
           <span className="text-lg">

@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/display/badge";
 import { CardDescription, CardTitle } from "@/components/display/card";
+import Link from "next/link";
 
 export const AddedToListToast = () => {
   return (
@@ -13,7 +14,9 @@ export const AddedToListToast = () => {
         </CardDescription>
       </div>
       <div className="flex flex-col justify-center">
-        <Badge event={{ type: "VIEW_LIST" }}>View</Badge>
+        <Link href="#selected">
+          <Badge>View</Badge>
+        </Link>
       </div>
     </div>
   );

@@ -185,8 +185,8 @@ export const createListBySlugSelector =
     return Object.values(listsById).find((list) => list.slug === slug);
   };
 
-export const selectRecentListIds = (state: PageSessionSnapshot) => {
-  return state.context.userSnapshot?.context.recentListIds;
+export const selectRecentCreatedListIds = (state: PageSessionSnapshot) => {
+  return state.context.userSnapshot?.context.recentCreatedListIds;
 };
 
 const selectSharingListId = (state: PageSessionSnapshot) =>
@@ -224,3 +224,5 @@ export const selectSharingListPath = (state: PageSessionSnapshot) => {
 //   state.matches({ Share: { Record: { Cre } } });
 export const selectShareNameInput = (state: PageSessionSnapshot) =>
   state.context.shareNameInput;
+
+// export const selectSortedLists

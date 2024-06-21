@@ -16,8 +16,9 @@ import {
   ChefHatIcon,
   GripVerticalIcon,
   HomeIcon,
-  Loader2Icon
+  Loader2Icon,
 } from "lucide-react";
+import Link from "next/link";
 import { MainMenu } from "../menu/components";
 import { FooterTabTitle, ReactiveFooter } from "./components.client";
 
@@ -45,15 +46,13 @@ export async function Footer({
           </NavigationLink>
           {/* // todo make dynamic */}
           <div className="basis-36 min-w-0">
-            <Card
-              event={{ type: "VIEW_LIST" }}
-              className="flex flex-col items-center justify-center border-none shadow-none py-2 px-2 gap-1"
-            >
-              <div className="indicator">
-                <ListIndicator />
-                <CheckCircleIcon />
-              </div>
-              {/* <div className="indicator">
+            <Link href="#selected">
+              <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 px-2 gap-1">
+                <div className="indicator">
+                  <ListIndicator />
+                  <CheckCircleIcon />
+                </div>
+                {/* <div className="indicator">
       <ListIndicator />
       <Badge
         variant={"outline"}
@@ -62,10 +61,11 @@ export async function Footer({
       >
         <ListIcon className="mr-2" />
         My Recipes
-      </Badge>
+      SelectedLinSelectedLinSelectedLinSelectedLinSelectedLink>
     </div> */}
-              <FooterTabTitle isActive={false}>Selected</FooterTabTitle>
-            </Card>
+                <FooterTabTitle isActive={false}>Selected</FooterTabTitle>
+              </Card>
+            </Link>
           </div>
           <MenuSheet>
             <SheetTrigger asChild>

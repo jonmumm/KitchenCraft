@@ -9,6 +9,12 @@ import { drizzle } from "drizzle-orm/vercel-postgres";
 import { produce } from "immer";
 import * as Party from "partykit/server";
 import {
+  adjectives,
+  animals,
+  colors,
+  uniqueNamesGenerator,
+} from "unique-names-generator";
+import {
   SnapshotFrom,
   StateValueFrom,
   and,
@@ -58,6 +64,23 @@ export const createUserMachine = ({
               .set({ email: input.email })
               .where(eq(UsersTable.id, input.userId))
               .execute();
+          } finally {
+            await client.end();
+          }
+        }
+      ),
+      createProfile: fromPromise(
+        async ({ input }: { input: { userId: string; name: string } }) => {
+          const client = createClient();
+          await client.connect();
+          const db = drizzle(client);
+          try {
+            await db
+              .insert(ProfileTable)
+              .values({ userId: input.userId, profileSlug: input.name })
+              .returning({ serialNum: ProfileTable.serialNum })
+              .execute();
+            return null;
           } finally {
             await client.end();
           }
@@ -169,6 +192,9 @@ export const createUserMachine = ({
         preferences: {},
         diet: {},
         previousSuggestedProfileNames: [],
+        profileName: getRandomProfileName(),
+        recentCreatedListIds: [],
+        recentSharedListIds: [],
       };
     },
     states: {
@@ -204,6 +230,33 @@ export const createUserMachine = ({
               HEARTBEAT: "Creating",
             },
           },
+          Created: {},
+        },
+      },
+
+      ProfileRow: {
+        initial: "NotExists",
+        states: {
+          NotExists: {
+            always: {
+              target: "Creating",
+              guard: stateIn({ UserRow: "Created" }),
+            },
+          },
+          Creating: {
+            invoke: {
+              src: "createProfile",
+              input: ({ context, event }) => {
+                return {
+                  name: context.profileName,
+                  userId: context.id,
+                };
+              },
+            },
+            onDone: "Created",
+            onError: "Error",
+          },
+          Error: {},
           Created: {},
         },
       },
@@ -646,37 +699,9 @@ export const createUserMachine = ({
             actions: [
               assign(({ context, event }) =>
                 produce(context, (draft) => {
-                  if (!draft.recentListIds) {
-                    draft.recentListIds = [event.id];
-                  } else {
-                    draft.recentListIds.unshift(event.id);
-                  }
+                  draft.recentCreatedListIds.unshift(event.id);
                 })
               ),
-              // assign({
-              //   listsById: ({ context, event }) =>
-              //     produce(context.listsById, (draft) => {
-              //       draft[event.id] = {
-              //         id: event.id,
-              //         name: event.name,
-              //         slug: event.slug,
-              //         created: true,
-              //         count: 0,
-              //         public: true,
-              //         idSet: {},
-              //         createdAt: new Date().toISOString(),
-              //       };
-              //     }),
-              // }),
-
-              // spawnChild("fetchListById", {
-              //   input: ({ event }) => {
-              //     assertEvent(event, "LIST_CREATED");
-              //     return {
-              //       listId: event.id,
-              //     };
-              //   },
-              // }),
             ],
           },
         },
@@ -689,3 +714,10 @@ export const createUserMachine = ({
 export type UserMachine = ReturnType<typeof createUserMachine>;
 export type UserSnapshot = SnapshotFrom<UserMachine>;
 export type UserState = StateValueFrom<UserMachine>;
+
+const getRandomProfileName = () =>
+  uniqueNamesGenerator({
+    dictionaries: [adjectives, colors, animals],
+    separator: "",
+    style: "capital",
+  });

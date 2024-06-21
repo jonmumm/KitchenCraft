@@ -26,12 +26,7 @@ import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
 import { Ingredients } from "@/components/ingredients";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuTrigger,
-} from "@/components/input/dropdown-menu";
+import { DropdownMenuRadioGroup } from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
 import { Popover } from "@/components/layout/popover";
 import { ScrollArea } from "@/components/layout/scroll-area";
@@ -39,7 +34,6 @@ import { TypeLogo } from "@/components/logo";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
 import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
 import { SaveButton } from "@/components/save-button";
-import { useScrollLock } from "@/components/scroll-lock";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
 import { ExperienceCard } from "@/components/settings/experience-card";
@@ -48,7 +42,6 @@ import { PreferenceCard } from "@/components/settings/preference-card";
 import { ShareRecipeButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { Yield } from "@/components/yield";
 import { useAppContext } from "@/hooks/useAppContext";
@@ -63,7 +56,6 @@ import { selectCraftIsOpen } from "@/selectors/app.selectors";
 import {
   createRecipeIsSelectedSelector,
   createRecipeSelector,
-  createSelectedRecipeAtIndexSelector,
   selectPromptIsDirty,
   selectSelectedRecipeCount,
   selectSelectedRecipeIds,
@@ -72,20 +64,14 @@ import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
 import { useStore } from "@nanostores/react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
-  BookmarkIcon,
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   ChevronsUpDown,
   Circle,
   HeartIcon,
   PlusCircleIcon,
   RefreshCwIcon,
   ScrollIcon,
-  ShareIcon,
   ShoppingBasketIcon,
   XIcon,
 } from "lucide-react";
@@ -114,7 +100,6 @@ import {
 } from "./@craft/components.client";
 import { AppSnapshot } from "./app-machine";
 import { AppContext } from "./context";
-import { MISC_ONBORADING_QUESTIONS } from "./data";
 import "./embla.css";
 import { PageSessionSnapshot } from "./page-session-machine";
 
@@ -264,57 +249,6 @@ const EmptyItemOverlay = ({
   );
 };
 
-const OnboardingMiscQuestion = () => {
-  return (
-    <div className="py-2">
-      <div className="flex flex-col gap-4 justify-between items-center px-2">
-        <QuestionHeader>Which of these apply to you?</QuestionHeader>
-        <div className="flex flex-col gap-2 w-full">
-          {MISC_ONBORADING_QUESTIONS.map((item) => {
-            return (
-              <div
-                key={item.id}
-                className="w-full flex items-center justify-between"
-              >
-                <QuestionSubQuestion>{item.question}</QuestionSubQuestion>
-                <div className="flex items-stretch flex-row gap-2">
-                  <ToggleGroup type="single">
-                    <ToggleGroupItem value={"no"}>No</ToggleGroupItem>
-                    <ToggleGroupItem value={"yes"}>Yes</ToggleGroupItem>
-                  </ToggleGroup>
-                  {/* <Button
-                    variant="outline"
-                    event={{
-                      type: "SELECT_VALUE",
-                      name: `onboarding:misc:${item.id}`,
-                      value: "no",
-                    }}
-                  >
-                    No
-                  </Button>
-                  <Button
-                    variant="outline"
-                    event={{
-                      type: "SELECT_VALUE",
-                      name: `onboarding:misc:${item.id}`,
-                      value: "yes",
-                    }}
-                  >
-                    Yes
-                  </Button> */}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <Button className="w-full" size="lg" event={{ type: "NEXT" }}>
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-};
-
 const QuestionHeader = twc.h2`text-lg font-bold`;
 const QuestionSubQuestion = twc.h3`text-md font-semibold`;
 
@@ -456,157 +390,6 @@ const CurrentListCarouselItem = ({
         </EmptyItemOverlay>
       </Card>
     </div>
-  );
-};
-
-const useSelectedRecipeAtIndex = (index: number) => {
-  const selectSelectedRecipeAtIndex = useMemo(
-    () => createSelectedRecipeAtIndexSelector(index),
-    [index]
-  );
-  return usePageSessionSelector(selectSelectedRecipeAtIndex);
-};
-
-export const MyRecipesScreen = () => {
-  const session$ = usePageSessionStore();
-  const [recipeIds] = useState(selectSelectedRecipeIds(session$.get()));
-  const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
-  const [items] = useState(new Array(numItems).fill(0));
-  useScrollLock(true);
-
-  return (
-    <Portal>
-      <div className="absolute inset-0 z-70 flex flex-col gap-2 py-2">
-        <CurrentListHasPreviousRecipes>
-          <Button
-            size="icon"
-            event={{ type: "PREV" }}
-            variant="outline"
-            autoFocus={false}
-            className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full md:shadow-xl z-80 md:bg-blue-500 md:text-white"
-          >
-            <ChevronLeftIcon />
-          </Button>
-        </CurrentListHasPreviousRecipes>
-        <CurrentListHasNextRecipes>
-          <Button
-            size="icon"
-            event={{ type: "NEXT" }}
-            variant="outline"
-            autoFocus={false}
-            className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full md:shadow-xl z-80 md:bg-blue-500 md:text-white"
-          >
-            <ChevronRightIcon />
-          </Button>
-        </CurrentListHasNextRecipes>
-
-        <div className="flex flex-row gap-2 justify-between items-center px-2 sticky top-0 w-full max-w-3xl mx-auto">
-          <NoRecipesSelected>
-            <Badge
-              variant="secondary"
-              className="text-xs text-semibold bg-card opacity-60"
-            >
-              CLEAR
-            </Badge>
-          </NoRecipesSelected>
-          <HasSelectedRecipes>
-            <Badge
-              variant="secondary"
-              event={{ type: "CLEAR_SELECTION" }}
-              className="text-xs text-semibold shadow-md bg-card"
-            >
-              CLEAR
-            </Badge>
-          </HasSelectedRecipes>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex-1 flex justify-center">
-              <Badge
-                variant="outline"
-                className="flex gap-2 justify-between text-lg font-bold px-3 py-2 w-full bg-card shadow-lg sm:w-80"
-              >
-                <div className="flex-1 text-start">
-                  <span className="ml-2 mr-2">✅</span>
-                  <span>Selected</span>
-                </div>
-                <span className="ml-1 text-sm font-semibold text-white bg-purple-700 px-1 rounded">
-                  <CurrentListCount />
-                </span>
-                <div>
-                  <Button size="icon" className="rounded-full p-2" variant="secondary">
-                    <ChevronDownIcon />
-                  </Button>
-                </div>
-              </Badge>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="z-90">
-              <MyRecipeListsRadioGroup />
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            variant="ghost"
-            event={{ type: "EXIT" }}
-            className="text-xs text-semibold shadow-md bg-card rounded-full"
-          >
-            <XIcon />
-          </Button>
-        </div>
-        <HasSelectedRecipes>
-          <CurrentListCarousel>
-            {items.map((id, index) => (
-              <CurrentListCarouselItem
-                key={index}
-                id={recipeIds?.[index]}
-                index={index}
-              />
-            ))}
-          </CurrentListCarousel>
-        </HasSelectedRecipes>
-        <NoRecipesSelected>
-          <div className="px-4 flex-1">
-            <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
-              <div>No recipes selected.</div>
-              <Badge
-                event={{ type: "NEW_RECIPE" }}
-                variant="secondary"
-                className="shadow-md"
-              >
-                Craft one up.<span className="ml-1">🧪</span>
-              </Badge>
-            </Card>
-          </div>
-        </NoRecipesSelected>
-        <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
-          <IsShareable>
-            <Button className="shadow-md" event={{ type: "SHARE_SELECTED" }}>
-              <ShareIcon size={16} className="mr-1" />
-              Share (<CurrentListCount />)
-            </Button>
-            {/* <SharePopover>
-              <PopoverTrigger asChild>
-              </PopoverTrigger>
-              <PopoverContent className="w-fit px-2 py-1 z-90">
-                URL Copied!
-              </PopoverContent>
-            </SharePopover> */}
-            <Button className="shadow-md" event={{ type: "SAVE_SELECTED" }}>
-              <BookmarkIcon size={16} className="mr-1" />
-              Save (<CurrentListCount />) to...
-            </Button>
-          </IsShareable>
-          <NoRecipesSelected>
-            <Button className="shadow-md" disabled>
-              <ShareIcon size={16} className="mr-1" />
-              Share (<CurrentListCount />) to...
-            </Button>
-            <Button className="shadow-md" variant="primary" disabled>
-              <PlusCircleIcon size={16} className="mr-1" />
-              Add (<CurrentListCount />) to...
-            </Button>
-          </NoRecipesSelected>
-        </div>
-      </div>
-      <Overlay />
-    </Portal>
   );
 };
 
@@ -815,15 +598,6 @@ export const EnterEmailCard = () => {
       </CardContent>
     </Card>
   );
-};
-
-export const IsInSelectedRecipes = (props: { children: ReactNode }) => {
-  const actor = useContext(AppContext);
-  const active = useSelector(actor, (state) =>
-    state.matches({ MyCookbook: { Open: "True" } })
-  );
-
-  return active ? <>{props.children}</> : null;
 };
 
 export const IsInPersonalizationSettings = (props: { children: ReactNode }) => {

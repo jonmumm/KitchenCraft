@@ -42,6 +42,7 @@ import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
+import Link from "next/link";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -407,25 +408,15 @@ export const MyRecipesBadge = () => {
   return (
     <div className="indicator">
       <ListIndicator />
-      <Badge
-        variant={"outline"}
-        event={{ type: "VIEW_LIST" }}
-        className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
-      >
-        <CheckCircleIcon className="mr-2" />
-        Selected
-      </Badge>
-    </div>
-  );
-};
-
-export const CurrentListButton = () => {
-  return (
-    <div className="indicator">
-      <ListIndicator />
-      <Button variant={"outline"} event={{ type: "VIEW_LIST" }} size="icon">
-        <CheckCircleIcon />
-      </Button>
+      <Link href="#selected">
+        <Badge
+          variant={"outline"}
+          className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
+        >
+          <CheckCircleIcon className="mr-2" />
+          Selected
+        </Badge>
+      </Link>
     </div>
   );
 };

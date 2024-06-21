@@ -3687,36 +3687,6 @@ async function upsertUserPreferences(
   }
 }
 
-const defaultLists = {
-  favorites: {
-    name: "Favorites",
-    emoji: "⭐️",
-    slug: "favorites",
-    isPrivate: false,
-  },
-  liked: {
-    name: "Liked",
-    emoji: "👍",
-    slug: "liked",
-    isPrivate: false,
-  },
-  "make-later": {
-    name: "Make Later",
-    emoji: "⏰",
-    slug: "make-later",
-    isPrivate: true,
-  },
-  comments: {
-    name: "Commented",
-    emoji: "⏰",
-    slug: "make-later",
-    isPrivate: true,
-  },
-} as Record<
-  string,
-  { name: string; slug: string; isPrivate: boolean; emoji: string }
->;
-
 function getSortedUnstartedRecipes(
   recipeIds: string[],
   currentIndex: number,
@@ -3747,7 +3717,7 @@ const initializeListsById = () => {
   const makeLaterId = randomUUID();
   const favoritesId = randomUUID();
   const likedId = randomUUID();
-  const recentlySharedId = randomUUID();
+  const commented = randomUUID();
 
   return {
     [makeLaterId]: {
@@ -3783,11 +3753,11 @@ const initializeListsById = () => {
       idSet: {},
       createdAt: new Date().toISOString(),
     },
-    [recentlySharedId]: {
-      id: recentlySharedId,
-      name: "Recently Shared",
-      icon: "👥",
-      slug: "recently-shared",
+    [commented]: {
+      id: commented,
+      name: "Commented",
+      icon: "💬",
+      slug: "commented",
       public: true,
       created: false,
       count: 0,

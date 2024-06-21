@@ -137,6 +137,7 @@
     "tailwindcss-displaymodes": "^1.0.8",
     "tus-js-client": "^3.1.1",
     "tw-to-css": "^0.0.12",
+    "unique-names-generator": "^4.7.1",
     "use-sync-external-store": "^1.2.0",
     "uuidv7": "^0.6.3",
     "vite-tsconfig-paths": "^4.2.1",
