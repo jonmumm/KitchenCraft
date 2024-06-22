@@ -125,13 +125,12 @@ type Recipe = PartialRecipe & {
 type List = {
   id: string;
   name: string;
-  icon?: string;
+  icon: string;
   slug: string;
-  public: boolean;
   created: boolean;
   count: number;
   idSet: Record<string, true>;
-  createdAt: string;
+  createdAt: Date;
 };
 
 export type PageSessionContext = {
@@ -182,7 +181,7 @@ export type PageSessionContext = {
   userSnapshot: UserSnapshot | undefined;
   sharingListId?: string;
   shareNameInput?: string;
-  listsById?: Record<string, List>;
+  listsById: Record<string, List>;
 };
 
 export type PageSessionEvent =
@@ -1280,7 +1279,6 @@ export const createPageSessionMachine = ({
             states: {
               False: {},
               True: {
-                type: "parallel",
                 on: {
                   // SELECT_LIST: [
                   //   {
@@ -1329,52 +1327,6 @@ export const createPageSessionMachine = ({
                   //   },
                   // ],
                   CANCEL: "False",
-                },
-                states: {
-                  // Lists: {
-                  //   initial: "Initializing",
-                  //   states: {
-                  //     Initializing: {
-                  //       always: [
-                  //         {
-                  //           target: "Fetching",
-                  //           guard: ({ context }) => !context.listsBySlug,
-                  //         },
-                  //         {
-                  //           target: "Complete",
-                  //         },
-                  //       ],
-                  //     },
-                  //     Fetching: {
-                  //       invoke: {
-                  //         src: "getAllListsForUserWithRecipeCount",
-                  //         input: ({ event }) => {
-                  //           assert(
-                  //             "caller" in event,
-                  //             "expected caller in event"
-                  //           );
-                  //           return { userId: event.caller.id };
-                  //         },
-                  //         onDone: {
-                  //           target: "Complete",
-                  //           actions: assign(({ context, event }) => {
-                  //             return produce(context, (draft) => {
-                  //               if (event.output.success) {
-                  //                 draft.listsBySlug = {};
-                  //                 event.output.result?.forEach((item) => {
-                  //                   draft.listsBySlug![item.slug] = item;
-                  //                 });
-                  //               }
-                  //             });
-                  //           }),
-                  //         },
-                  //       },
-                  //     },
-                  //     Complete: {
-                  //       type: "final",
-                  //     },
-                  //   },
-                  // },
                 },
               },
             },
@@ -3193,16 +3145,17 @@ export const createPageSessionMachine = ({
                           draft.listsById = {};
                         }
 
-                        const { id, name, slug, createdAt } = event.output;
+                        const { id, name, icon, slug, createdAt } =
+                          event.output;
                         draft.listsById[id] = {
                           id,
                           name,
                           slug,
+                          icon,
                           created: true,
                           count: Object.values(event.output.idSet).length,
-                          public: true,
                           idSet: event.output.idSet,
-                          createdAt: createdAt.toISOString(),
+                          createdAt: createdAt,
                         };
                       })
                     ),
@@ -3299,6 +3252,51 @@ export const createPageSessionMachine = ({
           },
         },
       },
+
+      ListData: {
+        initial: "Idle",
+        states: {
+          Idle: {
+            always: {
+              target: "Fetching",
+              guard: ({ context }) => {
+                const userId = context.userSnapshot?.context.id;
+                return !!userId;
+              },
+            },
+          },
+          Fetching: {
+            invoke: {
+              src: "getAllListsForUserWithRecipeCount",
+              input: ({ context }) => {
+                const userId = context.userSnapshot?.context.id;
+                assert(userId, "expected userId");
+                return { userId };
+              },
+              onDone: {
+                target: "Complete",
+                actions: assign(({ context, event }) => {
+                  return produce(context, (draft) => {
+                    if (event.output.success) {
+                      event.output.result?.forEach((item) => {
+                        draft.listsById[item.id] = {
+                          ...item,
+                          created: true,
+                          idSet: {},
+                        };
+                      });
+                    }
+                  });
+                }),
+              },
+            },
+          },
+          Complete: {
+            type: "final",
+          },
+        },
+      },
+
       ListCreating: {
         initial: "False",
         onDone: ".False",
@@ -3353,26 +3351,20 @@ export const createPageSessionMachine = ({
                 actions: [
                   assign(({ context, event }) =>
                     produce(context, (draft) => {
-                      if (!draft.listsById) {
-                        draft.listsById = {};
-                      }
-
-                      const { id, name, slug, createdAt } = event.output;
+                      const { id, name, icon, slug, createdAt } = event.output;
                       draft.listsById[id] = {
                         id,
                         name,
                         slug,
+                        icon,
                         created: true,
                         count: Object.values(event.output.idSet).length,
-                        public: true,
                         idSet: event.output.idSet,
-                        createdAt: createdAt.toISOString(),
+                        createdAt,
                       };
                     })
                   ),
                   enqueueActions(({ enqueue, event, context }) => {
-                    const listName = ListNameSchema.parse(context.listName);
-
                     enqueue.raise({
                       type: "LIST_CREATED",
                       id: event.output.id,
@@ -3714,55 +3706,62 @@ function getSortedUnstartedRecipes(
 }
 
 const initializeListsById = () => {
+  const selectedId = randomUUID();
   const makeLaterId = randomUUID();
   const favoritesId = randomUUID();
   const likedId = randomUUID();
   const commented = randomUUID();
 
   return {
+    [selectedId]: {
+      id: selectedId,
+      name: "Selected",
+      icon: "✅",
+      slug: "selected",
+      created: false,
+      count: 0,
+      idSet: {},
+      createdAt: new Date(),
+    },
     [makeLaterId]: {
       id: makeLaterId,
       name: "Make Later",
       icon: "⏰",
       slug: "make-later",
-      public: true,
       created: false,
       count: 0,
       idSet: {},
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     },
     [favoritesId]: {
       id: favoritesId,
       name: "Favorites",
       icon: "❤️",
       slug: "favorites",
-      public: true,
       created: false,
       count: 0,
       idSet: {},
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     },
     [likedId]: {
       id: likedId,
       name: "Liked",
       icon: "👍",
       slug: "liked",
-      public: true,
       created: false,
       count: 0,
       idSet: {},
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     },
     [commented]: {
       id: commented,
       name: "Commented",
       icon: "💬",
       slug: "commented",
-      public: true,
       created: false,
       count: 0,
       idSet: {},
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     },
   } satisfies PageSessionContext["listsById"];
 };

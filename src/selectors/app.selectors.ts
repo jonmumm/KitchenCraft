@@ -4,3 +4,7 @@ import { AppSnapshot } from "@/app/app-machine";
 
 export const selectCraftIsOpen = (state: AppSnapshot) =>
   state.matches({ Open: "True" });
+
+export const selectCurrentListSlug = (state: AppSnapshot) => {
+  return state.context.currentListSlug;
+};

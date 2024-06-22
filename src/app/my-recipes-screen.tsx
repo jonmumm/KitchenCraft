@@ -36,18 +36,24 @@ import { ShareRecipeButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { PageSessionMatches } from "@/components/util/page-session-matches";
+import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { Yield } from "@/components/yield";
 import { useAppContext } from "@/hooks/useAppContext";
+import { useAppSelector } from "@/hooks/useAppSelector";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
+import { selectCurrentListSlug } from "@/selectors/app.selectors";
 import {
+  createListByIdSelector,
   createListBySlugSelector,
   createRecipeIsSelectedSelector,
   createRecipeSelector,
+  selectRecentCreatedListIds,
+  selectRecentSharedListIds,
   selectSelectedRecipeCount,
   selectSelectedRecipeIds,
 } from "@/selectors/page-session.selectors";
@@ -67,6 +73,7 @@ import {
   ShoppingBasketIcon,
   XIcon,
 } from "lucide-react";
+import Link from "next/link";
 import {
   ComponentPropsWithoutRef,
   ElementRef,
@@ -80,6 +87,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { twc } from "react-twc";
+import { createSelector } from "reselect";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { EnterListNameForm } from "./@craft/components.client";
 import "./embla.css";
@@ -132,8 +140,12 @@ export const MyRecipesScreen = () => {
                 className="flex gap-2 justify-between text-lg font-bold px-3 py-2 w-full bg-card shadow-lg sm:w-80"
               >
                 <div className="flex-1 text-start">
-                  <span className="ml-2 mr-2">✅</span>
-                  <span>Selected</span>
+                  <span className="ml-2 mr-2">
+                    <CurrentListIcon />
+                  </span>
+                  <span>
+                    <CurrentListName />
+                  </span>
                 </div>
                 <span className="ml-1 text-sm font-semibold text-white bg-purple-700 px-1 rounded">
                   <CurrentListCount />
@@ -691,65 +703,65 @@ const HasSelectedRecipes = ({ children }: { children: ReactNode }) => {
 
 const MyRecipeListsRadioGroup = () => {
   const send = useSend();
+  const [currentValue, setCurrentValue] = useState(
+    window.location.hash.slice(1)
+  );
   const handleValueChange = useCallback(
     (listSlug: string) => {
+      setCurrentValue(listSlug);
       send({ type: "SELECT_LIST", listSlug });
     },
     [send]
   );
 
-  const actor = useAppContext();
-  const recipeIds = usePageSessionSelector(selectSelectedRecipeIds);
+  const recentCreated = usePageSessionSelector(selectRecentCreatedListIds);
+  const recentShared = usePageSessionSelector(selectRecentSharedListIds);
 
   return (
     <DropdownMenuRadioGroup
-      value={"selected"}
+      value={currentValue}
       className="w-full"
       onValueChange={handleValueChange}
     >
-      <RecipeListRadioItem value="selected" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="flex-1">
-            <span className="mr-1">✅</span> Selected
-          </span>
-          <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
-            <CurrentListCount />
-          </span>
-        </div>
-      </RecipeListRadioItem>
+      <RecipeListRadioItemBySlug slug="selected" />
       <Separator className="my-1" />
-      <RecipeListRadioItemBySlug slug="make-later" />
-      <RecipeListRadioItemBySlug slug="commented" />
-      <RecipeListRadioItemBySlug slug="liked" />
-      <RecipeListRadioItemBySlug slug="favorites" />
-      <Separator className="my-1" />
-      <div>
-        <Label className="text-muted-foreground text-xs uppercase">
-          Recently Created
-        </Label>
+      <div className="my-2">
+        <RecipeListRadioItemBySlug slug="make-later" />
+        <RecipeListRadioItemBySlug slug="commented" />
+        <RecipeListRadioItemBySlug slug="liked" />
+        <RecipeListRadioItemBySlug slug="favorites" />
       </div>
-      <div className="carousel gap-2">
-        <div className="carousel-item">
-          <Card className="w-32 h-12"></Card>
-        </div>
-        <div className="carousel-item">
-          <Card className="w-32 h-12"></Card>
-        </div>
-      </div>
-      <Separator className="my-1" />
-      <div>
-        <Label className="text-muted-foreground text-xs uppercase">
-          Recently Shared
-        </Label>
-      </div>
-      <div className="carousel gap-2">
-        <div className="carousel-item">
-          <Card className="w-32 h-12"></Card>
-        </div>
-        <div className="carousel-item">
-          <Card className="w-32 h-12"></Card>
-        </div>
-      </div>
+      {recentCreated?.length ? (
+        <>
+          <div>
+            <Label className="text-muted-foreground text-xs uppercase">
+              Recent Created
+            </Label>
+          </div>
+          <Separator className="my-1" />
+          {recentCreated.map((id) => {
+            return <RecipeListRadioItemById key={id} id={id} />;
+          })}
+        </>
+      ) : (
+        <></>
+      )}
+
+      {recentShared?.length ? (
+        <>
+          <div>
+            <Label className="text-muted-foreground text-xs uppercase">
+              Recent Shared
+            </Label>
+          </div>
+          <Separator className="my-1" />
+          {recentShared.map((id) => {
+            return <RecipeListRadioItemById key={id} id={id} />;
+          })}
+        </>
+      ) : (
+        <></>
+      )}
       <Separator className="my-1" />
       <div className="flex items-center justify-center py-2">
         <Badge
@@ -765,31 +777,77 @@ const MyRecipeListsRadioGroup = () => {
   );
 };
 
+const RecipeListRadioItemById = ({ id }: { id: string }) => {
+  const selectList = useMemo(() => createListByIdSelector(id), [id]);
+  const selectSlug = useMemo(
+    () => createSelector(selectList, (list) => `#${list?.slug}`),
+    [selectList]
+  );
+  const list = usePageSessionSelector(selectList);
+
+  return (
+    <PageSessionSelectorLink selector={selectSlug}>
+      <RecipeListRadioItem value={list?.slug || ""} className="py-4">
+        <div className="flex flex-row gap-2 w-56">
+          <span className="mr-1">
+            {list?.icon ? <>{list.icon}</> : <>#️⃣</>}
+          </span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">
+              {list?.name ? (
+                <>{list.name}</>
+              ) : (
+                <Skeleton className="w-12 h-4" />
+              )}
+            </span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+              {list?.count !== undefined ? (
+                <>{list?.count}</>
+              ) : (
+                <Skeleton className="w-4 h-3 animate-none dark:bg-slate-600" />
+              )}
+            </span>
+          </div>
+        </div>
+      </RecipeListRadioItem>
+    </PageSessionSelectorLink>
+  );
+};
+
 const RecipeListRadioItemBySlug = ({ slug }: { slug: string }) => {
   const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
   const list = usePageSessionSelector(selectList);
 
   return (
-    <RecipeListRadioItem value="make-later" className="py-4">
-      <div className="flex flex-row gap-2 w-56">
-        <span className="mr-1">{list?.icon ? <>{list.icon}</> : <>#️⃣</>}</span>
-        <div className="flex-1 flex flex-col gap-2">
-          <span className="font-medium">
-            {list?.name ? <>{list.name}</> : <Skeleton className="w-12 h-4" />}
+    <Link href={`#${slug}`}>
+      <RecipeListRadioItem value={slug} className="py-4">
+        <div className="flex flex-row gap-2 w-56">
+          <span className="mr-1">
+            {list?.icon ? <>{list.icon}</> : <>#️⃣</>}
           </span>
-          <span className="text-xs text-muted-foreground">Private</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">
+              {list?.name ? (
+                <>{list.name}</>
+              ) : (
+                <Skeleton className="w-12 h-4" />
+              )}
+            </span>
+          </div>
+          <div>
+            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+              {list?.count !== undefined ? (
+                <>{list?.count}</>
+              ) : (
+                <Skeleton className="w-4 h-3 animate-none dark:bg-slate-600" />
+              )}
+            </span>
+          </div>
         </div>
-        <div>
-          <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-            {list?.count !== undefined ? (
-              <>{list?.count}</>
-            ) : (
-              <Skeleton className="w-4 h-3 animate-none dark:bg-slate-600" />
-            )}
-          </span>
-        </div>
-      </div>
-    </RecipeListRadioItem>
+      </RecipeListRadioItem>
+    </Link>
   );
 };
 
@@ -883,4 +941,22 @@ const SharePopover = ({ children }: { children: ReactNode }) => {
       {children}
     </Popover>
   );
+};
+
+export const CurrentListIcon = () => {
+  // const count = usePageSessionSelector(selectSelectedRecipeCount);
+  const slug = useAppSelector(selectCurrentListSlug);
+  const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
+  const list = usePageSessionSelector(selectList);
+  console.log({ slug, list });
+  return <>{list?.icon}</>;
+};
+
+export const CurrentListName = () => {
+  // const count = usePageSessionSelector(selectSelectedRecipeCount);
+  const slug = useAppSelector(selectCurrentListSlug);
+  const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
+  const list = usePageSessionSelector(selectList);
+  console.log({ slug, list });
+  return <>{list?.name}</>;
 };

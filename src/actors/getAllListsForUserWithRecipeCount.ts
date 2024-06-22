@@ -16,8 +16,9 @@ export const getAllListsForUserWithRecipeCount = fromPromise(
           id: ListTable.id,
           name: ListTable.name,
           slug: ListTable.slug,
+          icon: ListTable.icon,
           createdAt: ListTable.createdAt,
-          recipeCount: sqlFN<number>`COUNT(${ListRecipeTable.recipeId})`,
+          count: sqlFN<number>`COUNT(${ListRecipeTable.recipeId})`,
         })
         .from(ListTable)
         .leftJoin(ListRecipeTable, eq(ListTable.id, ListRecipeTable.listId))

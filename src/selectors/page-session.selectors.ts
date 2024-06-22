@@ -177,9 +177,12 @@ export const createListByIdSelector =
   };
 
 export const createListBySlugSelector =
-  (slug: string) => (state: PageSessionSnapshot) => {
+  (slug: string | undefined) => (state: PageSessionSnapshot) => {
     const listsById = state.context.listsById;
     if (!listsById) {
+      return undefined;
+    }
+    if (!slug) {
       return undefined;
     }
     return Object.values(listsById).find((list) => list.slug === slug);
@@ -187,6 +190,10 @@ export const createListBySlugSelector =
 
 export const selectRecentCreatedListIds = (state: PageSessionSnapshot) => {
   return state.context.userSnapshot?.context.recentCreatedListIds;
+};
+
+export const selectRecentSharedListIds = (state: PageSessionSnapshot) => {
+  return state.context.userSnapshot?.context.recentSharedListIds;
 };
 
 const selectSharingListId = (state: PageSessionSnapshot) =>

@@ -79,14 +79,8 @@ const MyRecipeListCardById = ({ id }: { id: string }) => {
   const selectList = useMemo(() => createListByIdSelector(id), [id]);
   const list = usePageSessionSelector(selectList);
 
-  const selectListUrl = useMemo(
-    () => createPathForListIdSelector(list?.id),
-    [list?.id]
-  );
-  const listUrl = usePageSessionSelector(selectListUrl);
-
   return (
-    <Link href={listUrl || ""} prefetch target="_blank">
+    <Link href={`#${list?.slug}`}>
       <MyRecipeListItemCard variant="locontrast">
         <MyRecipeListItemContent>
           <span className="text-lg">

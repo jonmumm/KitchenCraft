@@ -808,6 +808,24 @@ export const createAppMachine = ({
       MyRecipes: {
         type: "parallel",
         on: {
+          HASH_CHANGE: [
+            {
+              target: ".Open.True",
+              guard: ({ event }) => !!event.hash.length,
+              actions: assign({
+                currentListSlug: ({ event }) =>
+                  event.hash.length ? event.hash.slice(1) : undefined,
+              }),
+            },
+            {
+              target: ".Open.False",
+              actions: assign({
+                currentListSlug: () => {
+                  return undefined;
+                },
+              }),
+            },
+          ],
           MOUNT_CAROUSEL: {
             actions: [
               assign({
@@ -848,12 +866,6 @@ export const createAppMachine = ({
             states: {
               False: {
                 on: {
-                  HASH_CHANGE: {
-                    target: "True",
-                    guard: () => {
-                      return window.location.hash.length > 0;
-                    },
-                  },
                   VIEW_LIST: [
                     {
                       target: "True",
@@ -932,9 +944,7 @@ export const createAppMachine = ({
         on: {
           SELECT_RECIPE: {
             actions: ({ event, self }) => {
-              if (
-                self.getSnapshot().matches({ MyRecipes: { Open: "True" } })
-              ) {
+              if (self.getSnapshot().matches({ MyRecipes: { Open: "True" } })) {
                 return;
               }
               const recipe = store.get().context.recipes[event.id];

@@ -446,6 +446,7 @@ export const ListTable = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     slug: text("slug").notNull(),
     name: text("name").notNull(),
+    icon: text("icon").notNull().default("#️⃣"),
     createdBy: text("created_by")
       .notNull()
       .references(() => UsersTable.id, { onDelete: "cascade" }), // Link to UsersTable

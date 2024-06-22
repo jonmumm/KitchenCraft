@@ -41,4 +41,5 @@ export const AppContextSchema = z.object({
   socketToastId: z.union([z.string(), z.number()]).optional(),
   carouselAPI: z.custom<UseEmblaCarouselType[1]>().optional(),
   selectItemIndexToScrollTo: z.number().optional(),
+  currentListSlug: z.string().optional(),
 });

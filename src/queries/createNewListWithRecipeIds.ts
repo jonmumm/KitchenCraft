@@ -7,18 +7,21 @@ export const createNewListWithRecipeIds = async (input: {
   userId: string;
   recipeIdsToAdd: string[];
   listName: string;
+  icon?: string;
 }) => {
   const result = await input.db
     .insert(ListTable)
     .values({
       name: input.listName,
       slug: sentenceToSlug(input.listName),
+      icon: input.icon || "#️⃣",
       createdBy: input.userId,
     })
     .returning({
       id: ListTable.id,
       name: ListTable.name,
       slug: ListTable.slug,
+      icon: ListTable.icon,
       createdAt: ListTable.createdAt,
     });
   const list = result[0];
