@@ -1146,6 +1146,7 @@ export const SelectedRecipesBar = () => {
               variant="secondary"
               className="text-sm font-semibold w-full "
             >
+              ✅
               Selected
               <span className="bg-purple-700 text-white rounded-full text-center ml-1 px-1">
                 {numSelected}
