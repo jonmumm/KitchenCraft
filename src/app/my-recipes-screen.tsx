@@ -186,7 +186,7 @@ export const MyRecipesScreen = () => {
         <div className="flex-1">
           <Tabs defaultValue="recipe" className="h-full flex flex-col">
             <div className="px-4">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto">
                 <TabsTrigger value="recipe">Recipe</TabsTrigger>
                 <TabsTrigger value="list">List</TabsTrigger>
               </TabsList>
