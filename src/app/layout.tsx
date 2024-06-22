@@ -371,8 +371,8 @@ const SaveDialog = () => {
     <>
       <AppMatches matchedState={IS_SELECTING_LIST}>
         <ResponsiveDialog open isMobile={isMobile}>
-          <ResponsiveDialogOverlay />
-          <ResponsiveDialogContent>
+          <ResponsiveDialogOverlay className="z-105" />
+          <ResponsiveDialogContent className="z-110 max-w-xl mx-auto">
             <SelectListCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
@@ -382,8 +382,8 @@ const SaveDialog = () => {
         or={{ ListCreating: "Error" }}
       >
         <ResponsiveDialog open isMobile={isMobile}>
-          <ResponsiveDialogOverlay className="z-95" />
-          <ResponsiveDialogContent className="z-100">
+          <ResponsiveDialogOverlay className="z-105" />
+          <ResponsiveDialogContent className="z-110 max-w-xl mx-auto">
             <CreateNewListCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>

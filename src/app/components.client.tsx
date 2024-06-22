@@ -867,7 +867,7 @@ export const CreateNewListCard = () => {
   };
 
   return (
-    <Card className="py-4">
+    <Card className="py-4 max-w-3xl mx-auto">
       <div className="flex flex-row gap-1 items-center justify-between px-4">
         <div className="flex flex-col gap-1 mb-2">
           <PageSessionMatches matchedState={{ ListCreating: "True" }}>
