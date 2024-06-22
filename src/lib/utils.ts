@@ -323,3 +323,20 @@ export function arraysEqual(arr1: string[], arr2: string[]): boolean {
 
   return true;
 }
+
+export function removeQueryParam(url: string, param: string): string {
+  // Parse the URL
+  let urlObj = new URL(url);
+
+  // Get the search parameters
+  let searchParams = urlObj.searchParams;
+
+  // Delete the specified query parameter
+  searchParams.delete(param);
+
+  // Set the updated search parameters back to the URL
+  urlObj.search = searchParams.toString();
+
+  // Return the updated URL as a string
+  return urlObj.toString();
+}

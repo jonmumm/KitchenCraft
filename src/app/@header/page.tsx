@@ -9,6 +9,7 @@ import {
   HighlightContent,
   HighlightTarget,
 } from "@/components/highlight";
+import { BackButton } from "@/components/input/back-button";
 import {
   Popover,
   PopoverContent,
@@ -128,14 +129,13 @@ export default async function Page({}) {
             </div>
             <div className="flex flex-row gap-2 items-center">
               <div className="hidden crafting:flex flex-col gap-3 items-center">
-                <Button
+                <BackButton
                   variant={"outline"}
                   size="icon"
-                  event={{ type: "CLOSE" }}
                   className="text-xs text-semibold rounded-full"
                 >
                   <ArrowLeftIcon />
-                </Button>
+                </BackButton>
               </div>
               <Highlight active={false}>
                 <HighlightTarget>

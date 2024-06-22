@@ -17,9 +17,11 @@ import {
   SnapshotFrom,
   StateValueFrom,
   and,
+  assertEvent,
   assign,
   fromPromise,
   matchesState,
+  not,
   setup,
 } from "xstate";
 import { z } from "zod";
@@ -143,35 +145,35 @@ export const createAppMachine = ({
       // shareSelectedUrl: ({ context }) => {
 
       // },
-      // replaceQueryParameters: (
-      //   { context },
-      //   params: { paramSet: Record<string, string | undefined> }
-      // ) => {
-      //   const queryParams = new URLSearchParams(window.location.search);
-
-      //   for (const key in params.paramSet) {
-      //     const value = params.paramSet[key];
-      //     if (!!value) {
-      //       queryParams.set(key, value);
-      //     } else {
-      //       queryParams.delete(key);
-      //     }
-      //   }
-
-      //   const paramString = queryParams.toString();
-
-      //   // Include the location hash in the new URL
-      //   const hash = window.location.hash;
-
-      //   // Construct the new URL with the hash
-      //   const newUrl =
-      //     window.location.pathname +
-      //     (paramString !== "" ? "?" + paramString : "") +
-      //     hash;
-      //   window.history.replaceState(context, "", newUrl);
-      // },
-      pushQueryParameters: (
+      replaceQueryParameters: (
         { context },
+        params: { paramSet: Record<string, string | undefined> }
+      ) => {
+        const queryParams = new URLSearchParams(window.location.search);
+
+        for (const key in params.paramSet) {
+          const value = params.paramSet[key];
+          if (!!value) {
+            queryParams.set(key, value);
+          } else {
+            queryParams.delete(key);
+          }
+        }
+
+        const paramString = queryParams.toString();
+
+        // Include the location hash in the new URL
+        const hash = window.location.hash;
+
+        // Construct the new URL with the hash
+        const newUrl =
+          window.location.pathname +
+          (paramString !== "" ? "?" + paramString : "") +
+          hash;
+        window.history.replaceState(context, "", newUrl);
+      },
+      pushQueryParameters: (
+        _,
         params: { paramSet: Record<string, string | undefined> }
       ) => {
         // same as above but pushState
@@ -193,7 +195,7 @@ export const createAppMachine = ({
           paramString !== ""
             ? window.location.pathname + "?" + paramString
             : window.location.pathname;
-        router.push(newUrl);
+        window.history.pushState({}, "", newUrl);
       },
       blurInput: () => {
         const element = document.querySelector<HTMLTextAreaElement>("#prompt");
@@ -259,6 +261,12 @@ export const createAppMachine = ({
       // ),
     },
     guards: {
+      didSubmitPrompt: ({ event }) => {
+        assertEvent(event, "KEY_DOWN");
+        const didPressEnter = event.keyboardEvent.key === "Enter";
+        const prompt = store.get().context.prompt;
+        return didPressEnter && !!prompt && !!prompt.length;
+      },
       hasValidChefName: () => {
         const stateValue = store.get().value;
         // todo there is a latency issue here whe if user presses submit before value has been synced
@@ -270,6 +278,11 @@ export const createAppMachine = ({
       isInputFocused: ({ event, ...props }) => {
         assert(event.type === "HYDRATE_INPUT", "expected HYDRATE_INPUT event");
         return event.ref === document.activeElement;
+      },
+      hasCraftingQueryParam: () => {
+        return (
+          new URLSearchParams(window.location.search).get("crafting") === "1"
+        );
       },
     },
   }).createMachine({
@@ -550,15 +563,7 @@ export const createAppMachine = ({
       },
       Open: {
         initial: initialOpen,
-        on: {
-          ADD_TOKEN: ".True",
-          SET_INPUT: {
-            target: ".True",
-          },
-          NEW_RECIPE: {
-            target: ".True",
-          },
-        },
+        on: {},
         states: {
           False: {
             entry: [
@@ -567,38 +572,41 @@ export const createAppMachine = ({
               },
             ],
             on: {
-              TOGGLE: {
-                target: "True",
-              },
+              // TOGGLE: {
+              //   target: "True",
+              // },
               FOCUS_PROMPT: {
                 target: "True",
+                actions: {
+                  type: "pushQueryParameters",
+                  params: {
+                    paramSet: {
+                      crafting: "1",
+                    },
+                  },
+                },
               },
-              REMIX: {
+              SET_INPUT: {
                 target: "True",
+                actions: {
+                  type: "pushQueryParameters",
+                  params: {
+                    paramSet: {
+                      crafting: "1",
+                    },
+                  },
+                },
               },
               NEW_RECIPE: {
                 target: "True",
-                actions: [
-                  // {
-                  //   type: "assignTokens",
-                  //   params({ event }) {
-                  //     return { tokens: event.tokens || [] };
-                  //   },
-                  // },
-                  // {
-                  //   type: "replaceQueryParameters",
-                  //   params({ event }) {
-                  //     return {
-                  //       paramSet: {
-                  //         prompt: event.prompt,
-                  //       },
-                  //     };
-                  //   },
-                  // },
-                  // assign({
-                  //   currentItemIndex: 0,
-                  // }),
-                ],
+                actions: {
+                  type: "pushQueryParameters",
+                  params: {
+                    paramSet: {
+                      crafting: "1",
+                    },
+                  },
+                },
               },
               HYDRATE_INPUT: {
                 target: "True",
@@ -633,174 +641,13 @@ export const createAppMachine = ({
               },
             ],
             on: {
-              // BLUR_PROMPT: {
-              //   target: "False",
-              //   guard: ({ context }) => !(context.prompt?.length || 0),
-              //   actions: [
-              //     {
-              //       type: "replaceQueryParameters",
-              //       params() {
-              //         return {
-              //           paramSet: {
-              //             crafting: undefined,
-              //           },
-              //         };
-              //       },
-              //     },
-              //   ],
-              // },
+              POP_STATE: {
+                target: "False",
+                guard: not("hasCraftingQueryParam"),
+              },
               TOGGLE: "False",
-              // BACK: "False",
-              CLOSE: "False",
               SHARE_SELECTED: "False",
               SAVE_SELECTED: "False",
-              REMOVE_TOKEN: {
-                // todo, conditionally focus the input if there is no prompt
-              },
-              ADD_TOKEN: {
-                actions: [
-                  // {
-                  //   type: "assignPrompt",
-                  //   params: ({ context, event }) => ({
-                  //     prompt: "",
-                  //   }),
-                  // },
-                  // {
-                  //   type: "replaceQueryParameters",
-                  //   params({ context, event }) {
-                  //     return {
-                  //       paramSet: {
-                  //         prompt: appendValueWithComma(
-                  //           context.prompt || "",
-                  //           event.ingredient
-                  //         ),
-                  //       },
-                  //     };
-                  //   },
-                  // },
-                  {
-                    type: "blurInput",
-                  },
-                ],
-              },
-              KEY_DOWN: [
-                {
-                  guard: ({ event, context }) => {
-                    const didPressEnter = event.keyboardEvent.key === "Enter";
-                    const prompt = store.get().context.prompt;
-                    return didPressEnter && !!prompt && !!prompt.length;
-                  },
-                  actions: [
-                    ({ context, event }) => {
-                      event.keyboardEvent.preventDefault();
-
-                      const el = document.getElementById(
-                        "prompt"
-                      ) as HTMLTextAreaElement;
-
-                      const token = el.value;
-                      el.value = "";
-
-                      // If we want events to go to the server,
-                      // we have to use SEND rather than reply raise
-                      // todo in future we might want to have events go to the server
-                      // by listening to events that happen on the state machine
-                      // rather than explicitly sending up events send through useSend
-                      send({
-                        type: "ADD_TOKEN",
-                        token,
-                      });
-                    },
-                  ],
-                },
-                {
-                  actions: [
-                    // assign({
-                    //   currentItemIndex: ({ context, event }) => {
-                    //     const { key, ctrlKey, shiftKey } =
-                    //       event.keyboardEvent;
-                    //     const { currentItemIndex } = context;
-                    //     const latestDescriptionLength =
-                    //       context.suggestions?.[context.suggestions.length]
-                    //         ?.description?.length || 0;
-                    //     const maxItemIndex = 7;
-                    //     // const maxItemIndex = !context.instantRecipeMetadata
-                    //     //   ? 0
-                    //     //   : context.suggestions?.length
-                    //     //   ? latestDescriptionLength > 10
-                    //     //     ? context.suggestions.length + 1
-                    //     //     : context.suggestions?.length
-                    //     //     ? context.suggestions.length
-                    //     //     : 1
-                    //     //   : 0;
-                    //     let nextItemIndex =
-                    //       typeof currentItemIndex !== "undefined"
-                    //         ? currentItemIndex
-                    //         : -1;
-                    //     switch (key) {
-                    //       case "n":
-                    //       case "j": {
-                    //         // vim keybind down
-                    //         if (ctrlKey) {
-                    //           nextItemIndex = nextItemIndex + 1;
-                    //         }
-                    //         break;
-                    //       }
-                    //       case "ArrowDown": {
-                    //         nextItemIndex = nextItemIndex + 1;
-                    //         break;
-                    //       }
-                    //       case "p":
-                    //       case "k": {
-                    //         // vim keybind up
-                    //         if (ctrlKey) {
-                    //           nextItemIndex = nextItemIndex - 1;
-                    //         }
-                    //         break;
-                    //       }
-                    //       case "ArrowUp": {
-                    //         nextItemIndex = nextItemIndex - 1;
-                    //         break;
-                    //       }
-                    //     }
-                    //     if (nextItemIndex < 0) {
-                    //       return 0;
-                    //     }
-                    //     if (nextItemIndex > maxItemIndex) {
-                    //       nextItemIndex = maxItemIndex;
-                    //     }
-                    //     const el = document.querySelector(
-                    //       `#result-${nextItemIndex}`
-                    //     );
-                    //     if (!el) {
-                    //       // element must have unmounted, no longer selectable
-                    //       return 0;
-                    //     }
-                    //     // Scroll the element into view
-                    //     el.scrollIntoView();
-                    //     // Wait for the next repaint to ensure the scrolling has finished
-                    //     requestAnimationFrame(() => {
-                    //       const elementRect = el.getBoundingClientRect();
-                    //       const absoluteElementTop =
-                    //         elementRect.top + window.pageYOffset;
-                    //       const middle =
-                    //         absoluteElementTop - window.innerHeight / 2;
-                    //       window.scrollTo(0, middle);
-                    //     });
-                    //     return nextItemIndex;
-                    //   },
-                    // }),
-                  ],
-                },
-              ],
-              // UPDATE_SEARCH_PARAMS: {
-              //   guard: ({ event }) => event.searchParams["crafting"] !== "1",
-              //   target: "False",
-              // },
-
-              PAGE_LOADED: {
-                target: "False",
-              },
             },
           },
         },
