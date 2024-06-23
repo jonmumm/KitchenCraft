@@ -232,4 +232,47 @@ export const selectSharingListPath = (state: PageSessionSnapshot) => {
 export const selectShareNameInput = (state: PageSessionSnapshot) =>
   state.context.shareNameInput;
 
+// export const selectNumSuggestedRecipes = ({ context }: PageSessionSnapshot) => {
+//   const resultId = context.resultIdsByPrompt[context.prompt];
+//   if (!resultId) {
+//     return 0;
+//   }
+
+//   return context.results[resultId]?.suggestedRecipes.length || 0;
+// };
+
+// export const createSuggestedTokenAtIndexSelector =
+//   (index: number) =>
+//   ({ context }: PageSessionSnapshot) => {
+//     const resultId = context.resultIdsByPrompt[context.prompt];
+//     if (!resultId) {
+//       return undefined;
+//     }
+
+//     return context.results[resultId]?.suggestedTokens[index];
+//   };
+
+// export const createSuggestedRecipeAtIndexSelector =
+//   (index: number) =>
+//   ({ context }: PageSessionSnapshot) => {
+//     const resultId = context.resultIdsByPrompt[context.prompt];
+//     if (!resultId) {
+//       return undefined;
+//     }
+
+//     const recipeId = context.results[resultId]?.suggestedRecipes[index];
+//     if (!recipeId) {
+//       return undefined;
+//     }
+
+//     return context.recipes[recipeId];
+//   };
+
 // export const selectSortedLists
+
+// export const selectCurrentRecipe = (state: PageSessionSnapshot) => {
+//   const resultId = state.context.resultIdsByPrompt[state.context.prompt];
+//   if (!resultId) {
+//     return undefined;
+//   }
+// };

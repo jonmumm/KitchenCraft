@@ -153,21 +153,21 @@ export type PageSessionContext = {
   previouslySuggestedListNames: string[];
   suggestedListNames: string[];
   tokens: string[];
-  suggestedRecipes: string[];
+  results: Record<
+    string,
+    {
+      suggestedRecipes: string[];
+      suggestedTokens: string[];
+    }
+  >;
   recipes: Record<string, Recipe>;
   generatingRecipeId: string | undefined;
   currentItemIndex: number;
   currentListRecipeIndex: number;
   sessionAccessToken: string;
   userAccessToken: string;
-  numCompletedRecipes: number;
-  numCompletedRecipeMetadata: number;
-  suggestedTags: string[];
-  suggestedText: string[];
-  suggestedTokens: string[];
   placeholders: string[];
   listName: string | undefined;
-  suggestedIngredients: string[];
   adInstances: Record<string, AdInstance>;
   viewedAdInstanceIds: string[];
   clickedAdInstanceIds: string[];
@@ -182,6 +182,7 @@ export type PageSessionContext = {
   sharingListId?: string;
   shareNameInput?: string;
   listsById: Record<string, List>;
+  resultIdsByPrompt: Record<string, string>;
 };
 
 export type PageSessionEvent =
@@ -701,14 +702,7 @@ export const createPageSessionMachine = ({
     },
     actions: {
       resetSuggestions: assign({
-        suggestedTags: [],
-        suggestedIngredients: [],
-        suggestedRecipes: [],
-        suggestedText: [],
-        suggestedTokens: [],
         currentItemIndex: 0,
-        numCompletedRecipeMetadata: 0,
-        numCompletedRecipes: 0,
       }),
       // incrementRecipeCountForCurrentList: assign({
       //   // listsBySlug: ({ context }) => {
@@ -724,13 +718,13 @@ export const createPageSessionMachine = ({
       //   //   });
       //   // },
       // }),
-      assignRecipeIdToSave: assign({
-        recipeIdToSave: ({ context }) => {
-          const recipeId = context.suggestedRecipes[context.currentItemIndex];
-          assert(recipeId, "expected recipeId");
-          return recipeId;
-        },
-      }),
+      // assignRecipeIdToSave: assign({
+      //   recipeIdToSave: ({ context }) => {
+      //     const recipeId = context.suggestedRecipes[context.currentItemIndex];
+      //     assert(recipeId, "expected recipeId");
+      //     return recipeId;
+      //   },
+      // }),
       assighChefName: assign(({ context }) => {
         return context;
       }),
@@ -782,18 +776,14 @@ export const createPageSessionMachine = ({
       currentItemIndex: 0,
       currentListSlug: undefined,
       currentListId: undefined,
-      numCompletedRecipes: 0,
       errorKeys: {},
-      numCompletedRecipeMetadata: 0,
       tokens: [],
       recipes: {},
-      suggestedRecipes: [],
       generatingRecipeId: undefined,
-      suggestedTags: [],
-      suggestedText: [],
+      results: {},
+      resultIdsByPrompt: {},
       sessionSnapshot: undefined,
       userSnapshot: undefined,
-      suggestedIngredients: [],
       suggestedTokens: [],
       placeholders: defaultPlaceholders,
       adInstances: {},
@@ -1189,30 +1179,47 @@ export const createPageSessionMachine = ({
                   }),
                 ],
               },
+              SUBMIT: {
+                actions: [
+                  assign(({ context }) => {
+                    return produce(context, (draft) => {
+                      draft.resultIdsByPrompt[context.prompt] = randomUUID();
+                    });
+                  }),
+                ],
+              },
               ADD_TOKEN: {
                 actions: [
-                  assign({
-                    prompt: ({ context, event }) => {
+                  assign(({ context, event }) => {
+                    return produce(context, (draft) => {
                       const currentValue = context.prompt;
 
-                      let nextValue;
+                      let nextPrompt;
                       if (currentValue.length) {
-                        nextValue = currentValue + `, ${event.token}`;
+                        nextPrompt = currentValue + `, ${event.token}`;
                       } else {
-                        nextValue = event.token;
+                        nextPrompt = event.token;
                       }
-                      return nextValue;
-                    },
+
+                      draft.prompt = nextPrompt;
+                      draft.resultIdsByPrompt[nextPrompt] = randomUUID();
+                    });
                   }),
                 ],
               },
               SET_INPUT: {
                 actions: [
-                  "resetSuggestions",
                   assign({
-                    prompt: ({ event }) => event.value,
+                    prompt: ({ event }) => event.value.trim(),
                   }),
                 ],
+              },
+              UPDATE_SEARCH_PARAMS: {
+                actions: assign({
+                  prompt: ({ event }) => {
+                    return event.searchParams["prompt"] || "";
+                  },
+                }),
               },
             },
           },
@@ -1342,9 +1349,16 @@ export const createPageSessionMachine = ({
                   ".Tokens.Generating",
                   ".Recipes.Generating",
                 ],
-                actions: ["resetSuggestions"],
                 guard: ({ event }) =>
                   !!event.prompt?.length || !!event.tokens?.length,
+              },
+              SUBMIT: {
+                guard: ({ context }) => context.prompt.length > 0,
+                target: [
+                  ".Placeholder.Generating",
+                  ".Tokens.Generating",
+                  ".Recipes.Generating",
+                ],
               },
               ADD_TOKEN: {
                 target: [
@@ -1352,25 +1366,24 @@ export const createPageSessionMachine = ({
                   ".Tokens.Generating",
                   ".Recipes.Generating",
                 ],
-                actions: ["resetSuggestions"],
               },
-              SET_INPUT: [
-                {
-                  target: [
-                    ".Placeholder.Holding",
-                    ".Tokens.Holding",
-                    ".Recipes.Holding",
-                  ],
-                  guard: ({ event }) => !!event.value?.length,
-                },
-                {
-                  target: [
-                    ".Placeholder.Idle",
-                    ".Tokens.Idle",
-                    ".Recipes.Idle",
-                  ],
-                },
-              ],
+              // SET_INPUT: [
+              //   {
+              //     target: [
+              //       ".Placeholder.Holding",
+              //       ".Tokens.Holding",
+              //       ".Recipes.Holding",
+              //     ],
+              //     guard: ({ event }) => !!event.value?.length,
+              //   },
+              //   {
+              //     target: [
+              //       ".Placeholder.Idle",
+              //       ".Tokens.Idle",
+              //       ".Recipes.Idle",
+              //     ],
+              //   },
+              // ],
             },
             states: {
               Placeholder: {
@@ -1447,13 +1460,32 @@ export const createPageSessionMachine = ({
                     on: {
                       AUTO_SUGGEST_TOKENS_PROGRESS: {
                         actions: assign({
-                          suggestedTokens: ({ event }) =>
-                            event.data.tokens || [],
+                          results: ({ context, event }) => {
+                            const resultId = getCurrentResultId(context);
+                            return produce(context.results, (draft) => {
+                              const results = draft[resultId];
+                              assert(
+                                results && results.suggestedTokens,
+                                "expected result"
+                              );
+                              results.suggestedTokens = event.data.tokens || [];
+                            });
+                          },
                         }),
                       },
                       AUTO_SUGGEST_TOKENS_COMPLETE: {
                         actions: assign({
-                          suggestedTokens: ({ event }) => event.data.tokens,
+                          results: ({ context, event }) => {
+                            const resultId = getCurrentResultId(context);
+                            return produce(context.results, (draft) => {
+                              const results = draft[resultId];
+                              assert(
+                                results && results.suggestedTokens,
+                                "expected result"
+                              );
+                              results.suggestedTokens = event.data.tokens || [];
+                            });
+                          },
                         }),
                       },
                     },
@@ -2055,7 +2087,10 @@ export const createPageSessionMachine = ({
                   Generating: {
                     entry: assign(({ context, event }) =>
                       produce(context, (draft) => {
-                        draft.suggestedRecipes = [
+                        const resultId = getCurrentResultId(context);
+                        assert(resultId, "expected resultId when generating");
+
+                        const suggestedRecipes = [
                           randomUUID(),
                           randomUUID(),
                           randomUUID(),
@@ -2064,7 +2099,17 @@ export const createPageSessionMachine = ({
                           randomUUID(),
                         ];
 
-                        draft.suggestedRecipes.forEach((id, index) => {
+                        if (!draft.results[resultId]) {
+                          draft.results[resultId] = {
+                            suggestedRecipes,
+                            suggestedTokens: [],
+                          };
+                        } else {
+                          draft.results[resultId]!.suggestedRecipes =
+                            suggestedRecipes;
+                        }
+
+                        suggestedRecipes.forEach((id, index) => {
                           draft.recipes[id] = {
                             id,
                             versionId: 0,
@@ -2287,7 +2332,14 @@ export const createPageSessionMachine = ({
                             },
                             invoke: {
                               input: ({ context, event }) => {
-                                const recipeId = context.suggestedRecipes[0];
+                                const resultId = getCurrentResultId(context);
+                                const suggestedRecipes =
+                                  context.results[resultId]?.suggestedRecipes;
+                                assert(
+                                  suggestedRecipes,
+                                  "expected suggestedRecipes list"
+                                );
+                                const recipeId = suggestedRecipes[0];
                                 assert(
                                   recipeId,
                                   "expected recipeId to be in suggestedRecipes at index -"
@@ -2323,26 +2375,40 @@ export const createPageSessionMachine = ({
                               RECIPE_IDEAS_METADATA_START: {
                                 actions: assign(({ context, event }) =>
                                   produce(context, (draft) => {
-                                    context.suggestedRecipes
-                                      .slice(1)
-                                      .forEach((id) => {
-                                        const recipe = draft.recipes[id];
-                                        assert(
-                                          recipe,
-                                          "expected recipe when updating recipe progress"
-                                        );
-                                        draft.recipes[id] = {
-                                          ...recipe,
-                                          started: true,
-                                        };
-                                      });
+                                    const suggestedRecipes =
+                                      context.results[
+                                        getCurrentResultId(context)
+                                      ]?.suggestedRecipes;
+                                    assert(
+                                      suggestedRecipes,
+                                      "expected suggestedRecipes"
+                                    );
+                                    suggestedRecipes.slice(1).forEach((id) => {
+                                      const recipe = draft.recipes[id];
+                                      assert(
+                                        recipe,
+                                        "expected recipe when updating recipe progress"
+                                      );
+                                      draft.recipes[id] = {
+                                        ...recipe,
+                                        started: true,
+                                      };
+                                    });
                                   })
                                 ),
                               },
                               RECIPE_IDEAS_METADATA_PROGRESS: {
                                 actions: assign(({ context, event }) =>
                                   produce(context, (draft) => {
-                                    context.suggestedRecipes
+                                    const suggestedRecipes =
+                                      context.results[
+                                        getCurrentResultId(context)
+                                      ]?.suggestedRecipes;
+                                    assert(
+                                      suggestedRecipes,
+                                      "expected suggestedRecipes"
+                                    );
+                                    suggestedRecipes
                                       .slice(1)
                                       .forEach((id, index) => {
                                         const idea = event.data.ideas?.[index];
@@ -2364,7 +2430,15 @@ export const createPageSessionMachine = ({
                               RECIPE_IDEAS_METADATA_COMPLETE: {
                                 actions: assign(({ context, event }) =>
                                   produce(context, (draft) => {
-                                    context.suggestedRecipes
+                                    const suggestedRecipes =
+                                      context.results[
+                                        getCurrentResultId(context)
+                                      ]?.suggestedRecipes;
+                                    assert(
+                                      suggestedRecipes,
+                                      "expected suggestedRecipes"
+                                    );
+                                    suggestedRecipes
                                       .slice(1)
                                       .forEach((id, index) => {
                                         const idea = event.data.ideas?.[index];
@@ -2387,12 +2461,18 @@ export const createPageSessionMachine = ({
                             },
                             invoke: {
                               input: ({ context }) => {
+                                const suggestedRecipes =
+                                  context.results[getCurrentResultId(context)]
+                                    ?.suggestedRecipes;
                                 assert(
-                                  context.suggestedRecipes.length === 6,
+                                  suggestedRecipes,
+                                  "expected suggestedRecipes"
+                                );
+                                assert(
+                                  suggestedRecipes.length === 6,
                                   "expected there to be 6 suggested recipeIds when generating recipe idea metadata"
                                 );
-                                const instantRecipeId =
-                                  context.suggestedRecipes[0];
+                                const instantRecipeId = suggestedRecipes[0];
                                 assert(
                                   instantRecipeId,
                                   "expected instantRecipeId when generating recipe ideas"
@@ -2428,12 +2508,7 @@ export const createPageSessionMachine = ({
                               onDone: "Complete",
                             },
                           },
-                          Complete: {
-                            on: {
-                              // VIEW_RECIPE
-                              // LOAD_MORE
-                            },
-                          },
+                          Complete: {},
                         },
                       },
                     },
@@ -2520,9 +2595,16 @@ export const createPageSessionMachine = ({
                             context.email,
                             "expected email when generating chef name suggestions"
                           );
+                          const resultId = getCurrentResultId(context);
+                          const suggestedRecipes =
+                            context.results[resultId]?.suggestedRecipes;
+                          assert(
+                            suggestedRecipes,
+                            "expected suggested recipes to exist"
+                          );
 
                           const recipeId =
-                            context.suggestedRecipes[context.currentItemIndex];
+                            suggestedRecipes[context.currentItemIndex];
                           assert(
                             recipeId,
                             "expected recipeId when generating chef name suggestions"
@@ -2606,9 +2688,16 @@ export const createPageSessionMachine = ({
                           context.email,
                           "expected email when generating chef name suggestions"
                         );
+                        const resultId = getCurrentResultId(context);
+                        const suggestedRecipes =
+                          context.results[resultId]?.suggestedRecipes;
+                        assert(
+                          suggestedRecipes,
+                          "expected suggested recipes to exist"
+                        );
 
                         const recipeId =
-                          context.suggestedRecipes[context.currentItemIndex];
+                          suggestedRecipes[context.currentItemIndex];
                         assert(
                           recipeId,
                           "expected recipeId when generating chef name suggestions"
@@ -3491,20 +3580,6 @@ export type PageSessionMachine = ReturnType<typeof createPageSessionMachine>;
 export type PageSessionSnapshot = SnapshotFrom<PageSessionMachine>;
 export type PageSessionState = StateValueFrom<PageSessionMachine>;
 
-// import { PlayerState } from "@/app/player-machine";
-// import { ClientContext } from "@/context/client-context";
-// import { matchesState } from "xstate";
-
-// export const usePlayerSnapshotMatchesState = (matchedState: PlayerState) => {
-//   return ClientContext.useSelector((state) => {
-//     const { playerSnapshot } = state.context;
-//     if (!playerSnapshot) {
-//       return false;
-//     }
-//     return matchesState(matchedState, playerSnapshot.value);
-//   });
-// };
-
 const defaultPlaceholders = [
   "3 eggs",
   "1lb ground beef",
@@ -3544,52 +3619,6 @@ const defaultPlaceholders = [
   "roast veggies",
   "grill bbq",
 ];
-
-interface RecipeFunctionArgs {
-  suggestedRecipes: string[];
-  recipes: Record<string, { complete: boolean }>;
-  currentItemIndex: number;
-  numCompletedRecipeMetadata: number;
-}
-
-const findNextUncompletedRecipe = ({
-  suggestedRecipes,
-  recipes,
-  currentItemIndex,
-  numCompletedRecipeMetadata,
-}: RecipeFunctionArgs) => {
-  // Start the search from the next item after the currentItemIndex
-  for (
-    let i = currentItemIndex;
-    i < Math.max(suggestedRecipes.length, numCompletedRecipeMetadata);
-    i++
-  ) {
-    const recipeId = suggestedRecipes[i]!;
-    if (!recipes[recipeId]?.complete) {
-      // Found the next uncompleted recipe
-      return recipeId;
-    }
-  }
-
-  // No more uncompleted recipes after the current one
-  return undefined;
-};
-
-const getCurrentRecipeCreateInput = ({
-  context,
-}: {
-  context: PageSessionContext;
-}) => {
-  assert(context.generatingRecipeId, "expected currentRecipeId");
-  let recipe = context.recipes[context.generatingRecipeId];
-  assert(recipe, "expected currentRecipe");
-  return {
-    recipe,
-    prompt: context.prompt,
-    tokens: context.tokens,
-    createdBy: context.initialCaller.id,
-  };
-};
 
 const getChefNameByUserId = async (userId: string) => {
   const client = createClient();
@@ -3764,4 +3793,10 @@ const initializeListsById = () => {
       createdAt: new Date(),
     },
   } satisfies PageSessionContext["listsById"];
+};
+
+const getCurrentResultId = (context: PageSessionContext) => {
+  const resultId = context.resultIdsByPrompt[context.prompt];
+  assert(resultId, "expected resultId");
+  return resultId;
 };

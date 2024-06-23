@@ -25,6 +25,7 @@ import {
   ChevronRight,
   XCircleIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChangeEventHandler,
@@ -42,7 +43,6 @@ import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
-import Link from "next/link";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -98,26 +98,6 @@ export const BackButton = (props: {
   );
 };
 
-const CraftAutoCompleteItem = ({ index }: { index: number }) => {
-  const session$ = useContext(PageSessionContext);
-  const session = useStore(session$);
-  return <div>{session.context.suggestedText[index]}</div>;
-};
-
-export const CraftAutoComplete = () => {
-  const session$ = useContext(PageSessionContext);
-  const session = useStore(session$);
-  const items = new Array(6).fill(0);
-
-  return (
-    <div className="mt-2 px-4 flex flex-col gap-2 flex-wrap">
-      {items.map((_, index) => {
-        return <CraftAutoCompleteItem key={index} index={index} />;
-      })}
-    </div>
-  );
-};
-
 const selectPrompt = (snapshot: PageSessionSnapshot) => {
   return snapshot.context.prompt;
 };
@@ -161,18 +141,14 @@ export const CraftInput = ({
 
   const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = useCallback(
     (keyboardEvent) => {
+      if (keyboardEvent.code == "Enter" && !keyboardEvent.shiftKey) {
+        keyboardEvent.preventDefault();
+        send({ type: "SUBMIT" });
+      }
       send({ type: "KEY_DOWN", keyboardEvent });
     },
     [send]
   );
-
-  const handleOpenSettings = useCallback(() => {
-    send({ type: "OPEN_SETTINGS" });
-  }, [send]);
-
-  const handleClear = useCallback(() => {
-    send({ type: "CLEAR", all: true });
-  }, [send]);
 
   const handleFocus = useCallback(() => {
     const inputElement = document.getElementById("prompt");

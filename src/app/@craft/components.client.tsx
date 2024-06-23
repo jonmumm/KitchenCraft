@@ -15,7 +15,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
+import { CombinedSelector, combinedSelectorComponent } from "@/components/util/combined-selector";
 import { PageSessionSelector } from "@/components/util/page-session-selector";
+import { useCombinedSelector } from "@/hooks/useCombinedSelector";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
@@ -24,6 +26,7 @@ import { useSend } from "@/hooks/useSend";
 import { assert, cn, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, ListNameSchema } from "@/schema";
+import { createSuggestedTokenAtIndexSelector, selectHasRecipesGenerated, selectNumSuggestedRecipes } from "@/selectors/combined.selectors";
 import {
   selectHasRecipesSelected,
   selectSelectedRecipeCount,
@@ -44,6 +47,7 @@ import {
   useContext,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -57,8 +61,11 @@ import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
 import { SuggestedRecipeCard } from "./suggested-recipe-card";
 
+export const HasRecipesGenerated = combinedSelectorComponent(
+  selectHasRecipesGenerated
+);
+
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(AppContext);
   const promptLength = usePromptLength();
   const numTokens = useNumTokens();
 
@@ -77,45 +84,15 @@ export const HasRecipesSelected = ({ children }: { children: ReactNode }) => (
   </PageSessionSelector>
 );
 
-export const CraftNotReadyToSave = ({ children }: { children: ReactNode }) => {
-  const recipe = useCurrentRecipe();
-  const readyToSave = recipe && recipe.ingredients?.length;
-  if (!readyToSave) {
-    return <>{children}</>;
-  }
-  return null;
-};
-
-export const CraftReadyToSave = ({ children }: { children: ReactNode }) => {
-  const recipe = useCurrentRecipe();
-  if (recipe && recipe.ingredients?.length) {
-    return <>{children}</>;
-  }
-  return null;
-};
-
-export const CraftPromptEmpty = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(AppContext);
-  const promptLength = usePromptLength();
-
-  return promptLength === 0 ? <>{children}</> : null;
-};
-export const CraftPromptNotEmpty = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(AppContext);
-  const promptLength = usePromptLength();
-
-  return promptLength !== 0 ? <>{children}</> : null;
-};
-
-export const CraftNotOpen = ({ children }: { children: ReactNode }) => {
-  const actor = useContext(AppContext);
-  const saving = useSelector(
-    actor,
-    (state) => !state.matches({ Open: "False" })
-  );
-
-  return !saving ? <>{children}</> : null;
-};
+// export const CraftNoResults = ({ children }: { children: ReactNode }) => {
+//   return (
+//     <PageSessionMatches
+//       matchedState={{ Craft: { Generators: { Recipes: "Generating" } } }}
+//     >
+//       {children}
+//     </PageSessionMatches>
+//   );
+// };
 
 export const CraftNotEmpty = ({ children }: { children: ReactNode }) => {
   const promptLength = usePromptLength();
@@ -130,7 +107,7 @@ export const CraftingPlacholder = () => {
 };
 
 export const SuggestedRecipeCards = () => {
-  const numCards = useNumCards();
+  const numCards = useCombinedSelector(selectNumSuggestedRecipes);
   const items = new Array(numCards).fill(0);
 
   return (
@@ -177,20 +154,6 @@ const useNumTokens = () => {
   );
 };
 
-const useNumCards = () => {
-  const session$ = usePageSessionStore();
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context;
-    },
-    () => {
-      return session$.get().context;
-    },
-    (context) => context.suggestedRecipes.length
-  );
-};
-
 // const useScrollItemIndex = () => {
 //   const actor = useContext(CraftContext);
 
@@ -229,33 +192,6 @@ const useChefName = () => {
   );
 };
 
-const useCurrentItemIndex = () => {
-  const session$ = usePageSessionStore();
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context;
-    },
-    () => {
-      return session$.get().context;
-    },
-    (context) => context.currentItemIndex
-  );
-};
-
-const useCurrentRecipe = () => {
-  const session$ = usePageSessionStore();
-  const session = useStore(session$);
-  const recipeId =
-    session.context.suggestedRecipes[session.context.currentItemIndex];
-  if (!recipeId) {
-    return null;
-  }
-
-  const recipe = recipeId ? session.context.recipes[recipeId] : undefined;
-  return recipe;
-};
-
 export const SuggestedTokenBadge = ({
   index,
   className,
@@ -270,10 +206,11 @@ export const SuggestedTokenBadge = ({
   const session$ = usePageSessionStore();
   const session = useStore(session$);
   const isGenerating = session.value.Craft.Generators.Tokens === "Generating";
-  const token = session.context.suggestedTokens[index];
-  // const resultId = index, session.context.suggestedIngredientssResultId);
-  // console.log(index, session.context.suggestedTags);
-
+  const selectSuggestedToken = useMemo(
+    () => createSuggestedTokenAtIndexSelector(index),
+    [index]
+  );
+  const token = useCombinedSelector(selectSuggestedToken);
   if (!token && !isTyping && !isGenerating) {
     return null;
   }
@@ -435,18 +372,17 @@ export const EnterEmailForm = () => {
           email: data.email,
         });
 
-        const context = session$.get().context;
-        const currentRecipeId =
-          context.suggestedRecipes[context.currentItemIndex];
-        assert(currentRecipeId, "expected currentRecipeId");
-        const recipe = context.recipes[currentRecipeId];
+        // const context = session$.get().context;
+        // const currentRecipeId =
+        //   context.suggestedRecipes[context.currentItemIndex];
+        // assert(currentRecipeId, "expected currentRecipeId");
+        // const recipe = context.recipes[currentRecipeId];
 
-        const slug = recipe?.slug;
-        assert(slug, "expected recipe slug");
+        // const slug = recipe?.slug;
+        // assert(slug, "expected recipe slug");
 
-        const callbackUrl = `/recipe/${slug}`;
-        // session$
-        passcodeParams.set("callbackUrl", callbackUrl);
+        // const callbackUrl = `/recipe/${slug}`;
+        // passcodeParams.set("callbackUrl", callbackUrl);
 
         router.push(`/auth/passcode?${passcodeParams.toString()}`);
       } catch (error) {
@@ -454,7 +390,7 @@ export const EnterEmailForm = () => {
         setDisabled(false);
       }
     },
-    [router, session$]
+    [router, session$, send]
   );
 
   return (
@@ -1013,7 +949,7 @@ export const SuggestedIngredientsSection = () => {
   );
 
   return (
-    <CraftEmpty>
+    <CombinedSelector selector={selectHasRecipesGenerated} not>
       <Section className="max-w-3xl mx-auto">
         <Badge variant="secondary">
           <MarkdownRenderer
@@ -1049,7 +985,7 @@ export const SuggestedIngredientsSection = () => {
             })}
         </BadgeList>
       </Section>
-    </CraftEmpty>
+    </CombinedSelector>
   );
 };
 
@@ -1092,7 +1028,7 @@ export const SuggestedTagsSection = () => {
   );
 
   return (
-    <CraftEmpty>
+    <CombinedSelector selector={selectHasRecipesGenerated} not>
       <Section className="max-w-3xl mx-auto">
         <TagsLabel />
         <BadgeList>
@@ -1119,7 +1055,7 @@ export const SuggestedTagsSection = () => {
             })}
         </BadgeList>
       </Section>
-    </CraftEmpty>
+    </CombinedSelector>
   );
 };
 
@@ -1146,8 +1082,7 @@ export const SelectedRecipesBar = () => {
               variant="secondary"
               className="text-sm font-semibold w-full "
             >
-              ✅
-              Selected
+              ✅ Selected
               <span className="bg-purple-700 text-white rounded-full text-center ml-1 px-1">
                 {numSelected}
               </span>

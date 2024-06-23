@@ -7,7 +7,7 @@ import { getMostUsedTagsLastWeek } from "@/db/queries";
 import { ReactNode } from "react";
 import {
   Container,
-  CraftNotEmpty,
+  HasRecipesGenerated,
   HasRecipesSelected,
   Section,
   SelectedRecipesBar,
@@ -15,7 +15,7 @@ import {
   SuggestedRecipeCards,
   SuggestedTagsSection,
   // SuggestedTagBadge,
-  SuggestedTokenBadge,
+  SuggestedTokenBadge
 } from "./components.client";
 
 const BadgeList = ({ children }: { children: ReactNode }) => {
@@ -25,7 +25,7 @@ const BadgeList = ({ children }: { children: ReactNode }) => {
 const QuickAddSection = () => {
   const items = new Array(6).fill(0);
   return (
-    <CraftNotEmpty>
+    <HasRecipesGenerated>
       <Section className="max-w-3xl mx-auto">
         {/* <SectionLabel icon={PlusIcon} title={"Add"} /> */}
         <BadgeList>
@@ -40,7 +40,7 @@ const QuickAddSection = () => {
           })}
         </BadgeList>
       </Section>
-    </CraftNotEmpty>
+    </HasRecipesGenerated>
   );
 };
 
@@ -103,7 +103,7 @@ const SuggestedRecipesSection = () => {
   // const items = new Array(6).fill(0);
 
   return (
-    <CraftNotEmpty>
+    <HasRecipesGenerated>
       <div className="flex flex-col gap-3 items-center px-4">
         <SuggestedRecipeCards />
         {/* <LoadMoreCard /> */}
@@ -115,7 +115,7 @@ const SuggestedRecipesSection = () => {
           );
         })} */}
       </div>
-    </CraftNotEmpty>
+    </HasRecipesGenerated>
   );
 };
 

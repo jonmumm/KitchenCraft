@@ -107,7 +107,6 @@ const AutoResizableTextarea: React.FC<
     [resizeTextarea, textareaRef]
   );
   useEventHandler("NEW_RECIPE", handleNewRecipe);
-  // use
 
   const onAddToken = useCallback(
     (event: ExtractAppEvent<"ADD_TOKEN">) => {
@@ -135,7 +134,6 @@ const AutoResizableTextarea: React.FC<
   }, [resizeTextarea]);
 
   const onClose = useCallback(() => {
-    console.log("CLLSE RESIZE");
     resizeTextarea();
   }, [resizeTextarea]);
 

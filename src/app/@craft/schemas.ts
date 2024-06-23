@@ -16,6 +16,7 @@ export const AppContextSchema = z.object({
   currentRemixSlug: z.string().optional(),
   focusedRecipeId: z.string().optional(),
   prompt: z.string(),
+  submittedPrompt: z.string(),
   ingredients: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   selection: z

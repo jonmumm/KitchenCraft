@@ -76,6 +76,7 @@ export const createAppMachine = ({
 
     return {
       prompt,
+      submittedPrompt: "",
       ingredients: undefined,
       tags: undefined,
       suggestions: null,
@@ -478,7 +479,7 @@ export const createAppMachine = ({
         on: {
           SET_INPUT: {
             actions: assign({
-              prompt: ({ event }) => event.value,
+              prompt: ({ event }) => event.value.trim(),
             }),
           },
           NEW_RECIPE: {
@@ -488,19 +489,34 @@ export const createAppMachine = ({
             }),
           },
           ADD_TOKEN: {
-            actions: assign({
-              prompt: ({ context, event }) => {
-                const currentValue = context.prompt;
+            actions: [
+              assign({
+                prompt: ({ context, event }) => {
+                  const currentValue = context.prompt;
 
-                let nextValue;
-                if (currentValue.length) {
-                  nextValue = currentValue + `, ${event.token}`;
-                } else {
-                  nextValue = event.token;
-                }
-                return nextValue;
+                  let nextValue;
+                  if (currentValue.length) {
+                    nextValue = currentValue + `, ${event.token}`;
+                  } else {
+                    nextValue = event.token;
+                  }
+                  return nextValue;
+                },
+              }),
+              assign({
+                submittedPrompt: ({ context }) => context.prompt,
+              }),
+              {
+                type: "pushQueryParameters",
+                params: ({ context }) => {
+                  return {
+                    paramSet: {
+                      prompt: context.prompt,
+                    },
+                  };
+                },
               },
-            }),
+            ],
           },
         },
       },
@@ -556,14 +572,57 @@ export const createAppMachine = ({
               },
               assign({
                 prompt: "",
+                submittedPrompt: "",
               }),
+              {
+                type: "pushQueryParameters",
+                params: {
+                  paramSet: {
+                    prompt: undefined,
+                  },
+                },
+              },
+            ],
+          },
+          POP_STATE: {
+            actions: [
+              assign({
+                prompt: () => {
+                  const prompt = new URLSearchParams(
+                    window.location.search
+                  ).get("prompt");
+                  return prompt || "";
+                },
+              }),
+              assign({
+                submittedPrompt: ({ context }) => context.prompt,
+              }),
+              ({ context }) => {
+                const promptEl = document.body.querySelector("#prompt") as
+                  | HTMLTextAreaElement
+                  | undefined;
+                if (promptEl) {
+                  promptEl.value = context.prompt;
+                }
+              },
             ],
           },
         },
       },
       Open: {
         initial: initialOpen,
-        on: {},
+        on: {
+          POP_STATE: [
+            {
+              target: ".False",
+              guard: not("hasCraftingQueryParam"),
+            },
+            {
+              target: ".True",
+              guard: "hasCraftingQueryParam",
+            },
+          ],
+        },
         states: {
           False: {
             entry: [
@@ -641,13 +700,27 @@ export const createAppMachine = ({
               },
             ],
             on: {
-              POP_STATE: {
-                target: "False",
-                guard: not("hasCraftingQueryParam"),
+              // TOGGLE: "False",
+              // SHARE_SELECTED: "False",
+              // SAVE_SELECTED: "False",
+              SUBMIT: {
+                actions: [
+                  {
+                    type: "pushQueryParameters",
+                    params: ({ context }) => {
+                      return {
+                        paramSet: {
+                          prompt: context.prompt,
+                        },
+                      };
+                    },
+                  },
+                  assign({
+                    submittedPrompt: ({ context }) => context.prompt,
+                  }),
+                  "blurInput",
+                ],
               },
-              TOGGLE: "False",
-              SHARE_SELECTED: "False",
-              SAVE_SELECTED: "False",
             },
           },
         },
