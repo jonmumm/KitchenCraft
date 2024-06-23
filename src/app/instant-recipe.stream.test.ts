@@ -33,7 +33,6 @@ describe("InstantRecipeStream", () => {
       input
     ) as Observable<InstantRecipeEvent>;
     const outputData = await processStream(observableStream);
-
     console.log(outputData);
     const result = InstantRecipeOutputSchema.safeParse(outputData);
     expect(result.success).toBe(true);
@@ -41,64 +40,61 @@ describe("InstantRecipeStream", () => {
 
   it("should generate a vegan dessert correctly", async () => {
     await validateOutput({
-      prompt: "Vegan desserts",
-      tokens: ["banana", "chocolate"],
+      prompt: "vegan banana chocolate dessert",
     });
   });
 
   it("should generate a high-protein breakfast correctly", async () => {
     await validateOutput({
-      prompt: "High-protein breakfast options",
-      tokens: ["eggs", "avocado"],
+      prompt: "high-protein breakfast with eggs and avocado",
     });
   });
 
   it("should generate a quick pasta dish correctly", async () => {
     await validateOutput({
-      prompt: "Quick pasta dishes",
-      tokens: ["pasta", "pesto"],
+      prompt: "quick pasta dish with pesto",
     });
   });
 
   it("should generate a traditional Japanese dinner correctly", async () => {
     await validateOutput({
-      prompt: "Traditional Japanese dishes",
-      tokens: ["sushi", "sashimi"],
+      prompt: "traditional Japanese dinner with sushi and sashimi",
     });
   });
 
   it("should generate a healthy smoothie correctly", async () => {
     await validateOutput({
-      prompt: "Healthy smoothie recipes",
-      tokens: ["spinach", "mango"],
+      prompt: "healthy smoothie with spinach and mango",
     });
   });
 
   it("should generate a comfort food dinner correctly", async () => {
     await validateOutput({
-      prompt: "Comfort food recipes",
-      tokens: ["soup", "bread"],
+      prompt: "comfort food dinner with soup and bread",
     });
   });
 
   it("should generate a festive holiday dessert correctly", async () => {
     await validateOutput({
-      prompt: "Festive holiday desserts",
-      tokens: ["pumpkin", "pie"],
+      prompt: "festive holiday dessert with pumpkin pie",
     });
   });
 
   it("should generate a street food snack correctly", async () => {
     await validateOutput({
-      prompt: "Street food options",
-      tokens: ["tacos", "salsa"],
+      prompt: "street food tacos with salsa",
     });
   });
 
   it("should generate a gourmet seafood dish correctly", async () => {
     await validateOutput({
-      prompt: "Gourmet seafood recipes",
-      tokens: ["lobster", "butter"],
+      prompt: "gourmet seafood dish with lobster and butter",
+    });
+  });
+
+  it("should generate a blueberry pancake recipe correctly", async () => {
+    await validateOutput({
+      prompt: "blueberry pancakes",
     });
   });
 });

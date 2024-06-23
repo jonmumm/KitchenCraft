@@ -1,7 +1,6 @@
 import { StreamObservableEvent } from "@/lib/stream-to-observable";
 import { StructuredObjectStream } from "@/lib/structured-object-stream";
 import { z, ZodSchema } from "zod";
-import { buildInput } from "./utils";
 
 export const InstantRecipeOutputSchema = z.object({
   name: z.string().describe("Name of the recipe"),
@@ -26,14 +25,19 @@ export const InstantRecipeOutputSchema = z.object({
   instructions: z
     .array(z.string())
     .describe("The list of steps to make the recipe"),
-  tags: z.array(z.string()).describe("Tags related to the recipe"),
+  tags: z
+    .array(z.string())
+    .min(3)
+    .max(5)
+    .describe(
+      "3 to 5 tags that are thematic to the recipe. Always include at least one dietary tag (e.g., Vegetarian, Vegan, Gluten-Free) if applicable, and one meal type tag (e.g., Breakfast, Dessert, Appetizer)."
+    ),
 });
 
 export type InstantRecipeOutput = z.infer<typeof InstantRecipeOutputSchema>;
 
 export type InstantRecipeStreamInput = {
   prompt: string;
-  tokens: string[];
 };
 
 export const INSTANT_RECIPE = "INSTANT_RECIPE";
@@ -54,7 +58,7 @@ export class InstantRecipeStream extends StructuredObjectStream<
   protected async getUserMessage(
     input: InstantRecipeStreamInput
   ): Promise<string> {
-    return buildInput(input);
+    return input.prompt;
   }
 
   protected async getSystemMessage(
@@ -68,44 +72,54 @@ export class InstantRecipeStream extends StructuredObjectStream<
   }
 }
 
-export const INSTANT_RECIPE_SYSTEM_TEMPLATE = (
+const INSTANT_RECIPE_SYSTEM_TEMPLATE = (
   input: InstantRecipeStreamInput
 ): string => `
 You are an expert chef assistant. The user will provide input including a set of ingredients, dish names, cooking equipment, preferences, or techniques. Produce a recipe that closely matches the intent of the input. Include only 1 dish in the response.
 
-Example input and output:
+CRITICAL: You MUST include 3 to 5 tags for the recipe. These tags are REQUIRED and should always be present in your response. Include at least one dietary tag (e.g., Vegetarian, Vegan, Gluten-Free) if applicable, and one meal type tag (e.g., Breakfast, Dessert, Appetizer). Failure to include tags will result in an error.
 
-Input: quinoa salad
+Example input and output:
+Input: blueberry pancakes
 Output: 
 {
-  "name": "Quinoa Salad with Avocado and Tomatoes",
-  "description": "A refreshing and nutritious salad, perfect for a quick lunch or a side dish.",
-  "yield": "4 servings",
-  "activeTime": "PT15M",
-  "cookTime": "PT20M",
+  "name": "Fluffy Blueberry Pancakes",
+  "description": "Light and fluffy pancakes bursting with fresh blueberries, perfect for a weekend breakfast treat.",
+  "yield": "4 servings (12 pancakes)",
+  "activeTime": "PT20M",
+  "cookTime": "PT15M",
   "totalTime": "PT35M",
   "ingredients": [
-    "1 cup quinoa",
-    "2 cups water",
-    "1 avocado, diced",
-    "1 cup cherry tomatoes, halved",
-    "1/4 cup chopped cilantro",
-    "2 tablespoons olive oil",
-    "1 lime, juiced",
-    "Salt and pepper to taste"
+    "2 cups all-purpose flour",
+    "2 tablespoons sugar",
+    "2 teaspoons baking powder",
+    "1/2 teaspoon salt",
+    "2 large eggs",
+    "1 3/4 cups milk",
+    "1/4 cup melted butter",
+    "1 teaspoon vanilla extract",
+    "1 1/2 cups fresh blueberries",
+    "Butter or oil for cooking",
+    "Maple syrup for serving"
   ],
   "instructions": [
-    "Rinse the quinoa under cold water until the water runs clear.",
-    "Combine quinoa and water in a medium saucepan. Bring to a boil, then cover and reduce to a simmer for 15 minutes or until water is absorbed.",
-    "Remove from heat and let sit, covered, for 5 minutes. Fluff with a fork and allow to cool slightly.",
-    "In a large bowl, combine cooled quinoa, avocado, tomatoes, and cilantro.",
-    "Drizzle with olive oil and lime juice, and season with salt and pepper. Toss gently to combine.",
-    "Serve chilled or at room temperature."
+    "In a large bowl, whisk together flour, sugar, baking powder, and salt.",
+    "In another bowl, beat the eggs, then add milk, melted butter, and vanilla. Mix well.",
+    "Pour the wet ingredients into the dry ingredients and stir until just combined. Do not overmix; some small lumps are okay.",
+    "Gently fold in the blueberries.",
+    "Heat a non-stick skillet or griddle over medium heat. Lightly grease with butter or oil.",
+    "For each pancake, pour about 1/4 cup of batter onto the skillet.",
+    "Cook until bubbles form on the surface, then flip and cook until golden brown on both sides.",
+    "Serve warm with maple syrup."
   ],
   "tags": [
-    "Salad",
+    "Breakfast",
     "Vegetarian",
-    "Gluten-Free"
+    "Fruit",
+    "American",
+    "Family-Friendly"
   ]
 }
+
+Ensure that your response follows this format exactly, including all fields and appropriate tags. The tags field is MANDATORY and must not be omitted under any circumstances.
 `;

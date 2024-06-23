@@ -106,6 +106,12 @@ export const createMachineServer = <
           applyPatch(snapshot.context, filteredContextOperations);
 
           this.actor = createActor(machine, { snapshot, input: input as any });
+          this.actor.subscribe({
+            error: (err) => {
+              // todo report to sentry
+              console.error(err);
+            },
+          });
           this.actor.start();
         }
       }
@@ -248,6 +254,13 @@ export const createMachineServer = <
                 });
             }
           }
+        });
+        this.actor.subscribe({
+          error: (err) => {
+            // debugger;
+            // todo report to sentry
+            console.error(err);
+          },
         });
         this.actor.start();
       }

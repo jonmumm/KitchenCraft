@@ -497,7 +497,6 @@ export const createPageSessionMachine = ({
         }: {
           input: {
             prompt: string;
-            tokens: string[];
             recipeId: string;
           };
         }) => new InstantRecipeStream(input.recipeId).getObservable(input)
@@ -798,6 +797,19 @@ export const createPageSessionMachine = ({
       shareNameInput: undefined,
     }),
     type: "parallel",
+    onError: {
+      actions: () => {
+        console.log("error");
+        console.log("error");
+        console.log("error");
+        console.log("error");
+      },
+    },
+    // onError: {
+    //   actions: () => {
+
+    //   },
+    // },
     states: {
       Initialization: {
         initial: "Loading",
@@ -2346,7 +2358,6 @@ export const createPageSessionMachine = ({
                                 );
                                 return {
                                   prompt: context.prompt,
-                                  tokens: context.tokens,
                                   recipeId,
                                 };
                               },
@@ -2479,16 +2490,6 @@ export const createPageSessionMachine = ({
                                 );
                                 const recipe = context.recipes[instantRecipeId];
 
-                                if (
-                                  !(
-                                    recipe?.name &&
-                                    recipe?.description &&
-                                    recipe.ingredients?.length
-                                  )
-                                ) {
-                                  debugger;
-                                }
-
                                 assert(
                                   recipe?.name && recipe?.description,
                                   "expected instant recipe to exist"
@@ -2506,8 +2507,10 @@ export const createPageSessionMachine = ({
                               },
                               src: "generateRecipeIdeasMetadata",
                               onDone: "Complete",
+                              onError: "Error",
                             },
                           },
+                          Error: { entry: console.error },
                           Complete: {},
                         },
                       },
@@ -3288,9 +3291,7 @@ export const createPageSessionMachine = ({
               },
             },
             states: {
-              Available: {
-                entry: () => console.log("available"),
-              },
+              Available: {},
               Waiting: {
                 after: {
                   1000: {
