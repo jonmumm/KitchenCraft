@@ -54,6 +54,7 @@ import {
 } from "@/selectors/app.selectors";
 import {
   selectCurrentListCount,
+  selectCurrentListItems,
   selectHasRecipesInCurrentList,
 } from "@/selectors/combined.selectors";
 import {
@@ -102,10 +103,6 @@ import { EnterListNameForm } from "./@craft/components.client";
 import "./embla.css";
 
 export const MyRecipesScreen = () => {
-  const session$ = usePageSessionStore();
-  const [recipeIds] = useState(selectSelectedRecipeIds(session$.get()));
-  const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
-  const [items] = useState(new Array(numItems).fill(0));
   const currentSlug = useAppSelector(selectCurrentListSlug);
   useScrollLock(true);
 
@@ -227,13 +224,12 @@ export const MyRecipesScreen = () => {
               </CurrentListIsSelected>
               <HasRecipesInCurrentList>
                 <CurrentListCarousel>
-                  {items.map((id, index) => (
-                    <CurrentListCarouselItem
-                      key={index}
-                      id={recipeIds?.[index]}
-                      index={index}
-                    />
-                  ))}
+                  <CurrentListIsSelected not>
+                    <CurrentListItems />
+                  </CurrentListIsSelected>
+                  <CurrentListIsSelected>
+                    <SelectedCarouselItems />
+                  </CurrentListIsSelected>
                 </CurrentListCarousel>
               </HasRecipesInCurrentList>
             </TabsContent>
@@ -953,6 +949,44 @@ const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
     <div ref={emblaRef} className="embla flex-1 relative">
       <div className="embla__container absolute inset-0">{children}</div>
     </div>
+  );
+};
+
+const CurrentListItems = () => {
+  const recipeIdSet = useCombinedSelector(selectCurrentListItems);
+  const recipeIds = recipeIdSet ? Object.keys(recipeIdSet) : [];
+  const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
+  const [items] = useState(new Array(numItems).fill(0));
+
+  return (
+    <>
+      {items.map((id, index) => (
+        <CurrentListCarouselItem
+          key={index}
+          id={recipeIds?.[index]}
+          index={index}
+        />
+      ))}
+    </>
+  );
+};
+
+const SelectedCarouselItems = () => {
+  const session$ = usePageSessionStore();
+  const [recipeIds] = useState(selectSelectedRecipeIds(session$.get()));
+  const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
+  const [items] = useState(new Array(numItems).fill(0));
+
+  return (
+    <>
+      {items.map((id, index) => (
+        <CurrentListCarouselItem
+          key={index}
+          id={recipeIds?.[index]}
+          index={index}
+        />
+      ))}
+    </>
   );
 };
 

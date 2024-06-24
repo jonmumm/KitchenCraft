@@ -2,7 +2,7 @@ import { streamToObservable } from "@/lib/stream-to-observable";
 import { produce } from "immer";
 
 import { captureEvent } from "@/actions/capturePostHogEvent";
-import { getAllListsForUserWithRecipeCount } from "@/actors/getAllListsForUserWithRecipeCount";
+import { fetchLists } from "@/actors/fetchLists";
 import { initializeUserSocket } from "@/actors/initializeUserSocket";
 import { ListenSessionEvent, listenSession } from "@/actors/listenSession";
 import { ListenUserEvent, listenUser } from "@/actors/listenUser";
@@ -224,7 +224,7 @@ export const createPageSessionMachine = ({
       events: {} as PageSessionEvent,
     },
     actors: {
-      getAllListsForUserWithRecipeCount,
+      fetchLists,
       saveRecipeToListName,
       generateChefNameSuggestions,
       generateListNameSuggestions,
@@ -3357,7 +3357,7 @@ export const createPageSessionMachine = ({
           },
           Fetching: {
             invoke: {
-              src: "getAllListsForUserWithRecipeCount",
+              src: "fetchLists",
               input: ({ context }) => {
                 const userId = context.userSnapshot?.context.id;
                 assert(userId, "expected userId");
@@ -3367,15 +3367,41 @@ export const createPageSessionMachine = ({
                 target: "Complete",
                 actions: assign(({ context, event }) => {
                   return produce(context, (draft) => {
-                    if (event.output.success) {
-                      event.output.result?.forEach((item) => {
-                        draft.listsById[item.id] = {
-                          ...item,
-                          created: true,
-                          idSet: {},
-                        };
-                      });
-                    }
+                    const { listRecipes, lists } = event.output;
+
+                    // Group recipes by listId
+                    const groupedListRecipes = listRecipes.reduce<
+                      Record<string, string[]>
+                    >(
+                      (acc, recipe) => {
+                        let list = acc[recipe.listId];
+                        if (!list) {
+                          list = [];
+                          acc[recipe.listId] = list;
+                        }
+                        list.push(recipe.recipeId);
+                        return acc;
+                      },
+                      {} as Record<string, string[]>
+                    );
+
+                    lists.forEach((list) => {
+                      const recipeIds = groupedListRecipes[list.id] || [];
+                      const idSet = recipeIds.reduce<Record<string, true>>(
+                        (acc, id) => {
+                          acc[id] = true;
+                          return acc;
+                        },
+                        {}
+                      );
+
+                      draft.listsById[list.id] = {
+                        ...list,
+                        created: true,
+                        count: recipeIds.length,
+                        idSet,
+                      };
+                    });
                   });
                 }),
               },

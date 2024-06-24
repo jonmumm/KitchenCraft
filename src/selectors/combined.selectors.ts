@@ -59,6 +59,16 @@ export const createSuggestedTokenAtIndexSelector =
     return context.results[resultId]?.suggestedTokens[index];
   };
 
+export const selectCurrentListItems = (
+  appSnapshot: AppSnapshot,
+  pageSessionSnapshot: PageSessionSnapshot
+) => {
+  const currentListSlug = selectCurrentListSlug(appSnapshot);
+  const list = createListBySlugSelector(currentListSlug)(pageSessionSnapshot);
+
+  return list?.idSet;
+};
+
 export const selectCurrentListCount = (
   appSnapshot: AppSnapshot,
   pageSessionSnapshot: PageSessionSnapshot

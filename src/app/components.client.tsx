@@ -21,44 +21,25 @@ import {
 } from "@/components/display/collapsible";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
-import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
-import { Ingredients } from "@/components/ingredients";
+import { Skeleton } from "@/components/display/skeleton";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
-import { DropdownMenuRadioGroup } from "@/components/input/dropdown-menu";
-import { Instructions } from "@/components/instructions";
-import { Popover } from "@/components/layout/popover";
-import { ScrollArea } from "@/components/layout/scroll-area";
 import { TypeLogo } from "@/components/logo";
-import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
-import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
-import { SaveButton } from "@/components/save-button";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
 import { ExperienceCard } from "@/components/settings/experience-card";
 import { GroceryQuestions } from "@/components/settings/grocery";
 import { PreferenceCard } from "@/components/settings/preference-card";
-import { ShareRecipeButton } from "@/components/share-button";
-import { Tags } from "@/components/tags";
-import { Times } from "@/components/times";
 import { PageSessionMatches } from "@/components/util/page-session-matches";
-import { Yield } from "@/components/yield";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { selectCraftIsOpen } from "@/selectors/app.selectors";
-import {
-  createRecipeIsSelectedSelector,
-  createRecipeSelector,
-  selectPromptIsDirty,
-  selectSelectedRecipeCount,
-  selectSelectedRecipeIds,
-} from "@/selectors/page-session.selectors";
+import { selectPromptIsDirty } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
 import { useStore } from "@nanostores/react";
@@ -68,10 +49,7 @@ import {
   ChevronsUpDown,
   Circle,
   HeartIcon,
-  PlusCircleIcon,
   RefreshCwIcon,
-  ScrollIcon,
-  ShoppingBasketIcon,
   XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
@@ -84,9 +62,7 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
-  useState,
   useSyncExternalStore,
 } from "react";
 import { twc } from "react-twc";
@@ -245,156 +221,6 @@ const EmptyItemOverlay = ({
     </div>
   ) : (
     <>{children}</>
-  );
-};
-
-const QuestionHeader = twc.h2`text-lg font-bold`;
-const QuestionSubQuestion = twc.h3`text-md font-semibold`;
-
-const CurrentListCarouselItem = ({
-  id,
-  index,
-}: {
-  id?: string;
-  index: number;
-}) => {
-  const selectRecipe = useMemo(() => createRecipeSelector(id), [id]);
-  const recipe = usePageSessionSelector(selectRecipe);
-  const selectRecipeIsSelected = useMemo(
-    () => createRecipeIsSelectedSelector(id),
-    [id]
-  );
-  const isSelected = usePageSessionSelector(selectRecipeIsSelected);
-
-  const RecipeName = () => (
-    <div className="flex flex-row items-center justify-start flex-1">
-      <span className="mr-1 text-muted-foreground flex flex-row gap-2">
-        {index + 1}.{" "}
-      </span>
-      {recipe?.name ? (
-        <span className="flex-1">{recipe.name}</span>
-      ) : (
-        <SkeletonSentence className="h-7 flex-1" numWords={4} />
-      )}
-    </div>
-  );
-
-  return (
-    <div className="embla__slide max-h-100 mr-2 first:ml-2 relative">
-      <Card className="absolute inset-0 overflow-y-auto">
-        <EmptyItemOverlay show={!id}>
-          <ScrollArea className="absolute inset-0">
-            <div className="h-fit flex flex-col gap-2 py-4">
-              <CardTitle className="px-4">
-                <div className="flex flex-row gap-2 justify-between">
-                  <RecipeName />
-                  {/* <RecipeSelectCircleButton id={recipe?.id} /> */}
-                </div>
-                {/* {recipe?.slug ? (
-                  <Link
-                    href={`/recipe/${recipe.slug}`}
-                    target="_blank"
-                    className="flex flex-row items-center justify-between gap-3"
-                  >
-                    <RecipeName />
-                    <Button size="icon" variant="ghost" autoFocus={false}>
-                      <ExternalLinkIcon />
-                    </Button>
-                  </Link>
-                ) : (
-                  <div className="flex flex-row gap-2">
-                    <RecipeName />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      autoFocus={false}
-                      disabled
-                    >
-                      <ExternalLinkIcon />
-                    </Button>
-                  </div>
-                )} */}
-              </CardTitle>
-              {recipe?.description ? (
-                <CardDescription className="px-4">
-                  {recipe.description}
-                </CardDescription>
-              ) : (
-                <div className="flex-1 px-4">
-                  <SkeletonSentence className="h-4" numWords={12} />
-                </div>
-              )}
-              <div className="text-muted-foreground text-xs flex flex-row gap-2 px-4">
-                <span>Yields</span>
-                <span>
-                  <Yield recipeId={recipe?.id} />
-                </span>
-              </div>
-            </div>
-            <Separator />
-            {recipe?.slug && (
-              <>
-                <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                  {/* <PrintButton slug={recipe?.slug} /> */}
-                  {/* <CameraButton slug={recipe?.slug} /> */}
-                  {/* <FavoriteButton id={recipe?.id} /> */}
-                  <SaveButton id={recipe?.id} />
-                  <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-                  <RecipeSelectCircleButton id={recipe.id} />
-                  <RecipeMoreDropdownButton />
-                </div>
-                <Separator />
-              </>
-            )}
-            <div>
-              <Times
-                activeTime={recipe?.activeTime}
-                totalTime={recipe?.totalTime}
-                cookTime={recipe?.cookTime}
-              />
-            </div>
-            <Separator />
-            <div className="px-5">
-              <div className="flex flex-row justify-between gap-1 items-center py-4">
-                <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                  Ingredients
-                </h3>
-                <ShoppingBasketIcon />
-              </div>
-              <div className="mb-4 flex flex-col gap-2">
-                <ul className="list-disc pl-5 flex flex-col gap-2">
-                  <Ingredients recipeId={recipe?.id} />
-                </ul>
-              </div>
-            </div>
-            <Separator />
-            <div className="px-5">
-              <div className="flex flex-row justify-between gap-1 items-center py-4">
-                <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                  Instructions
-                </h3>
-                <ScrollIcon />
-              </div>
-              <div className="mb-4 flex flex-col gap-2">
-                <ol className="list-decimal pl-5 flex flex-col gap-2">
-                  <Instructions recipeId={recipe?.id} />
-                </ol>
-              </div>
-            </div>
-            <Separator />
-            <div className="py-2">
-              <Tags recipeId={recipe?.id} />
-            </div>
-          </ScrollArea>
-        </EmptyItemOverlay>
-      </Card>
-    </div>
-  );
-};
-
-const Overlay = () => {
-  return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-60"></div>
   );
 };
 
@@ -1018,68 +844,6 @@ const CurrentListHasNextRecipes = ({ children }: { children: ReactNode }) => {
   return canScrollNext ? <>{children}</> : <></>;
 };
 
-const CurrentListHasPreviousRecipes = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
-  const actor = useAppContext();
-  const carouselAPI = useSelector(actor, (state) => state.context.carouselAPI);
-  const canScrollPrev = useSyncExternalStore(
-    (onStoreChange) => {
-      if (!carouselAPI) return () => {};
-      carouselAPI.on("slidesInView", onStoreChange);
-      carouselAPI.on("slidesChanged", onStoreChange);
-      carouselAPI.on("slideFocus", onStoreChange);
-      carouselAPI.on("scroll", onStoreChange);
-      carouselAPI.on("settle", onStoreChange);
-      return () => {
-        carouselAPI.off("slidesInView", onStoreChange);
-        carouselAPI.off("slidesChanged", onStoreChange);
-        carouselAPI.off("slideFocus", onStoreChange);
-        carouselAPI.off("scroll", onStoreChange);
-        carouselAPI.off("settle", onStoreChange);
-      };
-    },
-    () => {
-      return carouselAPI?.canScrollPrev();
-    },
-    () => {
-      return false;
-    }
-  );
-  return canScrollPrev ? <>{children}</> : <></>;
-};
-
-const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
-  const isComplete = usePageSessionMatchesState({
-    Selection: { Data: "Complete" },
-  });
-  const session$ = usePageSessionStore();
-  const [recipeCount] = useState(selectSelectedRecipeCount(session$.get()));
-
-  return !recipeCount && isComplete ? <>{children}</> : <></>;
-};
-
-const IsShareable = ({ children }: { children: ReactNode }) => {
-  const isComplete = usePageSessionMatchesState({
-    Selection: { Data: "Complete" },
-  });
-  const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
-
-  return recipeCount > 0 && isComplete ? <>{children}</> : <></>;
-};
-
-const HasSelectedRecipes = ({ children }: { children: ReactNode }) => {
-  const isComplete = usePageSessionMatchesState({
-    Selection: { Data: "Complete" },
-  });
-  const session$ = usePageSessionStore();
-  const [recipeCount] = useState(selectSelectedRecipeCount(session$.get()));
-
-  return recipeCount > 0 && isComplete ? <>{children}</> : <></>;
-};
-
 const RecipeListRadioItem = forwardRef<
   ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
   ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
@@ -1123,51 +887,5 @@ export const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
     <div ref={emblaRef} className="embla flex-1 relative">
       <div className="embla__container absolute inset-0">{children}</div>
     </div>
-  );
-};
-
-const SharePopover = ({ children }: { children: ReactNode }) => {
-  const [showCopied, setShowCopied] = useState(false);
-  const send = useSend();
-  const selectedListId = usePageSessionSelector(
-    (state) => state.context.sessionSnapshot?.context.selectedListId
-  );
-
-  const handlePressCopy = useCallback(() => {
-    if (!selectedListId) {
-      return;
-    }
-    send({ type: "SHARE_SELECTED" });
-
-    const { origin } = window.location;
-    const url = `${origin}/list/${selectedListId}`;
-
-    if ("share" in navigator) {
-      navigator
-        .share({
-          url,
-        })
-        .then(() => {
-          // todo prompt to save it?
-          // send({ type: "SHARE_COMPLETE", id });
-        })
-        .catch(() => {
-          // send({ type: "SHARE_CANCEL", slug });
-        });
-    } else if ("clipboard" in navigator) {
-      // @ts-ignore
-      navigator.clipboard.writeText(url);
-
-      setShowCopied(true);
-      setTimeout(() => {
-        setShowCopied(false);
-      }, 3000);
-    }
-  }, [setShowCopied, selectedListId, send]);
-
-  return (
-    <Popover open={showCopied} onOpenChange={handlePressCopy}>
-      {children}
-    </Popover>
   );
 };
