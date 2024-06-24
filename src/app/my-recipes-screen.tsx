@@ -209,20 +209,22 @@ export const MyRecipesScreen = () => {
               </TabsList>
             </div>
             <TabsContent value={"recipe"} className="flex-1 flex flex-col">
-              <NoRecipesSelected>
-                <div className="px-4 flex-1">
-                  <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
-                    <div>No recipes selected.</div>
-                    <Badge
-                      event={{ type: "NEW_RECIPE" }}
-                      variant="secondary"
-                      className="shadow-md"
-                    >
-                      Craft one up.<span className="ml-1">🧪</span>
-                    </Badge>
-                  </Card>
-                </div>
-              </NoRecipesSelected>
+              <CurrentListIsSelected>
+                <NoRecipesSelected>
+                  <div className="px-4 flex-1">
+                    <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
+                      <div>No recipes selected.</div>
+                      <Badge
+                        event={{ type: "NEW_RECIPE" }}
+                        variant="secondary"
+                        className="shadow-md"
+                      >
+                        Craft one up.<span className="ml-1">🧪</span>
+                      </Badge>
+                    </Card>
+                  </div>
+                </NoRecipesSelected>
+              </CurrentListIsSelected>
               <HasRecipesInCurrentList>
                 <CurrentListCarousel>
                   {items.map((id, index) => (
@@ -854,7 +856,7 @@ const RecipeListRadioItemSelected = () => {
           <div>
             <span
               className={cn(
-                "ml-1 text-sm font-semibold px-1 rounded bg-purple-700"
+                "ml-1 text-sm font-semibold px-1 rounded bg-purple-700 text-white"
               )}
             >
               {count}
