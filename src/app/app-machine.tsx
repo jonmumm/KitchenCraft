@@ -10,6 +10,7 @@ import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
 import { selectFeedItemIds } from "@/selectors/page-session.selectors";
 import { socket$ } from "@/stores/socket";
+import { produce } from "immer";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { toast } from "sonner";
 import {
@@ -85,6 +86,7 @@ export const createAppMachine = ({
       dietaryAlternatives: undefined,
       savedRecipeSlugs: [],
       equipmentAdaptations: undefined,
+      inputs: {},
       currentRecipeUrl: undefined,
       scrollItemIndex: 0,
       token,
@@ -1013,12 +1015,25 @@ export const createAppMachine = ({
           },
           Creating: {
             on: {
+              CHANGE: {
+                guard: ({ event }) => event.name === "listName",
+                actions: assign({
+                  inputs: ({ context, event }) =>
+                    produce(context.inputs, (draft) => {
+                      draft.listName = event.value;
+                    }),
+                }),
+              },
               SUBMIT: {
                 guard: ({ event }) => event.name === "listName",
                 actions: ({ context }) => {
-                  const listName = store.get().context.listName;
+                  const listName = context.inputs.listName;
+                  assert(
+                    listName,
+                    "expected listName after submitting toc reate recipe"
+                  );
                   router.push(`#${listName}`);
-                }
+                },
               },
             },
           },

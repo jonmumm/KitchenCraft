@@ -41,6 +41,7 @@ import { Yield } from "@/components/yield";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { useCombinedSelector } from "@/hooks/useCombinedSelector";
+import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
@@ -75,12 +76,11 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   Circle,
-  CopyIcon,
   PlusCircleIcon,
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon,
+  XIcon
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -138,7 +138,7 @@ export const MyRecipesScreen = () => {
           >
             <ArrowLeftIcon />
           </Button>
-          <DropdownMenu>
+          <MyRecipesDropdownMenu>
             <DropdownMenuTrigger className="flex-1 flex justify-center">
               <Badge
                 variant="outline"
@@ -174,7 +174,7 @@ export const MyRecipesScreen = () => {
             <DropdownMenuContent className="z-90 max-h-[75vh] overflow-y-scroll">
               <MyRecipeListsRadioGroup />
             </DropdownMenuContent>
-          </DropdownMenu>
+          </MyRecipesDropdownMenu>
           <CurrentListIsSelected>
             <NoRecipesSelected>
               <Badge
@@ -261,13 +261,17 @@ export const MyRecipesScreen = () => {
             <IsShareable>
               <Button className="shadow-md" event={{ type: "SHARE_SELECTED" }}>
                 <ShareIcon size={16} className="mr-1" />
-                Share &apos;<CurrentListName />&apos;
+                Share &apos;
+                <CurrentListName />
+                &apos;
               </Button>
             </IsShareable>
             <NoRecipesSelected>
               <Button className="shadow-md" disabled>
                 <ShareIcon size={16} className="mr-1" />
-                Share &apos;<CurrentListName />&apos;
+                Share &apos;
+                <CurrentListName />
+                &apos;
               </Button>
             </NoRecipesSelected>
           </CurrentListIsSelected>
@@ -275,6 +279,27 @@ export const MyRecipesScreen = () => {
       </div>
       <Overlay />
     </Portal>
+  );
+};
+
+const MyRecipesDropdownMenu = ({ children }: { children: ReactNode }) => {
+  const [open, setOpen] = useState(false);
+
+  const handleOpenChange = useCallback(
+    (value: boolean) => {
+      setOpen(value);
+    },
+    [setOpen]
+  );
+
+  useEventHandler("CREATE_LIST", () => {
+    setOpen(false);
+  });
+
+  return (
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
+      {children}
+    </DropdownMenu>
   );
 };
 
