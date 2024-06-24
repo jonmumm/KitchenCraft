@@ -800,8 +800,6 @@ export const createPageSessionMachine = ({
       actions: () => {
         console.log("error");
         console.log("error");
-        console.log("error");
-        console.log("error");
       },
     },
     // onError: {
@@ -3411,6 +3409,58 @@ export const createPageSessionMachine = ({
         },
       },
 
+      ListRecipes: {
+        initial: "Idle",
+        states: {
+          Idle: {
+            always: {
+              guard: ({ context, event }) => {
+                const recipeIds =
+                  getCurrentListUnfetchedRecipesIdsForListSlug(context);
+                return !!context.currentListSlug && !!recipeIds?.length;
+              },
+              target: "Fetching",
+            },
+          },
+          Fetching: {
+            invoke: {
+              src: "getRecipes",
+              input: ({ context }) => {
+                const recipeIds =
+                  getCurrentListUnfetchedRecipesIdsForListSlug(context);
+                assert(
+                  recipeIds?.length,
+                  "expected recipeIds to be non-empty when fetching"
+                );
+
+                return {
+                  recipeIds,
+                };
+              },
+              onDone: {
+                target: "Idle",
+                actions: assign(({ context, event }) => {
+                  return produce(context, (draft) => {
+                    event.output.forEach(({ recipe }) => {
+                      if (!draft.recipes[recipe.id]) {
+                        draft.recipes[recipe.id] = {
+                          ...recipe,
+                          matchPercent: undefined,
+                          complete: true,
+                          started: true,
+                          metadataComplete: true,
+                          fullStarted: true,
+                        };
+                      }
+                    });
+                  });
+                }),
+              },
+            },
+          },
+        },
+      },
+
       ListCreating: {
         initial: "False",
         onDone: ".False",
@@ -3434,12 +3484,12 @@ export const createPageSessionMachine = ({
               SUBMIT: {
                 target: "Saving",
                 guard: ({ event }) => event.name === "listName",
-                actions: assign({
-                  currentListSlug: ({ context }) => {
-                    const listName = ListNameSchema.parse(context.listName);
-                    return sentenceToSlug(listName);
-                  },
-                }),
+                // actions: assign({
+                //   currentListSlug: ({ context }) => {
+                //     const listName = ListNameSchema.parse(context.listName);
+                //     return sentenceToSlug(listName);
+                //   },
+                // }),
               },
             },
           },
@@ -3594,6 +3644,27 @@ export const createPageSessionMachine = ({
             ],
             type: "final",
           },
+        },
+      },
+
+      MyRecipes: {
+        on: {
+          HASH_CHANGE: [
+            {
+              guard: ({ event }) => !!event.hash.length,
+              actions: assign({
+                currentListSlug: ({ event }) =>
+                  event.hash.length ? event.hash.slice(1) : undefined,
+              }),
+            },
+            {
+              actions: assign({
+                currentListSlug: () => {
+                  return undefined;
+                },
+              }),
+            },
+          ],
         },
       },
     },
@@ -3824,4 +3895,25 @@ const getCurrentResultId = (context: PageSessionContext) => {
   const resultId = context.resultIdsByPrompt[context.prompt];
   assert(resultId, "expected resultId");
   return resultId;
+};
+
+const getCurrentListUnfetchedRecipesIdsForListSlug = (
+  context: PageSessionContext
+) => {
+  console.log(context.currentListSlug);
+  const listsById = context.listsById;
+  if (!listsById || !context.currentListSlug) {
+    return undefined;
+  }
+
+  const list = Object.values(listsById).find(
+    (list) => list.slug === context.currentListSlug
+  );
+
+  if (!list) {
+    return undefined;
+  }
+
+  const recipeIds = Object.keys(list.idSet).filter((id) => !context.recipes[id]);
+  return recipeIds;
 };
