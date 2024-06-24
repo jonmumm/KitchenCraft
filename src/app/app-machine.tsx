@@ -1055,6 +1055,10 @@ export const createAppMachine = ({
                   CANCEL: "False",
                   CLOSE: "False",
                   // SHARE_PRESS: "False",
+                  SHARE_PRESS: {
+                    target: "False",
+                    guard: () => "share" in navigator,
+                  },
                 },
               },
             },

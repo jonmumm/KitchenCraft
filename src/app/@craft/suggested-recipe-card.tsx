@@ -265,8 +265,7 @@ const RecipeDetailContainer = ({
   const isFocused = useSelector(actor, selectIsFocused);
   return (
     <div
-      style={isFocused ? { zIndex: 65 } : {}}
-      className={cn(isFocused ? "absolute inset-0 mb-16" : "max-w-xl w-full")}
+      className={cn(isFocused ? "absolute inset-0 mb-8 standalone:mb-16 z-65" : "max-w-xl w-full")}
     >
       {isFocused && (
         <Portal>

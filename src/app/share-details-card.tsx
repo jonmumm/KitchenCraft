@@ -152,27 +152,6 @@ export const ShareDetailsCard = () => {
               </CardDescription>
             </div>
           </CanShare>
-          <CanShare>
-            <div className="w-full">
-              <CardTitle className="flex flex-row gap-2 justify-between items-center">
-                <div className="flex flex-col gap-1">
-                  <span>Share Complete</span>
-                  <CardDescription className="text-xs mt-2">
-                    Would you like to save this list to your recipes?
-                  </CardDescription>
-                </div>
-                <div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    event={{ type: "CANCEL" }}
-                  >
-                    <XIcon />
-                  </Button>
-                </div>
-              </CardTitle>
-            </div>
-          </CanShare>
         </PageSessionMatches>
       </CardHeader>
       <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }} not>
@@ -266,13 +245,6 @@ export const ShareDetailsCard = () => {
               </Button>
             </CanShare>
           </IsEditingName>
-        </CardContent>
-      </PageSessionMatches>
-      <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }}>
-        <CardContent className="flex flex-row gap-2">
-          <Button event={{ type: "CLOSE" }} size="xl" className="w-full">
-            Close
-          </Button>
         </CardContent>
       </PageSessionMatches>
     </Card>
