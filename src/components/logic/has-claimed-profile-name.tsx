@@ -3,5 +3,5 @@
 import { userMatchesComponent } from "../util/user-matches";
 
 export const HasClaimedProfileName = userMatchesComponent({
-  ProfileName: "Claimed",
+  ProfileName: { Claimed: "True" },
 });
