@@ -738,6 +738,7 @@ const PageLoadedEventSchema = z.object({
 const SearchParamsEventSchema = z.object({
   type: z.literal("UPDATE_SEARCH_PARAMS"),
   searchParams: z.record(z.string(), z.string()),
+  hash: z.string().optional()
 });
 
 const BotManagementSchema = z.object({

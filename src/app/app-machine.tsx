@@ -607,11 +607,39 @@ export const createAppMachine = ({
               },
             ],
           },
+          // UPDATE_SEARCH_PARAMS: [
+          //   {
+          //     target: ".Open.True",
+          //     guard: ({ event }) => !!event.hash.length,
+          //     actions: assign({
+          //       currentListSlug: ({ event }) =>
+          //         event.hash.length ? event.hash.slice(1) : undefined,
+          //     }),
+          //   },
+          //   {
+          //     target: ".Open.False",
+          //     actions: assign({
+          //       currentListSlug: () => {
+          //         return undefined;
+          //       },
+          //     }),
+          //   },
+          // ],
         },
       },
       Open: {
         initial: initialOpen,
         on: {
+          UPDATE_SEARCH_PARAMS: [
+            {
+              target: ".False",
+              guard: not("hasCraftingQueryParam"),
+            },
+            {
+              target: ".True",
+              guard: "hasCraftingQueryParam",
+            },
+          ],
           POP_STATE: [
             {
               target: ".False",
@@ -984,17 +1012,13 @@ export const createAppMachine = ({
             },
           },
           Creating: {
-            initial: "False",
-            states: {
-              False: {
-                on: {
-                  CREATE_LIST: "True",
-                },
-              },
-              True: {
-                on: {
-                  CANCEL: "False",
-                },
+            on: {
+              SUBMIT: {
+                guard: ({ event }) => event.name === "listName",
+                actions: ({ context }) => {
+                  const listName = store.get().context.listName;
+                  router.push(`#${listName}`);
+                }
               },
             },
           },

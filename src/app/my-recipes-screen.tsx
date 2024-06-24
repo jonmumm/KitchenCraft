@@ -19,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
-import { Popover } from "@/components/layout/popover";
 import { ScrollArea } from "@/components/layout/scroll-area";
 import {
   Tabs,
@@ -76,6 +75,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   Circle,
+  CopyIcon,
   PlusCircleIcon,
   ScrollIcon,
   ShareIcon,
@@ -97,7 +97,6 @@ import {
 } from "react";
 import { twc } from "react-twc";
 import { createSelector } from "reselect";
-import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { EnterListNameForm } from "./@craft/components.client";
 import "./embla.css";
 
@@ -235,8 +234,8 @@ export const MyRecipesScreen = () => {
           </Tabs>
         </div>
 
-        <CurrentListIsSelected>
-          <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
+        <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
+          <CurrentListIsSelected>
             <IsShareable>
               <Button className="shadow-md" event={{ type: "SHARE_SELECTED" }}>
                 <ShareIcon size={16} className="mr-1" />
@@ -257,8 +256,22 @@ export const MyRecipesScreen = () => {
                 Add (<CurrentListCount />) to...
               </Button>
             </NoRecipesSelected>
-          </div>
-        </CurrentListIsSelected>
+          </CurrentListIsSelected>
+          <CurrentListIsSelected not>
+            <IsShareable>
+              <Button className="shadow-md" event={{ type: "SHARE_SELECTED" }}>
+                <ShareIcon size={16} className="mr-1" />
+                Share &apos;<CurrentListName />&apos;
+              </Button>
+            </IsShareable>
+            <NoRecipesSelected>
+              <Button className="shadow-md" disabled>
+                <ShareIcon size={16} className="mr-1" />
+                Share &apos;<CurrentListName />&apos;
+              </Button>
+            </NoRecipesSelected>
+          </CurrentListIsSelected>
+        </div>
       </div>
       <Overlay />
     </Portal>
@@ -409,21 +422,6 @@ const CurrentListCarouselItem = ({
 const Overlay = () => {
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-60"></div>
-  );
-};
-
-const useSuggestedListNames = () => {
-  const session$ = usePageSessionStore();
-
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context;
-    },
-    () => {
-      return session$.get().context;
-    },
-    (context) => context.suggestedListNames
   );
 };
 
@@ -752,7 +750,7 @@ const MyRecipeListsRadioGroup = () => {
       <RecipeListRadioItemBySlug slug="favorites" />
       {recentCreated?.length ? (
         <>
-          <div>
+          <div className="px-2">
             <Label className="text-muted-foreground text-xs uppercase">
               Recent Created
             </Label>
@@ -768,7 +766,7 @@ const MyRecipeListsRadioGroup = () => {
 
       {recentShared?.length ? (
         <>
-          <div>
+          <div className="px-2">
             <Label className="text-muted-foreground text-xs uppercase">
               Recent Shared
             </Label>
@@ -987,52 +985,6 @@ const SelectedCarouselItems = () => {
         />
       ))}
     </>
-  );
-};
-
-const SharePopover = ({ children }: { children: ReactNode }) => {
-  const [showCopied, setShowCopied] = useState(false);
-  const send = useSend();
-  const selectedListId = usePageSessionSelector(
-    (state) => state.context.sessionSnapshot?.context.selectedListId
-  );
-
-  const handlePressCopy = useCallback(() => {
-    if (!selectedListId) {
-      return;
-    }
-    send({ type: "SHARE_SELECTED" });
-
-    const { origin } = window.location;
-    const url = `${origin}/list/${selectedListId}`;
-
-    if ("share" in navigator) {
-      navigator
-        .share({
-          url,
-        })
-        .then(() => {
-          // todo prompt to save it?
-          // send({ type: "SHARE_COMPLETE", id });
-        })
-        .catch(() => {
-          // send({ type: "SHARE_CANCEL", slug });
-        });
-    } else if ("clipboard" in navigator) {
-      // @ts-ignore
-      navigator.clipboard.writeText(url);
-
-      setShowCopied(true);
-      setTimeout(() => {
-        setShowCopied(false);
-      }, 3000);
-    }
-  }, [setShowCopied, selectedListId, send]);
-
-  return (
-    <Popover open={showCopied} onOpenChange={handlePressCopy}>
-      {children}
-    </Popover>
   );
 };
 

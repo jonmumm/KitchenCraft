@@ -3900,7 +3900,6 @@ const getCurrentResultId = (context: PageSessionContext) => {
 const getCurrentListUnfetchedRecipesIdsForListSlug = (
   context: PageSessionContext
 ) => {
-  console.log(context.currentListSlug);
   const listsById = context.listsById;
   if (!listsById || !context.currentListSlug) {
     return undefined;

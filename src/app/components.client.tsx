@@ -630,36 +630,36 @@ export const SelectListCard = () => {
 };
 
 export const CreateNewListCard = () => {
-  const ListNameSuggestions = () => {
-    const suggestedListNames = useSuggestedListNames();
-    const items = new Array(6).fill("");
+  // const ListNameSuggestions = () => {
+  //   const suggestedListNames = useSuggestedListNames();
+  //   const items = new Array(6).fill("");
 
-    return (
-      <>
-        {items.map((item, index) => {
-          return (
-            <div key={index} className="carousel-item">
-              {suggestedListNames.length > index ? (
-                <Badge
-                  event={{
-                    type: "SELECT_VALUE",
-                    name: "suggested_listname",
-                    value: suggestedListNames[index]!,
-                  }}
-                >
-                  {suggestedListNames[index]}
-                </Badge>
-              ) : (
-                <Badge>
-                  <Skeleton className="h-4 w-7" />
-                </Badge>
-              )}
-            </div>
-          );
-        })}
-      </>
-    );
-  };
+  //   return (
+  //     <>
+  //       {items.map((item, index) => {
+  //         return (
+  //           <div key={index} className="carousel-item">
+  //             {suggestedListNames.length > index ? (
+  //               <Badge
+  //                 event={{
+  //                   type: "SELECT_VALUE",
+  //                   name: "suggested_listname",
+  //                   value: suggestedListNames[index]!,
+  //                 }}
+  //               >
+  //                 {suggestedListNames[index]}
+  //               </Badge>
+  //             ) : (
+  //               <Badge>
+  //                 <Skeleton className="h-4 w-7" />
+  //               </Badge>
+  //             )}
+  //           </div>
+  //         );
+  //       })}
+  //     </>
+  //   );
+  // };
 
   return (
     <Card className="py-4 w-full">
