@@ -16,7 +16,6 @@ import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
 import { atomBooleanComponent } from "@/components/util/atom-boolean-component";
 import { PageSessionMatches } from "@/components/util/page-session-matches";
-import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
@@ -30,25 +29,25 @@ import {
 import { useStore } from "@nanostores/react";
 import {
   ClipboardCopyIcon,
-  ExternalLinkIcon,
   Loader2Icon,
   SendHorizonalIcon,
   XIcon,
 } from "lucide-react";
 import { atom } from "nanostores";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import {
   ChangeEventHandler,
   KeyboardEventHandler,
   useCallback,
   useEffect,
   useRef,
-  useState,
 } from "react";
 import { ShareDetailsPreviewCarousel } from "./share-details-preview-carousel";
 
 export const ShareDetailsCard = () => {
   const t = useTranslations("ShareDetails");
+  const router = useRouter();
 
   const nameIsTaken = usePageSessionMatchesState({ Share: { Name: "Taken" } });
   const nameIsAvailable = usePageSessionMatchesState({
@@ -60,40 +59,30 @@ export const ShareDetailsCard = () => {
   const nameCheckWaiting = usePageSessionMatchesState({
     Share: { Name: "Waiting" },
   });
-  const nameCheckErrored = usePageSessionMatchesState({
-    Share: { Name: "Error" },
-  });
   const selectedRecipeCount = usePageSessionSelector(selectSelectedRecipeCount);
 
   const sharingListIsCreated = usePageSessionSelector(
     selectSharingListIsCreated
   );
 
-  // const [showCopied, setShowCopied] = useState(false);
   const send = useSend();
   const store = usePageSessionStore();
 
-  const handlePressCopy = useCallback(() => {
+  const handleCopyLink = useCallback(() => {
     const path = selectSharingListPath(store.get());
     const { origin } = window.location;
-    send({ type: "COPY_LINK" });
     const url = `${origin}${path}`;
+    navigator.clipboard.writeText(url);
+    router.push(url);
+  }, [store, router]);
 
-    if ("clipboard" in navigator) {
-      // @ts-ignore
-      navigator.clipboard.writeText(url);
-
-      // setShowCopied(true);
-      // setTimeout(() => {
-      //   setShowCopied(false);
-      // }, 3000);
-    }
-  }, [store, send]);
+  useEventHandler("COPY_LINK", handleCopyLink);
 
   const handlePressSend = useCallback(() => {
     const path = selectSharingListPath(store.get());
     const { origin } = window.location;
     const url = `${origin}${path}`;
+    router.push(url);
 
     send({ type: "SHARE_PRESS", url });
 
@@ -110,7 +99,7 @@ export const ShareDetailsCard = () => {
           send({ type: "SHARE_CANCEL", url });
         });
     }
-  }, [send, store]);
+  }, [router, send, store]);
 
   return (
     <Card className="max-w-3xl overflow-hidden">
@@ -152,11 +141,6 @@ export const ShareDetailsCard = () => {
                 <div className="flex flex-row gap-2 flex-1">
                   <ClipboardCopyIcon />
                   <span>Link Copied!</span>
-                </div>
-                <div>
-                  <Button variant="ghost" size="icon" event={{ type: "CLOSE" }}>
-                    <XIcon />
-                  </Button>
                 </div>
               </CardTitle>
               <CardDescription className="text-xs mt-2">
@@ -286,20 +270,9 @@ export const ShareDetailsCard = () => {
       </PageSessionMatches>
       <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }}>
         <CardContent className="flex flex-row gap-2">
-          <PageSessionSelectorLink
-            target="_blank"
-            selector={selectSharingListPath}
-            className="flex-1"
-          >
-            <Button variant="outline" size="xl" className="w-full">
-              Open <ExternalLinkIcon className="ml-2" />
-            </Button>
-          </PageSessionSelectorLink>
-          <div className="flex-1">
-            <Button event={{ type: "CLOSE" }} size="xl" className="w-full">
-              Done
-            </Button>
-          </div>
+          <Button event={{ type: "CLOSE" }} size="xl" className="w-full">
+            Close
+          </Button>
         </CardContent>
       </PageSessionMatches>
     </Card>
@@ -314,8 +287,6 @@ const ShareNameRow = () => {
   const editing = useStore(editingName$);
   const inputRef = useRef<HTMLInputElement>(null);
   const store = usePageSessionStore();
-
-  const nameIsTaken = usePageSessionMatchesState({ Share: { Name: "Taken" } });
 
   useEventHandler("PRESS_BUTTON", () => {
     editingName$.set(true);
