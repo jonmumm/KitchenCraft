@@ -60,9 +60,15 @@ import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
 import { SuggestedRecipeCard } from "./suggested-recipe-card";
+import { createAppSelector } from "@/components/util/app-selector";
+import { selectHasSubmittedPrompt } from "@/selectors/app.selectors";
 
 export const HasRecipesGenerated = combinedSelectorComponent(
   selectHasRecipesGenerated
+);
+
+export const HasSubmittedPrompt = createAppSelector(
+  selectHasSubmittedPrompt
 );
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
@@ -949,7 +955,7 @@ export const SuggestedIngredientsSection = () => {
   );
 
   return (
-    <CombinedSelector selector={selectHasRecipesGenerated} not>
+    <HasSubmittedPrompt not>
       <Section className="max-w-3xl mx-auto">
         <Badge variant="secondary">
           <MarkdownRenderer
@@ -985,7 +991,7 @@ export const SuggestedIngredientsSection = () => {
             })}
         </BadgeList>
       </Section>
-    </CombinedSelector>
+    </HasSubmittedPrompt>
   );
 };
 
@@ -1028,7 +1034,7 @@ export const SuggestedTagsSection = () => {
   );
 
   return (
-    <CombinedSelector selector={selectHasRecipesGenerated} not>
+    <HasSubmittedPrompt not>
       <Section className="max-w-3xl mx-auto">
         <TagsLabel />
         <BadgeList>
@@ -1055,7 +1061,7 @@ export const SuggestedTagsSection = () => {
             })}
         </BadgeList>
       </Section>
-    </CombinedSelector>
+    </HasSubmittedPrompt>
   );
 };
 

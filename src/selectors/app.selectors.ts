@@ -8,3 +8,7 @@ export const selectCraftIsOpen = (state: AppSnapshot) =>
 export const selectCurrentListSlug = (state: AppSnapshot) => {
   return state.context.currentListSlug;
 };
+
+export const selectHasSubmittedPrompt = (state: AppSnapshot) => {
+  return !!state.context.submittedPrompt.length;
+};
