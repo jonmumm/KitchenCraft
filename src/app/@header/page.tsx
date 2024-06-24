@@ -14,54 +14,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/layout/popover";
-import {
-  SheetContent,
-  SheetOverlay,
-  SheetTrigger,
-} from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
 import { getIsMobile, getTimezone } from "@/lib/headers";
-import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import { ArrowLeftIcon, ChefHatIcon, InfoIcon } from "lucide-react";
-import { MainMenu } from "../menu/components";
-import { CraftCTA } from "./components";
-import {
-  MyRecipesBadge,
-} from "./components.client";
-import { HasClaimedProfileName } from "@/components/logic/has-claimed-profile-name";
-import { ProfileName } from "@/components/strings/profile-name";
+import { ArrowLeftIcon, InfoIcon } from "lucide-react";
+import { CraftCTA, HeaderLinks } from "./components";
 
 export default async function Page({}) {
   return (
     <>
       <div className="mx-auto w-full h-[48vh] crafting:h-auto relative">
-        <div className="hidden crafting:hidden absolute right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
-          <div className="flex flex-row gap-1 items-center">
-            <div className="flex flex-row gap-1">
-              <MyRecipesBadge />
-            </div>
-          </div>
-          <MenuSheet>
-            <SheetTrigger>
-              <Badge
-                variant={"secondary"}
-                className="text-md font-semibold whitespace-nowrap cursor-pointer bg-transparent"
-              >
-                <ChefHatIcon className="mr-1" />
-                <HasClaimedProfileName not>Account</HasClaimedProfileName>
-                <HasClaimedProfileName>
-                  <ProfileName />
-                </HasClaimedProfileName>
-              </Badge>
-            </SheetTrigger>
-            <SheetOverlay />
-            <SheetContent side="right" className="p-4">
-              <div className="flex flex-col gap-2 py-4">
-                <MainMenu />
-              </div>
-            </SheetContent>
-          </MenuSheet>
-        </div>
+        <HeaderLinks />
         <div
           className={`flex flex-col h-full justify-between p-2 max-w-3xl mx-auto`}
         >

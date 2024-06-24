@@ -1,106 +1,52 @@
-import { MainMenu } from "@/app/menu/components";
 import { Button } from "@/components/input/button";
+
+import { Badge } from "@/components/display/badge";
+import { BackButton } from "@/components/input/back-button";
 import {
   SheetContent,
   SheetOverlay,
   SheetTrigger,
 } from "@/components/layout/sheet";
+import { HasClaimedProfileName } from "@/components/logic/has-claimed-profile-name";
 import { TypeLogo } from "@/components/logo";
-import NavigationLink from "@/components/navigation/navigation-link";
+import { ProfileName } from "@/components/strings/profile-name";
 import { getProfileByUserId } from "@/db/queries";
-import { getCurrentUserId } from "@/lib/auth/session";
-import { getIsMacDesktop, getRefererPath } from "@/lib/headers";
-import { cn } from "@/lib/utils";
+import { getIsMacDesktop, getIsMobile } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import {
-  ChefHatIcon,
-  ChevronRightIcon,
-  GripVerticalIcon,
-  XIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, ChefHatIcon } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import {
-  BackButton,
-  CraftInput,
-  KeyboardToggle,
-  MyRecipesBadge,
-} from "./components.client";
+import { MainMenu } from "../menu/components";
+import { CraftInput, MyRecipesBadge } from "./components.client";
+import NavigationLink from "@/components/navigation/navigation-link";
 
-export async function HeaderWithInput({
-  className,
-  backUrl,
-  autoFocus,
-}: {
-  className?: string;
-  backUrl?: string;
-  autoFocus?: boolean;
-}) {
-  const backPath = getRefererPath();
-  const hasHistory = !!backPath;
-
-  const back = (async (lastUrl?: string) => {
-    "use server";
-    // todo make this smarter based on url segments nesting
-    return redirect(lastUrl || "/");
-  }).bind(null, backUrl);
-
+export async function HeaderWithInput({ className }: { className?: string }) {
   return (
     <>
-      <div className="max-w-7xl mx-auto w-full">
+      <div className="mx-auto w-full crafting:h-auto relative">
+        <HeaderLinks />
         <div
-          className={cn(
-            `w-full flex justify-between p-4 gap-4 hidden-print items-center group`,
-            className
-          )}
+          className={`flex flex-row justify-between items-center gap-3 p-3 max-w-3xl mx-auto`}
         >
-          <div className="crafting:hidden">
-            {backUrl ? (
-              <BackButton handleBack={back} hasHistory={hasHistory} />
-            ) : (
-              <div className="mt-3 mr-2 w-20">
-                <NavigationLink href="/">
-                  <div className="transitioning:animate-pulse">
-                    <TypeLogo />
-                  </div>
-                </NavigationLink>
+          <NavigationLink href="/">
+            <TypeLogo className="h-16 crafting:hidden md:absolute md:left-4 md:top-4 transitioning:animate-pulse" />
+          </NavigationLink>
+          <div className="flex flex-col gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
+            <div className="flex flex-row gap-2 w-full justify-between items-center"></div>
+            <div className="flex flex-row gap-2 items-center">
+              <div className="hidden crafting:flex flex-col gap-3 items-center">
+                <BackButton
+                  variant={"outline"}
+                  size="icon"
+                  className="text-xs text-semibold rounded-full"
+                >
+                  <ArrowLeftIcon />
+                </BackButton>
               </div>
-            )}
-          </div>
-          <div className="flex flex-row gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
-            <CraftCTA />
-          </div>
-          <div className="hidden crafting:block">
-            {/* <Button variant={"ghost"} event={{ type: "VIEW_LIST" }}>
-              <ListIcon />
-            </Button> */}
-            <Button variant={"ghost"} event={{ type: "CLOSE" }}>
-              <XIcon />
-            </Button>
-          </div>
-          <div className="hidden crafting:hidden right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
-            <div className="flex flex-row gap-1 items-center">
-              <div className="flex flex-row gap-1">
-                <MyRecipesBadge />
-              </div>
+              <CraftCTA initialAutoFocus={!getIsMobile()} />
             </div>
-            <MenuSheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <GripVerticalIcon />
-                </Button>
-              </SheetTrigger>
-              <SheetOverlay />
-              <SheetContent side="right" className="p-4">
-                <div className="flex flex-col gap-2 py-4">
-                  <MainMenu />
-                </div>
-              </SheetContent>
-            </MenuSheet>
           </div>
         </div>
       </div>
-      <KeyboardToggle />
     </>
   );
 }
@@ -164,3 +110,37 @@ export default function BasicHeader({
     </div>
   );
 }
+
+export const HeaderLinks = () => {
+  return (
+    <>
+      <div className="hidden crafting:hidden absolute right-4 top-8 lg:flex flex-row h-fit items-center gap-4">
+        <div className="flex flex-row gap-1 items-center">
+          <div className="flex flex-row gap-1">
+            <MyRecipesBadge />
+          </div>
+        </div>
+        <MenuSheet>
+          <SheetTrigger>
+            <Badge
+              variant={"secondary"}
+              className="text-md font-semibold whitespace-nowrap cursor-pointer bg-transparent"
+            >
+              <ChefHatIcon className="mr-1" />
+              <HasClaimedProfileName not>Account</HasClaimedProfileName>
+              <HasClaimedProfileName>
+                <ProfileName />
+              </HasClaimedProfileName>
+            </Badge>
+          </SheetTrigger>
+          <SheetOverlay />
+          <SheetContent side="right" className="p-4">
+            <div className="flex flex-col gap-2 py-4">
+              <MainMenu />
+            </div>
+          </SheetContent>
+        </MenuSheet>
+      </div>
+    </>
+  );
+};
