@@ -1,6 +1,5 @@
 "use client";
 
-import { CurrentListCount } from "@/components/current-list-count";
 import {
   Accordion,
   AccordionContent,
@@ -1079,120 +1078,6 @@ const HasSelectedRecipes = ({ children }: { children: ReactNode }) => {
   const [recipeCount] = useState(selectSelectedRecipeCount(session$.get()));
 
   return recipeCount > 0 && isComplete ? <>{children}</> : <></>;
-};
-
-const MyRecipeListsRadioGroup = () => {
-  const send = useSend();
-  const handleValueChange = useCallback(
-    (listSlug: string) => {
-      send({ type: "SELECT_LIST", listSlug });
-    },
-    [send]
-  );
-
-  const actor = useAppContext();
-  const recipeIds = usePageSessionSelector(selectSelectedRecipeIds);
-
-  return (
-    <DropdownMenuRadioGroup
-      value={"selected"}
-      className="w-full"
-      onValueChange={handleValueChange}
-    >
-      <RecipeListRadioItem value="selected" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="flex-1">
-            <span className="mr-1">✅</span> Selected
-          </span>
-          <span className="ml-1 text-sm font-semibold text-white bg-purple-500 px-1 rounded">
-            <CurrentListCount />
-          </span>
-        </div>
-      </RecipeListRadioItem>
-      <Separator className="my-1" />
-      <RecipeListRadioItem value="my-recipes" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="mr-1">📒</span>
-          <div className="flex-1 flex flex-col gap-2">
-            <span className="font-medium">My Recipes</span>
-            <span className="text-xs text-muted-foreground">Public</span>
-          </div>
-          <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-              0
-            </span>
-          </div>
-        </div>
-      </RecipeListRadioItem>
-      <RecipeListRadioItem value="liked" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="mr-1">️👍</span>
-          <div className="flex-1 flex flex-col gap-2">
-            <span className="font-medium">Liked</span>
-            <span className="text-xs text-muted-foreground">Public</span>
-          </div>
-          <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-              40
-            </span>
-          </div>
-        </div>
-      </RecipeListRadioItem>
-      <RecipeListRadioItem value="commented" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="mr-1">️💬</span>
-          <div className="flex-1 flex flex-col gap-2">
-            <span className="font-medium">Commented On</span>
-            <span className="text-xs text-muted-foreground">Public</span>
-          </div>
-          <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-              0
-            </span>
-          </div>
-        </div>
-      </RecipeListRadioItem>
-      <RecipeListRadioItem value="make-later" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="mr-1">⏰</span>
-          <div className="flex-1 flex flex-col gap-2">
-            <span className="font-medium">Make Later</span>
-            <span className="text-xs text-muted-foreground">Private</span>
-          </div>
-          <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-              0
-            </span>
-          </div>
-        </div>
-      </RecipeListRadioItem>
-      <RecipeListRadioItem value="favorites" className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="mr-1">⭐️</span>
-          <div className="flex-1 flex flex-col gap-2">
-            <span className="font-medium">Favorites</span>
-            <span className="text-xs text-muted-foreground">Private</span>
-          </div>
-          <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
-              37
-            </span>
-          </div>
-        </div>
-      </RecipeListRadioItem>
-      <Separator className="my-1" />
-      <div className="flex items-center justify-center py-2">
-        <Badge
-          variant="outline"
-          className="cursor-pointer"
-          event={{ type: "CREATE_LIST" }}
-        >
-          Create New List
-          <PlusCircleIcon className="ml-1" />
-        </Badge>
-      </div>
-    </DropdownMenuRadioGroup>
-  );
 };
 
 const RecipeListRadioItem = forwardRef<

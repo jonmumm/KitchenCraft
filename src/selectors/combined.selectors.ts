@@ -2,6 +2,11 @@
 
 import { AppSnapshot } from "@/app/app-machine";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
+import { selectCurrentListSlug } from "./app.selectors";
+import {
+  createListBySlugSelector,
+  selectSelectedRecipeCount,
+} from "./page-session.selectors";
 
 export const createSuggestedRecipeAtIndexSelector =
   (index: number) =>
@@ -52,3 +57,18 @@ export const createSuggestedTokenAtIndexSelector =
 
     return context.results[resultId]?.suggestedTokens[index];
   };
+
+export const selectCurrentListCount = (
+  appSnapshot: AppSnapshot,
+  pageSessionSnapshot: PageSessionSnapshot
+) => {
+  const currentListSlug = selectCurrentListSlug(appSnapshot);
+  const selectedRecipeCount = selectSelectedRecipeCount(pageSessionSnapshot);
+  const list = createListBySlugSelector(currentListSlug)(pageSessionSnapshot);
+
+  if (currentListSlug === "selected") {
+    return selectedRecipeCount;
+  } else {
+    return list?.count;
+  }
+};

@@ -15,7 +15,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
-import { CombinedSelector, combinedSelectorComponent } from "@/components/util/combined-selector";
+import { createAppSelector } from "@/components/util/app-selector";
+import { combinedSelectorComponent } from "@/components/util/combined-selector";
 import { PageSessionSelector } from "@/components/util/page-session-selector";
 import { useCombinedSelector } from "@/hooks/useCombinedSelector";
 import { useEventHandler } from "@/hooks/useEventHandler";
@@ -26,7 +27,12 @@ import { useSend } from "@/hooks/useSend";
 import { assert, cn, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, ListNameSchema } from "@/schema";
-import { createSuggestedTokenAtIndexSelector, selectHasRecipesGenerated, selectNumSuggestedRecipes } from "@/selectors/combined.selectors";
+import { selectHasSubmittedPrompt } from "@/selectors/app.selectors";
+import {
+  createSuggestedTokenAtIndexSelector,
+  selectHasRecipesGenerated,
+  selectNumSuggestedRecipes,
+} from "@/selectors/combined.selectors";
 import {
   selectHasRecipesSelected,
   selectSelectedRecipeCount,
@@ -60,16 +66,12 @@ import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
 import { SuggestedRecipeCard } from "./suggested-recipe-card";
-import { createAppSelector } from "@/components/util/app-selector";
-import { selectHasSubmittedPrompt } from "@/selectors/app.selectors";
 
 export const HasRecipesGenerated = combinedSelectorComponent(
   selectHasRecipesGenerated
 );
 
-export const HasSubmittedPrompt = createAppSelector(
-  selectHasSubmittedPrompt
-);
+export const HasSubmittedPrompt = createAppSelector(selectHasSubmittedPrompt);
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const promptLength = usePromptLength();

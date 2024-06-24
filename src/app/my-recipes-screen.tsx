@@ -1,6 +1,5 @@
 "use client";
 
-import { CurrentListCount } from "@/components/current-list-count";
 import { Badge } from "@/components/display/badge";
 import {
   Card,
@@ -40,6 +39,7 @@ import { PageSessionSelectorLink } from "@/components/util/page-session-selector
 import { Yield } from "@/components/yield";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
+import { useCombinedSelector } from "@/hooks/useCombinedSelector";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
@@ -47,6 +47,7 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { selectCurrentListSlug } from "@/selectors/app.selectors";
+import { selectCurrentListCount } from "@/selectors/combined.selectors";
 import {
   createListByIdSelector,
   createListBySlugSelector,
@@ -97,6 +98,7 @@ export const MyRecipesScreen = () => {
   const [recipeIds] = useState(selectSelectedRecipeIds(session$.get()));
   const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
   const [items] = useState(new Array(numItems).fill(0));
+  const currentSlug = useAppSelector(selectCurrentListSlug);
   useScrollLock(true);
 
   return (
@@ -147,7 +149,12 @@ export const MyRecipesScreen = () => {
                     <CurrentListName />
                   </span>
                 </div>
-                <span className="ml-1 text-sm font-semibold text-white bg-purple-700 px-1 rounded">
+                <span
+                  className={cn(
+                    "ml-1 text-sm font-semibold text-white px-1 rounded",
+                    currentSlug === "selected" ? "bg-purple-700" : ""
+                  )}
+                >
                   <CurrentListCount />
                 </span>
                 <div>
@@ -723,14 +730,11 @@ const MyRecipeListsRadioGroup = () => {
       className="w-full"
       onValueChange={handleValueChange}
     >
-      <RecipeListRadioItemBySlug slug="selected" />
-      <Separator className="my-1" />
-      <div className="my-2">
-        <RecipeListRadioItemBySlug slug="make-later" />
-        <RecipeListRadioItemBySlug slug="commented" />
-        <RecipeListRadioItemBySlug slug="liked" />
-        <RecipeListRadioItemBySlug slug="favorites" />
-      </div>
+      <RecipeListRadioItemSelected />
+      <RecipeListRadioItemBySlug slug="make-later" />
+      <RecipeListRadioItemBySlug slug="commented" />
+      <RecipeListRadioItemBySlug slug="liked" />
+      <RecipeListRadioItemBySlug slug="favorites" />
       {recentCreated?.length ? (
         <>
           <div>
@@ -802,7 +806,11 @@ const RecipeListRadioItemById = ({ id }: { id: string }) => {
             </span>
           </div>
           <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+            <span
+              className={cn(
+                "ml-1 text-sm font-semibold px-1 rounded bgslate-200 dark:bg-slate-800"
+              )}
+            >
               {list?.count !== undefined ? (
                 <>{list?.count}</>
               ) : (
@@ -813,6 +821,31 @@ const RecipeListRadioItemById = ({ id }: { id: string }) => {
         </div>
       </RecipeListRadioItem>
     </PageSessionSelectorLink>
+  );
+};
+
+const RecipeListRadioItemSelected = () => {
+  const count = usePageSessionSelector(selectSelectedRecipeCount);
+  return (
+    <Link href={`#selected`}>
+      <RecipeListRadioItem value={"selected"} className="py-4">
+        <div className="flex flex-row gap-2 w-56">
+          <span className="mr-1">✅</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <span className="font-medium">Selected</span>
+          </div>
+          <div>
+            <span
+              className={cn(
+                "ml-1 text-sm font-semibold px-1 rounded bg-purple-700"
+              )}
+            >
+              {count}
+            </span>
+          </div>
+        </div>
+      </RecipeListRadioItem>
+    </Link>
   );
 };
 
@@ -837,7 +870,14 @@ const RecipeListRadioItemBySlug = ({ slug }: { slug: string }) => {
             </span>
           </div>
           <div>
-            <span className="ml-1 text-sm font-semibold bg-slate-200 dark:bg-slate-800 px-1 rounded">
+            <span
+              className={cn(
+                "ml-1 text-sm font-semibold px-1 rounded",
+                list?.slug === "selected"
+                  ? "bg-purple-700"
+                  : "bgslate-200 dark:bg-slate-800"
+              )}
+            >
               {list?.count !== undefined ? (
                 <>{list?.count}</>
               ) : (
@@ -944,19 +984,20 @@ const SharePopover = ({ children }: { children: ReactNode }) => {
 };
 
 export const CurrentListIcon = () => {
-  // const count = usePageSessionSelector(selectSelectedRecipeCount);
   const slug = useAppSelector(selectCurrentListSlug);
   const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
   const list = usePageSessionSelector(selectList);
-  console.log({ slug, list });
   return <>{list?.icon}</>;
 };
 
 export const CurrentListName = () => {
-  // const count = usePageSessionSelector(selectSelectedRecipeCount);
   const slug = useAppSelector(selectCurrentListSlug);
   const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
   const list = usePageSessionSelector(selectList);
-  console.log({ slug, list });
   return <>{list?.name}</>;
+};
+
+export const CurrentListCount = () => {
+  const count = useCombinedSelector(selectCurrentListCount);
+  return <>{count}</>;
 };
