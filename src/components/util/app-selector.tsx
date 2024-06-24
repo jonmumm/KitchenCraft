@@ -1,4 +1,5 @@
 "use client";
+
 import { AppSnapshot } from "@/app/app-machine";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { ReactNode } from "react";
@@ -22,7 +23,7 @@ export const AppSelector = <T,>(props: AppSelectorProps<T>) => {
 
 type AppSelectorComponentProps = Omit<AppSelectorProps<boolean>, 'selector'>;
 
-export const createAppSelector = (
+export const appSelectorComponent = (
   selector: (snapshot: AppSnapshot) => boolean
 ) => {
   const Component = ({ children, not, initialValueOverride }: AppSelectorComponentProps) => (

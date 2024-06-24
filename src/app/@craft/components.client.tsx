@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/input/form";
-import { createAppSelector } from "@/components/util/app-selector";
+import { appSelectorComponent } from "@/components/util/app-selector";
 import { combinedSelectorComponent } from "@/components/util/combined-selector";
 import { PageSessionSelector } from "@/components/util/page-session-selector";
 import { useCombinedSelector } from "@/hooks/useCombinedSelector";
@@ -71,7 +71,7 @@ export const HasRecipesGenerated = combinedSelectorComponent(
   selectHasRecipesGenerated
 );
 
-export const HasSubmittedPrompt = createAppSelector(selectHasSubmittedPrompt);
+export const HasSubmittedPrompt = appSelectorComponent(selectHasSubmittedPrompt);
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const promptLength = usePromptLength();

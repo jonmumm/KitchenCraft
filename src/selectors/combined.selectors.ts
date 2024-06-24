@@ -2,6 +2,7 @@
 
 import { AppSnapshot } from "@/app/app-machine";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
+import { createSelector } from "reselect";
 import { selectCurrentListSlug } from "./app.selectors";
 import {
   createListBySlugSelector,
@@ -72,3 +73,8 @@ export const selectCurrentListCount = (
     return list?.count;
   }
 };
+
+export const selectHasRecipesInCurrentList = createSelector(
+  selectCurrentListCount,
+  (count) => (count ? count > 0 : false)
+);

@@ -34,6 +34,8 @@ import { useScrollLock } from "@/components/scroll-lock";
 import { ShareRecipeButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
+import { appSelectorComponent } from "@/components/util/app-selector";
+import { combinedSelectorComponent } from "@/components/util/combined-selector";
 import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { Yield } from "@/components/yield";
@@ -46,8 +48,14 @@ import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
-import { selectCurrentListSlug } from "@/selectors/app.selectors";
-import { selectCurrentListCount } from "@/selectors/combined.selectors";
+import {
+  selectCurrentListIsSelected,
+  selectCurrentListSlug,
+} from "@/selectors/app.selectors";
+import {
+  selectCurrentListCount,
+  selectHasRecipesInCurrentList,
+} from "@/selectors/combined.selectors";
 import {
   createListByIdSelector,
   createListBySlugSelector,
@@ -172,23 +180,25 @@ export const MyRecipesScreen = () => {
               <MyRecipeListsRadioGroup />
             </DropdownMenuContent>
           </DropdownMenu>
-          <NoRecipesSelected>
-            <Badge
-              variant="secondary"
-              className="text-xs text-semibold bg-card opacity-60"
-            >
-              CLEAR
-            </Badge>
-          </NoRecipesSelected>
-          <HasSelectedRecipes>
-            <Badge
-              variant="secondary"
-              event={{ type: "CLEAR_SELECTION" }}
-              className="text-xs text-semibold shadow-md bg-card"
-            >
-              CLEAR
-            </Badge>
-          </HasSelectedRecipes>
+          <CurrentListIsSelected>
+            <NoRecipesSelected>
+              <Badge
+                variant="secondary"
+                className="text-xs text-semibold bg-card opacity-60"
+              >
+                CLEAR
+              </Badge>
+            </NoRecipesSelected>
+            <HasSelectedRecipes>
+              <Badge
+                variant="secondary"
+                event={{ type: "CLEAR_SELECTION" }}
+                className="text-xs text-semibold shadow-md bg-card"
+              >
+                CLEAR
+              </Badge>
+            </HasSelectedRecipes>
+          </CurrentListIsSelected>
         </div>
         <div className="flex-1">
           <Tabs defaultValue="recipe" className="h-full flex flex-col">
@@ -213,7 +223,7 @@ export const MyRecipesScreen = () => {
                   </Card>
                 </div>
               </NoRecipesSelected>
-              <HasSelectedRecipes>
+              <HasRecipesInCurrentList>
                 <CurrentListCarousel>
                   {items.map((id, index) => (
                     <CurrentListCarouselItem
@@ -223,33 +233,35 @@ export const MyRecipesScreen = () => {
                     />
                   ))}
                 </CurrentListCarousel>
-              </HasSelectedRecipes>
+              </HasRecipesInCurrentList>
             </TabsContent>
           </Tabs>
         </div>
 
-        <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
-          <IsShareable>
-            <Button className="shadow-md" event={{ type: "SHARE_SELECTED" }}>
-              <ShareIcon size={16} className="mr-1" />
-              Share (<CurrentListCount />)
-            </Button>
-            <Button className="shadow-md" event={{ type: "SAVE_SELECTED" }}>
-              <BookmarkIcon size={16} className="mr-1" />
-              Save (<CurrentListCount />) to...
-            </Button>
-          </IsShareable>
-          <NoRecipesSelected>
-            <Button className="shadow-md" disabled>
-              <ShareIcon size={16} className="mr-1" />
-              Share (<CurrentListCount />) to...
-            </Button>
-            <Button className="shadow-md" variant="primary" disabled>
-              <PlusCircleIcon size={16} className="mr-1" />
-              Add (<CurrentListCount />) to...
-            </Button>
-          </NoRecipesSelected>
-        </div>
+        <CurrentListIsSelected>
+          <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
+            <IsShareable>
+              <Button className="shadow-md" event={{ type: "SHARE_SELECTED" }}>
+                <ShareIcon size={16} className="mr-1" />
+                Share (<CurrentListCount />)
+              </Button>
+              <Button className="shadow-md" event={{ type: "SAVE_SELECTED" }}>
+                <BookmarkIcon size={16} className="mr-1" />
+                Save (<CurrentListCount />) to...
+              </Button>
+            </IsShareable>
+            <NoRecipesSelected>
+              <Button className="shadow-md" disabled>
+                <ShareIcon size={16} className="mr-1" />
+                Share (<CurrentListCount />) to...
+              </Button>
+              <Button className="shadow-md" variant="primary" disabled>
+                <PlusCircleIcon size={16} className="mr-1" />
+                Add (<CurrentListCount />) to...
+              </Button>
+            </NoRecipesSelected>
+          </div>
+        </CurrentListIsSelected>
       </div>
       <Overlay />
     </Portal>
@@ -678,6 +690,11 @@ const CurrentListHasPreviousRecipes = ({
   );
   return canScrollPrev ? <>{children}</> : <></>;
 };
+
+const CurrentListIsSelected = appSelectorComponent(selectCurrentListIsSelected);
+const HasRecipesInCurrentList = combinedSelectorComponent(
+  selectHasRecipesInCurrentList
+);
 
 const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
   const isComplete = usePageSessionMatchesState({
