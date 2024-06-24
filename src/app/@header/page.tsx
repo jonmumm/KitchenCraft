@@ -3,7 +3,6 @@ import { DateTime } from "luxon";
 
 import { Badge } from "@/components/display/badge";
 import { Card, CardContent, CardHeader } from "@/components/display/card";
-import { Separator } from "@/components/display/separator";
 import {
   Highlight,
   HighlightContent,
@@ -21,19 +20,18 @@ import {
   SheetTrigger,
 } from "@/components/layout/sheet";
 import { TypeLogo } from "@/components/logo";
-import { getProfileByUserId } from "@/db/queries";
-import { getCurrentUserId } from "@/lib/auth/session";
 import { getIsMobile, getTimezone } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import { ArrowLeftIcon, ChefHatIcon, InfoIcon } from "lucide-react";
 import { MainMenu } from "../menu/components";
 import { CraftCTA } from "./components";
-import { MyRecipesBadge } from "./components.client";
+import {
+  MyRecipesBadge,
+} from "./components.client";
+import { HasClaimedProfileName } from "@/components/logic/has-claimed-profile-name";
+import { ProfileName } from "@/components/strings/profile-name";
 
 export default async function Page({}) {
-  const userId = await getCurrentUserId();
-  const profile = userId ? await getProfileByUserId(userId) : undefined;
-
   return (
     <>
       <div className="mx-auto w-full h-[48vh] crafting:h-auto relative">
@@ -41,19 +39,8 @@ export default async function Page({}) {
           <div className="flex flex-row gap-1 items-center">
             <div className="flex flex-row gap-1">
               <MyRecipesBadge />
-              {/* <Badge
-                  variant="outline"
-                  className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
-                >
-                  <ChefHatIcon className="transitioning:hidden" />
-                  <Loader2Icon className="hidden transitioning:block animate-spin" />
-                  <span>
-                    {profile?.profileSlug ? profile.profileSlug : "My Cookbook"}
-                  </span>
-                </Badge> */}
             </div>
           </div>
-          <Separator orientation="vertical" />
           <MenuSheet>
             <SheetTrigger>
               <Badge
@@ -61,22 +48,11 @@ export default async function Page({}) {
                 className="text-md font-semibold whitespace-nowrap cursor-pointer bg-transparent"
               >
                 <ChefHatIcon className="mr-1" />
-                Account
+                <HasClaimedProfileName not>Account</HasClaimedProfileName>
+                <HasClaimedProfileName>
+                  <ProfileName />
+                </HasClaimedProfileName>
               </Badge>
-              {/* <Button variant="ghost" className="rounded"
-              
-              
-              >
-                <ChefHatIcon />
-                {/* <div className="flex flex-col items-center justify-center">
-                  <span className="block">A</span>
-                  <span className="block">c</span>
-                  <span className="block">c</span>
-                  <span className="block">o</span>
-                  <span className="block">u</span>
-                  <span className="block">n</span>
-                  <span className="block">t</span>
-                </div> */}
             </SheetTrigger>
             <SheetOverlay />
             <SheetContent side="right" className="p-4">
@@ -146,27 +122,10 @@ export default async function Page({}) {
                   new compoennt
                 </HighlightContent>
               </Highlight>
-              {/* <div className="hidden crafting:flex flex-col gap-3 items-center">
-                <Button
-                  variant={"outline"}
-                  size="icon"
-                  event={{ type: "CLOSE" }}
-                  className="text-xs text-semibold rounded-full"
-                >
-                  <XIcon />
-                </Button> */}
-              {/* <CurrentListButton /> */}
             </div>
           </div>
         </div>
       </div>
-      {/* <div className="mx-auto w-full h-[50vh] crafting:h-auto relative"> */}
-      {/* <div className="crafting:hidden mt-2 mb-8 max-w-3xl mx-auto px-4">
-        <div className="flex flex-row gap-1 items-center flex-wrap">
-          <HomepageSuggestedTokens />
-        </div>
-      </div> */}
-      {/* <KeyboardToggle /> */}
     </>
   );
 }

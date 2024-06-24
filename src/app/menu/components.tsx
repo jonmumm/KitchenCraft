@@ -6,7 +6,7 @@ import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
-import { UserSnapshotConditionalRenderer } from "@/components/util/user-matches";
+import { UserMatches } from "@/components/util/user-matches";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import {
   selectProfileName,
@@ -24,15 +24,15 @@ export function MainMenu({ className }: { className?: string }) {
 
   return (
     <>
-      <UserSnapshotConditionalRenderer
+      <UserMatches
         matchedState={{ Email: { Saved: "False" } }}
       >
         <Button size="xl" event={{ type: "SIGN_IN" }}>
           Sign In
         </Button>
         <Separator />
-      </UserSnapshotConditionalRenderer>
-      <UserSnapshotConditionalRenderer
+      </UserMatches>
+      <UserMatches
         matchedState={{ Email: { Saved: "True" } }}
       >
         <div className="flex flex-col gap-1 items-center justify-center">
@@ -257,14 +257,14 @@ export function MainMenu({ className }: { className?: string }) {
           </div>
           <Separator />
         </NotificationsSetting> */}
-      </UserSnapshotConditionalRenderer>
+      </UserMatches>
       <div className="flex flex-row gap-1 items-center justify-between">
         <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
           Theme
         </Label>
         <ModeToggle />
       </div>
-      <UserSnapshotConditionalRenderer
+      <UserMatches
         matchedState={{ Email: { Saved: "True" } }}
       >
         <Separator />
@@ -277,7 +277,7 @@ export function MainMenu({ className }: { className?: string }) {
             Sign Out
           </Button>
         </div>
-      </UserSnapshotConditionalRenderer>
+      </UserMatches>
       <Separator />
       <div className="flex flex-row gap-2 justify-center">
         <div className="flex flex-row justify-center gap-2">

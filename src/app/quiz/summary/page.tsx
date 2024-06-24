@@ -73,7 +73,7 @@ export default function Results() {
     Onboarding: { Summary: "ProfileName" },
   });
 
-  const [isEmailInputComplete, setIsEmailInputComplete] = useState(false);
+  const [isEmailInputComplete] = useState(false);
   const emailForm = useForm({
     resolver: zodResolver(emailFormSchema),
     defaultValues: {
@@ -113,7 +113,7 @@ export default function Results() {
   }, [send]);
 
   const onSubmitUsername = useCallback(async () => {
-    send({ type: "SUBMIT", name: "username" });
+    send({ type: "SUBMIT", name: "profileName" });
   }, [send]);
 
   useEventHandler("SELECT_VALUE", (event) => {

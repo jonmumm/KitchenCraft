@@ -128,55 +128,6 @@ export const CraftCTA = ({
   );
 };
 
-export async function HeaderLoading({
-  className,
-  showBack,
-}: {
-  className?: string;
-  showBack?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        `w-full flex justify-between py-4 gap-4 hidden-print items-center`,
-        className
-      )}
-    >
-      <div className="flex flex-col items-start">
-        <div className="w-20">
-          <Link href="/" className="animate-pulse">
-            <TypeLogo />
-          </Link>
-        </div>
-      </div>
-
-      <Button
-        disabled
-        size="fit"
-        variant="ghost"
-        className="relative shadow-lg rounded-full flex flex-row py-2 px-6 gap-3 items-center justify-center border-solid border-2 border-muted cursor-text animate-pulse"
-      >
-        <ChevronRightIcon className="opacity-50" />
-        <div className="flex flex-col flex-1 items-start">
-          <span className="font-semibold text-md">What to make?</span>
-          <div className="flex flex-row gap-1 text-muted-foreground text-xs">
-            <span>ingredients</span>
-            <span>•</span>
-            <span>tags</span>
-          </div>
-        </div>
-        {/* <Image
-          className="absolute right-0 h-full w-auto"
-          alt="KitchenCraft App Icon"
-          width={512}
-          height={512}
-          src="/apple-touch-icon.png"
-        /> */}
-      </Button>
-    </div>
-  );
-}
-
 export default function BasicHeader({
   profile,
 }: {
@@ -193,16 +144,6 @@ export default function BasicHeader({
         <div className="flex flex-row gap-1 items-center">
           <div className="flex flex-row gap-1">
             <MyRecipesBadge />
-            {/* <Badge
-                variant="outline"
-                className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
-              >
-                <ChefHatIcon className="transitioning:hidden" />
-                <Loader2Icon className="hidden transitioning:block animate-spin" />
-                <span>
-                  {profile?.profileSlug ? profile.profileSlug : "My Cookbook"}
-                </span>
-              </Badge> */}
           </div>
         </div>
         <MenuSheet>

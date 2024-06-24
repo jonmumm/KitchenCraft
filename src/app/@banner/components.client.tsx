@@ -1,6 +1,6 @@
 "use client";
 
-import { UserSnapshotConditionalRenderer } from "@/components/util/user-matches";
+import { UserMatches } from "@/components/util/user-matches";
 import { ReactNode } from "react";
 
 export const IsOnboaridngInComplete = ({
@@ -9,11 +9,11 @@ export const IsOnboaridngInComplete = ({
   children: ReactNode;
 }) => {
   return (
-    <UserSnapshotConditionalRenderer
+    <UserMatches
       matchedState={{ Onboarding: "Complete" }}
       not
     >
       {children}
-    </UserSnapshotConditionalRenderer>
+    </UserMatches>
   );
 };

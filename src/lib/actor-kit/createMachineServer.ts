@@ -90,7 +90,11 @@ export const createMachineServer = <
 
           const valueOperations = compare(snapshot.value, initialSnap.value);
           const filteredValueOperations = valueOperations.filter(
-            (operation) => operation.op === "add" || operation.op === "remove"
+            (operation) =>
+              operation.op === "add" ||
+              operation.op === "remove" ||
+              (operation.op === "replace" &&
+                typeof operation.value === "object")
           );
 
           const contextOperations = compare(

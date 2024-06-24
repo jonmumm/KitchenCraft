@@ -53,6 +53,26 @@ export const createUserMachine = ({
       events: {} as UserEvent,
     },
     actors: {
+      setProfileSlug: fromPromise(
+        async ({
+          input,
+        }: {
+          input: { userId: string; profileSlug: string };
+        }) => {
+          const client = createClient();
+          await client.connect();
+          const db = drizzle(client);
+          try {
+            await db
+              .update(ProfileTable)
+              .set({ profileSlug: input.profileSlug })
+              .where(eq(ProfileTable.userId, input.userId))
+              .execute();
+          } finally {
+            await client.end();
+          }
+        }
+      ),
       setEmailOnUser: fromPromise(
         async ({ input }: { input: { userId: string; email: string } }) => {
           const client = createClient();
@@ -173,6 +193,13 @@ export const createUserMachine = ({
       didChangeProfileNameInput: ({ context, event }) => {
         return event.type === "CHANGE" && event.name === "profileName";
       },
+      didSubmitProfileName: ({ context, event }) => {
+        return event.type === "SUBMIT" && event.name === "profileName";
+      },
+      isProfileNameValid: ({ context, event }) => {
+        return ProfileSchema.shape.profileSlug.safeParse(context.profileName)
+          .success;
+      },
       didChangeEmailInput: ({ context, event }) => {
         return event.type === "CHANGE" && event.name === "email";
       },
@@ -262,11 +289,93 @@ export const createUserMachine = ({
       },
 
       ProfileName: {
-        initial: "Uninitialized",
+        type: "parallel",
         states: {
-          Uninitialized: {},
-          Checking: {},
-          Claimed: {},
+          Availability: {
+            initial: "Uninitialized",
+            on: {
+              CHANGE: {
+                target: ".Inputting",
+                guard: "didChangeProfileNameInput",
+                actions: assign({
+                  profileName: ({ event }) => event.value,
+                }),
+              },
+              SUBMIT: {
+                guard: and(["isProfileNameValid", "didSubmitProfileName"]),
+                target: ".Checking",
+              },
+            },
+            states: {
+              Uninitialized: {},
+              Inputting: {},
+              Checking: {
+                invoke: {
+                  src: "checkIfProfileNameAvailable",
+                  input: ({ context }) => {
+                    assert(
+                      context.profileName,
+                      "expected profileName when checking"
+                    );
+                    return {
+                      profileName: context.profileName,
+                    };
+                  },
+                  onDone: [
+                    {
+                      guard: ({ event }) => event.output,
+                      target: "Available",
+                    },
+                    {
+                      target: "Unavailable",
+                    },
+                  ],
+                },
+              },
+              Unavailable: {},
+              Available: {},
+            },
+          },
+
+          Claimed: {
+            initial: "False",
+            states: {
+              False: {
+                on: {
+                  SUBMIT: {
+                    target: "InProgress",
+                    guard: and([
+                      "isProfileNameValid",
+                      "didSubmitProfileName",
+                      stateIn({ ProfileName: { Availability: "Available" } }),
+                      stateIn({ ProfileRow: "Created" }),
+                    ]),
+                  },
+                },
+              },
+              InProgress: {
+                invoke: {
+                  src: "setProfileSlug",
+                  onDone: "True",
+                  input: ({ context }) => {
+                    const profileName = context.profileName;
+                    assert(
+                      profileName.length,
+                      "expected profile name when setting"
+                    );
+
+                    return {
+                      userId: context.id,
+                      profileSlug: profileName,
+                    };
+                  },
+                },
+              },
+              True: {
+                type: "final",
+              },
+            },
+          },
         },
       },
 
@@ -628,55 +737,11 @@ export const createUserMachine = ({
                 },
               },
               ProfileName: {
-                initial: "Inputting",
-                onDone: "Complete",
-                on: {
-                  CHANGE: {
-                    target: ".Inputting",
-                    guard: "didChangeProfileNameInput",
-                    actions: assign({
-                      profileName: ({ event }) => event.value,
-                    }),
-                  },
-                  SUBMIT: {
-                    guard: ({ context }) =>
-                      ProfileSchema.shape.profileSlug.safeParse(
-                        context.profileName
-                      ).success,
-                    target: ".Checking",
-                  },
-                },
-                states: {
-                  Inputting: {
-                    on: {},
-                  },
-                  Checking: {
-                    invoke: {
-                      src: "checkIfProfileNameAvailable",
-                      input: ({ context }) => {
-                        assert(
-                          context.profileName,
-                          "expected profileName when checking"
-                        );
-                        return {
-                          profileName: context.profileName,
-                        };
-                      },
-                      onDone: [
-                        {
-                          guard: ({ event }) => event.output,
-                          target: "Complete",
-                        },
-                        {
-                          target: "InUse",
-                        },
-                      ],
-                    },
-                  },
-                  InUse: {},
-                  Complete: {
-                    type: "final",
-                  },
+                always: {
+                  target: "Complete",
+                  guard: stateIn({
+                    ProfileName: { Availability: "Available" },
+                  }),
                 },
               },
               Complete: {
