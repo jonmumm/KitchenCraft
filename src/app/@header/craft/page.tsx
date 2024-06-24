@@ -4,5 +4,5 @@ export default async function Page(props: {
   params: { slug: string };
   searchParams: { prompt: string };
 }) {
-  return <HeaderWithInput backUrl={"/"} />;
+  return <HeaderWithInput />;
 }
