@@ -60,7 +60,6 @@ import {
 import {
   createListByIdSelector,
   createListBySlugSelector,
-  createRecipeIsSelectedSelector,
   createRecipeSelector,
   selectRecentCreatedListIds,
   selectRecentSharedListIds,
@@ -276,16 +275,21 @@ const EmptyItemOverlay = ({
   return show ? (
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="flex flex-col gap-2 items-center justify-center z-70">
-        <div>Empty.</div>
-        <div>
-          <Badge
-            event={{ type: "NEW_RECIPE" }}
-            variant="secondary"
-            className="shadow-md"
-          >
-            Select More
-          </Badge>
-        </div>
+        <CurrentListIsSelected not>
+          <div className="opacity-60">Empty.</div>
+        </CurrentListIsSelected>
+        <CurrentListIsSelected>
+          <div>Empty.</div>
+          <div>
+            <Badge
+              event={{ type: "NEW_RECIPE" }}
+              variant="secondary"
+              className="shadow-md"
+            >
+              Select More
+            </Badge>
+          </div>
+        </CurrentListIsSelected>
       </div>
       <div className="absolute inset-0 opacity-20">{children}</div>
     </div>
@@ -303,10 +307,6 @@ const CurrentListCarouselItem = ({
 }) => {
   const selectRecipe = useMemo(() => createRecipeSelector(id), [id]);
   const recipe = usePageSessionSelector(selectRecipe);
-  const selectRecipeIsSelected = useMemo(
-    () => createRecipeIsSelectedSelector(id),
-    [id]
-  );
 
   const RecipeName = () => (
     <div className="flex flex-row items-center justify-start flex-1">
