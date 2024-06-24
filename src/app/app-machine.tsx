@@ -1,5 +1,5 @@
 import { GeneratorObervableEvent } from "@/lib/generator";
-import { arraysEqual, assert, isMobile } from "@/lib/utils";
+import { arraysEqual, assert, isMobile, sentenceToSlug } from "@/lib/utils";
 import {
   AppEvent,
   InstantRecipeMetadataPredictionOutput,
@@ -1032,7 +1032,7 @@ export const createAppMachine = ({
                     listName,
                     "expected listName after submitting toc reate recipe"
                   );
-                  router.push(`#${listName}`);
+                  router.push(`#${sentenceToSlug(listName)}`);
                 },
               },
             },

@@ -80,7 +80,7 @@ import {
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
-  XIcon
+  XIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -144,30 +144,32 @@ export const MyRecipesScreen = () => {
                 variant="outline"
                 className="flex gap-2 justify-between text-lg font-bold px-3 py-2 w-full bg-card shadow-lg sm:w-80"
               >
-                <div className="flex-1 text-start">
+                <div className="flex-1 text-start flex gap-1 max-w-full items-center">
                   <span className="ml-2 mr-2">
                     <CurrentListIcon />
                   </span>
-                  <span>
+                  <span className="truncate flex-1">
                     <CurrentListName />
                   </span>
-                </div>
-                <span
-                  className={cn(
-                    "ml-1 text-sm font-semibold text-white px-1 rounded",
-                    currentSlug === "selected" ? "bg-purple-700" : ""
-                  )}
-                >
-                  <CurrentListCount />
-                </span>
-                <div>
-                  <Button
-                    size="icon"
-                    className="rounded-full p-2"
-                    variant="secondary"
+                  <span
+                    className={cn(
+                      "mx-1 text-sm font-semibold text-white px-1 rounded",
+                      currentSlug === "selected"
+                        ? "bg-purple-700 "
+                        : "bg-slate-700"
+                    )}
                   >
-                    <ChevronDownIcon />
-                  </Button>
+                    <CurrentListCount />
+                  </span>
+                  <div>
+                    <Button
+                      size="icon"
+                      className="rounded-full p-2"
+                      variant="secondary"
+                    >
+                      <ChevronDownIcon />
+                    </Button>
+                  </div>
                 </div>
               </Badge>
             </DropdownMenuTrigger>
