@@ -143,7 +143,7 @@ function EmailCodeForm() {
   const onSubmit = useCallback(
     (data: z.infer<typeof formSchema>) => {
       setDisabled(true);
-      send({ type: "SUBMIT" });
+      send({ type: "SUBMIT", name: "email" });
     },
     [setDisabled, send]
   );

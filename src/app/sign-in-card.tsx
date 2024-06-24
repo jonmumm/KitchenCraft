@@ -89,7 +89,7 @@ function SignInForm() {
   const onSubmit = useCallback(
     async (data: z.infer<typeof formSchema>) => {
       setDisabled(true);
-      send({ type: "SUBMIT" });
+      send({ type: "SUBMIT", name: "email" });
       // try {
       //   await signIn("email", {
       //     email: data.email,

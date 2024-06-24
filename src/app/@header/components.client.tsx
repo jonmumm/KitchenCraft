@@ -18,7 +18,6 @@ import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
-import { useStore } from "@nanostores/react";
 import {
   ArrowLeftIcon,
   CheckCircleIcon,
@@ -42,7 +41,6 @@ import {
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
-import { PageSessionContext } from "../page-session-store.context";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
@@ -143,7 +141,7 @@ export const CraftInput = ({
     (keyboardEvent) => {
       if (keyboardEvent.code == "Enter" && !keyboardEvent.shiftKey) {
         keyboardEvent.preventDefault();
-        send({ type: "SUBMIT" });
+        send({ type: "SUBMIT", name: "prompt" });
       }
       send({ type: "KEY_DOWN", keyboardEvent });
     },

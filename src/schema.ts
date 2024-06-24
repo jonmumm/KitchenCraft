@@ -575,6 +575,7 @@ const SelectRelatedIdeaEventSchema = z.object({
 
 const SubmitEventSchema = z.object({
   type: z.literal("SUBMIT"),
+  name: z.string()
 });
 
 const SubmitPromptEventSchema = z.object({

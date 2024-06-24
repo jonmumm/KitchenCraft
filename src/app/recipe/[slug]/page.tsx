@@ -981,7 +981,7 @@ const CommentsCard = async () => {
             </div>
 
             <RecipeCommentsTexarea />
-            <Button event={{ type: "SUBMIT" }} className="w-full">
+            <Button event={{ type: "SUBMIT", name: "comment" }} className="w-full">
               Post Comment
             </Button>
           </div>

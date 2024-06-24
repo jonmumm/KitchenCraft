@@ -16,7 +16,6 @@ import {
 import { NewRecipe } from "@/db/types";
 import { DatabaseErrorSchema, handleDatabaseError } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
-import { getPersonalizationContext } from "@/lib/llmContext";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
 import { assert, assertType, sentenceToSlug } from "@/lib/utils";
@@ -1192,6 +1191,7 @@ export const createPageSessionMachine = ({
                 ],
               },
               SUBMIT: {
+                guard: ({ event }) => event.name === "prompt",
                 actions: [
                   assign(({ context }) => {
                     return produce(context, (draft) => {
@@ -1365,7 +1365,8 @@ export const createPageSessionMachine = ({
                   !!event.prompt?.length || !!event.tokens?.length,
               },
               SUBMIT: {
-                guard: ({ context }) => context.prompt.length > 0,
+                guard: ({ context, event }) =>
+                  event.name === "prompt" && context.prompt.length > 0,
                 target: [
                   ".Placeholder.Generating",
                   ".Tokens.Generating",
@@ -2543,267 +2544,264 @@ export const createPageSessionMachine = ({
               },
             ],
           },
-          Anonymous: {
-            on: {},
-            type: "parallel",
-            states: {},
-          },
-          Registering: {
-            initial: "InputtingEmail",
-            onDone: "LoggedIn",
-            on: {
-              CANCEL: "Anonymous",
-              SUGGEST_CHEF_NAMES_START: {
-                actions: assign(({ context }) =>
-                  produce(context, (draft) => {
-                    draft.previousSuggestedChefnames =
-                      context.previousSuggestedChefnames.concat(
-                        context.suggestedChefnames
-                      );
-                    draft.suggestedChefnames = [];
-                  })
-                ),
-              },
-              SUGGEST_CHEF_NAMES_PROGRESS: {
-                actions: assign({
-                  suggestedChefnames: ({ event, context }) => {
-                    const names = event.data.names;
-                    return names || context.suggestedChefnames;
-                  },
-                }),
-              },
-              SUGGEST_CHEF_NAMES_COMPLETE: {
-                actions: assign({
-                  suggestedChefnames: ({ event, context }) => {
-                    const names = event.data.names;
-                    return names;
-                  },
-                }),
-              },
-            },
-            states: {
-              InputtingEmail: {
-                on: {
-                  CHANGE: {
-                    guard: "didChangeEmailInput",
-                    actions: assign({
-                      email: ({ event }) => event.value,
-                    }),
-                  },
-                  SUBMIT: [
-                    {
-                      actions: spawnChild("generateChefNameSuggestions", {
-                        input: ({ context }) => {
-                          assert(
-                            context.email,
-                            "expected email when generating chef name suggestions"
-                          );
-                          const resultId = getCurrentResultId(context);
-                          const suggestedRecipes =
-                            context.results[resultId]?.suggestedRecipes;
-                          assert(
-                            suggestedRecipes,
-                            "expected suggested recipes to exist"
-                          );
+          Anonymous: {},
+          // Registering: {
+          //   initial: "InputtingEmail",
+          //   onDone: "LoggedIn",
+          //   on: {
+          //     CANCEL: "Anonymous",
+          //     SUGGEST_CHEF_NAMES_START: {
+          //       actions: assign(({ context }) =>
+          //         produce(context, (draft) => {
+          //           draft.previousSuggestedChefnames =
+          //             context.previousSuggestedChefnames.concat(
+          //               context.suggestedChefnames
+          //             );
+          //           draft.suggestedChefnames = [];
+          //         })
+          //       ),
+          //     },
+          //     SUGGEST_CHEF_NAMES_PROGRESS: {
+          //       actions: assign({
+          //         suggestedChefnames: ({ event, context }) => {
+          //           const names = event.data.names;
+          //           return names || context.suggestedChefnames;
+          //         },
+          //       }),
+          //     },
+          //     SUGGEST_CHEF_NAMES_COMPLETE: {
+          //       actions: assign({
+          //         suggestedChefnames: ({ event, context }) => {
+          //           const names = event.data.names;
+          //           return names;
+          //         },
+          //       }),
+          //     },
+          //   },
+          //   states: {
+          //     InputtingEmail: {
+          //       on: {
+          //         CHANGE: {
+          //           guard: "didChangeEmailInput",
+          //           actions: assign({
+          //             email: ({ event }) => event.value,
+          //           }),
+          //         },
+          //         SUBMIT: [
+          //           {
+          //             guard: ({ event }) => event.name === "email",
+          //             actions: spawnChild("generateChefNameSuggestions", {
+          //               input: ({ context }) => {
+          //                 assert(
+          //                   context.email,
+          //                   "expected email when generating chef name suggestions"
+          //                 );
+          //                 const resultId = getCurrentResultId(context);
+          //                 const suggestedRecipes =
+          //                   context.results[resultId]?.suggestedRecipes;
+          //                 assert(
+          //                   suggestedRecipes,
+          //                   "expected suggested recipes to exist"
+          //                 );
 
-                          const recipeId =
-                            suggestedRecipes[context.currentItemIndex];
-                          assert(
-                            recipeId,
-                            "expected recipeId when generating chef name suggestions"
-                          );
-                          const recipe = context.recipes[recipeId];
-                          assert(
-                            recipe?.name,
-                            "expected recipe name when generating chef name sueggestions"
-                          );
-                          assert(
-                            recipe?.description,
-                            "expected recipe name when generating chef name sueggestions"
-                          );
+          //                 const recipeId =
+          //                   suggestedRecipes[context.currentItemIndex];
+          //                 assert(
+          //                   recipeId,
+          //                   "expected recipeId when generating chef name suggestions"
+          //                 );
+          //                 const recipe = context.recipes[recipeId];
+          //                 assert(
+          //                   recipe?.name,
+          //                   "expected recipe name when generating chef name sueggestions"
+          //                 );
+          //                 assert(
+          //                   recipe?.description,
+          //                   "expected recipe name when generating chef name sueggestions"
+          //                 );
 
-                          return {
-                            email: context.email,
-                            previousSuggestions:
-                              context.previousSuggestedChefnames,
-                            prompt: context.prompt,
-                            tokens: context.tokens,
-                            personalizationContext: context.sessionSnapshot
-                              ?.context
-                              ? getPersonalizationContext(
-                                  context.sessionSnapshot.context
-                                )
-                              : undefined,
-                            selectedRecipe: {
-                              name: recipe.name,
-                              description: recipe.description,
-                            },
-                          };
-                        },
-                      }),
-                      target: ".Checking",
-                    },
-                  ],
-                },
-                initial: "Inputting",
-                states: {
-                  Inputting: {},
-                  Checking: {
-                    invoke: {
-                      src: "checkIfNewUser",
-                      input: ({ context }) => {
-                        assert(
-                          context.email,
-                          "expected email address when check if new user"
-                        );
-                        return { email: context.email };
-                      },
-                      onDone: {
-                        target: "Complete",
-                        actions: assign({
-                          isNewUser: ({ event }) => event.output,
-                        }),
-                      },
-                    },
-                  },
-                  Complete: {
-                    type: "final",
-                  },
-                },
-                onDone: [
-                  {
-                    target: "InputtingChefName",
-                    guard: ({ context }) => !!context.isNewUser,
-                  },
-                  {
-                    target: "InputtingOTP",
-                  },
-                ],
-              },
-              InputtingChefName: {
-                initial: "Inputting",
-                onDone: "InputtingOTP",
-                on: {
-                  REFRESH: {
-                    actions: spawnChild("generateChefNameSuggestions", {
-                      input: ({ context }) => {
-                        assert(
-                          context.email,
-                          "expected email when generating chef name suggestions"
-                        );
-                        const resultId = getCurrentResultId(context);
-                        const suggestedRecipes =
-                          context.results[resultId]?.suggestedRecipes;
-                        assert(
-                          suggestedRecipes,
-                          "expected suggested recipes to exist"
-                        );
+          //                 return {
+          //                   email: context.email,
+          //                   previousSuggestions:
+          //                     context.previousSuggestedChefnames,
+          //                   prompt: context.prompt,
+          //                   tokens: context.tokens,
+          //                   personalizationContext: context.sessionSnapshot
+          //                     ?.context
+          //                     ? getPersonalizationContext(
+          //                         context.sessionSnapshot.context
+          //                       )
+          //                     : undefined,
+          //                   selectedRecipe: {
+          //                     name: recipe.name,
+          //                     description: recipe.description,
+          //                   },
+          //                 };
+          //               },
+          //             }),
+          //             target: ".Checking",
+          //           },
+          //         ],
+          //       },
+          //       initial: "Inputting",
+          //       states: {
+          //         Inputting: {},
+          //         Checking: {
+          //           invoke: {
+          //             src: "checkIfNewUser",
+          //             input: ({ context }) => {
+          //               assert(
+          //                 context.email,
+          //                 "expected email address when check if new user"
+          //               );
+          //               return { email: context.email };
+          //             },
+          //             onDone: {
+          //               target: "Complete",
+          //               actions: assign({
+          //                 isNewUser: ({ event }) => event.output,
+          //               }),
+          //             },
+          //           },
+          //         },
+          //         Complete: {
+          //           type: "final",
+          //         },
+          //       },
+          //       onDone: [
+          //         {
+          //           target: "InputtingChefName",
+          //           guard: ({ context }) => !!context.isNewUser,
+          //         },
+          //         {
+          //           target: "InputtingOTP",
+          //         },
+          //       ],
+          //     },
+          //     InputtingChefName: {
+          //       initial: "Inputting",
+          //       onDone: "InputtingOTP",
+          //       on: {
+          //         REFRESH: {
+          //           actions: spawnChild("generateChefNameSuggestions", {
+          //             input: ({ context }) => {
+          //               assert(
+          //                 context.email,
+          //                 "expected email when generating chef name suggestions"
+          //               );
+          //               const resultId = getCurrentResultId(context);
+          //               const suggestedRecipes =
+          //                 context.results[resultId]?.suggestedRecipes;
+          //               assert(
+          //                 suggestedRecipes,
+          //                 "expected suggested recipes to exist"
+          //               );
 
-                        const recipeId =
-                          suggestedRecipes[context.currentItemIndex];
-                        assert(
-                          recipeId,
-                          "expected recipeId when generating chef name suggestions"
-                        );
-                        const recipe = context.recipes[recipeId];
-                        assert(
-                          recipe?.name,
-                          "expected recipe name when generating chef name sueggestions"
-                        );
-                        assert(
-                          recipe?.description,
-                          "expected recipe name when generating chef name sueggestions"
-                        );
+          //               const recipeId =
+          //                 suggestedRecipes[context.currentItemIndex];
+          //               assert(
+          //                 recipeId,
+          //                 "expected recipeId when generating chef name suggestions"
+          //               );
+          //               const recipe = context.recipes[recipeId];
+          //               assert(
+          //                 recipe?.name,
+          //                 "expected recipe name when generating chef name sueggestions"
+          //               );
+          //               assert(
+          //                 recipe?.description,
+          //                 "expected recipe name when generating chef name sueggestions"
+          //               );
 
-                        return {
-                          email: context.email,
-                          previousSuggestions:
-                            context.previousSuggestedChefnames,
-                          prompt: context.prompt,
-                          personalizationContext: context.sessionSnapshot
-                            ?.context
-                            ? getPersonalizationContext(
-                                context.sessionSnapshot.context
-                              )
-                            : undefined,
-                          tokens: context.tokens,
-                          selectedRecipe: {
-                            name: recipe.name,
-                            description: recipe.description,
-                          },
-                        };
-                      },
-                    }),
-                  },
-                },
-                states: {
-                  Inputting: {
-                    on: {
-                      SUBMIT: "Complete",
-                    },
-                  },
-                  Complete: {
-                    type: "final",
-                  },
-                },
-              },
-              InputtingOTP: {
-                on: {
-                  AUTHENTICATE: {
-                    description:
-                      "Called by the server when a user authenticates this session",
-                    target: "Complete",
-                    guard: ({ event }) => event.caller.type === "system",
-                    actions: [
-                      assign({
-                        uniqueId: ({ event }) => event.userId,
-                      }),
-                      spawnChild("updateChefName", {
-                        input: ({ context, event }) => {
-                          assert(
-                            event.type === "AUTHENTICATE",
-                            "expected authenticate event"
-                          );
+          //               return {
+          //                 email: context.email,
+          //                 previousSuggestions:
+          //                   context.previousSuggestedChefnames,
+          //                 prompt: context.prompt,
+          //                 personalizationContext: context.sessionSnapshot
+          //                   ?.context
+          //                   ? getPersonalizationContext(
+          //                       context.sessionSnapshot.context
+          //                     )
+          //                   : undefined,
+          //                 tokens: context.tokens,
+          //                 selectedRecipe: {
+          //                   name: recipe.name,
+          //                   description: recipe.description,
+          //                 },
+          //               };
+          //             },
+          //           }),
+          //         },
+          //       },
+          //       states: {
+          //         Inputting: {
+          //           on: {
+          //             SUBMIT: "Complete",
+          //           },
+          //         },
+          //         Complete: {
+          //           type: "final",
+          //         },
+          //       },
+          //     },
+          //     InputtingOTP: {
+          //       on: {
+          //         AUTHENTICATE: {
+          //           description:
+          //             "Called by the server when a user authenticates this session",
+          //           target: "Complete",
+          //           guard: ({ event }) => event.caller.type === "system",
+          //           actions: [
+          //             assign({
+          //               uniqueId: ({ event }) => event.userId,
+          //             }),
+          //             spawnChild("updateChefName", {
+          //               input: ({ context, event }) => {
+          //                 assert(
+          //                   event.type === "AUTHENTICATE",
+          //                   "expected authenticate event"
+          //                 );
 
-                          const { chefname } = context;
-                          assert(chefname, "expected chefname to be set");
-                          return { chefname, userId: event.userId };
-                        },
-                      }),
-                      // spawnChild("saveRecipeToListName", {
-                      //   input: ({ context, event }) => {
-                      //     assert(
-                      //       event.type === "AUTHENTICATE",
-                      //       "expected authenticate event"
-                      //     );
-                      //     assert(
-                      //       context.recipeIdToSave,
-                      //       "expected recipeId to save"
-                      //     );
-                      //     assert(
-                      //       context.currentListSlug,
-                      //       "expected currentListSlug to be set"
-                      //     );
-                      //     const currentList =
-                      //       context.listsBySlug?.[context.currentListSlug];
-                      //     assert(currentList, "expected currentList to be set");
+          //                 const { chefname } = context;
+          //                 assert(chefname, "expected chefname to be set");
+          //                 return { chefname, userId: event.userId };
+          //               },
+          //             }),
+          //             // spawnChild("saveRecipeToListName", {
+          //             //   input: ({ context, event }) => {
+          //             //     assert(
+          //             //       event.type === "AUTHENTICATE",
+          //             //       "expected authenticate event"
+          //             //     );
+          //             //     assert(
+          //             //       context.recipeIdToSave,
+          //             //       "expected recipeId to save"
+          //             //     );
+          //             //     assert(
+          //             //       context.currentListSlug,
+          //             //       "expected currentListSlug to be set"
+          //             //     );
+          //             //     const currentList =
+          //             //       context.listsBySlug?.[context.currentListSlug];
+          //             //     assert(currentList, "expected currentList to be set");
 
-                      //     return {
-                      //       recipeId: context.recipeIdToSave,
-                      //       userId: event.userId,
-                      //       listName: currentList.name,
-                      //     };
-                      //   },
-                      // }),
-                    ],
-                  },
-                },
-              },
-              Complete: {
-                type: "final",
-              },
-            },
-          },
+          //             //     return {
+          //             //       recipeId: context.recipeIdToSave,
+          //             //       userId: event.userId,
+          //             //       listName: currentList.name,
+          //             //     };
+          //             //   },
+          //             // }),
+          //           ],
+          //         },
+          //       },
+          //     },
+          //     Complete: {
+          //       type: "final",
+          //     },
+          //   },
+          // },
           LoggedIn: {},
         },
       },
@@ -3435,7 +3433,7 @@ export const createPageSessionMachine = ({
               },
               SUBMIT: {
                 target: "Saving",
-                // todo guard
+                guard: ({ event }) => event.name === "listName",
                 actions: assign({
                   currentListSlug: ({ context }) => {
                     const listName = ListNameSchema.parse(context.listName);

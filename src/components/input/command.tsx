@@ -75,7 +75,7 @@ const CommandInput = React.forwardRef<
         {...props}
       />
       {postIcon === "send" && (
-        <Button event={{ type: "SUBMIT" }} size="icon" variant="ghost">
+        <Button size="icon" variant="ghost">
           <SendHorizonalIcon className={isEmpty ? "opacity-50" : ""} />
         </Button>
       )}

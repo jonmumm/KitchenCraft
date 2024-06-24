@@ -71,7 +71,9 @@ export const HasRecipesGenerated = combinedSelectorComponent(
   selectHasRecipesGenerated
 );
 
-export const HasSubmittedPrompt = appSelectorComponent(selectHasSubmittedPrompt);
+export const HasSubmittedPrompt = appSelectorComponent(
+  selectHasSubmittedPrompt
+);
 
 export const CraftEmpty = ({ children }: { children: ReactNode }) => {
   const promptLength = usePromptLength();
@@ -364,13 +366,13 @@ export const EnterEmailForm = () => {
       const value = data.email || "";
       send({ type: "CHANGE", name: "email", value });
     }).unsubscribe;
-  }, [form.watch, send]);
+  }, [send, form]);
 
   const onSubmit = useCallback(
     async (data: z.infer<typeof emailFormSchema>) => {
       setDisabled(true);
       try {
-        send({ type: "SUBMIT" });
+        send({ type: "SUBMIT", name: "email" });
         await signIn("email", {
           email: data.email,
           redirect: false,
@@ -530,7 +532,7 @@ export const EnterChefNameForm = () => {
   const onSubmit = useCallback(
     async (data: z.infer<typeof chefNameFormSchema>) => {
       setDisabled(true);
-      send({ type: "SUBMIT" });
+      send({ type: "SUBMIT", name: "chefName" });
     },
     [session$, send]
   );
@@ -628,14 +630,14 @@ export const EnterListNameForm = () => {
       const value = data.listName || "";
       send({ type: "CHANGE", name: "listName", value });
     }).unsubscribe;
-  }, [form.watch, send]);
+  }, [form, send]);
 
   const onSubmit = useCallback(
     async (data: z.infer<typeof listNameFormSchema>) => {
       setDisabled(true);
-      send({ type: "SUBMIT" });
+      send({ type: "SUBMIT", name: "listName" });
     },
-    [store, send]
+    [send]
   );
 
   return (

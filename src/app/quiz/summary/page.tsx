@@ -109,11 +109,11 @@ export default function Results() {
   }, [send, emailForm]);
 
   const onSubmitEmail = useCallback(async () => {
-    send({ type: "SUBMIT" });
+    send({ type: "SUBMIT", name: "email" });
   }, [send]);
 
   const onSubmitUsername = useCallback(async () => {
-    send({ type: "SUBMIT" });
+    send({ type: "SUBMIT", name: "username" });
   }, [send]);
 
   useEventHandler("SELECT_VALUE", (event) => {
@@ -395,7 +395,7 @@ const FeedTopicSubmitButton = () => {
     <Button
       className="w-full mt-6"
       size="xl"
-      event={{ type: "SUBMIT" }}
+      event={{ type: "SUBMIT", name: "topic" }}
       disabled={count < 3}
     >
       {count >= 3 ? <>Submit</> : <>Pick at 3 or more</>}

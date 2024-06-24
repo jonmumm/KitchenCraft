@@ -40,6 +40,7 @@ import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { selectCraftIsOpen } from "@/selectors/app.selectors";
 import { selectPromptIsDirty } from "@/selectors/page-session.selectors";
+import { selectPromptIsDirty } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
 import { useStore } from "@nanostores/react";
@@ -133,96 +134,68 @@ export const SearchParamsToastMessage = () => {
   return <></>;
 };
 
-export const EnterChefNameCard = () => {
-  const ChefNameSuggestions = () => {
-    const suggestedChefNames = useSuggestedChefnames();
-    const items = new Array(6).fill("");
+// export const EnterChefNameCard = () => {
+//   const ChefNameSuggestions = () => {
+//     const suggestedChefNames = useSuggestedChefnames();
+//     const items = new Array(6).fill("");
 
-    return (
-      <>
-        {items.map((item, index) => {
-          return (
-            <div key={index} className="carousel-item">
-              {suggestedChefNames.length > index ? (
-                <Badge
-                  event={{
-                    type: "SELECT_VALUE",
-                    name: "suggested_chefname",
-                    value: suggestedChefNames[index]!,
-                  }}
-                >
-                  {suggestedChefNames[index]}
-                </Badge>
-              ) : (
-                <Badge>
-                  <Skeleton className="h-4 w-7" />
-                </Badge>
-              )}
-            </div>
-          );
-        })}
-      </>
-    );
-  };
+//     return (
+//       <>
+//         {items.map((item, index) => {
+//           return (
+//             <div key={index} className="carousel-item">
+//               {suggestedChefNames.length > index ? (
+//                 <Badge
+//                   event={{
+//                     type: "SELECT_VALUE",
+//                     name: "suggested_chefname",
+//                     value: suggestedChefNames[index]!,
+//                   }}
+//                 >
+//                   {suggestedChefNames[index]}
+//                 </Badge>
+//               ) : (
+//                 <Badge>
+//                   <Skeleton className="h-4 w-7" />
+//                 </Badge>
+//               )}
+//             </div>
+//           );
+//         })}
+//       </>
+//     );
+//   };
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-row gap-1 items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <CardTitle>Your Chef Name</CardTitle>
-            <CardDescription>
-              Choose a name so you and others can quickly access your saved
-              recipes. Must be unique.
-            </CardDescription>
-            <div className="flex flex-row justify-between items-center">
-              <Label className="uppercase text-xs text-muted-foreground">
-                Suggestions
-              </Label>
-              <Button variant="ghost" event={{ type: "LOAD_MORE" }}>
-                <RefreshCwIcon size={14} />
-              </Button>
-            </div>
-            <div className="flex flex-1 gap-1 flex-wrap">
-              <ChefNameSuggestions />
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <EnterChefNameForm />
-      </CardContent>
-    </Card>
-  );
-};
-
-const EmptyItemOverlay = ({
-  children,
-  show,
-}: {
-  children: ReactNode;
-  show: boolean;
-}) => {
-  return show ? (
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="flex flex-col gap-2 items-center justify-center z-70">
-        <div>Empty.</div>
-        <div>
-          <Badge
-            event={{ type: "NEW_RECIPE" }}
-            variant="secondary"
-            className="shadow-md"
-          >
-            Select More
-          </Badge>
-        </div>
-      </div>
-      <div className="absolute inset-0 opacity-20">{children}</div>
-    </div>
-  ) : (
-    <>{children}</>
-  );
-};
+//   return (
+//     <Card>
+//       <CardHeader>
+//         <div className="flex flex-row gap-1 items-center justify-between">
+//           <div className="flex flex-col gap-1">
+//             <CardTitle>Your Chef Name</CardTitle>
+//             <CardDescription>
+//               Choose a name so you and others can quickly access your saved
+//               recipes. Must be unique.
+//             </CardDescription>
+//             <div className="flex flex-row justify-between items-center">
+//               <Label className="uppercase text-xs text-muted-foreground">
+//                 Suggestions
+//               </Label>
+//               <Button variant="ghost" event={{ type: "LOAD_MORE" }}>
+//                 <RefreshCwIcon size={14} />
+//               </Button>
+//             </div>
+//             <div className="flex flex-1 gap-1 flex-wrap">
+//               <ChefNameSuggestions />
+//             </div>
+//           </div>
+//         </div>
+//       </CardHeader>
+//       <CardContent>
+//         <EnterChefNameForm />
+//       </CardContent>
+//     </Card>
+//   );
+// };
 
 export const PersonalizationSettingsMenu = () => {
   const equipment = useStore($equipment);
@@ -434,21 +407,19 @@ export const IsInPersonalizationSettings = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
-export const IsInputtingChefName = (props: { children: ReactNode }) => {
-  const store = usePageSessionStore();
+// export const IsInputtingChefName = (props: { children: ReactNode }) => {
+//   const store = usePageSessionStore();
 
-  const selector = useCallback(() => {
-    const stateValue = store.get().value;
-    return (
-      typeof stateValue.Auth === "object" &&
-      typeof stateValue.Auth.Registering === "object" &&
-      !!stateValue.Auth.Registering.InputtingChefName
-    );
-  }, [store]);
+//   const selector = useCallback(() => {
+//     const stateValue = store.get().value;
+//     return (
+//       typeof stateValue.Auth === "object" &&
+//     );
+//   }, [store]);
 
-  const active = useSyncExternalStore(store.subscribe, selector, selector);
-  return active ? <>{props.children}</> : null;
-};
+//   const active = useSyncExternalStore(store.subscribe, selector, selector);
+//   return active ? <>{props.children}</> : null;
+// };
 
 const selectIsSelectingList = (state: AppSnapshot) => {
   return state.matches({ Lists: { Selecting: "True" } });
@@ -477,21 +448,21 @@ export const IsUpgradingAccount = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
-export const IsInputtingEmail = (props: { children: ReactNode }) => {
-  const session$ = usePageSessionStore();
-  const selector = useCallback(() => {
-    const stateValue = session$.get().value;
-    const val =
-      typeof stateValue.Auth === "object" &&
-      typeof stateValue.Auth.Registering === "object" &&
-      !!stateValue.Auth.Registering.InputtingEmail;
-    return val;
-  }, [session$]);
+// export const IsInputtingEmail = (props: { children: ReactNode }) => {
+//   const session$ = usePageSessionStore();
+//   const selector = useCallback(() => {
+//     const stateValue = session$.get().value;
+//     const val =
+//       typeof stateValue.Auth === "object" &&
+//       typeof stateValue.Auth.Registering === "object" &&
+//       !!stateValue.Auth.Registering.InputtingEmail;
+//     return val;
+//   }, [session$]);
 
-  const active = useSyncExternalStore(session$.subscribe, selector, selector);
+//   const active = useSyncExternalStore(session$.subscribe, selector, selector);
 
-  return active ? <>{props.children}</> : null;
-};
+//   return active ? <>{props.children}</> : null;
+// };
 
 // const useIsLoadingRecipeLists = () => {
 //   const session$ = usePageSessionStore();

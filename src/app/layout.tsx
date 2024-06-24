@@ -40,11 +40,11 @@ import {
   Body,
   CraftStickyHeader,
   CreateNewListCard,
-  EnterChefNameCard,
+  // EnterChefNameCard,
   EnterEmailCard,
   IsInPersonalizationSettings,
-  IsInputtingChefName,
-  IsInputtingEmail,
+  // IsInputtingChefName,
+  // IsInputtingEmail,
   IsUpgradingAccount,
   PersonalizationSettingsMenu,
   SearchParamsToastMessage,
@@ -219,7 +219,7 @@ export default async function RootLayout(
                   </div>
                   <div className="sticky bottom-0 z-20">{footer}</div>
                   {canInstallPWA && <SafariInstallPrompt />}
-                  <RegistrationDialog />
+                  {/* <RegistrationDialog /> */}
                   <SaveDialog />
                   <ShareDialog />
                   <SignInDialog />
@@ -341,29 +341,29 @@ const UpgradeAccountDialog = () => {
   );
 };
 
-const RegistrationDialog = () => {
-  const isMobile = getIsMobile();
-  return (
-    <>
-      <IsInputtingEmail>
-        <ResponsiveDialog open isMobile={isMobile}>
-          <ResponsiveDialogOverlay />
-          <ResponsiveDialogContent>
-            <EnterEmailCard />
-          </ResponsiveDialogContent>
-        </ResponsiveDialog>
-      </IsInputtingEmail>
-      <IsInputtingChefName>
-        <ResponsiveDialog open isMobile={isMobile}>
-          <ResponsiveDialogOverlay />
-          <ResponsiveDialogContent>
-            <EnterChefNameCard />
-          </ResponsiveDialogContent>
-        </ResponsiveDialog>
-      </IsInputtingChefName>
-    </>
-  );
-};
+// const RegistrationDialog = () => {
+//   const isMobile = getIsMobile();
+//   return (
+//     <>
+//       <IsInputtingEmail>
+//         <ResponsiveDialog open isMobile={isMobile}>
+//           <ResponsiveDialogOverlay />
+//           <ResponsiveDialogContent>
+//             <EnterEmailCard />
+//           </ResponsiveDialogContent>
+//         </ResponsiveDialog>
+//       </IsInputtingEmail>
+//       {/* <IsInputtingChefName>
+//         <ResponsiveDialog open isMobile={isMobile}>
+//           <ResponsiveDialogOverlay />
+//           <ResponsiveDialogContent>
+//             <EnterChefNameCard />
+//           </ResponsiveDialogContent>
+//         </ResponsiveDialog>
+//       </IsInputtingChefName> */}
+//     </>
+//   );
+// };
 
 const SaveDialog = () => {
   const isMobile = getIsMobile();
