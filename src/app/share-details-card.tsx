@@ -247,6 +247,13 @@ export const ShareDetailsCard = () => {
           </IsEditingName>
         </CardContent>
       </PageSessionMatches>
+      <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }}>
+        <CardContent className="flex flex-row gap-2">
+          <Button event={{ type: "CLOSE" }} size="xl" className="w-full">
+            Close
+          </Button>
+        </CardContent>
+      </PageSessionMatches>
     </Card>
   );
 };
