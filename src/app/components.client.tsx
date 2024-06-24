@@ -40,7 +40,6 @@ import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { selectCraftIsOpen } from "@/selectors/app.selectors";
 import { selectPromptIsDirty } from "@/selectors/page-session.selectors";
-import { selectPromptIsDirty } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
 import { useStore } from "@nanostores/react";
