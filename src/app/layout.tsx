@@ -285,12 +285,10 @@ const SignInDialog = () => {
 };
 
 const ShareDialog = () => {
-  const isMobile = getIsMobile();
-
   return (
     <AppMatches matchedState={{ Share: { Open: "True" } }}>
       <ResponsiveDialog open>
-        <ResponsiveDialogOverlay event={{ type: "CANCEL" }} className="z-90" />
+        <ResponsiveDialogOverlay event={{ type: "CANCEL" }} />
         <ResponsiveDialogContent className="rounded-t-xl z-100">
           <ShareDetailsCard />
         </ResponsiveDialogContent>

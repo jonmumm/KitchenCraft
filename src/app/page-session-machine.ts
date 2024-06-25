@@ -2528,9 +2528,9 @@ export const createPageSessionMachine = ({
         initial: "Uninitialized",
         //  ? "Anonymous" : "LoggedIn",
         on: {
-          UPDATE_SESSION: {
-            target: ".LoggedIn",
-          },
+          // UPDATE_SESSION: {
+          //   target: ".LoggedIn",
+          // },
         },
         states: {
           Uninitialized: {

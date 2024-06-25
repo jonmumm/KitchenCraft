@@ -1,17 +1,19 @@
 "use client";
 
 import { PWALifeCycle } from "@/components/device/PWALifecycle";
-import { ApplicationContext } from "@/context/application";
+import { GlobalContext } from "@/context/application";
 import { ServiceWorkerProvider } from "@/context/service-worker";
 import { env } from "@/env.public";
 import { useActor } from "@/hooks/useActor";
+import { useAppContext } from "@/hooks/useAppContext";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
 import { getNextAuthSession } from "@/lib/auth/session";
+import { selectHistory } from "@/selectors/app.selectors";
 import { ExtraAppProps } from "@/types";
 import { map } from "nanostores";
-import { SessionProvider, useSession } from "next-auth/react";
+import { SessionProvider } from "next-auth/react";
 import {
   useParams,
   usePathname,
@@ -37,7 +39,7 @@ export function ApplicationProvider(props: {
   token: string;
   extraProps: ExtraAppProps;
 }) {
-  const [app$] = useState(
+  const [global$] = useState(
     map<ExtraAppProps & unknown>({
       ...props.extraProps,
     })
@@ -46,10 +48,10 @@ export function ApplicationProvider(props: {
 
   useEffect(() => {
     // @ts-expect-error
-    window.app$ = app$;
+    window.global$ = global$;
     // @ts-expect-error
     window.store = store;
-  }, [app$, store]);
+  }, [global$, store]);
   // const [permission, setPermission] = useState(() => {
   //   Notification.requestPermission();
 
@@ -62,21 +64,24 @@ export function ApplicationProvider(props: {
     const router = useRouter();
     const send = useSend();
 
-    const actor = useActor("craft", () =>
-      createAppMachine({
+    const actor = useActor("app", () => {
+      const search = searchParams.toString();
+      const initialPath = pathname + (search.length ? `?${search}` : "");
+
+      return createAppMachine({
         searchParams: Object.fromEntries(searchParams.entries()),
         router,
         send,
-        initialPath: pathname,
+        initialPath,
         session: props.nextAuthSession,
         store,
         token: props.token,
-      })
-    );
+      });
+    });
 
     useEffect(() => {
       // @ts-expect-error
-      window.client$ = actor;
+      window.appMachine$ = actor;
     }, [actor]);
 
     return <AppContext.Provider value={actor}>{children}</AppContext.Provider>;
@@ -85,20 +90,17 @@ export function ApplicationProvider(props: {
   return (
     <ServiceWorkerProvider>
       <SessionProvider session={props.nextAuthSession}>
-        <ApplicationContext.Provider value={app$}>
+        <GlobalContext.Provider value={global$}>
           <CraftProvider>
-            <SessionEventProviders />
             <VisibilityEventsProvider />
-            <PageLoadEventsProvider />
-            <SearchParamsEventsProvider />
+            <NavigationEventsProvider />
             <HashChangeEventsProvider />
-            <PopStateEventsProvider />
             <SignInProvider />
             <AnalyticsProvider />
             {props.extraProps.appSessionId && <PWALifeCycle />}
             {props.children}
           </CraftProvider>
-        </ApplicationContext.Provider>
+        </GlobalContext.Provider>
       </SessionProvider>
     </ServiceWorkerProvider>
   );
@@ -174,38 +176,76 @@ const PopStateEventsProvider = () => {
   return null;
 };
 
-const SearchParamsEventsProvider = () => {
+const NavigationEventsProvider: React.FC = () => {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const send = useSend();
+  const app$ = useAppContext();
   const lastSearchParams = useRef<typeof searchParams>(searchParams);
+  const lastPathname = useRef<string | undefined>(undefined);
+  const isInitialMount = useRef(true);
+  const isBackNavigation = useRef(false);
 
   useEffect(() => {
+    const history = selectHistory(app$.getSnapshot()) as string[];
+    const fullPath = pathname + window.location.search + window.location.hash;
+    const isPathInHistory = history.includes(fullPath);
+
+    let direction: "forward" | "backward" | "initial";
+    if (isInitialMount.current) {
+      direction = "initial";
+    } else if (isBackNavigation.current) {
+      direction = "backward";
+    } else {
+      direction = "forward";
+    }
+
+    // Handle search params change
     if (lastSearchParams.current !== searchParams) {
       send({
         type: "UPDATE_SEARCH_PARAMS",
         searchParams: Object.fromEntries(searchParams.entries()),
       });
+      lastSearchParams.current = searchParams;
     }
-  }, [send, searchParams]);
 
-  return null;
-};
+    // Handle page load (pathname change)
+    if (lastPathname.current !== pathname) {
+      send({
+        type: "PAGE_LOADED",
+        pathname: fullPath,
+        direction,
+      });
+      lastPathname.current = fullPath;
+    }
+    console.log({ isPathInHistory, direction });
 
-const SessionEventProviders = () => {
-  const session = useSession();
-  const send = useSend();
-  const initializedRef = useRef(true);
+    // Handle push state, but avoid sending on initial mount
+    if (
+      !isInitialMount.current &&
+      direction === "forward" &&
+      !isPathInHistory
+    ) {
+      send({ type: "PUSH_STATE", path: fullPath });
+    }
+
+    // Reset flags
+    isInitialMount.current = false;
+    isBackNavigation.current = false;
+  }, [send, searchParams, pathname, app$]);
 
   useEffect(() => {
-    if (!initializedRef.current) {
-      send({ type: "UPDATE_SESSION", session });
+    function onPopState(event: PopStateEvent) {
+      isBackNavigation.current = true;
+      send({ type: "POP_STATE", nativeEvent: event });
     }
-    // if (loaded.current !== pathname) {
-    //   send({ type: "PAGE_LOADED", pathname });
-    //   loaded.current = pathname;
-    // }
-    return () => {};
-  }, [send, session]);
+
+    window.addEventListener("popstate", onPopState, false);
+
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [send]);
 
   return null;
 };
@@ -241,22 +281,6 @@ const VisibilityEventsProvider: React.FC = () => {
       };
     }
   }, [send]);
-
-  return null;
-};
-
-const PageLoadEventsProvider = () => {
-  const pathname = usePathname();
-  // console.log({ pathname });
-  const send = useSend();
-  const loaded = useRef<string | undefined>(undefined);
-
-  useEffect(() => {
-    if (loaded.current !== pathname) {
-      send({ type: "PAGE_LOADED", pathname });
-      loaded.current = pathname;
-    }
-  }, [send, pathname]);
 
   return null;
 };

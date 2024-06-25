@@ -733,6 +733,7 @@ const ClearEventSchema = z.object({
 const PageLoadedEventSchema = z.object({
   type: z.literal("PAGE_LOADED"),
   pathname: z.string(),
+  direction: z.enum(['forward', 'backward', 'initial']),
 });
 
 const SearchParamsEventSchema = z.object({
@@ -965,10 +966,10 @@ const InitializeEventSchema = z.object({
 //   type: z.literal("SSR_LAYOUT"),
 // });
 
-const UpdateSessionEventSchema = z.object({
-  type: z.literal("UPDATE_SESSION"),
-  session: z.custom<ReturnType<typeof useSession>>(),
-});
+// const UpdateSessionEventSchema = z.object({
+//   type: z.literal("UPDATE_SESSION"),
+//   session: z.custom<ReturnType<typeof useSession>>(),
+// });
 
 const PrevEventSchema = z.object({
   type: z.literal("PREV"),
@@ -1145,6 +1146,11 @@ const CopyLinkEventSchema = z.object({
   type: z.literal("COPY_LINK"),
 });
 
+const PushStateEventSchema = z.object({
+  type: z.literal("PUSH_STATE"),
+  path: z.string(),
+});
+
 const PopStateEventSchema = z.object({
   type: z.literal("POP_STATE"),
   nativeEvent: z.custom<PopStateEvent>(),
@@ -1158,6 +1164,7 @@ const LikeRecipeEventSchema = z.object({
 export const AppEventSchema = z.discriminatedUnion("type", [
   LikeRecipeEventSchema,
   CopyLinkEventSchema,
+  PushStateEventSchema,
   PopStateEventSchema,
   PressButtonEventSchema,
   SaveRecipeEventSchema,
@@ -1199,7 +1206,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   NextEventSchema,
   PrintEventSchema,
   // SSRLayoutEventSchema,
-  UpdateSessionEventSchema,
+  // UpdateSessionEventSchema,
   InitializeEventSchema,
   InitAdInstancesEventSchema,
   ViewAdInstanceEventSchema,

@@ -1,4 +1,4 @@
-import { ApplicationContext } from "@/context/application";
+import { GlobalContext } from "@/context/application";
 import { AppEvent } from "@/types";
 import { useContext } from "react";
 import { BehaviorSubject, Subject } from "rxjs";
@@ -9,7 +9,7 @@ export const useEvents = () => {
 };
 
 export const useEventSubject = () => {
-  const store = useContext(ApplicationContext);
+  const store = useContext(GlobalContext);
   let event$ = store.get()["event"] as Subject<AppEvent> | undefined;
 
   if (!event$) {

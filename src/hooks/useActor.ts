@@ -1,4 +1,4 @@
-import { ApplicationContext } from "@/context/application";
+import { GlobalContext } from "@/context/application";
 import { useContext, useLayoutEffect, useState } from "react";
 import {
   ActorOptions,
@@ -13,7 +13,7 @@ export const useActor = <TMachine extends AnyStateMachine>(
   machine: () => TMachine,
   opts?: ActorOptions<TMachine>
 ) => {
-  const appStore = useContext(ApplicationContext);
+  const appStore = useContext(GlobalContext);
   const event$ = useEvents();
   const existingActor = appStore.get()[key] as
     | ActorRefFrom<typeof machine>

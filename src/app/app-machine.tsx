@@ -56,9 +56,6 @@ export const createAppMachine = ({
 
   const initialContext = (() => {
     let prompt = searchParams["prompt"] || "";
-    console.log({ prompt });
-    console.log({ prompt });
-    console.log({ prompt });
 
     // Overr-ride the prompt with whatever is in the input box if the prompt is open
     if (initialOpen && typeof document !== "undefined") {
@@ -70,7 +67,6 @@ export const createAppMachine = ({
         prompt = value;
       }
     }
-    console.log({ prompt });
 
     // const ingredients =
     //   searchParams["ingredients"] &&
@@ -90,6 +86,7 @@ export const createAppMachine = ({
       savedRecipeSlugs: [],
       equipmentAdaptations: undefined,
       inputs: {},
+      history: [initialPath],
       currentRecipeUrl: undefined,
       scrollItemIndex: 0,
       token,
@@ -286,11 +283,9 @@ export const createAppMachine = ({
         return event.ref === document.activeElement;
       },
       hasFocusedRecipeQueryParam: () => {
-        console.log("has focused check");
         const focusedRecipeId = new URLSearchParams(window.location.search).get(
           "focusedRecipeId"
         );
-        console.log({ focusedRecipeId });
         return focusedRecipeId ? focusedRecipeId.length > 0 : false;
       },
       hasCraftingQueryParam: () => {
@@ -373,9 +368,9 @@ export const createAppMachine = ({
       Auth: {
         initial: !session ? "Anonymous" : "LoggedIn",
         on: {
-          UPDATE_SESSION: {
-            target: ".LoggedIn",
-          },
+          // UPDATE_SESSION: {
+          //   target: ".LoggedIn",
+          // },
           LOGOUT: {
             actions: () => {
               window.location.href = "/signout";
@@ -792,7 +787,6 @@ export const createAppMachine = ({
               assign({
                 carouselAPI: ({ event }) => event.carouselAPI,
                 selectItemIndexToScrollTo: ({ context, event }) => {
-                  console.log(context.selectItemIndexToScrollTo, event);
                   if (
                     context.selectItemIndexToScrollTo !== undefined &&
                     event.carouselAPI
@@ -1086,6 +1080,26 @@ export const createAppMachine = ({
                 },
               },
             },
+          },
+        },
+      },
+      Navigation: {
+        on: {
+          PUSH_STATE: {
+            actions: assign({
+              history: ({ context, event }) =>
+                produce(context.history, (draft) => {
+                  draft.push(event.path);
+                }),
+            }),
+          },
+          POP_STATE: {
+            actions: assign({
+              history: ({ context, event }) =>
+                produce(context.history, (draft) => {
+                  draft.pop();
+                }),
+            }),
           },
         },
       },

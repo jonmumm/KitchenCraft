@@ -18,3 +18,12 @@ export const selectCurrentListIsSelected = createSelector(
 export const selectHasSubmittedPrompt = (state: AppSnapshot) => {
   return !!state.context.submittedPrompt.length;
 };
+
+export const selectHistory = (state: AppSnapshot) => {
+  return state.context.history;
+};
+
+export const selectCanGoBack = createSelector(selectHistory, (history) => {
+  console.log({ history });
+  return history.length > 1;
+});
