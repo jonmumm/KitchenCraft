@@ -21,7 +21,7 @@ export const selectPromptIsPristine = (state: PageSessionSnapshot) =>
   state.context.prompt.length > 0;
 
 export const selectUserEmail = (state: PageSessionSnapshot) =>
-  state.context.sessionSnapshot?.context.email;
+  state.context.userSnapshot?.context.email;
 
 export const selectSelectedRecipeCount = (state: PageSessionSnapshot) =>
   state.context.sessionSnapshot?.context.selectedRecipeIds?.length || 0;
