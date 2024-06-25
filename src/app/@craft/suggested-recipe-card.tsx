@@ -238,7 +238,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       {isExpanded && (
         <div className="mt-4 mb-24 flex flex-col items-center">
           <BackButton asChild>
-            <Badge variant="default">
+            <Badge className="cursor-pointer" variant="default">
               <MoveLeftIcon size={14} className="mr-1" /> Back
             </Badge>
           </BackButton>

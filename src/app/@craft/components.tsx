@@ -1,21 +1,17 @@
 import { Label } from "@/components/display/label";
 import KeyboardAvoidingView from "@/components/layout/keyboard-avoiding-view";
-import { AppMatches } from "@/components/util/app-matches";
-import ClientOnly from "@/components/util/client-only";
 import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
 import { ReactNode } from "react";
 import {
   Container,
   HasRecipesGenerated,
-  HasRecipesSelected,
   Section,
-  SelectedRecipesBar,
   SuggestedIngredientsSection,
   SuggestedRecipeCards,
   SuggestedTagsSection,
   // SuggestedTagBadge,
-  SuggestedTokenBadge
+  SuggestedTokenBadge,
 } from "./components.client";
 
 const BadgeList = ({ children }: { children: ReactNode }) => {
@@ -54,17 +50,17 @@ export const NewRecipeResultsView = () => {
         <SuggestedTagsSection />
         {/* <TrendingTagsSection /> */}
       </Container>
-      <Footer>
-        <ClientOnly>
-          {/* <HasRecipesSelected>
+      {/* <Footer> */}
+      {/* <ClientOnly> */}
+      {/* <HasRecipesSelected>
             <div className="max-w-3xl w-full standalone:mb-10 mx-auto overflow-hidden">
               <AppMatches not matchedState={{ MyRecipes: { Open: "True" } }}>
                 <SelectedRecipesBar />
               </AppMatches>
             </div>
           </HasRecipesSelected> */}
-        </ClientOnly>
-      </Footer>
+      {/* </ClientOnly> */}
+      {/* </Footer> */}
     </>
   );
 };
