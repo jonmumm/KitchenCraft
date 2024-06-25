@@ -129,7 +129,6 @@ type List = {
   slug: string;
   created: boolean;
   count: number;
-  idSet: Record<string, true>;
   createdAt: Date;
 };
 
@@ -161,6 +160,7 @@ export type PageSessionContext = {
     }
   >;
   recipes: Record<string, Recipe>;
+  listRecipes: Record<string, Record<string, true>>;
   generatingRecipeId: string | undefined;
   currentItemIndex: number;
   currentListRecipeIndex: number;
@@ -794,6 +794,7 @@ export const createPageSessionMachine = ({
       redoOperations: [],
       sessionAccessToken: input.sessionAccessToken,
       userAccessToken: input.userAccessToken,
+      listRecipes: {},
       listsById: initializeListsById(),
       shareNameInput: undefined,
     }),
@@ -3244,9 +3245,9 @@ export const createPageSessionMachine = ({
                           icon,
                           created: true,
                           count: Object.values(event.output.idSet).length,
-                          idSet: event.output.idSet,
                           createdAt: createdAt,
                         };
+                        draft.listRecipes[id] = event.output.idSet;
                       })
                     ),
                     // actions: assign({
@@ -3397,8 +3398,8 @@ export const createPageSessionMachine = ({
                         ...list,
                         created: true,
                         count: recipeIds.length,
-                        idSet,
                       };
+                      draft.listRecipes[list.id] = idSet;
                     });
                   });
                 }),
@@ -3525,9 +3526,9 @@ export const createPageSessionMachine = ({
                         icon,
                         created: true,
                         count: Object.values(event.output.idSet).length,
-                        idSet: event.output.idSet,
                         createdAt,
                       };
+                      draft.listRecipes[id] = event.output.idSet;
                     })
                   ),
                   enqueueActions(({ enqueue, event, context }) => {
@@ -3847,7 +3848,6 @@ const initializeListsById = () => {
       slug: "selected",
       created: false,
       count: 0,
-      idSet: {},
       createdAt: new Date(),
     },
     [makeLaterId]: {
@@ -3857,7 +3857,6 @@ const initializeListsById = () => {
       slug: "make-later",
       created: false,
       count: 0,
-      idSet: {},
       createdAt: new Date(),
     },
     [favoritesId]: {
@@ -3867,7 +3866,6 @@ const initializeListsById = () => {
       slug: "favorites",
       created: false,
       count: 0,
-      idSet: {},
       createdAt: new Date(),
     },
     [likedId]: {
@@ -3877,7 +3875,6 @@ const initializeListsById = () => {
       slug: "liked",
       created: false,
       count: 0,
-      idSet: {},
       createdAt: new Date(),
     },
     [commented]: {
@@ -3887,7 +3884,6 @@ const initializeListsById = () => {
       slug: "commented",
       created: false,
       count: 0,
-      idSet: {},
       createdAt: new Date(),
     },
   } satisfies PageSessionContext["listsById"];
@@ -3915,8 +3911,11 @@ const getCurrentListUnfetchedRecipesIdsForListSlug = (
     return undefined;
   }
 
-  const recipeIds = Object.keys(list.idSet).filter(
-    (id) => !context.recipes[id]
-  );
+  const idSet = context.listRecipes[list.id];
+  if (!idSet) {
+    return undefined;
+  }
+
+  const recipeIds = Object.keys(idSet).filter((id) => !context.recipes[id]);
   return recipeIds;
 };

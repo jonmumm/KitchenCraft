@@ -10,6 +10,39 @@ import { createSelector } from "reselect";
 //   return state.children[USER_ACTOR_ID];
 // };
 
+export const selectPageSessionState = (state: PageSessionSnapshot) => {
+  return state;
+};
+
+export const selectPageSessionContext = createSelector(
+  selectPageSessionState,
+  ({ context }) => context
+);
+export const selectSessionSnapshot = createSelector(
+  selectPageSessionContext,
+  ({ sessionSnapshot }) => sessionSnapshot
+);
+export const selectSessionContext = createSelector(
+  selectSessionSnapshot,
+  (snapshot) => snapshot?.context
+);
+export const selectSessionState = createSelector(
+  selectSessionSnapshot,
+  (snapshot) => snapshot?.value
+);
+export const selectUserSnapshot = createSelector(
+  selectPageSessionContext,
+  ({ userSnapshot }) => userSnapshot
+);
+export const selectUserContext = createSelector(
+  selectUserSnapshot,
+  (snapshot) => snapshot?.context
+);
+export const selectUserState = createSelector(
+  selectUserSnapshot,
+  (snapshot) => snapshot?.value
+);
+
 export const selectSelectedRecipeIds = (state: PageSessionSnapshot) => {
   return state.context.sessionSnapshot?.context.selectedRecipeIds;
 };
@@ -120,6 +153,47 @@ export const createFeedItemRecipeAtIndexSelector =
     return undefined;
   };
 
+export const createListRecipeIdsBySlugSelector = (slug: string | undefined) =>
+  createSelector(
+    createListBySlugSelector(slug),
+    selectListRecipes,
+    (list, listRecipes) => {
+      return list ? listRecipes[list.id] : undefined;
+    }
+  );
+
+export const createListBySlugSelector =
+  (slug: string | undefined) => (state: PageSessionSnapshot) => {
+    const listsById = state.context.listsById;
+    if (!listsById) {
+      return undefined;
+    }
+    if (!slug) {
+      return undefined;
+    }
+    return Object.values(listsById).find((list) => list.slug === slug);
+  };
+
+const selectLikedList = createListBySlugSelector("liked");
+
+const selectLikedListId = createSelector(
+  selectLikedList,
+  (likedList) => likedList?.id
+);
+
+const selectListRecipes = createSelector(
+  selectPageSessionContext,
+  ({ listRecipes }) => listRecipes
+);
+
+export const createRecipeIsLikedSelector = (id?: string) =>
+  createSelector(
+    selectLikedListId,
+    selectListRecipes,
+    (likedListId, listRecipes) =>
+      id && likedListId ? !!listRecipes[likedListId]?.[id] : false
+  );
+
 export const createRecipeIsFavoritedSelector =
   (id?: string) => (state: PageSessionSnapshot) => {
     if (!id) {
@@ -139,8 +213,18 @@ export const createRecipeIsFavoritedSelector =
       return undefined;
     }
 
-    return favoriteList.idSet[id];
+    return !!state.context.listRecipes[favoriteList.id]?.[id];
   };
+
+// export const createRecipeIsLikedSelector =
+//   (id?: string) => (state: PageSessionSnapshot) => {
+//     if (!id) {
+//       return false;
+//     }
+//     return state.context.sessionSnapshot?.context.selectedRecipeIds?.includes(
+//       id
+//     );
+//   };
 
 export const createRecipeIsSelectedSelector =
   (id?: string) => (state: PageSessionSnapshot) => {
@@ -176,18 +260,6 @@ export const createListByIdSelector =
     return listsById[id];
   };
 
-export const createListBySlugSelector =
-  (slug: string | undefined) => (state: PageSessionSnapshot) => {
-    const listsById = state.context.listsById;
-    if (!listsById) {
-      return undefined;
-    }
-    if (!slug) {
-      return undefined;
-    }
-    return Object.values(listsById).find((list) => list.slug === slug);
-  };
-
 export const selectRecentCreatedListIds = (state: PageSessionSnapshot) => {
   return state.context.userSnapshot?.context.recentCreatedListIds;
 };
@@ -195,9 +267,6 @@ export const selectRecentCreatedListIds = (state: PageSessionSnapshot) => {
 export const selectRecentSharedListIds = (state: PageSessionSnapshot) => {
   return state.context.userSnapshot?.context.recentSharedListIds;
 };
-
-const selectSharingListId = (state: PageSessionSnapshot) =>
-  state.context.sharingListId;
 
 export const selectSharingList = (state: PageSessionSnapshot) => {
   if (state.context.sharingListId) {
@@ -227,52 +296,5 @@ export const selectSharingListPath = (state: PageSessionSnapshot) => {
   return `/user/${userId}/${slug}`;
 };
 
-// export const selectShareNameIsTaken = (state: PageSessionSnapshot) =>
-//   state.matches({ Share: { Record: { Cre } } });
 export const selectShareNameInput = (state: PageSessionSnapshot) =>
   state.context.shareNameInput;
-
-// export const selectNumSuggestedRecipes = ({ context }: PageSessionSnapshot) => {
-//   const resultId = context.resultIdsByPrompt[context.prompt];
-//   if (!resultId) {
-//     return 0;
-//   }
-
-//   return context.results[resultId]?.suggestedRecipes.length || 0;
-// };
-
-// export const createSuggestedTokenAtIndexSelector =
-//   (index: number) =>
-//   ({ context }: PageSessionSnapshot) => {
-//     const resultId = context.resultIdsByPrompt[context.prompt];
-//     if (!resultId) {
-//       return undefined;
-//     }
-
-//     return context.results[resultId]?.suggestedTokens[index];
-//   };
-
-// export const createSuggestedRecipeAtIndexSelector =
-//   (index: number) =>
-//   ({ context }: PageSessionSnapshot) => {
-//     const resultId = context.resultIdsByPrompt[context.prompt];
-//     if (!resultId) {
-//       return undefined;
-//     }
-
-//     const recipeId = context.results[resultId]?.suggestedRecipes[index];
-//     if (!recipeId) {
-//       return undefined;
-//     }
-
-//     return context.recipes[recipeId];
-//   };
-
-// export const selectSortedLists
-
-// export const selectCurrentRecipe = (state: PageSessionSnapshot) => {
-//   const resultId = state.context.resultIdsByPrompt[state.context.prompt];
-//   if (!resultId) {
-//     return undefined;
-//   }
-// };

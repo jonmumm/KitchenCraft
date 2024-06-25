@@ -6,6 +6,7 @@ import { createSelector } from "reselect";
 import { selectCurrentListSlug } from "./app.selectors";
 import {
   createListBySlugSelector,
+  createListRecipeIdsBySlugSelector,
   selectSelectedRecipeCount,
 } from "./page-session.selectors";
 
@@ -59,14 +60,15 @@ export const createSuggestedTokenAtIndexSelector =
     return context.results[resultId]?.suggestedTokens[index];
   };
 
+// todo refactor this to be faster, use individual selectors
 export const selectCurrentListItems = (
   appSnapshot: AppSnapshot,
   pageSessionSnapshot: PageSessionSnapshot
 ) => {
   const currentListSlug = selectCurrentListSlug(appSnapshot);
-  const list = createListBySlugSelector(currentListSlug)(pageSessionSnapshot);
-
-  return list?.idSet;
+  return createListRecipeIdsBySlugSelector(currentListSlug)(
+    pageSessionSnapshot
+  );
 };
 
 export const selectCurrentListCount = (
