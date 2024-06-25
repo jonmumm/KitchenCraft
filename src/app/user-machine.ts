@@ -271,6 +271,12 @@ export const createUserMachine = ({
             },
           },
           Creating: {
+            on: {
+              RESUME: {
+                target: "Creating",
+                reenter: true,
+              },
+            },
             invoke: {
               src: "createProfile",
               input: ({ context, event }) => {
@@ -279,12 +285,16 @@ export const createUserMachine = ({
                   userId: context.id,
                 };
               },
+              onDone: "Created",
+              onError: "Error",
             },
-            onDone: "Created",
-            onError: "Error",
           },
-          Error: {},
-          Created: {},
+          Error: {
+            entry: console.error,
+          },
+          Created: {
+            type: "final",
+          },
         },
       },
 
@@ -337,6 +347,19 @@ export const createUserMachine = ({
             },
           },
 
+          Submitted: {
+            initial: "False",
+            states: {
+              False: {
+                always: {
+                  target: "True",
+                  guard: and(["isProfileNameValid"]),
+                },
+              },
+              True: {},
+            },
+          },
+
           Claimed: {
             initial: "False",
             states: {
@@ -347,7 +370,7 @@ export const createUserMachine = ({
                     guard: and([
                       "isProfileNameValid",
                       "didSubmitProfileName",
-                      stateIn({ ProfileName: { Availability: "Available" } }),
+                      // stateIn({ ProfileName: { Availability: "Available" } }),
                       stateIn({ ProfileRow: "Created" }),
                     ]),
                   },

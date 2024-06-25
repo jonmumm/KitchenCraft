@@ -575,7 +575,7 @@ const SelectRelatedIdeaEventSchema = z.object({
 
 const SubmitEventSchema = z.object({
   type: z.literal("SUBMIT"),
-  name: z.string()
+  name: z.string(),
 });
 
 const SubmitPromptEventSchema = z.object({
@@ -738,7 +738,7 @@ const PageLoadedEventSchema = z.object({
 const SearchParamsEventSchema = z.object({
   type: z.literal("UPDATE_SEARCH_PARAMS"),
   searchParams: z.record(z.string(), z.string()),
-  hash: z.string().optional()
+  hash: z.string().optional(),
 });
 
 const BotManagementSchema = z.object({
@@ -803,7 +803,6 @@ export const ShareEventSchema = z.object({
   type: z.literal("SHARE"),
   slug: SlugSchema,
 });
-
 
 const SharePressEventSchema = z.object({
   type: z.literal("SHARE_PRESS"),
@@ -1112,6 +1111,10 @@ const ShareSelectedEventSchema = z.object({
   type: z.literal("SHARE_SELECTED"),
 });
 
+const ShareCurrentListEventSchema = z.object({
+  type: z.literal("SHARE_CURRENT_LIST"),
+});
+
 const SelectQuestionOptionEventSchema = z.object({
   type: z.literal("SELECT_QUESTION_OPTION"),
   questionIndex: z.number(),
@@ -1144,8 +1147,8 @@ const CopyLinkEventSchema = z.object({
 
 const PopStateEventSchema = z.object({
   type: z.literal("POP_STATE"),
-  nativeEvent: z.custom<PopStateEvent>()
-})
+  nativeEvent: z.custom<PopStateEvent>(),
+});
 
 export const AppEventSchema = z.discriminatedUnion("type", [
   CopyLinkEventSchema,
@@ -1159,6 +1162,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   RefreshFeedEventSchema,
   LoadMoreEventSchema,
   ShareSelectedEventSchema,
+  ShareCurrentListEventSchema,
   ExitEventSchema,
   ViewRecipeEventSchema,
   ViewListEventSchema,
@@ -1269,6 +1273,10 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   MountCarouselEventSchema,
   UnmountCarouselEventSchema,
 ]);
+
+export const ResumEventSchema = z.object({
+  type: z.literal("RESUME"),
+});
 
 // TypeScript Type Literals
 export const DishTypeSchema = z.enum(DISH_TYPES);

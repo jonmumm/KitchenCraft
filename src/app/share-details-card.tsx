@@ -11,7 +11,7 @@ import {
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { SkeletonSentence } from "@/components/display/skeleton";
-import CanShare from "@/components/features/can-share";
+import DeviceCanShare from "@/components/features/device-can-share";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
 import { atomBooleanComponent } from "@/components/util/atom-boolean-component";
@@ -135,7 +135,7 @@ export const ShareDetailsCard = () => {
           </IsEditingName>
         </PageSessionMatches>
         <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }}>
-          <CanShare not>
+          <DeviceCanShare not>
             <div className="w-full">
               <CardTitle className="flex flex-row gap-2 justify-between items-center">
                 <div className="flex flex-row gap-2 flex-1">
@@ -151,7 +151,7 @@ export const ShareDetailsCard = () => {
                 </div>
               </CardDescription>
             </div>
-          </CanShare>
+          </DeviceCanShare>
         </PageSessionMatches>
       </CardHeader>
       <PageSessionMatches matchedState={{ Share: { Record: "Complete" } }} not>
@@ -204,7 +204,7 @@ export const ShareDetailsCard = () => {
             </Button>
           </IsEditingName>
           <IsEditingName not>
-            <CanShare not>
+            <DeviceCanShare not>
               <Button
                 autoFocus={false}
                 size="xl"
@@ -223,8 +223,8 @@ export const ShareDetailsCard = () => {
                   </>
                 )}
               </Button>
-            </CanShare>
-            <CanShare>
+            </DeviceCanShare>
+            <DeviceCanShare>
               <Button
                 autoFocus={false}
                 size="xl"
@@ -243,7 +243,7 @@ export const ShareDetailsCard = () => {
                   </>
                 )}
               </Button>
-            </CanShare>
+            </DeviceCanShare>
           </IsEditingName>
         </CardContent>
       </PageSessionMatches>

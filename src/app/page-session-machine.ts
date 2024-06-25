@@ -29,6 +29,7 @@ import {
   PartialRecipe,
   PartyMap,
   ProductType,
+  ResumeEvent,
   ServerPartySocket,
   SystemEvent,
   UserPreferenceType,
@@ -202,7 +203,8 @@ export type PageSessionEvent =
   | FullRecipeFromSuggestionEvent
   | NewRecipeProductKeywordEvent
   | ListenUserEvent
-  | ListenSessionEvent;
+  | ListenSessionEvent
+  | ResumeEvent;
 
 export const createPageSessionMachine = ({
   id,
@@ -3913,6 +3915,8 @@ const getCurrentListUnfetchedRecipesIdsForListSlug = (
     return undefined;
   }
 
-  const recipeIds = Object.keys(list.idSet).filter((id) => !context.recipes[id]);
+  const recipeIds = Object.keys(list.idSet).filter(
+    (id) => !context.recipes[id]
+  );
   return recipeIds;
 };

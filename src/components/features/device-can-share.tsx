@@ -20,7 +20,7 @@ const useCanShare = (serverValue: boolean) => {
   return useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot);
 };
 
-const CanShare = ({ children, serverValue = false, not = false }: CanShareProps) => {
+const DeviceCanShare = ({ children, serverValue = false, not = false }: CanShareProps) => {
   const canShare = useCanShare(serverValue);
 
   if ((canShare && not) || (!canShare && !not)) {
@@ -30,4 +30,4 @@ const CanShare = ({ children, serverValue = false, not = false }: CanShareProps)
   return <>{children}</>;
 };
 
-export default CanShare;
+export default DeviceCanShare;

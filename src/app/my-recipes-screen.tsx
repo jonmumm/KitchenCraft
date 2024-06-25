@@ -261,7 +261,7 @@ export const MyRecipesScreen = () => {
           </CurrentListIsSelected>
           <CurrentListIsSelected not>
             <IsShareable>
-              <Button className="shadow-md" event={{ type: "SHARE_SELECTED" }}>
+              <Button className="shadow-md" event={{ type: "SHARE_CURRENT_LIST" }}>
                 <ShareIcon size={16} className="mr-1" />
                 Share &apos;
                 <CurrentListName />

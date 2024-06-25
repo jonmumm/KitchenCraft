@@ -94,6 +94,7 @@ import {
   RemixPredictionPartialOutputSchema,
   RemixRecipeMetadataPredictionInputSchema,
   RemixSuggestionsPredictionInputSchema,
+  ResumEventSchema,
   RoleSchema,
   SlugSchema,
   SousChefPredictionInputSchema,
@@ -141,6 +142,8 @@ export type CloudFlareProps = Party.Request["cf"];
 
 export type AppEvent = z.infer<typeof AppEventSchema>;
 export type SystemEvent = z.infer<typeof SystemEventSchema>;
+
+export type ResumeEvent = z.infer<typeof ResumEventSchema>;
 
 export type CallerType = z.infer<typeof CallerIdTypeSchema>;
 export type Caller = { id: string; type: CallerType };
@@ -408,7 +411,8 @@ export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
 export type UserEvent =
   | WithCaller<AppEvent>
   | SuggestProfileNamesEvent
-  | FeedTopicsEvent;
+  | FeedTopicsEvent
+  | ResumeEvent;
 
 export type SessionEvent =
   | WithCaller<AppEvent>
@@ -419,7 +423,8 @@ export type SessionEvent =
   | SuggestPlaceholderEvent
   | SuggestTokensEvent
   | SuggestIngredientsEvent
-  | HomepageCategoriesEvent;
+  | HomepageCategoriesEvent
+  | ResumeEvent;
 
 type FeedItemRecipe = UnArray<FeedItem["recipes"]>;
 type FeedItemRecipeWithId = FeedItemRecipe & {

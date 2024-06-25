@@ -59,11 +59,7 @@ export async function Footer({
                 <FooterTabTitle isActive={false}>
                   <HasClaimedProfileName not>Account</HasClaimedProfileName>
                   <HasClaimedProfileName>
-                    <div className="flex flex-row w-full">
-                      <span className="truncate">
                         <ProfileName />
-                      </span>
-                    </div>
                   </HasClaimedProfileName>
                 </FooterTabTitle>
               </Card>

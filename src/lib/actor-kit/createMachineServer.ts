@@ -117,6 +117,7 @@ export const createMachineServer = <
             },
           });
           this.actor.start();
+          this.actor.send({ type: "RESUME" } as any);
         }
       }
     }
