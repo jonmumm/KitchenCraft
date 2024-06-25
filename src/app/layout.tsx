@@ -40,8 +40,6 @@ import {
   Body,
   CraftStickyHeader,
   CreateNewListCard,
-  // EnterChefNameCard,
-  EnterEmailCard,
   IsInPersonalizationSettings,
   // IsInputtingChefName,
   // IsInputtingEmail,
@@ -187,8 +185,11 @@ export default async function RootLayout(
       <PageSessionStoreProvider initial={snapshot}>
         <ApplicationProvider
           nextAuthSession={nextAuthSession}
-          appSessionId={parseCookie("appSessionId")}
           token={token}
+          extraProps={{
+            isMobile: getIsMobile(),
+            appSessionId: parseCookie("appSessionId"),
+          }}
         >
           <ActorProvider
             id={pageSessionId}
@@ -256,14 +257,12 @@ export default async function RootLayout(
 //   );
 // };
 const SignInDialog = () => {
-  const isMobile = getIsMobile();
-
   return (
     <>
       <SessionSnapshotMatches
         matchedState={{ Auth: { SigningIn: "Inputting" } }}
       >
-        <ResponsiveDialog open isMobile={isMobile}>
+        <ResponsiveDialog open>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
             <SignInCard />
@@ -274,7 +273,7 @@ const SignInDialog = () => {
         matchedState={{ Auth: { SigningIn: "WaitingForCode" } }}
         initialValueOverride={false}
       >
-        <ResponsiveDialog open isMobile={isMobile}>
+        <ResponsiveDialog open>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
             <EmailCodeCard />
@@ -290,7 +289,7 @@ const ShareDialog = () => {
 
   return (
     <AppMatches matchedState={{ Share: { Open: "True" } }}>
-      <ResponsiveDialog open isMobile={isMobile}>
+      <ResponsiveDialog open>
         <ResponsiveDialogOverlay event={{ type: "CANCEL" }} className="z-90" />
         <ResponsiveDialogContent className="rounded-t-xl z-100">
           <ShareDetailsCard />
@@ -306,7 +305,7 @@ const PersonalizationSettingsDialog = () => {
   return (
     <>
       <IsInPersonalizationSettings>
-        <ResponsiveDialog open isMobile={isMobile}>
+        <ResponsiveDialog open>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
             <PersonalizationSettingsMenu />
@@ -326,11 +325,10 @@ const MyRecipes = () => {
 };
 
 const UpgradeAccountDialog = () => {
-  const isMobile = getIsMobile();
   return (
     <>
       <IsUpgradingAccount>
-        <ResponsiveDialog open isMobile={isMobile}>
+        <ResponsiveDialog open>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent>
             <UpgradeAccountCard />
@@ -366,11 +364,10 @@ const UpgradeAccountDialog = () => {
 // };
 
 const SaveDialog = () => {
-  const isMobile = getIsMobile();
   return (
     <>
       <AppMatches matchedState={IS_SELECTING_LIST}>
-        <ResponsiveDialog open isMobile={isMobile}>
+        <ResponsiveDialog open>
           <ResponsiveDialogOverlay className="z-105" />
           <ResponsiveDialogContent className="z-110 max-w-xl mx-auto">
             <SelectListCard />
@@ -381,7 +378,7 @@ const SaveDialog = () => {
         matchedState={{ ListCreating: "True" }}
         or={{ ListCreating: "Error" }}
       >
-        <ResponsiveDialog open isMobile={isMobile}>
+        <ResponsiveDialog open>
           <ResponsiveDialogOverlay className="z-105" />
           <ResponsiveDialogContent className="z-110 max-w-xl mx-auto">
             <CreateNewListCard />

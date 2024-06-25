@@ -9,6 +9,7 @@ import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
 import { getNextAuthSession } from "@/lib/auth/session";
+import { ExtraAppProps } from "@/types";
 import { map } from "nanostores";
 import { SessionProvider, useSession } from "next-auth/react";
 import {
@@ -33,12 +34,12 @@ import { PageSessionContext } from "./page-session-store.context";
 export function ApplicationProvider(props: {
   children: ReactNode;
   nextAuthSession: Awaited<ReturnType<typeof getNextAuthSession>>;
-  appSessionId: string | undefined;
   token: string;
+  extraProps: ExtraAppProps;
 }) {
   const [app$] = useState(
-    map<{ appSessionId: string | undefined } & unknown>({
-      appSessionId: props.appSessionId,
+    map<ExtraAppProps & unknown>({
+      ...props.extraProps,
     })
   ); // todo define global types here
   const store = useContext(PageSessionContext);
@@ -94,7 +95,7 @@ export function ApplicationProvider(props: {
             <PopStateEventsProvider />
             <SignInProvider />
             <AnalyticsProvider />
-            {props.appSessionId && <PWALifeCycle />}
+            {props.extraProps.appSessionId && <PWALifeCycle />}
             {props.children}
           </CraftProvider>
         </ApplicationContext.Provider>

@@ -45,15 +45,12 @@ export const SaveButton = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent>
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput placeholder="Search lists..." />
           <CommandList>
             <CommandEmpty>Empty</CommandEmpty>
-            <CommandGroup>
-              <CommandItem key="foo" value="bar">
-                <Check />
-                MyLabel
-              </CommandItem>
+            <CommandGroup key="foo">
+
             </CommandGroup>
           </CommandList>
         </Command>

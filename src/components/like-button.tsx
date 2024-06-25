@@ -1,6 +1,7 @@
 "use client";
 
 import { ThumbsUpIcon } from "lucide-react";
+import Link from "next/link";
 import { Button, ButtonProps } from "./input/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./layout/popover";
 
@@ -37,7 +38,10 @@ export const LikeButton = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-fit px-2 py-1">
-        Added to <span className="underline font-semibold">Liked Recipes</span>
+        Added to{" "}
+        <Link href="?#liked" className="underline font-semibold">
+          Liked Recipes
+        </Link>
       </PopoverContent>
     </Popover>
   );

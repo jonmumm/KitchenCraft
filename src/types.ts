@@ -583,3 +583,8 @@ export type AnyStateMachineWithIdInput = StateMachine<
   WithIdInput, // input, now explicitly requiring an object with an id of type string
   any // output
 >;
+
+export type ExtraAppProps = {
+  appSessionId: string | undefined;
+  isMobile: boolean;
+};

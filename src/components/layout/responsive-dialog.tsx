@@ -2,35 +2,29 @@
 
 import { Dialog, DialogContent } from "@/components/layout/dialog";
 import { Sheet, SheetContent, SheetOverlay } from "@/components/layout/sheet";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { DialogOverlay } from "@radix-ui/react-dialog";
-import {
-  MouseEventHandler,
-  createContext,
-  forwardRef,
-  useContext,
-  useMemo,
-} from "react";
-
-// Creating the MobileContext
-const MobileContext = createContext(false);
+import { MouseEventHandler, forwardRef, useContext, useMemo } from "react";
 
 // ResponsiveDialog Component
-const ResponsiveDialog: React.FC<
-  DialogPrimitive.DialogProps & { isMobile: boolean }
-> = ({ children, isMobile, ...props }) => {
+const ResponsiveDialog: React.FC<DialogPrimitive.DialogProps> = ({
+  children,
+  ...props
+}) => {
+  const isMobile = useIsMobile();
   return (
-    <MobileContext.Provider value={isMobile}>
+    <>
       {isMobile ? (
         <Sheet {...props}>{children}</Sheet>
       ) : (
         <Dialog {...props}>{children}</Dialog>
       )}
-    </MobileContext.Provider>
+    </>
   );
 };
 
@@ -39,7 +33,7 @@ const ResponsiveDialogContent = forwardRef<
   HTMLDivElement,
   DialogPrimitive.DialogContentProps
 >(({ children, ...props }, ref) => {
-  const isMobile = useContext(MobileContext);
+  const isMobile = useIsMobile();
 
   return isMobile ? (
     <SheetContent
@@ -64,7 +58,7 @@ const ResponsiveDialogTrigger: React.FC<DialogPrimitive.DialogTriggerProps> = ({
   children,
   ...props
 }) => {
-  const isMobile = useContext(MobileContext);
+  const isMobile = useIsMobile();
 
   return isMobile ? (
     <SheetPrimitive.Trigger {...props}>{children}</SheetPrimitive.Trigger>
@@ -76,7 +70,7 @@ const ResponsiveDialogTrigger: React.FC<DialogPrimitive.DialogTriggerProps> = ({
 const ResponsiveDialogOverlay: React.FC<
   DialogPrimitive.DialogOverlayProps & { event?: AppEvent }
 > = ({ event, ...props }) => {
-  const isMobile = useContext(MobileContext);
+  const isMobile = useIsMobile();
   const send = useSend();
   const handleClick = useMemo(() => {
     if (event) {

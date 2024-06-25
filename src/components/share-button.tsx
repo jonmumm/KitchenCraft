@@ -71,8 +71,8 @@ export const ShareRecipeButton = ({
           <ShareIcon className={showText ? "ml-1" : ""} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-fit px-2 py-1 z-90">
-        URL Copied!
+      <PopoverContent className="w-fit px-2 py-1">
+        URL Copied
       </PopoverContent>
     </Popover>
   );
