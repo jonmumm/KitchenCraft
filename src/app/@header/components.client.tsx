@@ -18,12 +18,7 @@ import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
-import {
-  ArrowLeftIcon,
-  CheckCircleIcon,
-  ChevronRight,
-  XCircleIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, BookmarkIcon, ChevronRight, XCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -40,6 +35,7 @@ import {
 } from "react";
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { AppContext } from "../context";
+import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionSnapshot } from "../page-session-machine";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
@@ -382,13 +378,13 @@ export const MyRecipesBadge = () => {
   return (
     <div className="indicator">
       <ListIndicator />
-      <Link href="#selected">
+      <Link href="#liked">
         <Badge
           variant={"outline"}
           className="text-md font-semibold flex flex-row gap-1 whitespace-nowrap"
         >
-          <CheckCircleIcon className="mr-2" />
-          Selected
+          <BookmarkIcon className="m1-2" />
+          Saved
         </Badge>
       </Link>
     </div>
