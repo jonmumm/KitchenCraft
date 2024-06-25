@@ -36,7 +36,6 @@ import {
 import { CraftEmpty, CraftNotEmpty } from "../@craft/components.client";
 import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
-import { PageSessionSnapshot } from "../page-session-machine";
 
 export const AppInstallContainer = ({ children }: { children: ReactNode }) => {
   const [installed, setInstalled] = useState(false);
