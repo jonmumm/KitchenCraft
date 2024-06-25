@@ -99,6 +99,7 @@ import { twc } from "react-twc";
 import { createSelector } from "reselect";
 import { EnterListNameForm } from "./@craft/components.client";
 import "./embla.css";
+import { LikeButton } from "@/components/like-button";
 
 export const MyRecipesScreen = () => {
   const currentSlug = useAppSelector(selectCurrentListSlug);
@@ -392,9 +393,10 @@ const CurrentListCarouselItem = ({
             {recipe?.slug && (
               <>
                 <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                  <SaveButton id={recipe?.id} />
+                  <LikeButton id={recipe?.id} />
                   <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-                  <RecipeSelectCircleButton id={recipe.id} />
+                  <SaveButton id={recipe?.id} />
+                  {/* <RecipeSelectCircleButton id={recipe.id} /> */}
                   <RecipeMoreDropdownButton />
                 </div>
                 <Separator />
@@ -770,10 +772,10 @@ const MyRecipeListsRadioGroup = () => {
       className="w-full"
       onValueChange={handleValueChange}
     >
-      <RecipeListRadioItemSelected />
+      {/* <RecipeListRadioItemSelected /> */}
+      <RecipeListRadioItemBySlug slug="liked" />
       <RecipeListRadioItemBySlug slug="make-later" />
       <RecipeListRadioItemBySlug slug="commented" />
-      <RecipeListRadioItemBySlug slug="liked" />
       <RecipeListRadioItemBySlug slug="favorites" />
       {recentCreated?.length ? (
         <>

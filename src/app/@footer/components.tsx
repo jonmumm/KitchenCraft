@@ -12,6 +12,7 @@ import NavigationLink from "@/components/navigation/navigation-link";
 import { ProfileName } from "@/components/strings/profile-name";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
 import {
+  BookmarkIcon,
   CheckCircleIcon,
   ChefHatIcon,
   GripVerticalIcon,
@@ -42,13 +43,13 @@ export async function Footer({
           </NavigationLink>
           {/* // todo make dynamic */}
           <div className="basis-24 min-w-0">
-            <Link href="#selected">
+            <Link href="#liked">
               <Card className="flex flex-col items-center justify-center border-none shadow-none py-2 px-2 gap-1">
                 <div className="indicator">
-                  <ListIndicator />
-                  <CheckCircleIcon />
+                  {/* <ListIndicator /> */}
+                  <BookmarkIcon />
                 </div>
-                <FooterTabTitle isActive={false}>Selected</FooterTabTitle>
+                <FooterTabTitle isActive={false}>Saved</FooterTabTitle>
               </Card>
             </Link>
           </div>

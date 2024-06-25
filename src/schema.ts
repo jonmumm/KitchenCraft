@@ -1150,7 +1150,13 @@ const PopStateEventSchema = z.object({
   nativeEvent: z.custom<PopStateEvent>(),
 });
 
+const LikeRecipeEventSchema = z.object({
+  type: z.literal("LIKE_RECIPE"),
+  recipeId: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  LikeRecipeEventSchema,
   CopyLinkEventSchema,
   PopStateEventSchema,
   PressButtonEventSchema,

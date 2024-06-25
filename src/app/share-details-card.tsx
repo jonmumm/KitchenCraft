@@ -112,7 +112,7 @@ export const ShareDetailsCard = () => {
             <div>
               <CardTitle>Share Name</CardTitle>
               <CardDescription className="text-xs mt-2">
-                To be available @
+                Your recipes will be available @
                 <div className="border border-muted rounded-lg border-solid p-2 mt-3 bg-secondary">
                   kitchencraft.ai
                   <SharingRecipeListPath />
@@ -196,6 +196,7 @@ export const ShareDetailsCard = () => {
             <Button
               size="xl"
               disabled={!sharingListIsCreated || nameIsTaken}
+              variant="secondary"
               onClick={() => {
                 editingName$.set(false);
               }}

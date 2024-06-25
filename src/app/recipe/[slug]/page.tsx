@@ -61,6 +61,7 @@ import { RatingValue } from "./rating/types";
 import { CameraButton } from "@/components/camera-button";
 import { SaveButton } from "@/components/save-button";
 import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
+import { LikeButton } from "@/components/like-button";
 
 // export const maxDuration = 300;
 // export const dynamic = "force-dynamic";
@@ -377,9 +378,9 @@ export default async function Page(props: Props) {
                   </Button> */}
                   {/* <PrintButton slug={recipe?.slug} /> */}
                   {/* <CameraButton slug={recipe?.slug} /> */}
-                  <SaveButton id={recipe?.id} />
+                  <LikeButton id={recipe?.id} />
                   <ShareRecipeButton slug={slug} name={name} />
-                  <RecipeSelectCircleButton id={recipe?.id} />
+                  {/* <RecipeSelectCircleButton id={recipe?.id} /> */}
                   {/* <FavoriteButton id={recipe?.id} /> */}
                   {/* <RecipeSelectButton id={recipe.id} /> */}
                   <RecipeMoreDropdownButton />

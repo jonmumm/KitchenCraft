@@ -12,8 +12,8 @@ import { ExitButton } from "@/components/exit-button";
 import { Ingredients } from "@/components/ingredients";
 import EventTrigger from "@/components/input/event-trigger";
 import { Instructions } from "@/components/instructions";
+import { LikeButton } from "@/components/like-button";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
-import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
 import { SaveButton } from "@/components/save-button";
 import ScrollLockComponent from "@/components/scroll-lock";
 import { ShareRecipeButton } from "@/components/share-button";
@@ -127,11 +127,6 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               )}
             </div>
 
-            {!isExpanded && (
-              <div>
-                <RecipeSelectCircleButton id={recipe?.id} />
-              </div>
-            )}
             {isExpanded && (
               <div className="flex flex-col gap-2 items-center">
                 <ExitButton />
@@ -181,13 +176,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <CollapsibleContent>
             {isExpanded && recipe?.metadataComplete && (
               <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                {/* <PrintButton slug={recipe?.slug} /> */}
-                {/* <CameraButton slug={recipe?.slug} /> */}
-                {/* <FavoriteButton id={recipe?.id} /> */}
-                <SaveButton id={recipe?.id} />
                 <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-                <RecipeSelectCircleButton id={recipe.id} />
-                {/* <RecipeSelectButton id={recipe.id} /> */}
+                <LikeButton id={recipe?.id} />
+                <SaveButton id={recipe?.id} />
                 <RecipeMoreDropdownButton />
               </div>
             )}
@@ -265,7 +256,11 @@ const RecipeDetailContainer = ({
   const isFocused = useSelector(actor, selectIsFocused);
   return (
     <div
-      className={cn(isFocused ? "absolute inset-0 mb-8 standalone:mb-16 z-65" : "max-w-xl w-full")}
+      className={cn(
+        isFocused
+          ? "absolute inset-0 mb-8 standalone:mb-16 z-65"
+          : "max-w-xl w-full"
+      )}
     >
       {isFocused && (
         <Portal>

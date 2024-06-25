@@ -54,6 +54,7 @@ import { ShareRecipeButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
+import { LikeButton } from "./like-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -479,9 +480,9 @@ const FeedCardRecipeItem = (input: {
               {/* <RecipeSelectButton id={recipe.id} /> */}
               {/* <PrintButton slug={recipe?.slug} /> */}
               {/* <CameraButton slug={recipe?.slug} /> */}
-              <SaveButton id={recipe?.id} />
+              <LikeButton id={recipe?.id} />
               <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-              <RecipeSelectCircleButton id={recipe?.id} />
+              {/* <RecipeSelectCircleButton id={recipe?.id} /> */}
               {/* <FavoriteButton id={recipe?.id} />
               <RecipeSuggestionSelectButton
                 itemIndex={input.itemIndex}

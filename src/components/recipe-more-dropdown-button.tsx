@@ -56,9 +56,9 @@ export const RecipeMoreDropdownButton = () => {
           <DropdownMenuItem className="text-muted-foreground">
             <div>
               <span role="img" aria-label="add-to-new-list" className="mr-2">
-                📜
+                #️⃣
               </span>
-              <span className="text-muted-foreground">Add to </span>{" "}
+              <span className="text-muted-foreground">Save to </span>{" "}
               <span className="text-foreground font-semibold">New List</span>
             </div>
           </DropdownMenuItem>
@@ -69,7 +69,7 @@ export const RecipeMoreDropdownButton = () => {
               <span role="img" aria-label="add-to-make-later" className="mr-2">
                 ⏰
               </span>
-              <span className="text-muted-foreground">Add to </span>
+              <span className="text-muted-foreground">Save to </span>
               <span className="text-foreground font-semibold">Make Later</span>
             </div>
             {/* </EventTrigger> */}
@@ -80,7 +80,7 @@ export const RecipeMoreDropdownButton = () => {
               <span role="img" aria-label="add-to-favorites" className="mr-2">
                 ❤️
               </span>
-              <span className="text-muted-foreground">Add to </span>{" "}
+              <span className="text-muted-foreground">Save to </span>{" "}
               <span className="text-foreground font-semibold">Favorites</span>
             </div>
           </DropdownMenuItem>
