@@ -8,8 +8,8 @@ import {
 } from "@/components/display/collapsible";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
-import { ExitButton } from "@/components/exit-button";
 import { Ingredients } from "@/components/ingredients";
+import { BackButton } from "@/components/input/back-button";
 import EventTrigger from "@/components/input/event-trigger";
 import { Instructions } from "@/components/instructions";
 import { LikeButton } from "@/components/like-button";
@@ -30,7 +30,12 @@ import { cn } from "@/lib/utils";
 import { createRecipeIsSelectedSelector } from "@/selectors/page-session.selectors";
 import { ExtractAppEvent } from "@/types";
 import { Portal } from "@radix-ui/react-portal";
-import { ScrollIcon, ShoppingBasketIcon, XIcon } from "lucide-react";
+import {
+  MoveLeftIcon,
+  ScrollIcon,
+  ShoppingBasketIcon,
+  XCircleIcon,
+} from "lucide-react";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { AppSnapshot } from "../app-machine";
 import { RecipeDetailOverlay } from "../components.client";
@@ -129,7 +134,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
 
             {isExpanded && (
               <div className="flex flex-col gap-2 items-center">
-                <ExitButton />
+                <BackButton variant="ghost">
+                  <XCircleIcon />
+                </BackButton>
               </div>
             )}
             {/* {!isExpanded && recipe?.id && recipe.name && (
@@ -230,9 +237,11 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
 
       {isExpanded && (
         <div className="mt-4 mb-24 flex flex-col items-center">
-          <Badge event={{ type: "EXIT" }}>
-            Close <XIcon size={14} className="ml-1" />
-          </Badge>
+          <BackButton asChild>
+            <Badge variant="default">
+              <MoveLeftIcon size={14} className="mr-1" /> Back
+            </Badge>
+          </BackButton>
         </div>
       )}
     </RecipeDetailContainer>

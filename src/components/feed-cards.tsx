@@ -46,15 +46,14 @@ import {
   DropdownMenuTrigger,
 } from "./input/dropdown-menu";
 import { Instructions } from "./instructions";
+import { LikeButton } from "./like-button";
 import { RecipeMoreDropdownButton } from "./recipe-more-dropdown-button";
-import { RecipeSelectCircleButton } from "./recipe-select-circle-button";
 import { SaveButton } from "./save-button";
 import { useScrollLock } from "./scroll-lock";
 import { ShareRecipeButton } from "./share-button";
 import { Tags } from "./tags";
 import { Times } from "./times";
 import { Yield } from "./yield";
-import { LikeButton } from "./like-button";
 
 const FeedCardItem = ({ index }: { index: number }) => {
   const selectFeedItem = useMemo(
@@ -477,19 +476,10 @@ const FeedCardRecipeItem = (input: {
                 !isInRecipeDetails ? "h-full" : ""
               )}
             >
-              {/* <RecipeSelectButton id={recipe.id} /> */}
-              {/* <PrintButton slug={recipe?.slug} /> */}
-              {/* <CameraButton slug={recipe?.slug} /> */}
-              <LikeButton id={recipe?.id} />
               <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-              {/* <RecipeSelectCircleButton id={recipe?.id} /> */}
-              {/* <FavoriteButton id={recipe?.id} />
-              <RecipeSuggestionSelectButton
-                itemIndex={input.itemIndex}
-                recipeIndex={input.recipeIndex}
-              /> */}
+              <LikeButton id={recipe?.id} />
+              <SaveButton id={recipe?.id} />
               <RecipeMoreDropdownButton />
-              {/* <PrintButton slug={recipe?.slug} /> */}
             </div>
           )}
           <Separator />

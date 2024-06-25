@@ -56,13 +56,13 @@ export const NewRecipeResultsView = () => {
       </Container>
       <Footer>
         <ClientOnly>
-          <HasRecipesSelected>
+          {/* <HasRecipesSelected>
             <div className="max-w-3xl w-full standalone:mb-10 mx-auto overflow-hidden">
               <AppMatches not matchedState={{ MyRecipes: { Open: "True" } }}>
                 <SelectedRecipesBar />
               </AppMatches>
             </div>
-          </HasRecipesSelected>
+          </HasRecipesSelected> */}
         </ClientOnly>
       </Footer>
     </>

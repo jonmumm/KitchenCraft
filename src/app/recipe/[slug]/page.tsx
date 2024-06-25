@@ -8,11 +8,10 @@ import { Avatar, RobotAvatarImage } from "@/components/display/avatar";
 import { Badge } from "@/components/display/badge";
 import MarkdownRenderer from "@/components/display/markdown";
 import { Separator } from "@/components/display/separator";
-import { FavoriteButton } from "@/components/favorite-button";
 import { Button } from "@/components/input/button";
-import { PrintButton } from "@/components/print-button";
+import { LikeButton } from "@/components/like-button";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
-import { RecipeSelectButton } from "@/components/recipe-select-button";
+import { SaveButton } from "@/components/save-button";
 import { ShareRecipeButton } from "@/components/share-button";
 import { db } from "@/db";
 import {
@@ -58,10 +57,6 @@ import {
   upsertRecipeRating,
 } from "./rating/queries";
 import { RatingValue } from "./rating/types";
-import { CameraButton } from "@/components/camera-button";
-import { SaveButton } from "@/components/save-button";
-import { RecipeSelectCircleButton } from "@/components/recipe-select-circle-button";
-import { LikeButton } from "@/components/like-button";
 
 // export const maxDuration = 300;
 // export const dynamic = "force-dynamic";
@@ -373,16 +368,9 @@ export default async function Page(props: Props) {
                 </div>
                 <Separator />
                 <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-center px-4 w-full">
-                  {/* <Button className="flex-1 bg-purple-700 hover:bg-purple-800 active:bg-purple-900 text-white">
-                    Select <CheckIcon className="ml-2" />
-                  </Button> */}
-                  {/* <PrintButton slug={recipe?.slug} /> */}
-                  {/* <CameraButton slug={recipe?.slug} /> */}
+                  <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
                   <LikeButton id={recipe?.id} />
-                  <ShareRecipeButton slug={slug} name={name} />
-                  {/* <RecipeSelectCircleButton id={recipe?.id} /> */}
-                  {/* <FavoriteButton id={recipe?.id} /> */}
-                  {/* <RecipeSelectButton id={recipe.id} /> */}
+                  <SaveButton id={recipe?.id} />
                   <RecipeMoreDropdownButton />
                 </div>
                 <Separator />
@@ -982,7 +970,10 @@ const CommentsCard = async () => {
             </div>
 
             <RecipeCommentsTexarea />
-            <Button event={{ type: "SUBMIT", name: "comment" }} className="w-full">
+            <Button
+              event={{ type: "SUBMIT", name: "comment" }}
+              className="w-full"
+            >
               Post Comment
             </Button>
           </div>

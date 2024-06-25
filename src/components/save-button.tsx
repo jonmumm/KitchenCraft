@@ -1,8 +1,16 @@
 "use client";
 
-import React from 'react';
-import { BookmarkIcon } from "lucide-react";
+import { BookmarkIcon, Check } from "lucide-react";
 import { Button, ButtonProps } from "./input/button";
+import { Popover, PopoverContent, PopoverTrigger } from "./layout/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./input/command";
 
 export const SaveButton = ({
   id,
@@ -17,11 +25,7 @@ export const SaveButton = ({
 }) => {
   if (!id) {
     return (
-      <Button 
-        className={className} 
-        variant={variant || "ghost"} 
-        disabled
-      >
+      <Button className={className} variant={variant || "ghost"} disabled>
         {showText && <>Save</>}
         <BookmarkIcon className={showText ? "ml-1" : ""} />
       </Button>
@@ -29,13 +33,31 @@ export const SaveButton = ({
   }
 
   return (
-    <Button 
-      className={className}
-      variant={variant || "outline"} 
-      event={{ type: "SAVE_RECIPE", recipeId: id }}
-    >
-      {showText && <>Save</>}
-      <BookmarkIcon className={showText ? "ml-1" : ""} />
-    </Button>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          className={className}
+          variant={variant || "outline"}
+          event={{ type: "SAVE_RECIPE", recipeId: id }}
+        >
+          {showText && <>Save</>}
+          <BookmarkIcon className={showText ? "ml-1" : ""} />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent>
+        <Command>
+          <CommandInput placeholder="Search lists..." />
+          <CommandList>
+            <CommandEmpty>Empty</CommandEmpty>
+            <CommandGroup>
+              <CommandItem key="foo" value="bar">
+                <Check />
+                MyLabel
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 };

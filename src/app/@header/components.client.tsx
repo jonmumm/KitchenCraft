@@ -18,7 +18,12 @@ import { useSend } from "@/hooks/useSend";
 import { getPlatformInfo } from "@/lib/device";
 import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
-import { ArrowLeftIcon, BookmarkIcon, ChevronRight, XCircleIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  BookmarkIcon,
+  ChevronRight,
+  XCircleIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -91,10 +96,6 @@ export const BackButton = (props: {
   );
 };
 
-const selectPrompt = (snapshot: PageSessionSnapshot) => {
-  return snapshot.context.prompt;
-};
-
 export const CraftInput = ({
   commandBadge,
   initialAutoFocus,
@@ -106,9 +107,8 @@ export const CraftInput = ({
 }) => {
   const initialBlurRef = useRef(false);
   const initialFocusRef = useRef(false);
-  const store = usePageSessionStore();
-  const [initialValue] = useState(selectPrompt(store.get()));
   const actor = useContext(AppContext);
+  const [initialValue] = useState(actor.getSnapshot().context.prompt);
 
   const [autoFocus, setAutofocus] = useState(
     actor.getSnapshot().value.Hydration === "Waiting" && initialAutoFocus

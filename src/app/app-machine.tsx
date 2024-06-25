@@ -55,8 +55,10 @@ export const createAppMachine = ({
       : "False";
 
   const initialContext = (() => {
-    // let prompt = parseAsString.parseServerSide(searchParams["prompt"]);
-    let prompt = ""; // todo parse;
+    let prompt = searchParams["prompt"] || "";
+    console.log({ prompt });
+    console.log({ prompt });
+    console.log({ prompt });
 
     // Overr-ride the prompt with whatever is in the input box if the prompt is open
     if (initialOpen && typeof document !== "undefined") {
@@ -68,6 +70,7 @@ export const createAppMachine = ({
         prompt = value;
       }
     }
+    console.log({ prompt });
 
     // const ingredients =
     //   searchParams["ingredients"] &&
@@ -281,6 +284,14 @@ export const createAppMachine = ({
       isInputFocused: ({ event, ...props }) => {
         assert(event.type === "HYDRATE_INPUT", "expected HYDRATE_INPUT event");
         return event.ref === document.activeElement;
+      },
+      hasFocusedRecipeQueryParam: () => {
+        console.log("has focused check");
+        const focusedRecipeId = new URLSearchParams(window.location.search).get(
+          "focusedRecipeId"
+        );
+        console.log({ focusedRecipeId });
+        return focusedRecipeId ? focusedRecipeId.length > 0 : false;
       },
       hasCraftingQueryParam: () => {
         return (
@@ -856,17 +867,30 @@ export const createAppMachine = ({
             on: {
               VIEW_RECIPE: {
                 target: "Open",
-                actions: assign({
-                  focusedRecipeId: ({ event }) => event.id,
-                }),
+                actions: [
+                  assign({
+                    focusedRecipeId: ({ event }) => event.id,
+                  }),
+                  {
+                    type: "pushQueryParameters",
+                    params({ event }) {
+                      const recipe = store.get().context.recipes[event.id];
+                      return {
+                        paramSet: {
+                          focusedRecipeId: event.id,
+                        },
+                      };
+                    },
+                  },
+                ],
               },
             },
           },
           Open: {
             on: {
-              VIEW_LIST: "Closed",
-              EXIT: {
+              UPDATE_SEARCH_PARAMS: {
                 target: "Closed",
+                guard: not("hasFocusedRecipeQueryParam"),
                 actions: assign({
                   focusedRecipeId: () => undefined,
                 }),

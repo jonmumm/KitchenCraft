@@ -284,6 +284,7 @@ const AutoResizableTextarea: React.FC<
         <textarea
           suppressHydrationWarning
           ref={ref}
+          defaultValue={initialValue}
           className={`peer resize-none block w-full ${textSizeClass} outline-none bg-transparent overflow-y-hidden placeholder-slate-500`}
           onChange={handleChange}
           onBlur={handleBlur}
