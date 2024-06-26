@@ -477,7 +477,6 @@ const FeedCardRecipeItem = (input: {
               )}
             >
               <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-              <LikeButton id={recipe?.id} />
               <SaveButton id={recipe?.id} />
               <RecipeMoreDropdownButton />
             </div>

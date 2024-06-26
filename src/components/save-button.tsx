@@ -1,16 +1,10 @@
 "use client";
 
-import { BookmarkIcon, Check } from "lucide-react";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
+import { cn } from "@/lib/utils";
+import { createRecipeIsSavedInListSelector } from "@/selectors/page-session.selectors";
+import { BookmarkIcon } from "lucide-react";
 import { Button, ButtonProps } from "./input/button";
-import { Popover, PopoverContent, PopoverTrigger } from "./layout/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "./input/command";
 
 export const SaveButton = ({
   id,
@@ -23,6 +17,9 @@ export const SaveButton = ({
   variant?: ButtonProps["variant"];
   showText?: boolean;
 }) => {
+  const selectRecipeIsSavedInList = createRecipeIsSavedInListSelector(id);
+  const isSaved = usePageSessionSelector(selectRecipeIsSavedInList);
+
   if (!id) {
     return (
       <Button className={className} variant={variant || "ghost"} disabled>
@@ -33,28 +30,22 @@ export const SaveButton = ({
   }
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          className={className}
-          variant={variant || "outline"}
-          event={{ type: "SAVE_RECIPE", recipeId: id }}
-        >
-          {showText && <>Save</>}
-          <BookmarkIcon className={showText ? "ml-1" : ""} />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent>
-        <Command shouldFilter={false}>
-          <CommandInput placeholder="Search lists..." />
-          <CommandList>
-            <CommandEmpty>Empty</CommandEmpty>
-            <CommandGroup key="foo">
-
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Button
+      className={className}
+      variant={variant || "outline"}
+      event={
+        !isSaved
+          ? { type: "SAVE_RECIPE", recipeId: id }
+          : { type: "CHANGE_LIST" }
+      }
+    >
+      {showText && <>Save</>}
+      <BookmarkIcon
+        className={cn(
+          isSaved ? "fill-slate-700 stroke-black" : "",
+          showText ? "ml-1" : ""
+        )}
+      />
+    </Button>
   );
 };

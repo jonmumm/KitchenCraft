@@ -247,6 +247,7 @@ export const createSessionMachine = ({
         suggestedIngredients: [],
         preferenceQuestionResults: {},
         suggestedTags: [],
+        currentSaveToListSlug: "liked",
         generationIdSets: {},
         lastRunPersonalizationContext: undefined,
         selectedFeedTopics: [],

@@ -8,6 +8,7 @@ import { UseEmblaCarouselType } from "embla-carousel-react";
 import { z } from "zod";
 
 export const AppContextSchema = z.object({
+  toastIds: z.array(z.union([z.string(), z.number()])),
   token: z.string(),
   email: z.string().optional(),
   scrollItemIndex: z.number(),

@@ -186,6 +186,23 @@ const selectListRecipes = createSelector(
   ({ listRecipes }) => listRecipes
 );
 
+export const createRecipeIsSavedInListSelector = (id?: string) =>
+  createSelector(
+    (state: PageSessionSnapshot) => state.context.listRecipes,
+    (state: PageSessionSnapshot) => state.context.listsById,
+    (listRecipes, listsById) => {
+      if (!id || !listsById || !listRecipes) {
+        return false;
+      }
+
+      // Check if the recipe is in any list
+      return Object.keys(listsById).some((listId) => {
+        const recipesInList = listRecipes[listId];
+        return !!recipesInList && !!recipesInList[id];
+      });
+    }
+  );
+
 export const createRecipeIsLikedSelector = (id?: string) =>
   createSelector(
     selectLikedListId,

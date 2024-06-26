@@ -3415,15 +3415,25 @@ export const createPageSessionMachine = ({
       ListRecipes: {
         initial: "Idle",
         on: {
-          LIKE_RECIPE: {
-            actions: assign(({ context, event, self }) => {
+          SAVE_RECIPE: {
+            actions: assign(({ context, event }) => {
               return produce(context, (draft) => {
-                const likedList = Object.values(context.listsById).find(
-                  (list) => list.slug === "liked"
+                const currentSaveToListSlug =
+                  context.sessionSnapshot?.context.currentSaveToListSlug;
+                assert(
+                  currentSaveToListSlug,
+                  "expected currentSaveToListSlug to exist when saving recipe"
                 );
-                assert(likedList, "expected likedList to exist");
 
-                const listId = likedList.id;
+                const currentList = Object.values(context.listsById).find(
+                  (list) => list.slug === currentSaveToListSlug
+                );
+                assert(
+                  currentList,
+                  `expected  to exist for slug ${currentSaveToListSlug}`
+                );
+
+                const listId = currentList.id;
                 let draftListRecipes = draft.listRecipes[listId];
                 if (!draftListRecipes) {
                   draftListRecipes = {};
@@ -3434,21 +3444,21 @@ export const createPageSessionMachine = ({
               });
             }),
           },
-          UNLIKE_RECIPE: {
-            actions: assign(({ context, event, self }) => {
-              return produce(context, (draft) => {
-                const likedList = Object.values(context.listsById).find(
-                  (list) => list.slug === "liked"
-                );
-                assert(likedList, "expected likedList to exist");
-                const listId = likedList.id;
-                let draftListRecipes = draft.listRecipes[listId];
-                if (draftListRecipes) {
-                  delete draftListRecipes[event.recipeId];
-                }
-              });
-            }),
-          },
+          // UNLIKE_RECIPE: {
+          //   actions: assign(({ context, event, self }) => {
+          //     return produce(context, (draft) => {
+          //       const likedList = Object.values(context.listsById).find(
+          //         (list) => list.slug === "liked"
+          //       );
+          //       assert(likedList, "expected likedList to exist");
+          //       const listId = likedList.id;
+          //       let draftListRecipes = draft.listRecipes[listId];
+          //       if (draftListRecipes) {
+          //         delete draftListRecipes[event.recipeId];
+          //       }
+          //     });
+          //   }),
+          // },
         },
         states: {
           Idle: {

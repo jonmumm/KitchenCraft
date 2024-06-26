@@ -84,6 +84,7 @@ export const createAppMachine = ({
       substitutions: undefined,
       dietaryAlternatives: undefined,
       savedRecipeSlugs: [],
+      toastIds: [],
       equipmentAdaptations: undefined,
       inputs: {},
       history: [initialPath],
@@ -145,6 +146,15 @@ export const createAppMachine = ({
       events: {} as AppEvent | GeneratorEvent,
     },
     actions: {
+      clearToasts: assign({
+        toastIds: ({ context, event }) => {
+          context.toastIds.forEach((id) => {
+            toast.dismiss(id);
+          });
+
+          return [];
+        },
+      }),
       // shareSelectedUrl: ({ context }) => {
 
       // },
@@ -857,6 +867,25 @@ export const createAppMachine = ({
       RecipeDetail: {
         initial: "Closed",
         on: {
+          SAVE_RECIPE: {
+            actions: assign(({ context, event }) => {
+              return produce(context, (draft) => {
+                const toastId = toast.success("Saved to", {
+                  duration: Infinity,
+                  description: "Liked Recipes",
+                  action: {
+                    onClick() {
+                      send({
+                        type: "CHANGE_LIST",
+                      });
+                    },
+                    label: "Change",
+                  },
+                });
+                draft.toastIds.push(toastId);
+              });
+            }),
+          },
           POP_STATE: [
             {
               target: ".Closed",
@@ -1024,7 +1053,10 @@ export const createAppMachine = ({
             states: {
               False: {
                 on: {
-                  SAVE_SELECTED: "True",
+                  CHANGE_LIST: {
+                    target: "True",
+                    actions: "clearToasts",
+                  },
                 },
               },
               True: {

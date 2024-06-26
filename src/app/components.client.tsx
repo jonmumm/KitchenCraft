@@ -581,7 +581,7 @@ export const SelectListCard = () => {
     <div className="overflow-y-auto max-h-[95svh] py-4">
       <div className="flex flex-row gap-1 items-center justify-between px-4">
         <div className="flex flex-col gap-1 mb-2">
-          <CardTitle>Add to List</CardTitle>
+          <CardTitle>Select A List</CardTitle>
           <CardDescription>Select a list to add to.</CardDescription>
           {/* <div className="flex flex-row justify-between items-center">
               <Label className="uppercase text-xs text-muted-foreground">
@@ -607,12 +607,12 @@ export const SelectListCard = () => {
           + Create List
         </Button>
         <Separator />
-        <MakeLaterCard />
+        {/* <MakeLaterCard /> */}
       </div>
       <div className="mt-1">
-        <Label className="uppercase text-xs text-muted-foreground mx-4">
+        {/* <Label className="uppercase text-xs text-muted-foreground mx-4">
           Recent
-        </Label>
+        </Label> */}
         <div>
           <RecentLists />
         </div>
