@@ -3414,6 +3414,27 @@ export const createPageSessionMachine = ({
 
       ListRecipes: {
         initial: "Idle",
+        on: {
+          LIKE_RECIPE: {
+            actions: assign(({ context, event, self }) => {
+              return produce(context, (draft) => {
+                const likedList = Object.values(context.listsById).find(
+                  (list) => list.slug === "liked"
+                );
+                assert(likedList, "expected likedList to exist");
+
+                const listId = likedList.id;
+                let draftListRecipes = draft.listRecipes[listId];
+                if (!draftListRecipes) {
+                  draftListRecipes = {};
+                  draft.listRecipes[listId] = draftListRecipes;
+                }
+
+                draftListRecipes[event.recipeId] = true;
+              });
+            }),
+          },
+        },
         states: {
           Idle: {
             always: {

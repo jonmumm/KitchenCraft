@@ -1,7 +1,10 @@
 "use client";
 
+import { useSend } from "@/hooks/useSend";
+import { cn } from "@/lib/utils";
 import { ThumbsUpIcon } from "lucide-react";
 import Link from "next/link";
+import { useCallback, useState } from "react";
 import { Button, ButtonProps } from "./input/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./layout/popover";
 
@@ -16,9 +19,27 @@ export const LikeButton = ({
   variant?: ButtonProps["variant"];
   showText?: boolean;
 }) => {
+  const [open, setOpen] = useState(false);
+  const send = useSend();
+
+  const handleOpenChange = useCallback(
+    (value: boolean) => {
+      // event={{ type: "LIKE_RECIPE", recipeId: id }}
+      if (id && value) {
+        send({ type: "LIKE_RECIPE", recipeId: id });
+      }
+      setOpen(value);
+    },
+    [setOpen, id]
+  );
+
   if (!id) {
     return (
-      <Button className={className} variant={variant || "ghost"} disabled>
+      <Button
+        className={cn(className, "fill-white")}
+        variant={variant || "ghost"}
+        disabled
+      >
         {showText && <>Like</>}
         <ThumbsUpIcon className="ml-1" />
       </Button>
@@ -26,13 +47,9 @@ export const LikeButton = ({
   }
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button
-          className={className}
-          variant={variant || "outline"}
-          event={{ type: "LIKE_RECIPE", recipeId: id }}
-        >
+        <Button className={className} variant={variant || "outline"}>
           {showText && <>Like</>}
           <ThumbsUpIcon className="ml-1" />
         </Button>

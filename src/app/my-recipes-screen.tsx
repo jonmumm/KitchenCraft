@@ -224,12 +224,7 @@ export const MyRecipesScreen = () => {
               </CurrentListIsSelected>
               <HasRecipesInCurrentList>
                 <CurrentListCarousel>
-                  <CurrentListIsSelected not>
-                    <CurrentListItems />
-                  </CurrentListIsSelected>
-                  <CurrentListIsSelected>
-                    <SelectedCarouselItems />
-                  </CurrentListIsSelected>
+                  <CurrentListItems />
                 </CurrentListCarousel>
               </HasRecipesInCurrentList>
             </TabsContent>
@@ -261,7 +256,10 @@ export const MyRecipesScreen = () => {
           </CurrentListIsSelected>
           <CurrentListIsSelected not>
             <IsShareable>
-              <Button className="shadow-md" event={{ type: "SHARE_CURRENT_LIST" }}>
+              <Button
+                className="shadow-md"
+                event={{ type: "SHARE_CURRENT_LIST" }}
+              >
                 <ShareIcon size={16} className="mr-1" />
                 Share &apos;
                 <CurrentListName />
@@ -392,10 +390,10 @@ const CurrentListCarouselItem = ({
             {recipe?.slug && (
               <>
                 <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-                <LikeButton id={recipe?.id} />
-                <SaveButton id={recipe?.id} />
-                <RecipeMoreDropdownButton />
+                  <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
+                  <LikeButton id={recipe?.id} />
+                  <SaveButton id={recipe?.id} />
+                  <RecipeMoreDropdownButton />
                 </div>
                 <Separator />
               </>
@@ -979,6 +977,7 @@ const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
 
 const CurrentListItems = () => {
   const recipeIdSet = useCombinedSelector(selectCurrentListItems);
+  console.log({ recipeIdSet });
   const recipeIds = recipeIdSet ? Object.keys(recipeIdSet) : [];
   const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
   const [items] = useState(new Array(numItems).fill(0));

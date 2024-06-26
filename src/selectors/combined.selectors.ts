@@ -4,11 +4,7 @@ import { AppSnapshot } from "@/app/app-machine";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { createSelector } from "reselect";
 import { selectCurrentListSlug } from "./app.selectors";
-import {
-  createListBySlugSelector,
-  createListRecipeIdsBySlugSelector,
-  selectSelectedRecipeCount,
-} from "./page-session.selectors";
+import { createListRecipeIdsBySlugSelector } from "./page-session.selectors";
 
 export const createSuggestedRecipeAtIndexSelector =
   (index: number) =>
@@ -66,25 +62,33 @@ export const selectCurrentListItems = (
   pageSessionSnapshot: PageSessionSnapshot
 ) => {
   const currentListSlug = selectCurrentListSlug(appSnapshot);
+  console.log({ currentListSlug });
   return createListRecipeIdsBySlugSelector(currentListSlug)(
     pageSessionSnapshot
   );
 };
 
-export const selectCurrentListCount = (
-  appSnapshot: AppSnapshot,
-  pageSessionSnapshot: PageSessionSnapshot
-) => {
-  const currentListSlug = selectCurrentListSlug(appSnapshot);
-  const selectedRecipeCount = selectSelectedRecipeCount(pageSessionSnapshot);
-  const list = createListBySlugSelector(currentListSlug)(pageSessionSnapshot);
-
-  if (currentListSlug === "selected") {
-    return selectedRecipeCount;
-  } else {
-    return list?.count;
+export const selectCurrentListCount = createSelector(
+  selectCurrentListItems,
+  (items) => {
+    return items ? Object.keys(items).length : 0;
   }
-};
+);
+
+// export const selectCurrentListCount = (
+//   appSnapshot: AppSnapshot,
+//   pageSessionSnapshot: PageSessionSnapshot
+// ) => {
+//   const currentListSlug = selectCurrentListSlug(appSnapshot);
+//   const selectedRecipeCount = selectSelectedRecipeCount(pageSessionSnapshot);
+//   const list = createListBySlugSelector(currentListSlug)(pageSessionSnapshot);
+
+//   if (currentListSlug === "selected") {
+//     return selectedRecipeCount;
+//   } else {
+//     return list?.count;
+//   }
+// };
 
 export const selectHasRecipesInCurrentList = createSelector(
   selectCurrentListCount,
