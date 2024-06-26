@@ -3434,6 +3434,21 @@ export const createPageSessionMachine = ({
               });
             }),
           },
+          UNLIKE_RECIPE: {
+            actions: assign(({ context, event, self }) => {
+              return produce(context, (draft) => {
+                const likedList = Object.values(context.listsById).find(
+                  (list) => list.slug === "liked"
+                );
+                assert(likedList, "expected likedList to exist");
+                const listId = likedList.id;
+                let draftListRecipes = draft.listRecipes[listId];
+                if (draftListRecipes) {
+                  delete draftListRecipes[event.recipeId];
+                }
+              });
+            }),
+          },
         },
         states: {
           Idle: {
@@ -3862,11 +3877,11 @@ const initializeListsById = () => {
   const commented = randomUUID();
 
   return {
-    [selectedId]: {
-      id: selectedId,
-      name: "Selected",
-      icon: "✅",
-      slug: "selected",
+    [likedId]: {
+      id: likedId,
+      name: "Liked",
+      icon: "❤️",
+      slug: "liked",
       created: false,
       count: 0,
       createdAt: new Date(),
@@ -3883,17 +3898,8 @@ const initializeListsById = () => {
     [favoritesId]: {
       id: favoritesId,
       name: "Favorites",
-      icon: "❤️",
+      icon: "⭐️",
       slug: "favorites",
-      created: false,
-      count: 0,
-      createdAt: new Date(),
-    },
-    [likedId]: {
-      id: likedId,
-      name: "Liked",
-      icon: "👍",
-      slug: "liked",
       created: false,
       count: 0,
       createdAt: new Date(),

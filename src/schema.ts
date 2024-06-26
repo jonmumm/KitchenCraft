@@ -1,6 +1,5 @@
 import type { CreateMessage } from "ai";
 import { UseEmblaCarouselType } from "embla-carousel-react";
-import { useSession } from "next-auth/react";
 import { Stub } from "partykit/server";
 import { z } from "zod";
 import {
@@ -733,7 +732,7 @@ const ClearEventSchema = z.object({
 const PageLoadedEventSchema = z.object({
   type: z.literal("PAGE_LOADED"),
   pathname: z.string(),
-  direction: z.enum(['forward', 'backward', 'initial']),
+  direction: z.enum(["forward", "backward", "initial"]),
 });
 
 const SearchParamsEventSchema = z.object({
@@ -1161,8 +1160,14 @@ const LikeRecipeEventSchema = z.object({
   recipeId: z.string(),
 });
 
+const UnlikeRecipeEventSchema = z.object({
+  type: z.literal("UNLIKE_RECIPE"),
+  recipeId: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   LikeRecipeEventSchema,
+  UnlikeRecipeEventSchema,
   CopyLinkEventSchema,
   PushStateEventSchema,
   PopStateEventSchema,

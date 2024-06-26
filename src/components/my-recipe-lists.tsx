@@ -32,10 +32,9 @@ export const MyRecipeLists = () => {
               .map((listId) => {
                 return <MyRecipeListCardById id={listId} key={listId} />;
               })}
-          <MyRecipeListCardBySlug slug="liked" />
           <MyRecipeListCardBySlug slug="make-later" />
-          <MyRecipeListCardBySlug slug="commented" />
           <MyRecipeListCardBySlug slug="favorites" />
+          <MyRecipeListCardBySlug slug="commented" />
           <Separator orientation="vertical" />
           <MyRecipeListItemCard
             event={{ type: "CREATE_LIST" }}

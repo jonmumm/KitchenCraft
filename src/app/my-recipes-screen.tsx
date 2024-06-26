@@ -769,10 +769,9 @@ const MyRecipeListsRadioGroup = () => {
       onValueChange={handleValueChange}
     >
       {/* <RecipeListRadioItemSelected /> */}
-      <RecipeListRadioItemBySlug slug="liked" />
       <RecipeListRadioItemBySlug slug="make-later" />
-      <RecipeListRadioItemBySlug slug="commented" />
       <RecipeListRadioItemBySlug slug="favorites" />
+      <RecipeListRadioItemBySlug slug="commented" />
       {recentCreated?.length ? (
         <>
           <div className="px-2">
