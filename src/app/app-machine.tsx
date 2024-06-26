@@ -282,7 +282,7 @@ export const createAppMachine = ({
         assert(event.type === "HYDRATE_INPUT", "expected HYDRATE_INPUT event");
         return event.ref === document.activeElement;
       },
-      hasFocusedRecipeQueryParam: () => {
+      hasFocusedRecipeIdQueryParam: () => {
         const focusedRecipeId = new URLSearchParams(window.location.search).get(
           "focusedRecipeId"
         );
@@ -856,6 +856,29 @@ export const createAppMachine = ({
       },
       RecipeDetail: {
         initial: "Closed",
+        on: {
+          POP_STATE: [
+            {
+              target: ".Closed",
+              guard: not("hasFocusedRecipeIdQueryParam"),
+              actions: assign({
+                focusedRecipeId: () => undefined,
+              }),
+            },
+            {
+              target: ".Open",
+              guard: "hasFocusedRecipeIdQueryParam",
+              actions: assign({
+                focusedRecipeId: () => {
+                  const queryParams = new URLSearchParams(
+                    window.location.search
+                  );
+                  return queryParams.get("focusedRecipeId") || undefined;
+                },
+              }),
+            },
+          ],
+        },
         states: {
           Closed: {
             on: {
@@ -884,7 +907,7 @@ export const createAppMachine = ({
             on: {
               UPDATE_SEARCH_PARAMS: {
                 target: "Closed",
-                guard: not("hasFocusedRecipeQueryParam"),
+                guard: not("hasFocusedRecipeIdQueryParam"),
                 actions: assign({
                   focusedRecipeId: () => undefined,
                 }),
