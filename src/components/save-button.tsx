@@ -16,7 +16,7 @@ export const SaveButton = ({
   id,
   className,
   variant,
-  showText = false,
+  showText = true,
 }: {
   id?: string;
   className?: string;

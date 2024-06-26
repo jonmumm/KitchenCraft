@@ -369,7 +369,7 @@ export default async function Page(props: Props) {
                 <Separator />
                 <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-center px-4 w-full">
                   <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-                  <LikeButton id={recipe?.id} />
+                  {/* <LikeButton id={recipe?.id} /> */}
                   <SaveButton id={recipe?.id} />
                   <RecipeMoreDropdownButton />
                 </div>

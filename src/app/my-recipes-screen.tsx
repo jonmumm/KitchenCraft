@@ -391,7 +391,7 @@ const CurrentListCarouselItem = ({
               <>
                 <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
                   <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-                  <LikeButton id={recipe?.id} />
+                  {/* <LikeButton id={recipe?.id} /> */}
                   <SaveButton id={recipe?.id} />
                   <RecipeMoreDropdownButton />
                 </div>
