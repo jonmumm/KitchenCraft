@@ -492,21 +492,6 @@ const useSuggestedListNames = () => {
   );
 };
 
-const useSuggestedChefnames = () => {
-  const session$ = usePageSessionStore();
-
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context;
-    },
-    () => {
-      return session$.get().context;
-    },
-    (context) => context.suggestedChefnames
-  );
-};
-
 export const SelectListCard = () => {
   const RecentLists = () => {
     // const lists = useSortedRecipeLists();

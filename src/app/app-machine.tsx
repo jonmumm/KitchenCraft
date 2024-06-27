@@ -872,11 +872,12 @@ export const createAppMachine = ({
           SAVE_RECIPE: {
             actions: assign(({ context, event }) => {
               return produce(context, (draft) => {
-                const toastId = toast.success(
+                const toastId = toast(
                   <Link
                     href="?#liked"
                     className="flex flex-row justify-between items-center gap-2 w-full"
                   >
+                    <span className="text-xl">👍</span>
                     <div className="flex flex-col flex-1">
                       <span className="text-muted-foreground">Saved to</span>
                       <span className="font-medium text-lg underline">
@@ -889,13 +890,9 @@ export const createAppMachine = ({
                   </Link>,
                   {
                     duration: Infinity,
-                    action: {
-                      onClick() {
-                        send({
-                          type: "CHANGE_LIST",
-                        });
-                      },
-                      label: "Change",
+                    closeButton: true,
+                    classNames: {
+                      closeButton: "bg-muted text-muted-foreground",
                     },
                   }
                 );
