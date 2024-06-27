@@ -393,7 +393,7 @@ const CurrentListCarouselItem = ({
                   <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
                   {/* <LikeButton id={recipe?.id} /> */}
                   <SaveButton id={recipe?.id} />
-                  <RecipeMoreDropdownButton />
+                  <RecipeMoreDropdownButton id={recipe?.id} />
                 </div>
                 <Separator />
               </>

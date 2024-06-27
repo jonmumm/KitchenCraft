@@ -9,9 +9,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/input/dropdown-menu";
+import { createRecipeLinkSelector } from "@/selectors/page-session.selectors";
 import { MoreVerticalIcon } from "lucide-react";
+import { useMemo } from "react";
+import { PageSessionSelectorLink } from "./util/page-session-selector-link";
 
-export const RecipeMoreDropdownButton = () => {
+export const RecipeMoreDropdownButton = ({
+  id,
+}: {
+  id: string | undefined;
+}) => {
+  const selectRecipeLink = useMemo(() => createRecipeLinkSelector(id), [id]);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -22,14 +31,17 @@ export const RecipeMoreDropdownButton = () => {
       <DropdownMenuContent className="w-56 mr-2 z-100">
         <DropdownMenuGroup>
           <DropdownMenuItem className="text-muted-foreground">
-            <div>
+            <PageSessionSelectorLink
+              target="_blank"
+              selector={selectRecipeLink}
+            >
               {/* <EventTrigger event={{type: "ADD_TO_LIST"}}>  */}
               <span role="img" aria-label="open-in-new-tab" className="mr-2">
                 ➕
               </span>
               <span className="text-muted-foreground">Open in </span>
               <span className="text-foreground font-semibold">New Tab</span>
-            </div>
+            </PageSessionSelectorLink>
             {/* </EventTrigger> */}
           </DropdownMenuItem>
           <DropdownMenuSeparator />

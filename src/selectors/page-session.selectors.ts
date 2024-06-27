@@ -18,6 +18,12 @@ export const selectPageSessionContext = createSelector(
   selectPageSessionState,
   ({ context }) => context
 );
+
+export const selectRecipes = createSelector(
+  selectPageSessionContext,
+  (context) => context.recipes
+);
+
 export const selectSessionSnapshot = createSelector(
   selectPageSessionContext,
   ({ sessionSnapshot }) => sessionSnapshot
@@ -116,13 +122,14 @@ export const createPathForListIdSelector =
     return `/list/${listId}`;
   };
 
-export const createRecipeSelector =
-  (id?: string) => (state: PageSessionSnapshot) => {
-    if (id) {
-      return state.context.recipes[id];
-    }
-    return undefined;
-  };
+export const createRecipeSelector = (id?: string) =>
+  createSelector(selectRecipes, (recipes) => (id ? recipes[id] : undefined));
+
+export const createRecipeLinkSelector = (id?: string) =>
+  createSelector(createRecipeSelector(id), (recipe) => {
+    return recipe?.slug ? `/recipe/${recipe.slug}` : undefined;
+  });
+// createSelector(selectRecipes, (recipes) => (id ? recipes[id] : undefined));
 
 export const createSelectedRecipeAtIndexSelector = (index: number) => {
   return (state: PageSessionSnapshot) => {

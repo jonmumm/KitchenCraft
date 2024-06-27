@@ -8,10 +8,12 @@ import {
 import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
+import { Badge } from "@/components/display/badge";
 import { selectFeedItemIds } from "@/selectors/page-session.selectors";
 import { socket$ } from "@/stores/socket";
 import { produce } from "immer";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import Link from "next/link";
 import { toast } from "sonner";
 import {
   ActorRefFrom,
@@ -870,18 +872,33 @@ export const createAppMachine = ({
           SAVE_RECIPE: {
             actions: assign(({ context, event }) => {
               return produce(context, (draft) => {
-                const toastId = toast.success("Saved to", {
-                  duration: Infinity,
-                  description: "Liked Recipes",
-                  action: {
-                    onClick() {
-                      send({
-                        type: "CHANGE_LIST",
-                      });
+                const toastId = toast.success(
+                  <Link
+                    href="#liked"
+                    className="flex flex-row justify-between items-center gap-2 w-full"
+                  >
+                    <div className="flex flex-col flex-1">
+                      <span className="text-muted-foreground">Saved to</span>
+                      <span className="font-medium text-lg underline">
+                        #liked
+                      </span>
+                    </div>
+                    <Badge variant="secondary" event={{ type: "CHANGE_LIST" }}>
+                      Change
+                    </Badge>
+                  </Link>,
+                  {
+                    duration: Infinity,
+                    action: {
+                      onClick() {
+                        send({
+                          type: "CHANGE_LIST",
+                        });
+                      },
+                      label: "Change",
                     },
-                    label: "Change",
-                  },
-                });
+                  }
+                );
                 draft.toastIds.push(toastId);
               });
             }),

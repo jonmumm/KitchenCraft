@@ -3,7 +3,7 @@
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { cn } from "@/lib/utils";
 import { createRecipeIsSavedInListSelector } from "@/selectors/page-session.selectors";
-import { BookmarkIcon } from "lucide-react";
+import { BookmarkCheckIcon, BookmarkIcon } from "lucide-react";
 import { Button, ButtonProps } from "./input/button";
 
 export const SaveButton = ({
@@ -19,12 +19,13 @@ export const SaveButton = ({
 }) => {
   const selectRecipeIsSavedInList = createRecipeIsSavedInListSelector(id);
   const isSaved = usePageSessionSelector(selectRecipeIsSavedInList);
+  const Icon = isSaved ? BookmarkCheckIcon : BookmarkIcon;
 
   if (!id) {
     return (
       <Button className={className} variant={variant || "ghost"} disabled>
         {showText && <>Save</>}
-        <BookmarkIcon className={showText ? "ml-1" : ""} />
+        <Icon className={showText ? "ml-1" : ""} />
       </Button>
     );
   }
@@ -40,9 +41,8 @@ export const SaveButton = ({
       }
     >
       {showText && <>Save</>}
-      <BookmarkIcon
+      <Icon
         className={cn(
-          isSaved ? "fill-slate-700 stroke-black" : "",
           showText ? "ml-1" : ""
         )}
       />

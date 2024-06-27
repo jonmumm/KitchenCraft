@@ -11,7 +11,7 @@ import {
   createFeedItemRecipeAtIndexSelector,
   createRecipeIsSelectedSelector,
   createRecipeSelector,
-  selectNumFeedItemIds
+  selectNumFeedItemIds,
 } from "@/selectors/page-session.selectors";
 import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
@@ -46,7 +46,6 @@ import {
   DropdownMenuTrigger,
 } from "./input/dropdown-menu";
 import { Instructions } from "./instructions";
-import { LikeButton } from "./like-button";
 import { RecipeMoreDropdownButton } from "./recipe-more-dropdown-button";
 import { SaveButton } from "./save-button";
 import { useScrollLock } from "./scroll-lock";
@@ -478,7 +477,7 @@ const FeedCardRecipeItem = (input: {
             >
               <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
               <SaveButton id={recipe?.id} />
-              <RecipeMoreDropdownButton />
+              <RecipeMoreDropdownButton id={recipe?.id} />
             </div>
           )}
           <Separator />

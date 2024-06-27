@@ -371,7 +371,7 @@ export default async function Page(props: Props) {
                   <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
                   {/* <LikeButton id={recipe?.id} /> */}
                   <SaveButton id={recipe?.id} />
-                  <RecipeMoreDropdownButton />
+              <RecipeMoreDropdownButton id={recipe?.id} />
                 </div>
                 <Separator />
                 {/* {recipeUserId && recipe?.createdAt && (

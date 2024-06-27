@@ -21,7 +21,6 @@ import {
 } from "@/components/display/collapsible";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
-import { Skeleton } from "@/components/display/skeleton";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
 import { TypeLogo } from "@/components/logo";
@@ -49,7 +48,7 @@ import {
   ChevronsUpDown,
   Circle,
   HeartIcon,
-  RefreshCwIcon,
+  PlusIcon,
   XIcon,
 } from "lucide-react";
 import { Inter } from "next/font/google";
@@ -59,7 +58,6 @@ import {
   ElementRef,
   ReactNode,
   forwardRef,
-  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -68,15 +66,12 @@ import {
 import { twc } from "react-twc";
 import { toast } from "sonner";
 import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
-import {
-  EnterChefNameForm,
-  EnterEmailForm,
-  EnterListNameForm,
-} from "./@craft/components.client";
+import { EnterEmailForm, EnterListNameForm } from "./@craft/components.client";
 import { AppSnapshot } from "./app-machine";
 import { AppContext } from "./context";
 import "./embla.css";
 import { PageSessionSnapshot } from "./page-session-machine";
+import { Checkbox } from "@/components/input/checkbox";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -583,22 +578,13 @@ export const SelectListCard = () => {
         <div className="flex flex-col gap-1 mb-2">
           <CardTitle>Select A List</CardTitle>
           <CardDescription>Select a list to add to.</CardDescription>
-          {/* <div className="flex flex-row justify-between items-center">
-              <Label className="uppercase text-xs text-muted-foreground">
-                Recent
-              </Label>
-              <Button variant="ghost" event={{ type: "REFRESH" }}>
-                <RefreshCwIcon size={14} />
-              </Button>
-            </div> */}
-          {/* <div className="flex flex-1 gap-1 flex-wrap">
-            </div> */}
         </div>
-        <Button variant="outline" size="icon" event={{ type: "CANCEL" }}>
-          <XIcon />
-        </Button>
+        <Badge variant="outline">
+          New List <PlusIcon className="ml-1" size={14} />
+        </Badge>
       </div>
-      <div className="px-4 flex flex-col gap-2">
+      <Separator />
+      {/* <div className="px-4 flex flex-col gap-2">
         <Button
           size="fit"
           className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md h-24 text-gray-500 dark:text-gray-400"
@@ -607,60 +593,32 @@ export const SelectListCard = () => {
           + Create List
         </Button>
         <Separator />
-        {/* <MakeLaterCard /> */}
-      </div>
-      <div className="mt-1">
-        {/* <Label className="uppercase text-xs text-muted-foreground mx-4">
-          Recent
-        </Label> */}
-        <div>
-          <RecentLists />
-        </div>
-      </div>
-      {/* <div className="mt-4">
-        <Label className="uppercase text-xs text-muted-foreground mx-4">
-          Suggestions
-        </Label>
-        <div>
-          <SuggestedLists />
-        </div>
       </div> */}
+      <div className="mt-1 p-4 flex flex-col gap-4">
+        <TestItem />
+        <TestItem />
+        <TestItem />
+        <TestItem />
+        <TestItem />
+      </div>
+    </div>
+  );
+};
+
+const TestItem = () => {
+  return (
+    <div className="flex flex-row justify-between items-center gap-3">
+      <span className="text-2xl">⏰</span>
+      <div className="flex flex-col flex-1">
+        <h4 className="text-xl font-semibold">#make-later</h4>
+        <p className="text-muted-foreground text-sm">5 recipes</p>
+      </div>
+      <Checkbox size="large" />
     </div>
   );
 };
 
 export const CreateNewListCard = () => {
-  // const ListNameSuggestions = () => {
-  //   const suggestedListNames = useSuggestedListNames();
-  //   const items = new Array(6).fill("");
-
-  //   return (
-  //     <>
-  //       {items.map((item, index) => {
-  //         return (
-  //           <div key={index} className="carousel-item">
-  //             {suggestedListNames.length > index ? (
-  //               <Badge
-  //                 event={{
-  //                   type: "SELECT_VALUE",
-  //                   name: "suggested_listname",
-  //                   value: suggestedListNames[index]!,
-  //                 }}
-  //               >
-  //                 {suggestedListNames[index]}
-  //               </Badge>
-  //             ) : (
-  //               <Badge>
-  //                 <Skeleton className="h-4 w-7" />
-  //               </Badge>
-  //             )}
-  //           </div>
-  //         );
-  //       })}
-  //     </>
-  //   );
-  // };
-
   return (
     <Card className="py-4 w-full">
       <div className="flex flex-row gap-1 items-center justify-between px-4">

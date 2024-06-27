@@ -12,7 +12,6 @@ import { Ingredients } from "@/components/ingredients";
 import { BackButton } from "@/components/input/back-button";
 import EventTrigger from "@/components/input/event-trigger";
 import { Instructions } from "@/components/instructions";
-import { LikeButton } from "@/components/like-button";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
 import { SaveButton } from "@/components/save-button";
 import ScrollLockComponent from "@/components/scroll-lock";
@@ -27,10 +26,14 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { useSuggestedRecipeAtIndex } from "@/hooks/useSuggestedRecipeAtIndex";
 import { cn } from "@/lib/utils";
-import { createRecipeIsSelectedSelector } from "@/selectors/page-session.selectors";
+import {
+  createRecipeIsSavedInListSelector,
+  createRecipeIsSelectedSelector,
+} from "@/selectors/page-session.selectors";
 import { ExtractAppEvent } from "@/types";
 import { Portal } from "@radix-ui/react-portal";
 import {
+  BookmarkCheckIcon,
   MoveLeftIcon,
   ScrollIcon,
   ShoppingBasketIcon,
@@ -42,22 +45,29 @@ import { RecipeDetailOverlay } from "../components.client";
 
 export const SuggestedRecipeCard = ({ index }: { index: number }) => {
   const recipe = useSuggestedRecipeAtIndex(index);
+  const recipeId = recipe?.id;
 
   const actor = useAppContext();
   const selectIsFocused = useCallback(
     (state: AppSnapshot) => {
       return !!recipe?.id && state.context.focusedRecipeId === recipe.id;
     },
-    [recipe?.id]
+    [recipeId]
   );
   const isFocused = useSelector(actor, selectIsFocused);
   const isExpanded = isFocused;
   const send = useSend();
   const selectRecipeIsSelected = useMemo(
     () => createRecipeIsSelectedSelector(recipe?.id),
-    [recipe?.id]
+    [recipeId]
   );
   const isSelected = usePageSessionSelector(selectRecipeIsSelected);
+
+  const selectRecipeIsSaved = useMemo(
+    () => createRecipeIsSavedInListSelector(recipeId),
+    [recipeId]
+  );
+  const isSaved = usePageSessionSelector(selectRecipeIsSaved);
 
   const handleOpenChange = useCallback(
     (value: boolean) => {
@@ -65,7 +75,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
         send({ type: "VIEW_RECIPE", id: recipe.id });
       }
     },
-    [send, recipe?.id]
+    [send, recipeId]
   );
 
   const [wasJustSelected, setWasJustSelected] = useState(false);
@@ -106,6 +116,12 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           <div className="flex flex-row gap-2 w-full">
             <div className="flex flex-col gap-2 w-full">
               <CardTitle className="flex flex-row items-center gap-2">
+                {!isExpanded && isSaved && (
+                  <BookmarkCheckIcon
+                    size={32}
+                    className="absolute right-4 -top-2"
+                  />
+                )}
                 <span className="text-muted-foreground">{index + 1}. </span>
                 {recipe?.name ? (
                   <p className="flex-1">{recipe.name}</p>
@@ -186,7 +202,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                 <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
                 {/* <LikeButton id={recipe?.id} /> */}
                 <SaveButton id={recipe?.id} />
-                <RecipeMoreDropdownButton />
+                <RecipeMoreDropdownButton id={recipe?.id} />
               </div>
             )}
             {/* <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2"></div> */}

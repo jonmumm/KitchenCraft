@@ -30,6 +30,6 @@ export const PageSessionSelectorLink = ({
       {children}
     </Link>
   ) : (
-    <>{children}</>
+    <div>{children}</div>
   );
 };
