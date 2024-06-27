@@ -874,7 +874,7 @@ export const createAppMachine = ({
               return produce(context, (draft) => {
                 const toastId = toast.success(
                   <Link
-                    href="#liked"
+                    href="?#liked"
                     className="flex flex-row justify-between items-center gap-2 w-full"
                   >
                     <div className="flex flex-col flex-1">
