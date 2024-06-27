@@ -35,13 +35,13 @@ import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
-import { usePageSessionStore } from "@/hooks/usePageSessionStore";
+import { useRecipeListById } from "@/hooks/useRecipeListById";
 import { useRecipeListBySlug } from "@/hooks/useRecipeListBySlug";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { selectCraftIsOpen } from "@/selectors/app.selectors";
-import { selectPromptIsDirty } from "@/selectors/page-session.selectors";
+import { selectPromptIsDirty, selectRecentCreatedListIds } from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
 import { useStore } from "@nanostores/react";
@@ -69,7 +69,6 @@ import {
 } from "react";
 import { twc } from "react-twc";
 import { toast } from "sonner";
-import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-selector";
 import { EnterEmailForm, EnterListNameForm } from "./@craft/components.client";
 import { AppSnapshot } from "./app-machine";
 import { AppContext } from "./context";
@@ -445,124 +444,12 @@ export const IsUpgradingAccount = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
-// export const IsInputtingEmail = (props: { children: ReactNode }) => {
-//   const session$ = usePageSessionStore();
-//   const selector = useCallback(() => {
-//     const stateValue = session$.get().value;
-//     const val =
-//       typeof stateValue.Auth === "object" &&
-//       typeof stateValue.Auth.Registering === "object" &&
-//       !!stateValue.Auth.Registering.InputtingEmail;
-//     return val;
-//   }, [session$]);
-
-//   const active = useSyncExternalStore(session$.subscribe, selector, selector);
-
-//   return active ? <>{props.children}</> : null;
-// };
-
-// const useIsLoadingRecipeLists = () => {
-//   const session$ = usePageSessionStore();
-
-//   return useSyncExternalStoreWithSelector(
-//     session$.subscribe,
-//     () => {
-//       return session$.get().value;
-//     },
-//     () => {
-//       return session$.get().value;
-//     },
-//     (value) =>
-//       typeof value.Craft === "object" &&
-//       typeof value.Craft.Adding === "object" &&
-//       typeof value.Craft.Adding.True === "object" &&
-//       value.Craft.Adding.True.Lists === "Fetching"
-//   );
-// };
-
-const useSuggestedListNames = () => {
-  const session$ = usePageSessionStore();
-
-  return useSyncExternalStoreWithSelector(
-    session$.subscribe,
-    () => {
-      return session$.get().context;
-    },
-    () => {
-      return session$.get().context;
-    },
-    (context) => context.suggestedListNames
-  );
-};
-
-export const SelectListCard = () => {
-  const RecentLists = () => {
-    // const lists = useSortedRecipeLists();
-    // const isLoading = useIsLoadingRecipeLists();
-    const lists = usePageSessionSelector((state) => {
-      return state.context.listsById || {};
-    });
-    console.log({ lists });
-
-    return (
-      <div className="flex flex-col gap-2 px-4">
-        {Object.values(lists).map((item, index) => {
-          const name = lists[index]?.name;
-          const count = lists[index]?.count;
-          const createdAt = lists[index]?.createdAt;
-          const listSlug = lists[index]?.slug;
-          return (
-            <Card
-              key={index}
-              className="p-4 flex gap-1 items-center justify-between cursor-pointer"
-              event={listSlug ? { type: "SELECT_LIST", listSlug } : undefined}
-            >
-              <div className="grid gap-1">
-                <h4 className="font-semibold">
-                  {name ? (
-                    <>{name}</>
-                  ) : (
-                    <span className="text-muted-foreground">Empty</span>
-                  )}
-                </h4>
-                {count && createdAt ? (
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs text-muted-foreground">
-                      {count} recipe{count > 1 ? "s" : ""}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Created {formatCreateTime(createdAt)}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground">
-                    Press to create
-                  </span>
-                )}
-              </div>
-              {listSlug ? (
-                <Button size="sm" event={{ type: "SELECT_LIST", listSlug }}>
-                  Select
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  event={{ type: "CREATE_LIST" }}
-                >
-                  New
-                </Button>
-              )}
-            </Card>
-          );
-        })}
-      </div>
-    );
-  };
+export const SelectListDialog = () => {
+  const recentCreated = usePageSessionSelector(selectRecentCreatedListIds);
 
   return (
     <div className="overflow-y-auto max-h-[95svh] py-4">
-      <div className="flex flex-row gap-1 items-center justify-between px-4">
+      <div className="flex flex-row gap-1 items-center justify-between p-4">
         <div className="flex flex-col justify-center">
           <CardTitle>Save To...</CardTitle>
           <CardDescription>Store this recipe in these lists:</CardDescription>
@@ -571,10 +458,12 @@ export const SelectListCard = () => {
           New List <PlusIcon className="ml-1" size={14} />
         </Badge>
       </div>
-      <Separator className="mt-4" />
-      <div className="mt-1 py-2 px-4 flex flex-col gap-4">
-        <ChooseListItemBySlug slug="liked" />
-        <ChooseListItemBySlug slug="make-later" />
+      <div className="px-4 flex flex-col gap-4">
+        <ChooseListItemCardBySlug slug="liked" />
+        <ChooseListItemCardBySlug slug="make-later" />
+        {recentCreated?.map((id) => (
+          <ChooseListItemCardById key={id} id={id} />
+        ))}
       </div>
       <div className="p-4">
         <BackButton variant="default" className="w-full" size="xl">
@@ -585,12 +474,30 @@ export const SelectListCard = () => {
   );
 };
 
-const ChooseListItemBySlug = ({ slug }: { slug: string }) => {
+const ChooseListItemCardById = ({ id }: { id: string }) => {
+  const list = useRecipeListById(id);
+  const t = useTranslations("General");
+
+  return (
+    <Card className="flex flex-row justify-between items-center gap-3 p-4">
+      <span className="text-2xl">{list?.icon}</span>
+      <div className="flex flex-col flex-1">
+        <h4 className="text-xl font-semibold">#{list?.slug}</h4>
+        <p className="text-muted-foreground text-sm">
+          {t("recipeCount", { count: list?.count })}
+        </p>
+      </div>
+      <Checkbox size="large" />
+    </Card>
+  );
+};
+
+const ChooseListItemCardBySlug = ({ slug }: { slug: string }) => {
   const list = useRecipeListBySlug(slug);
   const t = useTranslations("General");
 
   return (
-    <div className="flex flex-row justify-between items-center gap-3">
+    <Card className="flex flex-row justify-between items-center gap-3 p-4">
       <span className="text-2xl">{list?.icon}</span>
       <div className="flex flex-col flex-1">
         <h4 className="text-xl font-semibold">#{slug}</h4>
@@ -599,7 +506,7 @@ const ChooseListItemBySlug = ({ slug }: { slug: string }) => {
         </p>
       </div>
       <Checkbox size="large" />
-    </div>
+    </Card>
   );
 };
 

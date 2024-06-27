@@ -46,7 +46,7 @@ import {
   IsUpgradingAccount,
   PersonalizationSettingsMenu,
   SearchParamsToastMessage,
-  SelectListCard,
+  SelectListDialog,
   UpgradeAccountCard
 } from "./components.client";
 import EmailCodeCard from "./email-code-card";
@@ -368,7 +368,7 @@ const SaveDialog = () => {
         <ResponsiveDialog open>
           <ResponsiveDialogOverlay className="z-105" />
           <ResponsiveDialogContent className="z-110 max-w-xl mx-auto">
-            <SelectListCard />
+            <SelectListDialog />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </AppMatches>
