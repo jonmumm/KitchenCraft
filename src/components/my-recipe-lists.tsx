@@ -1,12 +1,12 @@
 "use client";
 
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
+import { useRecipeListBySlug } from "@/hooks/useRecipeListBySlug";
 import {
   createListByIdSelector,
-  createListBySlugSelector,
-  createPathForListIdSelector,
-  selectRecentCreatedListIds,
+  selectRecentCreatedListIds
 } from "@/selectors/page-session.selectors";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useMemo } from "react";
 import { twc } from "react-twc";
@@ -104,8 +104,8 @@ const MyRecipeListCardById = ({ id }: { id: string }) => {
 };
 
 const MyRecipeListCardBySlug = ({ slug }: { slug: string }) => {
-  const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
-  const list = usePageSessionSelector(selectList);
+  const list = useRecipeListBySlug(slug);
+  const t = useTranslations("General");
 
   return (
     <Link href={`#${slug}`}>
@@ -119,9 +119,7 @@ const MyRecipeListCardBySlug = ({ slug }: { slug: string }) => {
           </MyRecipeListItemTitle>
           <MyRecipeListItemRecipeCount>
             {list?.count !== undefined ? (
-              <>
-                {list?.count} {list?.count === 1 ? "recipe" : "recipes"}
-              </>
+              <>{t("recipeCount", { count: list?.count })}</>
             ) : (
               <Skeleton className="w-10 h-3 animate-none dark:bg-slate-600" />
             )}

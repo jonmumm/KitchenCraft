@@ -133,6 +133,7 @@ type List = {
 };
 
 export type PageSessionContext = {
+  choosingListsForRecipeId?: string,
   onboardingInput: {
     mealType?: string | undefined;
   };
@@ -3425,15 +3426,15 @@ export const createPageSessionMachine = ({
                   "expected currentSaveToListSlug to exist when saving recipe"
                 );
 
-                const currentList = Object.values(context.listsById).find(
+                const draftCurrentList = Object.values(draft.listsById).find(
                   (list) => list.slug === currentSaveToListSlug
                 );
                 assert(
-                  currentList,
+                  draftCurrentList,
                   `expected  to exist for slug ${currentSaveToListSlug}`
                 );
 
-                const listId = currentList.id;
+                const listId = draftCurrentList.id;
                 let draftListRecipes = draft.listRecipes[listId];
                 if (!draftListRecipes) {
                   draftListRecipes = {};
@@ -3441,6 +3442,7 @@ export const createPageSessionMachine = ({
                 }
 
                 draftListRecipes[event.recipeId] = true;
+                draftCurrentList.count++;
               });
             }),
           },
@@ -3890,7 +3892,7 @@ const initializeListsById = () => {
     [likedId]: {
       id: likedId,
       name: "Liked",
-      icon: "❤️",
+      icon: "👍",
       slug: "liked",
       created: false,
       count: 0,

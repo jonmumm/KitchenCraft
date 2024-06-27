@@ -22,7 +22,9 @@ import {
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Input } from "@/components/input";
+import { BackButton } from "@/components/input/back-button";
 import { Button } from "@/components/input/button";
+import { Checkbox } from "@/components/input/checkbox";
 import { TypeLogo } from "@/components/logo";
 import { DietCard } from "@/components/settings/diet-card";
 import { EquipmentCard } from "@/components/settings/equipment-card";
@@ -34,6 +36,7 @@ import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
+import { useRecipeListBySlug } from "@/hooks/useRecipeListBySlug";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
@@ -51,6 +54,7 @@ import {
   PlusIcon,
   XIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -71,7 +75,6 @@ import { AppSnapshot } from "./app-machine";
 import { AppContext } from "./context";
 import "./embla.css";
 import { PageSessionSnapshot } from "./page-session-machine";
-import { Checkbox } from "@/components/input/checkbox";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -560,43 +563,40 @@ export const SelectListCard = () => {
   return (
     <div className="overflow-y-auto max-h-[95svh] py-4">
       <div className="flex flex-row gap-1 items-center justify-between px-4">
-        <div className="flex flex-col gap-1 mb-2">
-          <CardTitle>Select A List</CardTitle>
-          <CardDescription>Select a list to add to.</CardDescription>
+        <div className="flex flex-col justify-center">
+          <CardTitle>Save To...</CardTitle>
+          <CardDescription>Store this recipe in these lists:</CardDescription>
         </div>
         <Badge variant="outline">
           New List <PlusIcon className="ml-1" size={14} />
         </Badge>
       </div>
-      <Separator />
-      {/* <div className="px-4 flex flex-col gap-2">
-        <Button
-          size="fit"
-          className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-md h-24 text-gray-500 dark:text-gray-400"
-          event={{ type: "CREATE_LIST" }}
-        >
-          + Create List
-        </Button>
-        <Separator />
-      </div> */}
-      <div className="mt-1 p-4 flex flex-col gap-4">
-        <TestItem />
-        <TestItem />
-        <TestItem />
-        <TestItem />
-        <TestItem />
+      <Separator className="mt-4" />
+      <div className="mt-1 py-2 px-4 flex flex-col gap-4">
+        <ChooseListItemBySlug slug="liked" />
+        <ChooseListItemBySlug slug="make-later" />
+      </div>
+      <div className="p-4">
+        <BackButton variant="default" className="w-full" size="xl">
+          Done
+        </BackButton>
       </div>
     </div>
   );
 };
 
-const TestItem = () => {
+const ChooseListItemBySlug = ({ slug }: { slug: string }) => {
+  const list = useRecipeListBySlug(slug);
+  const t = useTranslations("General");
+
   return (
     <div className="flex flex-row justify-between items-center gap-3">
-      <span className="text-2xl">⏰</span>
+      <span className="text-2xl">{list?.icon}</span>
       <div className="flex flex-col flex-1">
-        <h4 className="text-xl font-semibold">#make-later</h4>
-        <p className="text-muted-foreground text-sm">5 recipes</p>
+        <h4 className="text-xl font-semibold">#{slug}</h4>
+        <p className="text-muted-foreground text-sm">
+          {t("recipeCount", { count: list?.count })}
+        </p>
       </div>
       <Checkbox size="large" />
     </div>

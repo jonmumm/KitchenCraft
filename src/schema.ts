@@ -1056,8 +1056,9 @@ const ListCreatedEventSchema = z.object({
   name: z.string(),
 });
 
-const ChangeListEventSchema = z.object({
-  type: z.literal("CHANGE_LIST"),
+const ChooseListEventSchema = z.object({
+  type: z.literal("CHOOSE_LISTS"),
+  recipeId: z.string(),
 });
 
 const VisibilityStateEnum = z.enum(["visible", "hidden", "prerender"]);
@@ -1194,7 +1195,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   DietChangeEventSchema,
   PreferenceChangeEventSchema,
   VisibilityChangeEventSchema,
-  ChangeListEventSchema,
+  ChooseListEventSchema,
   CreateListEventSchema,
   SelectListEventSchema,
   UpdateUserPreferenceEventSchema,
@@ -1723,4 +1724,47 @@ export const FeedItemSchema = z.object({
   recipes: z
     .array(CategoryRecipeSchema)
     .describe("A list of 3 recipes in this category"),
+});
+
+export const AppContextSchema = z.object({
+  toastIds: z.array(z.union([z.string(), z.number()])),
+  token: z.string(),
+  email: z.string().optional(),
+  scrollItemIndex: z.number(),
+  savedRecipeSlugs: z.array(z.string()),
+  currentRecipeUrl: z.string().optional(),
+  history: z.array(z.string()),
+  currentRemixSlug: z.string().optional(),
+  focusedRecipeId: z.string().optional(),
+  prompt: z.string(),
+  inputs: z.object({
+    listName: z.string().optional(),
+  }),
+  submittedPrompt: z.string(),
+  ingredients: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+  selection: z
+    .object({
+      name: z.string(),
+      description: z.string(),
+    })
+    .optional(),
+  // slug: z.string().nullable(),
+  suggestions:
+    SuggestionPredictionPartialOutputSchema.shape.suggestions.nullable(),
+  remixSuggestions:
+    SuggestionPredictionPartialOutputSchema.shape.suggestions.nullable(),
+  substitutions: SubstitutionsPredictionPartialOutputSchema.shape.substitutions,
+  equipmentAdaptations: IdeasPredictionPartialOutputSchema.shape.ideas,
+  dietaryAlternatives: IdeasPredictionPartialOutputSchema.shape.ideas,
+  // scrollViewRef: z.custom<RefObject<HTMLDivElement>>(),
+  // resultId: z.string().nullable(),
+  suggestionsResultId: z.string().optional(),
+  instantRecipeResultId: z.string().optional(),
+  instantRecipeMetadata:
+    InstantRecipeMetadataPredictionOutputSchema.partial().optional(),
+  socketToastId: z.union([z.string(), z.number()]).optional(),
+  carouselAPI: z.custom<UseEmblaCarouselType[1]>().optional(),
+  selectItemIndexToScrollTo: z.number().optional(),
+  currentListSlug: z.string().optional(),
 });

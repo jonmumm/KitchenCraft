@@ -37,15 +37,11 @@ export const SaveButton = ({
       event={
         !isSaved
           ? { type: "SAVE_RECIPE", recipeId: id }
-          : { type: "CHANGE_LIST" }
+          : { type: "CHOOSE_LISTS", recipeId: id }
       }
     >
       {showText && <>Save</>}
-      <Icon
-        className={cn(
-          showText ? "ml-1" : ""
-        )}
-      />
+      <Icon className={cn(showText ? "ml-1" : "")} />
     </Button>
   );
 };

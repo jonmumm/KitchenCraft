@@ -9,6 +9,7 @@ import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
 import { Badge } from "@/components/display/badge";
+import { AppContextSchema } from "@/schema";
 import { selectFeedItemIds } from "@/selectors/page-session.selectors";
 import { socket$ } from "@/stores/socket";
 import { produce } from "immer";
@@ -28,9 +29,11 @@ import {
   setup,
 } from "xstate";
 import { z } from "zod";
-import { AppContextSchema } from "./@craft/schemas";
 import type { PageSessionSnapshot } from "./page-session-machine";
 import { RecipeAddedToast } from "./recipe-added-toast";
+
+const CHOOSING_LIST_FOR_RECIPE_ID_PARAM = "choosingListForRecipeId";
+const FOCUSED_RECIPE_ID_PARAM = "focusedRecipeId";
 
 export const createAppMachine = ({
   searchParams,
@@ -157,9 +160,6 @@ export const createAppMachine = ({
           return [];
         },
       }),
-      // shareSelectedUrl: ({ context }) => {
-
-      // },
       replaceQueryParameters: (
         { context },
         params: { paramSet: Record<string, string | undefined> }
@@ -294,11 +294,17 @@ export const createAppMachine = ({
         assert(event.type === "HYDRATE_INPUT", "expected HYDRATE_INPUT event");
         return event.ref === document.activeElement;
       },
-      hasFocusedRecipeIdQueryParam: () => {
-        const focusedRecipeId = new URLSearchParams(window.location.search).get(
-          "focusedRecipeId"
+      hasChoosingListsFoRecipeIdParam: () => {
+        const value = new URLSearchParams(window.location.search).get(
+          CHOOSING_LIST_FOR_RECIPE_ID_PARAM
         );
-        return focusedRecipeId ? focusedRecipeId.length > 0 : false;
+        return value ? value.length > 0 : false;
+      },
+      hasFocusedRecipeIdQueryParam: () => {
+        const value = new URLSearchParams(window.location.search).get(
+          FOCUSED_RECIPE_ID_PARAM
+        );
+        return value ? value.length > 0 : false;
       },
       hasCraftingQueryParam: () => {
         return (
@@ -884,7 +890,10 @@ export const createAppMachine = ({
                         #liked
                       </span>
                     </div>
-                    <Badge variant="secondary" event={{ type: "CHANGE_LIST" }}>
+                    <Badge
+                      variant="secondary"
+                      event={{ type: "CHOOSE_LISTS", recipeId: event.recipeId }}
+                    >
                       Change
                     </Badge>
                   </Link>,
@@ -1068,40 +1077,35 @@ export const createAppMachine = ({
               HASH_CHANGE: {
                 actions: "clearToasts",
               },
+              CHOOSE_LISTS: {
+                target: ".True",
+                actions: [
+                  "clearToasts",
+                  {
+                    type: "pushQueryParameters",
+                    params({ event }) {
+                      return {
+                        paramSet: {
+                          [CHOOSING_LIST_FOR_RECIPE_ID_PARAM]: event.recipeId,
+                        },
+                      };
+                    },
+                  },
+                ],
+              },
             },
             states: {
-              False: {
-                on: {
-                  CHANGE_LIST: {
-                    target: "True",
-                    actions: "clearToasts",
-                  },
-                },
-              },
+              False: {},
               True: {
                 on: {
                   CANCEL: "False",
                   SELECT_LIST: "False",
                   SUBMIT: "False",
+                  UPDATE_SEARCH_PARAMS: {
+                    target: "False",
+                    guard: not("hasChoosingListsFoRecipeIdParam"),
+                  },
                 },
-                // type: "parallel",
-                // states: {
-                //   Creating: {
-                //     initial: "False",
-                //     states: {
-                //       False: {
-                //         on: {
-                //           CREATE_LIST: "True",
-                //         },
-                //       },
-                //       True: {
-                //         on: {
-                //           CANCEL: "False",
-                //         },
-                //       },
-                //     },
-                //   },
-                // },
               },
             },
           },

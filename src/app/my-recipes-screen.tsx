@@ -20,7 +20,6 @@ import {
 } from "@/components/input/dropdown-menu";
 import { Instructions } from "@/components/instructions";
 import { ScrollArea } from "@/components/layout/scroll-area";
-import { LikeButton } from "@/components/like-button";
 import {
   Tabs,
   TabsContent,
@@ -45,6 +44,7 @@ import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
+import { useRecipeListBySlug } from "@/hooks/useRecipeListBySlug";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
@@ -450,7 +450,6 @@ const Overlay = () => {
   );
 };
 
-
 export const CreateNewListCard = () => {
   return (
     <Card className="py-4">
@@ -771,8 +770,7 @@ const RecipeListRadioItemSelected = () => {
 };
 
 const RecipeListRadioItemBySlug = ({ slug }: { slug: string }) => {
-  const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
-  const list = usePageSessionSelector(selectList);
+  const list = useRecipeListBySlug(slug);
 
   return (
     <Link href={`#${slug}`}>
