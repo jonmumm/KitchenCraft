@@ -18,9 +18,10 @@ import useEmblaCarousel from "embla-carousel-react";
 import {
   ExternalLinkIcon,
   MoreVerticalIcon,
+  MoveLeftIcon,
   ScrollIcon,
   ShoppingBasketIcon,
-  XIcon,
+  XCircleIcon
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode, useCallback, useEffect, useMemo } from "react";
@@ -34,8 +35,8 @@ import {
 } from "./display/card";
 import { Separator } from "./display/separator";
 import { SkeletonSentence } from "./display/skeleton";
-import { ExitButton } from "./exit-button";
 import { Ingredients } from "./ingredients";
+import { BackButton } from "./input/back-button";
 import { Button } from "./input/button";
 import {
   DropdownMenu,
@@ -335,9 +336,11 @@ const FeedCardRecipeCarousel = ({
         </div>
         {isActive && (
           <div className="mt-4 mb-8 flex flex-col items-center">
-            <Badge event={{ type: "EXIT" }}>
-              Close <XIcon size={14} className="ml-1" />
-            </Badge>
+            <BackButton asChild>
+              <Badge className="cursor-pointer" variant="default">
+                <MoveLeftIcon size={14} className="mr-1" /> Back
+              </Badge>
+            </BackButton>
           </div>
         )}
       </div>
@@ -444,18 +447,9 @@ const FeedCardRecipeItem = (input: {
           </>
         ) : (
           <div className="flex flex-col gap-2">
-            <ExitButton />
-            {/* {recipe?.slug ? (
-              <Link href={`/recipe/${recipe.slug}`} target="_blank">
-                <Button size="icon" variant="ghost" autoFocus={false}>
-                  <ExternalLinkIcon />
-                </Button>
-              </Link>
-            ) : (
-              <Button size="icon" variant="ghost" autoFocus={false} disabled>
-                <ExternalLinkIcon />
-              </Button>
-            )} */}
+            <BackButton size="icon" autoFocus={false} variant="ghost">
+              <XCircleIcon />
+            </BackButton>
           </div>
         )}
       </div>
