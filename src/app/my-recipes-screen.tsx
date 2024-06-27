@@ -3,9 +3,8 @@
 import { Badge } from "@/components/display/badge";
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardTitle,
+  CardTitle
 } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
@@ -34,7 +33,6 @@ import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { appSelectorComponent } from "@/components/util/app-selector";
 import { combinedSelectorComponent } from "@/components/util/combined-selector";
-import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { Yield } from "@/components/yield";
 import { useAppContext } from "@/hooks/useAppContext";
@@ -79,8 +77,7 @@ import {
   PlusCircleIcon,
   ScrollIcon,
   ShareIcon,
-  ShoppingBasketIcon,
-  XIcon,
+  ShoppingBasketIcon
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -95,9 +92,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { twc } from "react-twc";
 import { createSelector } from "reselect";
-import { EnterListNameForm } from "./@craft/components.client";
 import "./embla.css";
 
 export const MyRecipesScreen = () => {
@@ -450,97 +445,6 @@ const Overlay = () => {
   );
 };
 
-export const CreateNewListCard = () => {
-  return (
-    <Card className="py-4">
-      <div className="flex flex-row gap-1 items-center justify-between px-4">
-        <div className="flex flex-col gap-1 mb-2">
-          <PageSessionMatches matchedState={{ ListCreating: "True" }}>
-            <CardTitle>New Recipe List</CardTitle>
-            <CardDescription>Enter a name for your new list.</CardDescription>
-          </PageSessionMatches>
-          <PageSessionMatches
-            matchedState={{ ListCreating: { Error: "DuplicateName" } }}
-          >
-            <CardTitle className="text-error">Duplicate Name</CardTitle>
-            <CardDescription>
-              You have already created a list with this name. Try changing it to
-              something else.
-            </CardDescription>
-          </PageSessionMatches>
-          {/* <div className="flex flex-row justify-between items-center">
-              <Label className="uppercase text-xs text-muted-foreground">
-                Recent
-              </Label>
-              <Button variant="ghost" event={{ type: "REFRESH" }}>
-                <RefreshCwIcon size={14} />
-              </Button>
-            </div> */}
-          {/* <div className="flex flex-1 gap-1 flex-wrap">
-            </div> */}
-        </div>
-        <Button variant="outline" size="icon" event={{ type: "CANCEL" }}>
-          <XIcon />
-        </Button>
-      </div>
-      <CardContent>
-        <EnterListNameForm />
-      </CardContent>
-    </Card>
-  );
-};
-
-const ListItemCard = twc(
-  Card
-)`p-4 flex items-center justify-between cursor-pointer`;
-
-const MakeLaterCard = () => {
-  return (
-    <Card
-      className="p-4 flex gap-2 items-center justify-between cursor-pointer"
-      event={{ type: "SELECT_LIST", listSlug: "make-later" }}
-    >
-      <div className="grid gap-2">
-        <h4 className="font-semibold">Make Later</h4>
-        <p className="text-xs text-muted-foreground">
-          Recipes you want to remember to make some time
-        </p>
-      </div>
-      <Button size="sm">Select</Button>
-    </Card>
-  );
-};
-
-function formatCreateTime(createdAt: Date | string | number): string {
-  const date = new Date(createdAt);
-  const now = new Date();
-  const secondsAgo = Math.round((now.getTime() - date.getTime()) / 1000);
-
-  // If the date is within the last 7 days, return relative time
-  if (secondsAgo < 60) {
-    return "just now";
-  } else if (secondsAgo < 3600) {
-    // Less than an hour
-    const minutes = Math.floor(secondsAgo / 60);
-    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-  } else if (secondsAgo < 86400) {
-    // Less than a day
-    const hours = Math.floor(secondsAgo / 3600);
-    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  } else if (secondsAgo < 604800) {
-    // Less than 7 days
-    const days = Math.floor(secondsAgo / 86400);
-    return `${days} day${days > 1 ? "s" : ""} ago`;
-  }
-
-  // More than 7 days ago, return an absolute date
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 const CurrentListHasNextRecipes = ({ children }: { children: ReactNode }) => {
   const actor = useAppContext();
   const carouselAPI = useSelector(actor, (state) => state.context.carouselAPI);
@@ -718,8 +622,8 @@ const RecipeListRadioItemById = ({ id }: { id: string }) => {
           </span>
           <div className="flex-1 flex flex-col gap-2">
             <span className="font-medium">
-              {list?.name ? (
-                <>{list.name}</>
+              {list?.slug ? (
+                <>#{list.slug}</>
               ) : (
                 <Skeleton className="w-12 h-4" />
               )}
@@ -744,31 +648,6 @@ const RecipeListRadioItemById = ({ id }: { id: string }) => {
   );
 };
 
-const RecipeListRadioItemSelected = () => {
-  const count = usePageSessionSelector(selectSelectedRecipeCount);
-  return (
-    <Link href={`#selected`}>
-      <RecipeListRadioItem value={"selected"} className="py-4">
-        <div className="flex flex-row gap-2 w-56">
-          <span className="mr-1">✅</span>
-          <div className="flex-1 flex flex-col gap-2">
-            <span className="font-medium">Selected</span>
-          </div>
-          <div>
-            <span
-              className={cn(
-                "ml-1 text-sm font-semibold px-1 rounded bg-purple-700 text-white"
-              )}
-            >
-              {count}
-            </span>
-          </div>
-        </div>
-      </RecipeListRadioItem>
-    </Link>
-  );
-};
-
 const RecipeListRadioItemBySlug = ({ slug }: { slug: string }) => {
   const list = useRecipeListBySlug(slug);
 
@@ -781,8 +660,8 @@ const RecipeListRadioItemBySlug = ({ slug }: { slug: string }) => {
           </span>
           <div className="flex-1 flex flex-col gap-2">
             <span className="font-medium">
-              {list?.name ? (
-                <>{list.name}</>
+              {list?.slug ? (
+                <>#{list.slug}</>
               ) : (
                 <Skeleton className="w-12 h-4" />
               )}

@@ -28,10 +28,10 @@ import {
 } from "@/lib/session";
 import { assert } from "@/lib/utils";
 import { SafariInstallPrompt } from "@/modules/pwa-install/safari-install-prompt";
-import { IS_SELECTING_LIST } from "@/states/app.states";
+import { IS_CREATING_LIST, IS_SELECTING_LIST } from "@/states/app.states";
 import type { Metadata } from "next";
-import { NextIntlClientProvider } from 'next-intl';
-import { getLocale, getMessages } from 'next-intl/server';
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import Script from "next/script";
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
@@ -47,7 +47,7 @@ import {
   PersonalizationSettingsMenu,
   SearchParamsToastMessage,
   SelectListDialog,
-  UpgradeAccountCard
+  UpgradeAccountCard,
 } from "./components.client";
 import EmailCodeCard from "./email-code-card";
 import { MyRecipesScreen } from "./my-recipes-screen";
@@ -221,7 +221,7 @@ export default async function RootLayout(
                   <div className="sticky bottom-0 z-20">{footer}</div>
                   {canInstallPWA && <SafariInstallPrompt />}
                   {/* <RegistrationDialog /> */}
-                  <SaveDialog />
+                  <ListManagementDialogs />
                   <ShareDialog />
                   <SignInDialog />
                   <PersonalizationSettingsDialog />
@@ -361,7 +361,7 @@ const UpgradeAccountDialog = () => {
 //   );
 // };
 
-const SaveDialog = () => {
+const ListManagementDialogs = () => {
   return (
     <>
       <AppMatches matchedState={IS_SELECTING_LIST}>
@@ -372,17 +372,14 @@ const SaveDialog = () => {
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </AppMatches>
-      <PageSessionMatches
-        matchedState={{ ListCreating: "True" }}
-        or={{ ListCreating: "Error" }}
-      >
+      <AppMatches matchedState={IS_CREATING_LIST}>
         <ResponsiveDialog open>
-          <ResponsiveDialogOverlay className="z-105" />
-          <ResponsiveDialogContent className="z-110 max-w-xl mx-auto">
+          <ResponsiveDialogOverlay className="z-115" />
+          <ResponsiveDialogContent className="z-120 max-w-xl mx-auto">
             <CreateNewListCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
-      </PageSessionMatches>
+      </AppMatches>
     </>
   );
 };

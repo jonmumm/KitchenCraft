@@ -1734,11 +1734,12 @@ export const AppContextSchema = z.object({
   savedRecipeSlugs: z.array(z.string()),
   currentRecipeUrl: z.string().optional(),
   history: z.array(z.string()),
+  currentHistoryIndex: z.number(),
   currentRemixSlug: z.string().optional(),
   focusedRecipeId: z.string().optional(),
   prompt: z.string(),
   inputs: z.object({
-    listName: z.string().optional(),
+    listSlug: z.string().optional(),
   }),
   submittedPrompt: z.string(),
   ingredients: z.array(z.string()).optional(),

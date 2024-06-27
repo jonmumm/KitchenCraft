@@ -21,7 +21,7 @@ import { getSlug } from "@/lib/slug";
 import { assert, assertType, sentenceToSlug } from "@/lib/utils";
 import { createNewListWithRecipeIds } from "@/queries/createNewListWithRecipeIds";
 import { getNewSharedListName } from "@/queries/getAvailableSharedListName";
-import { ListNameSchema } from "@/schema";
+import { SlugSchema } from "@/schema";
 import {
   AdInstance,
   AppEvent,
@@ -94,6 +94,9 @@ import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { UserSnapshot } from "./user-machine";
 import { buildInput } from "./utils";
+import { didChangeEmailInput } from "@/guards/didChangeEmailInput";
+import { didChangeListSlugInput } from "@/guards/didChangeListSlugInput";
+import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
 
 export const SESSION_ACTOR_ID = "sessionActor";
 export const USER_ACTOR_ID = "userActor";
@@ -133,7 +136,7 @@ type List = {
 };
 
 export type PageSessionContext = {
-  choosingListsForRecipeId?: string,
+  choosingListsForRecipeId?: string;
   onboardingInput: {
     mealType?: string | undefined;
   };
@@ -168,7 +171,7 @@ export type PageSessionContext = {
   sessionAccessToken: string;
   userAccessToken: string;
   placeholders: string[];
-  listName: string | undefined;
+  listSlug: string | undefined;
   adInstances: Record<string, AdInstance>;
   viewedAdInstanceIds: string[];
   clickedAdInstanceIds: string[];
@@ -390,7 +393,7 @@ export const createPageSessionMachine = ({
           input,
         }: {
           input: {
-            listName: string;
+            listSlug: string;
             userId: string;
             recipeIdsToAdd: string[];
           };
@@ -677,12 +680,8 @@ export const createPageSessionMachine = ({
       hasValidChefName: ({ context }) => {
         return !!context.chefname && context.chefname?.length > 0;
       },
-      didChangeEmailInput: ({ event }) => {
-        return event.type === "CHANGE" && event.name === "email";
-      },
-      didChangeListNameInput: ({ event }) => {
-        return event.type === "CHANGE" && event.name === "listName";
-      },
+      didChangeEmailInput,
+      didChangeListSlugInput,
       didChangeChefNameInput: ({ context, event }) => {
         return event.type === "CHANGE" && event.name === "chefname";
       },
@@ -766,7 +765,7 @@ export const createPageSessionMachine = ({
       recipeIdToSave: undefined,
       prompt: "",
       initialCaller: input.initialCaller,
-      listName: undefined,
+      listSlug: undefined,
       isNewUser: undefined,
       chefname: undefined,
       suggestedChefnames: [],
@@ -3137,211 +3136,211 @@ export const createPageSessionMachine = ({
           },
         },
       },
-      Share: {
-        type: "parallel",
-        states: {
-          Open: {
-            initial: "False",
-            states: {
-              False: {
-                on: {
-                  SHARE_SELECTED: "True",
-                },
-              },
-              True: {
-                on: {
-                  CANCEL: "False",
-                  CHANGE: {
-                    guard: "didChangeShareNameInput",
-                    actions: assign({
-                      shareNameInput: ({ event }) => event.value.trim(),
-                    }),
-                  },
-                },
-              },
-            },
-          },
-          Record: {
-            initial: "Uninitialized",
-            on: {
-              // todo clear it out here
-              CLEAR_LIST: ".Uninitialized",
-              SELECT_RECIPE: ".Uninitialized",
-              UNSELECT: ".Uninitialized",
-            },
-            states: {
-              Uninitialized: {
-                entry: assign({
-                  shareNameInput: undefined,
-                  sharingListId: undefined,
-                }),
-                on: {
-                  SHARE_SELECTED: "GettingName",
-                },
-              },
-              GettingName: {
-                invoke: {
-                  src: "getNewSharedListName",
-                  input: ({ context }) => {
-                    const userId = context.userSnapshot?.context.id;
-                    assert(userId, "expected userId when saving");
-                    const timezone = context.userSnapshot?.context.timezone;
-                    assert(timezone, "expected user timezone to be set");
+      // Share: {
+      //   type: "parallel",
+      //   states: {
+      //     Open: {
+      //       initial: "False",
+      //       states: {
+      //         False: {
+      //           on: {
+      //             SHARE_SELECTED: "True",
+      //           },
+      //         },
+      //         True: {
+      //           on: {
+      //             CANCEL: "False",
+      //             CHANGE: {
+      //               guard: "didChangeShareNameInput",
+      //               actions: assign({
+      //                 shareNameInput: ({ event }) => event.value.trim(),
+      //               }),
+      //             },
+      //           },
+      //         },
+      //       },
+      //     },
+      //     Record: {
+      //       initial: "Uninitialized",
+      //       on: {
+      //         // todo clear it out here
+      //         CLEAR_LIST: ".Uninitialized",
+      //         SELECT_RECIPE: ".Uninitialized",
+      //         UNSELECT: ".Uninitialized",
+      //       },
+      //       states: {
+      //         Uninitialized: {
+      //           entry: assign({
+      //             shareNameInput: undefined,
+      //             sharingListId: undefined,
+      //           }),
+      //           on: {
+      //             SHARE_SELECTED: "GettingName",
+      //           },
+      //         },
+      //         GettingName: {
+      //           invoke: {
+      //             src: "getNewSharedListName",
+      //             input: ({ context }) => {
+      //               const userId = context.userSnapshot?.context.id;
+      //               assert(userId, "expected userId when saving");
+      //               const timezone = context.userSnapshot?.context.timezone;
+      //               assert(timezone, "expected user timezone to be set");
 
-                    return {
-                      userId: userId,
-                      timezone,
-                    };
-                  },
-                  onDone: {
-                    target: "Creating",
-                    actions: assign({
-                      shareNameInput: ({ event }) => event.output,
-                    }),
-                  },
-                  onError: "Error",
-                },
-              },
-              Creating: {
-                invoke: {
-                  src: "createNewList",
-                  input: ({ context }) => {
-                    const recipeIdsToAdd =
-                      context.sessionSnapshot?.context.selectedRecipeIds;
-                    assert(
-                      recipeIdsToAdd,
-                      "expected there to be at least one recipe id one creating shared list"
-                    );
+      //               return {
+      //                 userId: userId,
+      //                 timezone,
+      //               };
+      //             },
+      //             onDone: {
+      //               target: "Creating",
+      //               actions: assign({
+      //                 shareNameInput: ({ event }) => event.output,
+      //               }),
+      //             },
+      //             onError: "Error",
+      //           },
+      //         },
+      //         Creating: {
+      //           invoke: {
+      //             src: "createNewList",
+      //             input: ({ context }) => {
+      //               const recipeIdsToAdd =
+      //                 context.sessionSnapshot?.context.selectedRecipeIds;
+      //               assert(
+      //                 recipeIdsToAdd,
+      //                 "expected there to be at least one recipe id one creating shared list"
+      //               );
 
-                    const listName = context.shareNameInput;
-                    assert(
-                      listName,
-                      "expected shareNameInput to exist to use as listName when creating list"
-                    );
+      //               const listName = context.shareNameInput;
+      //               assert(
+      //                 listName,
+      //                 "expected shareNameInput to exist to use as listName when creating list"
+      //               );
 
-                    const userId = context.userSnapshot?.context.id;
-                    assert(userId, "expected userId when saving share dlist");
+      //               const userId = context.userSnapshot?.context.id;
+      //               assert(userId, "expected userId when saving share dlist");
 
-                    return {
-                      userId,
-                      listName,
-                      recipeIdsToAdd,
-                    };
-                  },
-                  onDone: {
-                    target: "Created",
-                    actions: assign(({ context, event }) =>
-                      produce(context, (draft) => {
-                        draft.sharingListId = event.output.id;
-                        if (!draft.listsById) {
-                          draft.listsById = {};
-                        }
+      //               return {
+      //                 userId,
+      //                 listName,
+      //                 recipeIdsToAdd,
+      //               };
+      //             },
+      //             onDone: {
+      //               target: "Created",
+      //               actions: assign(({ context, event }) =>
+      //                 produce(context, (draft) => {
+      //                   draft.sharingListId = event.output.id;
+      //                   if (!draft.listsById) {
+      //                     draft.listsById = {};
+      //                   }
 
-                        const { id, name, icon, slug, createdAt } =
-                          event.output;
-                        draft.listsById[id] = {
-                          id,
-                          name,
-                          slug,
-                          icon,
-                          created: true,
-                          count: Object.values(event.output.idSet).length,
-                          createdAt: createdAt,
-                        };
-                        draft.listRecipes[id] = event.output.idSet;
-                      })
-                    ),
-                    // actions: assign({
-                    //   sharingListId: ({ event }) => event.output.id,
-                    //   listsById: ({ context, event }) =>
-                    //     produce(context.listsById, (draft) => {
-                    //       const { id, name, slug, createdAt } = event.output;
-                    //       draft[id] = {
-                    //         id,
-                    //         name,
-                    //         slug,
-                    //         created: true,
-                    //         count: Object.values(event.output.idSet).length,
-                    //         public: true,
-                    //         idSet: event.output.idSet,
-                    //         createdAt: createdAt.toISOString(),
-                    //       };
-                    //     }),
-                    // }),
-                  },
-                  onError: "Error",
-                },
-              },
-              Error: { entry: console.error },
-              Created: {
-                on: {
-                  COPY_LINK: "Complete",
-                  SHARE_PRESS: "Complete",
-                },
-              },
-              Complete: {},
-            },
-          },
-          Name: {
-            initial: "Available",
-            on: {
-              CHANGE: {
-                target: ".Waiting",
-                guard: "didChangeShareNameInput",
-              },
-            },
-            states: {
-              Available: {},
-              Waiting: {
-                after: {
-                  1000: {
-                    target: "Checking",
-                    guard: ({ context }) => {
-                      const nameLength =
-                        context.shareNameInput?.trim().length || 0;
-                      return nameLength > 0;
-                    },
-                  },
-                },
-              },
-              Checking: {
-                invoke: {
-                  src: "checkShareNameAvailability",
-                  input: ({ context }) => {
-                    assert(
-                      context.shareNameInput,
-                      "expected shareNameInput to exist"
-                    );
-                    const userId = context.userSnapshot?.context.id;
-                    assert(
-                      userId,
-                      "expected userId when checking share name availability"
-                    );
+      //                   const { id, name, icon, slug, createdAt } =
+      //                     event.output;
+      //                   draft.listsById[id] = {
+      //                     id,
+      //                     name,
+      //                     slug,
+      //                     icon,
+      //                     created: true,
+      //                     count: Object.values(event.output.idSet).length,
+      //                     createdAt: createdAt,
+      //                   };
+      //                   draft.listRecipes[id] = event.output.idSet;
+      //                 })
+      //               ),
+      //               // actions: assign({
+      //               //   sharingListId: ({ event }) => event.output.id,
+      //               //   listsById: ({ context, event }) =>
+      //               //     produce(context.listsById, (draft) => {
+      //               //       const { id, name, slug, createdAt } = event.output;
+      //               //       draft[id] = {
+      //               //         id,
+      //               //         name,
+      //               //         slug,
+      //               //         created: true,
+      //               //         count: Object.values(event.output.idSet).length,
+      //               //         public: true,
+      //               //         idSet: event.output.idSet,
+      //               //         createdAt: createdAt.toISOString(),
+      //               //       };
+      //               //     }),
+      //               // }),
+      //             },
+      //             onError: "Error",
+      //           },
+      //         },
+      //         Error: { entry: console.error },
+      //         Created: {
+      //           on: {
+      //             COPY_LINK: "Complete",
+      //             SHARE_PRESS: "Complete",
+      //           },
+      //         },
+      //         Complete: {},
+      //       },
+      //     },
+      //     Name: {
+      //       initial: "Available",
+      //       on: {
+      //         CHANGE: {
+      //           target: ".Waiting",
+      //           guard: "didChangeShareNameInput",
+      //         },
+      //       },
+      //       states: {
+      //         Available: {},
+      //         Waiting: {
+      //           after: {
+      //             1000: {
+      //               target: "Checking",
+      //               guard: ({ context }) => {
+      //                 const nameLength =
+      //                   context.shareNameInput?.trim().length || 0;
+      //                 return nameLength > 0;
+      //               },
+      //             },
+      //           },
+      //         },
+      //         Checking: {
+      //           invoke: {
+      //             src: "checkShareNameAvailability",
+      //             input: ({ context }) => {
+      //               assert(
+      //                 context.shareNameInput,
+      //                 "expected shareNameInput to exist"
+      //               );
+      //               const userId = context.userSnapshot?.context.id;
+      //               assert(
+      //                 userId,
+      //                 "expected userId when checking share name availability"
+      //               );
 
-                    return {
-                      userId,
-                      shareName: context.shareNameInput.trim(),
-                    };
-                  },
-                  onDone: [
-                    {
-                      target: "Available",
-                      guard: ({ event }) => event.output,
-                    },
-                    {
-                      target: "Taken",
-                    },
-                  ],
-                },
-              },
-              Error: {},
-              Taken: {
-                entry: () => console.log("taken"),
-              },
-            },
-          },
-        },
-      },
+      //               return {
+      //                 userId,
+      //                 shareName: context.shareNameInput.trim(),
+      //               };
+      //             },
+      //             onDone: [
+      //               {
+      //                 target: "Available",
+      //                 guard: ({ event }) => event.output,
+      //               },
+      //               {
+      //                 target: "Taken",
+      //               },
+      //             ],
+      //           },
+      //         },
+      //         Error: {},
+      //         Taken: {
+      //           entry: () => console.log("taken"),
+      //         },
+      //       },
+      //     },
+      //   },
+      // },
 
       ListData: {
         initial: "Idle",
@@ -3525,16 +3524,16 @@ export const createPageSessionMachine = ({
             on: {
               CANCEL: "False",
               CHANGE: {
-                guard: "didChangeListNameInput",
+                guard: "didChangeListSlugInput",
                 actions: assign({
-                  listName: ({ event }) => {
+                  listSlug: ({ event }) => {
                     return event.value;
                   },
                 }),
               },
               SUBMIT: {
                 target: "Saving",
-                guard: ({ event }) => event.name === "listName",
+                guard: ({ event }) => event.name === LIST_SLUG_INPUT_KEY,
                 // actions: assign({
                 //   currentListSlug: ({ context }) => {
                 //     const listName = ListNameSchema.parse(context.listName);
@@ -3548,7 +3547,7 @@ export const createPageSessionMachine = ({
             invoke: {
               src: "createNewList",
               input: ({ context, event }) => {
-                const listName = ListNameSchema.parse(context.listName);
+                const listSlug = SlugSchema.parse(context.listSlug);
                 assert("caller" in event, "expected caller in event");
 
                 const recipeIdsToAdd =
@@ -3556,7 +3555,7 @@ export const createPageSessionMachine = ({
                 assert(recipeIdsToAdd, "expected recipeIds to add");
 
                 return {
-                  listName,
+                  listSlug,
                   userId: event.caller.id,
                   recipeIdsToAdd,
                 };
@@ -3678,9 +3677,9 @@ export const createPageSessionMachine = ({
             on: {
               CHANGE: {
                 target: "True",
-                guard: "didChangeListNameInput",
+                guard: "didChangeListSlugInput",
                 actions: assign({
-                  listName: ({ event }) => {
+                  listSlug: ({ event }) => {
                     return event.value;
                   },
                 }),
@@ -3690,7 +3689,7 @@ export const createPageSessionMachine = ({
           Saved: {
             entry: [
               assign({
-                listName: undefined,
+                listSlug: undefined,
               }),
             ],
             type: "final",

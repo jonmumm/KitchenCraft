@@ -26,7 +26,7 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { assert, cn, sentenceToSlug } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
-import { ChefNameSchema, ListNameSchema } from "@/schema";
+import { ChefNameSchema, ListNameSchema, SlugSchema } from "@/schema";
 import { selectHasSubmittedPrompt } from "@/selectors/app.selectors";
 import {
   createSuggestedTokenAtIndexSelector,
@@ -66,6 +66,7 @@ import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
 import { SuggestedRecipeCard } from "./suggested-recipe-card";
+import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
 
 export const HasRecipesGenerated = combinedSelectorComponent(
   selectHasRecipesGenerated
@@ -341,10 +342,6 @@ const chefNameFormSchema = z.object({
   chefname: ChefNameSchema,
 });
 
-const listNameFormSchema = z.object({
-  listName: ListNameSchema,
-});
-
 const emailFormSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
 });
@@ -469,7 +466,6 @@ const selectIsChefNameInputPristine = (snapshot: PageSessionSnapshot) => {
 };
 
 export const EnterChefNameForm = () => {
-  // const [disabled, setDisabled] = useState(false);
   const session$ = useContext(PageSessionContext);
   const isLoadingAvailability = useSyncExternalStore(
     session$.subscribe,
@@ -522,13 +518,6 @@ export const EnterChefNameForm = () => {
     }).unsubscribe;
   }, [form.watch, send]);
 
-  // useEffect(() => {
-  //   return form.watch("chefname")
-
-  // }, [form.watch])
-
-  // todo how do i call  this on chefname change
-  // send({ type: "CHANGE", name: "chefname", value: data.chefname });
   const onSubmit = useCallback(
     async (data: z.infer<typeof chefNameFormSchema>) => {
       setDisabled(true);
@@ -536,12 +525,6 @@ export const EnterChefNameForm = () => {
     },
     [session$, send]
   );
-
-  // const FormValueSender = () => {
-  //   const field = useFormField();
-  //   console.log({ field });
-  //   return <></>;
-  // };
 
   const TakenChefName = () => {
     const chefname = useChefName();
@@ -613,59 +596,68 @@ export const EnterChefNameForm = () => {
   );
 };
 
+
+const createListFormSchema = z.object({
+  [LIST_SLUG_INPUT_KEY]: SlugSchema,
+});
+
 export const EnterListNameForm = () => {
   const store = useContext(PageSessionContext);
   const [disabled, setDisabled] = useState(false);
   const send = useSend();
 
   const form = useForm({
-    resolver: zodResolver(listNameFormSchema),
+    resolver: zodResolver(createListFormSchema),
     defaultValues: {
-      listName: store.get().context.listName || "",
+      [LIST_SLUG_INPUT_KEY]: store.get().context.listName || "",
     },
   });
 
   useEffect(() => {
     return form.watch((data) => {
-      const value = data.listName || "";
-      send({ type: "CHANGE", name: "listName", value });
+      const value = data.listSlug || "";
+      send({ type: "CHANGE", name: LIST_SLUG_INPUT_KEY, value });
     }).unsubscribe;
   }, [form, send]);
 
   const onSubmit = useCallback(
-    async (data: z.infer<typeof listNameFormSchema>) => {
+    async (data: z.infer<typeof createListFormSchema>) => {
       setDisabled(true);
-      send({ type: "SUBMIT", name: "listName" });
+      send({ type: "SUBMIT", name: LIST_SLUG_INPUT_KEY });
     },
     [send]
   );
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-6">
         <FormField
           control={form.control}
-          name="listName"
+          name={LIST_SLUG_INPUT_KEY}
           render={({ field, fieldState }) => (
             <FormItem>
               {/* <FormValueSender /> */}
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <PlaceholderAnimatingInput
-                  samplePlaceholders={[
-                    "tuesday night dinner ideas",
-                    "weekend bbq dishes",
-                    "healthy work snacks",
-                    "birthday cake ideas",
-                    "kids friendly meal prep",
-                    "easy 20 minute meals",
-                  ]}
-                  autoFocus
-                  disabled={disabled}
-                  type="text"
-                  {...field}
-                />
-              </FormControl>
+              {/* <FormLabel>Name</FormLabel> */}
+              <div className="flex flex-row gap-2">
+                <span className="text-3xl mt-2">️#</span>
+                <FormControl>
+                  <PlaceholderAnimatingInput
+                    samplePlaceholders={[
+                      "tues-dinner",
+                      "weekend-bbq",
+                      "work-snacks",
+                      "bday-cake",
+                      "kid-meals",
+                      "20min-meals",
+                      "huncal"
+                    ]}
+                    autoFocus
+                    disabled={disabled}
+                    type="text"
+                    {...field}
+                  />
+                </FormControl>
+              </div>
               {fieldState.error && (
                 <FormMessage>{fieldState.error.message}</FormMessage>
               )}
@@ -676,34 +668,12 @@ export const EnterListNameForm = () => {
           disabled={disabled}
           type="submit"
           className={cn("w-full")}
-          size="lg"
+          size="xl"
         >
           Submit
         </Button>
       </form>
     </Form>
-  );
-};
-
-const ListURL = () => {
-  const chefname = useChefName();
-  const listName = useWatch({ name: "listName" });
-
-  const ListNamePath = () => {
-    return (
-      <span className="font-semibold">
-        {listName === "" ? "]" : sentenceToSlug(listName)}
-      </span>
-    );
-  };
-
-  return listName.length ? (
-    <FormDescription>
-      kitchencraft.ai/@{chefname}/
-      <ListNamePath />
-    </FormDescription>
-  ) : (
-    <></>
   );
 };
 

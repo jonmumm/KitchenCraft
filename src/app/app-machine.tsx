@@ -31,9 +31,14 @@ import {
 import { z } from "zod";
 import type { PageSessionSnapshot } from "./page-session-machine";
 import { RecipeAddedToast } from "./recipe-added-toast";
-
-const CHOOSING_LIST_FOR_RECIPE_ID_PARAM = "choosingListForRecipeId";
-const FOCUSED_RECIPE_ID_PARAM = "focusedRecipeId";
+import {
+  CREATING_LIST_PARAM,
+  CHOOSING_LIST_FOR_RECIPE_ID_PARAM,
+  FOCUSED_RECIPE_ID_PARAM,
+} from "@/constants/query-params";
+import { didChangeEmailInput } from "@/guards/didChangeEmailInput";
+import { didChangeListSlugInput } from "@/guards/didChangeListSlugInput";
+import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
 
 export const createAppMachine = ({
   searchParams,
@@ -93,6 +98,7 @@ export const createAppMachine = ({
       equipmentAdaptations: undefined,
       inputs: {},
       history: [initialPath],
+      currentHistoryIndex: 0,
       currentRecipeUrl: undefined,
       scrollItemIndex: 0,
       token,
@@ -276,6 +282,8 @@ export const createAppMachine = ({
       // ),
     },
     guards: {
+      didChangeEmailInput,
+      didChangeListSlugInput,
       didSubmitPrompt: ({ event }) => {
         assertEvent(event, "KEY_DOWN");
         const didPressEnter = event.keyboardEvent.key === "Enter";
@@ -293,6 +301,12 @@ export const createAppMachine = ({
       isInputFocused: ({ event, ...props }) => {
         assert(event.type === "HYDRATE_INPUT", "expected HYDRATE_INPUT event");
         return event.ref === document.activeElement;
+      },
+      hasCreatlingListParam: () => {
+        const value = new URLSearchParams(window.location.search).get(
+          CREATING_LIST_PARAM
+        );
+        return value === "1";
       },
       hasChoosingListsFoRecipeIdParam: () => {
         const value = new URLSearchParams(window.location.search).get(
@@ -416,7 +430,7 @@ export const createAppMachine = ({
                 on: {
                   SUBMIT: "WaitingForClick",
                   CHANGE: {
-                    guard: ({ event }) => event.name === "email",
+                    guard: "didChangeEmailInput",
                     actions: assign({
                       email: ({ event }) => event.value,
                     }),
@@ -1095,7 +1109,14 @@ export const createAppMachine = ({
               },
             },
             states: {
-              False: {},
+              False: {
+                on: {
+                  UPDATE_SEARCH_PARAMS: {
+                    target: "True",
+                    guard: "hasChoosingListsFoRecipeIdParam",
+                  },
+                },
+              },
               True: {
                 on: {
                   CANCEL: "False",
@@ -1112,23 +1133,55 @@ export const createAppMachine = ({
           Creating: {
             on: {
               CHANGE: {
-                guard: ({ event }) => event.name === "listName",
+                guard: "didChangeListSlugInput",
                 actions: assign({
                   inputs: ({ context, event }) =>
                     produce(context.inputs, (draft) => {
-                      draft.listName = event.value;
+                      draft.listSlug = event.value;
                     }),
                 }),
               },
               SUBMIT: {
-                guard: ({ event }) => event.name === "listName",
+                guard: ({ event }) => event.name === LIST_SLUG_INPUT_KEY,
                 actions: ({ context }) => {
-                  const listName = context.inputs.listName;
+                  const listSlug = context.inputs.listSlug;
                   assert(
-                    listName,
-                    "expected listName after submitting toc reate recipe"
+                    listSlug,
+                    "expected listSlug after submitting to create recipe"
                   );
-                  router.push(`#${sentenceToSlug(listName)}`);
+                  router.push(`?#${listSlug}`);
+                },
+              },
+            },
+            initial: "False",
+            states: {
+              False: {
+                on: {
+                  UPDATE_SEARCH_PARAMS: {
+                    target: "True",
+                    guard: "hasCreatlingListParam",
+                  },
+                  CREATE_LIST: {
+                    target: "True",
+                    actions: {
+                      type: "pushQueryParameters",
+                      params() {
+                        return {
+                          paramSet: {
+                            [CREATING_LIST_PARAM]: "1",
+                          },
+                        };
+                      },
+                    },
+                  },
+                },
+              },
+              True: {
+                on: {
+                  UPDATE_SEARCH_PARAMS: {
+                    target: "False",
+                    guard: not("hasCreatlingListParam"),
+                  },
                 },
               },
             },

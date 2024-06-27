@@ -115,7 +115,7 @@ const MyRecipeListCardBySlug = ({ slug }: { slug: string }) => {
             {list?.icon ? <>{list.icon}</> : <>&nbsp;</>}
           </span>
           <MyRecipeListItemTitle>
-            {list?.name ? <>{list.name}</> : <Skeleton className="w-12 h-4" />}
+            #{list?.slug ? <>{list.slug}</> : <Skeleton className="w-12 h-4" />}
           </MyRecipeListItemTitle>
           <MyRecipeListItemRecipeCount>
             {list?.count !== undefined ? (

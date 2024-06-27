@@ -24,7 +24,6 @@ export const BackButton = forwardRef<HTMLButtonElement, BackButtonProps>(
     const handleClick = React.useCallback(
       (e: React.MouseEvent<HTMLButtonElement>) => {
         const canGoBack = selectCanGoBack(app$.getSnapshot());
-        console.log({ canGoBack });
         if (canGoBack) {
           router.back();
           send({ type: "BACK" });

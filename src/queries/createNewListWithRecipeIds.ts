@@ -1,19 +1,19 @@
 import { ListRecipeTable, ListTable } from "@/db";
-import { assert, sentenceToSlug } from "@/lib/utils";
+import { assert, slugToSentence } from "@/lib/utils";
 import { DbOrTransaction } from "@/types";
 
 export const createNewListWithRecipeIds = async (input: {
   db: DbOrTransaction;
   userId: string;
   recipeIdsToAdd: string[];
-  listName: string;
+  listSlug: string;
   icon?: string;
 }) => {
   const result = await input.db
     .insert(ListTable)
     .values({
-      name: input.listName,
-      slug: sentenceToSlug(input.listName),
+      name: slugToSentence(input.listSlug),
+      slug: input.listSlug,
       icon: input.icon || "#️⃣",
       createdBy: input.userId,
     })

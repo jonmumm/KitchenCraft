@@ -41,7 +41,10 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { selectCraftIsOpen } from "@/selectors/app.selectors";
-import { selectPromptIsDirty, selectRecentCreatedListIds } from "@/selectors/page-session.selectors";
+import {
+  selectPromptIsDirty,
+  selectRecentCreatedListIds,
+} from "@/selectors/page-session.selectors";
 import { $diet, $equipment, $preferences } from "@/stores/settings";
 import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
 import { useStore } from "@nanostores/react";
@@ -454,7 +457,7 @@ export const SelectListDialog = () => {
           <CardTitle>Save To...</CardTitle>
           <CardDescription>Store this recipe in these lists:</CardDescription>
         </div>
-        <Badge variant="outline">
+        <Badge event={{ type: "CREATE_LIST" }} variant="outline">
           New List <PlusIcon className="ml-1" size={14} />
         </Badge>
       </div>
@@ -514,7 +517,7 @@ export const CreateNewListCard = () => {
   return (
     <Card className="py-4 w-full">
       <div className="flex flex-row gap-1 items-center justify-between px-4">
-        <div className="flex flex-col gap-1 mb-2">
+        <div className="flex flex-col gap-1">
           <PageSessionMatches matchedState={{ ListCreating: "True" }}>
             <CardTitle>New Recipe List</CardTitle>
             <CardDescription>Enter a name for your new list.</CardDescription>
@@ -528,24 +531,14 @@ export const CreateNewListCard = () => {
               something else.
             </CardDescription>
           </PageSessionMatches>
-          {/* <div className="flex flex-row justify-between items-center">
-              <Label className="uppercase text-xs text-muted-foreground">
-                Recent
-              </Label>
-              <Button variant="ghost" event={{ type: "REFRESH" }}>
-                <RefreshCwIcon size={14} />
-              </Button>
-            </div> */}
-          {/* <div className="flex flex-1 gap-1 flex-wrap">
-            </div> */}
         </div>
-        <Button variant="outline" size="icon" event={{ type: "CANCEL" }}>
+        <BackButton variant="outline" size="icon">
           <XIcon />
-        </Button>
+        </BackButton>
       </div>
-      <CardContent>
+      <div className="px-4">
         <EnterListNameForm />
-      </CardContent>
+      </div>
     </Card>
   );
 };
