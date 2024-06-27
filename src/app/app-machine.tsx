@@ -1067,6 +1067,11 @@ export const createAppMachine = ({
         states: {
           Selecting: {
             initial: "False",
+            on: {
+              HASH_CHANGE: {
+                actions: "clearToasts",
+              },
+            },
             states: {
               False: {
                 on: {
