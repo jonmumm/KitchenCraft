@@ -1069,43 +1069,43 @@ export const createPageSessionMachine = ({
         states: {
           Input: {
             on: {
-              PREV: {
-                actions: assign(({ context }) => {
-                  return produce(context, (draft) => {
-                    assert(
-                      context.currentItemIndex > 0,
-                      "expected non 0 currentItemIndex"
-                    );
-                    draft.currentItemIndex = draft.currentItemIndex - 1;
-                  });
-                }),
-              },
-              SCROLL_INDEX: {
-                actions: assign({
-                  currentItemIndex: ({ event }) => event.index,
-                }),
-              },
-              NEXT: {
-                actions: assign({
-                  currentItemIndex: ({ context }) =>
-                    context.currentItemIndex + 1,
-                  // undoOperations: ({ context, event }) => [
-                  //   ...context.undoOperations,
-                  //   compare(
-                  //     {
-                  //       prompt: context.prompt,
-                  //       tokens: context.tokens,
-                  //       currentItemIndex: context.currentItemIndex + 1,
-                  //     },
-                  //     {
-                  //       prompt: context.prompt,
-                  //       tokens: context.tokens,
-                  //       currentItemIndex: context.currentItemIndex,
-                  //     }
-                  //   ),
-                  // ],
-                }),
-              },
+              // PREV: {
+              //   actions: assign(({ context }) => {
+              //     return produce(context, (draft) => {
+              //       assert(
+              //         context.currentItemIndex > 0,
+              //         "expected non 0 currentItemIndex"
+              //       );
+              //       draft.currentItemIndex = draft.currentItemIndex - 1;
+              //     });
+              //   }),
+              // },
+              // SCROLL_INDEX: {
+              //   actions: assign({
+              //     currentItemIndex: ({ event }) => event.index,
+              //   }),
+              // },
+              // NEXT: {
+              //   actions: assign({
+              //     currentItemIndex: ({ context }) =>
+              //       context.currentItemIndex + 1,
+              //     // undoOperations: ({ context, event }) => [
+              //     //   ...context.undoOperations,
+              //     //   compare(
+              //     //     {
+              //     //       prompt: context.prompt,
+              //     //       tokens: context.tokens,
+              //     //       currentItemIndex: context.currentItemIndex + 1,
+              //     //     },
+              //     //     {
+              //     //       prompt: context.prompt,
+              //     //       tokens: context.tokens,
+              //     //       currentItemIndex: context.currentItemIndex,
+              //     //     }
+              //     //   ),
+              //     // ],
+              //   }),
+              // },
               CLEAR: [
                 {
                   guard: ({ event }) => !!event.all,

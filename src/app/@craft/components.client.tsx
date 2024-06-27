@@ -843,7 +843,6 @@ export const CraftCarousel = ({ children }: { children: ReactNode }) => {
       const targetItem = carousel.children[scrollItemIndex];
       if (targetItem) {
         const targetScrollPosition = targetItem.clientWidth * scrollItemIndex;
-        console.log({ targetScrollPosition }, carousel);
         carousel.scrollLeft = targetScrollPosition;
       }
     }

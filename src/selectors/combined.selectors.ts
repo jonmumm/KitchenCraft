@@ -62,7 +62,6 @@ export const selectCurrentListItems = (
   pageSessionSnapshot: PageSessionSnapshot
 ) => {
   const currentListSlug = selectCurrentListSlug(appSnapshot);
-  console.log({ currentListSlug });
   return createListRecipeIdsBySlugSelector(currentListSlug)(
     pageSessionSnapshot
   );
