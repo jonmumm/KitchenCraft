@@ -34,6 +34,7 @@ import { ExtractAppEvent } from "@/types";
 import { Portal } from "@radix-ui/react-portal";
 import {
   BookmarkCheckIcon,
+  BookmarkIcon,
   MoveLeftIcon,
   ScrollIcon,
   ShoppingBasketIcon,
@@ -117,9 +118,9 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             <div className="flex flex-col gap-2 w-full">
               <CardTitle className="flex flex-row items-center gap-2">
                 {!isExpanded && isSaved && (
-                  <BookmarkCheckIcon
-                    size={32}
-                    className="absolute right-4 -top-2"
+                  <BookmarkIcon
+                    size={24}
+                    className="absolute right-2 -top-2 stroke-purple-600 fill-purple-700"
                   />
                 )}
                 <span className="text-muted-foreground">{index + 1}. </span>
