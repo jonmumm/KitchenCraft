@@ -19,32 +19,6 @@ import {
   SuggestListNamesStream,
 } from "../app/suggest-list-names-stream";
 
-export const saveRecipeToListName = fromPromise(
-  async ({
-    input,
-  }: {
-    input: {
-      recipeId: string;
-      userId: string;
-      listName: string;
-    };
-  }) => {
-    const db = drizzle(sql);
-    const result = await ensureListWithNameExists(
-      db,
-      input.userId,
-      input.listName
-    );
-    if (result.error) {
-      console.error(result.error);
-    }
-    debugger;
-    assert(result.success, "expected to get listId");
-
-    await createListRecipe(db, input.userId, input.recipeId, result.listId);
-  }
-);
-
 const ensureListWithNameExists = async (
   dbOrTransaction: DbOrTransaction,
   userId: string,

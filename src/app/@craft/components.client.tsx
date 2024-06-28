@@ -18,15 +18,16 @@ import {
 import { appSelectorComponent } from "@/components/util/app-selector";
 import { combinedSelectorComponent } from "@/components/util/combined-selector";
 import { PageSessionSelector } from "@/components/util/page-session-selector";
+import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
 import { useCombinedSelector } from "@/hooks/useCombinedSelector";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { assert, cn, sentenceToSlug } from "@/lib/utils";
+import { assert, cn } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
-import { ChefNameSchema, ListNameSchema, SlugSchema } from "@/schema";
+import { ChefNameSchema, SlugSchema } from "@/schema";
 import { selectHasSubmittedPrompt } from "@/selectors/app.selectors";
 import {
   createSuggestedTokenAtIndexSelector,
@@ -66,7 +67,6 @@ import { AppContext } from "../context";
 import { PageSessionSnapshot } from "../page-session-machine";
 import { PageSessionContext } from "../page-session-store.context";
 import { SuggestedRecipeCard } from "./suggested-recipe-card";
-import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
 
 export const HasRecipesGenerated = combinedSelectorComponent(
   selectHasRecipesGenerated
@@ -596,12 +596,11 @@ export const EnterChefNameForm = () => {
   );
 };
 
-
 const createListFormSchema = z.object({
   [LIST_SLUG_INPUT_KEY]: SlugSchema,
 });
 
-export const EnterListNameForm = () => {
+export const EnterListSlugForm = () => {
   const store = useContext(PageSessionContext);
   const [disabled, setDisabled] = useState(false);
   const send = useSend();
@@ -609,7 +608,7 @@ export const EnterListNameForm = () => {
   const form = useForm({
     resolver: zodResolver(createListFormSchema),
     defaultValues: {
-      [LIST_SLUG_INPUT_KEY]: store.get().context.listName || "",
+      [LIST_SLUG_INPUT_KEY]: store.get().context.listSlug || "",
     },
   });
 
@@ -649,7 +648,7 @@ export const EnterListNameForm = () => {
                       "bday-cake",
                       "kid-meals",
                       "20min-meals",
-                      "huncal"
+                      "huncal",
                     ]}
                     autoFocus
                     disabled={disabled}

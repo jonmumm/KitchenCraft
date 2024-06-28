@@ -64,7 +64,6 @@ import {
   generateChefNameSuggestions,
   generateListNameSuggestions,
   getUserPreferences,
-  saveRecipeToListName,
 } from "../actors/shared";
 import { AutoSuggestIngredientEvent } from "./auto-suggest-ingredients.stream";
 import {
@@ -231,7 +230,6 @@ export const createPageSessionMachine = ({
     },
     actors: {
       fetchLists,
-      saveRecipeToListName,
       generateChefNameSuggestions,
       generateListNameSuggestions,
       getUserPreferences,

@@ -42,7 +42,6 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { selectCraftIsOpen } from "@/selectors/app.selectors";
-import { createIsFocusedRecipeInListByIdSelector } from "@/selectors/combined.selectors";
 import {
   createIsChoosingRecipeInListByIdSelector,
   selectPromptIsDirty,
@@ -77,7 +76,7 @@ import {
 } from "react";
 import { twc } from "react-twc";
 import { toast } from "sonner";
-import { EnterEmailForm, EnterListNameForm } from "./@craft/components.client";
+import { EnterEmailForm, EnterListSlugForm } from "./@craft/components.client";
 import { AppSnapshot } from "./app-machine";
 import { AppContext } from "./context";
 import "./embla.css";
@@ -570,7 +569,7 @@ export const CreateNewListCard = () => {
         </BackButton>
       </div>
       <div className="px-4">
-        <EnterListNameForm />
+        <EnterListSlugForm />
       </div>
     </Card>
   );

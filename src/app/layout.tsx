@@ -53,7 +53,7 @@ import EmailCodeCard from "./email-code-card";
 import { MyRecipesScreen } from "./my-recipes-screen";
 import { PageSessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
-import { ShareDetailsCard } from "./share-details-card";
+// import { ShareDetailsCard } from "./share-details-card";
 import { SignInCard } from "./sign-in-card";
 import "./styles.css";
 
@@ -222,7 +222,7 @@ export default async function RootLayout(
                   {canInstallPWA && <SafariInstallPrompt />}
                   {/* <RegistrationDialog /> */}
                   <ListManagementDialogs />
-                  <ShareDialog />
+                  {/* <ShareDialog /> */}
                   <SignInDialog />
                   <PersonalizationSettingsDialog />
                   <UpgradeAccountDialog />
@@ -290,7 +290,7 @@ const ShareDialog = () => {
       <ResponsiveDialog open>
         <ResponsiveDialogOverlay event={{ type: "CANCEL" }} />
         <ResponsiveDialogContent className="rounded-t-xl z-100">
-          <ShareDetailsCard />
+          {/* <ShareDetailsCard /> */}
         </ResponsiveDialogContent>
       </ResponsiveDialog>
     </AppMatches>
