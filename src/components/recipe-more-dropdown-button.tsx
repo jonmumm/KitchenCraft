@@ -87,15 +87,6 @@ export const RecipeMoreDropdownButton = ({
             {/* </EventTrigger> */}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-muted-foreground">
-            <div>
-              <span role="img" aria-label="add-to-favorites" className="mr-2">
-                ❤️
-              </span>
-              <span className="text-muted-foreground">Save to </span>{" "}
-              <span className="text-foreground font-semibold">Favorites</span>
-            </div>
-          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
