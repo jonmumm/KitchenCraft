@@ -343,7 +343,7 @@ export const SlugSchema = z
   .toLowerCase()
   .regex(/^[a-z0-9_-]+$/, {
     message:
-      "Slug can only contain lowercase letters, numbers, hyphens, and underscores",
+      "Hashtag can only contain lowercase letters, numbers, hyphens, and underscores",
   })
   .min(1)
   .max(100);

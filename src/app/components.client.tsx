@@ -472,7 +472,7 @@ export const SelectListDialog = () => {
           <ChooseListItemCardById key={id} id={id} />
         ))}
       </div>
-      <div className="p-4">
+      <div className="p-4 sticky bottom-0 left-0 right-0">
         <BackButton variant="default" className="w-full" size="xl">
           Done
         </BackButton>
@@ -552,7 +552,7 @@ export const CreateNewListCard = () => {
         <div className="flex flex-col gap-1">
           <PageSessionMatches matchedState={{ ListCreating: "True" }}>
             <CardTitle>New Recipe List</CardTitle>
-            <CardDescription>Enter a name for your new list.</CardDescription>
+            <CardDescription>Enter a hashtag for your new list.</CardDescription>
           </PageSessionMatches>
           <PageSessionMatches
             matchedState={{ ListCreating: { Error: "DuplicateName" } }}

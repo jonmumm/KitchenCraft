@@ -1,11 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/display/badge";
-import {
-  Card,
-  CardDescription,
-  CardTitle
-} from "@/components/display/card";
+import { Card, CardDescription, CardTitle } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Skeleton, SkeletonSentence } from "@/components/display/skeleton";
@@ -74,10 +70,11 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   Circle,
+  ListPlusIcon,
   PlusCircleIcon,
   ScrollIcon,
   ShareIcon,
-  ShoppingBasketIcon
+  ShoppingBasketIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -144,7 +141,7 @@ export const MyRecipesScreen = () => {
                     <CurrentListIcon />
                   </span>
                   <span className="truncate flex-1">
-                    <CurrentListName />
+                    <CurrentListSlug />
                   </span>
                   <span
                     className={cn(
@@ -172,25 +169,9 @@ export const MyRecipesScreen = () => {
               <MyRecipeListsRadioGroup />
             </DropdownMenuContent>
           </MyRecipesDropdownMenu>
-          <CurrentListIsSelected>
-            <NoRecipesSelected>
-              <Badge
-                variant="secondary"
-                className="text-xs text-semibold bg-card opacity-60"
-              >
-                CLEAR
-              </Badge>
-            </NoRecipesSelected>
-            <HasSelectedRecipes>
-              <Badge
-                variant="secondary"
-                event={{ type: "CLEAR_SELECTION" }}
-                className="text-xs text-semibold shadow-md bg-card"
-              >
-                CLEAR
-              </Badge>
-            </HasSelectedRecipes>
-          </CurrentListIsSelected>
+          <Button variant="outline" size="icon" event={{ type: "CREATE_LIST" }}>
+            <ListPlusIcon />
+          </Button>
         </div>
         <div className="flex-1">
           <Tabs defaultValue="recipe" className="h-full flex flex-col">
@@ -201,22 +182,20 @@ export const MyRecipesScreen = () => {
               </TabsList>
             </div>
             <TabsContent value={"recipe"} className="flex-1 flex flex-col">
-              <CurrentListIsSelected>
-                <NoRecipesSelected>
-                  <div className="px-4 flex-1">
-                    <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
-                      <div>No recipes selected.</div>
-                      <Badge
-                        event={{ type: "NEW_RECIPE" }}
-                        variant="secondary"
-                        className="shadow-md"
-                      >
-                        Craft one up.<span className="ml-1">🧪</span>
-                      </Badge>
-                    </Card>
-                  </div>
-                </NoRecipesSelected>
-              </CurrentListIsSelected>
+              <HasRecipesInCurrentList not>
+                <div className="px-4 flex-1">
+                  <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
+                    <div>No recipes in list.</div>
+                    <Badge
+                      event={{ type: "NEW_RECIPE" }}
+                      variant="secondary"
+                      className="shadow-md"
+                    >
+                      Craft one up.<span className="ml-1">🧪</span>
+                    </Badge>
+                  </Card>
+                </div>
+              </HasRecipesInCurrentList>
               <HasRecipesInCurrentList>
                 <CurrentListCarousel>
                   <CurrentListItems />
@@ -256,17 +235,13 @@ export const MyRecipesScreen = () => {
                 event={{ type: "SHARE_CURRENT_LIST" }}
               >
                 <ShareIcon size={16} className="mr-1" />
-                Share &apos;
-                <CurrentListName />
-                &apos;
+                Share #<CurrentListSlug />
               </Button>
             </IsShareable>
             <NoRecipesSelected>
               <Button className="shadow-md" disabled>
                 <ShareIcon size={16} className="mr-1" />
-                Share &apos;
-                <CurrentListName />
-                &apos;
+                Share #<CurrentListSlug />
               </Button>
             </NoRecipesSelected>
           </CurrentListIsSelected>
@@ -556,6 +531,7 @@ const MyRecipeListsRadioGroup = () => {
       onValueChange={handleValueChange}
     >
       {/* <RecipeListRadioItemSelected /> */}
+      <RecipeListRadioItemBySlug slug="liked" />
       <RecipeListRadioItemBySlug slug="make-later" />
       <RecipeListRadioItemBySlug slug="favorites" />
       <RecipeListRadioItemBySlug slug="commented" />
@@ -590,7 +566,7 @@ const MyRecipeListsRadioGroup = () => {
       ) : (
         <></>
       )}
-      <Separator className="my-1" />
+      {/* <Separator className="my-1" />
       <div className="flex items-center justify-center py-2">
         <Badge
           variant="outline"
@@ -600,7 +576,7 @@ const MyRecipeListsRadioGroup = () => {
           Create New List
           <PlusCircleIcon className="ml-1" />
         </Badge>
-      </div>
+      </div> */}
     </DropdownMenuRadioGroup>
   );
 };
@@ -623,7 +599,7 @@ const RecipeListRadioItemById = ({ id }: { id: string }) => {
           <div className="flex-1 flex flex-col gap-2">
             <span className="font-medium">
               {list?.slug ? (
-                <>#{list.slug}</>
+                <>{list.slug}</>
               ) : (
                 <Skeleton className="w-12 h-4" />
               )}
@@ -779,6 +755,13 @@ export const CurrentListIcon = () => {
   const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
   const list = usePageSessionSelector(selectList);
   return <>{list?.icon}</>;
+};
+
+export const CurrentListSlug = () => {
+  const slug = useAppSelector(selectCurrentListSlug);
+  const selectList = useMemo(() => createListBySlugSelector(slug), [slug]);
+  const list = usePageSessionSelector(selectList);
+  return <>{list?.slug}</>;
 };
 
 export const CurrentListName = () => {
