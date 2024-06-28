@@ -33,7 +33,7 @@ import type { PageSessionSnapshot } from "./page-session-machine";
 import { RecipeAddedToast } from "./recipe-added-toast";
 import {
   CREATING_LIST_PARAM,
-  CHOOSING_LIST_FOR_RECIPE_ID_PARAM,
+  CHOOSING_LISTS_FOR_RECIPE_ID_PARAM,
   FOCUSED_RECIPE_ID_PARAM,
 } from "@/constants/query-params";
 import { didChangeEmailInput } from "@/guards/didChangeEmailInput";
@@ -310,7 +310,7 @@ export const createAppMachine = ({
       },
       hasChoosingListsFoRecipeIdParam: () => {
         const value = new URLSearchParams(window.location.search).get(
-          CHOOSING_LIST_FOR_RECIPE_ID_PARAM
+          CHOOSING_LISTS_FOR_RECIPE_ID_PARAM
         );
         return value ? value.length > 0 : false;
       },
@@ -1100,7 +1100,7 @@ export const createAppMachine = ({
                     params({ event }) {
                       return {
                         paramSet: {
-                          [CHOOSING_LIST_FOR_RECIPE_ID_PARAM]: event.recipeId,
+                          [CHOOSING_LISTS_FOR_RECIPE_ID_PARAM]: event.recipeId,
                         },
                       };
                     },

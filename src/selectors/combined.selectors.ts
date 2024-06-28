@@ -3,8 +3,8 @@
 import { AppSnapshot } from "@/app/app-machine";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { createSelector } from "reselect";
-import { selectCurrentListSlug } from "./app.selectors";
-import { createListRecipeIdsBySlugSelector } from "./page-session.selectors";
+import { selectCurrentListSlug, } from "./app.selectors";
+import { createListRecipeIdsByIdSelector, createListRecipeIdsBySlugSelector } from "./page-session.selectors";
 
 export const createSuggestedRecipeAtIndexSelector =
   (index: number) =>
@@ -22,6 +22,55 @@ export const createSuggestedRecipeAtIndexSelector =
 
     return context.recipes[recipeId];
   };
+
+// export const createIsFocusedRecipeInListByIdSelector = (id?: string) =>
+//   createSelector(
+//     [
+//       selectFocusedRecipeId,
+//       (_, pageSessionSnapshot: PageSessionSnapshot) => pageSessionSnapshot,
+//     ],
+//     (focusedRecipeId, pageSessionSnapshot) => {
+//       if (!focusedRecipeId || !id) {
+//         return false;
+//       }
+//       const listRecipeIds =
+//         createListRecipeIdsByIdSelector(id)(pageSessionSnapshot);
+//       return listRecipeIds
+//         ? Object.keys(listRecipeIds).includes(focusedRecipeId)
+//         : false;
+//     }
+//   );
+
+// export const createIsFocusedRecipeInListBySlugSelector = (slug?: string) =>
+//   createSelector(
+//     [
+//       selectFocusedRecipeId,
+//       (_, pageSessionSnapshot: PageSessionSnapshot) => pageSessionSnapshot,
+//     ],
+//     (focusedRecipeId, pageSessionSnapshot) => {
+//       if (!focusedRecipeId || !slug) {
+//         return false;
+//       }
+//       const listRecipeIds =
+//         createListRecipeIdsBySlugSelector(slug)(pageSessionSnapshot);
+//       return listRecipeIds
+//         ? Object.keys(listRecipeIds).includes(focusedRecipeId)
+//         : false;
+//     }
+//   );
+
+// export const selectIsFocusedRecipeInCurrentList = (
+//   appSnapshot: AppSnapshot,
+//   { context }: PageSessionSnapshot
+// ) => {
+//   const prompt = appSnapshot.context.submittedPrompt;
+//   const resultId = context.resultIdsByPrompt[prompt];
+//   if (!resultId) {
+//     return 0;
+//   }
+
+//   return context.results[resultId]?.suggestedRecipes.length || 0;
+// };
 
 export const selectNumSuggestedRecipes = (
   appSnapshot: AppSnapshot,

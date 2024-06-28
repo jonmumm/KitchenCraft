@@ -6,6 +6,8 @@ import { fetchLists } from "@/actors/fetchLists";
 import { initializeUserSocket } from "@/actors/initializeUserSocket";
 import { ListenSessionEvent, listenSession } from "@/actors/listenSession";
 import { ListenUserEvent, listenUser } from "@/actors/listenUser";
+import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
+import { CHOOSING_LISTS_FOR_RECIPE_ID_PARAM } from "@/constants/query-params";
 import {
   ListTable,
   ProfileTable,
@@ -14,6 +16,8 @@ import {
   UsersTable,
 } from "@/db";
 import { NewRecipe } from "@/db/types";
+import { didChangeEmailInput } from "@/guards/didChangeEmailInput";
+import { didChangeListSlugInput } from "@/guards/didChangeListSlugInput";
 import { DatabaseErrorSchema, handleDatabaseError } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
@@ -94,9 +98,6 @@ import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { UserSnapshot } from "./user-machine";
 import { buildInput } from "./utils";
-import { didChangeEmailInput } from "@/guards/didChangeEmailInput";
-import { didChangeListSlugInput } from "@/guards/didChangeListSlugInput";
-import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
 
 export const SESSION_ACTOR_ID = "sessionActor";
 export const USER_ACTOR_ID = "userActor";
@@ -3445,6 +3446,38 @@ export const createPageSessionMachine = ({
               });
             }),
           },
+          TOGGLE_LIST: {
+            actions: assign(({ context, event, self }) => {
+              return produce(context, (draft) => {
+                const recipeId = context.choosingListsForRecipeId;
+                assert(
+                  recipeId,
+                  "expected recipeId to eo be set when toggle list"
+                );
+                const draftCurrentList = draft.listsById[event.id];
+                assert(draftCurrentList, `expected craftCurrentList to exist`);
+
+                const inList = context.listRecipes[event.id]?.[recipeId];
+                if (inList) {
+                  const draftListRecipes = draft.listRecipes[event.id];
+                  assert(
+                    draftListRecipes,
+                    "expected draftListRecipes to exist when deleting item from list "
+                  );
+                  delete draftListRecipes[recipeId];
+                  draftCurrentList.count--;
+                } else {
+                  let draftListRecipes = draft.listRecipes[event.id];
+                  if (!draftListRecipes) {
+                    draftListRecipes = {};
+                    draft.listRecipes[event.id] = draftListRecipes;
+                  }
+                  draftListRecipes[recipeId] = true;
+                  draftCurrentList.count++;
+                }
+              });
+            }),
+          },
           // UNLIKE_RECIPE: {
           //   actions: assign(({ context, event, self }) => {
           //     return produce(context, (draft) => {
@@ -3693,6 +3726,21 @@ export const createPageSessionMachine = ({
               }),
             ],
             type: "final",
+          },
+        },
+      },
+
+      ListChoosing: {
+        on: {
+          UPDATE_SEARCH_PARAMS: {
+            actions: assign({
+              choosingListsForRecipeId: ({ event }) => {
+                return (
+                  event.searchParams[CHOOSING_LISTS_FOR_RECIPE_ID_PARAM] ||
+                  undefined
+                );
+              },
+            }),
           },
         },
       },

@@ -24,6 +24,11 @@ export const selectRecipes = createSelector(
   (context) => context.recipes
 );
 
+export const selectChoosingListsForRecipeId = createSelector(
+  selectPageSessionContext,
+  ({ choosingListsForRecipeId }) => choosingListsForRecipeId
+);
+
 export const selectSessionSnapshot = createSelector(
   selectPageSessionContext,
   ({ sessionSnapshot }) => sessionSnapshot
@@ -322,3 +327,43 @@ export const selectSharingListPath = (state: PageSessionSnapshot) => {
 
 export const selectShareNameInput = (state: PageSessionSnapshot) =>
   state.context.shareNameInput;
+
+export const createListRecipeIdsByIdSelector = (listId?: string) =>
+  createSelector(selectListRecipes, (listRecipes) =>
+    listId ? listRecipes[listId] : undefined
+  );
+
+export const createIsChoosingRecipeInListByIdSelector = (id?: string) =>
+  createSelector(
+    selectChoosingListsForRecipeId,
+    selectListRecipes,
+    (recipeId, listRecipes) => {
+      const inList = !!id && !!recipeId && !!listRecipes[id]?.[recipeId];
+      return !!inList;
+    }
+  );
+
+// export const createIsChoosingRecipeInListBySlugSelector = (slug?: string) =>
+//   createSelector(
+//     selectChoosingListsForRecipeId,
+//     createListBySlugSelector(slug),
+//     selectListRecipes,
+//     (recipeId, list, listRecipes) => {
+//       return list ? !!listRecipes[list.id][recipeId] : false;
+//     }
+//   );
+
+// export const createIsChoosingRecipeInListBySlugSelector = (slug?: string) =>
+//   createSelector(
+//     selectChoosingListsForRecipeId
+//     (recipeId, pageSessionSnapshot) => {
+//       if (!focusedRecipeId || !slug) {
+//         return false;
+//       }
+//       const listRecipeIds =
+//         createListRecipeIdsBySlugSelector(slug)(pageSessionSnapshot);
+//       return listRecipeIds
+//         ? Object.keys(listRecipeIds).includes(focusedRecipeId)
+//         : false;
+//     }
+//   );

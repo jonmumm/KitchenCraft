@@ -10,6 +10,9 @@ export const selectCurrentListSlug = (state: AppSnapshot) => {
   return state.context.currentListSlug;
 };
 
+export const selectFocusedRecipeId = (appSnapshot: AppSnapshot) =>
+  appSnapshot.context.focusedRecipeId;
+
 export const selectCurrentListIsSelected = createSelector(
   selectCurrentListSlug,
   (state) => state === "selected"

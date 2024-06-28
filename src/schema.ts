@@ -1028,6 +1028,12 @@ const OpenSettingsEventSchema = z.object({
   type: z.literal("OPEN_SETTINGS"),
 });
 
+
+const ToggleListEventSchema = z.object({
+  type: z.literal("TOGGLE_LIST"),
+  id: z.string(),
+});
+
 const SelectListEventSchema = z.object({
   type: z.literal("SELECT_LIST"),
   listSlug: z.string(),
@@ -1198,6 +1204,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   ChooseListEventSchema,
   CreateListEventSchema,
   SelectListEventSchema,
+  ToggleListEventSchema,
   UpdateUserPreferenceEventSchema,
   CloseSettingsEventSchema,
   OpenSettingsEventSchema,

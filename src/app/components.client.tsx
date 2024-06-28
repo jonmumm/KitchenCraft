@@ -34,6 +34,7 @@ import { PreferenceCard } from "@/components/settings/preference-card";
 import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
+import { useCombinedSelector } from "@/hooks/useCombinedSelector";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { useRecipeListById } from "@/hooks/useRecipeListById";
 import { useRecipeListBySlug } from "@/hooks/useRecipeListBySlug";
@@ -41,7 +42,9 @@ import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
 import { selectCraftIsOpen } from "@/selectors/app.selectors";
+import { createIsFocusedRecipeInListByIdSelector } from "@/selectors/combined.selectors";
 import {
+  createIsChoosingRecipeInListByIdSelector,
   selectPromptIsDirty,
   selectRecentCreatedListIds,
 } from "@/selectors/page-session.selectors";
@@ -65,8 +68,10 @@ import {
   ElementRef,
   ReactNode,
   forwardRef,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useSyncExternalStore,
 } from "react";
@@ -480,9 +485,21 @@ export const SelectListDialog = () => {
 const ChooseListItemCardById = ({ id }: { id: string }) => {
   const list = useRecipeListById(id);
   const t = useTranslations("General");
+  const selectIsChoosingRecipeInListById = useMemo(
+    () => createIsChoosingRecipeInListByIdSelector(id),
+    [id]
+  );
+  const isInList = usePageSessionSelector(selectIsChoosingRecipeInListById);
+  const send = useSend();
+  const handlePressList = useCallback(() => {
+    send({ type: "TOGGLE_LIST", id });
+  }, [send, id]);
 
   return (
-    <Card className="flex flex-row justify-between items-center gap-3 p-4">
+    <Card
+      onClick={handlePressList}
+      className="flex flex-row justify-between items-center gap-3 p-4"
+    >
       <span className="text-2xl">{list?.icon}</span>
       <div className="flex flex-col flex-1">
         <h4 className="text-xl font-semibold">#{list?.slug}</h4>
@@ -490,7 +507,7 @@ const ChooseListItemCardById = ({ id }: { id: string }) => {
           {t("recipeCount", { count: list?.count })}
         </p>
       </div>
-      <Checkbox size="large" />
+      <Checkbox checked={isInList} size="large" />
     </Card>
   );
 };
@@ -498,9 +515,25 @@ const ChooseListItemCardById = ({ id }: { id: string }) => {
 const ChooseListItemCardBySlug = ({ slug }: { slug: string }) => {
   const list = useRecipeListBySlug(slug);
   const t = useTranslations("General");
+  const listId = list?.id;
+  const selectIsChoosingRecipeInListById = useMemo(
+    () => createIsChoosingRecipeInListByIdSelector(listId),
+    [listId]
+  );
+  const isInList = usePageSessionSelector(selectIsChoosingRecipeInListById);
+  const send = useSend();
+
+  const handlePressList = useCallback(() => {
+    if (listId) {
+      send({ type: "TOGGLE_LIST", id: listId });
+    }
+  }, [send, listId]);
 
   return (
-    <Card className="flex flex-row justify-between items-center gap-3 p-4">
+    <Card
+      onClick={handlePressList}
+      className="flex flex-row justify-between items-center gap-3 p-4"
+    >
       <span className="text-2xl">{list?.icon}</span>
       <div className="flex flex-col flex-1">
         <h4 className="text-xl font-semibold">#{slug}</h4>
@@ -508,7 +541,7 @@ const ChooseListItemCardBySlug = ({ slug }: { slug: string }) => {
           {t("recipeCount", { count: list?.count })}
         </p>
       </div>
-      <Checkbox size="large" />
+      <Checkbox checked={isInList} size="large" />
     </Card>
   );
 };
