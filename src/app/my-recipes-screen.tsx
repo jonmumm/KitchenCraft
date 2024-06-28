@@ -123,55 +123,68 @@ export const MyRecipesScreen = () => {
         </CurrentListHasNextRecipes>
 
         <div className="flex flex-row gap-2 justify-between items-center px-2 sticky top-0 w-full max-w-3xl mx-auto">
-          <Button
-            onClick={() => window.history.back()}
-            variant="ghost"
-            className="text-xs text-semibold shadow-md bg-card rounded-full"
-          >
-            <ArrowLeftIcon />
-          </Button>
-          <MyRecipesDropdownMenu>
-            <DropdownMenuTrigger className="flex-1 flex justify-center">
-              <Badge
-                variant="outline"
-                className="flex gap-2 justify-between text-lg font-bold px-3 py-2 w-full bg-card shadow-lg sm:w-80"
-              >
-                <div className="flex-1 text-start flex gap-1 max-w-full items-center">
-                  <span className="ml-2 mr-2">
-                    <CurrentListIcon />
-                  </span>
-                  <span className="truncate flex-1">
-                    <CurrentListSlug />
-                  </span>
-                  <span
-                    className={cn(
-                      "mx-1 text-sm font-semibold text-white px-1 rounded",
-                      currentSlug === "selected"
-                        ? "bg-purple-700 "
-                        : "bg-slate-700"
-                    )}
-                  >
-                    <CurrentListCount />
-                  </span>
-                  <div>
-                    <Button
-                      size="icon"
-                      className="rounded-full p-2"
-                      variant="secondary"
+          <div className="flex-shrink-0">
+            <Button
+              size="icon"
+              onClick={() => window.history.back()}
+              variant="outline"
+              className="rounded-full"
+            >
+              <ArrowLeftIcon />
+            </Button>
+          </div>
+          <div className="flex-1 flex justify-center">
+            <MyRecipesDropdownMenu>
+              <DropdownMenuTrigger className="flex-1">
+                <Badge
+                  variant="outline"
+                  className="flex gap-2 justify-between text-lg font-bold px-3 py-2 w-full bg-card shadow-lg sm:w-80"
+                >
+                  <div className="text-start flex flex-row gap-1 items-center justify-between w-full max-w-full">
+                    <div className="ml-2 mr-2">
+                      <CurrentListIcon />
+                    </div>
+                    <div className="flex-1">
+                      <p className="truncate">
+                        <CurrentListSlug />
+                      </p>
+                    </div>
+                    <div
+                      className={cn(
+                        "mx-1 text-sm font-semibold text-white px-1 rounded",
+                        currentSlug === "selected"
+                          ? "bg-purple-700 "
+                          : "bg-slate-700"
+                      )}
                     >
-                      <ChevronDownIcon />
-                    </Button>
+                      <CurrentListCount />
+                    </div>
+                    <div>
+                      <Button
+                        size="icon"
+                        className="rounded-full p-2"
+                        variant="secondary"
+                      >
+                        <ChevronDownIcon />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Badge>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="z-90 max-h-[75vh] overflow-y-scroll">
-              <MyRecipeListsRadioGroup />
-            </DropdownMenuContent>
-          </MyRecipesDropdownMenu>
-          <Button variant="outline" size="icon" event={{ type: "CREATE_LIST" }}>
-            <ListPlusIcon />
-          </Button>
+                </Badge>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="z-90 max-h-[75vh] overflow-y-scroll">
+                <MyRecipeListsRadioGroup />
+              </DropdownMenuContent>
+            </MyRecipesDropdownMenu>
+          </div>
+          <div className="flex-shrink-0">
+            <Button
+              variant="outline"
+              size="icon"
+              event={{ type: "CREATE_LIST" }}
+            >
+              <ListPlusIcon />
+            </Button>
+          </div>
         </div>
         <div className="flex-1">
           <Tabs defaultValue="recipe" className="h-full flex flex-col">
@@ -637,7 +650,10 @@ const RecipeListRadioItemBySlug = ({ slug }: { slug: string }) => {
           <div className="flex-1 flex flex-col gap-2">
             <span className="font-medium">
               {list?.slug ? (
-                <>#{list.slug}</>
+                <>
+                  <span className="text-muted-foreground">#</span>
+                  {list.slug}
+                </>
               ) : (
                 <Skeleton className="w-12 h-4" />
               )}
