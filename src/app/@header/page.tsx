@@ -16,8 +16,9 @@ import {
 } from "@/components/layout/popover";
 import { TypeLogo } from "@/components/logo";
 import { getIsMobile, getTimezone } from "@/lib/headers";
-import { ArrowLeftIcon, InfoIcon } from "lucide-react";
+import { ArrowLeftIcon, BookmarkIcon, InfoIcon } from "lucide-react";
 import { CraftCTA, HeaderLinks } from "./components";
+import Link from "next/link";
 
 export default async function Page({}) {
   return (
@@ -74,6 +75,11 @@ export default async function Page({}) {
                 >
                   <ArrowLeftIcon />
                 </BackButton>
+                <Link href="?#liked">
+                  <Button variant={"outline"} size="icon">
+                    <BookmarkIcon />
+                  </Button>
+                </Link>
               </div>
               <Highlight active={false}>
                 <HighlightTarget>

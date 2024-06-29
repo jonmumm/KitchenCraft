@@ -9,15 +9,15 @@ import {
 } from "@/components/layout/sheet";
 import { HasClaimedProfileName } from "@/components/logic/has-claimed-profile-name";
 import { TypeLogo } from "@/components/logo";
+import NavigationLink from "@/components/navigation/navigation-link";
 import { ProfileName } from "@/components/strings/profile-name";
 import { getProfileByUserId } from "@/db/queries";
 import { getIsMacDesktop, getIsMobile } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import { ArrowLeftIcon, ChefHatIcon } from "lucide-react";
+import { ArrowLeftIcon, BookmarkIcon, ChefHatIcon } from "lucide-react";
 import Link from "next/link";
 import { MainMenu } from "../menu/components";
 import { CraftInput, MyRecipesBadge } from "./components.client";
-import NavigationLink from "@/components/navigation/navigation-link";
 
 export async function HeaderWithInput({ className }: { className?: string }) {
   return (
@@ -41,6 +41,9 @@ export async function HeaderWithInput({ className }: { className?: string }) {
                 >
                   <ArrowLeftIcon />
                 </BackButton>
+                <Button variant={"outline"} size="icon">
+                  <BookmarkIcon />
+                </Button>
               </div>
               <CraftCTA initialAutoFocus={!getIsMobile()} />
             </div>
