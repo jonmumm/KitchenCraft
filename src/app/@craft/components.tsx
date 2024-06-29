@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 import {
   Container,
   HasRecipesGenerated,
+  HintCarousel,
   Section,
   SuggestedIngredientsSection,
   SuggestedRecipeCards,
@@ -44,6 +45,7 @@ export const NewRecipeResultsView = () => {
   return (
     <>
       <Container className="gap-4 flex-1 mt-4">
+        <HintSection />
         <QuickAddSection />
         <SuggestedRecipesSection />
         <SuggestedIngredientsSection />
@@ -93,6 +95,14 @@ export const Selections = () => {
   const arr = new Array(30).fill(0);
 
   return <></>;
+};
+
+const HintSection = () => {
+  return (
+    <Section className="max-w-3xl mx-auto">
+      <HintCarousel />
+    </Section>
+  );
 };
 
 const SuggestedRecipesSection = () => {

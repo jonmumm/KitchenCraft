@@ -25,7 +25,7 @@ import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { assert, cn } from "@/lib/utils";
+import { assert, cn, shuffle } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, SlugSchema } from "@/schema";
 import { selectHasSubmittedPrompt } from "@/selectors/app.selectors";
@@ -41,6 +41,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
+import "./hint-carousel.css";
 import { BookmarkIcon, CarrotIcon, ShareIcon, TagIcon } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
@@ -929,14 +930,6 @@ export const SuggestedIngredientsSection = () => {
   return (
     <HasSubmittedPrompt not>
       <Section className="max-w-3xl mx-auto">
-        <Badge variant="secondary">
-          <MarkdownRenderer
-            variant="single_line"
-            markdownText="**Did you know?** You *can* to this cool thing"
-          />
-        </Badge>
-      </Section>
-      <Section className="max-w-3xl mx-auto">
         <IngredientsLabel />
         <BadgeList>
           {items
@@ -1074,4 +1067,43 @@ export const SelectedRecipesBar = () => {
       </Card>
     </div>
   );
+};
+
+export const HintCarousel = () => {
+  const hints = usePageSessionSelector(
+    (state) => state.context.sessionSnapshot?.context.hints
+  );
+  const [shuffledHints] = useState(hints ? shuffle(hints) : []);
+
+  return (
+    <div className="hint_embla">
+      <div className="hint_embla__viewport max-w-[100vw] mx-auto">
+        <div className="hint_embla__container">
+          {shuffledHints.map((hint) => {
+            return (
+              <div key={hint} className="hint_embla__slide px-2">
+                <Badge variant="secondary" className="py-1 px-3">
+                  <MarkdownRenderer className="line-clamp-2" variant="single_line" markdownText={hint} />
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  // const hint = shuffledHints[0];
+
+  // const [emblaRef, emblaApi] = useEmblaCarousel();
+
+  // return (
+  //   <Badge variant="secondary">
+  //     {hint ? (
+  //       <MarkdownRenderer variant="single_line" markdownText={hint} />
+  //     ) : (
+  //       <SkeletonSentence numWords={12} className="h-3" />
+  //     )}
+  //   </Badge>
+  // );
 };

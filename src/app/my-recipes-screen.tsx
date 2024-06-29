@@ -88,7 +88,6 @@ import {
   useSyncExternalStore,
 } from "react";
 import { createSelector } from "reselect";
-import "./embla.css";
 
 export const MyRecipesScreen = () => {
   const currentSlug = useAppSelector(selectCurrentListSlug);

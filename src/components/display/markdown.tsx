@@ -20,18 +20,23 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 
   useEffect(() => {
     const renderMarkdown = async () => {
-      const rawHtml = await marked.parse(markdownText);
-      setHtmlContent(rawHtml);
+      if (variant === "multi_line") {
+        const rawHtml = await marked.parse(markdownText);
+        setHtmlContent(rawHtml);
+      } else {
+        const rawHtml = await marked.parseInline(markdownText);
+        setHtmlContent(rawHtml);
+      }
     };
 
     renderMarkdown();
-  }, [markdownText]);
+  }, [markdownText, variant]);
 
-  const variantClass = variant === "single_line" ? styles.singleLine : "";
+  // const variantClass = variant === "single_line" ? styles.singleLine : "";
 
   return (
     <div
-      className={cn([styles.markdown, variantClass, className])}
+      className={cn([styles.markdown, className])}
       dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );
