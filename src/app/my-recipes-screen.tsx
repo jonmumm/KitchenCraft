@@ -65,13 +65,11 @@ import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
 import {
   ArrowLeftIcon,
-  BookmarkIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   Circle,
   ListPlusIcon,
-  PlusCircleIcon,
   ScrollIcon,
   ShareIcon,
   ShoppingBasketIcon,
@@ -219,45 +217,10 @@ export const MyRecipesScreen = () => {
         </div>
 
         <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
-          <CurrentListIsSelected>
-            <IsShareable>
-              <Button className="shadow-md" event={{ type: "SHARE_SELECTED" }}>
-                <ShareIcon size={16} className="mr-1" />
-                Share (<CurrentListCount />)
-              </Button>
-              <Button className="shadow-md" event={{ type: "SAVE_SELECTED" }}>
-                <BookmarkIcon size={16} className="mr-1" />
-                Save (<CurrentListCount />) to...
-              </Button>
-            </IsShareable>
-            <NoRecipesSelected>
-              <Button className="shadow-md" disabled>
-                <ShareIcon size={16} className="mr-1" />
-                Share (<CurrentListCount />) to...
-              </Button>
-              <Button className="shadow-md" variant="primary" disabled>
-                <PlusCircleIcon size={16} className="mr-1" />
-                Add (<CurrentListCount />) to...
-              </Button>
-            </NoRecipesSelected>
-          </CurrentListIsSelected>
-          <CurrentListIsSelected not>
-            <IsShareable>
-              <Button
-                className="shadow-md"
-                event={{ type: "SHARE_CURRENT_LIST" }}
-              >
-                <ShareIcon size={16} className="mr-1" />
-                Share #<CurrentListSlug />
-              </Button>
-            </IsShareable>
-            <NoRecipesSelected>
-              <Button className="shadow-md" disabled>
-                <ShareIcon size={16} className="mr-1" />
-                Share #<CurrentListSlug />
-              </Button>
-            </NoRecipesSelected>
-          </CurrentListIsSelected>
+          <Button className="shadow-md" event={{ type: "SHARE_CURRENT_LIST" }}>
+            <ShareIcon size={16} className="mr-1" />
+            Share #<CurrentListSlug />
+          </Button>
         </div>
       </div>
       <Overlay />
