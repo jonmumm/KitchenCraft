@@ -55,7 +55,7 @@ export const RecipeMoreDropdownButton = ({
             </div>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-muted-foreground">
+          {/* <DropdownMenuItem className="text-muted-foreground">
             <div>
               <span role="img" aria-label="modify-recipe" className="mr-2">
                 ✏️
@@ -64,7 +64,7 @@ export const RecipeMoreDropdownButton = ({
               <span className="text-foreground-muted">this Recipe</span>
             </div>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator /> */}
           <DropdownMenuItem className="text-muted-foreground">
             <div>
               <span role="img" aria-label="add-to-new-list" className="mr-2">
@@ -86,7 +86,6 @@ export const RecipeMoreDropdownButton = ({
             </div>
             {/* </EventTrigger> */}
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

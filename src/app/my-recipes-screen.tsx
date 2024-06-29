@@ -135,7 +135,7 @@ export const MyRecipesScreen = () => {
           </div>
           <div className="flex-1 flex justify-center">
             <MyRecipesDropdownMenu>
-              <DropdownMenuTrigger className="flex-1">
+              <DropdownMenuTrigger className="flex-1 flex justify-center">
                 <Badge
                   variant="outline"
                   className="flex gap-2 justify-between text-lg font-bold px-3 py-2 w-full bg-card shadow-lg sm:w-80"
