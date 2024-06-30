@@ -340,3 +340,9 @@ export function removeQueryParam(url: string, param: string): string {
   // Return the updated URL as a string
   return urlObj.toString();
 }
+
+export function getSearchParams(url: string): Record<string, string> {
+  const urlObj = new URL(url);
+  const params = Object.fromEntries(urlObj.searchParams);
+  return params;
+}
