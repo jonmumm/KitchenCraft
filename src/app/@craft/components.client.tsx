@@ -1078,7 +1078,7 @@ export const HintCarousel = () => {
   const [shuffledHints] = useState(() => (hints ? shuffle(hints) : []));
 
   return (
-    <div className={"embla max-w-[100vw] mx-auto"} ref={emblaRef}>
+    <div className={"embla max-w-[100vw] mx-auto pointer-events-auto"} ref={emblaRef}>
       {/* <div className={`${styles.embla__viewport} max-w-[100vw] mx-auto`}>
         <Badge variant="secondary" className="py-1 px-3 relative"> */}
       <div className={"embla__container touch-pan-x p-4"}>
@@ -1089,7 +1089,7 @@ export const HintCarousel = () => {
               className={`embla__slide min-w-0 max-w-full flex justify-center mr-2`}
               style={{ flex: "0 0 100%" }}
             >
-              <Badge variant="secondary" className="px-3 py-1 rounded-sm">
+              <Badge variant="secondary" className="px-3 py-1 rounded-sm shadow-lg">
                 <MarkdownRenderer
                   className="line-clamp-2"
                   variant="single_line"

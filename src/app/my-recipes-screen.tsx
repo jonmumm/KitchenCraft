@@ -454,24 +454,24 @@ const HasRecipesInCurrentList = combinedSelectorComponent(
   selectHasRecipesInCurrentList
 );
 
-const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
-  const isComplete = usePageSessionMatchesState({
-    Selection: { Data: "Complete" },
-  });
-  const session$ = usePageSessionStore();
-  const [recipeCount] = useState(selectSelectedRecipeCount(session$.get()));
+// const NoRecipesSelected = ({ children }: { children: ReactNode }) => {
+//   const isComplete = usePageSessionMatchesState({
+//     Selection: { Data: "Complete" },
+//   });
+//   const session$ = usePageSessionStore();
+//   const [recipeCount] = useState(selectSelectedRecipeCount(session$.get()));
 
-  return !recipeCount && isComplete ? <>{children}</> : <></>;
-};
+//   return !recipeCount && isComplete ? <>{children}</> : <></>;
+// };
 
-const IsShareable = ({ children }: { children: ReactNode }) => {
-  const isComplete = usePageSessionMatchesState({
-    Selection: { Data: "Complete" },
-  });
-  const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
+// const IsShareable = ({ children }: { children: ReactNode }) => {
+//   const isComplete = usePageSessionMatchesState({
+//     Selection: { Data: "Complete" },
+//   });
+//   const recipeCount = usePageSessionSelector(selectSelectedRecipeCount);
 
-  return recipeCount > 0 && isComplete ? <>{children}</> : <></>;
-};
+//   return recipeCount > 0 && isComplete ? <>{children}</> : <></>;
+// };
 
 const HasSelectedRecipes = ({ children }: { children: ReactNode }) => {
   const isComplete = usePageSessionMatchesState({

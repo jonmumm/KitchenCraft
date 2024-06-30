@@ -14,6 +14,7 @@ import {
   // SuggestedTagBadge,
   SuggestedTokenBadge,
 } from "./components.client";
+import ClientOnly from "@/components/util/client-only";
 
 const BadgeList = ({ children }: { children: ReactNode }) => {
   return <div className="px-4 flex flex-row gap-2 flex-wrap">{children}</div>;
@@ -49,20 +50,20 @@ export const NewRecipeResultsView = () => {
         <SuggestedRecipesSection />
         <SuggestedIngredientsSection />
         <SuggestedTagsSection />
-        <HintSection />
         {/* <TrendingTagsSection /> */}
       </Container>
-      {/* <Footer> */}
-      {/* <ClientOnly> */}
-      {/* <HasRecipesSelected>
+      <Footer>
+        <ClientOnly>
+          <HintSection />
+          {/* <HasRecipesSelected>
             <div className="max-w-3xl w-full standalone:mb-10 mx-auto overflow-hidden">
               <AppMatches not matchedState={{ MyRecipes: { Open: "True" } }}>
                 <SelectedRecipesBar />
               </AppMatches>
             </div>
           </HasRecipesSelected> */}
-      {/* </ClientOnly> */}
-      {/* </Footer> */}
+        </ClientOnly>
+      </Footer>
     </>
   );
 };

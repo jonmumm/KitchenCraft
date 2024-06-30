@@ -215,64 +215,64 @@ const FeedCardItem = ({ index }: { index: number }) => {
   );
 };
 
-const RecipeListCarousel = ({
-  children,
-  recipeIds,
-  currentIndex,
-}: {
-  children: ReactNode;
-  recipeIds: string[];
-  currentIndex: number;
-}) => {
-  const currentRecipeId = recipeIds[currentIndex];
+// const RecipeListCarousel = ({
+//   children,
+//   recipeIds,
+//   currentIndex,
+// }: {
+//   children: ReactNode;
+//   recipeIds: string[];
+//   currentIndex: number;
+// }) => {
+//   const currentRecipeId = recipeIds[currentIndex];
 
-  const RecipeListCarouselCurrentItem = ({
-    children,
-  }: {
-    children: ReactNode;
-  }) => {
-    return <div className="embla__slide">{children}</div>;
-  };
+//   const RecipeListCarouselCurrentItem = ({
+//     children,
+//   }: {
+//     children: ReactNode;
+//   }) => {
+//     return <div className="embla__slide">{children}</div>;
+//   };
 
-  const RecipeListCarouselPreviousItems = () => {
-    const previousRecipeIds = recipeIds.slice(0, currentIndex);
-    return <></>;
-  };
-  const RecipeListCarouselNextItems = () => {
-    const previousRecipeIds = recipeIds.slice(0, currentIndex);
-    return <></>;
-  };
+//   const RecipeListCarouselPreviousItems = () => {
+//     const previousRecipeIds = recipeIds.slice(0, currentIndex);
+//     return <></>;
+//   };
+//   const RecipeListCarouselNextItems = () => {
+//     const previousRecipeIds = recipeIds.slice(0, currentIndex);
+//     return <></>;
+//   };
 
-  return (
-    <RecipeListCarouselContent>
-      <RecipeListCarouselPreviousItems />
-      <RecipeListCarouselCurrentItem>{children}</RecipeListCarouselCurrentItem>
-      <RecipeListCarouselNextItems />
-    </RecipeListCarouselContent>
-  );
-};
+//   return (
+//     <RecipeListCarouselContent>
+//       <RecipeListCarouselPreviousItems />
+//       <RecipeListCarouselCurrentItem>{children}</RecipeListCarouselCurrentItem>
+//       <RecipeListCarouselNextItems />
+//     </RecipeListCarouselContent>
+//   );
+// };
 
-const RecipeListCarouselCurrentItem = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
-  return <></>;
-};
+// const RecipeListCarouselCurrentItem = ({
+//   children,
+// }: {
+//   children: ReactNode;
+// }) => {
+//   return <></>;
+// };
 
-const RecipeListCarouselNextItems = () => {
-  return <></>;
-};
+// const RecipeListCarouselNextItems = () => {
+//   return <></>;
+// };
 
-const RecipeListCarouselContent = ({ children }: { children: ReactNode }) => {
-  const [emblaRef, emblaAPI] = useEmblaCarousel();
+// const RecipeListCarouselContent = ({ children }: { children: ReactNode }) => {
+//   const [emblaRef, emblaAPI] = useEmblaCarousel();
 
-  return (
-    <div ref={emblaRef} className="embla flex-1 relative">
-      <div className="embla__container absolute inset-0">{children}</div>
-    </div>
-  );
-};
+//   return (
+//     <div ref={emblaRef} className="embla flex-1 relative">
+//       <div className="embla__container absolute inset-0">{children}</div>
+//     </div>
+//   );
+// };
 
 const FeedCardRecipeCarousel = ({
   children,
