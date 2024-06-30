@@ -45,11 +45,11 @@ export const NewRecipeResultsView = () => {
   return (
     <>
       <Container className="gap-4 flex-1 mt-4">
-        <HintSection />
         <QuickAddSection />
         <SuggestedRecipesSection />
         <SuggestedIngredientsSection />
         <SuggestedTagsSection />
+        <HintSection />
         {/* <TrendingTagsSection /> */}
       </Container>
       {/* <Footer> */}
@@ -98,11 +98,7 @@ export const Selections = () => {
 };
 
 const HintSection = () => {
-  return (
-    <Section className="max-w-3xl mx-auto">
-      <HintCarousel />
-    </Section>
-  );
+  return <HintCarousel />;
 };
 
 const SuggestedRecipesSection = () => {

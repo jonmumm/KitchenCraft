@@ -41,7 +41,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
-import "./hint-carousel.css";
+import useEmblaCarousel from "embla-carousel-react";
 import { BookmarkIcon, CarrotIcon, ShareIcon, TagIcon } from "lucide-react";
 import { WritableAtom } from "nanostores";
 import { signIn } from "next-auth/react";
@@ -1070,40 +1070,38 @@ export const SelectedRecipesBar = () => {
 };
 
 export const HintCarousel = () => {
+  const [emblaRef] = useEmblaCarousel();
+
   const hints = usePageSessionSelector(
     (state) => state.context.sessionSnapshot?.context.hints
   );
-  const [shuffledHints] = useState(hints ? shuffle(hints) : []);
+  const [shuffledHints] = useState(() => (hints ? shuffle(hints) : []));
 
   return (
-    <div className="hint_embla">
-      <div className="hint_embla__viewport max-w-[100vw] mx-auto">
-        <div className="hint_embla__container">
-          {shuffledHints.map((hint) => {
-            return (
-              <div key={hint} className="hint_embla__slide px-2">
-                <Badge variant="secondary" className="py-1 px-3">
-                  <MarkdownRenderer className="line-clamp-2" variant="single_line" markdownText={hint} />
-                </Badge>
-              </div>
-            );
-          })}
-        </div>
+    <div className={"embla max-w-[100vw] mx-auto"} ref={emblaRef}>
+      {/* <div className={`${styles.embla__viewport} max-w-[100vw] mx-auto`}>
+        <Badge variant="secondary" className="py-1 px-3 relative"> */}
+      <div className={"embla__container touch-pan-x p-4"}>
+        {shuffledHints.map((hint) => {
+          return (
+            <div
+              key={hint}
+              className={`embla__slide min-w-0 max-w-full flex justify-center mr-2`}
+              style={{ flex: "0 0 100%" }}
+            >
+              <Badge variant="secondary" className="px-3 py-1 rounded-sm">
+                <MarkdownRenderer
+                  className="line-clamp-2"
+                  variant="single_line"
+                  markdownText={hint}
+                />
+              </Badge>
+            </div>
+          );
+        })}
       </div>
+      {/* </Badge>
+      </div> */}
     </div>
   );
-
-  // const hint = shuffledHints[0];
-
-  // const [emblaRef, emblaApi] = useEmblaCarousel();
-
-  // return (
-  //   <Badge variant="secondary">
-  //     {hint ? (
-  //       <MarkdownRenderer variant="single_line" markdownText={hint} />
-  //     ) : (
-  //       <SkeletonSentence numWords={12} className="h-3" />
-  //     )}
-  //   </Badge>
-  // );
 };

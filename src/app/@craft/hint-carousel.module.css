@@ -1,4 +1,4 @@
-.hint_embla {
+.embla {
   --slide-size: 100%;
   max-width: 48rem;
   margin: auto;
@@ -10,11 +10,11 @@
   --slide-size: 100%; */
 }
 
-.hint_embla__viewport {
+.embla__viewport {
   overflow: hidden;
 }
 
-.hint_embla__container {
+.embla__container {
   /* backface-visibility: hidden; */
   display: flex;
   touch-action: pan-y pinch-zoom;
@@ -22,7 +22,7 @@
   margin-left: calc(var(--slide-spacing) * -1); */
 }
 
-.hint_embla__slide {
+.embla__slide {
   flex: 0 0 var(--slide-size);
   width: fit-content;
   /* padding-left: var(--slide-spacing); */

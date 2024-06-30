@@ -691,7 +691,6 @@ const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
 
 const CurrentListItems = () => {
   const recipeIdSet = useCombinedSelector(selectCurrentListItems);
-  console.log({ recipeIdSet });
   const recipeIds = recipeIdSet ? Object.keys(recipeIdSet) : [];
   const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
   const [items] = useState(new Array(numItems).fill(0));
