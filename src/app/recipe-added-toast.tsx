@@ -1,43 +1,62 @@
 // import { parseAsString } from "next-usequerystate";
 import { Badge } from "@/components/display/badge";
-import { Card } from "@/components/display/card";
-import { useSend } from "@/hooks/useSend";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
+import {
+  createListBySlugSelector,
+  createRecipeSelector,
+} from "@/selectors/page-session.selectors";
 import Link from "next/link";
-import { toast } from "sonner";
+import { useMemo } from "react";
 
 export const RecipeAddedToast = ({
-  name,
-  toastId,
-  itemIndex,
+  addedRecipeId,
+  listSlug,
 }: {
-  name: string;
-  toastId: string | number;
-  itemIndex: number;
+  addedRecipeId: string;
+  listSlug: string;
 }) => {
-  const send = useSend();
+  const selectList = useMemo(
+    () => createListBySlugSelector(listSlug),
+    [listSlug]
+  );
+  const list = usePageSessionSelector(selectList);
+
+  const selectRecipe = useMemo(
+    () => createRecipeSelector(addedRecipeId),
+    [addedRecipeId]
+  );
+  const recipe = usePageSessionSelector(selectRecipe);
+
   return (
-    <Card
-      className="flex flex-row gap-2 justify-between items-center w-full max-w-[356px] p-2 shadow-xl cursor-pointer"
-      variant="locontrast"
+    <Link
+      href={`?#${listSlug}`}
+      className="flex flex-row items-center gap-2 w-full"
     >
-      <div className="flex flex-col gap-1 flex-1 w-full">
-        <div className="font-semibold">{name}</div>
-        <div className="text-muted-foreground text-xs">
-          Added to <span className="font-semibold">Selected</span>
+      <span className="text-xl flex-shrink-0">
+        {list?.icon ? <>{list.icon}</> : "#️⃣"}
+      </span>
+      <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex items-center text-muted-foreground text-sm">
+          <span className="flex-shrink-0">Saved</span>
+          <span className="truncate font-semibold mx-1 flex-1">
+            {recipe?.name}
+          </span>
+          <span className="flex-shrink-0">to</span>
         </div>
+        <span className="font-medium text-base underline truncate">
+          #{listSlug}
+        </span>
       </div>
-      <div className="flex items-center justify-center">
-        <Link href={`?itemIndex=${itemIndex}#selected`}>
-          <Badge
-            onClick={() => {
-              toast.dismiss(toastId);
-              // send({ type: "VIEW_LIST", itemIndex });
-            }}
-          >
-            View
-          </Badge>
-        </Link>
-      </div>
-    </Card>
+      <Badge
+        variant="secondary"
+        className="flex-shrink-0"
+        event={{
+          type: "CHOOSE_LISTS",
+          recipeId: addedRecipeId,
+        }}
+      >
+        Change
+      </Badge>
+    </Link>
   );
 };

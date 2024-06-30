@@ -551,8 +551,8 @@ export const CreateNewListCard = () => {
       <div className="flex flex-row gap-1 items-center justify-between px-4">
         <div className="flex flex-col gap-1">
           <PageSessionMatches matchedState={{ ListCreating: "True" }}>
-            <CardTitle>New Recipe List</CardTitle>
-            <CardDescription>Enter a hashtag for your new list.</CardDescription>
+            <CardTitle>Create List</CardTitle>
+            <CardDescription>Enter a hashtag to reference your list.</CardDescription>
           </PageSessionMatches>
           <PageSessionMatches
             matchedState={{ ListCreating: { Error: "DuplicateName" } }}

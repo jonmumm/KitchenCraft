@@ -1,5 +1,5 @@
 import { GeneratorObervableEvent } from "@/lib/generator";
-import { arraysEqual, assert, isMobile, sentenceToSlug } from "@/lib/utils";
+import { arraysEqual, assert, isMobile } from "@/lib/utils";
 import {
   AppEvent,
   InstantRecipeMetadataPredictionOutput,
@@ -8,13 +8,19 @@ import {
 import { ReadableAtom } from "nanostores";
 import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
-import { Badge } from "@/components/display/badge";
+import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
+import {
+  CHOOSING_LISTS_FOR_RECIPE_ID_PARAM,
+  CREATING_LIST_PARAM,
+  FOCUSED_RECIPE_ID_PARAM,
+} from "@/constants/query-params";
+import { didChangeEmailInput } from "@/guards/didChangeEmailInput";
+import { didChangeListSlugInput } from "@/guards/didChangeListSlugInput";
 import { AppContextSchema } from "@/schema";
 import { selectFeedItemIds } from "@/selectors/page-session.selectors";
 import { socket$ } from "@/stores/socket";
 import { produce } from "immer";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import Link from "next/link";
 import { toast } from "sonner";
 import {
   ActorRefFrom,
@@ -27,18 +33,11 @@ import {
   matchesState,
   not,
   setup,
+  stateIn,
 } from "xstate";
 import { z } from "zod";
 import type { PageSessionSnapshot } from "./page-session-machine";
 import { RecipeAddedToast } from "./recipe-added-toast";
-import {
-  CREATING_LIST_PARAM,
-  CHOOSING_LISTS_FOR_RECIPE_ID_PARAM,
-  FOCUSED_RECIPE_ID_PARAM,
-} from "@/constants/query-params";
-import { didChangeEmailInput } from "@/guards/didChangeEmailInput";
-import { didChangeListSlugInput } from "@/guards/didChangeListSlugInput";
-import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
 
 export const createAppMachine = ({
   searchParams,
@@ -282,6 +281,8 @@ export const createAppMachine = ({
       // ),
     },
     guards: {
+      didSubmitListSlug: ({ event }) =>
+        event.type === "SUBMIT" && event.name === LIST_SLUG_INPUT_KEY,
       didChangeEmailInput,
       didChangeListSlugInput,
       didSubmitPrompt: ({ event }) => {
@@ -647,24 +648,6 @@ export const createAppMachine = ({
               },
             ],
           },
-          // UPDATE_SEARCH_PARAMS: [
-          //   {
-          //     target: ".Open.True",
-          //     guard: ({ event }) => !!event.hash.length,
-          //     actions: assign({
-          //       currentListSlug: ({ event }) =>
-          //         event.hash.length ? event.hash.slice(1) : undefined,
-          //     }),
-          //   },
-          //   {
-          //     target: ".Open.False",
-          //     actions: assign({
-          //       currentListSlug: () => {
-          //         return undefined;
-          //       },
-          //     }),
-          //   },
-          // ],
         },
       },
       Open: {
@@ -892,25 +875,13 @@ export const createAppMachine = ({
           SAVE_RECIPE: {
             actions: assign(({ context, event }) => {
               return produce(context, (draft) => {
+                const listSlug = store.get().context.sessionSnapshot?.context.currentSaveToListSlug;
+                assert(listSlug, "expected currentSaveToListSlug when saving recipe");
                 const toastId = toast(
-                  <Link
-                    href="?#liked"
-                    className="flex flex-row justify-between items-center gap-2 w-full"
-                  >
-                    <span className="text-xl">👍</span>
-                    <div className="flex flex-col flex-1">
-                      <span className="text-muted-foreground">Saved to</span>
-                      <span className="font-medium text-lg underline">
-                        #liked
-                      </span>
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      event={{ type: "CHOOSE_LISTS", recipeId: event.recipeId }}
-                    >
-                      Change
-                    </Badge>
-                  </Link>,
+                  <RecipeAddedToast
+                    addedRecipeId={event.recipeId}
+                    listSlug={listSlug}
+                  />,
                   {
                     duration: Infinity,
                     closeButton: true,
@@ -999,66 +970,63 @@ export const createAppMachine = ({
       },
       Selection: {
         on: {
-          SELECT_RECIPE: {
-            actions: ({ event, self }) => {
-              if (self.getSnapshot().matches({ MyRecipes: { Open: "True" } })) {
-                return;
-              }
-              const recipe = store.get().context.recipes[event.id];
-              const name = recipe?.name;
-              assert(name, "expected to find recipe.name");
-              const { sessionSnapshot } = store.get().context;
-              assert(sessionSnapshot, "expected browser session snapshot");
-
-              toast.custom(
-                (t) => (
-                  <RecipeAddedToast
-                    name={name}
-                    toastId={t}
-                    itemIndex={
-                      sessionSnapshot.context.selectedRecipeIds?.length || 0
-                    }
-                  />
-                ),
-                { position: "top-right" }
-              );
-            },
-          },
-          SELECT_RECIPE_SUGGESTION: {
-            actions: ({ context, event, self }) => {
-              const { sessionSnapshot } = store.get().context;
-              assert(sessionSnapshot, "expected browser session snapshot");
-              const feedItemId =
-                sessionSnapshot.context.feedItemIds[event.itemIndex];
-              assert(feedItemId, "couldnt find feed item id");
-              const feedItem =
-                sessionSnapshot.context.feedItemsById[feedItemId];
-              assert(feedItem, "expected feedItem");
-              assert(feedItem.category, "expected feedItem to have cateogry");
-              assert(feedItem.recipes, "expected feedItem to have recipes");
-              const recipe = feedItem.recipes[event.recipeIndex];
-              assert(recipe, "expected to find recipe in feedItem");
-              assert(recipe.id, "expected to find recipe.id");
-              const name = recipe.name;
-              assert(name, "expected to find recipe.name");
-
-              if (self.getSnapshot().matches({ Selection: "" })) {
-              }
-
-              toast.custom(
-                (t) => (
-                  <RecipeAddedToast
-                    name={name}
-                    toastId={t}
-                    itemIndex={
-                      sessionSnapshot.context.selectedRecipeIds?.length || 0
-                    }
-                  />
-                ),
-                { position: "top-center" }
-              );
-            },
-          },
+          // SELECT_RECIPE: {
+          //   actions: ({ event, self }) => {
+          //     if (self.getSnapshot().matches({ MyRecipes: { Open: "True" } })) {
+          //       return;
+          //     }
+          //     const recipe = store.get().context.recipes[event.id];
+          //     const name = recipe?.name;
+          //     assert(name, "expected to find recipe.name");
+          //     const { sessionSnapshot } = store.get().context;
+          //     assert(sessionSnapshot, "expected browser session snapshot");
+          //     // toast.custom(
+          //     //   (t) => (
+          //     //     <RecipeAddedToast
+          //     //       name={name}
+          //     //       toastId={t}
+          //     //       itemIndex={
+          //     //         sessionSnapshot.context.selectedRecipeIds?.length || 0
+          //     //       }
+          //     //     />
+          //     //   ),
+          //     //   { position: "top-right" }
+          //     // );
+          //   },
+          // },
+          // SELECT_RECIPE_SUGGESTION: {
+          //   actions: ({ context, event, self }) => {
+          //     const { sessionSnapshot } = store.get().context;
+          //     assert(sessionSnapshot, "expected browser session snapshot");
+          //     const feedItemId =
+          //       sessionSnapshot.context.feedItemIds[event.itemIndex];
+          //     assert(feedItemId, "couldnt find feed item id");
+          //     const feedItem =
+          //       sessionSnapshot.context.feedItemsById[feedItemId];
+          //     assert(feedItem, "expected feedItem");
+          //     assert(feedItem.category, "expected feedItem to have cateogry");
+          //     assert(feedItem.recipes, "expected feedItem to have recipes");
+          //     const recipe = feedItem.recipes[event.recipeIndex];
+          //     assert(recipe, "expected to find recipe in feedItem");
+          //     assert(recipe.id, "expected to find recipe.id");
+          //     const name = recipe.name;
+          //     assert(name, "expected to find recipe.name");
+          //     if (self.getSnapshot().matches({ Selection: "" })) {
+          //     }
+          //     toast.custom(
+          //       (t) => (
+          //         <RecipeAddedToast
+          //           name={name}
+          //           toastId={t}
+          //           itemIndex={
+          //             sessionSnapshot.context.selectedRecipeIds?.length || 0
+          //           }
+          //         />
+          //       ),
+          //       { position: "top-center" }
+          //     );
+          //   },
+          // },
         },
       },
       Feed: {
@@ -1141,17 +1109,6 @@ export const createAppMachine = ({
                     }),
                 }),
               },
-              SUBMIT: {
-                guard: ({ event }) => event.name === LIST_SLUG_INPUT_KEY,
-                actions: ({ context }) => {
-                  const listSlug = context.inputs.listSlug;
-                  assert(
-                    listSlug,
-                    "expected listSlug after submitting to create recipe"
-                  );
-                  router.push(`?#${listSlug}`);
-                },
-              },
             },
             initial: "False",
             states: {
@@ -1182,6 +1139,63 @@ export const createAppMachine = ({
                     target: "False",
                     guard: not("hasCreatlingListParam"),
                   },
+                  SUBMIT: [
+                    {
+                      target: "False",
+                      guard: and([
+                        "didSubmitListSlug",
+                        stateIn({ Open: "False" }),
+                      ]),
+                      // guard: and(["didSubmitListSlug"]),
+                      actions: ({ context }) => {
+                        const listSlug = context.inputs.listSlug;
+                        assert(
+                          listSlug,
+                          "expected listSlug after submitting to create recipe"
+                        );
+                        router.push(`?#${listSlug}`);
+                      },
+                    },
+                    {
+                      target: "False",
+                      guard: "didSubmitListSlug",
+                      actions: [
+                        () => {
+                          router.back();
+                        },
+                        assign(({ context, event }) => {
+                          return produce(context, (draft) => {
+                            const recipeId =
+                              store.get().context.choosingListsForRecipeId;
+                            assert(
+                              recipeId,
+                              "expected recipeId to be set when transitioning"
+                            );
+                            const listSlug = context.inputs.listSlug;
+                            assert(
+                              listSlug,
+                              "expected listSLug tob e there on input"
+                            );
+
+                            const toastId = toast(
+                              <RecipeAddedToast
+                                addedRecipeId={recipeId}
+                                listSlug={listSlug}
+                              />,
+                              {
+                                duration: Infinity,
+                                closeButton: true,
+                                classNames: {
+                                  closeButton: "bg-muted text-muted-foreground",
+                                },
+                              }
+                            );
+                            draft.toastIds.push(toastId);
+                          });
+                        }),
+                      ],
+                    },
+                  ],
                 },
               },
             },
