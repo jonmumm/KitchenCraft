@@ -85,10 +85,49 @@ export const selectNumSuggestedRecipes = (
   return context.results[resultId]?.suggestedRecipes.length || 0;
 };
 
-export const selectHasAtLeastOneSuggestedRecipe = createSelector(
-  selectNumSuggestedRecipes,
-  (num) => {
-    return num > 1;
+// export const selectHasAtLeastOneSuggestedRecipe = createSelector(
+//   selectNumSuggestedRecipes,
+//   (num) => {
+//     return num > 1;
+//   }
+// );
+
+export const selectHasAtLeastTwoStartedSuggestedRecipes = createSelector(
+  [
+    (appSnapshot: AppSnapshot, { context }: PageSessionSnapshot) => {
+      const prompt = appSnapshot.context.submittedPrompt;
+      const resultId = context.resultIdsByPrompt[prompt];
+      if (!resultId) {
+        return [];
+      }
+      return context.results[resultId]?.suggestedRecipes || [];
+    },
+    (_, { context }: PageSessionSnapshot) => context.recipes,
+  ],
+  (suggestedRecipes, recipes) => {
+    const startedRecipes = suggestedRecipes.filter(
+      (recipeId) => (recipes[recipeId]?.name?.length || 0) > 0
+    );
+    return startedRecipes.length >= 2;
+  }
+);
+
+export const selectHasAtLeastOneCompleteSuggestedRecipe = createSelector(
+  [
+    (appSnapshot: AppSnapshot, { context }: PageSessionSnapshot) => {
+      const prompt = appSnapshot.context.submittedPrompt;
+      const resultId = context.resultIdsByPrompt[prompt];
+      if (!resultId) {
+        return [];
+      }
+      return context.results[resultId]?.suggestedRecipes || [];
+    },
+    (_, { context }: PageSessionSnapshot) => context.recipes,
+  ],
+  (suggestedRecipes, recipes) => {
+    return suggestedRecipes.some(
+      (recipeId) => recipes[recipeId]?.complete === true
+    );
   }
 );
 

@@ -31,7 +31,8 @@ import { ChefNameSchema, SlugSchema } from "@/schema";
 import { selectHasSubmittedPrompt } from "@/selectors/app.selectors";
 import {
   createSuggestedTokenAtIndexSelector,
-  selectHasAtLeastOneSuggestedRecipe,
+  selectHasAtLeastOneCompleteSuggestedRecipe,
+  selectHasAtLeastTwoStartedSuggestedRecipes,
   selectHasRecipesGenerated,
   selectNumSuggestedRecipes,
 } from "@/selectors/combined.selectors";
@@ -81,8 +82,12 @@ export const HasRecipesGenerated = combinedSelectorComponent(
   selectHasRecipesGenerated
 );
 
-export const HasAtLeastOneSuggestedRecipe = combinedSelectorComponent(
-  selectHasAtLeastOneSuggestedRecipe
+export const HasAtLeastTwoStartedSuggestedRecipe = combinedSelectorComponent(
+  selectHasAtLeastTwoStartedSuggestedRecipes
+);
+
+export const HasAtLeastOneCompleteSuggestedRecipe = combinedSelectorComponent(
+  selectHasAtLeastOneCompleteSuggestedRecipe
 );
 
 export const HasSubmittedPrompt = appSelectorComponent(
@@ -1127,14 +1132,14 @@ export const HintCarousel = () => {
                   variant="secondary"
                   className="px-3 py-1 rounded-sm shadow-lg relative"
                 >
-                <Button
-                  className="absolute z-60 -top-2 -right-1 p-0 w-fit h-fit shadow-sm border border-slate-400 dark:border-slate-600 border-solid rounded-full"
-                  variant="secondary"
-                  data-index={index}
-                  event={{ type: "DISMISS_HINT", index }}
-                >
-                  <XIcon size={14} />
-                </Button>
+                  <Button
+                    className="absolute z-60 -top-2 -right-1 p-0 w-fit h-fit shadow-sm border border-slate-400 dark:border-slate-600 border-solid rounded-full"
+                    variant="secondary"
+                    data-index={index}
+                    event={{ type: "DISMISS_HINT", index }}
+                  >
+                    <XIcon size={14} />
+                  </Button>
                   <MarkdownRenderer
                     className="line-clamp-2"
                     variant="single_line"

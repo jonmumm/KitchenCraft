@@ -6,7 +6,7 @@ import { getMostUsedTagsLastWeek } from "@/db/queries";
 import { ReactNode } from "react";
 import {
   Container,
-  HasAtLeastOneSuggestedRecipe,
+  HasAtLeastTwoStartedSuggestedRecipe,
   HasRecipesGenerated,
   HintCarousel,
   Section,
@@ -14,7 +14,7 @@ import {
   SuggestedRecipeCards,
   SuggestedTagsSection,
   // SuggestedTagBadge,
-  SuggestedTokenBadge,
+  SuggestedTokenBadge
 } from "./components.client";
 
 const BadgeList = ({ children }: { children: ReactNode }) => {
@@ -101,9 +101,9 @@ export const Selections = () => {
 
 const HintSection = () => {
   return (
-    <HasAtLeastOneSuggestedRecipe not>
+    <HasAtLeastTwoStartedSuggestedRecipe not>
       <HintCarousel />
-    </HasAtLeastOneSuggestedRecipe>
+    </HasAtLeastTwoStartedSuggestedRecipe>
   );
 };
 
