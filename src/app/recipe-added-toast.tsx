@@ -33,7 +33,7 @@ export const RecipeAddedToast = ({
     className="flex flex-row items-center gap-2 w-full"
   >
     <span className="text-xl flex-shrink-0">
-      {list?.icon ? <>{list.icon}</> : "👍"}
+      {list?.icon ? <>{list.icon}</> : "#️⃣"}
     </span>
     <div className="flex flex-col flex-1 min-w-0">
       <div className="flex items-center text-sm">

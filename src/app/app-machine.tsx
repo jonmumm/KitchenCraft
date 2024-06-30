@@ -875,8 +875,13 @@ export const createAppMachine = ({
           SAVE_RECIPE: {
             actions: assign(({ context, event }) => {
               return produce(context, (draft) => {
-                const listSlug = store.get().context.sessionSnapshot?.context.currentSaveToListSlug;
-                assert(listSlug, "expected currentSaveToListSlug when saving recipe");
+                const listSlug =
+                  store.get().context.sessionSnapshot?.context
+                    .currentSaveToListSlug;
+                assert(
+                  listSlug,
+                  "expected currentSaveToListSlug when saving recipe"
+                );
                 const toastId = toast(
                   <RecipeAddedToast
                     addedRecipeId={event.recipeId}
@@ -1121,7 +1126,7 @@ export const createAppMachine = ({
                   CREATE_LIST: {
                     target: "True",
                     actions: {
-                      type: "pushQueryParameters",
+                      type: "replaceQueryParameters",
                       params() {
                         return {
                           paramSet: {
@@ -1153,7 +1158,7 @@ export const createAppMachine = ({
                           listSlug,
                           "expected listSlug after submitting to create recipe"
                         );
-                        router.push(`?#${listSlug}`);
+                        router.replace(`?#${listSlug}`);
                       },
                     },
                     {
