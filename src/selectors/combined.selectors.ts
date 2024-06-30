@@ -4,7 +4,7 @@ import { AppSnapshot } from "@/app/app-machine";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { createSelector } from "reselect";
 import { selectCurrentListSlug, } from "./app.selectors";
-import { createListRecipeIdsByIdSelector, createListRecipeIdsBySlugSelector } from "./page-session.selectors";
+import { createListRecipeIdsBySlugSelector } from "./page-session.selectors";
 
 export const createSuggestedRecipeAtIndexSelector =
   (index: number) =>
@@ -84,6 +84,13 @@ export const selectNumSuggestedRecipes = (
 
   return context.results[resultId]?.suggestedRecipes.length || 0;
 };
+
+export const selectHasAtLeastOneSuggestedRecipe = createSelector(
+  selectNumSuggestedRecipes,
+  (num) => {
+    return num > 1;
+  }
+);
 
 export const selectHasRecipesGenerated = (
   appSnapshot: AppSnapshot,

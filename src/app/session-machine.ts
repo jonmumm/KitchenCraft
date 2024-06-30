@@ -1,8 +1,9 @@
 import { captureEvent } from "@/actions/capturePostHogEvent";
+import { HINTS } from "@/constants/hints";
 import { ListRecipeTable, ListTable, UsersTable } from "@/db";
 import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
-import { assert, noop } from "@/lib/utils";
+import { assert, noop, shuffle } from "@/lib/utils";
 import { Caller, PartyMap, SessionContext, SessionEvent } from "@/types";
 import { createClient } from "@vercel/postgres";
 import { randomUUID } from "crypto";
@@ -258,28 +259,8 @@ export const createSessionMachine = ({
         feedItemIds: [],
         feedItemsById: {},
         listIds: [],
-        hints: [
-          "**Tip:** 🍽️ Customize recipes by substituting ingredients for dietary preferences or allergies.",
-          "**Did you know:** 🌍 Mix cuisines to create unique dishes, like Japanese-Italian fusion or Tex-Mex sushi.",
-          "**Hint:** 🍅 Highlight seasonal ingredients in recipes for optimal flavors.",
-          "**Tip:** 🌶️ Design recipes with custom spice blends for unique flavors.",
-          "**Did you know:** 🍲 Tailor recipes to different cooking techniques (e.g., sous vide, pressure cooking) for best results.",
-          "**Hint:** 🥗 Create healthier versions of recipes by adjusting ingredients and methods.",
-          "**Tip:** 🌍 Explore regional flavors by designing recipes inspired by specific cuisines.",
-          "**Did you know:** 🍽️ Create family-friendly recipes that appeal to all ages and dietary needs.",
-          "**Hint:** 🍳 Make cooking easier with one-pot meal recipes for minimal cleanup.",
-          "**Tip:** 🍯 Enhance dishes with homemade sauces and condiments tailored to complement flavors.",
-          "**Did you know:** 🍰 Experiment with unique dessert recipes using unusual flavors or presentations.",
-          "**Hint:** 🥞 Design breakfast recipes catering to various dietary preferences and quick meal options.",
-          "**Tip:** 🍹 Pair appetizers and snacks perfectly with cocktails or beverages.",
-          "**Did you know:** 🥦 Reduce food waste by designing recipes that use ingredients efficiently or incorporate leftovers creatively.",
-          "**Hint:** 🥑 Develop recipes that adhere to specific dietary restrictions (e.g., gluten-free, vegan) without compromising flavor.",
-          "**Tip:** 🎨 Personalize cooking experiences with interactive recipe variations and steps.",
-          "**Did you know:** 🎉 Design multi-course menus for special occasions with festive themes and flavors.",
-          "**Hint:** ⏱️ Prepare quick recipes with minimal ingredients and preparation time.",
-          "**Tip:** 🥑 Showcase versatile ingredients like avocado or quinoa in multiple dishes.",
-          "**Did you know:** 🌍 Create culinary exploration recipes using less common ingredients from around the world.",
-        ],
+        hints: shuffle(HINTS).slice(0, 3),
+        dismissedHints: {},
       };
     },
     on: {
@@ -1020,6 +1001,18 @@ export const createSessionMachine = ({
                 },
               },
             },
+          },
+        },
+      },
+      Hints: {
+        on: {
+          DISMISS_HINT: {
+            actions: assign({
+              dismissedHints: ({ context, event }) =>
+                produce(context.dismissedHints, (draft) => {
+                  draft[event.index] = true;
+                }),
+            }),
           },
         },
       },

@@ -492,7 +492,8 @@ export type SessionContext = {
   typicalGroceries?: string;
   selectedRecipeIds?: string[];
   selectedListId?: string;
-  hints: string[],
+  hints: string[];
+  dismissedHints: Record<number, true>;
   currentSaveToListSlug: string;
   equipment: EquipmentSettings;
   profileName?: string;

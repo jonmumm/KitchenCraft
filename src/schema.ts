@@ -1028,7 +1028,6 @@ const OpenSettingsEventSchema = z.object({
   type: z.literal("OPEN_SETTINGS"),
 });
 
-
 const ToggleListEventSchema = z.object({
   type: z.literal("TOGGLE_LIST"),
   id: z.string(),
@@ -1172,7 +1171,13 @@ const UnlikeRecipeEventSchema = z.object({
   recipeId: z.string(),
 });
 
+const DismissHintEventSchema = z.object({
+  type: z.literal("DISMISS_HINT"),
+  index: z.number(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  DismissHintEventSchema,
   LikeRecipeEventSchema,
   UnlikeRecipeEventSchema,
   CopyLinkEventSchema,

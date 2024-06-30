@@ -1,10 +1,12 @@
 import { Label } from "@/components/display/label";
 import KeyboardAvoidingView from "@/components/layout/keyboard-avoiding-view";
+import ClientOnly from "@/components/util/client-only";
 import { db } from "@/db";
 import { getMostUsedTagsLastWeek } from "@/db/queries";
 import { ReactNode } from "react";
 import {
   Container,
+  HasAtLeastOneSuggestedRecipe,
   HasRecipesGenerated,
   HintCarousel,
   Section,
@@ -14,7 +16,6 @@ import {
   // SuggestedTagBadge,
   SuggestedTokenBadge,
 } from "./components.client";
-import ClientOnly from "@/components/util/client-only";
 
 const BadgeList = ({ children }: { children: ReactNode }) => {
   return <div className="px-4 flex flex-row gap-2 flex-wrap">{children}</div>;
@@ -99,7 +100,11 @@ export const Selections = () => {
 };
 
 const HintSection = () => {
-  return <HintCarousel />;
+  return (
+    <HasAtLeastOneSuggestedRecipe not>
+      <HintCarousel />
+    </HasAtLeastOneSuggestedRecipe>
+  );
 };
 
 const SuggestedRecipesSection = () => {

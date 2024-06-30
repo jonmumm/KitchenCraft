@@ -25,12 +25,13 @@ import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
-import { assert, cn, shuffle } from "@/lib/utils";
+import { assert, cn } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, SlugSchema } from "@/schema";
 import { selectHasSubmittedPrompt } from "@/selectors/app.selectors";
 import {
   createSuggestedTokenAtIndexSelector,
+  selectHasAtLeastOneSuggestedRecipe,
   selectHasRecipesGenerated,
   selectNumSuggestedRecipes,
 } from "@/selectors/combined.selectors";
@@ -38,12 +39,19 @@ import {
   selectHasRecipesSelected,
   selectSelectedRecipeCount,
 } from "@/selectors/page-session.selectors";
+import { ExtractAppEvent } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "@nanostores/react";
 import { Label } from "@radix-ui/react-label";
 import useEmblaCarousel from "embla-carousel-react";
-import { BookmarkIcon, CarrotIcon, ShareIcon, TagIcon } from "lucide-react";
-import { WritableAtom } from "nanostores";
+import {
+  BookmarkIcon,
+  CarrotIcon,
+  ShareIcon,
+  TagIcon,
+  XIcon,
+} from "lucide-react";
+import { WritableAtom, atom } from "nanostores";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -71,6 +79,10 @@ import { SuggestedRecipeCard } from "./suggested-recipe-card";
 
 export const HasRecipesGenerated = combinedSelectorComponent(
   selectHasRecipesGenerated
+);
+
+export const HasAtLeastOneSuggestedRecipe = combinedSelectorComponent(
+  selectHasAtLeastOneSuggestedRecipe
 );
 
 export const HasSubmittedPrompt = appSelectorComponent(
@@ -1075,30 +1087,64 @@ export const HintCarousel = () => {
   const hints = usePageSessionSelector(
     (state) => state.context.sessionSnapshot?.context.hints
   );
-  const [shuffledHints] = useState(() => (hints ? shuffle(hints) : []));
+  const store = usePageSessionStore();
+  const [dismissedHints$] = useState(
+    atom<Record<number, true>>(
+      store.get().context.sessionSnapshot?.context.dismissedHints || {}
+    )
+  );
+
+  const handleDismiss = useCallback(
+    (event: ExtractAppEvent<"DISMISS_HINT">) => {
+      dismissedHints$.set({
+        ...dismissedHints$.get(),
+        [event.index]: true,
+      });
+    },
+    [dismissedHints$]
+  );
+  const dismissedHints = useStore(dismissedHints$);
+
+  useEventHandler("DISMISS_HINT", handleDismiss);
 
   return (
-    <div className={"embla max-w-[100vw] mx-auto pointer-events-auto"} ref={emblaRef}>
+    <div
+      className={"embla max-w-[100vw] mx-auto pointer-events-auto"}
+      ref={emblaRef}
+    >
       {/* <div className={`${styles.embla__viewport} max-w-[100vw] mx-auto`}>
         <Badge variant="secondary" className="py-1 px-3 relative"> */}
       <div className={"embla__container touch-pan-x p-4"}>
-        {shuffledHints.map((hint) => {
-          return (
-            <div
-              key={hint}
-              className={`embla__slide min-w-0 max-w-full flex justify-center mr-2`}
-              style={{ flex: "0 0 100%" }}
-            >
-              <Badge variant="secondary" className="px-3 py-1 rounded-sm shadow-lg">
-                <MarkdownRenderer
-                  className="line-clamp-2"
-                  variant="single_line"
-                  markdownText={hint}
-                />
-              </Badge>
-            </div>
-          );
-        })}
+        {hints
+          ?.map((hint, index) => {
+            return (
+              <div
+                key={hint}
+                className={`embla__slide min-w-0 max-w-full flex justify-center mr-2`}
+                style={{ flex: "0 0 100%" }}
+              >
+                <Badge
+                  variant="secondary"
+                  className="px-3 py-1 rounded-sm shadow-lg relative"
+                >
+                <Button
+                  className="absolute z-60 -top-2 -right-1 p-0 w-fit h-fit shadow-sm border border-slate-400 dark:border-slate-600 border-solid rounded-full"
+                  variant="secondary"
+                  data-index={index}
+                  event={{ type: "DISMISS_HINT", index }}
+                >
+                  <XIcon size={14} />
+                </Button>
+                  <MarkdownRenderer
+                    className="line-clamp-2"
+                    variant="single_line"
+                    markdownText={hint}
+                  />
+                </Badge>
+              </div>
+            );
+          })
+          .filter((_, index) => !dismissedHints[index])}
       </div>
       {/* </Badge>
       </div> */}
