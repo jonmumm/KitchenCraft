@@ -101,9 +101,7 @@ export const Selections = () => {
 
 const HintSection = () => {
   return (
-    <HasAtLeastTwoStartedSuggestedRecipe not>
       <HintCarousel />
-    </HasAtLeastTwoStartedSuggestedRecipe>
   );
 };
 

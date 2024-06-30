@@ -1088,6 +1088,18 @@ export const SelectedRecipesBar = () => {
 
 export const HintCarousel = () => {
   const [emblaRef] = useEmblaCarousel();
+  const [hintComplete$] = useState(atom(false));
+
+  const hasAtLeastTwoStartedSuggestedRecipes = useCombinedSelector(
+    selectHasAtLeastTwoStartedSuggestedRecipes
+  );
+  const isComplete = useStore(hintComplete$);
+
+  useEffect(() => {
+    if (hasAtLeastTwoStartedSuggestedRecipes) {
+      hintComplete$.set(true);
+    }
+  }, [hasAtLeastTwoStartedSuggestedRecipes, hintComplete$]);
 
   const hints = usePageSessionSelector(
     (state) => state.context.sessionSnapshot?.context.hints
@@ -1111,6 +1123,10 @@ export const HintCarousel = () => {
   const dismissedHints = useStore(dismissedHints$);
 
   useEventHandler("DISMISS_HINT", handleDismiss);
+
+  if (hasAtLeastTwoStartedSuggestedRecipes || isComplete) {
+    return <></>;
+  }
 
   return (
     <div
