@@ -264,6 +264,14 @@ export const createSessionMachine = ({
       };
     },
     on: {
+      LIST_CREATED: {
+        actions: assign({
+          // todo expire this after a heartbeat...
+          currentSaveToListSlug: ({ context, event }) => {
+            return event.slug;
+          },
+        }),
+      },
       CHANGE: [
         {
           guard: ({ event }) => event.name === "shoppingFrequency",
