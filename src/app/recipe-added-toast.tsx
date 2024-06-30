@@ -29,34 +29,34 @@ export const RecipeAddedToast = ({
 
   return (
     <Link
-      href={`?#${listSlug}`}
-      className="flex flex-row items-center gap-2 w-full"
-    >
-      <span className="text-xl flex-shrink-0">
-        {list?.icon ? <>{list.icon}</> : "#️⃣"}
-      </span>
-      <div className="flex flex-col flex-1 min-w-0">
-        <div className="flex items-center text-muted-foreground text-sm">
-          <span className="flex-shrink-0">Saved</span>
-          <span className="truncate font-semibold mx-1 flex-1">
-            {recipe?.name}
-          </span>
-          <span className="flex-shrink-0">to</span>
-        </div>
-        <span className="font-medium text-base underline truncate">
-          #{listSlug}
+    href={`?#${listSlug}`}
+    className="flex flex-row items-center gap-2 w-full"
+  >
+    <span className="text-xl flex-shrink-0">
+      {list?.icon ? <>{list.icon}</> : "👍"}
+    </span>
+    <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex items-center text-sm">
+        <span className="font-medium flex-shrink-0 whitespace-nowrap">Saved</span>
+        <span className="truncate font-semibold mx-1 min-w-0">
+          {recipe?.name}
         </span>
+        <span className="flex-shrink-0 whitespace-nowrap">to</span>
       </div>
-      <Badge
-        variant="secondary"
-        className="flex-shrink-0"
-        event={{
-          type: "CHOOSE_LISTS",
-          recipeId: addedRecipeId,
-        }}
-      >
-        Change
-      </Badge>
-    </Link>
+      <span className="font-medium text-base text-blue-600 hover:underline truncate">
+        #{listSlug}
+      </span>
+    </div>
+    <Badge
+      variant="secondary"
+      className="flex-shrink-0 ml-2"
+      event={{
+        type: "CHOOSE_LISTS",
+        recipeId: addedRecipeId,
+      }}
+    >
+      Change
+    </Badge>
+  </Link>
   );
 };
