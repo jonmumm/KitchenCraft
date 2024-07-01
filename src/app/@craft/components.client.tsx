@@ -668,6 +668,7 @@ export const EnterListSlugForm = () => {
                       "20min-meals",
                       "huncal",
                     ]}
+                    autoCapitalize="none"
                     autoFocus
                     disabled={disabled}
                     type="text"
