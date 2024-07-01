@@ -9,11 +9,9 @@ import { useAppContext } from "@/hooks/useAppContext";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePosthogAnalytics } from "@/hooks/usePosthogAnalytics";
 import { useSend } from "@/hooks/useSend";
-import { getNextAuthSession } from "@/lib/auth/session";
 import { selectHistory } from "@/selectors/app.selectors";
 import { ExtraAppProps } from "@/types";
 import { map } from "nanostores";
-import { SessionProvider } from "next-auth/react";
 import {
   useParams,
   usePathname,
@@ -25,17 +23,8 @@ import { createAppMachine } from "./app-machine";
 import { AppContext } from "./context";
 import { PageSessionContext } from "./page-session-store.context";
 
-// export const ApplicationContext = createContext()
-
-// const ApplicationInputSchema = z.object({
-//   userId: z.string().optional(),
-//   sessionId: z.string(),
-// });
-// type ApplicationInput = z.infer<typeof ApplicationInputSchema>;
-
 export function ApplicationProvider(props: {
   children: ReactNode;
-  nextAuthSession: Awaited<ReturnType<typeof getNextAuthSession>>;
   token: string;
   extraProps: ExtraAppProps;
 }) {
@@ -88,19 +77,17 @@ export function ApplicationProvider(props: {
 
   return (
     <ServiceWorkerProvider>
-      <SessionProvider session={props.nextAuthSession}>
-        <GlobalContext.Provider value={global$}>
-          <CraftProvider>
-            <VisibilityEventsProvider />
-            <NavigationEventsProvider />
-            <HashChangeEventsProvider />
-            <SignInProvider />
-            <AnalyticsProvider />
-            {props.extraProps.appSessionId && <PWALifeCycle />}
-            {props.children}
-          </CraftProvider>
-        </GlobalContext.Provider>
-      </SessionProvider>
+      <GlobalContext.Provider value={global$}>
+        <CraftProvider>
+          <VisibilityEventsProvider />
+          <NavigationEventsProvider />
+          <HashChangeEventsProvider />
+          <SignInProvider />
+          <AnalyticsProvider />
+          {props.extraProps.appSessionId && <PWALifeCycle />}
+          {props.children}
+        </CraftProvider>
+      </GlobalContext.Provider>
     </ServiceWorkerProvider>
   );
 }
@@ -283,11 +270,3 @@ const VisibilityEventsProvider: React.FC = () => {
 
   return null;
 };
-
-function getQueryParam(param: string): string | null {
-  // Create a URLSearchParams object from the current URL's query string
-  const queryParams = new URLSearchParams(window.location.search);
-
-  // Return the value of the specified query parameter
-  return queryParams.get(param);
-}

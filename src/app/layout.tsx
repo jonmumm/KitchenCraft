@@ -7,12 +7,10 @@ import {
 import { IOSStartupImages } from "@/components/meta/ios-startup-images";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppMatches } from "@/components/util/app-matches";
-import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { SessionSnapshotMatches } from "@/components/util/session-matches";
 import { ActorProvider } from "@/lib/actor-kit/components.client";
 import {
   getCurrentEmail,
-  getNextAuthSession,
   getPageSessionActorClient,
   getUniqueId,
 } from "@/lib/auth/session";
@@ -126,7 +124,6 @@ export default async function RootLayout(
   }
 
   const canInstallPWA = getCanInstallPWA();
-  const nextAuthSession = await getNextAuthSession();
 
   const pageSessionActorClient = await getPageSessionActorClient();
   const pageSessionId = await getPageSessionId();
@@ -184,7 +181,6 @@ export default async function RootLayout(
       {/* Enables server to centralize logic in a machine across routes */}
       <PageSessionStoreProvider initial={snapshot}>
         <ApplicationProvider
-          nextAuthSession={nextAuthSession}
           token={token}
           extraProps={{
             isMobile: getIsMobile(),
