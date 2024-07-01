@@ -325,12 +325,13 @@ export default function Results() {
                           <FormControl>
                             <Input
                               autoFocus
+                              autoCapitalize="none"
                               autoComplete="profile"
                               disabled={
                                 isLoadingEmailResponse || isEmailInputComplete
                               }
                               type="text"
-                              placeholder="BakesaleBetty67"
+                              placeholder="(e.g. BakesaleBetty67)"
                               {...field}
                             />
                           </FormControl>
