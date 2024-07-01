@@ -48,6 +48,7 @@ import {
 } from "@/selectors/app.selectors";
 import {
   selectCurrentListCount,
+  selectCurrentListIsShareable,
   selectCurrentListItems,
   selectHasRecipesInCurrentList,
   selectPathForCurrentList,
@@ -60,7 +61,7 @@ import {
   selectRecentCreatedListIds,
   selectRecentSharedListIds,
   selectSelectedRecipeCount,
-  selectSelectedRecipeIds
+  selectSelectedRecipeIds,
 } from "@/selectors/page-session.selectors";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
@@ -91,6 +92,7 @@ import {
 } from "react";
 import { createSelector } from "reselect";
 import { toast } from "sonner";
+import { IsLoggedIn } from "./is-logged-in";
 import { ListUrlCopiedToast } from "./list-url-copied-toast";
 
 export const MyRecipesScreen = () => {
@@ -234,18 +236,41 @@ export const MyRecipesScreen = () => {
             </div>
             <TabsContent value={"recipe"} className="flex-1 flex flex-col">
               <HasRecipesInCurrentList not>
-                <div className="px-4 flex-1">
-                  <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
-                    <div>No recipes in list.</div>
-                    <Badge
-                      event={{ type: "NEW_RECIPE" }}
-                      variant="secondary"
-                      className="shadow-md"
-                    >
-                      Craft one up.<span className="ml-1">🧪</span>
-                    </Badge>
-                  </Card>
-                </div>
+                <IsLoggedIn not>
+                  <div className="px-4 flex-1">
+                    <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
+                      <div>Collect Recipes Here</div>
+                      <Button
+                      // event={{ type: "NEW_RECIPE" }}
+                      >
+                        Create Account
+                      </Button>
+                      <div className="text-muted-foreground text-xs">
+                        Already have an account?
+                      </div>
+                      <Badge
+                        // event={{ type: "NEW_RECIPE" }}
+                        variant="secondary"
+                      >
+                        Login
+                      </Badge>
+                    </Card>
+                  </div>
+                </IsLoggedIn>
+                <IsLoggedIn>
+                  <div className="px-4 flex-1">
+                    <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
+                      <div>No recipes in list.</div>
+                      <Badge
+                        event={{ type: "NEW_RECIPE" }}
+                        variant="secondary"
+                        className="shadow-md"
+                      >
+                        Craft one up.<span className="ml-1">🧪</span>
+                      </Badge>
+                    </Card>
+                  </div>
+                </IsLoggedIn>
               </HasRecipesInCurrentList>
               <HasRecipesInCurrentList>
                 <CurrentListCarousel>
@@ -256,12 +281,17 @@ export const MyRecipesScreen = () => {
           </Tabs>
         </div>
 
-        <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
-          <Button className="shadow-md" event={{ type: "SHARE_CURRENT_LIST" }}>
-            <ShareIcon size={16} className="mr-1" />
-            Share #<CurrentListSlug />
-          </Button>
-        </div>
+        <CurrentListIsShareable>
+          <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
+            <Button
+              className="shadow-md"
+              event={{ type: "SHARE_CURRENT_LIST" }}
+            >
+              <ShareIcon size={16} className="mr-1" />
+              Share #<CurrentListSlug />
+            </Button>
+          </div>
+        </CurrentListIsShareable>
       </div>
       <Overlay />
     </Portal>
@@ -725,6 +755,10 @@ const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
     </div>
   );
 };
+
+const CurrentListIsShareable = combinedSelectorComponent(
+  selectCurrentListIsShareable
+);
 
 const CurrentListItems = () => {
   const recipeIdSet = useCombinedSelector(selectCurrentListItems);

@@ -6,7 +6,6 @@ import {
   SuggestionPredictionOutput,
 } from "@/types";
 import { ReadableAtom } from "nanostores";
-import { Session } from "next-auth";
 // import { parseAsString } from "next-usequerystate";
 import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
 import {
@@ -44,7 +43,6 @@ export const createAppMachine = ({
   router,
   initialPath,
   send,
-  session,
   store,
   token,
 }: {
@@ -52,10 +50,13 @@ export const createAppMachine = ({
   router: AppRouterInstance;
   initialPath: string;
   send: (event: AppEvent) => void;
-  session: Session | null;
   store: ReadableAtom<PageSessionSnapshot>;
   token: string;
 }) => {
+  const initialSessionSnapshot = store.get().context.sessionSnapshot;
+  const initialUserSnapshot = store.get().context.userSnapshot;
+  assert(initialSessionSnapshot, "expected initialSessionSnapshot");
+  assert(initialUserSnapshot, "expected initialUserSnapshot");
   const initialOpen =
     searchParams["crafting"] === "1" ||
     (typeof document !== "undefined" &&
@@ -399,11 +400,13 @@ export const createAppMachine = ({
         },
       },
       Auth: {
-        initial: !session ? "Anonymous" : "LoggedIn",
+        initial: matchesState(
+          { Auth: "Authenticated" },
+          initialSessionSnapshot.value
+        )
+          ? "Anonymous"
+          : "LoggedIn",
         on: {
-          // UPDATE_SESSION: {
-          //   target: ".LoggedIn",
-          // },
           LOGOUT: {
             actions: () => {
               window.location.href = "/signout";

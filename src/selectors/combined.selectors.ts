@@ -5,8 +5,9 @@ import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { createSelector } from "reselect";
 import { selectCurrentListSlug } from "./app.selectors";
 import {
+  createListBySlugSelector,
   createListRecipeIdsBySlugSelector,
-  selectProfileName,
+  selectProfileName
 } from "./page-session.selectors";
 
 export const createSuggestedRecipeAtIndexSelector =
@@ -247,4 +248,13 @@ export const selectPathForCurrentList = (
   const listSlug = selectCurrentListSlug(appSnapshot);
   const profileName = selectProfileName(pageSessionSnapshot);
   return `/@${profileName}/${listSlug}`;
+};
+
+export const selectCurrentListIsShareable = (
+  appSnapshot: AppSnapshot,
+  pageSessionSnapshot: PageSessionSnapshot
+) => {
+  const listSlug = selectCurrentListSlug(appSnapshot);
+  const list = createListBySlugSelector(listSlug)(pageSessionSnapshot);
+  return list?.public || false;
 };

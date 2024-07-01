@@ -134,6 +134,7 @@ type List = {
   icon: string;
   slug: string;
   created: boolean;
+  public: boolean;
   count: number;
   createdAt: Date;
 };
@@ -2431,287 +2432,30 @@ export const createPageSessionMachine = ({
         },
       },
 
-      Auth: {
-        initial: "Uninitialized",
-        //  ? "Anonymous" : "LoggedIn",
-        on: {
-          // UPDATE_SESSION: {
-          //   target: ".LoggedIn",
-          // },
-        },
-        states: {
-          Uninitialized: {
-            always: [
-              {
-                target: "Anonymous",
-                guard: ({ context }) => context.initialCaller.type === "guest",
-              },
-              {
-                target: "LoggedIn",
-              },
-            ],
-          },
-          Anonymous: {},
-          // Registering: {
-          //   initial: "InputtingEmail",
-          //   onDone: "LoggedIn",
-          //   on: {
-          //     CANCEL: "Anonymous",
-          //     SUGGEST_CHEF_NAMES_START: {
-          //       actions: assign(({ context }) =>
-          //         produce(context, (draft) => {
-          //           draft.previousSuggestedChefnames =
-          //             context.previousSuggestedChefnames.concat(
-          //               context.suggestedChefnames
-          //             );
-          //           draft.suggestedChefnames = [];
-          //         })
-          //       ),
-          //     },
-          //     SUGGEST_CHEF_NAMES_PROGRESS: {
-          //       actions: assign({
-          //         suggestedChefnames: ({ event, context }) => {
-          //           const names = event.data.names;
-          //           return names || context.suggestedChefnames;
-          //         },
-          //       }),
-          //     },
-          //     SUGGEST_CHEF_NAMES_COMPLETE: {
-          //       actions: assign({
-          //         suggestedChefnames: ({ event, context }) => {
-          //           const names = event.data.names;
-          //           return names;
-          //         },
-          //       }),
-          //     },
-          //   },
-          //   states: {
-          //     InputtingEmail: {
-          //       on: {
-          //         CHANGE: {
-          //           guard: "didChangeEmailInput",
-          //           actions: assign({
-          //             email: ({ event }) => event.value,
-          //           }),
-          //         },
-          //         SUBMIT: [
-          //           {
-          //             guard: ({ event }) => event.name === "email",
-          //             actions: spawnChild("generateChefNameSuggestions", {
-          //               input: ({ context }) => {
-          //                 assert(
-          //                   context.email,
-          //                   "expected email when generating chef name suggestions"
-          //                 );
-          //                 const resultId = getCurrentResultId(context);
-          //                 const suggestedRecipes =
-          //                   context.results[resultId]?.suggestedRecipes;
-          //                 assert(
-          //                   suggestedRecipes,
-          //                   "expected suggested recipes to exist"
-          //                 );
-
-          //                 const recipeId =
-          //                   suggestedRecipes[context.currentItemIndex];
-          //                 assert(
-          //                   recipeId,
-          //                   "expected recipeId when generating chef name suggestions"
-          //                 );
-          //                 const recipe = context.recipes[recipeId];
-          //                 assert(
-          //                   recipe?.name,
-          //                   "expected recipe name when generating chef name sueggestions"
-          //                 );
-          //                 assert(
-          //                   recipe?.description,
-          //                   "expected recipe name when generating chef name sueggestions"
-          //                 );
-
-          //                 return {
-          //                   email: context.email,
-          //                   previousSuggestions:
-          //                     context.previousSuggestedChefnames,
-          //                   prompt: context.prompt,
-          //                   tokens: context.tokens,
-          //                   personalizationContext: context.sessionSnapshot
-          //                     ?.context
-          //                     ? getPersonalizationContext(
-          //                         context.sessionSnapshot.context
-          //                       )
-          //                     : undefined,
-          //                   selectedRecipe: {
-          //                     name: recipe.name,
-          //                     description: recipe.description,
-          //                   },
-          //                 };
-          //               },
-          //             }),
-          //             target: ".Checking",
-          //           },
-          //         ],
-          //       },
-          //       initial: "Inputting",
-          //       states: {
-          //         Inputting: {},
-          //         Checking: {
-          //           invoke: {
-          //             src: "checkIfNewUser",
-          //             input: ({ context }) => {
-          //               assert(
-          //                 context.email,
-          //                 "expected email address when check if new user"
-          //               );
-          //               return { email: context.email };
-          //             },
-          //             onDone: {
-          //               target: "Complete",
-          //               actions: assign({
-          //                 isNewUser: ({ event }) => event.output,
-          //               }),
-          //             },
-          //           },
-          //         },
-          //         Complete: {
-          //           type: "final",
-          //         },
-          //       },
-          //       onDone: [
-          //         {
-          //           target: "InputtingChefName",
-          //           guard: ({ context }) => !!context.isNewUser,
-          //         },
-          //         {
-          //           target: "InputtingOTP",
-          //         },
-          //       ],
-          //     },
-          //     InputtingChefName: {
-          //       initial: "Inputting",
-          //       onDone: "InputtingOTP",
-          //       on: {
-          //         REFRESH: {
-          //           actions: spawnChild("generateChefNameSuggestions", {
-          //             input: ({ context }) => {
-          //               assert(
-          //                 context.email,
-          //                 "expected email when generating chef name suggestions"
-          //               );
-          //               const resultId = getCurrentResultId(context);
-          //               const suggestedRecipes =
-          //                 context.results[resultId]?.suggestedRecipes;
-          //               assert(
-          //                 suggestedRecipes,
-          //                 "expected suggested recipes to exist"
-          //               );
-
-          //               const recipeId =
-          //                 suggestedRecipes[context.currentItemIndex];
-          //               assert(
-          //                 recipeId,
-          //                 "expected recipeId when generating chef name suggestions"
-          //               );
-          //               const recipe = context.recipes[recipeId];
-          //               assert(
-          //                 recipe?.name,
-          //                 "expected recipe name when generating chef name sueggestions"
-          //               );
-          //               assert(
-          //                 recipe?.description,
-          //                 "expected recipe name when generating chef name sueggestions"
-          //               );
-
-          //               return {
-          //                 email: context.email,
-          //                 previousSuggestions:
-          //                   context.previousSuggestedChefnames,
-          //                 prompt: context.prompt,
-          //                 personalizationContext: context.sessionSnapshot
-          //                   ?.context
-          //                   ? getPersonalizationContext(
-          //                       context.sessionSnapshot.context
-          //                     )
-          //                   : undefined,
-          //                 tokens: context.tokens,
-          //                 selectedRecipe: {
-          //                   name: recipe.name,
-          //                   description: recipe.description,
-          //                 },
-          //               };
-          //             },
-          //           }),
-          //         },
-          //       },
-          //       states: {
-          //         Inputting: {
-          //           on: {
-          //             SUBMIT: "Complete",
-          //           },
-          //         },
-          //         Complete: {
-          //           type: "final",
-          //         },
-          //       },
-          //     },
-          //     InputtingOTP: {
-          //       on: {
-          //         AUTHENTICATE: {
-          //           description:
-          //             "Called by the server when a user authenticates this session",
-          //           target: "Complete",
-          //           guard: ({ event }) => event.caller.type === "system",
-          //           actions: [
-          //             assign({
-          //               uniqueId: ({ event }) => event.userId,
-          //             }),
-          //             spawnChild("updateChefName", {
-          //               input: ({ context, event }) => {
-          //                 assert(
-          //                   event.type === "AUTHENTICATE",
-          //                   "expected authenticate event"
-          //                 );
-
-          //                 const { chefname } = context;
-          //                 assert(chefname, "expected chefname to be set");
-          //                 return { chefname, userId: event.userId };
-          //               },
-          //             }),
-          //             // spawnChild("saveRecipeToListName", {
-          //             //   input: ({ context, event }) => {
-          //             //     assert(
-          //             //       event.type === "AUTHENTICATE",
-          //             //       "expected authenticate event"
-          //             //     );
-          //             //     assert(
-          //             //       context.recipeIdToSave,
-          //             //       "expected recipeId to save"
-          //             //     );
-          //             //     assert(
-          //             //       context.currentListSlug,
-          //             //       "expected currentListSlug to be set"
-          //             //     );
-          //             //     const currentList =
-          //             //       context.listsBySlug?.[context.currentListSlug];
-          //             //     assert(currentList, "expected currentList to be set");
-
-          //             //     return {
-          //             //       recipeId: context.recipeIdToSave,
-          //             //       userId: event.userId,
-          //             //       listName: currentList.name,
-          //             //     };
-          //             //   },
-          //             // }),
-          //           ],
-          //         },
-          //       },
-          //     },
-          //     Complete: {
-          //       type: "final",
-          //     },
-          //   },
-          // },
-          LoggedIn: {},
-        },
-      },
+      // Auth: {
+      //   initial: "Uninitialized",
+      //   //  ? "Anonymous" : "LoggedIn",
+      //   on: {
+      //     // UPDATE_SESSION: {
+      //     //   target: ".LoggedIn",
+      //     // },
+      //   },
+      //   states: {
+      //     Uninitialized: {
+      //       always: [
+      //         {
+      //           target: "Anonymous",
+      //           guard: ({ context }) => context.initialCaller.type === "guest",
+      //         },
+      //         {
+      //           target: "LoggedIn",
+      //         },
+      //       ],
+      //     },
+      //     Anonymous: {},
+      //     LoggedIn: {},
+      //   },
+      // },
 
       Quiz: {
         initial: "Closed",
@@ -3097,6 +2841,7 @@ export const createPageSessionMachine = ({
 
                       draft.listsById[list.id] = {
                         ...list,
+                        public: true,
                         created: true,
                         count: recipeIds.length,
                       };
@@ -3305,6 +3050,7 @@ export const createPageSessionMachine = ({
                         name,
                         slug,
                         icon,
+                        public: true,
                         created: true,
                         count: Object.values(event.output.idSet).length,
                         createdAt,
@@ -3643,6 +3389,7 @@ const initializeListsById = () => {
       icon: "👍",
       slug: "liked",
       created: false,
+      public: false,
       count: 0,
       createdAt: new Date(),
     },
@@ -3651,6 +3398,7 @@ const initializeListsById = () => {
       name: "Make Later",
       icon: "⏰",
       slug: "make-later",
+      public: false,
       created: false,
       count: 0,
       createdAt: new Date(),
@@ -3660,6 +3408,7 @@ const initializeListsById = () => {
       name: "Favorites",
       icon: "⭐️",
       slug: "favorites",
+      public: true,
       created: false,
       count: 0,
       createdAt: new Date(),
@@ -3668,6 +3417,7 @@ const initializeListsById = () => {
       id: commented,
       name: "Commented",
       icon: "💬",
+      public: true,
       slug: "commented",
       created: false,
       count: 0,
