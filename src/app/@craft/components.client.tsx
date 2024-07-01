@@ -19,6 +19,7 @@ import { appSelectorComponent } from "@/components/util/app-selector";
 import { combinedSelectorComponent } from "@/components/util/combined-selector";
 import { PageSessionSelector } from "@/components/util/page-session-selector";
 import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
+import { useAppSelector } from "@/hooks/useAppSelector";
 import { useCombinedSelector } from "@/hooks/useCombinedSelector";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
@@ -28,10 +29,14 @@ import { useSend } from "@/hooks/useSend";
 import { assert, cn } from "@/lib/utils";
 import { RecipeCraftingPlaceholder } from "@/modules/recipe/crafting-placeholder";
 import { ChefNameSchema, SlugSchema } from "@/schema";
-import { selectHasSubmittedPrompt } from "@/selectors/app.selectors";
+import {
+  selectHasSubmittedPrompt,
+  selectSubmittedPrompt,
+} from "@/selectors/app.selectors";
 import {
   createSuggestedTokenAtIndexSelector,
   selectHasAtLeastOneCompleteSuggestedRecipe,
+  selectHasAtLeastThreeIncompleteSuggestedRecipes,
   selectHasAtLeastTwoStartedSuggestedRecipes,
   selectHasRecipesGenerated,
   selectNumSuggestedRecipes,
@@ -82,6 +87,43 @@ export const HasRecipesGenerated = combinedSelectorComponent(
   selectHasRecipesGenerated
 );
 
+// export const IsTakingLongerThanUsual = combinedSelectorComponent(
+//   selectIsTakingLongerThanUsual
+// );
+
+export const IsTakingLongerThanUsual = ({
+  children,
+  timeoutMs = 5000,
+}: {
+  children: ReactNode;
+  timeoutMs?: number;
+}) => {
+  const submittedPrompt = useAppSelector(selectSubmittedPrompt);
+  const [hasTimePassed, setHasTimePassed] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    setHasTimePassed(false);
+    timerRef.current = setTimeout(() => {
+      setHasTimePassed(true);
+    }, timeoutMs);
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [submittedPrompt, setHasTimePassed, timerRef]);
+
+  return submittedPrompt.length && hasTimePassed ? (
+    <HasAtLeastTwoStartedSuggestedRecipe not>
+      {children}
+    </HasAtLeastTwoStartedSuggestedRecipe>
+  ) : (
+    <></>
+  );
+};
+
 export const HasAtLeastTwoStartedSuggestedRecipe = combinedSelectorComponent(
   selectHasAtLeastTwoStartedSuggestedRecipes
 );
@@ -89,6 +131,10 @@ export const HasAtLeastTwoStartedSuggestedRecipe = combinedSelectorComponent(
 export const HasAtLeastOneCompleteSuggestedRecipe = combinedSelectorComponent(
   selectHasAtLeastOneCompleteSuggestedRecipe
 );
+
+// export const HasAtLeastThreeIncompleteSuggestedRecipe = combinedSelectorComponent(
+//   selectHasAtLeastThreeIncompleteSuggestedRecipes
+// );
 
 export const HasSubmittedPrompt = appSelectorComponent(
   selectHasSubmittedPrompt
@@ -137,7 +183,8 @@ export const CraftingPlacholder = () => {
 
 export const SuggestedRecipeCards = () => {
   const numCards = useCombinedSelector(selectNumSuggestedRecipes);
-  const items = new Array(numCards).fill(0);
+  const count = Math.max(12, numCards);
+  const items = new Array(count).fill(0);
 
   return (
     <>

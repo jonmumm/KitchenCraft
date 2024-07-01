@@ -18,6 +18,11 @@ export const selectCurrentListIsSelected = createSelector(
   (state) => state === "selected"
 );
 
+
+export const selectSubmittedPrompt = (state: AppSnapshot) => {
+  return state.context.submittedPrompt;
+};
+
 export const selectHasSubmittedPrompt = (state: AppSnapshot) => {
   return !!state.context.submittedPrompt.length;
 };

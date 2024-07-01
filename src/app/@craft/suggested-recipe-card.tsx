@@ -52,7 +52,6 @@ export const SuggestedRecipeCard = memo(({ index }: { index: number }) => {
   );
   const recipeId = useCombinedSelector(selectRecipeId);
 
-  const actor = useAppContext();
   const selectIsFocused = useMemo(
     () => (state: AppSnapshot) => {
       return !!recipeId && state.context.focusedRecipeId === recipeId;

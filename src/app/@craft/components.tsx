@@ -1,4 +1,6 @@
+import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
+import { EllipsisAnimation } from "@/components/feedback/ellipsis-animation";
 import KeyboardAvoidingView from "@/components/layout/keyboard-avoiding-view";
 import ClientOnly from "@/components/util/client-only";
 import { db } from "@/db";
@@ -6,15 +8,15 @@ import { getMostUsedTagsLastWeek } from "@/db/queries";
 import { ReactNode } from "react";
 import {
   Container,
-  HasAtLeastTwoStartedSuggestedRecipe,
   HasRecipesGenerated,
   HintCarousel,
+  IsTakingLongerThanUsual,
   Section,
   SuggestedIngredientsSection,
   SuggestedRecipeCards,
   SuggestedTagsSection,
   // SuggestedTagBadge,
-  SuggestedTokenBadge
+  SuggestedTokenBadge,
 } from "./components.client";
 
 const BadgeList = ({ children }: { children: ReactNode }) => {
@@ -55,6 +57,17 @@ export const NewRecipeResultsView = () => {
       </Container>
       <Footer>
         <ClientOnly>
+          <IsTakingLongerThanUsual>
+            <div className="flex justify-center mb-4">
+              <Badge
+                variant="secondary"
+                className="px-3 py-1 rounded-sm shadow-lg"
+              >
+                <span className="animate-spin mr-1">🧪</span>Crafting taking
+                longer than usual <EllipsisAnimation />
+              </Badge>
+            </div>
+          </IsTakingLongerThanUsual>
           <HintSection />
           {/* <HasRecipesSelected>
             <div className="max-w-3xl w-full standalone:mb-10 mx-auto overflow-hidden">
@@ -100,9 +113,7 @@ export const Selections = () => {
 };
 
 const HintSection = () => {
-  return (
-      <HintCarousel />
-  );
+  return <HintCarousel />;
 };
 
 const SuggestedRecipesSection = () => {

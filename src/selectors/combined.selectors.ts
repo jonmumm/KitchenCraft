@@ -95,6 +95,26 @@ export const selectNumSuggestedRecipes = (
 //   }
 // );
 
+// export const selectHasAtLeastThreeIncompleteSuggestedRecipes = createSelector(
+//   [
+//     (appSnapshot: AppSnapshot, { context }: PageSessionSnapshot) => {
+//       const prompt = appSnapshot.context.submittedPrompt;
+//       const resultId = context.resultIdsByPrompt[prompt];
+//       if (!resultId) {
+//         return [];
+//       }
+//       return context.results[resultId]?.suggestedRecipes || [];
+//     },
+//     (_, { context }: PageSessionSnapshot) => context.recipes,
+//   ],
+//   (suggestedRecipes, recipes) => {
+//     const incompleteRecipes = suggestedRecipes.filter(
+//       (recipeId) => recipes[recipeId]?.complete !== true
+//     );
+//     return incompleteRecipes.length >= 3;
+//   }
+// );
+
 export const selectHasAtLeastTwoStartedSuggestedRecipes = createSelector(
   [
     (appSnapshot: AppSnapshot, { context }: PageSessionSnapshot) => {
@@ -133,6 +153,13 @@ export const selectHasAtLeastOneCompleteSuggestedRecipe = createSelector(
     );
   }
 );
+
+export const selectIsTakingLongerThanUsual = (
+  appSnapshot: AppSnapshot,
+  pageSessionSnapshot: PageSessionSnapshot
+) => {
+  return true;
+};
 
 export const selectHasRecipesGenerated = (
   appSnapshot: AppSnapshot,
