@@ -1782,170 +1782,6 @@ export const createPageSessionMachine = ({
                   },
                 },
               },
-              // NextNextHomeFeedItem: {
-              //   on: {
-              //     VIEW_RECIPE: {
-              //       guard: "nextRecipeInCategoryShouldBeCreated",
-              //       actions: [
-              //         spawnChild("generateFullRecipeFromSuggestion", {
-              //           input: ({ context, event }) => {
-              //             assertEvent(event, "VIEW_RECIPE");
-              //             const feedItems =
-              //               context.browserSessionSnapshot?.context.feedItems;
-              //             assert(feedItems, "expected feedItems");
-              //             const feedItem = Object.values(feedItems).find(
-              //               (item) =>
-              //                 item.recipes?.find(
-              //                   (recipe) => recipe?.id === event.id
-              //                 )
-              //             );
-              //             assert(feedItem, "expected feedItem");
-              //             assert(
-              //               feedItem.category,
-              //               "expected category in feedItem"
-              //             );
-              //             const recipes = feedItem?.recipes;
-              //             assert(recipes, "expected recipes in feedItem");
-
-              //             // Find the index of the current recipe
-              //             const currentIndex = recipes.findIndex(
-              //               (recipe) => recipe?.id === event.id
-              //             );
-              //             assert(
-              //               currentIndex >= 0,
-              //               "expected to find current recipe index"
-              //             );
-
-              //             // Find the next incomplete recipe
-              //             let nextRecipe = null;
-              //             for (
-              //               let i = currentIndex + 1;
-              //               i < recipes.length;
-              //               i++
-              //             ) {
-              //               const recipeId = recipes[i]?.id;
-              //               if (
-              //                 recipeId &&
-              //                 !context.recipes[recipeId]?.complete
-              //               ) {
-              //                 nextRecipe = recipes[i];
-              //                 break;
-              //               }
-              //             }
-
-              //             // If no next incomplete recipe found, circle around to the beginning
-              //             if (!nextRecipe) {
-              //               for (let i = 0; i < currentIndex; i++) {
-              //                 const recipeId = recipes[i]?.id;
-              //                 if (
-              //                   recipeId &&
-              //                   !context.recipes[recipeId]?.complete
-              //                 ) {
-              //                   nextRecipe = recipes[i];
-              //                   break;
-              //                 }
-              //               }
-              //             }
-              //             assert(nextRecipe, "expected to find next recipe");
-              //             assert(
-              //               nextRecipe.id,
-              //               "expected to find next recipe id"
-              //             );
-              //             assert(
-              //               nextRecipe.name,
-              //               "expected to find next recipe name"
-              //             );
-              //             assert(
-              //               nextRecipe.tagline,
-              //               "expected to find next recipe tagline"
-              //             );
-
-              //             return {
-              //               id: nextRecipe.id,
-              //               category: feedItem.category,
-              //               name: nextRecipe.name,
-              //               tagline: nextRecipe.tagline,
-              //             };
-              //           },
-              //         }),
-              //         assign(({ context, event }) =>
-              //           produce(context, (draft) => {
-              //             const feedItems =
-              //               context.browserSessionSnapshot?.context.feedItems;
-              //             assert(feedItems, "expected feedItems");
-              //             const feedItem = Object.values(feedItems).find(
-              //               (item) =>
-              //                 item.recipes?.find(
-              //                   (recipe) => recipe?.id === event.id
-              //                 )
-              //             );
-              //             assert(feedItem, "expected feedItem");
-              //             assert(
-              //               feedItem.category,
-              //               "expected category in feedItem"
-              //             );
-              //             const recipes = feedItem?.recipes;
-              //             assert(recipes, "expected recipes in feedItem");
-
-              //             // Find the index of the current recipe
-              //             const currentIndex = recipes.findIndex(
-              //               (recipe) => recipe?.id === event.id
-              //             );
-              //             assert(
-              //               currentIndex >= 0,
-              //               "expected to find current recipe index"
-              //             );
-
-              //             // Find the next incomplete recipe
-              //             let nextRecipe = null;
-              //             for (
-              //               let i = currentIndex + 1;
-              //               i < recipes.length;
-              //               i++
-              //             ) {
-              //               const recipeId = recipes[i]?.id;
-              //               if (
-              //                 recipeId &&
-              //                 !context.recipes[recipeId]?.complete
-              //               ) {
-              //                 nextRecipe = recipes[i];
-              //                 break;
-              //               }
-              //             }
-
-              //             // If no next incomplete recipe found, circle around to the beginning
-              //             if (!nextRecipe) {
-              //               for (let i = 0; i < currentIndex; i++) {
-              //                 const recipeId = recipes[i]?.id;
-              //                 if (
-              //                   recipeId &&
-              //                   !context.recipes[recipeId]?.complete
-              //                 ) {
-              //                   nextRecipe = recipes[i];
-              //                   break;
-              //                 }
-              //               }
-              //             }
-
-              //             assert(nextRecipe, "expected to find next recipe");
-              //             assert(nextRecipe.id, "expected to find id");
-
-              //             draft.recipes[nextRecipe.id] = {
-              //               ...nextRecipe,
-              //               id: nextRecipe.id,
-              //               versionId: 0,
-              //               started: true,
-              //               fullStarted: true,
-              //               complete: false,
-              //               matchPercent: undefined,
-              //               metadataComplete: false,
-              //             };
-              //           })
-              //         ),
-              //       ],
-              //     },
-              //   },
-              // },
 
               Recipes: {
                 initial: "Idle",
@@ -2093,14 +1929,6 @@ export const createPageSessionMachine = ({
                 },
                 states: {
                   Idle: {},
-                  Holding: {
-                    after: {
-                      600: {
-                        target: "Generating",
-                        guard: ({ context }) => !!context.prompt?.length,
-                      },
-                    },
-                  },
                   Generating: {
                     entry: assign(({ context, event }) =>
                       produce(context, (draft) => {
@@ -2141,62 +1969,22 @@ export const createPageSessionMachine = ({
                     ),
                     type: "parallel",
                     on: {
-                      SELECT_RECIPE: {
+                      FULL_RECIPE_PROGRESS: {
                         actions: [
-                          spawnChild("generateFullRecipe", {
-                            input: ({ context, event }) => {
-                              assert(
-                                event.type === "SELECT_RECIPE",
-                                "expected event to be SELECT_RECIPE"
-                              );
-
-                              const recipe = context.recipes[event.id];
-                              assert(
-                                recipe?.name,
-                                "expected recipe to have name when generating full recipe"
-                              );
-                              assert(
-                                recipe.description,
-                                "expected recipe to have description when generating full recipe"
-                              );
-                              assert(
-                                recipe.id,
-                                "expected recipe to have an id"
-                              );
-
-                              return {
-                                prompt: context.prompt,
-                                tokens: context.tokens,
-                                id: recipe.id,
-                                name: recipe.name,
-                                description: recipe.description,
-                              };
-                            },
-                          }),
                           assign(({ context, event }) =>
                             produce(context, (draft) => {
                               const recipe = draft.recipes[event.id];
                               assert(
                                 recipe,
-                                "expected recipe when updating recipe progress"
+                                "expected recipe when updating full recipe progress"
                               );
                               draft.recipes[event.id] = {
                                 ...recipe,
-                                fullStarted: true,
+                                ...event.data,
                               };
                             })
                           ),
                         ],
-
-                        guard: ({ context, event }) => {
-                          const recipe = context.recipes?.[event.id];
-                          assert(
-                            recipe,
-                            "expected recipe to exist when viewing full"
-                          );
-
-                          return !recipe.fullStarted;
-                        },
                       },
                       FULL_RECIPE_COMPLETE: {
                         actions: [
@@ -2237,23 +2025,6 @@ export const createPageSessionMachine = ({
                               };
                             },
                           }),
-                        ],
-                      },
-                      FULL_RECIPE_PROGRESS: {
-                        actions: [
-                          assign(({ context, event }) =>
-                            produce(context, (draft) => {
-                              const recipe = draft.recipes[event.id];
-                              assert(
-                                recipe,
-                                "expected recipe when updating full recipe progress"
-                              );
-                              draft.recipes[event.id] = {
-                                ...recipe,
-                                ...event.data,
-                              };
-                            })
-                          ),
                         ],
                       },
                     },

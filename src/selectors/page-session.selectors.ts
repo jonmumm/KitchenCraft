@@ -97,6 +97,11 @@ export const selectSuggestedProfileNames = (state: PageSessionSnapshot) => {
   return state.context.userSnapshot?.context.suggestedProfileNames || [];
 };
 
+export const createPathForListSlugSelector = (listSlug?: string) =>
+  createSelector(selectProfileName, (profileName) => {
+    return `/@${profileName}/${listSlug}`;
+  });
+
 export const createPathForListIdSelector =
   (listId?: string) => (state: PageSessionSnapshot) => {
     if (!listId) {

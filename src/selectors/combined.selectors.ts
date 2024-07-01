@@ -4,7 +4,10 @@ import { AppSnapshot } from "@/app/app-machine";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { createSelector } from "reselect";
 import { selectCurrentListSlug } from "./app.selectors";
-import { createListRecipeIdsBySlugSelector } from "./page-session.selectors";
+import {
+  createListRecipeIdsBySlugSelector,
+  selectProfileName,
+} from "./page-session.selectors";
 
 export const createSuggestedRecipeAtIndexSelector =
   (index: number) =>
@@ -201,8 +204,6 @@ export const createSuggestedRecipeIdAtIndexSelector =
     return context.results[resultId]?.suggestedRecipes[index];
   };
 
-
-
 // export const createSuggestedRecipeIdAtIndexIsFocusedSelector = (
 //   index: number
 // ) =>
@@ -211,3 +212,12 @@ export const createSuggestedRecipeIdAtIndexSelector =
 //     selectFocusedRecipeId,
 //     (recipeId, focusedRecipeId) => recipeId === focusedRecipeId
 //   );
+
+export const selectPathForCurrentList = (
+  appSnapshot: AppSnapshot,
+  pageSessionSnapshot: PageSessionSnapshot
+) => {
+  const listSlug = selectCurrentListSlug(appSnapshot);
+  const profileName = selectProfileName(pageSessionSnapshot);
+  return `/@${profileName}/${listSlug}`;
+};

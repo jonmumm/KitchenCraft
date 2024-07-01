@@ -50,15 +50,17 @@ import {
   selectCurrentListCount,
   selectCurrentListItems,
   selectHasRecipesInCurrentList,
+  selectPathForCurrentList,
 } from "@/selectors/combined.selectors";
 import {
   createListByIdSelector,
   createListBySlugSelector,
   createRecipeSelector,
+  selectProfileName,
   selectRecentCreatedListIds,
   selectRecentSharedListIds,
   selectSelectedRecipeCount,
-  selectSelectedRecipeIds,
+  selectSelectedRecipeIds
 } from "@/selectors/page-session.selectors";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
@@ -72,7 +74,7 @@ import {
   ListPlusIcon,
   ScrollIcon,
   ShareIcon,
-  ShoppingBasketIcon
+  ShoppingBasketIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -88,10 +90,52 @@ import {
   useSyncExternalStore,
 } from "react";
 import { createSelector } from "reselect";
+import { toast } from "sonner";
+import { ListUrlCopiedToast } from "./list-url-copied-toast";
 
 export const MyRecipesScreen = () => {
-  const currentSlug = useAppSelector(selectCurrentListSlug);
   useScrollLock(true);
+
+  const app$ = useAppContext();
+  const pageSession$ = usePageSessionStore();
+  const send = useSend();
+
+  const handleShareCurrentList = useCallback(() => {
+    const path = selectPathForCurrentList(
+      app$.getSnapshot(),
+      pageSession$.get()
+    );
+    const url = window.location.origin + path;
+    if ("share" in window.navigator) {
+      const listSlug = selectCurrentListSlug(app$.getSnapshot());
+      const profileName = selectProfileName(pageSession$.get());
+      const title = `${listSlug} by @${profileName}`;
+      window.navigator
+        .share({
+          title,
+          url,
+        })
+        .then(() => {
+          send({ type: "SHARE_COMPLETE", url });
+        })
+        .catch(() => {
+          send({ type: "SHARE_CANCEL", url });
+        });
+    } else if ("clipboard" in window.navigator) {
+      // @ts-ignore
+      window.navigator.clipboard.writeText(url);
+      toast(<ListUrlCopiedToast listSlug={"liked"} />, {
+        duration: Infinity,
+        closeButton: true,
+        classNames: {
+          closeButton: "bg-muted text-muted-foreground",
+        },
+      });
+    } else {
+      // todo something
+    }
+  }, [app$, pageSession$, send]);
+  useEventHandler("SHARE_CURRENT_LIST", handleShareCurrentList);
 
   return (
     <Portal>
@@ -148,10 +192,7 @@ export const MyRecipesScreen = () => {
                     </div>
                     <div
                       className={cn(
-                        "mx-1 text-sm font-semibold text-white px-1 rounded",
-                        currentSlug === "selected"
-                          ? "bg-purple-700 "
-                          : "bg-slate-700"
+                        "mx-1 text-sm font-semibold text-white px-1 rounded bg-slate-700"
                       )}
                     >
                       <CurrentListCount />
