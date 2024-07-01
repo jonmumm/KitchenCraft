@@ -212,6 +212,7 @@ export const SuggestedRecipeCard = memo(({ index }: { index: number }) => {
     </RecipeDetailContainer>
   );
 });
+SuggestedRecipeCard.displayName = "SuggestedRecipeCard";
 
 const RecipeDetailContainer = memo(
   ({ children, index }: { children: ReactNode; index: number }) => {
@@ -251,6 +252,7 @@ const RecipeDetailContainer = memo(
     );
   }
 );
+RecipeDetailContainer.displayName = "RecipeDetailContainer";
 
 // const ViewObserverRef = ({ index }: { index: number }) => {
 //   const handleInView = useCallback(() => {
