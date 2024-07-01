@@ -73,7 +73,6 @@ export function ApplicationProvider(props: {
         router,
         send,
         initialPath,
-        session: props.nextAuthSession,
         store,
         token: props.token,
       });
