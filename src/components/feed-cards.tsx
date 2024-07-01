@@ -14,7 +14,6 @@ import {
   selectNumFeedItemIds,
 } from "@/selectors/page-session.selectors";
 import { Portal } from "@radix-ui/react-portal";
-import useEmblaCarousel from "embla-carousel-react";
 import {
   ExternalLinkIcon,
   MoreVerticalIcon,
@@ -476,11 +475,7 @@ const FeedCardRecipeItem = (input: {
           )}
           <Separator />
           <div>
-            <Times
-              activeTime={recipe?.activeTime}
-              totalTime={recipe?.totalTime}
-              cookTime={recipe?.cookTime}
-            />
+            <Times id={recipe?.id} />
           </div>
           <Separator />
           <div className="px-5">

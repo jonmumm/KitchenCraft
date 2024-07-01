@@ -344,11 +344,7 @@ const CurrentListCarouselItem = ({
               </>
             )}
             <div>
-              <Times
-                activeTime={recipe?.activeTime}
-                totalTime={recipe?.totalTime}
-                cookTime={recipe?.cookTime}
-              />
+              <Times id={recipe?.id} />
             </div>
             <Separator />
             <div className="px-5">

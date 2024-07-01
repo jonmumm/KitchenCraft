@@ -72,16 +72,24 @@ const RECIPE_IDEAS_METADATA_SYSTEM_TEMPLATE = (
 ): string => `
 You are a creative, helpful, and practical home kitchen assistant.
 
-The user will give you a prompt. Help think of 5 more recipe ideas as it relates to that prompt, but that are different from this existing recipe.
+The user will give you a prompt. Help think of 5 more recipe ideas as it relates to that prompt, but are different variations from the given existing recipe.
 
 Existing Recipe:
 ${input.instantRecipe.name}
 ${input.instantRecipe.description}
 Ingredients: ${input.instantRecipe.ingredients.join(", ")}
 
-Each recipe idea should have a 'name', a 'description', an 'explanation', and a 'matchPercent' and nothing more.
+Each recipe idea should have a 'name', a 'description', and a 'matchPercent' and nothing more.
+Assign a lower matchPercent to ideas that are less close to the original prompt.
 
-Here is an example response given 'chicken and broccoli' as the user input:
+To determine the matchPercent, consider the following:
+1. Main Ingredients: Does the recipe include the primary ingredients from the prompt?
+2. Secondary Ingredients: Are the additional ingredients complementary or common variations?
+3. Flavor Profile: Does the flavor profile (e.g., savory, tangy) remain consistent with the prompt?
+
+Here are two example responses:
+
+**Example 1: Given 'chicken and broccoli' as the user input:**
 
 {
   "ideas": [
@@ -109,6 +117,38 @@ Here is an example response given 'chicken and broccoli' as the user input:
       "name": "Chicken Broccoli Quinoa Bowl",
       "description": "Quinoa bowl with grilled chicken, broccoli, and a lemon-tahini dressing.",
       "matchPercent": 75
+    }
+  ]
+}
+
+**Example 2: Given 'Bacon and Cheddar Quiche with Green Onions' as the user input:**
+
+{
+  "ideas": [
+    {
+      "name": "Bacon and Cheddar Quiche with Green Onions",
+      "description": "A savory quiche with crispy bacon, sharp cheddar cheese, and fresh green onions.",
+      "matchPercent": 98
+    },
+    {
+      "name": "Bacon, Cheddar, and Chive Quiche",
+      "description": "A savory quiche with crispy bacon, sharp cheddar cheese, and fresh chives.",
+      "matchPercent": 90
+    },
+    {
+      "name": "Bacon, Cheddar, and Spinach Quiche",
+      "description": "A hearty quiche with crispy bacon, sharp cheddar cheese, and fresh spinach.",
+      "matchPercent": 85
+    },
+    {
+      "name": "Bacon, Cheddar, Mushroom, and Green Onion Quiche",
+      "description": "A rich quiche with crispy bacon, sharp cheddar cheese, sautéed mushrooms, and fresh green onions.",
+      "matchPercent": 75
+    },
+    {
+      "name": "Bacon, Cheddar, Broccoli, and Tomato Quiche",
+      "description": "A flavorful quiche with crispy bacon, sharp cheddar cheese, steamed broccoli, and cherry tomatoes.",
+      "matchPercent": 65
     }
   ]
 }

@@ -1176,7 +1176,13 @@ const DismissHintEventSchema = z.object({
   index: z.number(),
 });
 
+const ViewResultEventSchema = z.object({
+  type: z.literal("VIEW_RESULT"),
+  index: z.number()
+})
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  ViewResultEventSchema,
   DismissHintEventSchema,
   LikeRecipeEventSchema,
   UnlikeRecipeEventSchema,

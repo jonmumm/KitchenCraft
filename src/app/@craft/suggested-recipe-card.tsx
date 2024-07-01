@@ -20,50 +20,48 @@ import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { Yield } from "@/components/yield";
 import { useAppContext } from "@/hooks/useAppContext";
-import { useEventHandler } from "@/hooks/useEventHandler";
+import { useAppSelector } from "@/hooks/useAppSelector";
+import { useCombinedSelector } from "@/hooks/useCombinedSelector";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
-import { useSelector } from "@/hooks/useSelector";
+import { useRecipe } from "@/hooks/useRecipe";
 import { useSend } from "@/hooks/useSend";
-import { useSuggestedRecipeAtIndex } from "@/hooks/useSuggestedRecipeAtIndex";
 import { cn } from "@/lib/utils";
+import { createRecipeIdIsFocusedSelector } from "@/selectors/app.selectors";
+import { createSuggestedRecipeIdAtIndexSelector } from "@/selectors/combined.selectors";
 import {
+  createRecipeHasNameSelector,
   createRecipeIsSavedInListSelector,
-  createRecipeIsSelectedSelector,
+  createRecipeMatchPercentSelector,
 } from "@/selectors/page-session.selectors";
-import { ExtractAppEvent } from "@/types";
 import { Portal } from "@radix-ui/react-portal";
 import {
-  BookmarkCheckIcon,
   BookmarkIcon,
   MoveLeftIcon,
   ScrollIcon,
   ShoppingBasketIcon,
   XCircleIcon,
 } from "lucide-react";
-import { ReactNode, useCallback, useMemo, useState } from "react";
+import { ReactNode, memo, useCallback, useMemo } from "react";
 import { AppSnapshot } from "../app-machine";
 import { RecipeDetailOverlay } from "../components.client";
 
-export const SuggestedRecipeCard = ({ index }: { index: number }) => {
-  const recipe = useSuggestedRecipeAtIndex(index);
-  const recipeId = recipe?.id;
+export const SuggestedRecipeCard = memo(({ index }: { index: number }) => {
+  const selectRecipeId = useMemo(
+    () => createSuggestedRecipeIdAtIndexSelector(index),
+    [index]
+  );
+  const recipeId = useCombinedSelector(selectRecipeId);
 
   const actor = useAppContext();
-  const selectIsFocused = useCallback(
-    (state: AppSnapshot) => {
-      return !!recipe?.id && state.context.focusedRecipeId === recipe.id;
+  const selectIsFocused = useMemo(
+    () => (state: AppSnapshot) => {
+      return !!recipeId && state.context.focusedRecipeId === recipeId;
     },
     [recipeId]
   );
-  const isFocused = useSelector(actor, selectIsFocused);
+  const isFocused = useAppSelector(selectIsFocused);
   const isExpanded = isFocused;
   const send = useSend();
-  const selectRecipeIsSelected = useMemo(
-    () => createRecipeIsSelectedSelector(recipe?.id),
-    [recipeId]
-  );
-  const isSelected = usePageSessionSelector(selectRecipeIsSelected);
-
   const selectRecipeIsSaved = useMemo(
     () => createRecipeIsSavedInListSelector(recipeId),
     [recipeId]
@@ -72,45 +70,38 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
 
   const handleOpenChange = useCallback(
     (value: boolean) => {
-      if (value && recipe?.id) {
-        send({ type: "VIEW_RECIPE", id: recipe.id });
+      if (value && recipeId) {
+        send({ type: "VIEW_RECIPE", id: recipeId });
       }
     },
     [send, recipeId]
   );
-
-  const [wasJustSelected, setWasJustSelected] = useState(false);
-
-  const onSelectRecipe = useCallback(
-    (event: ExtractAppEvent<"SELECT_RECIPE">) => {
-      if (event.id === recipe?.id) {
-        setWasJustSelected(true);
-        setTimeout(() => {
-          setWasJustSelected(false);
-        }, 2500);
-      }
-    },
-    [setWasJustSelected, recipe]
+  const selectRecipeHasName = useMemo(
+    () => createRecipeHasNameSelector(recipeId),
+    [recipeId]
   );
-
-  useEventHandler("SELECT_RECIPE", onSelectRecipe);
+  const hasName = usePageSessionSelector(selectRecipeHasName);
 
   return (
     <RecipeDetailContainer index={index}>
       <Card
+        eventOnView={
+          hasName
+            ? {
+                type: "VIEW_RESULT",
+                index,
+              }
+            : undefined
+        }
         className={cn(
           "carousel-item relative flex flex-col w-full max-w-3xl mx-auto",
-          !isExpanded && isSelected
-            ? "border-purple-500 border-2 border-solid shadow-xl"
-            : !isExpanded && recipe?.name
+          !isExpanded
             ? "hover:bg-slate-100 dark:hover:bg-slate-900 active:bg-slate-200 dark:active:bg-slate-800 cursor-pointer"
             : ""
         )}
       >
         <EventTrigger
-          event={
-            recipe?.id ? { type: "VIEW_RECIPE", id: recipe.id } : undefined
-          }
+          event={recipeId ? { type: "VIEW_RECIPE", id: recipeId } : undefined}
           disabled={isExpanded}
           className={cn("flex flex-col p-4")}
         >
@@ -124,26 +115,14 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
                   />
                 )}
                 <span className="text-muted-foreground">{index + 1}. </span>
-                {recipe?.name ? (
-                  <p className="flex-1">{recipe.name}</p>
-                ) : (
-                  <div className="flex-1 flex flex-row gap-2">
-                    <SkeletonSentence className="h-7" numWords={4} />
-                  </div>
-                )}
+                <RecipeName id={recipeId} />
               </CardTitle>
-              {recipe?.description ? (
-                <CardDescription>{recipe.description}</CardDescription>
-              ) : (
-                <div className="flex-1">
-                  <SkeletonSentence className="h-4" numWords={12} />
-                </div>
-              )}
+              <RecipeDescription id={recipeId} />
               {isExpanded && (
                 <div className="text-muted-foreground text-xs flex flex-row gap-2">
                   <span>Yields</span>
                   <span>
-                    <Yield recipeId={recipe?.id} />
+                    <Yield recipeId={recipeId} />
                   </span>
                 </div>
               )}
@@ -169,27 +148,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
             )} */}
           </div>
           <div className={"text-xs mt-2"}>
-            {recipe?.matchPercent !== undefined ? (
-              <>
-                {recipe.matchPercent === 100 && (
-                  <Badge variant="secondary">
-                    <span className="text-green-700 font-medium mr-1">
-                      Direct Match
-                    </span>{" "}
-                    • 100%
-                  </Badge>
-                )}
-                {recipe.matchPercent < 100 && (
-                  <Badge variant="outline">{recipe.matchPercent}% match</Badge>
-                )}
-              </>
-            ) : (
-              <>
-                <Badge variant="outline">
-                  <Skeleton className="w-10 h-4" />
-                </Badge>
-              </>
-            )}
+            <MatchBadge id={recipeId} />
           </div>
         </EventTrigger>
         <Collapsible
@@ -198,22 +157,11 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
           onOpenChange={handleOpenChange}
         >
           <CollapsibleContent>
-            {isExpanded && recipe?.metadataComplete && (
-              <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
-                <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-                {/* <LikeButton id={recipe?.id} /> */}
-                <SaveButton id={recipe?.id} />
-                <RecipeMoreDropdownButton id={recipe?.id} />
-              </div>
-            )}
+            <RecipeActionBar id={recipeId} />
             {/* <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center justify-center py-2"></div> */}
             <Separator />
             <div>
-              <Times
-                activeTime={recipe?.activeTime}
-                totalTime={recipe?.totalTime}
-                cookTime={recipe?.cookTime}
-              />
+              <Times id={recipeId} />
             </div>
             <Separator />
             <div className="px-5">
@@ -225,7 +173,7 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               </div>
               <div className="mb-4 flex flex-col gap-2">
                 <ul className="list-disc pl-5 flex flex-col gap-2">
-                  <Ingredients recipeId={recipe?.id} />
+                  <Ingredients recipeId={recipeId} />
                 </ul>
               </div>
             </div>
@@ -239,13 +187,13 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
               </div>
               <div className="mb-4 flex flex-col gap-2">
                 <ol className="list-decimal pl-5 flex flex-col gap-2">
-                  <Instructions recipeId={recipe?.id} />
+                  <Instructions recipeId={recipeId} />
                 </ol>
               </div>
             </div>
             <Separator />
             <div className="py-2">
-              <Tags recipeId={recipe?.id} />
+              <Tags recipeId={recipeId} />
             </div>
             <Separator />
           </CollapsibleContent>
@@ -263,42 +211,140 @@ export const SuggestedRecipeCard = ({ index }: { index: number }) => {
       )}
     </RecipeDetailContainer>
   );
-};
-const RecipeDetailContainer = ({
-  children,
-  index,
-}: {
-  children: ReactNode;
-  index: number;
-}) => {
-  const recipe = useSuggestedRecipeAtIndex(index);
-  const actor = useAppContext();
-  const selectIsFocused = useCallback(
-    (state: AppSnapshot) => {
-      return !!recipe?.id && state.context.focusedRecipeId === recipe.id;
-    },
-    [recipe?.id]
-  );
-  const isFocused = useSelector(actor, selectIsFocused);
-  return (
-    <div
-      className={cn(
-        isFocused
-          ? "absolute inset-0 mb-8 standalone:mb-16 z-65"
-          : "max-w-xl w-full"
-      )}
-    >
-      {isFocused && (
-        <Portal>
-          <RecipeDetailOverlay />
-        </Portal>
-      )}
-      <ScrollLockComponent
-        active={isFocused}
-        className={isFocused ? "p-4" : ""}
+});
+
+const RecipeDetailContainer = memo(
+  ({ children, index }: { children: ReactNode; index: number }) => {
+    const selectRecipeId = useMemo(
+      () => createSuggestedRecipeIdAtIndexSelector(index),
+      [index]
+    );
+    const recipeId = useCombinedSelector(selectRecipeId);
+    const selectIsFocused = useMemo(
+      () => (state: AppSnapshot) => {
+        return !!recipeId && state.context.focusedRecipeId === recipeId;
+      },
+      [recipeId]
+    );
+    const isFocused = useAppSelector(selectIsFocused);
+    console.log({ recipeId, isFocused });
+    return (
+      <div
+        className={cn(
+          isFocused
+            ? "absolute inset-0 mb-8 standalone:mb-16 z-65"
+            : "max-w-xl w-full"
+        )}
       >
-        {children}
-      </ScrollLockComponent>
-    </div>
+        {isFocused && (
+          <Portal>
+            <RecipeDetailOverlay />
+          </Portal>
+        )}
+        <ScrollLockComponent
+          active={isFocused}
+          className={isFocused ? "p-4" : ""}
+        >
+          {children}
+        </ScrollLockComponent>
+      </div>
+    );
+  }
+);
+
+// const ViewObserverRef = ({ index }: { index: number }) => {
+//   const handleInView = useCallback(() => {
+//     console.log("IN VIEW!", index);
+//   }, []);
+//   const observerRef = useInView(handleInView);
+//   return <div ref={observerRef} />;
+// };
+
+const RecipeActionBar = ({ id }: { id: string | undefined }) => {
+  const recipe = useRecipe(id);
+
+  const selectIsExpanded = useMemo(
+    () => createRecipeIdIsFocusedSelector(id),
+    [id]
+  );
+  const isExpanded = useAppSelector(selectIsExpanded);
+
+  return (
+    <>
+      {isExpanded && recipe?.metadataComplete && (
+        <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
+          <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
+          {/* <LikeButton id={recipe?.id} /> */}
+          <SaveButton id={id} />
+          <RecipeMoreDropdownButton id={id} />
+        </div>
+      )}
+    </>
+  );
+};
+
+const MatchBadge = ({ id }: { id: string | undefined }) => {
+  const selectMatchPercent = useMemo(
+    () => createRecipeMatchPercentSelector(id),
+    [id]
+  );
+  const matchPercent = usePageSessionSelector(selectMatchPercent);
+
+  return (
+    <>
+      {matchPercent !== undefined ? (
+        <>
+          {matchPercent === 100 && (
+            <Badge variant="secondary">
+              <span className="text-green-700 font-medium mr-1">
+                Direct Match
+              </span>{" "}
+              • 100%
+            </Badge>
+          )}
+          {matchPercent < 100 && (
+            <Badge variant="outline">{matchPercent}% match</Badge>
+          )}
+        </>
+      ) : (
+        <>
+          <Badge variant="outline">
+            <Skeleton className="w-10 h-4" />
+          </Badge>
+        </>
+      )}{" "}
+    </>
+  );
+};
+
+const RecipeName = ({ id }: { id?: string }) => {
+  const recipe = useRecipe(id);
+
+  return (
+    <>
+      {recipe?.name ? (
+        <p className="flex-1">{recipe.name}</p>
+      ) : (
+        <div className="flex-1 flex flex-row gap-2">
+          <SkeletonSentence className="h-7" numWords={4} />
+        </div>
+      )}{" "}
+    </>
+  );
+};
+
+const RecipeDescription = ({ id }: { id?: string }) => {
+  const recipe = useRecipe(id);
+
+  return (
+    <>
+      {recipe?.description ? (
+        <CardDescription>{recipe.description}</CardDescription>
+      ) : (
+        <div className="flex-1">
+          <SkeletonSentence className="h-4" numWords={12} />
+        </div>
+      )}{" "}
+    </>
   );
 };

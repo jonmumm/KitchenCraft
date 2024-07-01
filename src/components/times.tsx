@@ -1,17 +1,18 @@
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { formatDuration } from "@/lib/utils";
+import { createRecipeSelector } from "@/selectors/page-session.selectors";
 import { ClockIcon } from "lucide-react";
+import { useMemo } from "react";
 import { Badge } from "./display/badge";
 import { Skeleton } from "./display/skeleton";
 
-export const Times = ({
-  cookTime,
-  totalTime,
-  activeTime,
-}: {
-  cookTime?: string;
-  totalTime?: string;
-  activeTime?: string;
-}) => {
+export const Times = ({ id }: { id?: string }) => {
+  const selectRecipe = useMemo(() => createRecipeSelector(id), [id]);
+  const recipe = usePageSessionSelector(selectRecipe);
+  const activeTime = recipe?.activeTime;
+  const totalTime = recipe?.totalTime;
+  const cookTime = recipe?.cookTime;
+
   const ActiveTime = () => {
     return <>{formatDuration(activeTime)}</>;
   };

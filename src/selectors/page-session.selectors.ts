@@ -367,3 +367,13 @@ export const createIsChoosingRecipeInListByIdSelector = (id?: string) =>
 //         : false;
 //     }
 //   );
+
+export const createRecipeMatchPercentSelector = (id?: string) =>
+  createSelector(selectRecipes, (recipes) =>
+    id ? recipes[id]?.matchPercent : undefined
+  );
+
+export const createRecipeHasNameSelector = (id?: string) =>
+  createSelector(selectRecipes, (recipes) =>
+    id ? !!recipes[id]?.name : false
+  );

@@ -3,7 +3,7 @@
 import { AppSnapshot } from "@/app/app-machine";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
 import { createSelector } from "reselect";
-import { selectCurrentListSlug, } from "./app.selectors";
+import { selectCurrentListSlug } from "./app.selectors";
 import { createListRecipeIdsBySlugSelector } from "./page-session.selectors";
 
 export const createSuggestedRecipeAtIndexSelector =
@@ -188,3 +188,26 @@ export const selectHasRecipesInCurrentList = createSelector(
   selectCurrentListCount,
   (count) => (count ? count > 0 : false)
 );
+
+export const createSuggestedRecipeIdAtIndexSelector =
+  (index: number) =>
+  (appSnapshot: AppSnapshot, { context }: PageSessionSnapshot) => {
+    const prompt = appSnapshot.context.submittedPrompt;
+    const resultId = context.resultIdsByPrompt[prompt];
+    if (!resultId) {
+      return undefined;
+    }
+
+    return context.results[resultId]?.suggestedRecipes[index];
+  };
+
+
+
+// export const createSuggestedRecipeIdAtIndexIsFocusedSelector = (
+//   index: number
+// ) =>
+//   createSelector(
+//     createSuggestedRecipeIdAtIndexSelector(index),
+//     selectFocusedRecipeId,
+//     (recipeId, focusedRecipeId) => recipeId === focusedRecipeId
+//   );

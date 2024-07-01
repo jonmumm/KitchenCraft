@@ -30,3 +30,8 @@ export const selectCanGoBack = createSelector(selectHistory, (history) => {
   console.log({ history });
   return history.length > 1;
 });
+
+export const createRecipeIdIsFocusedSelector =
+  (id?: string) => (state: AppSnapshot) => {
+    return state.context.focusedRecipeId === id;
+  };
