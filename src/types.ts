@@ -79,6 +79,7 @@ import {
   RecipeAttributesSchema,
   RecipeBaseSchema,
   RecipeChatInputSchema,
+  RecipeIdeasMetadataOutputSchema,
   RecipePredictionInputSchema,
   RecipePredictionOutputSchema,
   RecipePredictionPartialOutputSchema,
@@ -591,3 +592,7 @@ export type ExtraAppProps = {
   appSessionId: string | undefined;
   isMobile: boolean;
 };
+
+export type RecipeIdeasMetadataOutput = z.infer<
+  typeof RecipeIdeasMetadataOutputSchema
+>;

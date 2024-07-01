@@ -1,29 +1,10 @@
+import { RECIPE_IDEAS_METADATA } from "@/constants/events";
 import { StreamObservableEvent } from "@/lib/stream-to-observable";
 import { StructuredObjectStream } from "@/lib/structured-object-stream";
-import { z, ZodSchema } from "zod";
+import { RecipeIdeasMetadataOutputSchema } from "@/schema";
+import { RecipeIdeasMetadataOutput } from "@/types";
+import { ZodSchema } from "zod";
 import { buildInput } from "./utils";
-
-export const RecipeIdeasMetadataOutputSchema = z.object({
-  ideas: z
-    .array(
-      z.object({
-        name: z.string().describe("Name of the recipe"),
-        description: z.string().describe("Short description of the recipe"),
-        matchPercent: z
-          .number()
-          .min(0)
-          .max(100)
-          .describe(
-            "A number from 0-100 describing how closely this recipe suggestion is relative to the user's input."
-          ),
-      })
-    )
-    .describe("A list of 5 recipe ideas"),
-});
-
-export type RecipeIdeasMetadataOutput = z.infer<
-  typeof RecipeIdeasMetadataOutputSchema
->;
 
 export type RecipeIdeasMetadataStreamInput = {
   prompt: string;
@@ -34,8 +15,6 @@ export type RecipeIdeasMetadataStreamInput = {
     ingredients: string[];
   };
 };
-
-export const RECIPE_IDEAS_METADATA = "RECIPE_IDEAS_METADATA";
 
 export type RecipeIdeasMetadataEvent = StreamObservableEvent<
   typeof RECIPE_IDEAS_METADATA,
@@ -70,86 +49,71 @@ export class RecipeIdeasMetadataStream extends StructuredObjectStream<
 const RECIPE_IDEAS_METADATA_SYSTEM_TEMPLATE = (
   input: RecipeIdeasMetadataStreamInput
 ): string => `
-You are a creative, helpful, and practical home kitchen assistant.
+You are a creative, innovative, and practical home kitchen assistant.
 
-The user will give you a prompt. Help think of 5 more recipe ideas as it relates to that prompt, but are different variations from the given existing recipe.
+The user will give you a prompt. Your task is to think of 5 diverse recipe ideas that relate to the prompt but are significantly different from the given existing recipe. Aim for variety in cooking methods, cuisines, and dish types.
 
 Existing Recipe:
 ${input.instantRecipe.name}
 ${input.instantRecipe.description}
 Ingredients: ${input.instantRecipe.ingredients.join(", ")}
 
-Each recipe idea should have a 'name', a 'description', and a 'matchPercent' and nothing more.
-Assign a lower matchPercent to ideas that are less close to the original prompt.
+Guidelines for generating new recipe ideas:
+1. Avoid direct variations of the existing recipe. Instead, explore different dish types that incorporate the main theme or ingredients.
+2. Consider various cooking methods: baking, grilling, frying, slow-cooking, no-cook, etc.
+3. Explore different cuisines and cultural influences.
+4. Think about transforming the concept into different meal types: breakfast, lunch, dinner, snack, dessert.
+5. Consider various dietary preferences: vegetarian, vegan, low-carb, gluten-free, etc.
 
-To determine the matchPercent, consider the following:
-1. Main Ingredients: Does the recipe include the primary ingredients from the prompt?
-2. Secondary Ingredients: Are the additional ingredients complementary or common variations?
-3. Flavor Profile: Does the flavor profile (e.g., savory, tangy) remain consistent with the prompt?
+Each recipe idea should have a 'name', a 'description', and a 'matchPercent'.
+The matchPercent should reflect how closely the idea relates to the original prompt, not how similar it is to the existing recipe.
 
-Here are two example responses:
+To determine the matchPercent, consider:
+1. Main Ingredients: Does the recipe include key ingredients or themes from the prompt?
+2. Concept Alignment: How well does the recipe align with the overall concept of the prompt?
+3. Creativity: How innovative is the idea while still relating to the prompt?
 
-**Example 1: Given 'chicken and broccoli' as the user input:**
+Assign matchPercents as follows:
+- Use a range of 80 to 100 for all recipes.
+- Vary the percentages and avoid always using increments of 5.
+- Use the following guidelines for assigning percentages:
+  95-100%: Directly relates to the prompt, but in a very different form from the existing recipe. Uses the main ingredients or concepts in an innovative way.
+  90-94%: Strongly relates to the prompt, with creative interpretations. May use some of the main ingredients or concepts in unexpected ways.
+  85-89%: Moderately relates to the prompt, with significant creative liberties. May focus on secondary ingredients or themes from the prompt.
+  80-84%: Loosely relates to the prompt, with heavy creative interpretation. May only use one aspect of the prompt in a unique way.
+- Ensure a mix of percentages across the range for variety.
 
-{
-  "ideas": [
-    {
-      "name": "Chicken Broccoli Stir-fry",
-      "description": "Tender chicken and broccoli florets stir-fried with garlic and soy sauce.",
-      "matchPercent": 90
-    },
-    {
-      "name": "Chicken Broccoli Casserole",
-      "description": "Baked chicken and broccoli with a creamy cheese sauce.",
-      "matchPercent": 85
-    },
-    {
-      "name": "Lemon Herb Chicken with Broccoli",
-      "description": "Grilled chicken marinated in lemon and herbs, served with steamed broccoli.",
-      "matchPercent": 80
-    },
-    {
-      "name": "Chicken Broccoli Alfredo",
-      "description": "Fettuccine pasta with grilled chicken and broccoli in a creamy Alfredo sauce.",
-      "matchPercent": 78
-    },
-    {
-      "name": "Chicken Broccoli Quinoa Bowl",
-      "description": "Quinoa bowl with grilled chicken, broccoli, and a lemon-tahini dressing.",
-      "matchPercent": 75
-    }
-  ]
-}
+Here's an example response:
 
-**Example 2: Given 'Bacon and Cheddar Quiche with Green Onions' as the user input:**
+Given 'oranges' as the user input, and 'Orange Marmalade' as the existing recipe:
 
 {
   "ideas": [
     {
-      "name": "Bacon and Cheddar Quiche with Green Onions",
-      "description": "A savory quiche with crispy bacon, sharp cheddar cheese, and fresh green onions.",
+      "name": "Citrus-Glazed Cornish Game Hens",
+      "description": "Roasted Cornish game hens brushed with a tangy orange-honey glaze, served with orange-infused couscous and roasted fennel.",
       "matchPercent": 98
     },
     {
-      "name": "Bacon, Cheddar, and Chive Quiche",
-      "description": "A savory quiche with crispy bacon, sharp cheddar cheese, and fresh chives.",
-      "matchPercent": 90
+      "name": "Orange-Cardamom Creme Brûlée",
+      "description": "A silky smooth creme brûlée infused with orange zest and cardamom, topped with a crisp caramelized sugar crust and candied orange peel.",
+      "matchPercent": 93
     },
     {
-      "name": "Bacon, Cheddar, and Spinach Quiche",
-      "description": "A hearty quiche with crispy bacon, sharp cheddar cheese, and fresh spinach.",
-      "matchPercent": 85
+      "name": "Spicy Orange-Ginger Tofu Stir-Fry",
+      "description": "Crispy tofu cubes stir-fried with bell peppers and snap peas in a zesty orange-ginger sauce, served over brown rice.",
+      "matchPercent": 88
     },
     {
-      "name": "Bacon, Cheddar, Mushroom, and Green Onion Quiche",
-      "description": "A rich quiche with crispy bacon, sharp cheddar cheese, sautéed mushrooms, and fresh green onions.",
-      "matchPercent": 75
+      "name": "Orange Blossom and Pistachio Shortbread",
+      "description": "Delicate shortbread cookies flavored with orange blossom water, studded with pistachios, and drizzled with dark chocolate.",
+      "matchPercent": 84
     },
     {
-      "name": "Bacon, Cheddar, Broccoli, and Tomato Quiche",
-      "description": "A flavorful quiche with crispy bacon, sharp cheddar cheese, steamed broccoli, and cherry tomatoes.",
-      "matchPercent": 65
+      "name": "Citrus and Fennel Pollen Crusted Salmon",
+      "description": "Pan-seared salmon fillets coated with a citrus and fennel pollen crust, served with an orange and shaved fennel salad.",
+      "matchPercent": 80
     }
-  ]
+  }
 }
 `;

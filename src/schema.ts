@@ -1787,3 +1787,21 @@ export const AppContextSchema = z.object({
   selectItemIndexToScrollTo: z.number().optional(),
   currentListSlug: z.string().optional(),
 });
+
+export const RecipeIdeasMetadataOutputSchema = z.object({
+  ideas: z
+    .array(
+      z.object({
+        name: z.string().describe("Name of the recipe"),
+        description: z.string().describe("Short description of the recipe"),
+        matchPercent: z
+          .number()
+          .min(0)
+          .max(100)
+          .describe(
+            "A number from 0-100 describing how closely this recipe suggestion is relative to the user's input."
+          ),
+      })
+    )
+    .describe("A list of 5 recipe ideas"),
+});

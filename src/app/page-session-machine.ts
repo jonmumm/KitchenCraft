@@ -87,6 +87,7 @@ import {
   InstantRecipeEvent,
   InstantRecipeStream,
 } from "./instant-recipe.stream";
+import { MoreRecipeIdeasMetadataStream } from "./more-recipe-ideas-metadata.stream";
 import {
   RecipeIdeasMetadataEvent,
   RecipeIdeasMetadataStream,
@@ -100,6 +101,8 @@ import { buildInput } from "./utils";
 
 export const SESSION_ACTOR_ID = "sessionActor";
 export const USER_ACTOR_ID = "userActor";
+
+const NUM_RECIPES_PER_BATCH = 5;
 
 type NewRecipeProductKeywordEvent = {
   type: "NEW_RECIPE_PRODUCT_KEYWORD";
@@ -480,6 +483,20 @@ export const createPageSessionMachine = ({
           );
         }
       ),
+      generateMoreRecipeIdeasMetadata: fromEventObservable(
+        ({
+          input,
+        }: {
+          input: {
+            prompt: string;
+            previousRecipes: {
+              name: string;
+              description: string;
+              matchPercent: number;
+            }[];
+          };
+        }) => new MoreRecipeIdeasMetadataStream().getObservable(input)
+      ),
       generateRecipeIdeasMetadata: fromEventObservable(
         ({
           input,
@@ -605,6 +622,16 @@ export const createPageSessionMachine = ({
       ),
     },
     guards: {
+      didViewCardNearEnd: ({ context, event }) => {
+        assertEvent(event, "VIEW_RESULT");
+
+        const resultId = context.resultIdsByPrompt[context.prompt];
+        assert(resultId, "expected resultId for " + context.prompt);
+        const results = context.results[resultId];
+        const numRecipeIds = results?.suggestedRecipes.length || 0;
+
+        return event.index > numRecipeIds - 2;
+      },
       nextNextRecipeInCategoryShouldBeCreated: ({ context, event }) => {
         assertType(event, "VIEW_RECIPE");
         const feedItems = context.sessionSnapshot?.context.feedItemsById;
@@ -754,8 +781,7 @@ export const createPageSessionMachine = ({
   }).createMachine({
     id: "PageSessionMachine",
     context: ({ input }) => {
-
-      const url = new URL(input.url)
+      const url = new URL(input.url);
       return {
         onboardingInput: {},
         currentListRecipeIndex: 0,
@@ -2148,6 +2174,105 @@ export const createPageSessionMachine = ({
                       },
                       Metadata: {
                         initial: "Idle",
+                        on: {
+                          RECIPE_IDEAS_METADATA_START: {
+                            actions: assign(({ context, event }) =>
+                              produce(context, (draft) => {
+                                const suggestedRecipes =
+                                  context.results[getCurrentResultId(context)]
+                                    ?.suggestedRecipes;
+                                assert(
+                                  suggestedRecipes,
+                                  "expected suggestedRecipes"
+                                );
+                                const numSuggestedRecipes =
+                                  suggestedRecipes.length;
+                                suggestedRecipes
+                                  .slice(
+                                    numSuggestedRecipes - NUM_RECIPES_PER_BATCH
+                                  )
+                                  .forEach((id) => {
+                                    const recipe = draft.recipes[id];
+                                    assert(
+                                      recipe,
+                                      "expected recipe when updating recipe progress"
+                                    );
+                                    draft.recipes[id] = {
+                                      ...recipe,
+                                      started: true,
+                                    };
+                                  });
+                              })
+                            ),
+                          },
+                          RECIPE_IDEAS_METADATA_PROGRESS: {
+                            actions: assign(({ context, event }) =>
+                              produce(context, (draft) => {
+                                const suggestedRecipes =
+                                  context.results[getCurrentResultId(context)]
+                                    ?.suggestedRecipes;
+                                assert(
+                                  suggestedRecipes,
+                                  "expected suggestedRecipes"
+                                );
+                                const numSuggestedRecipes =
+                                  suggestedRecipes.length;
+                                suggestedRecipes
+                                  .slice(
+                                    numSuggestedRecipes - NUM_RECIPES_PER_BATCH
+                                  )
+                                  .forEach((id, index) => {
+                                    const idea = event.data.ideas?.[index];
+                                    if (idea) {
+                                      const recipe = context.recipes[id];
+                                      assert(
+                                        recipe,
+                                        "expected recipe to exist"
+                                      );
+                                      draft.recipes[id] = {
+                                        ...recipe,
+                                        ...idea,
+                                      };
+                                    }
+                                  });
+                              })
+                            ),
+                          },
+                          RECIPE_IDEAS_METADATA_COMPLETE: {
+                            actions: assign(({ context, event }) =>
+                              produce(context, (draft) => {
+                                const suggestedRecipes =
+                                  context.results[getCurrentResultId(context)]
+                                    ?.suggestedRecipes;
+                                assert(
+                                  suggestedRecipes,
+                                  "expected suggestedRecipes"
+                                );
+                                const numSuggestedRecipes =
+                                  suggestedRecipes.length;
+                                suggestedRecipes
+                                  .slice(
+                                    numSuggestedRecipes - NUM_RECIPES_PER_BATCH
+                                  )
+                                  .forEach((id, index) => {
+                                    const idea = event.data.ideas?.[index];
+                                    if (idea) {
+                                      const recipe = context.recipes[id];
+                                      assert(
+                                        recipe,
+                                        "expected recipe to exist"
+                                      );
+                                      draft.recipes[id] = {
+                                        ...recipe,
+                                        ...idea,
+                                        metadataComplete: true,
+                                      };
+                                    }
+                                  });
+                              })
+                            ),
+                          },
+                        },
                         states: {
                           Idle: {
                             on: {
@@ -2158,94 +2283,6 @@ export const createPageSessionMachine = ({
                             },
                           },
                           Generating: {
-                            on: {
-                              RECIPE_IDEAS_METADATA_START: {
-                                actions: assign(({ context, event }) =>
-                                  produce(context, (draft) => {
-                                    const suggestedRecipes =
-                                      context.results[
-                                        getCurrentResultId(context)
-                                      ]?.suggestedRecipes;
-                                    assert(
-                                      suggestedRecipes,
-                                      "expected suggestedRecipes"
-                                    );
-                                    suggestedRecipes.slice(1).forEach((id) => {
-                                      const recipe = draft.recipes[id];
-                                      assert(
-                                        recipe,
-                                        "expected recipe when updating recipe progress"
-                                      );
-                                      draft.recipes[id] = {
-                                        ...recipe,
-                                        started: true,
-                                      };
-                                    });
-                                  })
-                                ),
-                              },
-                              RECIPE_IDEAS_METADATA_PROGRESS: {
-                                actions: assign(({ context, event }) =>
-                                  produce(context, (draft) => {
-                                    const suggestedRecipes =
-                                      context.results[
-                                        getCurrentResultId(context)
-                                      ]?.suggestedRecipes;
-                                    assert(
-                                      suggestedRecipes,
-                                      "expected suggestedRecipes"
-                                    );
-                                    suggestedRecipes
-                                      .slice(1)
-                                      .forEach((id, index) => {
-                                        const idea = event.data.ideas?.[index];
-                                        if (idea) {
-                                          const recipe = context.recipes[id];
-                                          assert(
-                                            recipe,
-                                            "expected recipe to exist"
-                                          );
-                                          draft.recipes[id] = {
-                                            ...recipe,
-                                            ...idea,
-                                          };
-                                        }
-                                      });
-                                  })
-                                ),
-                              },
-                              RECIPE_IDEAS_METADATA_COMPLETE: {
-                                actions: assign(({ context, event }) =>
-                                  produce(context, (draft) => {
-                                    const suggestedRecipes =
-                                      context.results[
-                                        getCurrentResultId(context)
-                                      ]?.suggestedRecipes;
-                                    assert(
-                                      suggestedRecipes,
-                                      "expected suggestedRecipes"
-                                    );
-                                    suggestedRecipes
-                                      .slice(1)
-                                      .forEach((id, index) => {
-                                        const idea = event.data.ideas?.[index];
-                                        if (idea) {
-                                          const recipe = context.recipes[id];
-                                          assert(
-                                            recipe,
-                                            "expected recipe to exist"
-                                          );
-                                          draft.recipes[id] = {
-                                            ...recipe,
-                                            ...idea,
-                                            metadataComplete: true,
-                                          };
-                                        }
-                                      });
-                                  })
-                                ),
-                              },
-                            },
                             invoke: {
                               input: ({ context }) => {
                                 const suggestedRecipes =
@@ -2287,7 +2324,102 @@ export const createPageSessionMachine = ({
                             },
                           },
                           Error: { entry: console.error },
-                          Complete: {},
+                          Complete: {
+                            on: {
+                              VIEW_RESULT: {
+                                guard: "didViewCardNearEnd",
+                                actions: [
+                                  assign(({ context }) =>
+                                    produce(context, (draft) => {
+                                      const resultId =
+                                        getCurrentResultId(context);
+                                      const suggestedRecipes =
+                                        draft.results[resultId]
+                                          ?.suggestedRecipes;
+                                      assert(
+                                        suggestedRecipes,
+                                        "expected to find existing suggestedRecipes"
+                                      );
+
+                                      suggestedRecipes.push(
+                                        randomUUID(),
+                                        randomUUID(),
+                                        randomUUID(),
+                                        randomUUID(),
+                                        randomUUID()
+                                      );
+
+                                      const numSuggestedRecipes =
+                                        suggestedRecipes.length;
+                                      suggestedRecipes
+                                        .slice(
+                                          numSuggestedRecipes -
+                                            NUM_RECIPES_PER_BATCH
+                                        )
+                                        .forEach((id) => {
+                                          draft.recipes[id] = {
+                                            id,
+                                            versionId: 0,
+                                            started: true,
+                                            fullStarted: false,
+                                            complete: false,
+                                            matchPercent: undefined,
+                                            metadataComplete: false,
+                                          };
+                                        });
+                                    })
+                                  ),
+                                  spawnChild(
+                                    "generateMoreRecipeIdeasMetadata",
+                                    {
+                                      input: ({ context }) => {
+                                        const resultId =
+                                          context.resultIdsByPrompt[
+                                            context.prompt
+                                          ];
+                                        assert(
+                                          resultId,
+                                          "expected resultId for " +
+                                            context.prompt
+                                        );
+                                        const result =
+                                          context.results[resultId];
+                                        assert(
+                                          result,
+                                          "expected result for resultId " +
+                                            resultId
+                                        );
+
+                                        const previousRecipes =
+                                          result.suggestedRecipes
+                                            .map((id) => {
+                                              const recipe =
+                                                context.recipes[id];
+
+                                              // should rarely happen but todo to fix
+                                              return {
+                                                name: recipe?.name || "",
+                                                description:
+                                                  recipe?.description || "",
+                                                matchPercent:
+                                                  recipe?.matchPercent || 60,
+                                              };
+                                            })
+                                            .filter(
+                                              ({ name }) => !!name.length
+                                            );
+
+                                        return {
+                                          prompt: context.prompt,
+                                          previousRecipes,
+                                        };
+                                      },
+                                    }
+                                  ),
+                                ],
+                              },
+                            },
+                          },
                         },
                       },
                     },

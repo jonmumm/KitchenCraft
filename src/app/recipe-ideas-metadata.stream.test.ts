@@ -1,13 +1,13 @@
 import { assert } from "@/lib/utils";
+import { RecipeIdeasMetadataOutput } from "@/types";
 import { Observable } from "rxjs";
 import { describe, expect, it } from "vitest";
 import {
   RecipeIdeasMetadataEvent,
-  RecipeIdeasMetadataOutput,
-  RecipeIdeasMetadataOutputSchema,
   RecipeIdeasMetadataStream,
   RecipeIdeasMetadataStreamInput,
 } from "./recipe-ideas-metadata.stream";
+import { RecipeIdeasMetadataOutputSchema } from "@/schema";
 
 describe("RecipeIdeasMetadataStream", () => {
   async function processStream(
