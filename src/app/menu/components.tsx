@@ -6,7 +6,7 @@ import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
-import { UserMatches } from "@/components/util/user-matches";
+import { HasEmailSaved } from "@/components/logic/has-email-saved";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import {
   selectProfileName,
@@ -24,17 +24,13 @@ export function MainMenu({ className }: { className?: string }) {
 
   return (
     <>
-      <UserMatches
-        matchedState={{ Email: { Saved: "False" } }}
-      >
+      <HasEmailSaved not>
         <Button size="xl" event={{ type: "SIGN_IN" }}>
           Sign In
         </Button>
         <Separator />
-      </UserMatches>
-      <UserMatches
-        matchedState={{ Email: { Saved: "True" } }}
-      >
+      </HasEmailSaved>
+      <HasEmailSaved>
         <div className="flex flex-col gap-1 items-center justify-center">
           <Label className="uppercase text-xs font-bold text-accent-foreground">
             Chef
@@ -257,16 +253,14 @@ export function MainMenu({ className }: { className?: string }) {
           </div>
           <Separator />
         </NotificationsSetting> */}
-      </UserMatches>
+      </HasEmailSaved>
       <div className="flex flex-row gap-1 items-center justify-between">
         <Label className="uppercase text-xs font-bold text-accent-foreground flex flex-row gap-1 items-center">
           Theme
         </Label>
         <ModeToggle />
       </div>
-      <UserMatches
-        matchedState={{ Email: { Saved: "True" } }}
-      >
+      <HasEmailSaved>
         <Separator />
         <div className="flex justify-center">
           <Button
@@ -277,7 +271,7 @@ export function MainMenu({ className }: { className?: string }) {
             Sign Out
           </Button>
         </div>
-      </UserMatches>
+      </HasEmailSaved>
       <Separator />
       <div className="flex flex-row gap-2 justify-center">
         <div className="flex flex-row justify-center gap-2">

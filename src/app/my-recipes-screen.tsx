@@ -92,7 +92,6 @@ import {
 } from "react";
 import { createSelector } from "reselect";
 import { toast } from "sonner";
-import { IsLoggedIn } from "./is-logged-in";
 import { ListUrlCopiedToast } from "./list-url-copied-toast";
 
 export const MyRecipesScreen = () => {
@@ -236,41 +235,27 @@ export const MyRecipesScreen = () => {
             </div>
             <TabsContent value={"recipe"} className="flex-1 flex flex-col">
               <HasRecipesInCurrentList not>
-                <IsLoggedIn not>
-                  <div className="px-4 flex-1">
-                    <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
-                      <div>Collect Recipes Here</div>
-                      <Button
-                      // event={{ type: "NEW_RECIPE" }}
-                      >
-                        Create Account
-                      </Button>
-                      <div className="text-muted-foreground text-xs">
-                        Already have an account?
-                      </div>
-                      <Badge
-                        // event={{ type: "NEW_RECIPE" }}
-                        variant="secondary"
-                      >
-                        Login
-                      </Badge>
-                    </Card>
-                  </div>
-                </IsLoggedIn>
-                <IsLoggedIn>
-                  <div className="px-4 flex-1">
-                    <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
-                      <div>No recipes in list.</div>
-                      <Badge
-                        event={{ type: "NEW_RECIPE" }}
-                        variant="secondary"
-                        className="shadow-md"
-                      >
-                        Craft one up.<span className="ml-1">🧪</span>
-                      </Badge>
-                    </Card>
-                  </div>
-                </IsLoggedIn>
+                <div className="px-4 flex-1">
+                  <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
+                    <div className="border border-solid border-secondary rounded-full p-3 text-xl aspect-square flex items-center justify-center">
+                      <CurrentListIcon />
+                    </div>
+                    <div className="text-center">
+                      <span className="font-semibold">
+                        #<CurrentListSlug />
+                      </span>{" "}
+                      Is Empty
+                    </div>
+                    <Badge
+                      event={{ type: "NEW_RECIPE" }}
+                      variant="secondary"
+                      className="shadow-md"
+                    >
+                      Craft a recipe.
+                      <span className="ml-1 animate-spin">🧪</span>
+                    </Badge>
+                  </Card>
+                </div>
               </HasRecipesInCurrentList>
               <HasRecipesInCurrentList>
                 <CurrentListCarousel>
@@ -281,17 +266,19 @@ export const MyRecipesScreen = () => {
           </Tabs>
         </div>
 
-        <CurrentListIsShareable>
-          <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
-            <Button
-              className="shadow-md"
-              event={{ type: "SHARE_CURRENT_LIST" }}
-            >
-              <ShareIcon size={16} className="mr-1" />
-              Share #<CurrentListSlug />
-            </Button>
-          </div>
-        </CurrentListIsShareable>
+        <HasRecipesInCurrentList>
+          <CurrentListIsShareable>
+            <div className="flex flex-row items-center justify-center gap-2 md:mb-3">
+              <Button
+                className="shadow-md"
+                event={{ type: "SHARE_CURRENT_LIST" }}
+              >
+                <ShareIcon size={16} className="mr-1" />
+                Share #<CurrentListSlug />
+              </Button>
+            </div>
+          </CurrentListIsShareable>
+        </HasRecipesInCurrentList>
       </div>
       <Overlay />
     </Portal>

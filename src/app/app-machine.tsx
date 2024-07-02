@@ -1129,7 +1129,7 @@ export const createAppMachine = ({
                   CREATE_LIST: {
                     target: "True",
                     actions: {
-                      type: "replaceQueryParameters",
+                      type: "pushQueryParameters",
                       params() {
                         return {
                           paramSet: {
