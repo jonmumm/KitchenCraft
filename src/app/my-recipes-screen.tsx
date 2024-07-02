@@ -142,7 +142,7 @@ export const MyRecipesScreen = () => {
                       <CurrentListIcon />
                     </div>
                     <div className="flex-1">
-                      <p className="truncate">
+                      <p className="list-title max-w-96">
                         <CurrentListSlug />
                       </p>
                     </div>
