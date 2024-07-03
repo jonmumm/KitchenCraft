@@ -1,6 +1,6 @@
+import { parseTokenForId } from "@/lib/actor-kit/tokens";
 import { assert } from "@/lib/utils";
 import { Caller, PartyMap } from "@/types";
-import { jwtVerify } from "jose";
 import { fromPromise } from "xstate";
 
 export const initializeUserSocket = fromPromise(
@@ -13,9 +13,9 @@ export const initializeUserSocket = fromPromise(
       parties: PartyMap;
     };
   }) => {
-    const userId = (await parseUserAccessTokenForId(input.userAccessToken))
+    const userId = (await parseTokenForId(input.userAccessToken))
       .payload.jti;
-    assert(userId, "expected session id in session token");
+    assert(userId, "expected id in user token");
     const socket = await input.parties.user!.get(userId).socket({
       headers: {
         Authorization: `Bearer ${input.userAccessToken}`,
@@ -24,12 +24,3 @@ export const initializeUserSocket = fromPromise(
     return socket;
   }
 );
-
-const parseUserAccessTokenForId = async (token: string) => {
-  const verified = await jwtVerify(
-    token,
-    new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
-  );
-  assert(verified.payload.jti, "expected JTI on User Token");
-  return verified;
-};

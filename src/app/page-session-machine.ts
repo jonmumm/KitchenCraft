@@ -18,6 +18,7 @@ import {
 import { NewRecipe } from "@/db/types";
 import { didChangeEmailInput } from "@/guards/didChangeEmailInput";
 import { didChangeListSlugInput } from "@/guards/didChangeListSlugInput";
+import { parseTokenForId } from "@/lib/actor-kit/tokens";
 import { DatabaseErrorSchema, handleDatabaseError } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
@@ -55,8 +56,10 @@ import {
   enqueueActions,
   fromEventObservable,
   fromPromise,
+  and as guardAnd,
   setup,
   spawnChild,
+  stateIn,
 } from "xstate";
 import { z } from "zod";
 import { initializeSessionSocket } from "../actors/initializeSessionSocket";
@@ -140,6 +143,8 @@ type List = {
 };
 
 export type PageSessionContext = {
+  userId?: string;
+  sessionId?: string;
   choosingListsForRecipeId?: string;
   onboardingInput: {
     mealType?: string | undefined;
@@ -233,6 +238,25 @@ export const createPageSessionMachine = ({
       events: {} as PageSessionEvent,
     },
     actors: {
+      parseTokens: fromPromise(
+        async ({
+          input,
+        }: {
+          input: { userAccessToken: string; sessionAccessToken: string };
+        }) => {
+          const userId = (await parseTokenForId(input.userAccessToken)).payload
+            .jti;
+          const sessionId = (await parseTokenForId(input.sessionAccessToken))
+            .payload.jti;
+          assert(userId, "expected userId from userAccessToken");
+          assert(sessionId, "expected sessionId from sessionAccessToken");
+
+          return {
+            userId,
+            sessionId,
+          };
+        }
+      ),
       fetchLists,
       generateChefNameSuggestions,
       generateListNameSuggestions,
@@ -552,63 +576,6 @@ export const createPageSessionMachine = ({
         ({ input }: { input: { prompt: string } }) =>
           new AutoSuggestTokensStream().getObservable(input)
       ),
-      // initializeRecipeAds: fromEventObservable(
-      //   ({ input }: { input: { context: ExtractType<AdContext, "recipe"> } }) => {
-      //     const db = drizzle(sql);
-      //     const getRecipes = db
-      //       .select()
-      //       .from(RecipesTable)
-      //       .where(eq(RecipesTable.slug, input.context.slug))
-      //       .execute();
-      //     const lastKeywords = new Set();
-
-      //     return from(getRecipes).pipe(
-      //       map((recipes) => {
-      //         const recipe = recipes[0];
-      //         assert(recipe, "expected recipe");
-      //         return recipe;
-      //       }),
-      //       switchMap(async (recipe) => {
-      //         const tokenStream = new RecipeProductsTokenStream();
-      //         return await tokenStream.getStream({
-      //           type: input.context.productType,
-      //           recipe,
-      //         });
-      //       }),
-      //       switchMap((stream) => {
-      //         return streamToObservable(
-      //           stream,
-      //           RecipeProductsEventBase,
-      //           RecipeProductsPredictionOutputSchema
-      //         );
-      //       }),
-      //       mergeMap((event) => {
-      //         if (
-      //           event.type === "SUGGEST_RECIPE_PRODUCTS_PROGRESS" &&
-      //           Array.isArray(event.data.queries)
-      //         ) {
-      //           const newKeywords = event.data.queries
-      //             .slice(0, event.data.queries.length - 1)
-      //             .filter((keyword) => !lastKeywords.has(keyword));
-      //           newKeywords.forEach((keyword) => lastKeywords.add(keyword)); // Update state
-
-      //           // // Map new keywords to events and emit them immediately
-      //           return newKeywords.map((keyword) => ({
-      //             type: "NEW_RECIPE_PRODUCT_KEYWORD",
-      //             keyword: keyword,
-      //             productType: input.context.productType,
-      //             slug: input.context.slug,
-      //           }));
-      //         } else if (event.type === "SUGGEST_RECIPE_PRODUCTS_COMPLETE") {
-      //           // Handle completion if needed. For now, return an empty array to emit nothing.
-      //           return [];
-      //         }
-      //         // Return an empty array for any other event types to emit nothing.
-      //         return [];
-      //       })
-      //     );
-      //   }
-      // ),
       updateUserPreferences: fromPromise(
         async ({
           input,
@@ -623,6 +590,9 @@ export const createPageSessionMachine = ({
       ),
     },
     guards: {
+      hasUserId: ({ context }) => !!context.userId,
+      hasUserSnapshot: ({ context }) => !!context.userSnapshot,
+      hasSessionSnapshot: ({ context }) => !!context.sessionSnapshot,
       didViewCardNearEnd: ({ context, event }) => {
         assertEvent(event, "VIEW_RESULT");
 
@@ -842,15 +812,47 @@ export const createPageSessionMachine = ({
     // },
     states: {
       Initialization: {
-        initial: "Loading",
+        initial: "Tokens",
         states: {
+          Tokens: {
+            initial: "Parsing",
+            states: {
+              Parsing: {
+                invoke: {
+                  src: "parseTokens",
+                  input: ({ context }) => ({
+                    userAccessToken: context.userAccessToken,
+                    sessionAccessToken: context.sessionAccessToken,
+                  }),
+                  onDone: {
+                    target: "Complete",
+                    actions: assign({
+                      userId: ({ event }) => event.output.userId,
+                      sessionId: ({ event }) => event.output.sessionId,
+                    }),
+                  },
+                },
+              },
+              Complete: {
+                type: "final",
+              },
+            },
+            onDone: "Loading",
+          },
           Loading: {
+            // entry: spawnChild("parseTokens", {
+            //   input: ({ context }) => ({
+            //     userAccessToken: context.userAccessToken,
+            //     sessionAccessToken: context.sessionAccessToken,
+            //   }),
+            // }),
             always: {
-              description:
-                "Wait until both the sessionSnapshot and userSnapshot are loaded",
               target: "Ready",
-              guard: ({ context }) =>
-                !!context.userSnapshot && !!context.sessionSnapshot,
+              guard: guardAnd([
+                "hasUserSnapshot",
+                "hasSessionSnapshot",
+                stateIn({ ListData: "Complete" }),
+              ]),
             },
           },
           Ready: {
@@ -2793,17 +2795,14 @@ export const createPageSessionMachine = ({
           Idle: {
             always: {
               target: "Fetching",
-              guard: ({ context }) => {
-                const userId = context.userSnapshot?.context.id;
-                return !!userId;
-              },
+              guard: "hasUserId",
             },
           },
           Fetching: {
             invoke: {
               src: "fetchLists",
               input: ({ context }) => {
-                const userId = context.userSnapshot?.context.id;
+                const userId = context.userId;
                 assert(userId, "expected userId");
                 return { userId };
               },
@@ -2812,7 +2811,6 @@ export const createPageSessionMachine = ({
                 actions: assign(({ context, event }) => {
                   return produce(context, (draft) => {
                     const { listRecipes, lists } = event.output;
-
                     // Group recipes by listId
                     const groupedListRecipes = listRecipes.reduce<
                       Record<string, string[]>
@@ -2828,7 +2826,6 @@ export const createPageSessionMachine = ({
                       },
                       {} as Record<string, string[]>
                     );
-
                     lists.forEach((list) => {
                       const recipeIds = groupedListRecipes[list.id] || [];
                       const idSet = recipeIds.reduce<Record<string, true>>(
@@ -2838,7 +2835,6 @@ export const createPageSessionMachine = ({
                         },
                         {}
                       );
-
                       draft.listsById[list.id] = {
                         ...list,
                         public: true,
