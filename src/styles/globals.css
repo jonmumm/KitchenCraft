@@ -221,3 +221,11 @@ html {
   opacity: 0;
   pointer-events: none;
 }
+
+.list-title{
+  word-break: break-all !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
