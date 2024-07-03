@@ -382,3 +382,8 @@ export const createRecipeHasNameSelector = (id?: string) =>
   createSelector(selectRecipes, (recipes) =>
     id ? !!recipes[id]?.name : false
   );
+
+export const selectCurrentSaveToListPath = (state: PageSessionSnapshot) => {
+  const slug = state.context.sessionSnapshot?.context.currentSaveToListSlug;
+  return `/#${slug || "liked"}`;
+};

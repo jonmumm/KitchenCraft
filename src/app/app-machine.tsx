@@ -685,9 +685,6 @@ export const createAppMachine = ({
               },
             ],
             on: {
-              // TOGGLE: {
-              //   target: "True",
-              // },
               FOCUS_PROMPT: {
                 target: "True",
                 actions: {
@@ -732,28 +729,28 @@ export const createAppMachine = ({
               () => {
                 document.body.classList.add("crafting");
               },
-              // {
-              //   type: "replaceQueryParameters",
-              //   params({ event }) {
-              //     if (event.type === "SET_INPUT") {
-              //       const prompt = event.value ? { prompt: event.value } : {};
-              //       return {
-              //         paramSet: {
-              //           crafting: "1",
-              //           ...prompt,
-              //         },
-              //       };
-              //     }
-              //     return { paramSet: {
-              //       crafting: "1"
-              //     } };
-              //   },
-              // },
               {
                 type: "focusInput",
               },
             ],
             on: {
+              CLOSE: {
+                guard: () => {
+                  // todo only do this if previous page isnt the url we want
+                  // if so call router.back in a diff action
+                  return true;
+                },
+                actions: {
+                  type: "pushQueryParameters",
+                  params: () => {
+                    return {
+                      paramSet: {
+                        crafting: undefined,
+                      },
+                    };
+                  },
+                },
+              },
               // TOGGLE: "False",
               // SHARE_SELECTED: "False",
               // SAVE_SELECTED: "False",

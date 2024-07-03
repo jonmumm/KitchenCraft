@@ -1,7 +1,6 @@
 import { Button } from "@/components/input/button";
 
 import { Badge } from "@/components/display/badge";
-import { BackButton } from "@/components/input/back-button";
 import {
   SheetContent,
   SheetOverlay,
@@ -14,7 +13,7 @@ import { ProfileName } from "@/components/strings/profile-name";
 import { getProfileByUserId } from "@/db/queries";
 import { getIsMacDesktop, getIsMobile } from "@/lib/headers";
 import { MenuSheet } from "@/modules/main-menu/menu-sheet";
-import { ArrowLeftIcon, BookmarkIcon, ChefHatIcon } from "lucide-react";
+import { BookmarkIcon, ChefHatIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { MainMenu } from "../menu/components";
 import { CraftInput, MyRecipesBadge } from "./components.client";
@@ -33,19 +32,22 @@ export async function HeaderWithInput({ className }: { className?: string }) {
           <div className="flex flex-col gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
             <div className="flex flex-row gap-2 w-full justify-between items-center"></div>
             <div className="flex flex-row gap-2 items-center">
+              <CraftCTA initialAutoFocus={!getIsMobile()} />
               <div className="hidden crafting:flex flex-col gap-3 items-center">
-                <BackButton
-                  variant={"outline"}
+                <Button
+                  variant={"ghost"}
                   size="icon"
+                  event={{ type: "CLOSE" }}
                   className="text-xs text-semibold rounded-full"
                 >
-                  <ArrowLeftIcon />
-                </BackButton>
-                <Button variant={"outline"} size="icon">
-                  <BookmarkIcon />
+                  <XCircleIcon />
                 </Button>
+                <Link href="/#liked">
+                  <Button variant={"outline"} size="icon">
+                    <BookmarkIcon />
+                  </Button>
+                </Link>
               </div>
-              <CraftCTA initialAutoFocus={!getIsMobile()} />
             </div>
           </div>
         </div>

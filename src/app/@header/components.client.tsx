@@ -20,9 +20,9 @@ import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import {
   ArrowLeftIcon,
+  ArrowUpIcon,
   BookmarkIcon,
-  ChevronRight,
-  XCircleIcon,
+  ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -238,26 +238,36 @@ export const CraftInput = ({
           </Button> */}
         </div>
       </CraftEmpty>
-      <CraftNotEmpty>
-        <div className="flex flex-col gap-2 justify-between items-end self-stretch">
+      <div className="flex flex-col gap-2 justify-between items-end self-stretch">
+        <CraftEmpty>
           <Button
-            event={{ type: "CLEAR" }}
-            variant="ghost"
-            className="mr-2 text-xs font-semibold px-1 h-10"
-            size="icon"
-          >
-            <XCircleIcon />
-          </Button>
-          {/* <Button
             size="icon"
             variant="outline"
             className="mr-2 self-end"
             disabled
           >
             <ArrowUpIcon className="opacity-60" />
-          </Button> */}
-        </div>
-      </CraftNotEmpty>
+          </Button>
+        </CraftEmpty>
+        <CraftNotEmpty>
+          <Button
+            event={{ type: "SUBMIT", name: "prompt" }}
+            size="icon"
+            variant="outline"
+            className="mr-2 self-end"
+          >
+            <ArrowUpIcon className="opacity-60" />
+          </Button>
+          <Button
+            event={{ type: "CLEAR" }}
+            variant="ghost"
+            className="mr-2 text-xs font-semibold px-1 h-10"
+            size="icon"
+          >
+            CLEAR
+          </Button>
+        </CraftNotEmpty>
+      </div>
       <script
         dangerouslySetInnerHTML={{
           __html: `

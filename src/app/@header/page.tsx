@@ -8,17 +8,18 @@ import {
   HighlightContent,
   HighlightTarget,
 } from "@/components/highlight";
-import { BackButton } from "@/components/input/back-button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/layout/popover";
 import { TypeLogo } from "@/components/logo";
+// import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { getIsMobile, getTimezone } from "@/lib/headers";
-import { ArrowLeftIcon, BookmarkIcon, InfoIcon } from "lucide-react";
-import { CraftCTA, HeaderLinks } from "./components";
+// import { selectCurrentSaveToListPath } from "@/selectors/page-session.selectors";
+import { BookmarkIcon, InfoIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
+import { CraftCTA, HeaderLinks } from "./components";
 
 export default async function Page({}) {
   return (
@@ -67,7 +68,7 @@ export default async function Page({}) {
               </div>
             </div>
             <div className="flex flex-row gap-2 items-center">
-              <div className="hidden crafting:flex flex-col gap-3 items-center">
+              {/* <div className="hidden crafting:flex flex-col gap-3 items-center">
                 <BackButton
                   variant={"outline"}
                   size="icon"
@@ -80,7 +81,7 @@ export default async function Page({}) {
                     <BookmarkIcon />
                   </Button>
                 </Link>
-              </div>
+              </div> */}
               <Highlight active={false}>
                 <HighlightTarget>
                   <CraftCTA initialAutoFocus={!getIsMobile()} />
@@ -90,6 +91,23 @@ export default async function Page({}) {
                   new compoennt
                 </HighlightContent>
               </Highlight>
+              <div className="hidden crafting:flex flex-col gap-3 items-center">
+                <Button
+                  variant={"ghost"}
+                  size="icon"
+                  event={{ type: "CLOSE" }}
+                  className="text-xs text-semibold rounded-full"
+                >
+                  <XCircleIcon />
+                </Button>
+                {/* <PageSessionSelectorLink selector={selectCurrentSaveToListPath}> */}
+                <Link href="/#liked">
+                  <Button variant={"outline"} size="icon">
+                    <BookmarkIcon />
+                  </Button>
+                  {/* </PageSessionSelectorLink> */}
+                </Link>
+              </div>
             </div>
           </div>
         </div>
