@@ -25,12 +25,7 @@ import { DatabaseErrorSchema, handleDatabaseError } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
-import {
-  assert,
-  assertType,
-  sentenceToSlug,
-  slugToSentence,
-} from "@/lib/utils";
+import { assert, assertType, sentenceToSlug, slugToSentence } from "@/lib/utils";
 import { createNewListWithRecipeIds } from "@/queries/createNewListWithRecipeIds";
 import { getNewSharedListName } from "@/queries/getAvailableSharedListName";
 import { SlugSchema } from "@/schema";
