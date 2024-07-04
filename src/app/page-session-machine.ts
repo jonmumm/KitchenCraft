@@ -25,7 +25,12 @@ import { DatabaseErrorSchema, handleDatabaseError } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
-import { assert, assertType, sentenceToSlug, slugToSentence } from "@/lib/utils";
+import {
+  assert,
+  assertType,
+  sentenceToSlug,
+  slugToSentence,
+} from "@/lib/utils";
 import { createNewListWithRecipeIds } from "@/queries/createNewListWithRecipeIds";
 import { getNewSharedListName } from "@/queries/getAvailableSharedListName";
 import { SlugSchema } from "@/schema";
@@ -605,7 +610,9 @@ export const createPageSessionMachine = ({
         assertEvent(event, "VIEW_RESULT");
 
         const resultId = context.resultIdsByPrompt[context.prompt];
-        assert(resultId, "expected resultId for " + context.prompt);
+        if (!resultId) {
+          return false;
+        }
         const results = context.results[resultId];
         const numRecipeIds = results?.suggestedRecipes.length || 0;
 
