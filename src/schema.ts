@@ -1140,6 +1140,7 @@ const FavoriteRecipeSchema = z.object({
 const SaveRecipeEventSchema = z.object({
   type: z.literal("SAVE_RECIPE"),
   recipeId: z.string(),
+  // listSlug: z.string().optional()
 });
 
 const PressButtonEventSchema = z.object({

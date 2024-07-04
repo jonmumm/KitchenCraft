@@ -8,6 +8,7 @@ import { ListenSessionEvent, listenSession } from "@/actors/listenSession";
 import { ListenUserEvent, listenUser } from "@/actors/listenUser";
 import { saveRecipeToListBySlug } from "@/actors/saveRecipeToListBySlug";
 import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
+import { defaultLists } from "@/constants/lists";
 import { CHOOSING_LISTS_FOR_RECIPE_ID_PARAM } from "@/constants/query-params";
 import {
   ListTable,
@@ -24,7 +25,12 @@ import { DatabaseErrorSchema, handleDatabaseError } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
-import { assert, assertType, sentenceToSlug, slugToSentence } from "@/lib/utils";
+import {
+  assert,
+  assertType,
+  sentenceToSlug,
+  slugToSentence,
+} from "@/lib/utils";
 import { createNewListWithRecipeIds } from "@/queries/createNewListWithRecipeIds";
 import { getNewSharedListName } from "@/queries/getAvailableSharedListName";
 import { SlugSchema } from "@/schema";
@@ -64,6 +70,7 @@ import {
 } from "xstate";
 import { z } from "zod";
 import { initializeSessionSocket } from "../actors/initializeSessionSocket";
+import { removeRecipeFromList } from "../actors/removeRecipeFromList";
 import {
   generateChefNameSuggestions,
   generateListNameSuggestions,
@@ -102,7 +109,6 @@ import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { UserSnapshot } from "./user-machine";
 import { buildInput } from "./utils";
-import { defaultLists } from "@/constants/lists";
 
 export const SESSION_ACTOR_ID = "sessionActor";
 export const USER_ACTOR_ID = "userActor";
@@ -262,6 +268,7 @@ export const createPageSessionMachine = ({
       ),
       fetchLists,
       generateChefNameSuggestions,
+      removeRecipeFromList,
       generateListNameSuggestions,
       getUserPreferences,
       initializeSessionSocket,
@@ -593,6 +600,13 @@ export const createPageSessionMachine = ({
       ),
     },
     guards: {
+      isRecipeInList: ({ context, event }) => {
+        assertEvent(event, "TOGGLE_LIST");
+        const recipeId = context.choosingListsForRecipeId;
+        assert(recipeId, "expected recipeId to be set when toggle list");
+        const inList = context.listRecipes[event.id]?.[recipeId];
+        return !!inList;
+      },
       hasUserId: ({ context }) => !!context.userId,
       hasUserSnapshot: ({ context }) => !!context.userSnapshot,
       hasSessionSnapshot: ({ context }) => !!context.sessionSnapshot,
@@ -2932,38 +2946,106 @@ export const createPageSessionMachine = ({
               }),
             ],
           },
-          TOGGLE_LIST: {
-            actions: assign(({ context, event, self }) => {
-              return produce(context, (draft) => {
-                const recipeId = context.choosingListsForRecipeId;
-                assert(
-                  recipeId,
-                  "expected recipeId to eo be set when toggle list"
-                );
-                const draftCurrentList = draft.listsById[event.id];
-                assert(draftCurrentList, `expected craftCurrentList to exist`);
+          TOGGLE_LIST: [
+            {
+              guard: "isRecipeInList",
+              actions: [
+                assign(({ context, event, self }) => {
+                  return produce(context, (draft) => {
+                    const recipeId = context.choosingListsForRecipeId;
+                    assert(
+                      recipeId,
+                      "expected recipeId to eo be set when toggle list"
+                    );
+                    const draftCurrentList = draft.listsById[event.id];
+                    assert(
+                      draftCurrentList,
+                      `expected craftCurrentList to exist`
+                    );
 
-                const inList = context.listRecipes[event.id]?.[recipeId];
-                if (inList) {
-                  const draftListRecipes = draft.listRecipes[event.id];
-                  assert(
-                    draftListRecipes,
-                    "expected draftListRecipes to exist when deleting item from list "
-                  );
-                  delete draftListRecipes[recipeId];
-                  draftCurrentList.count--;
-                } else {
-                  let draftListRecipes = draft.listRecipes[event.id];
-                  if (!draftListRecipes) {
-                    draftListRecipes = {};
-                    draft.listRecipes[event.id] = draftListRecipes;
-                  }
-                  draftListRecipes[recipeId] = true;
-                  draftCurrentList.count++;
-                }
-              });
-            }),
-          },
+                    const draftListRecipes = draft.listRecipes[event.id];
+                    assert(
+                      draftListRecipes,
+                      "expected draftListRecipes to exist when deleting item from list "
+                    );
+                    delete draftListRecipes[recipeId];
+                    draftCurrentList.count--;
+                  });
+                }),
+                spawnChild("removeRecipeFromList", {
+                  input: ({ context, event }) => {
+                    const recipeId = context.choosingListsForRecipeId;
+                    assert(
+                      recipeId,
+                      "expected recipeId to eo be set when toggle list"
+                    );
+                    assertEvent(event, "TOGGLE_LIST");
+                    assert(
+                      context.userId,
+                      "expected userId when saving recipe"
+                    );
+                    return {
+                      userId: context.userId,
+                      recipeId,
+                      listId: event.id,
+                    };
+                  },
+                }),
+              ],
+            },
+            {
+              actions: [
+                assign(({ context, event, self }) => {
+                  return produce(context, (draft) => {
+                    const recipeId = context.choosingListsForRecipeId;
+                    assert(
+                      recipeId,
+                      "expected recipeId to eo be set when toggle list"
+                    );
+                    const draftCurrentList = draft.listsById[event.id];
+                    assert(
+                      draftCurrentList,
+                      `expected craftCurrentList to exist`
+                    );
+
+                    let draftListRecipes = draft.listRecipes[event.id];
+                    if (!draftListRecipes) {
+                      draftListRecipes = {};
+                      draft.listRecipes[event.id] = draftListRecipes;
+                    }
+                    draftListRecipes[recipeId] = true;
+                    draftCurrentList.count++;
+                  });
+                }),
+                spawnChild("saveRecipeToListBySlug", {
+                  input: ({ context, event }) => {
+                    assertEvent(event, "TOGGLE_LIST");
+                    assert(
+                      context.userId,
+                      "expected userId when toggling recipe in list"
+                    );
+
+                    assert(
+                      context.choosingListsForRecipeId,
+                      "expected choosingListsForRecipeId when toggling recipe in list"
+                    );
+
+                    const list = context.listsById[event.id];
+                    assert(
+                      list,
+                      "expected list in listsById when toggling recipe"
+                    );
+
+                    return {
+                      userId: context.userId,
+                      recipeId: context.choosingListsForRecipeId,
+                      listSlug: list.slug,
+                    };
+                  },
+                }),
+              ],
+            },
+          ],
           // UNLIKE_RECIPE: {
           //   actions: assign(({ context, event, self }) => {
           //     return produce(context, (draft) => {
