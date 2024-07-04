@@ -6,7 +6,9 @@ import { fetchLists } from "@/actors/fetchLists";
 import { initializeUserSocket } from "@/actors/initializeUserSocket";
 import { ListenSessionEvent, listenSession } from "@/actors/listenSession";
 import { ListenUserEvent, listenUser } from "@/actors/listenUser";
+import { saveRecipeToListBySlug } from "@/actors/saveRecipeToListBySlug";
 import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
+import { defaultLists } from "@/constants/lists";
 import { CHOOSING_LISTS_FOR_RECIPE_ID_PARAM } from "@/constants/query-params";
 import {
   ListTable,
@@ -23,7 +25,7 @@ import { DatabaseErrorSchema, handleDatabaseError } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
-import { assert, assertType, sentenceToSlug } from "@/lib/utils";
+import { assert, assertType, sentenceToSlug, slugToSentence } from "@/lib/utils";
 import { createNewListWithRecipeIds } from "@/queries/createNewListWithRecipeIds";
 import { getNewSharedListName } from "@/queries/getAvailableSharedListName";
 import { SlugSchema } from "@/schema";
@@ -101,6 +103,11 @@ import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { UserSnapshot } from "./user-machine";
 import { buildInput } from "./utils";
+import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
+import { SuggestListNamesEvent } from "./suggest-list-names-stream";
+import { UserSnapshot } from "./user-machine";
+import { buildInput } from "./utils";
+import { defaultLists } from "@/constants/lists";
 
 export const SESSION_ACTOR_ID = "sessionActor";
 export const USER_ACTOR_ID = "userActor";
@@ -238,6 +245,7 @@ export const createPageSessionMachine = ({
       events: {} as PageSessionEvent,
     },
     actors: {
+      saveRecipeToListBySlug,
       parseTokens: fromPromise(
         async ({
           input,
@@ -2826,6 +2834,25 @@ export const createPageSessionMachine = ({
                       },
                       {} as Record<string, string[]>
                     );
+
+                    // Create a map of existing slugs to IDs
+                    const existingSlugToId = new Map(
+                      Object.entries(draft.listsById).map(([id, list]) => [
+                        list.slug,
+                        id,
+                      ])
+                    );
+
+                    // Remove all existing lists that are in the output
+                    lists.forEach((list) => {
+                      const existingId = existingSlugToId.get(list.slug);
+                      if (existingId) {
+                        delete draft.listsById[existingId];
+                        delete draft.listRecipes[existingId];
+                      }
+                    });
+
+                    // Add all lists from the output
                     lists.forEach((list) => {
                       const recipeIds = groupedListRecipes[list.id] || [];
                       const idSet = recipeIds.reduce<Record<string, true>>(
@@ -2835,6 +2862,7 @@ export const createPageSessionMachine = ({
                         },
                         {}
                       );
+
                       draft.listsById[list.id] = {
                         ...list,
                         public: true,
@@ -2858,34 +2886,54 @@ export const createPageSessionMachine = ({
         initial: "Idle",
         on: {
           SAVE_RECIPE: {
-            actions: assign(({ context, event }) => {
-              return produce(context, (draft) => {
-                const currentSaveToListSlug =
-                  context.sessionSnapshot?.context.currentSaveToListSlug;
-                assert(
-                  currentSaveToListSlug,
-                  "expected currentSaveToListSlug to exist when saving recipe"
-                );
+            actions: [
+              assign(({ context, event }) => {
+                return produce(context, (draft) => {
+                  const currentSaveToListSlug =
+                    context.sessionSnapshot?.context.currentSaveToListSlug;
+                  assert(
+                    currentSaveToListSlug,
+                    "expected currentSaveToListSlug to exist when saving recipe"
+                  );
 
-                const draftCurrentList = Object.values(draft.listsById).find(
-                  (list) => list.slug === currentSaveToListSlug
-                );
-                assert(
-                  draftCurrentList,
-                  `expected  to exist for slug ${currentSaveToListSlug}`
-                );
+                  const draftCurrentList = Object.values(draft.listsById).find(
+                    (list) => list.slug === currentSaveToListSlug
+                  );
+                  assert(
+                    draftCurrentList,
+                    `expected  to exist for slug ${currentSaveToListSlug}`
+                  );
 
-                const listId = draftCurrentList.id;
-                let draftListRecipes = draft.listRecipes[listId];
-                if (!draftListRecipes) {
-                  draftListRecipes = {};
-                  draft.listRecipes[listId] = draftListRecipes;
-                }
+                  const listId = draftCurrentList.id;
+                  let draftListRecipes = draft.listRecipes[listId];
+                  if (!draftListRecipes) {
+                    draftListRecipes = {};
+                    draft.listRecipes[listId] = draftListRecipes;
+                  }
 
-                draftListRecipes[event.recipeId] = true;
-                draftCurrentList.count++;
-              });
-            }),
+                  draftListRecipes[event.recipeId] = true;
+                  draftCurrentList.count++;
+                });
+              }),
+              spawnChild("saveRecipeToListBySlug", {
+                input: ({ context, event }) => {
+                  assertEvent(event, "SAVE_RECIPE");
+                  assert(context.userId, "expected userId when saving recipe");
+                  const listSlug =
+                    context.sessionSnapshot?.context.currentSaveToListSlug;
+                  assert(
+                    listSlug,
+                    "expected currentSaveToListSlug when aving recipe"
+                  );
+
+                  return {
+                    userId: context.userId,
+                    recipeId: event.recipeId,
+                    listSlug,
+                  };
+                },
+              }),
+            ],
           },
           TOGGLE_LIST: {
             actions: assign(({ context, event, self }) => {
@@ -3372,54 +3420,67 @@ function getSortedUnstartedRecipes(
 }
 
 const initializeListsById = () => {
-  const selectedId = randomUUID();
-  const makeLaterId = randomUUID();
-  const favoritesId = randomUUID();
-  const likedId = randomUUID();
-  const commented = randomUUID();
+  const createdAt = new Date();
 
-  return {
-    [likedId]: {
-      id: likedId,
-      name: "Liked",
-      icon: "👍",
-      slug: "liked",
-      created: false,
-      public: false,
-      count: 0,
-      createdAt: new Date(),
+  return defaultLists.reduce(
+    (obj, item) => {
+      const id = randomUUID();
+      obj[id] = {
+        id,
+        createdAt,
+        created: false,
+        count: 0,
+        name: slugToSentence(item.slug),
+        ...item,
+      };
+
+      return obj;
     },
-    [makeLaterId]: {
-      id: makeLaterId,
-      name: "Make Later",
-      icon: "⏰",
-      slug: "make-later",
-      public: false,
-      created: false,
-      count: 0,
-      createdAt: new Date(),
-    },
-    [favoritesId]: {
-      id: favoritesId,
-      name: "Favorites",
-      icon: "⭐️",
-      slug: "favorites",
-      public: true,
-      created: false,
-      count: 0,
-      createdAt: new Date(),
-    },
-    [commented]: {
-      id: commented,
-      name: "Commented",
-      icon: "💬",
-      public: true,
-      slug: "commented",
-      created: false,
-      count: 0,
-      createdAt: new Date(),
-    },
-  } satisfies PageSessionContext["listsById"];
+    {} as Record<string, List>
+  );
+
+  // return {
+  //   [likedId]: {
+  //     id: likedId,
+  //     name: "Liked",
+  //     icon: "👍",
+  //     slug: "liked",
+  //     created: false,
+  //     public: false,
+  //     count: 0,
+  //     createdAt: new Date(),
+  //   },
+  //   [makeLaterId]: {
+  //     id: makeLaterId,
+  //     name: "Make Later",
+  //     icon: "⏰",
+  //     slug: "make-later",
+  //     public: false,
+  //     created: false,
+  //     count: 0,
+  //     createdAt: new Date(),
+  //   },
+  //   [favoritesId]: {
+  //     id: favoritesId,
+  //     name: "Favorites",
+  //     icon: "⭐️",
+  //     slug: "favorites",
+  //     public: true,
+  //     created: false,
+  //     count: 0,
+  //     createdAt: new Date(),
+  //   },
+  //   [commented]: {
+  //     id: commented,
+  //     name: "Commented",
+  //     icon: "💬",
+  //     public: true,
+  //     slug: "commented",
+  //     created: false,
+  //     count: 0,
+  //     createdAt: new Date(),
+  //   },
+  // } satisfies PageSessionContext["listsById"];
 };
 
 const getCurrentResultId = (context: PageSessionContext) => {
