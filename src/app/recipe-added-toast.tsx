@@ -29,7 +29,7 @@ export const RecipeAddedToast = ({
 
   return (
     <Link
-    href={`?#${listSlug}`}
+    href={`/#${listSlug}`}
     className="flex flex-row items-center gap-2 w-full"
   >
     <span className="text-xl flex-shrink-0">

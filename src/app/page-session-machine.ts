@@ -8,7 +8,6 @@ import { ListenSessionEvent, listenSession } from "@/actors/listenSession";
 import { ListenUserEvent, listenUser } from "@/actors/listenUser";
 import { saveRecipeToListBySlug } from "@/actors/saveRecipeToListBySlug";
 import { LIST_SLUG_INPUT_KEY } from "@/constants/inputs";
-import { defaultLists } from "@/constants/lists";
 import { CHOOSING_LISTS_FOR_RECIPE_ID_PARAM } from "@/constants/query-params";
 import {
   ListTable,
@@ -99,10 +98,6 @@ import {
 } from "./recipe-ideas-metadata.stream";
 import { SuggestRecipeProductsEvent } from "./recipe/[slug]/products/recipe-products-stream";
 import { SessionSnapshot } from "./session-store.types";
-import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
-import { SuggestListNamesEvent } from "./suggest-list-names-stream";
-import { UserSnapshot } from "./user-machine";
-import { buildInput } from "./utils";
 import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { UserSnapshot } from "./user-machine";
