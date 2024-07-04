@@ -24,7 +24,7 @@ export const SaveButton = ({
   if (!id) {
     return (
       <Button className={className} variant={variant || "ghost"} disabled>
-        {showText && <>Save</>}
+        {showText && <>Save{isSaved && <>d</>}</>}
         <Icon className={showText ? "ml-1" : ""} />
       </Button>
     );
@@ -40,7 +40,7 @@ export const SaveButton = ({
           : { type: "CHOOSE_LISTS", recipeId: id }
       }
     >
-      {showText && <>Save</>}
+      {showText && <>Save{isSaved && <>d</>}</>}
       <Icon className={cn(showText ? "ml-1" : "")} />
     </Button>
   );
