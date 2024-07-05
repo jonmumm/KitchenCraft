@@ -24,9 +24,10 @@ export const selectRecipes = createSelector(
   (context) => context.recipes
 );
 
+// todo shift this to app selector from search params
 export const selectChoosingListsForRecipeId = createSelector(
   selectPageSessionContext,
-  ({ recipeIdsToAdd: choosingListsForRecipeId }) => choosingListsForRecipeId
+  ({ recipeIdsToAdd }) => recipeIdsToAdd[0]
 );
 
 export const selectSessionSnapshot = createSelector(

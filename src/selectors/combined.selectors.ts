@@ -10,6 +10,18 @@ import {
   selectProfileName
 } from "./page-session.selectors";
 
+
+// export const createIsChoosingRecipeInListByIdSelector = (id?: string) => (appSnapshot: AppShapshot, pageSessionSnapshot: PageSessionSnapshot) =>
+//   se
+//   // createSelector(
+//   //   selectChoosingListsForRecipeId,
+//   //   selectListRecipes,
+//   //   (recipeId, listRecipes) => {
+//   //     const inList = !!id && !!recipeId && !!listRecipes[id]?.[recipeId];
+//   //     return !!inList;
+//   //   }
+//   // );
+
 export const createSuggestedRecipeAtIndexSelector =
   (index: number) =>
   (appSnapshot: AppSnapshot, { context }: PageSessionSnapshot) => {
