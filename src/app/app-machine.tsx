@@ -879,10 +879,7 @@ export const createAppMachine = ({
                   event.listSlug ||
                   store.get().context.sessionSnapshot?.context
                     .currentSaveToListSlug;
-                assert(
-                  listSlug,
-                  "expected listSlug when saving recipe"
-                );
+                assert(listSlug, "expected listSlug when saving recipe");
                 const toastId = toast(
                   <RecipeAddedToast
                     addedRecipeId={event.recipeId}
@@ -1178,7 +1175,8 @@ export const createAppMachine = ({
                         },
                         assign(({ context, event }) => {
                           return produce(context, (draft) => {
-                            const recipeId = store.get().context.recipeIdsToAdd;
+                            const recipeId =
+                              store.get().context.recipeIdsToAdd[0];
                             assert(
                               recipeId,
                               "expected recipeId to be set when transitioning"
