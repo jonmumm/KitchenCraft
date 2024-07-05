@@ -79,7 +79,7 @@ export const NewVerificatoknTokenSchema = createInsertSchema(SessionsTable);
 export const RecipesTable = pgTable(
   "recipe",
   {
-    id: uuid("id").notNull().defaultRandom(),
+    id: uuid("id").notNull().default(sql`uuid_generate_v7()`),
     versionId: integer("version_id").notNull(),
     slug: text("slug").notNull().unique(),
     name: text("name").notNull(),

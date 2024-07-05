@@ -49,7 +49,7 @@ import {
   WithCaller,
 } from "@/types";
 import { createClient } from "@vercel/postgres";
-import { randomUUID } from "crypto";
+import { uuidv7 as randomUUID } from "uuidv7";
 import { and, eq, ilike, inArray, max, sql as sqlFN } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 import { Operation, compare } from "fast-json-patch";
