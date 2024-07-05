@@ -268,6 +268,7 @@ export const createSessionMachine = ({
         guard: ({ context, event }) => !!event.listSlug,
         actions: assign({
           currentSaveToListSlug: ({ context, event }) => {
+            assert(event.listSlug, "expected listSlug");
             return event.listSlug;
           },
         }),
