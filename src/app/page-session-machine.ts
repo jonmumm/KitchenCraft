@@ -153,7 +153,7 @@ type List = {
 export type PageSessionContext = {
   userId?: string;
   sessionId?: string;
-  choosingListsForRecipeId?: string;
+  recipeIdsToAdd: string[];
   onboardingInput: {
     mealType?: string | undefined;
   };
@@ -602,7 +602,7 @@ export const createPageSessionMachine = ({
     guards: {
       isRecipeInList: ({ context, event }) => {
         assertEvent(event, "TOGGLE_LIST");
-        const recipeId = context.choosingListsForRecipeId;
+        const recipeId = context.recipeIdsToAdd[0];
         assert(recipeId, "expected recipeId to be set when toggle list");
         const inList = context.listRecipes[event.id]?.[recipeId];
         return !!inList;
@@ -776,6 +776,7 @@ export const createPageSessionMachine = ({
         onboardingInput: {},
         currentListRecipeIndex: 0,
         pageSessionId: input.id,
+        recipeIdsToAdd: [],
         history: [input.url],
         uniqueId: input.initialCaller.id,
         modifiedPreferences: {},
@@ -2900,22 +2901,22 @@ export const createPageSessionMachine = ({
             actions: [
               assign(({ context, event }) => {
                 return produce(context, (draft) => {
-                  const currentSaveToListSlug =
+                  const listSlug = event.listSlug ||
                     context.sessionSnapshot?.context.currentSaveToListSlug;
                   assert(
-                    currentSaveToListSlug,
-                    "expected currentSaveToListSlug to exist when saving recipe"
+                    listSlug,
+                    "expected listSlug to exist when saving recipe"
                   );
 
-                  const draftCurrentList = Object.values(draft.listsById).find(
-                    (list) => list.slug === currentSaveToListSlug
+                  const draftList = Object.values(draft.listsById).find(
+                    (list) => list.slug === listSlug
                   );
                   assert(
-                    draftCurrentList,
-                    `expected  to exist for slug ${currentSaveToListSlug}`
+                    draftList,
+                    `expected  to exist for slug ${listSlug}`
                   );
 
-                  const listId = draftCurrentList.id;
+                  const listId = draftList.id;
                   let draftListRecipes = draft.listRecipes[listId];
                   if (!draftListRecipes) {
                     draftListRecipes = {};
@@ -2923,18 +2924,18 @@ export const createPageSessionMachine = ({
                   }
 
                   draftListRecipes[event.recipeId] = true;
-                  draftCurrentList.count++;
+                  draftList.count++;
                 });
               }),
               spawnChild("saveRecipeToListBySlug", {
                 input: ({ context, event }) => {
                   assertEvent(event, "SAVE_RECIPE");
                   assert(context.userId, "expected userId when saving recipe");
-                  const listSlug =
+                  const listSlug = event.listSlug ||
                     context.sessionSnapshot?.context.currentSaveToListSlug;
                   assert(
                     listSlug,
-                    "expected currentSaveToListSlug when aving recipe"
+                    "expected listSlug when saving recipe"
                   );
 
                   return {
@@ -2952,7 +2953,7 @@ export const createPageSessionMachine = ({
               actions: [
                 assign(({ context, event, self }) => {
                   return produce(context, (draft) => {
-                    const recipeId = context.choosingListsForRecipeId;
+                    const recipeId = context.recipeIdsToAdd[0];
                     assert(
                       recipeId,
                       "expected recipeId to eo be set when toggle list"
@@ -2974,7 +2975,7 @@ export const createPageSessionMachine = ({
                 }),
                 spawnChild("removeRecipeFromList", {
                   input: ({ context, event }) => {
-                    const recipeId = context.choosingListsForRecipeId;
+                    const recipeId = context.recipeIdsToAdd[0];
                     assert(
                       recipeId,
                       "expected recipeId to eo be set when toggle list"
@@ -2997,7 +2998,7 @@ export const createPageSessionMachine = ({
               actions: [
                 assign(({ context, event, self }) => {
                   return produce(context, (draft) => {
-                    const recipeId = context.choosingListsForRecipeId;
+                    const recipeId = context.recipeIdsToAdd[0];
                     assert(
                       recipeId,
                       "expected recipeId to eo be set when toggle list"
@@ -3025,9 +3026,10 @@ export const createPageSessionMachine = ({
                       "expected userId when toggling recipe in list"
                     );
 
+                    const recipeId = context.recipeIdsToAdd[0];
                     assert(
-                      context.choosingListsForRecipeId,
-                      "expected choosingListsForRecipeId when toggling recipe in list"
+                      recipeId,
+                      "expected recipeId when toggling recipe in list"
                     );
 
                     const list = context.listsById[event.id];
@@ -3038,7 +3040,7 @@ export const createPageSessionMachine = ({
 
                     return {
                       userId: context.userId,
-                      recipeId: context.choosingListsForRecipeId,
+                      recipeId,
                       listSlug: list.slug,
                     };
                   },
@@ -3118,7 +3120,21 @@ export const createPageSessionMachine = ({
         states: {
           False: {
             on: {
-              CREATE_LIST: "True",
+              CREATE_LIST: [
+                {
+                  target: "True",
+                  guard: ({ event }) => !!event.recipeId,
+                  actions: assign({
+                    recipeIdsToAdd: ({ event }) => {
+                      assert(event.recipeId, "expected recipeId in CREATE_LIST");
+                      return [event.recipeId]
+                    }
+                  })
+                },
+                {
+                  target: "True"
+                }
+              ],
             },
           },
           True: {
@@ -3151,10 +3167,10 @@ export const createPageSessionMachine = ({
                 const listSlug = SlugSchema.parse(context.listSlug);
                 assert("caller" in event, "expected caller in event");
 
-                const { choosingListsForRecipeId } = context;
-                const recipeIdsToAdd = choosingListsForRecipeId
-                  ? [choosingListsForRecipeId]
-                  : [];
+                const { recipeIdsToAdd } = context;
+                // const recipeIdsToAdd = choosingListsForRecipeId
+                //   ? [choosingListsForRecipeId]
+                //   : [];
 
                 return {
                   listSlug,
@@ -3301,16 +3317,36 @@ export const createPageSessionMachine = ({
       },
 
       ListChoosing: {
-        on: {
-          UPDATE_SEARCH_PARAMS: {
-            actions: assign({
-              choosingListsForRecipeId: ({ event }) => {
-                return (
-                  event.searchParams[CHOOSING_LISTS_FOR_RECIPE_ID_PARAM] ||
-                  undefined
-                );
+        initial: "False",
+        states: {
+          False: {
+            on: {
+              UPDATE_SEARCH_PARAMS: {
+                target: "True",
+                guard: ({ event }) =>
+                  !!event.searchParams[CHOOSING_LISTS_FOR_RECIPE_ID_PARAM],
+                actions: assign({
+                  recipeIdsToAdd: ({ event }) => {
+                    const recipeId =
+                      event.searchParams[CHOOSING_LISTS_FOR_RECIPE_ID_PARAM];
+                    assert(recipeId, "expected recipeId when choosing list");
+                    return [recipeId];
+                  },
+                }),
               },
-            }),
+            },
+          },
+          True: {
+            on: {
+              UPDATE_SEARCH_PARAMS: {
+                target: "False",
+                guard: ({ event }) =>
+                  !event.searchParams[CHOOSING_LISTS_FOR_RECIPE_ID_PARAM],
+                actions: assign({
+                  recipeIdsToAdd: []
+                }),
+              },
+            },
           },
         },
       },

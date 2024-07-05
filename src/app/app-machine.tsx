@@ -876,11 +876,12 @@ export const createAppMachine = ({
             actions: assign(({ context, event }) => {
               return produce(context, (draft) => {
                 const listSlug =
+                  event.listSlug ||
                   store.get().context.sessionSnapshot?.context
                     .currentSaveToListSlug;
                 assert(
                   listSlug,
-                  "expected currentSaveToListSlug when saving recipe"
+                  "expected listSlug when saving recipe"
                 );
                 const toastId = toast(
                   <RecipeAddedToast
@@ -1127,10 +1128,17 @@ export const createAppMachine = ({
                     target: "True",
                     actions: {
                       type: "pushQueryParameters",
-                      params() {
+                      params({ event }) {
+                        // const recipeParams = event.recipeId
+                        //   ? {
+                        //       [CHOOSING_LISTS_FOR_RECIPE_ID_PARAM]:
+                        //         event.recipeId,
+                        //     }
+                        //   : {};
                         return {
                           paramSet: {
                             [CREATING_LIST_PARAM]: "1",
+                            // ...recipeParams,
                           },
                         };
                       },
@@ -1170,8 +1178,7 @@ export const createAppMachine = ({
                         },
                         assign(({ context, event }) => {
                           return produce(context, (draft) => {
-                            const recipeId =
-                              store.get().context.choosingListsForRecipeId;
+                            const recipeId = store.get().context.recipeIdsToAdd;
                             assert(
                               recipeId,
                               "expected recipeId to be set when transitioning"

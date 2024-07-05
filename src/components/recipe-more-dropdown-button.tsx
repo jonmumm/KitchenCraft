@@ -12,6 +12,7 @@ import {
 import { createRecipeLinkSelector } from "@/selectors/page-session.selectors";
 import { MoreVerticalIcon } from "lucide-react";
 import { useMemo } from "react";
+import EventTrigger from "./input/event-trigger";
 import { PageSessionSelectorLink } from "./util/page-session-selector-link";
 
 export const RecipeMoreDropdownButton = ({
@@ -45,7 +46,7 @@ export const RecipeMoreDropdownButton = ({
             {/* </EventTrigger> */}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-muted-foreground">
+          {/* <DropdownMenuItem className="text-muted-foreground">
             <div>
               <span role="img" aria-label="add-to-favorites" className="mr-2">
                 🖨️
@@ -53,8 +54,8 @@ export const RecipeMoreDropdownButton = ({
               <span className="text-foreground font-semibold">Print </span>
               <span className="text-foreground-muted">this Recipe</span>
             </div>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          </DropdownMenuItem> */}
+          {/* <DropdownMenuSeparator /> */}
           {/* <DropdownMenuItem className="text-muted-foreground">
             <div>
               <span role="img" aria-label="modify-recipe" className="mr-2">
@@ -65,27 +66,44 @@ export const RecipeMoreDropdownButton = ({
             </div>
           </DropdownMenuItem>
           <DropdownMenuSeparator /> */}
-          <DropdownMenuItem className="text-muted-foreground">
-            <div>
-              <span role="img" aria-label="add-to-new-list" className="mr-2">
-                #️⃣
-              </span>
-              <span className="text-muted-foreground">Save to </span>{" "}
-              <span className="text-foreground font-semibold">New List</span>
-            </div>
-          </DropdownMenuItem>
+          <EventTrigger event={{ type: "CREATE_LIST", recipeId: id }} asChild>
+            <DropdownMenuItem className="text-muted-foreground">
+              <div>
+                <span role="img" aria-label="add-to-new-list" className="mr-2">
+                  #️⃣
+                </span>
+                <span className="text-muted-foreground">Save to </span>{" "}
+                <span className="text-foreground font-semibold">New List</span>
+              </div>
+            </DropdownMenuItem>
+          </EventTrigger>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-muted-foreground">
-            <div>
-              {/* <EventTrigger event={{type: "ADD_TO_LIST"}}>  */}
-              <span role="img" aria-label="add-to-make-later" className="mr-2">
-                ⏰
-              </span>
-              <span className="text-muted-foreground">Save to </span>
-              <span className="text-foreground font-semibold">Make Later</span>
-            </div>
-            {/* </EventTrigger> */}
-          </DropdownMenuItem>
+          <EventTrigger
+            event={
+              id
+                ? { type: "SAVE_RECIPE", recipeId: id, listSlug: "make-later" }
+                : undefined
+            }
+            asChild
+          >
+            <DropdownMenuItem className="text-muted-foreground">
+              <div>
+                {/* <EventTrigger event={{type: "ADD_TO_LIST"}}>  */}
+                <span
+                  role="img"
+                  aria-label="add-to-make-later"
+                  className="mr-2"
+                >
+                  ⏰
+                </span>
+                <span className="text-muted-foreground">Save to </span>
+                <span className="text-foreground font-semibold">
+                  Make Later
+                </span>
+              </div>
+              {/* </EventTrigger> */}
+            </DropdownMenuItem>
+          </EventTrigger>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

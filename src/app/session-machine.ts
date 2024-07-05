@@ -264,6 +264,14 @@ export const createSessionMachine = ({
       };
     },
     on: {
+      SAVE_RECIPE: {
+        guard: ({ context, event }) => !!event.listSlug,
+        actions: assign({
+          currentSaveToListSlug: ({ context, event }) => {
+            return event.listSlug;
+          },
+        }),
+      },
       LIST_CREATED: {
         actions: assign({
           // todo expire this after a heartbeat...

@@ -26,7 +26,7 @@ export const selectRecipes = createSelector(
 
 export const selectChoosingListsForRecipeId = createSelector(
   selectPageSessionContext,
-  ({ choosingListsForRecipeId }) => choosingListsForRecipeId
+  ({ recipeIdsToAdd: choosingListsForRecipeId }) => choosingListsForRecipeId
 );
 
 export const selectSessionSnapshot = createSelector(

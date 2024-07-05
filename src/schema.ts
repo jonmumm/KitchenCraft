@@ -1052,6 +1052,7 @@ const UpdateUserPreferenceEventSchema = z.object({
 
 const CreateListEventSchema = z.object({
   type: z.literal("CREATE_LIST"),
+  recipeId: z.string().optional(),
 });
 
 const ListCreatedEventSchema = z.object({
@@ -1140,7 +1141,7 @@ const FavoriteRecipeSchema = z.object({
 const SaveRecipeEventSchema = z.object({
   type: z.literal("SAVE_RECIPE"),
   recipeId: z.string(),
-  // listSlug: z.string().optional()
+  listSlug: z.string().optional()
 });
 
 const PressButtonEventSchema = z.object({
@@ -1179,8 +1180,8 @@ const DismissHintEventSchema = z.object({
 
 const ViewResultEventSchema = z.object({
   type: z.literal("VIEW_RESULT"),
-  index: z.number()
-})
+  index: z.number(),
+});
 
 export const AppEventSchema = z.discriminatedUnion("type", [
   ViewResultEventSchema,
