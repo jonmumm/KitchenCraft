@@ -578,7 +578,7 @@ export const EnterChefNameForm = () => {
   useEffect(() => {
     return form.watch((data) => {
       const value = data.chefname || "";
-      send({ type: "CHANGE", name: "chefname", value });
+      send({ type: "CHANGE", name: "profileName", value });
     }).unsubscribe;
   }, [form.watch, send]);
 

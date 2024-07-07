@@ -7,19 +7,17 @@ import { matchesState } from "xstate";
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
-  // to get session snapshot here and then redirect accordingly....
-
   const userActorClient = await getUserActorClient();
   const userId = await getUserId();
   const { snapshot } = await userActorClient.get(userId, {});
   assert(snapshot, "expected snapshot");
 
-  if (matchesState({ Onboarding: "Experience" }, snapshot.value)) {
-    return redirect("/quiz/experience");
+  if (matchesState({ Onboarding: "Goals" }, snapshot.value)) {
+    return redirect("/quiz/goals");
   } else if (matchesState({ Onboarding: "Preferences" }, snapshot.value)) {
     return redirect("/quiz/preferences");
-  } else if (matchesState({ Onboarding: "Summary" }, snapshot.value)) {
-    return redirect("/quiz/summary");
+  } else if (matchesState({ Onboarding: "Interests" }, snapshot.value)) {
+    return redirect("/quiz/interests");
   } else {
     return redirect("/quiz/intro");
   }

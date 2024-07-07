@@ -8,6 +8,7 @@ import { AnyStateMachine, SnapshotFrom, StateMachine } from "xstate";
 import type { z } from "zod";
 import { FeedTopicsEvent } from "./app/feed-topics.stream";
 import { HomepageCategoriesEvent } from "./app/homepage-categories.stream";
+import { PreferenceAnswer, QuestionId } from "./app/quiz/preferences/constants";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
 import { SuggestIngredientsEvent } from "./app/suggest-ingredients.stream";
 import { SuggestPlaceholderEvent } from "./app/suggest-placeholder.stream";
@@ -18,6 +19,7 @@ import {
   WelcomeMessageEvent,
   WelcomeMessageOutput,
 } from "./app/welcome-message.stream";
+import { INPUT_KEYS } from "./constants/inputs";
 import ingredients from "./data/ingredients.json";
 import {
   AffiliateProductSchema,
@@ -439,8 +441,11 @@ type FeedWithRecipeIds = Omit<FeedItem, "recipes"> & {
 
 type FeedItemWithIds = { id: string } & DeepPartial<FeedWithRecipeIds>;
 
+export type PreferenceState = Partial<Record<QuestionId, PreferenceAnswer>>;
+
 export type UserContext = {
   id: string;
+  preferences: PreferenceState;
   experienceLevel?: ExperienceLevel;
   groceryStores?: string;
   shoppingFrequency?: string;
@@ -449,7 +454,7 @@ export type UserContext = {
   profileName: string;
   email?: string;
   diet: DietSettings;
-  preferences: TasteSettings;
+  // preferences: TasteSettings;
   preferenceQuestionResults: Record<number, number>;
   suggestedProfileNames: string[];
   previousSuggestedProfileNames: string[];
@@ -596,3 +601,5 @@ export type ExtraAppProps = {
 export type RecipeIdeasMetadataOutput = z.infer<
   typeof RecipeIdeasMetadataOutputSchema
 >;
+
+export type InputKey = (typeof INPUT_KEYS)[number];

@@ -34,6 +34,7 @@ import {
 } from "./suggest-tags.stream";
 import { SuggestTokensStream } from "./suggest-tokens.stream";
 import { WelcomeMessageStream } from "./welcome-message.stream";
+import { SIGN_IN_CODE_INPUT_KEY } from "@/constants/inputs";
 
 const InputSchema = z.object({
   id: z.string(),
@@ -145,17 +146,17 @@ export const createSessionMachine = ({
           };
         }) => new FeedTopicsStream().getObservable(input)
       ),
-      generateWelcomeMessage: fromEventObservable(
-        ({
-          input,
-        }: {
-          input: {
-            profileName: string;
-            personalizationContext: string;
-            preferences: Record<number, number>;
-          };
-        }) => new WelcomeMessageStream().getObservable(input)
-      ),
+      // generateWelcomeMessage: fromEventObservable(
+      //   ({
+      //     input,
+      //   }: {
+      //     input: {
+      //       profileName: string;
+      //       personalizationContext: string;
+      //       preferences: Record<number, number>;
+      //     };
+      //   }) => new WelcomeMessageStream().getObservable(input)
+      // ),
       generateHomepageFeed: fromEventObservable(
         ({
           input,
@@ -281,11 +282,6 @@ export const createSessionMachine = ({
           },
         }),
       },
-      CHANGE: [
-        {
-          guard: ({ event }) => event.name === "shoppingFrequency",
-        },
-      ],
       EXPERIENCE_CHANGE: {
         actions: assign({
           experienceLevel: ({ event }) => event.experience,
@@ -456,7 +452,7 @@ export const createSessionMachine = ({
                     on: {
                       SUBMIT: "Verifying",
                       CHANGE: {
-                        guard: ({ event }) => event.name === "signInCode",
+                        guard: ({ event }) => event.name === SIGN_IN_CODE_INPUT_KEY,
                         actions: assign({
                           signInCode: ({ event }) => event.value,
                         }),
@@ -488,7 +484,7 @@ export const createSessionMachine = ({
                     on: {
                       CHANGE: {
                         target: "Inputting",
-                        guard: ({ event }) => event.name === "signInCode",
+                        guard: ({ event }) => event.name === SIGN_IN_CODE_INPUT_KEY,
                         actions: assign({
                           signInCode: ({ event }) => event.value,
                         }),

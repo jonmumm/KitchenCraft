@@ -3,7 +3,7 @@ import { StructuredObjectStream } from "@/lib/structured-object-stream";
 import { FeedItemSchema } from "@/schema";
 import { DeepPartial } from "ai";
 import { z, ZodSchema } from "zod";
-import { getPreferences } from "./quiz/preferences/constants";
+// import { getPreferences } from "./quiz/preferences/constants";
 
 export const HomepageCategoriesOutputSchema = z.object({
   items: z
@@ -65,7 +65,6 @@ export class HomepageCategoriesStream extends StructuredObjectStream<
 const HOMEPAGE_CATEGORY_USER_TEMPLATE = (input: HomepageCategoriesInput) => `
 ${input.personalizationContext}
 ${input.timeContext}
-${getPreferences(input.preferences)}
 `;
 
 const HOMEPAGE_CATEGORIES_SYSTEM_TEMPLATE = (

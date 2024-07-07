@@ -1,8 +1,6 @@
 import { StreamObservableEvent } from "@/lib/stream-to-observable";
 import { StructuredObjectStream } from "@/lib/structured-object-stream";
-import { assert } from "@/lib/utils";
 import { z } from "zod";
-import { PREFERENCE_QUESTIONS } from "./quiz/preferences/constants";
 
 // PREFERENCE_QUESTIONS -- list of questions
 
@@ -51,20 +49,18 @@ export class WelcomeMessageStream extends StructuredObjectStream<
   }
 
   protected async getUserMessage(input: WelcomeMessageInput): Promise<string> {
-    const preferencesDescription = PREFERENCE_QUESTIONS.map(
-      (question, index) => {
-        const preference = input.preferences[index];
-        assert(preference !== undefined, "expected preference at index");
-        const selectedOption = question.options[preference];
-        return `${question.question} ${selectedOption}`;
-      }
-    ).join("\n");
+    // const preferencesDescription = PREFERENCE_QUESTIONS.map(
+    //   (question, index) => {
+    //     const preference = input.preferences[index];
+    //     assert(preference !== undefined, "expected preference at index");
+    //     const selectedOption = question.options[preference];
+    //     return `${question.question} ${selectedOption}`;
+    //   }
+    // ).join("\n");
 
     return `
 Profile Name: ${input.profileName}
 Personalization Context: ${input.personalizationContext}
-Preferences:
-${preferencesDescription}
     `;
   }
 

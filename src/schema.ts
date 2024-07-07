@@ -9,6 +9,7 @@ import {
   DISH_TYPES,
   TECHNIQUES,
 } from "./constants";
+import { INPUT_KEYS } from "./constants/inputs";
 import {
   AffiliateProductSchema,
   AmazonAffiliateProductSchema,
@@ -540,9 +541,8 @@ const BlurEventSchema = z.object({
 
 const ChangeEventSchema = z.object({
   type: z.literal("CHANGE"),
-  name: z.string(),
+  name: z.enum(INPUT_KEYS),
   value: z.string(),
-  // prevValue: z.string().optional(),
 });
 
 const SetInputEventSchema = z.object({
@@ -1122,12 +1122,6 @@ const ShareCurrentListEventSchema = z.object({
   type: z.literal("SHARE_CURRENT_LIST"),
 });
 
-const SelectQuestionOptionEventSchema = z.object({
-  type: z.literal("SELECT_QUESTION_OPTION"),
-  questionIndex: z.number(),
-  optionIndex: z.number(),
-});
-
 const SelectTopicEventSchema = z.object({
   type: z.literal("SELECT_TOPIC"),
   topic: z.string(),
@@ -1141,7 +1135,7 @@ const FavoriteRecipeSchema = z.object({
 const SaveRecipeEventSchema = z.object({
   type: z.literal("SAVE_RECIPE"),
   recipeId: z.string(),
-  listSlug: z.string().optional()
+  listSlug: z.string().optional(),
 });
 
 const PressButtonEventSchema = z.object({
@@ -1196,7 +1190,6 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   FavoriteRecipeSchema,
   ListCreatedEventSchema,
   SelectTopicEventSchema,
-  SelectQuestionOptionEventSchema,
   RefreshFeedEventSchema,
   LoadMoreEventSchema,
   ShareSelectedEventSchema,

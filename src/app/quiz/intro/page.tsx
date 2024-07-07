@@ -12,12 +12,12 @@ const Intro: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    router.prefetch("/quiz/experience");
+    router.prefetch("/quiz/goals");
   }, [router]);
 
   const handleStart = useCallback(() => {
     setLoading(true);
-    router.push("/quiz/experience");
+    router.push("/quiz/goals");
   }, [router]);
 
   return (

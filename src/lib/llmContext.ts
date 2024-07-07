@@ -10,7 +10,7 @@ type PersonalizationOptions = Pick<
   | "experienceLevel"
   | "equipment"
   | "diet"
-  | "preferences"
+  // | "preferences"
   | "country"
   | "region"
   | "city"

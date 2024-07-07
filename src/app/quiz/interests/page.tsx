@@ -58,7 +58,7 @@ export default function Results() {
     useState(false);
 
   const isSelectingTopics = useUserMatchesState({
-    Onboarding: { Summary: "Topics" },
+    Onboarding: { Interests: "Topics" },
   });
   const isEmailAddressInUse = useUserMatchesState({
     Email: { Availability: "Unavailable" },
@@ -69,9 +69,9 @@ export default function Results() {
   const isWelcomeEmailSent = useUserMatchesState({
     Email: { WelcomeEmail: "Sent" },
   });
-  const isInputtingProfileName = useUserMatchesState({
-    Onboarding: { Summary: "ProfileName" },
-  });
+  // const isInputtingProfileName = useUserMatchesState({
+  //   Onboarding: { Summary: "ProfileName" },
+  // });
 
   const [isEmailInputComplete] = useState(false);
   const emailForm = useForm({
@@ -112,9 +112,9 @@ export default function Results() {
     send({ type: "SUBMIT", name: "email" });
   }, [send]);
 
-  const onSubmitUsername = useCallback(async () => {
-    send({ type: "SUBMIT", name: "profileName" });
-  }, [send]);
+  // const onSubmitUsername = useCallback(async () => {
+  //   send({ type: "SUBMIT", name: "profileName" });
+  // }, [send]);
 
   useEventHandler("SELECT_VALUE", (event) => {
     if (event.name === "suggested_profile_name") {
@@ -273,7 +273,7 @@ export default function Results() {
           </Delay>
         </>
       )}
-      {isInputtingProfileName && (
+      {/* {isInputtingProfileName && (
         <Delay delay={0}>
           <Card>
             <CardHeader>
@@ -366,8 +366,8 @@ export default function Results() {
             )}
           </Card>
         </Delay>
-      )}
-      {isComplete && (
+      )} */}
+      {/* {isComplete && (
         <Delay delay={0}>
           <div className="flex flex-col justify-center md:mx-auto rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 w-full p-4">
             <h2 className="text-2xl font-semibold leading-8 text-white">
@@ -384,7 +384,7 @@ export default function Results() {
             </Delay>
           </div>
         </Delay>
-      )}
+      )} */}
     </div>
   );
 }

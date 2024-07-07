@@ -1,4 +1,5 @@
 import { PageSessionSnapshot } from "@/app/page-session-machine";
+import { QuestionId } from "@/app/quiz/preferences/constants";
 import { sentenceToSlug } from "@/lib/utils";
 import { createSelector } from "reselect";
 
@@ -388,3 +389,13 @@ export const selectCurrentSaveToListPath = (state: PageSessionSnapshot) => {
   const slug = state.context.sessionSnapshot?.context.currentSaveToListSlug;
   return `/#${slug || "liked"}`;
 };
+
+export const selectPreferences = (state: PageSessionSnapshot) => {
+  return state.context.userSnapshot?.context.preferences!;
+};
+
+// export const selectLastCompletedPreferenceQuestionId: (
+//   state: PageSessionSnapshot
+// ) => QuestionId = (state) => {
+//   return "dietary_details";
+// };

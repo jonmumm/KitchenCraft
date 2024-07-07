@@ -11,13 +11,13 @@ import React, { useCallback } from "react";
 import { twc } from "react-twc";
 
 type StepsIndicatorProps = {
-  currentStep?: "Intro" | "Experience" | "Preferences" | "Summary";
+  currentStep?: "Intro" | "Goals" | "Preferences" | "Interests";
   showBack?: boolean;
   showSkip?: boolean;
   showSeparator?: boolean;
 };
 
-const steps = ["Intro", "Experience", "Preferences", "Summary"];
+const steps = ["Intro", "Goals", "Preferences", "Interests"];
 
 const StepsIndicator: React.FC<StepsIndicatorProps> = ({
   currentStep,

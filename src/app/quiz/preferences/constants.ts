@@ -1,133 +1,152 @@
-export const PREFERENCE_QUESTIONS = [
-  {
-    question: "Do you prefer quick meals or elaborate recipes?",
-    options: ["Quick meals", "Elaborate recipes"],
-    explanation:
-      "This helps KitchenCraft determine if you prefer recipes that are quick and easy to prepare or if you enjoy spending more time on detailed, elaborate cooking.",
-  },
-  {
-    question: "How often do you cook for a group or family?",
-    options: ["Often", "Rarely"],
-    explanation:
-      "Understanding if you cook for a group or just yourself helps KitchenCraft recommend portion sizes and meal types that fit your needs.",
-  },
-  {
-    question: "Do you like to try new ingredients or stick to familiar ones?",
-    options: ["Try new ingredients", "Stick to familiar ones"],
-    explanation:
-      "This helps KitchenCraft gauge your openness to experimenting with new ingredients versus preferring familiar staples.",
-  },
-  {
-    question: "Do you prefer healthy recipes or comfort food?",
-    options: ["Healthy recipes", "Comfort food"],
-    explanation:
-      "This helps KitchenCraft tailor recommendations to match your dietary goals, whether you're focusing on health or looking for comforting meals.",
-  },
-  {
-    question: "How important is meal prepping to you?",
-    options: ["Very important", "Not important"],
-    explanation:
-      "Understanding your meal prepping habits helps KitchenCraft suggest recipes that are suitable for making ahead and storing.",
-  },
-  {
-    question: "Do you enjoy experimenting with new cuisines?",
-    options: ["Yes", "No"],
-    explanation:
-      "This helps KitchenCraft know if you are interested in trying recipes from different cultures or if you prefer sticking to familiar cuisines.",
-  },
-  {
-    question: "Do you prefer sweet or savory dishes?",
-    options: ["Sweet", "Savory"],
-    explanation:
-      "Knowing your taste preference helps KitchenCraft recommend recipes that cater to your flavor profile.",
-  },
-  {
-    question: "How often do you use fresh produce in your meals?",
-    options: ["Often", "Rarely"],
-    explanation:
-      "This helps KitchenCraft understand if you prefer recipes with fresh ingredients or if you lean towards using pantry staples.",
-  },
-  {
-    question: "Do you follow any dietary restrictions?",
-    options: ["Yes", "No"],
-    explanation:
-      "This information is crucial for KitchenCraft to recommend recipes that align with your dietary needs and restrictions.",
-  },
-  {
-    question: "How often do you bake?",
-    options: ["Often", "Rarely"],
-    explanation:
-      "Understanding your baking frequency helps KitchenCraft include or exclude baking recipes based on your interest.",
-  },
-  {
-    question: "Do you enjoy making international dishes?",
-    options: ["Yes", "No"],
-    explanation:
-      "This helps KitchenCraft determine if you are interested in diverse, international recipes or if you prefer local cuisine.",
-  },
-  {
-    question: "Do you cook with seasonal ingredients?",
-    options: ["Yes", "No"],
-    explanation:
-      "Knowing if you prefer seasonal cooking helps KitchenCraft recommend recipes that take advantage of seasonal produce.",
-  },
-  {
-    question: "How do you feel about following complex recipes?",
-    options: ["Enjoy it", "Prefer simple recipes"],
-    explanation:
-      "This helps KitchenCraft understand if you enjoy the challenge of complex recipes or if you prefer simplicity in your cooking.",
-  },
-  {
-    question: "Do you cook to save money or for enjoyment?",
-    options: ["Save money", "Enjoyment"],
-    explanation:
-      "This helps KitchenCraft tailor recipes to your primary cooking motivation, whether it's budget-friendly meals or culinary enjoyment.",
-  },
-  {
-    question:
-      "Do you prefer recipes with few ingredients or more elaborate ones?",
-    options: ["Few ingredients", "More elaborate"],
-    explanation:
-      "This helps KitchenCraft determine if you prefer simple recipes with minimal ingredients or more complex recipes.",
-  },
-  {
-    question: "Do you like to meal prep for the week ahead?",
-    options: ["Yes", "No"],
-    explanation:
-      "Understanding if you meal prep helps KitchenCraft recommend recipes that are suitable for making in bulk and storing.",
-  },
-  {
-    question: "Do you use kitchen gadgets (like slow cookers, air fryers)?",
-    options: ["Yes", "No"],
-    explanation:
-      "This helps KitchenCraft suggest recipes that make use of the kitchen gadgets you have and enjoy using.",
-  },
-  {
-    question: "Do you enjoy cooking from scratch?",
-    options: ["Yes", "No"],
-    explanation:
-      "Knowing if you enjoy cooking from scratch helps KitchenCraft recommend recipes that either involve making components from scratch or using pre-made ingredients.",
-  },
-  {
-    question: "How often do you cook breakfast?",
-    options: ["Often", "Rarely"],
-    explanation:
-      "This helps KitchenCraft determine if we should include breakfast recipes in your recommendations.",
-  },
-  {
-    question:
-      "Do you typically have more time to cook in the mornings or evenings?",
-    options: ["Mornings", "Evenings"],
-    explanation:
-      "Knowing your preferred cooking times helps KitchenCraft recommend recipes that fit your schedule.",
-  },
-];
+import { PreferenceState } from "@/types";
+import { z } from "zod";
 
-export const getPreferences = (preferences: Record<number, number>): string => {
-  return Object.entries(preferences)
-    .map(([questionIndex, answerIndex]) => {
-      const question = PREFERENCE_QUESTIONS[Number(questionIndex)]!;
-      return `${question.question} ${question.options[Number(answerIndex)]}`;
-    })
-    .join("\n");
+// Constants for question IDs
+export const QUESTION_IDS_KEYS = {
+  DIETARY_RESTRICTIONS: "dietary_restrictions",
+  DIETARY_DETAILS: "dietary_details",
+  COOKING_FREQUENCY: "cooking_frequency",
+  COOKING_FREQUENCY_OTHER: "cooking_frequency_other",
+  PREFERRED_CUISINE: "preferred_cuisine",
+  CUISINE_DETAILS: "cuisine_details",
+  OTHER_PREFERENCES: "other_preferences",
+} as const;
+
+export const QuestionIdsSchema = z.enum([
+  QUESTION_IDS_KEYS.DIETARY_RESTRICTIONS,
+  QUESTION_IDS_KEYS.DIETARY_DETAILS,
+  QUESTION_IDS_KEYS.COOKING_FREQUENCY,
+  QUESTION_IDS_KEYS.COOKING_FREQUENCY_OTHER,
+  QUESTION_IDS_KEYS.PREFERRED_CUISINE,
+  QUESTION_IDS_KEYS.CUISINE_DETAILS,
+  QUESTION_IDS_KEYS.OTHER_PREFERENCES,
+]);
+
+// Root question IDs
+export const ROOT_QUESTION_IDS = [
+  QUESTION_IDS_KEYS.DIETARY_RESTRICTIONS,
+  QUESTION_IDS_KEYS.COOKING_FREQUENCY,
+  QUESTION_IDS_KEYS.PREFERRED_CUISINE,
+  QUESTION_IDS_KEYS.OTHER_PREFERENCES,
+] as const;
+
+export type QuestionId =
+  (typeof QUESTION_IDS_KEYS)[keyof typeof QUESTION_IDS_KEYS];
+
+export type BaseQuestion = {
+  id: QuestionId;
+  question: string;
+  explanation: string;
 };
+
+export type BooleanQuestion = BaseQuestion & {
+  type: "boolean";
+  options: readonly ["Yes", "No"];
+  followUpQuestionId?: QuestionId;
+};
+
+export type MultipleChoiceQuestion = BaseQuestion & {
+  type: "multiple-choice";
+  options: readonly string[];
+  followUpQuestionId?: QuestionId;
+};
+
+export type TextQuestion = BaseQuestion & {
+  type: "text";
+};
+
+export type PreferenceQuestion =
+  | BooleanQuestion
+  | MultipleChoiceQuestion
+  | TextQuestion;
+
+const PREFERENCE_QUESTIONS: readonly PreferenceQuestion[] = [
+  {
+    id: QUESTION_IDS_KEYS.DIETARY_RESTRICTIONS,
+    question: "Do you follow any dietary restrictions or preferences?",
+    type: "boolean",
+    options: ["Yes", "No"],
+    followUpQuestionId: QUESTION_IDS_KEYS.DIETARY_DETAILS,
+    explanation:
+      "This helps KitchenCraft tailor recipe recommendations to your specific dietary needs, ensuring that it suggests meals that align with your health goals or personal choices.",
+  },
+  {
+    id: QUESTION_IDS_KEYS.DIETARY_DETAILS,
+    question:
+      "Please share more about your dietary restrictions or preferences. KitchenCraft will do its best to match them, but always double-check recipes before cooking.",
+    type: "text",
+    explanation:
+      "This provides more detailed information about your dietary needs.",
+  },
+  {
+    id: QUESTION_IDS_KEYS.COOKING_FREQUENCY,
+    question: "What's your ideal cooking frequency?",
+    type: "multiple-choice",
+    options: [
+      "Almost every day",
+      "Only weekends",
+      "1-3 times a week",
+      "Less than once a week",
+      "Other",
+    ],
+    followUpQuestionId: QUESTION_IDS_KEYS.COOKING_FREQUENCY_OTHER,
+    explanation:
+      "Understanding how often you cook helps KitchenCraft recommend an appropriate number of recipes and meal plans that fit your lifestyle and schedule.",
+  },
+  {
+    id: QUESTION_IDS_KEYS.COOKING_FREQUENCY_OTHER,
+    question: "Please provide more details about your cooking frequency.",
+    type: "text",
+    explanation:
+      "This allows for a more precise understanding of your cooking habits.",
+  },
+  {
+    id: QUESTION_IDS_KEYS.PREFERRED_CUISINE,
+    question: "Do you have a type of cuisine you prefer to cook?",
+    type: "boolean",
+    options: ["Yes", "No"],
+    followUpQuestionId: QUESTION_IDS_KEYS.CUISINE_DETAILS,
+    explanation:
+      "Knowing your preferred cuisines allows KitchenCraft to suggest recipes that match your taste preferences, making your cooking experience more enjoyable.",
+  },
+  {
+    id: QUESTION_IDS_KEYS.CUISINE_DETAILS,
+    question: "Please share your preferred cuisines.",
+    type: "text",
+    explanation:
+      "This provides specific information about your cuisine preferences.",
+  },
+  {
+    id: QUESTION_IDS_KEYS.OTHER_PREFERENCES,
+    question: "Any other preferences for cooking or shopping?",
+    type: "text",
+    explanation:
+      "This helps KitchenCraft understand your unique cooking style and shopping habits to provide more personalized recommendations. You can mention the type of grocery stores you like to shop at, any specific kitchen equipment you prefer using, or any other unique cooking habits you have.",
+  },
+] as const;
+
+// New type definition for the record of preference questions
+export type PreferenceQuestionsRecord = {
+  [K in QuestionId]: PreferenceQuestion;
+};
+
+// Create the record of preference questions
+export const PREFERENCE_QUESTIONS_RECORD: PreferenceQuestionsRecord =
+  PREFERENCE_QUESTIONS.reduce((acc, question) => {
+    acc[question.id] = question;
+    return acc;
+  }, {} as PreferenceQuestionsRecord);
+
+export type PreferenceAnswer = string | string[] | boolean;
+
+// The getPreferences function has been removed as it's not clear how it should be updated
+// without more context about its usage in the new structure.
+
+// export const getPreferences = (preferences: Record<number, number>): string => {
+//   return Object.entries(preferences)
+//     .map(([questionIndex, answerIndex]) => {
+//       const question = PREFERENCE_QUESTIONS[Number(questionIndex)]!;
+//       return `${question.question} ${question.options[Number(answerIndex)]}`;
+//     })
+//     .join("\n");
+// };

@@ -109,6 +109,7 @@ import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { UserSnapshot } from "./user-machine";
 import { buildInput } from "./utils";
+import { QuestionId } from "./quiz/preferences/constants";
 
 export const SESSION_ACTOR_ID = "sessionActor";
 export const USER_ACTOR_ID = "userActor";
@@ -698,13 +699,13 @@ export const createPageSessionMachine = ({
       },
       didChangeEmailInput,
       didChangeListSlugInput,
-      didChangeChefNameInput: ({ context, event }) => {
-        return event.type === "CHANGE" && event.name === "chefname";
+      didChangeProfileNameInput: ({ context, event }) => {
+        return event.type === "CHANGE" && event.name === "profileName";
       },
       isChefNameNotEmpty: ({ context, event }) => {
         return (
           event.type === "CHANGE" &&
-          event.name === "chefname" &&
+          event.name === "profileName" &&
           !!event.value.length
         );
       },
@@ -712,9 +713,9 @@ export const createPageSessionMachine = ({
         Object.values(context.adInstances).map((item) => item.product);
         return false;
       },
-      didChangeShareNameInput: ({ event }) => {
-        return event.type === "CHANGE" && event.name === "shareNameInput";
-      },
+      // didChangeShareNameInput: ({ event }) => {
+      //   return event.type === "CHANGE" && event.name === "shareNameInput";
+      // },
     },
     actions: {
       resetSuggestions: assign({
@@ -2543,7 +2544,7 @@ export const createPageSessionMachine = ({
             on: {
               CHANGE: {
                 target: ".Holding",
-                guard: "didChangeChefNameInput",
+                guard: "didChangeProfileNameInput",
                 actions: assign(({ context, event }) =>
                   produce(context, (draft) => {
                     draft.chefname = event.value;

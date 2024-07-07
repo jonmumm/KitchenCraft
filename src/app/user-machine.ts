@@ -18,6 +18,7 @@ import {
   SnapshotFrom,
   StateValueFrom,
   and,
+  assertEvent,
   assign,
   fromEventObservable,
   fromPromise,
@@ -27,6 +28,7 @@ import {
 } from "xstate";
 import { z } from "zod";
 import { FeedTopicsStream } from "./feed-topics.stream";
+import { QuestionIdsSchema } from "./quiz/preferences/constants";
 import {
   SuggestProfileNamesInput,
   SuggestProfileNamesStream,
@@ -187,8 +189,9 @@ export const createUserMachine = ({
       sendWelcomeEmail,
     },
     guards: {
-      didChangeListNameInput: ({ event }) => {
-        return event.type === "CHANGE" && event.name === "listName";
+      didChangePreference: ({ event }) => {
+        assertEvent(event, "CHANGE");
+        return QuestionIdsSchema.safeParse(event).success;
       },
       didChangeProfileNameInput: ({ context, event }) => {
         return event.type === "CHANGE" && event.name === "profileName";
@@ -603,14 +606,14 @@ export const createUserMachine = ({
           Intro: {
             on: {
               PAGE_LOADED: {
-                target: "Experience",
+                target: "Goals",
                 guard: ({ event }) => {
-                  return event.pathname.startsWith("/quiz/experience");
+                  return event.pathname.startsWith("/quiz/goals");
                 },
               },
             },
           },
-          Experience: {
+          Goals: {
             on: {
               PAGE_LOADED: {
                 target: "Preferences",
@@ -622,76 +625,76 @@ export const createUserMachine = ({
           Preferences: {
             on: {
               PAGE_LOADED: {
-                target: "Summary",
+                target: "Interests",
                 guard: ({ event }) =>
-                  event.pathname.startsWith("/quiz/summary"),
+                  event.pathname.startsWith("/quiz/interests"),
               },
-              SELECT_QUESTION_OPTION: {
-                actions: assign(({ context, event }) =>
-                  produce(context, (draft) => {
-                    if (!draft.preferenceQuestionResults) {
-                      draft.preferenceQuestionResults = {};
-                    }
-                    draft.preferenceQuestionResults[event.questionIndex] =
-                      event.optionIndex;
-                  })
-                ),
+              CHANGE: {
+                guard: "didChangePreference",
+                actions: assign({
+                  preferences: ({ context, event }) =>
+                    produce(context.preferences, (draft) => {
+                      const questionId = QuestionIdsSchema.parse(event.name);
+                      draft[questionId] = event.value;
+                    }),
+                }),
               },
             },
           },
-          Summary: {
+          Interests: {
             onDone: "Complete",
+            // initial: "Topics",
+            // on: {
+            //   SUGGEST_PROFILE_NAME_PROGRESS: {
+            //     actions: assign({
+            //       suggestedProfileNames: ({ event, context }) => {
+            //         const names = event.data.names;
+            //         return names || context.suggestedProfileNames;
+            //       },
+            //     }),
+            //   },
+            //   SUGGEST_PROFILE_NAME_COMPLETE: {
+            //     actions: assign({
+            //       suggestedProfileNames: ({ event, context }) => {
+            //         const names = event.data.names;
+            //         return names;
+            //       },
+            //     }),
+            //   },
+            //   LOAD_MORE: {
+            //     actions: [
+            //       assign(({ context }) =>
+            //         produce(context, (draft) => {
+            //           draft.previousSuggestedProfileNames =
+            //             context.previousSuggestedProfileNames.concat(
+            //               context.suggestedProfileNames
+            //             );
+            //           draft.suggestedProfileNames = [];
+            //         })
+            //       ),
+            //       spawnChild("generateProfileNameSuggestions", {
+            //         input: ({ context }) => {
+            //           assert(
+            //             context.email,
+            //             "expected email when generating profile name suggestions"
+            //           );
+            //           const previousSuggestions =
+            //             context.previousSuggestedProfileNames.concat(
+            //               context.suggestedProfileNames
+            //             );
+            //           return {
+            //             email: context.email,
+            //             previousSuggestions,
+            //             preferences: {},
+            //             personalizationContext:
+            //               "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
+            //           };
+            //         },
+            //       }),
+            //     ],
+            //   },
+            // },
             initial: "Topics",
-            on: {
-              SUGGEST_PROFILE_NAME_PROGRESS: {
-                actions: assign({
-                  suggestedProfileNames: ({ event, context }) => {
-                    const names = event.data.names;
-                    return names || context.suggestedProfileNames;
-                  },
-                }),
-              },
-              SUGGEST_PROFILE_NAME_COMPLETE: {
-                actions: assign({
-                  suggestedProfileNames: ({ event, context }) => {
-                    const names = event.data.names;
-                    return names;
-                  },
-                }),
-              },
-              LOAD_MORE: {
-                actions: [
-                  assign(({ context }) =>
-                    produce(context, (draft) => {
-                      draft.previousSuggestedProfileNames =
-                        context.previousSuggestedProfileNames.concat(
-                          context.suggestedProfileNames
-                        );
-                      draft.suggestedProfileNames = [];
-                    })
-                  ),
-                  spawnChild("generateProfileNameSuggestions", {
-                    input: ({ context }) => {
-                      assert(
-                        context.email,
-                        "expected email when generating profile name suggestions"
-                      );
-                      const previousSuggestions =
-                        context.previousSuggestedProfileNames.concat(
-                          context.suggestedProfileNames
-                        );
-                      return {
-                        email: context.email,
-                        previousSuggestions,
-                        preferences: {},
-                        personalizationContext:
-                          "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
-                      };
-                    },
-                  }),
-                ],
-              },
-            },
             states: {
               Topics: {
                 entry: spawnChild("generateFeedTopics", {

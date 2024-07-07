@@ -1,7 +1,7 @@
 import { StreamObservableEvent } from "@/lib/stream-to-observable";
 import { StructuredObjectStream } from "@/lib/structured-object-stream";
 import { z } from "zod";
-import { getPreferences } from "./quiz/preferences/constants";
+// import { getPreferences } from "./quiz/preferences/constants";
 
 export const FeedTopicsOutputSchema = z.object({
   topics: z
@@ -44,7 +44,6 @@ export class FeedTopicsStream extends StructuredObjectStream<
   protected async getUserMessage(input: FeedTopicsInput): Promise<string> {
     return `
 Personalization Context: ${input.personalizationContext}
-Preferences: ${getPreferences(input.preferences)}
     `;
   }
 
