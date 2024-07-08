@@ -18,6 +18,7 @@ import {
   selectHasComments,
   selectNewComment,
 } from "./selectors";
+import { NEW_COMMENT_INPUT_KEY } from "@/constants/inputs";
 
 const RecipeCommentsContext = createContext({} as RecipeCommentsActor);
 
@@ -132,7 +133,7 @@ export const RecipeCommentsTexarea = () => {
     <Textarea
       sendChange
       value={newComment}
-      name="newComment"
+      name={NEW_COMMENT_INPUT_KEY}
       className="w-full h-20 p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
       placeholder="Add a comment..."
     />

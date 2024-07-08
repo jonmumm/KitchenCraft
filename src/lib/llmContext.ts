@@ -94,21 +94,21 @@ export function getPersonalizationContext(
     }
   }
 
-  if (options.preferences) {
-    const tasteKeys = Object.keys(options.preferences) as Array<
-      keyof typeof options.preferences
-    >;
-    const tastePreferences = tasteKeys.filter(
-      (key) => options.preferences[key] !== undefined
-    ); // Changed to check for undefined
-    if (tastePreferences.length > 0) {
-      const preferenceDescriptions = tastePreferences.map((key) => {
-        const setting = options.preferences[key];
-        return `${preferencesDisplayNames[key]}: ${setting ? "Yes" : "No"}`; // Show Yes/No based on boolean
-      });
-      context.push(`Taste Preferences: ${preferenceDescriptions.join(", ")}`);
-    }
-  }
+  // if (options.preferences) {
+  //   const tasteKeys = Object.keys(options.preferences) as Array<
+  //     keyof typeof options.preferences
+  //   >;
+  //   const tastePreferences = tasteKeys.filter(
+  //     (key) => options.preferences[key] !== undefined
+  //   ); // Changed to check for undefined
+  //   if (tastePreferences.length > 0) {
+  //     const preferenceDescriptions = tastePreferences.map((key) => {
+  //       const setting = options.preferences[key];
+  //       return `${preferencesDisplayNames[key]}: ${setting ? "Yes" : "No"}`; // Show Yes/No based on boolean
+  //     });
+  //     context.push(`Taste Preferences: ${preferenceDescriptions.join(", ")}`);
+  //   }
+  // }
 
   if (options.city || options.country || options.timezone) {
     context.push(

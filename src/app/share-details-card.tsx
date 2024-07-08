@@ -5,6 +5,7 @@ import { Label } from "@/components/display/label";
 import { SkeletonSentence } from "@/components/display/skeleton";
 import { Input } from "@/components/input";
 import { atomBooleanComponent } from "@/components/util/atom-boolean-component";
+import { SHARE_NAME_INPUT_KEY } from "@/constants/inputs";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
@@ -265,14 +266,13 @@ const ShareNameRow = () => {
     }
   }, []);
   const send = useSend();
-  const FIELD_NAME = "shareNameInput";
 
   const handleShareNameChange: ChangeEventHandler<HTMLInputElement> =
     useCallback(
       (event) => {
         send({
           type: "CHANGE",
-          name: FIELD_NAME,
+          name: SHARE_NAME_INPUT_KEY,
           value: event.currentTarget.value,
         });
       },
@@ -281,7 +281,7 @@ const ShareNameRow = () => {
 
   const handleBlur = useCallback(() => {
     // editing$.set(false);
-    send({ type: "BLUR", name: FIELD_NAME });
+    send({ type: "BLUR", name: SHARE_NAME_INPUT_KEY });
   }, [send]);
 
   const shareName = usePageSessionSelector(

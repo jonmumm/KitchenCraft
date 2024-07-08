@@ -1,11 +1,12 @@
 "use client";
 
 import { useSend } from "@/hooks/useSend";
+import { InputKey } from "@/types";
 import { Slot } from "@radix-ui/react-slot";
 import { FormEventHandler, ForwardRefRenderFunction, useCallback } from "react";
 
 interface EventInputProps extends React.HTMLProps<HTMLDivElement> {
-  name: string;
+  name: InputKey;
   asChild?: boolean;
   children?: React.ReactNode;
 }
