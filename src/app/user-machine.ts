@@ -592,6 +592,20 @@ export const createUserMachine = ({
       },
       Onboarding: {
         initial: "NotStarted",
+        on: {
+          CHANGE: [
+            {
+              guard: "didChangePreference",
+              actions: assign({
+                preferences: ({ context, event }) =>
+                  produce(context.preferences, (draft) => {
+                    const questionId = QuestionIdsSchema.parse(event.name);
+                    draft[questionId] = event.value;
+                  }),
+              }),
+            },
+          ],
+        },
         states: {
           NotStarted: {
             on: {
@@ -628,16 +642,6 @@ export const createUserMachine = ({
                 target: "Interests",
                 guard: ({ event }) =>
                   event.pathname.startsWith("/quiz/interests"),
-              },
-              CHANGE: {
-                guard: "didChangePreference",
-                actions: assign({
-                  preferences: ({ context, event }) =>
-                    produce(context.preferences, (draft) => {
-                      const questionId = QuestionIdsSchema.parse(event.name);
-                      draft[questionId] = event.value;
-                    }),
-                }),
               },
             },
           },

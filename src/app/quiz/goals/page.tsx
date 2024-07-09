@@ -1,20 +1,33 @@
 "use client";
 import { Card, CardContent } from "@/components/display/card";
 import { Button } from "@/components/input/button";
+import { GOALS_INPUT_KEY } from "@/constants/inputs";
 import { COOKING_GOALS, CookingGoal } from "@/constants/onboarding";
+import { useSelectChoiceEventHandler } from "@/hooks/useSelectChoiceEventHandler";
+import { useStore } from "@nanostores/react";
 import { CheckSquare } from "lucide-react";
+import { atom } from "nanostores";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function CookingGoals() {
-  const [selectedGoals, setSelectedGoals] = useState<CookingGoal[]>([]);
+  const [selectedGoals$] = useState(atom<CookingGoal[]>([]));
   const router = useRouter();
 
-  const toggleGoal = (goal: CookingGoal) => {
-    setSelectedGoals((prev) =>
-      prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]
-    );
-  };
+  useSelectChoiceEventHandler(GOALS_INPUT_KEY, (event) => {
+    // Toggle the goal from the selectedGoals$ as appropriate
+    const prevGoals = selectedGoals$.get();
+    let newGoals;
+    const goal = event.value as CookingGoal;
+    if (prevGoals.includes(goal)) {
+      newGoals = prevGoals.filter((g) => g !== goal);
+    } else {
+      newGoals = [...prevGoals, goal];
+    }
+    selectedGoals$.set(newGoals);
+  });
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     router.prefetch("/quiz/preferences");
@@ -22,19 +35,27 @@ export default function CookingGoals() {
 
   const handleContinue = () => {
     router.push("/quiz/preferences");
+    setLoading(true);
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-2xl font-bold mb-6">I want to...</h1>
-      <div className="w-full max-w-md space-y-3 mb-20">
-        {COOKING_GOALS.map((goal) => (
+  const Goals = () => {
+    const selectedGoals = useStore(selectedGoals$);
+
+    return (
+      <>
+        {COOKING_GOALS.map((goal, index) => (
           <Card
             key={goal}
             className={`cursor-pointer transition-all ${
               selectedGoals.includes(goal) ? "border-blue-500 border-2" : ""
             }`}
-            onClick={() => toggleGoal(goal)}
+            event={{
+              type: "SELECT_CHOICE",
+              index,
+              name: GOALS_INPUT_KEY,
+              value: goal,
+            }}
+            // onClick={() => toggleGoal(goal)}
           >
             <CardContent className="flex items-center p-4">
               <div
@@ -52,18 +73,34 @@ export default function CookingGoals() {
             </CardContent>
           </Card>
         ))}
+      </>
+    );
+  };
+
+  const StickyCTA = () => {
+    const selectedGoals = useStore(selectedGoals$);
+
+    return (
+      <Button
+        size="xl"
+        className="w-full"
+        onClick={handleContinue}
+        disabled={loading || selectedGoals.length === 0}
+      >
+        {!loading ? <>Continue</> : <>Loading</>}
+      </Button>
+    );
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen py-4">
+      <h1 className="text-2xl font-bold mb-6">I want to...</h1>
+      <div className="w-full max-w-md space-y-3 px-4">
+        <Goals />
       </div>
-      {selectedGoals.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
-          <Button
-            size="xl"
-            className="w-full max-w-md mx-auto"
-            onClick={handleContinue}
-          >
-            Continue
-          </Button>
-        </div>
-      )}
+      <div className="sticky bottom-0 w-full p-4 max-w-xl mx-auto mb-16">
+        <StickyCTA />
+      </div>
     </div>
   );
 }

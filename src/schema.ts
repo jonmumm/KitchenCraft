@@ -539,9 +539,11 @@ const BlurEventSchema = z.object({
   name: z.union([FieldNameSchema, z.string()]),
 });
 
+export const InputNameSchema = z.enum(INPUT_KEYS);
+
 const ChangeEventSchema = z.object({
   type: z.literal("CHANGE"),
-  name: z.enum(INPUT_KEYS),
+  name: InputNameSchema,
   value: z.string(),
 });
 
@@ -1177,7 +1179,15 @@ const ViewResultEventSchema = z.object({
   index: z.number(),
 });
 
+const SelectChoiceEventSchema = z.object({
+  type: z.literal("SELECT_CHOICE"),
+  index: z.number(),
+  name: InputNameSchema,
+  value: z.string(),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  SelectChoiceEventSchema,
   ViewResultEventSchema,
   DismissHintEventSchema,
   LikeRecipeEventSchema,
