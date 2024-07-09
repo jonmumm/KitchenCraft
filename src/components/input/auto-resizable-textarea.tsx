@@ -3,7 +3,6 @@
 import { selectIsOpen } from "@/app/@craft/selectors";
 import { AppContext } from "@/app/context";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
-import { PageSessionContext } from "@/app/page-session-store.context";
 import { useAppMatchesStateHandler } from "@/hooks/useAppMatchesStateHandler";
 // import { session$ } from "@/app/session-store";
 import { useEventHandler } from "@/hooks/useEventHandler";
@@ -24,8 +23,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useRef,
-  useSyncExternalStore,
+  useRef
 } from "react";
 import { createSelector } from "reselect";
 
@@ -182,26 +180,13 @@ const AutoResizableTextarea: React.FC<
       const placeholdersGenerating = usePageSessionMatchesState({
         Craft: { Generators: { Placeholder: "Generating" } },
       });
+      console.log({ isPristine, placeholdersGenerating });
 
       const Animation = () => {
         const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
         const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
-        const session$ = useContext(PageSessionContext);
 
-        // hack figure out better solution for subscribing to server state
-        // useEffect(() => {
-        //   return session$.subscribe((state) => {
-        //     setPlaceholderGenerating(
-        //       state.value.Craft.Generators.Placeholder === "Generating"
-        //     );
-        //   });
-        // }, [session$]);
-
-        const placeholders = useSyncExternalStore(
-          session$.subscribe,
-          () => selectPromptPlaceholders(session$.get()),
-          () => selectPromptPlaceholders(session$.get())
-        );
+        const placeholders = usePageSessionSelector(selectPromptPlaceholders);
 
         const animatePlaceholder = useCallback(() => {
           assert(placeholders, "expected placehodlers");

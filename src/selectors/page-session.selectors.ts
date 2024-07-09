@@ -61,10 +61,10 @@ export const selectSelectedRecipeIds = (state: PageSessionSnapshot) => {
 };
 
 export const selectPromptIsDirty = (state: PageSessionSnapshot) =>
-  state.context.prompt.length === 0;
+  state.context.prompt.length > 0;
 
 export const selectPromptIsPristine = (state: PageSessionSnapshot) =>
-  state.context.prompt.length > 0;
+  state.context.prompt.length === 0;
 
 export const selectUserEmail = (state: PageSessionSnapshot) =>
   state.context.userSnapshot?.context.email;
