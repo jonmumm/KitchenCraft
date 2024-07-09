@@ -2,21 +2,21 @@ import { assert } from "@/lib/utils";
 import { Observable } from "rxjs";
 import { describe, expect, it } from "vitest";
 import {
-  FeedTopicsEvent,
-  FeedTopicsOutput,
-  FeedTopicsOutputSchema,
-  FeedTopicsStream,
-} from "./feed-topics.stream"; // Assuming your file is named 'feed-topics.stream.ts'
+  SuggestedInterestsEvent,
+  SuggestedInterestsOutput,
+  SuggestedInterestsOutputSchema,
+  SuggestedInterestsStream,
+} from "./suggested-interests.stream"; // Assuming your file is named 'feed-topics.stream.ts'
 
-describe("FeedTopicsStream", () => {
+describe("SuggestedInterestsStream", () => {
   async function processStream(
-    observable: Observable<FeedTopicsEvent>
-  ): Promise<FeedTopicsOutput> {
+    observable: Observable<SuggestedInterestsEvent>
+  ): Promise<SuggestedInterestsOutput> {
     return new Promise((resolve, reject) => {
-      let completeData: FeedTopicsOutput | null = null;
+      let completeData: SuggestedInterestsOutput | null = null;
       observable.subscribe({
-        next: (event: FeedTopicsEvent) => {
-          if (event.type === "FEED_TOPICS_COMPLETE") {
+        next: (event: SuggestedInterestsEvent) => {
+          if (event.type === "SUGGESTED_INTERESTS_COMPLETE") {
             completeData = event.data;
             resolve(event.data);
           }
@@ -30,18 +30,18 @@ describe("FeedTopicsStream", () => {
     preferences: Record<number, number>;
     personalizationContext: string;
   }) {
-    const stream = new FeedTopicsStream();
+    const stream = new SuggestedInterestsStream();
     const observableStream = stream.getObservable(
       input
-    ) as Observable<FeedTopicsEvent>;
+    ) as Observable<SuggestedInterestsEvent>;
     const outputData = await processStream(observableStream);
 
-    const result = FeedTopicsOutputSchema.safeParse(outputData);
+    const result = SuggestedInterestsOutputSchema.safeParse(outputData);
     assert(result.success, "expected result to be success");
     console.log(result.data);
-    expect(result.data.topics.length).toEqual(20); // Check if exactly 16 topics are generated
+    expect(result.data.interests.length).toEqual(20); // Check if exactly 16 topics are generated
 
-    result.data.topics.forEach((topic) => {
+    result.data.interests.forEach((topic) => {
       expect(typeof topic).toBe("string");
     });
   }

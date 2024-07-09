@@ -21,7 +21,7 @@ import {
   setup,
 } from "xstate";
 import { z } from "zod";
-import { FeedTopicsStream } from "./feed-topics.stream";
+import { SuggestedInterestsStream } from "./suggested-interests.stream";
 import { HomepageCategoriesStream } from "./homepage-categories.stream";
 import {
   SuggestIngredientStream,
@@ -144,7 +144,7 @@ export const createSessionMachine = ({
             personalizationContext: string;
             preferences: Record<number, number>;
           };
-        }) => new FeedTopicsStream().getObservable(input)
+        }) => new SuggestedInterestsStream().getObservable(input)
       ),
       // generateWelcomeMessage: fromEventObservable(
       //   ({

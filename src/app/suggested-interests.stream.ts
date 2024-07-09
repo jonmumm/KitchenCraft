@@ -3,52 +3,52 @@ import { StructuredObjectStream } from "@/lib/structured-object-stream";
 import { z } from "zod";
 // import { getPreferences } from "./quiz/preferences/constants";
 
-export const FeedTopicsOutputSchema = z.object({
-  topics: z
+export const SuggestedInterestsOutputSchema = z.object({
+  interests: z
     .array(z.string())
     .describe(
-      "A list of 20 topics that this person might be interested in."
+      "A list of 20 kitchen/cooking related topics that the person might be interested in"
     ),
 });
 
-const FEED_TOPICS = "FEED_TOPICS";
+const SUGGESTED_INTERESTS = "SUGGESTED_INTERESTS";
 
-export type FeedTopicsEvent = StreamObservableEvent<
-  typeof FEED_TOPICS,
-  z.infer<typeof FeedTopicsOutputSchema>
+export type SuggestedInterestsEvent = StreamObservableEvent<
+  typeof SUGGESTED_INTERESTS,
+  z.infer<typeof SuggestedInterestsOutputSchema>
 >;
 
-export type FeedTopicsInput = {
+export type SuggestedInterestsInput = {
   preferences: Record<number, number>;
   personalizationContext: string;
 };
 
-export type FeedTopicsOutput = z.infer<typeof FeedTopicsOutputSchema>;
+export type SuggestedInterestsOutput = z.infer<typeof SuggestedInterestsOutputSchema>;
 
-export class FeedTopicsStream extends StructuredObjectStream<
-  FeedTopicsInput,
-  FeedTopicsOutput
+export class SuggestedInterestsStream extends StructuredObjectStream<
+  SuggestedInterestsInput,
+  SuggestedInterestsOutput
 > {
   protected getSchema(): z.ZodType<
-    FeedTopicsOutput,
+    SuggestedInterestsOutput,
     z.ZodTypeDef,
-    FeedTopicsOutput
+    SuggestedInterestsOutput
   > {
-    return FeedTopicsOutputSchema;
+    return SuggestedInterestsOutputSchema;
   }
 
   protected getName(): string {
-    return FEED_TOPICS;
+    return SUGGESTED_INTERESTS;
   }
 
-  protected async getUserMessage(input: FeedTopicsInput): Promise<string> {
+  protected async getUserMessage(input: SuggestedInterestsInput): Promise<string> {
     return `
 Personalization Context: ${input.personalizationContext}
     `;
   }
 
-  protected async getSystemMessage(input: FeedTopicsInput): Promise<string> {
-    return `Please generate topics inspired the example list below, loosely based on the user's preferences and personalization context.
+  protected async getSystemMessage(input: SuggestedInterestsInput): Promise<string> {
+    return `Please generate topics that someone might be interset in, inspired the example list below, loosely based on the user's provided preferences and personalization context.
 
 Keto Dinners
 Vegan Comfort Foods
@@ -62,9 +62,9 @@ High-Protein Breakfasts
 Gluten-Free Baking
 Slow Cooker Favorites
 Family-Friendly Meals
+Sheet-Pan Dinners
 Seasonal Vegetables
 Budget-Friendly Dishes
-Quick Weeknight Dinners
 Fresh Salads
 Hearty Soups
 

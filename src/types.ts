@@ -6,7 +6,7 @@ import { PostHog } from "posthog-node";
 import { Observable } from "rxjs";
 import { AnyStateMachine, SnapshotFrom, StateMachine } from "xstate";
 import type { z } from "zod";
-import { FeedTopicsEvent } from "./app/feed-topics.stream";
+import { SuggestedInterestsEvent } from "./app/suggested-interests.stream";
 import { HomepageCategoriesEvent } from "./app/homepage-categories.stream";
 import { PreferenceAnswer, QuestionId } from "./app/quiz/preferences/constants";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
@@ -20,6 +20,7 @@ import {
   WelcomeMessageOutput,
 } from "./app/welcome-message.stream";
 import { INPUT_KEYS } from "./constants/inputs";
+import { CookingGoal } from "./constants/onboarding";
 import ingredients from "./data/ingredients.json";
 import {
   AffiliateProductSchema,
@@ -414,13 +415,13 @@ export type TasteSettings = z.infer<typeof TasteSettingsSchema>;
 export type UserEvent =
   | WithCaller<AppEvent>
   | SuggestProfileNamesEvent
-  | FeedTopicsEvent
+  | SuggestedInterestsEvent
   | ResumeEvent;
 
 export type SessionEvent =
   | WithCaller<AppEvent>
   | WithCaller<SystemEvent>
-  | FeedTopicsEvent
+  | SuggestedInterestsEvent
   | WelcomeMessageEvent
   | SuggestTagsEvent
   | SuggestPlaceholderEvent
@@ -445,7 +446,9 @@ export type PreferenceState = Partial<Record<QuestionId, PreferenceAnswer>>;
 
 export type UserContext = {
   id: string;
+  interests: string[];
   preferences: PreferenceState;
+  goals: CookingGoal[];
   experienceLevel?: ExperienceLevel;
   groceryStores?: string;
   shoppingFrequency?: string;

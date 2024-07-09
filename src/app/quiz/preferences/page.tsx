@@ -377,7 +377,7 @@ export default function Preferences() {
     const isComplete = useStore(isComplete$);
 
     return (
-      <div className="sticky bottom-0 max-w-3xl w-full mx-auto p-2">
+      <div className="sticky bottom-0 w-full p-4 max-w-xl mx-auto mb-16">
         {isLoading ? (
           <>
             <Button size="xl" className="w-full" disabled>
@@ -406,7 +406,7 @@ export default function Preferences() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center relative gap-8 mb-16 max-w-3xl mx-auto">
+    <div className="flex flex-col items-center justify-center relative gap-8 max-w-3xl mx-auto">
       <div className="w-full p-4 sticky top-0 bg-card shadow-xl z-50 rounded-xl">
         <ProgressBar />
       </div>

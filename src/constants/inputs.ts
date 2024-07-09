@@ -5,6 +5,7 @@ export const EMAIL_INPUT_KEY = "email";
 export const PROFILE_NAME_INPUT_KEY = "profileName";
 export const SIGN_IN_CODE_INPUT_KEY = "signInCode";
 export const GOALS_INPUT_KEY = "goals";
+export const INTERESTS_INPUT_KEY = "interests";
 export const PROMPT_INPUT_KEY = "prompt";
 export const SHARE_NAME_INPUT_KEY = "shareNameInput";
 export const NEW_COMMENT_INPUT_KEY = "newComment";
@@ -14,6 +15,7 @@ export const INPUT_KEYS = [
   LIST_SLUG_INPUT_KEY,
   EMAIL_INPUT_KEY,
   PROFILE_NAME_INPUT_KEY,
+  INTERESTS_INPUT_KEY,
   SIGN_IN_CODE_INPUT_KEY,
   NEW_COMMENT_INPUT_KEY,
   GOALS_INPUT_KEY,

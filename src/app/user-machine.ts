@@ -1,4 +1,11 @@
 import { sendWelcomeEmail } from "@/actors/sendWelcomeEmail";
+import {
+  EMAIL_INPUT_KEY,
+  GOALS_INPUT_KEY,
+  INTERESTS_INPUT_KEY,
+  PROFILE_NAME_INPUT_KEY,
+} from "@/constants/inputs";
+import { CookingGoal } from "@/constants/onboarding";
 import { ListTable, ProfileSchema, ProfileTable, UsersTable } from "@/db";
 import { getPersonalizationContext } from "@/lib/llmContext";
 import { assert } from "@/lib/utils";
@@ -27,12 +34,12 @@ import {
   stateIn,
 } from "xstate";
 import { z } from "zod";
-import { FeedTopicsStream } from "./feed-topics.stream";
 import { QuestionIdsSchema } from "./quiz/preferences/constants";
 import {
   SuggestProfileNamesInput,
   SuggestProfileNamesStream,
 } from "./suggest-profile-names.stream";
+import { SuggestedInterestsStream } from "./suggested-interests.stream";
 
 const InputSchema = z.object({
   id: z.string(),
@@ -155,7 +162,7 @@ export const createUserMachine = ({
           }
         }
       ),
-      generateFeedTopics: fromEventObservable(
+      generateSuggestedInterests: fromEventObservable(
         ({
           input,
         }: {
@@ -163,7 +170,7 @@ export const createUserMachine = ({
             personalizationContext: string;
             preferences: Record<number, number>;
           };
-        }) => new FeedTopicsStream().getObservable(input)
+        }) => new SuggestedInterestsStream().getObservable(input)
       ),
       checkIfProfileNameAvailable: fromPromise(
         async ({ input }: { input: { profileName: string } }) => {
@@ -189,22 +196,30 @@ export const createUserMachine = ({
       sendWelcomeEmail,
     },
     guards: {
+      didChangeInterest: ({ event }) => {
+        assertEvent(event, "SELECT_CHOICE");
+        return event.name === INTERESTS_INPUT_KEY;
+      },
+      didChangeGoal: ({ event }) => {
+        assertEvent(event, "SELECT_CHOICE");
+        return event.name === GOALS_INPUT_KEY;
+      },
       didChangePreference: ({ event }) => {
         assertEvent(event, "CHANGE");
-        return QuestionIdsSchema.safeParse(event).success;
+        return QuestionIdsSchema.safeParse(event.name).success;
       },
       didChangeProfileNameInput: ({ context, event }) => {
-        return event.type === "CHANGE" && event.name === "profileName";
+        return event.type === "CHANGE" && event.name === PROFILE_NAME_INPUT_KEY;
       },
       didSubmitProfileName: ({ context, event }) => {
-        return event.type === "SUBMIT" && event.name === "profileName";
+        return event.type === "SUBMIT" && event.name === PROFILE_NAME_INPUT_KEY;
       },
       isProfileNameValid: ({ context, event }) => {
         return ProfileSchema.shape.profileSlug.safeParse(context.profileName)
           .success;
       },
       didChangeEmailInput: ({ context, event }) => {
-        return event.type === "CHANGE" && event.name === "email";
+        return event.type === "CHANGE" && event.name === EMAIL_INPUT_KEY;
       },
     },
     actions: {},
@@ -218,8 +233,10 @@ export const createUserMachine = ({
         suggestedProfileNames: [],
         suggestedFeedTopics: [],
         selectedFeedTopics: [],
+        interests: [],
         equipment: {},
         preferences: {},
+        goals: [],
         diet: {},
         previousSuggestedProfileNames: [],
         profileName: getRandomProfileName(),
@@ -593,18 +610,50 @@ export const createUserMachine = ({
       Onboarding: {
         initial: "NotStarted",
         on: {
-          CHANGE: [
+          SELECT_CHOICE: [
             {
-              guard: "didChangePreference",
-              actions: assign({
-                preferences: ({ context, event }) =>
-                  produce(context.preferences, (draft) => {
-                    const questionId = QuestionIdsSchema.parse(event.name);
-                    draft[questionId] = event.value;
-                  }),
-              }),
+              guard: "didChangeInterest",
+              actions: assign(({ context, event }) =>
+                produce(context, (draft) => {
+                  const interest = event.value;
+
+                  if (context.interests.includes(interest)) {
+                    draft.interests = context.goals.filter(
+                      (g) => g !== interest
+                    );
+                  } else {
+                    draft.interests = [...context.goals, interest];
+                  }
+                })
+              ),
+            },
+            {
+              guard: "didChangeGoal",
+              actions: assign(({ context, event }) =>
+                produce(context, (draft) => {
+                  const goal = event.value as CookingGoal;
+
+                  if (context.goals.includes(goal)) {
+                    draft.goals = context.goals.filter((g) => g !== goal);
+                  } else {
+                    draft.goals = [...context.goals, goal];
+                  }
+                })
+              ),
             },
           ],
+          CHANGE: {
+            guard: "didChangePreference",
+            actions: assign({
+              preferences: ({ context, event }) =>
+                produce(context.preferences, (draft) => {
+                  console.log(event);
+                  const questionId = QuestionIdsSchema.parse(event.name);
+                  console.log({ questionId }, event.value);
+                  draft[questionId] = event.value;
+                }),
+            }),
+          },
         },
         states: {
           NotStarted: {
@@ -646,37 +695,76 @@ export const createUserMachine = ({
             },
           },
           Interests: {
-            onDone: "Complete",
+            entry: spawnChild("generateSuggestedInterests", {
+              input: ({ context }) => {
+                const personalizationContext =
+                  getPersonalizationContext(context);
+
+                return {
+                  personalizationContext,
+                  preferences: context.preferenceQuestionResults,
+                };
+              },
+            }),
+            on: {
+              SUGGESTED_INTERESTS_PROGRESS: {
+                actions: assign({
+                  suggestedFeedTopics: ({ event }) => event.data.interests,
+                }),
+              },
+              SUBMIT: {
+                guard: ({ event }) => event.name === INTERESTS_INPUT_KEY,
+                target: "Complete",
+              },
+            },
             // initial: "Topics",
-            // on: {
-            //   SUGGEST_PROFILE_NAME_PROGRESS: {
-            //     actions: assign({
-            //       suggestedProfileNames: ({ event, context }) => {
-            //         const names = event.data.names;
-            //         return names || context.suggestedProfileNames;
+            // states: {
+            //   Topics: {
+            //     entry: spawnChild("generateFeedTopics", {
+            //       input: ({ context }) => {
+            //         const personalizationContext =
+            //           getPersonalizationContext(context);
+
+            //         return {
+            //           personalizationContext,
+            //           preferences: context.preferenceQuestionResults,
+            //         };
             //       },
             //     }),
-            //   },
-            //   SUGGEST_PROFILE_NAME_COMPLETE: {
-            //     actions: assign({
-            //       suggestedProfileNames: ({ event, context }) => {
-            //         const names = event.data.names;
-            //         return names;
+            //     on: {
+            //       SELECT_TOPIC: {
+            //         actions: assign({
+            //           selectedFeedTopics: ({ context, event }) => [
+            //             ...context.selectedFeedTopics,
+            //             event.topic,
+            //           ],
+            //         }),
             //       },
-            //     }),
+            //       FEED_TOPICS_PROGRESS: {
+            //         actions: assign({
+            //           suggestedFeedTopics: ({ event }) => event.data.topics,
+            //         }),
+            //       },
+            //       SUBMIT: [
+            //         {
+            //           target: "Email",
+            //           // guard: stateIn,
+            //         },
+            //         {
+            //           target: "ProfileName",
+            //           // guard: ({ context }) => !context.profileName,
+            //         },
+            //         {
+            //           target: "Complete",
+            //         },
+            //       ],
+            //     },
             //   },
-            //   LOAD_MORE: {
-            //     actions: [
-            //       assign(({ context }) =>
-            //         produce(context, (draft) => {
-            //           draft.previousSuggestedProfileNames =
-            //             context.previousSuggestedProfileNames.concat(
-            //               context.suggestedProfileNames
-            //             );
-            //           draft.suggestedProfileNames = [];
-            //         })
-            //       ),
-            //       spawnChild("generateProfileNameSuggestions", {
+            //   Email: {
+            //     always: {
+            //       target: "ProfileName",
+            //       guard: stateIn({ Email: { Availability: "Available" } }),
+            //       actions: spawnChild("generateProfileNameSuggestions", {
             //         input: ({ context }) => {
             //           assert(
             //             context.email,
@@ -695,89 +783,20 @@ export const createUserMachine = ({
             //           };
             //         },
             //       }),
-            //     ],
+            //     },
+            //   },
+            //   ProfileName: {
+            //     always: {
+            //       target: "Complete",
+            //       guard: stateIn({
+            //         ProfileName: { Availability: "Available" },
+            //       }),
+            //     },
+            //   },
+            //   Complete: {
+            //     type: "final",
             //   },
             // },
-            initial: "Topics",
-            states: {
-              Topics: {
-                entry: spawnChild("generateFeedTopics", {
-                  input: ({ context }) => {
-                    const personalizationContext =
-                      getPersonalizationContext(context);
-
-                    return {
-                      personalizationContext,
-                      preferences: context.preferenceQuestionResults,
-                    };
-                  },
-                }),
-                on: {
-                  SELECT_TOPIC: {
-                    actions: assign({
-                      selectedFeedTopics: ({ context, event }) => [
-                        ...context.selectedFeedTopics,
-                        event.topic,
-                      ],
-                    }),
-                  },
-                  FEED_TOPICS_PROGRESS: {
-                    actions: assign({
-                      suggestedFeedTopics: ({ event }) => event.data.topics,
-                    }),
-                  },
-                  SUBMIT: [
-                    {
-                      target: "Email",
-                      // guard: stateIn,
-                    },
-                    {
-                      target: "ProfileName",
-                      // guard: ({ context }) => !context.profileName,
-                    },
-                    {
-                      target: "Complete",
-                    },
-                  ],
-                },
-              },
-              Email: {
-                always: {
-                  target: "ProfileName",
-                  guard: stateIn({ Email: { Availability: "Available" } }),
-                  actions: spawnChild("generateProfileNameSuggestions", {
-                    input: ({ context }) => {
-                      assert(
-                        context.email,
-                        "expected email when generating profile name suggestions"
-                      );
-                      const previousSuggestions =
-                        context.previousSuggestedProfileNames.concat(
-                          context.suggestedProfileNames
-                        );
-                      return {
-                        email: context.email,
-                        previousSuggestions,
-                        preferences: {},
-                        personalizationContext:
-                          "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
-                      };
-                    },
-                  }),
-                },
-              },
-              ProfileName: {
-                always: {
-                  target: "Complete",
-                  guard: stateIn({
-                    ProfileName: { Availability: "Available" },
-                  }),
-                },
-              },
-              Complete: {
-                type: "final",
-              },
-            },
           },
           Complete: {
             type: "final",

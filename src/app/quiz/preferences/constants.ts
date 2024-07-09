@@ -1,4 +1,3 @@
-import { PreferenceState } from "@/types";
 import { z } from "zod";
 
 // Constants for question IDs
@@ -73,10 +72,10 @@ const PREFERENCE_QUESTIONS: readonly PreferenceQuestion[] = [
   {
     id: QUESTION_IDS_KEYS.DIETARY_DETAILS,
     question:
-      "Please share more about your dietary restrictions or preferences. KitchenCraft will do its best to match them, but always double-check recipes before cooking.",
+      "Please share more about your dietary restrictions or preferences.",
     type: "text",
     explanation:
-      "This provides more detailed information about your dietary needs.",
+      "KitchenCraft will do its best to match them, but always double-check recipes before cooking.",
   },
   {
     id: QUESTION_IDS_KEYS.COOKING_FREQUENCY,
@@ -118,7 +117,7 @@ const PREFERENCE_QUESTIONS: readonly PreferenceQuestion[] = [
   },
   {
     id: QUESTION_IDS_KEYS.OTHER_PREFERENCES,
-    question: "Any other preferences for cooking or shopping?",
+    question: "Please share any other kitchen related preferences you have (e.g. favorite equipment/tools/techniques, frequented grocery stores)?",
     type: "text",
     explanation:
       "This helps KitchenCraft understand your unique cooking style and shopping habits to provide more personalized recommendations. You can mention the type of grocery stores you like to shop at, any specific kitchen equipment you prefer using, or any other unique cooking habits you have.",

@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/display/card";
 import { Button } from "@/components/input/button";
 import { GOALS_INPUT_KEY } from "@/constants/inputs";
 import { COOKING_GOALS, CookingGoal } from "@/constants/onboarding";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelectChoiceEventHandler } from "@/hooks/useSelectChoiceEventHandler";
 import { useStore } from "@nanostores/react";
 import { CheckSquare } from "lucide-react";
@@ -11,7 +12,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function CookingGoals() {
-  const [selectedGoals$] = useState(atom<CookingGoal[]>([]));
+  const store = usePageSessionStore();
+  const [selectedGoals$] = useState(
+    atom<CookingGoal[]>(store.get().context.userSnapshot?.context.goals!)
+  );
   const router = useRouter();
 
   useSelectChoiceEventHandler(GOALS_INPUT_KEY, (event) => {
@@ -93,8 +97,8 @@ export default function CookingGoals() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-4">
-      <h1 className="text-2xl font-bold mb-6">I want to...</h1>
+    <div className="flex flex-col items-center justify-center relative gap-8 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold">I want to...</h1>
       <div className="w-full max-w-md space-y-3 px-4">
         <Goals />
       </div>
