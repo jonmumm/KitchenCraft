@@ -2,8 +2,8 @@
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { preferencesDisplayNames } from "@/data/settings";
-import { useSend } from "@/hooks/useSend";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
+import { useSend } from "@/hooks/useSend";
 import { $preferences } from "@/stores/settings";
 import { TasteSettings } from "@/types"; // Import PreferenceSettings type
 import { useState } from "react";
@@ -15,15 +15,16 @@ export function PreferenceCard({
 }) {
   const session = usePageSessionStore();
   const [toggleValue, setToggleValue] = useState(() => {
-    const sessionValue =
-      session.get().context.sessionSnapshot?.context.preferences[
-        preferenceKey
-      ];
-    return typeof sessionValue !== "undefined"
-      ? sessionValue
-        ? "yes"
-        : "no"
-      : undefined;
+    return undefined;
+    // const sessionValue =
+    //   session.get().context.sessionSnapshot?.context.preferences[
+    //     preferenceKey
+    //   ];
+    // return typeof sessionValue !== "undefined"
+    //   ? sessionValue
+    //     ? "yes"
+    //     : "no"
+    //   : undefined;
   });
   const send = useSend();
 
@@ -35,7 +36,7 @@ export function PreferenceCard({
       value: newValue,
     });
     $preferences.setKey(preferenceKey, newValue);
-    setToggleValue(newValue ? "yes" : "no");
+    // setToggleValue(newValue ? "yes" : "no");
   };
 
   return (

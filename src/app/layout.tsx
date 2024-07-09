@@ -42,7 +42,7 @@ import {
   // IsInputtingChefName,
   // IsInputtingEmail,
   IsUpgradingAccount,
-  PersonalizationSettingsMenu,
+  // PersonalizationSettingsMenu,
   SearchParamsToastMessage,
   SelectListDialog,
   UpgradeAccountCard,
@@ -302,7 +302,7 @@ const PersonalizationSettingsDialog = () => {
         <ResponsiveDialog open>
           <ResponsiveDialogOverlay />
           <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
-            <PersonalizationSettingsMenu />
+            {/* <PersonalizationSettingsMenu /> */}
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </IsInPersonalizationSettings>

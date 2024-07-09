@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/display/accordion";
 import { Badge } from "@/components/display/badge";
 import {
   Card,
@@ -20,21 +14,14 @@ import {
   CollapsibleTrigger,
 } from "@/components/display/collapsible";
 import { Label } from "@/components/display/label";
-import { Separator } from "@/components/display/separator";
 import { Input } from "@/components/input";
 import { BackButton } from "@/components/input/back-button";
 import { Button } from "@/components/input/button";
 import { Checkbox } from "@/components/input/checkbox";
 import { TypeLogo } from "@/components/logo";
-import { DietCard } from "@/components/settings/diet-card";
-import { EquipmentCard } from "@/components/settings/equipment-card";
-import { ExperienceCard } from "@/components/settings/experience-card";
-import { GroceryQuestions } from "@/components/settings/grocery";
-import { PreferenceCard } from "@/components/settings/preference-card";
 import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
-import { useCombinedSelector } from "@/hooks/useCombinedSelector";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { useRecipeListById } from "@/hooks/useRecipeListById";
 import { useRecipeListBySlug } from "@/hooks/useRecipeListBySlug";
@@ -47,9 +34,6 @@ import {
   selectPromptIsDirty,
   selectRecentCreatedListIds,
 } from "@/selectors/page-session.selectors";
-import { $diet, $equipment, $preferences } from "@/stores/settings";
-import { DietSettings, EquipmentSettings, TasteSettings } from "@/types";
-import { useStore } from "@nanostores/react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import useEmblaCarousel from "embla-carousel-react";
 import {
@@ -200,73 +184,73 @@ export const SearchParamsToastMessage = () => {
 //   );
 // };
 
-export const PersonalizationSettingsMenu = () => {
-  const equipment = useStore($equipment);
-  const diet = useStore($diet);
-  const preferences = useStore($preferences);
+// export const PersonalizationSettingsMenu = () => {
+//   const equipment = useStore($equipment);
+//   const diet = useStore($diet);
+//   const preferences = useStore($preferences);
 
-  return (
-    <div className="relative">
-      <div className="flex flex-row gap-2 justify-between items-center px-4 sticky top-0 w-full py-4 bg-card shadow-sm z-10">
-        <h2 className="text-xl font-bold">Preferences</h2>
-        <Button variant="secondary" event={{ type: "CLOSE" }} autoFocus={false}>
-          <XIcon />
-        </Button>
-      </div>
-      <Separator />
-      <Accordion type="multiple" className="flex flex-col gap-1">
-        <AccordionItem value="experience">
-          <AccordionTrigger className="p-4">Experience</AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-3">
-            <ExperienceCard level="beginner" />
-            <ExperienceCard level="intermediate" />
-            <ExperienceCard level="advanced" />
-          </AccordionContent>
-        </AccordionItem>
+//   return (
+//     <div className="relative">
+//       <div className="flex flex-row gap-2 justify-between items-center px-4 sticky top-0 w-full py-4 bg-card shadow-sm z-10">
+//         <h2 className="text-xl font-bold">Preferences</h2>
+//         <Button variant="secondary" event={{ type: "CLOSE" }} autoFocus={false}>
+//           <XIcon />
+//         </Button>
+//       </div>
+//       <Separator />
+//       <Accordion type="multiple" className="flex flex-col gap-1">
+//         <AccordionItem value="experience">
+//           <AccordionTrigger className="p-4">Experience</AccordionTrigger>
+//           <AccordionContent className="px-4 flex flex-col gap-3">
+//             <ExperienceCard level="beginner" />
+//             <ExperienceCard level="intermediate" />
+//             <ExperienceCard level="advanced" />
+//           </AccordionContent>
+//         </AccordionItem>
 
-        <AccordionItem value="shopping">
-          <AccordionTrigger className="p-4">Shopping</AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-3">
-            <GroceryQuestions />
-          </AccordionContent>
-        </AccordionItem>
+//         <AccordionItem value="shopping">
+//           <AccordionTrigger className="p-4">Shopping</AccordionTrigger>
+//           <AccordionContent className="px-4 flex flex-col gap-3">
+//             <GroceryQuestions />
+//           </AccordionContent>
+//         </AccordionItem>
 
-        <AccordionItem value="equipment">
-          <AccordionTrigger className="p-4">Equipment</AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-3">
-            {Object.keys(equipment).map((key) => (
-              <EquipmentCard
-                key={key}
-                equipmentKey={key as keyof EquipmentSettings}
-              />
-            ))}
-          </AccordionContent>
-        </AccordionItem>
+//         <AccordionItem value="equipment">
+//           <AccordionTrigger className="p-4">Equipment</AccordionTrigger>
+//           <AccordionContent className="px-4 flex flex-col gap-3">
+//             {Object.keys(equipment).map((key) => (
+//               <EquipmentCard
+//                 key={key}
+//                 equipmentKey={key as keyof EquipmentSettings}
+//               />
+//             ))}
+//           </AccordionContent>
+//         </AccordionItem>
 
-        <AccordionItem value="diet">
-          <AccordionTrigger className="p-4">Diet</AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-3">
-            {Object.keys(diet).map((key) => (
-              <DietCard key={key} dietKey={key as keyof DietSettings} />
-            ))}
-          </AccordionContent>
-        </AccordionItem>
+//         <AccordionItem value="diet">
+//           <AccordionTrigger className="p-4">Diet</AccordionTrigger>
+//           <AccordionContent className="px-4 flex flex-col gap-3">
+//             {Object.keys(diet).map((key) => (
+//               <DietCard key={key} dietKey={key as keyof DietSettings} />
+//             ))}
+//           </AccordionContent>
+//         </AccordionItem>
 
-        <AccordionItem value="taste">
-          <AccordionTrigger className="p-4">Taste</AccordionTrigger>
-          <AccordionContent className="px-4 flex flex-col gap-3">
-            {Object.keys(preferences).map((key) => (
-              <PreferenceCard
-                key={key}
-                preferenceKey={key as keyof TasteSettings}
-              />
-            ))}
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </div>
-  );
-};
+//         <AccordionItem value="taste">
+//           <AccordionTrigger className="p-4">Taste</AccordionTrigger>
+//           <AccordionContent className="px-4 flex flex-col gap-3">
+//             {Object.keys(preferences).map((key) => (
+//               <PreferenceCard
+//                 key={key}
+//                 preferenceKey={key as keyof TasteSettings}
+//               />
+//             ))}
+//           </AccordionContent>
+//         </AccordionItem>
+//       </Accordion>
+//     </div>
+//   );
+// };
 
 const selectIsUserPreferencesInitialized = (snapshot: PageSessionSnapshot) => {
   const state = snapshot.value;
@@ -552,7 +536,9 @@ export const CreateNewListCard = () => {
         <div className="flex flex-col gap-1">
           <PageSessionMatches matchedState={{ ListCreating: "True" }}>
             <CardTitle>Create List</CardTitle>
-            <CardDescription>Enter a hashtag to reference your list.</CardDescription>
+            <CardDescription>
+              Enter a hashtag to reference your list.
+            </CardDescription>
           </PageSessionMatches>
           <PageSessionMatches
             matchedState={{ ListCreating: { Error: "DuplicateName" } }}
