@@ -23,14 +23,6 @@ const Intro: React.FC = () => {
   return (
     <div className="max-w-md mx-auto w-full px-4 flex flex-col gap-4">
       <div className="flex flex-col justify-center h-full md:mx-auto rounded-xl bg-gradient-to-r from-blue-500 to-blue-700 w-full p-4">
-        <h2 className="text-2xl font-semibold mb-6 leading-10">
-          <AnimatedText
-            text="Welcome to KitchenCraft!"
-            baseSpeed={60}
-            punctDelay={600}
-            delay={0}
-          />
-        </h2>
         <h2 className="text-2xl font-semibold mb-6 leading-7">
           <AnimatedText
             text="Craft your ultimate recipe library."
@@ -41,7 +33,7 @@ const Intro: React.FC = () => {
         </h2>
         <div className="text-lg mb-4 font-semibold leading-7">
           <AnimatedText
-            text="We’re thrilled to help you craft a library of recipes that suit your unique cooking needs. This quick quiz will help us understand your preferences and tastes."
+            text="Welcome to KitchenCraft AI. We’re thrilled to help you craft a library of recipes that suit your unique cooking needs. This brief quiz will help KitchenCraft understand your goals, preferences and interests."
             baseSpeed={50}
             punctDelay={300}
             delay={2750}
@@ -49,7 +41,7 @@ const Intro: React.FC = () => {
         </div>
         <div className="text-lg font-semibold">
           <AnimatedText
-            text="The quiz is brief—only 2 minutes. Your responses will allow us to create a chef profile for you and offer personalized recipe recommendations. Ready to begin?"
+            text="Ready to begin?"
             baseSpeed={35}
             punctDelay={400}
             delay={6250}
