@@ -245,6 +245,8 @@ export const createSessionMachine = ({
         equipment: {},
         preferences: {},
         diet: {},
+        goals: [],
+        interests: [],
         selectedRecipeIds: [],
         suggestedIngredients: [],
         preferenceQuestionResults: {},
@@ -303,14 +305,14 @@ export const createSessionMachine = ({
             }),
         }),
       },
-      PREFERENCE_CHANGE: {
-        actions: assign({
-          preferences: ({ event, context }) =>
-            produce(context.preferences, (draft) => {
-              draft[event.preference] = event.value;
-            }),
-        }),
-      },
+      // PREFERENCE_CHANGE: {
+      //   actions: assign({
+      //     preferences: ({ event, context }) =>
+      //       produce(context.preferences, (draft) => {
+      //         draft[event.preference] = event.value;
+      //       }),
+      //   }),
+      // },
       SUGGEST_PLACEHOLDERS_COMPLETE: {
         actions: assign(({ context, event }) =>
           produce(context, (draft) => {

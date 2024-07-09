@@ -6,7 +6,6 @@ import { PostHog } from "posthog-node";
 import { Observable } from "rxjs";
 import { AnyStateMachine, SnapshotFrom, StateMachine } from "xstate";
 import type { z } from "zod";
-import { SuggestedInterestsEvent } from "./app/suggested-interests.stream";
 import { HomepageCategoriesEvent } from "./app/homepage-categories.stream";
 import { PreferenceAnswer, QuestionId } from "./app/quiz/preferences/constants";
 import { GoogleCustomSearchResponseSchema } from "./app/recipe/[slug]/products/schema";
@@ -15,6 +14,7 @@ import { SuggestPlaceholderEvent } from "./app/suggest-placeholder.stream";
 import { SuggestProfileNamesEvent } from "./app/suggest-profile-names.stream";
 import { SuggestTagsEvent } from "./app/suggest-tags.stream";
 import { SuggestTokensEvent } from "./app/suggest-tokens.stream";
+import { SuggestedInterestsEvent } from "./app/suggested-interests.stream";
 import {
   WelcomeMessageEvent,
   WelcomeMessageOutput,
@@ -494,6 +494,9 @@ export type UserContext = {
 export type SessionContext = {
   id: string;
   userId: string;
+  interests: string[];
+  preferences: PreferenceState;
+  goals: CookingGoal[];
   authenticated: boolean;
   experienceLevel?: ExperienceLevel;
   groceryStores?: string;
@@ -508,7 +511,6 @@ export type SessionContext = {
   profileName?: string;
   email?: string;
   diet: DietSettings;
-  preferences: TasteSettings;
   preferenceQuestionResults: Record<number, number>;
   timezone?: string;
   country?: string;
