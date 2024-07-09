@@ -35,7 +35,7 @@ const Intro: React.FC = () => {
           <AnimatedText
             text="Welcome to KitchenCraft AI. We’re thrilled to help you craft a library of recipes that suit your unique cooking needs. This brief quiz will help KitchenCraft understand your goals, preferences and interests."
             baseSpeed={60}
-            punctDelay={300}
+            punctDelay={600}
             delay={2250}
           />
         </div>
