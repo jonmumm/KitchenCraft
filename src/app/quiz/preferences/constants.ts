@@ -62,7 +62,7 @@ export type PreferenceQuestion =
 const PREFERENCE_QUESTIONS: readonly PreferenceQuestion[] = [
   {
     id: QUESTION_IDS_KEYS.DIETARY_RESTRICTIONS,
-    question: "Do you follow any dietary restrictions or preferences?",
+    question: "Do you have any specific dietary restrictions or preferences?",
     type: "boolean",
     options: ["Yes", "No"],
     followUpQuestionId: QUESTION_IDS_KEYS.DIETARY_DETAILS,

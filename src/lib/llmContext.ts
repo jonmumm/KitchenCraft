@@ -1,16 +1,14 @@
-import { preferencesDisplayNames } from "@/data/settings";
-import { SessionContext } from "@/types";
-import { formatDisplayName } from "./utils";
+import {
+  PREFERENCE_QUESTIONS_RECORD,
+  QuestionId,
+} from "@/app/quiz/preferences/constants";
+import { PreferenceState, UserContext } from "@/types";
 
 type PersonalizationOptions = Pick<
-  SessionContext,
-  | "shoppingFrequency"
-  | "groceryStores"
-  | "typicalGroceries"
-  | "experienceLevel"
-  | "equipment"
-  | "diet"
-  // | "preferences"
+  UserContext,
+  | "interests"
+  | "goals"
+  | "preferences"
   | "country"
   | "region"
   | "city"
@@ -56,59 +54,22 @@ export function getPersonalizationContext(
 ): string {
   let context: string[] = [];
 
-  if (options.shoppingFrequency) {
-    context.push(`Shopping Frequency: ${options.shoppingFrequency}`);
+  // todo include preferences, interests, and goals in the context string
+  // Include interests
+  if (options.interests && options.interests.length > 0) {
+    context.push(`Interests: ${options.interests.join(", ")}`);
   }
 
-  if (options.groceryStores) {
-    context.push(`Frequent Grocery Stores: ${options.groceryStores}`);
+  // Include goals
+  if (options.goals && options.goals.length > 0) {
+    context.push(`Cooking Goals: ${options.goals.join(", ")}`);
   }
 
-  if (options.typicalGroceries) {
-    context.push(`Typical Groceries: ${options.typicalGroceries}`);
+  // Include preferences
+  const preferenceContext = getPreferencesContext(options.preferences);
+  if (preferenceContext) {
+    context.push(`Preferences:\n${preferenceContext}`);
   }
-
-  if (options.experienceLevel) {
-    context.push(`Experience Level: ${options.experienceLevel}`);
-  }
-
-  if (options.equipment) {
-    const equipmentKeys = Object.keys(options.equipment) as Array<
-      keyof typeof options.equipment
-    >;
-    const availableEquipment = equipmentKeys
-      .filter((key) => options.equipment[key])
-      .map(formatDisplayName);
-    if (availableEquipment.length > 0) {
-      context.push(`Available Equipment: ${availableEquipment.join(", ")}`);
-    }
-  }
-
-  if (options.diet) {
-    const dietKeys = Object.keys(options.diet) as Array<
-      keyof typeof options.diet
-    >;
-    const dietaryRestrictions = dietKeys.filter((key) => options.diet[key]).map(formatDisplayName);
-    if (dietaryRestrictions.length > 0) {
-      context.push(`Dietary Restrictions: ${dietaryRestrictions.join(", ")}`);
-    }
-  }
-
-  // if (options.preferences) {
-  //   const tasteKeys = Object.keys(options.preferences) as Array<
-  //     keyof typeof options.preferences
-  //   >;
-  //   const tastePreferences = tasteKeys.filter(
-  //     (key) => options.preferences[key] !== undefined
-  //   ); // Changed to check for undefined
-  //   if (tastePreferences.length > 0) {
-  //     const preferenceDescriptions = tastePreferences.map((key) => {
-  //       const setting = options.preferences[key];
-  //       return `${preferencesDisplayNames[key]}: ${setting ? "Yes" : "No"}`; // Show Yes/No based on boolean
-  //     });
-  //     context.push(`Taste Preferences: ${preferenceDescriptions.join(", ")}`);
-  //   }
-  // }
 
   if (options.city || options.country || options.timezone) {
     context.push(
@@ -121,4 +82,33 @@ export function getPersonalizationContext(
   }
 
   return context.join("\n");
+}
+
+function getPreferencesContext(preferences: PreferenceState): string {
+  return Object.entries(preferences)
+    .map(([questionId, answer]) => {
+      const question = PREFERENCE_QUESTIONS_RECORD[questionId as QuestionId];
+      if (!question) return null;
+
+      let formattedAnswer: string;
+      switch (question.type) {
+        case "boolean":
+          formattedAnswer = answer ? "Yes" : "No";
+          break;
+        case "multiple-choice":
+          formattedAnswer = Array.isArray(answer)
+            ? answer.join(", ")
+            : String(answer);
+          break;
+        case "text":
+          formattedAnswer = String(answer);
+          break;
+        default:
+          return null;
+      }
+
+      return `${question.question} ${formattedAnswer}`;
+    })
+    .filter(Boolean)
+    .join("\n");
 }

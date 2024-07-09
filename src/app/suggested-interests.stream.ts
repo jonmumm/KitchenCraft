@@ -19,11 +19,12 @@ export type SuggestedInterestsEvent = StreamObservableEvent<
 >;
 
 export type SuggestedInterestsInput = {
-  preferences: Record<number, number>;
   personalizationContext: string;
 };
 
-export type SuggestedInterestsOutput = z.infer<typeof SuggestedInterestsOutputSchema>;
+export type SuggestedInterestsOutput = z.infer<
+  typeof SuggestedInterestsOutputSchema
+>;
 
 export class SuggestedInterestsStream extends StructuredObjectStream<
   SuggestedInterestsInput,
@@ -41,14 +42,17 @@ export class SuggestedInterestsStream extends StructuredObjectStream<
     return SUGGESTED_INTERESTS;
   }
 
-  protected async getUserMessage(input: SuggestedInterestsInput): Promise<string> {
-    return `
-Personalization Context: ${input.personalizationContext}
-    `;
+  protected async getUserMessage(
+    input: SuggestedInterestsInput
+  ): Promise<string> {
+    console.log(input.personalizationContext);
+    return input.personalizationContext;
   }
 
-  protected async getSystemMessage(input: SuggestedInterestsInput): Promise<string> {
-    return `Please generate topics that someone might be interset in, inspired the example list below, loosely based on the user's provided preferences and personalization context.
+  protected async getSystemMessage(
+    input: SuggestedInterestsInput
+  ): Promise<string> {
+    return `The user will provide sone information about themselves—please generate 20 kitchen topics for recipes they might be interested in, inspired the example list below:
 
 Keto Dinners
 Vegan Comfort Foods
@@ -68,11 +72,11 @@ Budget-Friendly Dishes
 Fresh Salads
 Hearty Soups
 
-Do not include variants on the same topic (e.g Air Fryer Breakfast, Air Fry Snacks, Air Fryer Appetizers) and do not overlay focus on any one question/preference/topic.
-Avoid using the same same word in multiple topics (e.g. Healthy, Flavorul, International, "Crowd-Pleasing", "Dinner Recipes").
-Avoid overly specific topics like Brazilian Feijoada or Purevian Ceviche—focusing on just one dish.
+Do not include variants on the same topic (e.g Air Fryer Breakfast, Air Fry Snacks, Air Fryer Appetizers) and do not overlay focus on any one thing—try to keep it varied and broad.
+Avoid using the same same word in multiple of the same (e.g. Healthy, Flavorul, International, "Crowd-Pleasing", "Dinner Recipes").
+Avoid overly specific interests like Brazilian Feijoada or Purevian Ceviche—focusing on just one dish.
 
-Return exactly 20 topics.`;
+Return exactly 20 interests.`;
   }
 
   protected getDefaultTokens(): number {

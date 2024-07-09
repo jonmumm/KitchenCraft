@@ -168,7 +168,6 @@ export const createUserMachine = ({
         }: {
           input: {
             personalizationContext: string;
-            preferences: Record<number, number>;
           };
         }) => new SuggestedInterestsStream().getObservable(input)
       ),
@@ -233,10 +232,10 @@ export const createUserMachine = ({
         suggestedProfileNames: [],
         suggestedFeedTopics: [],
         selectedFeedTopics: [],
-        interests: [],
-        equipment: {},
         preferences: {},
         goals: [],
+        interests: [],
+        equipment: {},
         diet: {},
         previousSuggestedProfileNames: [],
         profileName: getRandomProfileName(),
@@ -702,7 +701,6 @@ export const createUserMachine = ({
 
                 return {
                   personalizationContext,
-                  preferences: context.preferenceQuestionResults,
                 };
               },
             }),

@@ -296,7 +296,7 @@ export default function Preferences() {
             {isCurrentQuestion && (
               <Button
                 event={{ type: "SUBMIT", name: id }}
-                className="mt-2 w-full"
+                className="mt-4 w-full"
                 size="xl"
                 disabled={isEmpty}
               >
