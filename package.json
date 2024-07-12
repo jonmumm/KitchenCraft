@@ -9,6 +9,7 @@
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "deploy-server": "dotenv -- npx partykit deploy --domain api.kitchencraft.ai --name kitchencraft-api-prod",
     "generate": "drizzle-kit generate:pg",
     "generate-database-types": "supabase gen types typescript --project-id umxskkqubhkoowxwdrvq --schema public > src/lib/database.types.ts",
     "test": "vitest"
@@ -76,6 +77,7 @@
     "dayjs": "^1.11.10",
     "diff-match-patch": "^1.0.5",
     "dotenv": "^16.3.1",
+    "dotenv-cli": "^7.4.2",
     "drizzle-orm": "^0.29.1",
     "drizzle-zod": "^0.5.1",
     "embla-carousel-react": "^8.1.3",
