@@ -1,10 +1,21 @@
 "use client";
 import type { UserState } from "@/app/user-machine";
+import { userMatchesState } from "@/utils/user-matches";
+import { usePageSessionStore } from "@/hooks/usePageSessionStore";
+import { DeepPartial } from "@/lib/types";
+import { ReactNode, useLayoutEffect, useState, useSyncExternalStore } from "react";
+import { matchesState, StateValue } from "xstate";
 import { useUserMatchesState } from "@/hooks/useUserMatchesState";
-import { ReactNode, useLayoutEffect, useState } from "react";
 
+// Type that represents either a UserState or an XState StateValue
+
+// Function to check if a state matches a given state value
+
+// Hook for checking if user state matches
 interface UserMatchesProps {
   matchedState: UserState;
+  and?: UserState;
+  or?: UserState;
   children: ReactNode;
   initialValueOverride?: boolean;
   not?: boolean;
@@ -12,33 +23,49 @@ interface UserMatchesProps {
 
 export const UserMatches = (props: UserMatchesProps) => {
   const active = useUserMatchesState(props.matchedState);
+  const matchesAnd = useUserMatchesState(props.and || {});
+  const matchesOr = useUserMatchesState(props.or || {});
   const [overrideValue, setOverrideValue] = useState(
     props.initialValueOverride
   );
+
   useLayoutEffect(() => {
     setOverrideValue(undefined);
   }, [props.initialValueOverride]);
+
+  const andActive = props.and ? matchesAnd : true;
+  const orActive = props.or ? matchesOr : false;
+
   const value =
     typeof overrideValue === "boolean"
       ? overrideValue
-      : (active && !props.not) || (props.not && !active);
-  return value ? <>{props.children}</> : null;
+      : (active && andActive) || orActive;
+
+  const finalValue = props.not ? !value : value;
+
+  return finalValue ? <>{props.children}</> : null;
 };
 
-export const userMatchesComponent = (matchedState: UserState) => {
+export const userMatchesComponent = (
+  matchedState: UserState,
+  andState?: UserState,
+  orState?: UserState
+) => {
   const Component = ({
     children,
     not,
     initialValueOverride,
-  }: Omit<UserMatchesProps, "matchedState">) => (
+  }: Omit<UserMatchesProps, "matchedState" | "and" | "or">) => (
     <UserMatches
       matchedState={matchedState}
+      and={andState}
+      or={orState}
       not={not}
       initialValueOverride={initialValueOverride}
     >
       {children}
     </UserMatches>
   );
-  Component.displayName = `UserMatchesComponent(${matchedState.toString()})`;
+  Component.displayName = `UserMatchesComponent(${JSON.stringify(matchedState)})`;
   return Component;
 };

@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { matchesState } from "xstate";
 import { usePageSessionStore } from "./usePageSessionStore";
 
-export const usePageSessionMatchesStateHandler = (
+export const usePageSessionEnteredStateHandler = (
   matchedState: PageSessionState,
   handler: () => void
 ) => {

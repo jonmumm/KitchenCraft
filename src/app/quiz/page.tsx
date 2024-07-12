@@ -12,13 +12,25 @@ export default async function Page() {
   const { snapshot } = await userActorClient.get(userId, {});
   assert(snapshot, "expected snapshot");
 
-  if (matchesState({ Onboarding: "Goals" }, snapshot.value)) {
-    return redirect("/quiz/goals");
-  } else if (matchesState({ Onboarding: "Preferences" }, snapshot.value)) {
-    return redirect("/quiz/preferences");
-  } else if (matchesState({ Onboarding: "Interests" }, snapshot.value)) {
-    return redirect("/quiz/interests");
-  } else {
+  if (matchesState({ Onboarding: "NotStarted" }, snapshot.value)) {
     return redirect("/quiz/intro");
+  } else if (
+    matchesState({ Onboarding: { Quiz: "Goals" } }, snapshot.value)
+  ) {
+    return redirect("/quiz/goals");
+  } else if (
+    matchesState({ Onboarding: { Quiz: "Preferences" } }, snapshot.value)
+  ) {
+    return redirect("/quiz/preferences");
+  } else if (
+    matchesState({ Onboarding: { Quiz: "Interests" } }, snapshot.value)
+  ) {
+    return redirect("/quiz/interests");
+  } else if (
+    matchesState({ Onboarding: { Quiz: "Intro" } }, snapshot.value)
+  ) {
+    return redirect("/quiz/intro");
+  } else {
+    return redirect("/");
   }
 }

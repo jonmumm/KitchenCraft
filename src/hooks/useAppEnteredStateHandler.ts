@@ -1,13 +1,13 @@
-import { SessionState } from "@/app/session-machine";
+import type { AppState } from "@/app/app-machine";
+import { useEffect, useRef } from "react";
 import { matchesState } from "xstate";
-import { usePageSessionStore } from "./usePageSessionStore";
-import { useRef, useEffect } from "react";
+import { useAppContext } from "./useAppContext"; // Import your context hook
 
-export const useSessionMatchesStateHandler = (
-  matchedState: SessionState,
+export const useAppEnteredStateHandler = (
+  matchedState: AppState,
   handler: () => void
 ) => {
-  const store = usePageSessionStore();
+  const actor = useAppContext();
   const wasMatchedRef = useRef(false);
   const handlerRef = useRef(handler);
 
@@ -17,8 +17,8 @@ export const useSessionMatchesStateHandler = (
   }, [handler]);
 
   useEffect(() => {
-    const unsubscribe = store.subscribe(() => {
-      const value = store.get().context.sessionSnapshot?.value;
+    const sub = actor.subscribe(() => {
+      const value = actor.getSnapshot().value;
       const matched = value ? matchesState(matchedState as any, value) : false;
 
       if (matched && !wasMatchedRef.current) {
@@ -28,8 +28,8 @@ export const useSessionMatchesStateHandler = (
       wasMatchedRef.current = matched;
     });
 
-    return () => unsubscribe();
-  }, [matchedState, store]);
+    return () => sub.unsubscribe();
+  }, [matchedState, actor]);
 
   return wasMatchedRef.current;
 };

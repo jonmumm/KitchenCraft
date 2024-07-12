@@ -1,43 +1,47 @@
 "use client";
 
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/input/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import z from "zod";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/display/card";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/input/form";
+import { userMatchesComponent } from "@/components/util/user-matches";
+import { EMAIL_INPUT_KEY } from "@/constants/inputs";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSend } from "@/hooks/useSend";
 import { useSessionMatchesState } from "@/hooks/useSessionMatchesState";
-import { useSessionEnteredStateHandler } from "@/hooks/useSessionEnteredStateHandler";
+import { useUserMatchesStateHandler } from "@/hooks/useUserMatchesStateHandler";
 import { selectUserEmail } from "@/selectors/page-session.selectors";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-export const SignInCard = () => {
+export const IsSigningUp = userMatchesComponent({
+  Onboarding: "Email",
+});
+
+export const SignUpCard = () => {
   return (
     <Card>
       <CardHeader className="relative flex flex-row justify-between">
         <div>
-          <CardTitle>Sign In</CardTitle>
+          <CardTitle>Save Your Recipes</CardTitle>
           <CardDescription className="mt-2">
-            Enter your email to receive a link.
+            Create an account to keep track of what you create.
           </CardDescription>
         </div>
         <div>
@@ -47,7 +51,7 @@ export const SignInCard = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <SignInForm />
+        <SignUpForm />
       </CardContent>
     </Card>
   );
@@ -57,20 +61,17 @@ const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
 });
 
-function SignInForm() {
+function SignUpForm() {
   const [disabled, setDisabled] = useState(false);
-  const hasError = useSessionMatchesState({
-    Auth: { SigningIn: { Inputting: "Error" } },
-  });
+//   const hasError = useSessionMatchesState({
+//     Auth: { SigningIn: { Inputting: "Error" } },
+//   });
 
   const store = usePageSessionStore();
 
-  useSessionEnteredStateHandler(
-    { Auth: { SigningIn: { Inputting: "Error" } } },
-    () => {
-      setDisabled(false);
-    }
-  );
+  useUserMatchesStateHandler({ Email: { Saved: "True" } }, () => {
+    setDisabled(false);
+  });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -81,6 +82,7 @@ function SignInForm() {
   const send = useSend();
   useEffect(() => {
     return form.watch((data) => {
+      setDisabled(false);
       const value = data.email || "";
       send({ type: "CHANGE", name: "email", value });
     }).unsubscribe;
@@ -89,27 +91,8 @@ function SignInForm() {
   const onSubmit = useCallback(
     async (data: z.infer<typeof formSchema>) => {
       setDisabled(true);
-      send({ type: "SUBMIT", name: "email" });
-      // try {
-      //   await signIn("email", {
-      //     email: data.email,
-      //     redirect: false,
-      //   });
-
-      //   const passcodeParams = new URLSearchParams({
-      //     email: data.email,
-      //   });
-
-      //   const callbackUrl = params.get("callbackUrl");
-      //   if (callbackUrl) {
-      //     passcodeParams.set("callbackUrl", callbackUrl);
-      //   }
-
-      //   router.push(`/auth/passcode?${passcodeParams.toString()}`);
-      // } catch (error) {
-      //   console.error("Sign in failed:", error);
-      //   setDisabled(false);
-      // }
+      //   send({ type: "CHANGE", name: EMAIL_INPUT_KEY, value: data.email });
+      send({ type: "SUBMIT", name: EMAIL_INPUT_KEY });
     },
     [send]
   );
@@ -127,26 +110,31 @@ function SignInForm() {
                 <Input
                   autoFocus
                   autoComplete="email"
-                  disabled={disabled}
+                  //   disabled={isLoadingEmailResponse || isEmailInputComplete}
                   type="email"
                   placeholder="you@example.com"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>Send yourself a login code.</FormDescription>
               {fieldState.error && (
                 <FormMessage>{fieldState.error.message}</FormMessage>
-              )}
-              {hasError && (
+              )}{" "}
+              {/* {isEmailAddressInUse && (
                 <FormMessage className="text-error">
-                  Account not found for email.
+                  Email is already in use.{" "}
+                  <Link
+                    className="text-foreground underline font-semibold"
+                    href="/auth/signin"
+                  >
+                    Sign In
+                  </Link>
                 </FormMessage>
-              )}
+              )} */}
             </FormItem>
           )}
         />
-        <Button disabled={disabled} type="submit" className="w-full" size="lg">
-          {disabled ? (hasError ? "Error" : "Loading...") : "Submit"}
+        <Button disabled={disabled} type="submit" className="w-full" size="xl">
+          Submit
         </Button>
       </form>
     </Form>

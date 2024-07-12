@@ -3,15 +3,11 @@
 import { UserMatches } from "@/components/util/user-matches";
 import { ReactNode } from "react";
 
-export const IsOnboaridngInComplete = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
+export const IsQuizInComplete = ({ children }: { children: ReactNode }) => {
   return (
     <UserMatches
-      matchedState={{ Onboarding: "Complete" }}
-      not
+      matchedState={{ Onboarding: "NotStarted" }}
+      or={{ Onboarding: "Quiz" }}
     >
       {children}
     </UserMatches>

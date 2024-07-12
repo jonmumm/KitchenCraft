@@ -53,6 +53,8 @@ import { PageSessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
 // import { ShareDetailsCard } from "./share-details-card";
 import { SignInCard } from "./sign-in-card";
+import { IsSigningUp, SignUpCard } from "./sign-up-card";
+import { IsSettingProfileName, ProfileNameCard } from "./profile-name-card";
 import "./styles.css";
 
 export const revalidate = 0;
@@ -219,6 +221,8 @@ export default async function RootLayout(
                   {/* <RegistrationDialog /> */}
                   <ListManagementDialogs />
                   {/* <ShareDialog /> */}
+                  <SignUpDialog />
+                  <ProfileNameDialog />
                   <SignInDialog />
                   <PersonalizationSettingsDialog />
                   <UpgradeAccountDialog />
@@ -252,6 +256,34 @@ export default async function RootLayout(
 //     </>
 //   );
 // };
+
+
+const ProfileNameDialog = () => {
+  return (
+    <IsSettingProfileName>
+      <ResponsiveDialog open>
+        <ResponsiveDialogOverlay />
+        <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
+          <ProfileNameCard />
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    </IsSettingProfileName>
+  );
+};
+
+const SignUpDialog = () => {
+  return (
+    <IsSigningUp>
+      <ResponsiveDialog open>
+        <ResponsiveDialogOverlay />
+        <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
+          <SignUpCard />
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    </IsSigningUp>
+  );
+};
+
 const SignInDialog = () => {
   return (
     <>

@@ -213,6 +213,10 @@ export const createUserMachine = ({
       didSubmitProfileName: ({ context, event }) => {
         return event.type === "SUBMIT" && event.name === PROFILE_NAME_INPUT_KEY;
       },
+      didSubmitInterests: ({ event }) => {
+        assertEvent(event, "SUBMIT");
+        return event.name === INTERESTS_INPUT_KEY;
+      },
       isProfileNameValid: ({ context, event }) => {
         return ProfileSchema.shape.profileSlug.safeParse(context.profileName)
           .success;
@@ -658,144 +662,103 @@ export const createUserMachine = ({
           NotStarted: {
             on: {
               PAGE_LOADED: {
-                target: "Intro",
+                target: "Quiz",
                 guard: ({ event }) => {
                   return event.pathname.startsWith("/quiz/intro");
                 },
               },
             },
           },
-          Intro: {
-            on: {
-              PAGE_LOADED: {
-                target: "Goals",
-                guard: ({ event }) => {
-                  return event.pathname.startsWith("/quiz/goals");
+          Quiz: {
+            initial: "Intro",
+            onDone: [
+              {
+                guard: stateIn({
+                  Email: { Saved: "False" },
+                }),
+                target: "Email",
+              },
+              {
+                guard: stateIn({
+                  ProfileName: { Saved: "False" },
+                }),
+                target: "ProfileName",
+              },
+              {
+                target: "Prompt",
+              },
+            ],
+            states: {
+              Intro: {
+                on: {
+                  PAGE_LOADED: {
+                    target: "Goals",
+                    guard: ({ event }) => {
+                      return event.pathname.startsWith("/quiz/goals");
+                    },
+                  },
                 },
               },
-            },
-          },
-          Goals: {
-            on: {
-              PAGE_LOADED: {
-                target: "Preferences",
-                guard: ({ event }) =>
-                  event.pathname.startsWith("/quiz/preferences"),
+              Goals: {
+                on: {
+                  PAGE_LOADED: {
+                    target: "Preferences",
+                    guard: ({ event }) =>
+                      event.pathname.startsWith("/quiz/preferences"),
+                  },
+                },
               },
-            },
-          },
-          Preferences: {
-            on: {
-              PAGE_LOADED: {
-                target: "Interests",
-                guard: ({ event }) =>
-                  event.pathname.startsWith("/quiz/interests"),
+              Preferences: {
+                on: {
+                  PAGE_LOADED: {
+                    target: "Interests",
+                    guard: ({ event }) =>
+                      event.pathname.startsWith("/quiz/interests"),
+                  },
+                },
               },
-            },
-          },
-          Interests: {
-            entry: spawnChild("generateSuggestedInterests", {
-              input: ({ context }) => {
-                const personalizationContext =
-                  getPersonalizationContext(context);
+              Interests: {
+                entry: spawnChild("generateSuggestedInterests", {
+                  input: ({ context }) => {
+                    const personalizationContext =
+                      getPersonalizationContext(context);
 
-                return {
-                  personalizationContext,
-                };
-              },
-            }),
-            on: {
-              SUGGESTED_INTERESTS_PROGRESS: {
-                actions: assign({
-                  suggestedFeedTopics: ({ event }) => event.data.interests,
+                    return {
+                      personalizationContext,
+                    };
+                  },
                 }),
+                on: {
+                  SUGGESTED_INTERESTS_PROGRESS: {
+                    actions: assign({
+                      suggestedFeedTopics: ({ event }) => event.data.interests,
+                    }),
+                  },
+                  SUBMIT: {
+                    target: "Complete",
+                    guard: "didSubmitInterests",
+                  },
+                },
               },
-              SUBMIT: {
-                guard: ({ event }) => event.name === INTERESTS_INPUT_KEY,
-                target: "Complete",
+              Complete: {
+                type: "final",
               },
             },
-            // initial: "Topics",
-            // states: {
-            //   Topics: {
-            //     entry: spawnChild("generateFeedTopics", {
-            //       input: ({ context }) => {
-            //         const personalizationContext =
-            //           getPersonalizationContext(context);
-
-            //         return {
-            //           personalizationContext,
-            //           preferences: context.preferenceQuestionResults,
-            //         };
-            //       },
-            //     }),
-            //     on: {
-            //       SELECT_TOPIC: {
-            //         actions: assign({
-            //           selectedFeedTopics: ({ context, event }) => [
-            //             ...context.selectedFeedTopics,
-            //             event.topic,
-            //           ],
-            //         }),
-            //       },
-            //       FEED_TOPICS_PROGRESS: {
-            //         actions: assign({
-            //           suggestedFeedTopics: ({ event }) => event.data.topics,
-            //         }),
-            //       },
-            //       SUBMIT: [
-            //         {
-            //           target: "Email",
-            //           // guard: stateIn,
-            //         },
-            //         {
-            //           target: "ProfileName",
-            //           // guard: ({ context }) => !context.profileName,
-            //         },
-            //         {
-            //           target: "Complete",
-            //         },
-            //       ],
-            //     },
-            //   },
-            //   Email: {
-            //     always: {
-            //       target: "ProfileName",
-            //       guard: stateIn({ Email: { Availability: "Available" } }),
-            //       actions: spawnChild("generateProfileNameSuggestions", {
-            //         input: ({ context }) => {
-            //           assert(
-            //             context.email,
-            //             "expected email when generating profile name suggestions"
-            //           );
-            //           const previousSuggestions =
-            //             context.previousSuggestedProfileNames.concat(
-            //               context.suggestedProfileNames
-            //             );
-            //           return {
-            //             email: context.email,
-            //             previousSuggestions,
-            //             preferences: {},
-            //             personalizationContext:
-            //               "Oakland, CA. 36 years old. father of 2. cooks for family a lot",
-            //           };
-            //         },
-            //       }),
-            //     },
-            //   },
-            //   ProfileName: {
-            //     always: {
-            //       target: "Complete",
-            //       guard: stateIn({
-            //         ProfileName: { Availability: "Available" },
-            //       }),
-            //     },
-            //   },
-            //   Complete: {
-            //     type: "final",
-            //   },
-            // },
           },
+
+          Email: {
+            on: {
+              CANCEL: "Prompt",
+              SUBMIT: "ProfileName",
+            },
+          },
+          ProfileName: {
+            on: {
+              CANCEL: "Prompt",
+              SUBMIT: "Prompt",
+            },
+          },
+          Prompt: {},
           Complete: {
             type: "final",
           },

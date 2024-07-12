@@ -3,7 +3,7 @@
 import { selectIsOpen } from "@/app/@craft/selectors";
 import { AppContext } from "@/app/context";
 import { PageSessionSnapshot } from "@/app/page-session-machine";
-import { useAppMatchesStateHandler } from "@/hooks/useAppMatchesStateHandler";
+import { useAppEnteredStateHandler } from "@/hooks/useAppEnteredStateHandler";
 // import { session$ } from "@/app/session-store";
 import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionMatchesState } from "@/hooks/usePageSessionMatchesState";
@@ -135,7 +135,7 @@ const AutoResizableTextarea: React.FC<
     resizeTextarea();
   }, [resizeTextarea]);
 
-  useAppMatchesStateHandler({ Open: "False" }, onClose);
+  useAppEnteredStateHandler({ Open: "False" }, onClose);
 
   const textSizeClass =
     sizeClassMap[size]?.textSize || sizeClassMap["md"].textSize;
