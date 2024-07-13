@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/display/skeleton";
 import AutoResizableTextarea from "@/components/input/auto-resizable-textarea";
 import { Button } from "@/components/input/button";
 import { ListIndicator } from "@/components/list-indicator";
+import { useEventHandler } from "@/hooks/useEventHandler";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
@@ -22,7 +23,7 @@ import {
   ArrowLeftIcon,
   ArrowUpIcon,
   BookmarkIcon,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -142,6 +143,10 @@ export const CraftInput = ({
     },
     [send]
   );
+
+  useEventHandler("PAGE_LOADED", () => {
+    initialFocusRef.current = false;
+  });
 
   const handleFocus = useCallback(() => {
     const inputElement = document.getElementById("prompt");
