@@ -67,6 +67,26 @@ export const createMachineServer = <
       this.subscrptionsByConnectionId = new Map();
     }
 
+    private setupStatePersistence() {
+      if (!persisted || !this.actor) return;
+
+      this.actor.subscribe((state) => {
+        const snapshot = this.actor?.getPersistedSnapshot();
+        if (snapshot) {
+          this.persistSnapshot(snapshot);
+        }
+      });
+    }
+
+    private async persistSnapshot(snapshot: ReturnType<Actor<TMachine>["getPersistedSnapshot"]>) {
+      try {
+        await this.room.storage.put(PERSISTED_SNAPSHOT_KEY, JSON.stringify(snapshot));
+        console.log("Snapshot persisted successfully");
+      } catch (error) {
+        console.error("Error persisting snapshot:", error);
+      }
+    }
+
     async onStart() {
       if (persisted) {
         const persistentSnapshot = await this.room.storage.get(
@@ -118,6 +138,9 @@ export const createMachineServer = <
           });
           this.actor.start();
           this.actor.send({ type: "RESUME" } as any);
+
+          // Set up persistence after resuming
+          this.setupStatePersistence();
         }
       }
     }
@@ -245,21 +268,7 @@ export const createMachineServer = <
         this.actor = createActor(machine, {
           input,
         });
-        this.actor.subscribe(() => {
-          if (persisted) {
-            const snapshot = this.actor?.getPersistedSnapshot();
-            // todo buffer of batch these
-
-            if (snapshot) {
-              this.room.storage
-                .put(PERSISTED_SNAPSHOT_KEY, JSON.stringify(snapshot))
-                .then(noop)
-                .catch((error) => {
-                  console.error(error);
-                });
-            }
-          }
-        });
+        this.setupStatePersistence();
         this.actor.subscribe({
           error: (err) => {
             // debugger;
@@ -300,7 +309,7 @@ export const createMachineServer = <
         const connectionId = (await parseConnectionToken(token)).payload.jti;
         assert(
           connectionId === connection.id,
-          "connectionId from token does not mathc connection id"
+          "connectionId from token does not match connection id"
         );
         assert(connectionId, "expected connectionId from token");
         const existingCaller = this.callersByConnectionId.get(connection.id);
@@ -309,7 +318,7 @@ export const createMachineServer = <
 
       // happens in dev all the time..
       if (!caller) {
-        // todo: move this to onBeforeCOnnect?
+        // todo: move this to onBeforeConnect?
         return;
       }
 
