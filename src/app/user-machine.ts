@@ -195,6 +195,8 @@ export const createUserMachine = ({
       sendWelcomeEmail,
     },
     guards: {
+      isEmailSaved: stateIn({ Email: { Saved: "True" } }), // todo how do we make this typesafe without causing circular references
+      isProfileNameSaved: stateIn({ ProfileName: { Claimed: "True" } }), // todo how do we make this typesafe without causing circular references
       didChangeInterest: ({ event }) => {
         assertEvent(event, "SELECT_CHOICE");
         return event.name === INTERESTS_INPUT_KEY;
@@ -747,18 +749,28 @@ export const createUserMachine = ({
           },
 
           Email: {
+            always: {
+              target: "ProfileName",
+              guard: "isEmailSaved",
+            },
             on: {
               CANCEL: "Prompt",
-              SUBMIT: "ProfileName",
             },
           },
           ProfileName: {
+            always: {
+              target: "Prompt",
+              guard: "isProfileNameSaved",
+            },
             on: {
               CANCEL: "Prompt",
-              SUBMIT: "Prompt",
             },
           },
-          Prompt: {},
+          Prompt: {
+            on: {
+              FOCUS_PROMPT: "Complete",
+            },
+          },
           Complete: {
             type: "final",
           },

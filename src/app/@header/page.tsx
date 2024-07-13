@@ -17,9 +17,12 @@ import { TypeLogo } from "@/components/logo";
 // import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { getIsMobile, getTimezone } from "@/lib/headers";
 // import { selectCurrentSaveToListPath } from "@/selectors/page-session.selectors";
+import { useUserMatchesState } from "@/hooks/useUserMatchesState";
 import { BookmarkIcon, InfoIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
+import { ReactNode } from "react";
 import { CraftCTA, HeaderLinks } from "./components";
+import { PromptHighlight } from "./prompt-highlight";
 
 export default async function Page({}) {
   return (
@@ -82,7 +85,7 @@ export default async function Page({}) {
                   </Button>
                 </Link>
               </div> */}
-              <Highlight active={false}>
+              <PromptHighlight>
                 <HighlightTarget>
                   <CraftCTA initialAutoFocus={!getIsMobile()} />
                 </HighlightTarget>
@@ -90,7 +93,7 @@ export default async function Page({}) {
                   Teach me something here. Animate the text and play audio. TODO
                   new compoennt
                 </HighlightContent>
-              </Highlight>
+              </PromptHighlight>
               <div className="hidden crafting:flex flex-col gap-3 items-center">
                 <Button
                   variant={"ghost"}

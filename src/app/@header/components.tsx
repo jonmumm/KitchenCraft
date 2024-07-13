@@ -17,6 +17,8 @@ import { BookmarkIcon, ChefHatIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { MainMenu } from "../menu/components";
 import { CraftInput, MyRecipesBadge } from "./components.client";
+import { PromptHighlight } from "./prompt-highlight";
+import { HighlightContent, HighlightTarget } from "@/components/highlight";
 
 export async function HeaderWithInput({ className }: { className?: string }) {
   return (
@@ -32,7 +34,15 @@ export async function HeaderWithInput({ className }: { className?: string }) {
           <div className="flex flex-col gap-1 w-full crafting:max-w-3xl crafting:mx-auto">
             <div className="flex flex-row gap-2 w-full justify-between items-center"></div>
             <div className="flex flex-row gap-2 items-center">
-              <CraftCTA initialAutoFocus={!getIsMobile()} />
+              <PromptHighlight>
+                <HighlightTarget>
+                  <CraftCTA initialAutoFocus={!getIsMobile()} />
+                </HighlightTarget>
+                <HighlightContent>
+                  Teach me something here. Animate the text and play audio. TODO
+                  new compoennt
+                </HighlightContent>
+              </PromptHighlight>
               <div className="hidden crafting:flex flex-col gap-3 items-center">
                 <Button
                   variant={"ghost"}

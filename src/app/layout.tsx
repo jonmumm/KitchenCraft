@@ -218,9 +218,7 @@ export default async function RootLayout(
                   </div>
                   <div className="sticky bottom-0 z-20">{footer}</div>
                   {canInstallPWA && <SafariInstallPrompt />}
-                  {/* <RegistrationDialog /> */}
                   <ListManagementDialogs />
-                  {/* <ShareDialog /> */}
                   <SignUpDialog />
                   <ProfileNameDialog />
                   <SignInDialog />

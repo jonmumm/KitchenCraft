@@ -3,12 +3,19 @@
 import { useStore } from "@nanostores/react";
 import { Slot } from "@radix-ui/react-slot";
 import { atom } from "nanostores";
-import React, { ReactNode, createContext, useContext, useState } from "react";
+import React, {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { twc } from "react-twc";
 import { Popover, PopoverContent, PopoverTrigger } from "./layout/popover";
 
 interface HighlightProps {
-  active: boolean;
+  open: boolean;
+  onOpenChange?: (value: boolean) => void;
   children: ReactNode;
   duration?: number;
   className?: string;
@@ -16,12 +23,15 @@ interface HighlightProps {
 
 const HighlightContext = createContext(atom(false));
 
-export const Highlight: React.FC<HighlightProps> = ({ active, children }) => {
-  const [store] = useState(atom(active));
+export const Highlight: React.FC<HighlightProps> = ({ open, children }) => {
+  const [store] = useState(atom(open));
+  useEffect(() => {
+    store.set(open);
+  }, [store, open]);
 
   return (
     <HighlightContext.Provider value={store}>
-      <Popover open={active}>{children}</Popover>
+      <Popover open={open}>{children}</Popover>
     </HighlightContext.Provider>
   );
 };
@@ -48,4 +58,4 @@ export const HighlightTarget = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const HighlightContent = twc(PopoverContent)`z-100`;
+export const HighlightContent = twc(PopoverContent)`z-100 max-w-[95vw] p-2`;
