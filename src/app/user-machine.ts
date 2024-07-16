@@ -673,23 +673,6 @@ export const createUserMachine = ({
           },
           Quiz: {
             initial: "Intro",
-            onDone: [
-              {
-                guard: stateIn({
-                  Email: { Saved: "False" },
-                }),
-                target: "Email",
-              },
-              {
-                guard: stateIn({
-                  ProfileName: { Saved: "False" },
-                }),
-                target: "ProfileName",
-              },
-              {
-                target: "Prompt",
-              },
-            ],
             states: {
               Intro: {
                 on: {
@@ -746,6 +729,23 @@ export const createUserMachine = ({
                 type: "final",
               },
             },
+            onDone: [
+              {
+                guard: stateIn({
+                  Email: { Saved: "False" },
+                }),
+                target: "Email",
+              },
+              {
+                guard: stateIn({
+                  ProfileName: { Claimed: "False" },
+                }),
+                target: "ProfileName",
+              },
+              {
+                target: "Prompt",
+              },
+            ],
           },
 
           Email: {
