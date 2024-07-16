@@ -239,6 +239,14 @@ export const createAppMachine = ({
     },
     actors: {
       waitForSessionValue,
+      // waitForEmailSaved: fromPromise(() =>
+      //   waitForUserMatches(
+      //     {
+      //       Email: { Saved: "True" },
+      //     },
+      //     store
+      //   )
+      // ),
       waitForRefreshFeedEnd: fromPromise(async () => {
         const feedItems = selectFeedItemIds(store.get());
         const startingLength = feedItems.length;
@@ -405,6 +413,9 @@ export const createAppMachine = ({
         states: {
           Open: {
             on: {
+              SIGN_IN: {
+                target: ".False",
+              },
               CREATE_ACCOUNT: {
                 target: ".True",
               },
@@ -415,6 +426,10 @@ export const createAppMachine = ({
                 on: {
                   CANCEL: "False",
                 },
+                // invoke: {
+                //   src: "waitForEmailSaved",
+                //   onDone: "False",
+                // },
               },
               False: {},
             },

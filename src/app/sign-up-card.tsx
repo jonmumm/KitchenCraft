@@ -9,6 +9,7 @@ import {
 } from "@/components/display/card";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
+import EventTrigger from "@/components/input/event-trigger";
 import {
   Form,
   FormControl,
@@ -36,10 +37,15 @@ import { z } from "zod";
 
 export const IsSigningUp = ({ children }: { children: ReactNode }) => {
   const isSigningUpInOnboarding = useUserMatchesState({ Onboarding: "Email" });
+  const isEmailSaved = useUserMatchesState({ Email: { Saved: "True" } });
   const isRegistering = useAppMatchesState({ SignUp: { Open: "True" } });
   // const isRegistering = useUserMatchesState({ Onboarding: "Email" });
 
-  return isSigningUpInOnboarding || isRegistering ? <>{children}</> : <></>;
+  return !isEmailSaved && (isSigningUpInOnboarding || isRegistering) ? (
+    <>{children}</>
+  ) : (
+    <></>
+  );
 };
 
 export const SignUpCard = () => {
@@ -134,9 +140,11 @@ function SignUpForm() {
               {isEmailAddressInUse && (
                 <FormMessage className="text-error">
                   Email is already in use.{" "}
-                  <Button size="lg" event={{ type: "SIGN_IN" }}>
-                    Sign In
-                  </Button>
+                  <EventTrigger event={{ type: "SIGN_IN" }} asChild>
+                    <span className="underline text-primary font-semibold cursor-pointer">
+                      Sign In
+                    </span>
+                  </EventTrigger>
                 </FormMessage>
               )}
             </FormItem>

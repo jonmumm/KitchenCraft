@@ -1,11 +1,7 @@
 "use client";
 import type { UserState } from "@/app/user-machine";
-import { userMatchesState } from "@/utils/user-matches";
-import { usePageSessionStore } from "@/hooks/usePageSessionStore";
-import { DeepPartial } from "@/lib/types";
-import { ReactNode, useLayoutEffect, useState, useSyncExternalStore } from "react";
-import { matchesState, StateValue } from "xstate";
 import { useUserMatchesState } from "@/hooks/useUserMatchesState";
+import { ReactNode, useLayoutEffect, useState } from "react";
 
 // Type that represents either a UserState or an XState StateValue
 
@@ -66,6 +62,8 @@ export const userMatchesComponent = (
       {children}
     </UserMatches>
   );
-  Component.displayName = `UserMatchesComponent(${JSON.stringify(matchedState)})`;
+  Component.displayName = `UserMatchesComponent(${JSON.stringify(
+    matchedState
+  )})`;
   return Component;
 };

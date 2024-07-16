@@ -1,5 +1,6 @@
 import { captureEvent } from "@/actions/capturePostHogEvent";
 import { HINTS } from "@/constants/hints";
+import { EMAIL_INPUT_KEY, SIGN_IN_CODE_INPUT_KEY } from "@/constants/inputs";
 import { ListRecipeTable, ListTable, UsersTable } from "@/db";
 import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { streamToObservable } from "@/lib/stream-to-observable";
@@ -21,7 +22,6 @@ import {
   setup,
 } from "xstate";
 import { z } from "zod";
-import { SuggestedInterestsStream } from "./suggested-interests.stream";
 import { HomepageCategoriesStream } from "./homepage-categories.stream";
 import {
   SuggestIngredientStream,
@@ -33,8 +33,7 @@ import {
   SuggestTagsStream,
 } from "./suggest-tags.stream";
 import { SuggestTokensStream } from "./suggest-tokens.stream";
-import { WelcomeMessageStream } from "./welcome-message.stream";
-import { SIGN_IN_CODE_INPUT_KEY } from "@/constants/inputs";
+import { SuggestedInterestsStream } from "./suggested-interests.stream";
 
 const InputSchema = z.object({
   id: z.string(),
@@ -386,7 +385,7 @@ export const createSessionMachine = ({
                   },
                   CHANGE: {
                     target: ".Waiting",
-                    guard: ({ event }) => event.name === "email",
+                    guard: ({ event }) => event.name === EMAIL_INPUT_KEY,
                     actions: assign({
                       email: ({ event }) => event.value,
                     }),
@@ -400,7 +399,7 @@ export const createSessionMachine = ({
                     on: {
                       CHANGE: {
                         target: "Waiting",
-                        guard: ({ event }) => event.name === "email",
+                        guard: ({ event }) => event.name === EMAIL_INPUT_KEY,
                         actions: assign({
                           email: ({ event }) => event.value,
                         }),
@@ -454,7 +453,8 @@ export const createSessionMachine = ({
                     on: {
                       SUBMIT: "Verifying",
                       CHANGE: {
-                        guard: ({ event }) => event.name === SIGN_IN_CODE_INPUT_KEY,
+                        guard: ({ event }) =>
+                          event.name === SIGN_IN_CODE_INPUT_KEY,
                         actions: assign({
                           signInCode: ({ event }) => event.value,
                         }),
@@ -486,7 +486,8 @@ export const createSessionMachine = ({
                     on: {
                       CHANGE: {
                         target: "Inputting",
-                        guard: ({ event }) => event.name === SIGN_IN_CODE_INPUT_KEY,
+                        guard: ({ event }) =>
+                          event.name === SIGN_IN_CODE_INPUT_KEY,
                         actions: assign({
                           signInCode: ({ event }) => event.value,
                         }),
