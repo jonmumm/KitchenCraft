@@ -1,38 +1,46 @@
 "use client";
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/display/card";
 import { Input } from "@/components/input";
 import { Button } from "@/components/input/button";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/input/form";
-import { userMatchesComponent } from "@/components/util/user-matches";
 import { EMAIL_INPUT_KEY } from "@/constants/inputs";
+import { useAppMatchesState } from "@/hooks/useAppMatchesState";
 import { usePageSessionStore } from "@/hooks/usePageSessionStore";
 import { useSend } from "@/hooks/useSend";
-import { useSessionMatchesState } from "@/hooks/useSessionMatchesState";
+import { useUserMatchesState } from "@/hooks/useUserMatchesState";
 import { useUserMatchesStateHandler } from "@/hooks/useUserMatchesStateHandler";
 import { selectUserEmail } from "@/selectors/page-session.selectors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { XIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-export const IsSigningUp = userMatchesComponent({
-  Onboarding: "Email",
-});
+// export const IsSigningUp = userMatchesComponent({
+//   Onboarding: "Email",
+// });
+
+export const IsSigningUp = ({ children }: { children: ReactNode }) => {
+  const isSigningUpInOnboarding = useUserMatchesState({ Onboarding: "Email" });
+  const isRegistering = useAppMatchesState({ SignUp: { Open: "True" } });
+  // const isRegistering = useUserMatchesState({ Onboarding: "Email" });
+
+  return isSigningUpInOnboarding || isRegistering ? <>{children}</> : <></>;
+};
 
 export const SignUpCard = () => {
   return (
@@ -63,9 +71,13 @@ const formSchema = z.object({
 
 function SignUpForm() {
   const [disabled, setDisabled] = useState(false);
-//   const hasError = useSessionMatchesState({
-//     Auth: { SigningIn: { Inputting: "Error" } },
-//   });
+  //   const hasError = useSessionMatchesState({
+  //     Auth: { SigningIn: { Inputting: "Error" } },
+  //   });
+
+  const isEmailAddressInUse = useUserMatchesState({
+    Email: { Availability: "Unavailable" },
+  });
 
   const store = usePageSessionStore();
 
@@ -119,17 +131,14 @@ function SignUpForm() {
               {fieldState.error && (
                 <FormMessage>{fieldState.error.message}</FormMessage>
               )}{" "}
-              {/* {isEmailAddressInUse && (
+              {isEmailAddressInUse && (
                 <FormMessage className="text-error">
                   Email is already in use.{" "}
-                  <Link
-                    className="text-foreground underline font-semibold"
-                    href="/auth/signin"
-                  >
+                  <Button size="lg" event={{ type: "SIGN_IN" }}>
                     Sign In
-                  </Link>
+                  </Button>
                 </FormMessage>
-              )} */}
+              )}
             </FormItem>
           )}
         />

@@ -1186,7 +1186,12 @@ const SelectChoiceEventSchema = z.object({
   value: z.string(),
 });
 
+const CreateAccountEventSchema = z.object({
+  type: z.literal("CREATE_ACCOUNT"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
+  CreateAccountEventSchema,
   SelectChoiceEventSchema,
   ViewResultEventSchema,
   DismissHintEventSchema,

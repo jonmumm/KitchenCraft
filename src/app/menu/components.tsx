@@ -4,6 +4,7 @@ import { ModeToggle } from "@/components/dark-mode-toggle";
 import { Badge } from "@/components/display/badge";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
+import { Skeleton } from "@/components/display/skeleton";
 import { Button } from "@/components/input/button";
 import { PopoverContent } from "@/components/layout/popover";
 import { HasEmailSaved } from "@/components/logic/has-email-saved";
@@ -25,10 +26,12 @@ export function MainMenu({ className }: { className?: string }) {
   return (
     <>
       <HasEmailSaved not>
-        <Button size="xl" event={{ type: "SIGN_IN" }}>
+        <Button size="lg" event={{ type: "SIGN_IN" }}>
           Sign In
         </Button>
-        <Separator />
+        <Button size="lg" variant="secondary" event={{ type: "CREATE_ACCOUNT" }}>
+          Create Account
+        </Button>
       </HasEmailSaved>
       <HasEmailSaved>
         <div className="flex flex-col gap-1 items-center justify-center">
@@ -119,7 +122,12 @@ export function MainMenu({ className }: { className?: string }) {
             Email
           </Label>
           <div className="flex-1 min-w-0 truncate text-right">
-            <span className="truncate">{email}</span>
+            <HasEmailSaved>
+              <span className="truncate">{email}</span>
+            </HasEmailSaved>
+            <HasEmailSaved not>
+              <Skeleton className="w-20 h-4" />
+            </HasEmailSaved>
           </div>
         </div>
         <Separator />

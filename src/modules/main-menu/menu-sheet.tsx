@@ -17,7 +17,11 @@ export function MenuSheet({ children }: { children: ReactNode }) {
   const handleSignIn = useCallback(() => {
     open$.set(false);
   }, [open$]);
+  const handleCreateAccount = useCallback(() => {
+    open$.set(false);
+  }, [open$]);
 
+  useEventHandler("CREATE_ACCOUNT", handleCreateAccount);
   useEventHandler("DOWNLOAD_APP", handleDownloadApp);
   useEventHandler("SIGN_IN", handleSignIn);
 

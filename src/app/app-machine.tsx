@@ -399,6 +399,29 @@ export const createAppMachine = ({
           },
         },
       },
+
+      SignUp: {
+        type: "parallel",
+        states: {
+          Open: {
+            on: {
+              CREATE_ACCOUNT: {
+                target: ".True",
+              },
+            },
+            initial: "False",
+            states: {
+              True: {
+                on: {
+                  CANCEL: "False",
+                },
+              },
+              False: {},
+            },
+          },
+        },
+      },
+
       Auth: {
         initial: matchesState(
           { Auth: "Authenticated" },
@@ -416,9 +439,6 @@ export const createAppMachine = ({
         states: {
           Anonymous: {
             on: {
-              SAVE: {
-                target: "Registering",
-              },
               SIGN_IN: {
                 target: "SigningIn",
               },
@@ -456,41 +476,6 @@ export const createAppMachine = ({
                 },
               },
               Clicked: {},
-            },
-          },
-          Registering: {
-            initial: "InputtingEmail",
-            onDone: "LoggedIn",
-            on: {
-              CANCEL: "Anonymous",
-            },
-            states: {
-              InputtingEmail: {
-                on: {
-                  PAGE_LOADED: {
-                    target: "InputtingChefName",
-                  },
-                },
-              },
-              InputtingChefName: {
-                on: {
-                  SUBMIT: {
-                    target: "InputtingOTP",
-                    guard: "hasValidChefName",
-                  },
-                },
-              },
-              InputtingOTP: {
-                on: {
-                  PAGE_LOADED: {
-                    target: "Complete",
-                    guard: ({ event }) => event.pathname === "/me",
-                  },
-                },
-              },
-              Complete: {
-                type: "final",
-              },
             },
           },
           LoggedIn: {},

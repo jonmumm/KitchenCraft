@@ -1,3 +1,3 @@
 import { userMatchesComponent } from "../util/user-matches";
 
-export const HasEmailSaved = userMatchesComponent({ Email: "Saved" });
+export const HasEmailSaved = userMatchesComponent({ Email: { Saved: "True" } });
