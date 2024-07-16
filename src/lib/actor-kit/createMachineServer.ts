@@ -9,25 +9,24 @@ import {
   WithCloudFlareProps,
 } from "@/types";
 import { randomUUID } from "crypto";
-import { applyPatch, compare } from "fast-json-patch";
+import { compare } from "fast-json-patch";
 import { SignJWT, jwtVerify } from "jose";
 import type * as Party from "partykit/server";
 import { PostHog } from "posthog-node";
 import {
   Actor,
-  AnyMachineSnapshot,
   AnyStateMachine,
   EventFrom,
   InputFrom,
   SnapshotFrom,
   Subscription,
   createActor,
-  getInitialSnapshot,
   waitFor,
 } from "xstate";
+import { xstateMigrate } from "xstate-migrate";
 import { z } from "zod";
 import { parseAccessTokenForCaller } from "../session";
-import { assert, noop } from "../utils";
+import { assert } from "../utils";
 
 type ActorConnectionState = {
   postHogClient: PostHog;
@@ -78,9 +77,14 @@ export const createMachineServer = <
       });
     }
 
-    private async persistSnapshot(snapshot: ReturnType<Actor<TMachine>["getPersistedSnapshot"]>) {
+    private async persistSnapshot(
+      snapshot: ReturnType<Actor<TMachine>["getPersistedSnapshot"]>
+    ) {
       try {
-        await this.room.storage.put(PERSISTED_SNAPSHOT_KEY, JSON.stringify(snapshot));
+        await this.room.storage.put(
+          PERSISTED_SNAPSHOT_KEY,
+          JSON.stringify(snapshot)
+        );
         console.log("Snapshot persisted successfully");
       } catch (error) {
         console.error("Error persisting snapshot:", error);
@@ -102,34 +106,25 @@ export const createMachineServer = <
 
           const machine = createMachine(input);
 
-          const snapshot = JSON.parse(persistentSnapshot as string);
-          const initialSnap = getInitialSnapshot(
+          const parsedSnapshot = JSON.parse(persistentSnapshot as string);
+          const migrations = xstateMigrate.generateMigrations(
             machine,
-            input
-          ) as AnyMachineSnapshot;
-
-          const valueOperations = compare(snapshot.value, initialSnap.value);
-          const filteredValueOperations = valueOperations.filter(
-            (operation) =>
-              operation.op === "add" ||
-              operation.op === "remove" ||
-              (operation.op === "replace" &&
-                typeof operation.value === "object")
+            parsedSnapshot
           );
 
-          const contextOperations = compare(
-            snapshot.context,
-            initialSnap.context
-          );
-          const filteredContextOperations = contextOperations.filter(
-            (operation) => operation.op === "add"
-          );
-          // todo: log these values somewhere so easy to recover
+          if (migrations.length) {
+            console.debug("Applying migrations: ", migrations);
+          }
 
-          applyPatch(snapshot.value, filteredValueOperations);
-          applyPatch(snapshot.context, filteredContextOperations);
+          const restoredSnapshot = xstateMigrate.applyMigrations(
+            parsedSnapshot,
+            migrations
+          );
 
-          this.actor = createActor(machine, { snapshot, input: input as any });
+          this.actor = createActor(machine, {
+            snapshot: restoredSnapshot,
+            input: input as any,
+          });
           this.actor.subscribe({
             error: (err) => {
               // todo report to sentry
