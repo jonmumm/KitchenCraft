@@ -238,8 +238,8 @@ export const createSessionMachine = ({
     type: "parallel",
     context: ({ input }) => {
       return {
-        id: input.id,
-        userId: input.initialCaller?.id,
+        id: input?.id, // ? so initialSnapshot works without input
+        userId: input?.initialCaller?.id,
         authenticated: false,
         equipment: {},
         preferences: {},

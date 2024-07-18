@@ -59,6 +59,7 @@ export const createMachineServer = <
     >;
     callersByConnectionId: Map<string, Caller>;
     subscrptionsByConnectionId: Map<string, Subscription>;
+    lastPersistedSnapshot: ReturnType<Actor<TMachine>["getPersistedSnapshot"]> | null = null;
 
     constructor(public room: Party.Room) {
       this.lastSnapshotsByConnectionId = new Map();
@@ -81,11 +82,19 @@ export const createMachineServer = <
       snapshot: ReturnType<Actor<TMachine>["getPersistedSnapshot"]>
     ) {
       try {
-        await this.room.storage.put(
-          PERSISTED_SNAPSHOT_KEY,
-          JSON.stringify(snapshot)
-        );
-        console.log("Snapshot persisted successfully");
+        if (
+          !this.lastPersistedSnapshot ||
+          compare(this.lastPersistedSnapshot, snapshot).length > 0
+        ) {
+          await this.room.storage.put(
+            PERSISTED_SNAPSHOT_KEY,
+            JSON.stringify(snapshot)
+          );
+          this.lastPersistedSnapshot = snapshot;
+          console.log("Snapshot persisted successfully");
+        } else {
+          console.log("No changes in snapshot, skipping persistence");
+        }
       } catch (error) {
         console.error("Error persisting snapshot:", error);
       }
@@ -127,14 +136,12 @@ export const createMachineServer = <
           });
           this.actor.subscribe({
             error: (err) => {
-              // todo report to sentry
               console.error(err);
             },
           });
           this.actor.start();
           this.actor.send({ type: "RESUME" } as any);
 
-          // Set up persistence after resuming
           this.setupStatePersistence();
         }
       }
@@ -183,7 +190,7 @@ export const createMachineServer = <
 
         await waitFor(actor, (state) => {
           const anyState = state as SnapshotFrom<AnyStateMachine>;
-          return anyState.matches({ Initialization: "Ready" }); // todo update the types to require this state somehow
+          return anyState.matches({ Initialization: "Ready" });
         });
 
         const snapshot = actor.getPersistedSnapshot();
@@ -199,8 +206,6 @@ export const createMachineServer = <
           const json = await request.json();
           const event = SystemEventSchema.parse(json);
 
-          // Set future events from this connection to
-          // come from the userId
           if (event.type === "AUTHENTICATE") {
             this.callersByConnectionId.set(event.connectionId, {
               id: event.userId,
@@ -221,10 +226,6 @@ export const createMachineServer = <
           const json = await request.json();
           const event = AppEventSchema.parse(json);
 
-          // hack to add cf to HEART_BEAT events
-          // tried adding it to all events but xstate
-          // seemed to be stripping out the cf prop
-          // when not on a specific event
           const payload = Object.assign(event, {
             caller,
             cf: request.cf,
@@ -254,7 +255,7 @@ export const createMachineServer = <
           id: this.room.id,
           initialCaller: caller,
           ...inputJson,
-        } as InputFrom<TMachine>; // Asserting the type directly, should be a way to infer
+        } as InputFrom<TMachine>;
         const machine = createMachine({
           id: this.room.id,
           storage: this.room.storage,
@@ -266,8 +267,6 @@ export const createMachineServer = <
         this.setupStatePersistence();
         this.actor.subscribe({
           error: (err) => {
-            // debugger;
-            // todo report to sentry
             console.error(err);
           },
         });
@@ -280,7 +279,6 @@ export const createMachineServer = <
       connection: ActorConnection,
       context: Party.ConnectionContext
     ) {
-      // console.log(this.room.name);
       const authHeader = context.request.headers.get("Authorization");
       let caller: Caller | undefined;
       if (authHeader) {
@@ -311,13 +309,10 @@ export const createMachineServer = <
         caller = existingCaller;
       }
 
-      // happens in dev all the time..
       if (!caller) {
-        // todo: move this to onBeforeConnect?
         return;
       }
 
-      // todo support for inputJson in websocket initial connections
       const actor = this.ensureActorRunning({ caller });
 
       let lastSnapshot =
@@ -328,13 +323,11 @@ export const createMachineServer = <
         const operations = compare(lastSnapshot, nextSnapshot);
         lastSnapshot = nextSnapshot;
         if (operations.length) {
-          // todo sanitize `refs` in context from being written out...
           connection.send(JSON.stringify({ operations }));
         }
         this.lastSnapshotsByConnectionId.set(connection.id, nextSnapshot);
       };
       sendSnapshot();
-      // const caller = this.callersByConnectionId.get(connection.id);
       const parties = this.room.context.parties;
 
       let requestInfo: z.infer<typeof RequestInfoSchema> | undefined;
@@ -355,7 +348,6 @@ export const createMachineServer = <
 
       const sub = actor.subscribe(sendSnapshot);
       this.subscrptionsByConnectionId.set(connection.id, sub);
-      // this.room.context.parties.get("")
     }
 
     async onMessage(message: string, sender: Party.Connection) {
@@ -395,7 +387,7 @@ const createConnectionToken = async (id: string, connectionId: string) => {
     .setExpirationTime("1d");
 
   const token = await signJWT.sign(
-    new TextEncoder().encode(process.env.NEXTAUTH_SECRET) // todo parameterize this somehow and/or use diff env var
+    new TextEncoder().encode(process.env.NEXTAUTH_SECRET)
   );
   return token;
 };
