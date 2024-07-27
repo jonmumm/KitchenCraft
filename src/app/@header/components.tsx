@@ -1,6 +1,7 @@
 import { Button } from "@/components/input/button";
 
 import { Badge } from "@/components/display/badge";
+import { HighlightContent, HighlightTarget } from "@/components/highlight";
 import {
   SheetContent,
   SheetOverlay,
@@ -18,7 +19,6 @@ import Link from "next/link";
 import { MainMenu } from "../menu/components";
 import { CraftInput, MyRecipesBadge } from "./components.client";
 import { PromptHighlight } from "./prompt-highlight";
-import { HighlightContent, HighlightTarget } from "@/components/highlight";
 
 export async function HeaderWithInput({ className }: { className?: string }) {
   return (
@@ -39,8 +39,8 @@ export async function HeaderWithInput({ className }: { className?: string }) {
                   <CraftCTA initialAutoFocus={!getIsMobile()} />
                 </HighlightTarget>
                 <HighlightContent>
-                  Teach me something here. Animate the text and play audio. TODO
-                  new compoennt
+                  Time to create recipes! Type anything you&apos;d like to
+                  cook, be as specific as you want!
                 </HighlightContent>
               </PromptHighlight>
               <div className="hidden crafting:flex flex-col gap-3 items-center">

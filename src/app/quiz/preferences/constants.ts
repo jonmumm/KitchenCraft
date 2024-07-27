@@ -117,10 +117,10 @@ const PREFERENCE_QUESTIONS: readonly PreferenceQuestion[] = [
   },
   {
     id: QUESTION_IDS_KEYS.OTHER_PREFERENCES,
-    question: "Please share any other kitchen related preferences you have (e.g. favorite equipment/tools/techniques, frequented grocery stores)?",
+    question: "Any other kitchen related preferences you'd like to share? (e.g. favorite equipment, tools, techniques, ingredients)",
     type: "text",
     explanation:
-      "This helps KitchenCraft understand your unique cooking style and shopping habits to provide more personalized recommendations. You can mention the type of grocery stores you like to shop at, any specific kitchen equipment you prefer using, or any other unique cooking habits you have.",
+      "This helps KitchenCraft understand your unique cooking style and habits to provide more personalized recommendations. You can mention the type of grocery stores you like to shop at, any specific kitchen equipment you prefer using, or any other unique cooking habits you have.",
   },
 ] as const;
 
