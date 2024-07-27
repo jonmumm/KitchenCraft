@@ -729,9 +729,9 @@ export const createAppMachine = ({
               () => {
                 document.body.classList.add("crafting");
               },
-              {
-                type: "focusInput",
-              },
+              // {
+              //   type: "focusInput",
+              // },
             ],
             on: {
               CLOSE: {
