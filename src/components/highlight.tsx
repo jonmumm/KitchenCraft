@@ -1,5 +1,4 @@
 "use client";
-
 import { useStore } from "@nanostores/react";
 import { Slot } from "@radix-ui/react-slot";
 import { atom } from "nanostores";
@@ -9,6 +8,7 @@ import React, {
   useContext,
   useEffect,
   useState,
+  useRef,
 } from "react";
 import { twc } from "react-twc";
 import { Popover, PopoverContent, PopoverTrigger } from "./layout/popover";
@@ -28,7 +28,6 @@ export const Highlight: React.FC<HighlightProps> = ({ open, children }) => {
   useEffect(() => {
     store.set(open);
   }, [store, open]);
-
   return (
     <HighlightContext.Provider value={store}>
       <Popover open={open}>{children}</Popover>
@@ -39,9 +38,32 @@ export const Highlight: React.FC<HighlightProps> = ({ open, children }) => {
 export const HighlightTarget = ({ children }: { children: ReactNode }) => {
   const store = useContext(HighlightContext);
   const isActive = useStore(store);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isActive && ref.current) {
+      const element = ref.current;
+      const elementRect = element.getBoundingClientRect();
+      const isFullyVisible = 
+        elementRect.top >= 0 &&
+        elementRect.left >= 0 &&
+        elementRect.bottom <= window.innerHeight &&
+        elementRect.right <= window.innerWidth;
+
+      if (!isFullyVisible) {
+        const scrollY = window.scrollY + elementRect.top - window.innerHeight / 2 + elementRect.height / 2;
+        window.scrollTo({
+          top: scrollY,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [isActive]);
+
   return isActive ? (
     <PopoverTrigger asChild>
       <Slot
+        ref={ref}
         className="z-90"
         style={{
           position: "relative",

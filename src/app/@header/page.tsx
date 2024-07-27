@@ -3,11 +3,7 @@ import { DateTime } from "luxon";
 
 import { Badge } from "@/components/display/badge";
 import { Card, CardContent, CardHeader } from "@/components/display/card";
-import {
-  Highlight,
-  HighlightContent,
-  HighlightTarget,
-} from "@/components/highlight";
+import { HighlightContent, HighlightTarget } from "@/components/highlight";
 import {
   Popover,
   PopoverContent,
@@ -17,10 +13,8 @@ import { TypeLogo } from "@/components/logo";
 // import { PageSessionSelectorLink } from "@/components/util/page-session-selector-link";
 import { getIsMobile, getTimezone } from "@/lib/headers";
 // import { selectCurrentSaveToListPath } from "@/selectors/page-session.selectors";
-import { useUserMatchesState } from "@/hooks/useUserMatchesState";
 import { BookmarkIcon, InfoIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
-import { ReactNode } from "react";
 import { CraftCTA, HeaderLinks } from "./components";
 import { PromptHighlight } from "./prompt-highlight";
 
@@ -90,8 +84,8 @@ export default async function Page({}) {
                   <CraftCTA initialAutoFocus={!getIsMobile()} />
                 </HighlightTarget>
                 <HighlightContent>
-                  Teach me something here. Animate the text and play audio. TODO
-                  new compoennt
+                  Time to create recipes! Type anything you&apos;d like to cook, be
+                  as specific as you want!
                 </HighlightContent>
               </PromptHighlight>
               <div className="hidden crafting:flex flex-col gap-3 items-center">
