@@ -139,12 +139,12 @@ function SignUpForm() {
               )}{" "}
               {isEmailAddressInUse && (
                 <FormMessage className="text-error">
-                  Email is already in use.{" "}
-                  <EventTrigger event={{ type: "SIGN_IN" }} asChild>
+                  Email is already in use.
+                  {/* <EventTrigger event={{ type: "SIGN_IN" }} asChild>
                     <span className="underline text-primary font-semibold cursor-pointer">
                       Sign In
                     </span>
-                  </EventTrigger>
+                  </EventTrigger> */}
                 </FormMessage>
               )}
             </FormItem>

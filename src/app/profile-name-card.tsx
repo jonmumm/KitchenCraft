@@ -84,7 +84,7 @@ export const ProfileNameCard = () => {
             <>Choose a profile name where you can access your recipes.</>
           )}
         </CardDescription>
-        {!isComplete && (
+        {/* {!isComplete && (
           <>
             <div className="flex flex-row justify-between items-center">
               <Label className="uppercase text-xs text-muted-foreground">
@@ -98,7 +98,7 @@ export const ProfileNameCard = () => {
               <ProfileNameSuggestions />
             </div>
           </>
-        )}
+        )} */}
       </CardHeader>
       {!isComplete && (
         <CardContent>
