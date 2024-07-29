@@ -626,13 +626,43 @@ export const createPageSessionMachine = ({
         return false;
       },
       hasNotSeenUpgradePromptRecently: ({ context }) => {
+        if (!context.userSnapshot) {
+          return false;
+        }
+        const lastSeen = context.userSnapshot.context.lastSeenUpgradePromptAt;
+        const now = new Date();
+        const threeDaysAgo = now.setDate(now.getDate() - 3);
+        if (!lastSeen) {
+          return true;
+        } else if (lastSeen < threeDaysAgo) {
+          return true;
+        }
         return false;
       },
+      hasCompletedOnboarding: ({ context }) =>
+        !!context.userSnapshot &&
+        userMatchesState(
+          {
+            Onboarding: "Complete",
+          },
+          context.userSnapshot.value
+        ),
       isViewing4thResult: ({ event }) => {
         if (event.type === "VIEW_RESULT") {
           return event.index > 3;
         }
         return false;
+      },
+      isEmailSaved: ({ context }) => {
+        return (
+          !!context.userSnapshot &&
+          userMatchesState(
+            {
+              Email: { Saved: "True" },
+            },
+            context.userSnapshot.value
+          )
+        );
       },
       hasNotStartedOnboarding: ({ context }) =>
         !!context.userSnapshot &&
@@ -2514,8 +2544,24 @@ export const createPageSessionMachine = ({
       UpgradePrompt: {
         initial: "Closed",
         states: {
-          Closed: {},
+          Closed: {
+            on: {
+              VIEW_RESULT: {
+                target: "Open",
+                guard: guardAnd([
+                  "isViewing4thResult",
+                  "hasCompletedOnboarding",
+                  "isEmailSaved",
+                  "hasNotSeenUpgradePromptRecently",
+                ]),
+              },
+            },
+          },
           Open: {
+            on: {
+              CANCEL: "Closed",
+              UPGRADE_PRESS: "Closed",
+            },
             entry: enqueueActions(({ enqueue, event, context }) => {
               enqueue.raise({
                 type: "SHOW_UPGRADE_PROMPT",

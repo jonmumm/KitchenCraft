@@ -1,5 +1,15 @@
 import { headers } from "next/headers";
 
+import { db } from "@/db";
+import { getStripeCustomerId } from "@/db/queries";
+import { getUserActorClient } from "@/lib/auth/session";
+import { getUserId } from "@/lib/session";
+// import { getNextAuthSession } from "@/lib/auth/session";
+import { stripe } from "@/lib/stripe";
+import { assert } from "@/lib/utils";
+import { PlanSchema } from "@/schema";
+import { redirect } from "next/navigation";
+
 const STANDARD_QUARTERLY_PRICE_ID = "price_1OKlsLDPbNvN9DpQlFWKDpNZ";
 const STANDARD_MONTHLY_PRICE_ID = "price_1OKltODPbNvN9DpQWYkfHL4L";
 const STANDARD_ANNUAL_PRICE_ID = "price_1OKlu0DPbNvN9DpQvSh9vq39";
@@ -16,14 +26,6 @@ const trialPeriodByPlan = {
   annual: 30,
 } as const;
 
-import { db } from "@/db";
-import { getStripeCustomerId } from "@/db/queries";
-import { getNextAuthSession } from "@/lib/auth/session";
-import { stripe } from "@/lib/stripe";
-import { assert } from "@/lib/utils";
-import { PlanSchema } from "@/schema";
-import { redirect } from "next/navigation";
-
 export default async function Checkout(props: {
   searchParams: Record<string, string>;
 }) {
@@ -37,12 +39,16 @@ export default async function Checkout(props: {
       ? `http://`
       : `https://`;
   const origin = `${protocol}${host}`;
-  const session = await getNextAuthSession();
-  const userId = session?.user.id;
-  const email = session?.user.email;
-  if (!userId || !email) {
+
+  const userActorClient = await getUserActorClient();
+  const userId = await getUserId();
+  const { snapshot } = await userActorClient.get(userId, {});
+  const { email } = snapshot.context;
+  if (!email) {
     return redirect(
-      `/auth/signin?callback_url=${encodeURIComponent("/checkout")}`
+      `/?error=${encodeURIComponent(
+        "Expected to be have email set when checking out"
+      )}`
     );
   }
 

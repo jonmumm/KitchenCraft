@@ -811,6 +811,10 @@ const SharePressEventSchema = z.object({
   url: z.string().url(),
 });
 
+const UpgradePressEventSchema = z.object({
+  type: z.literal("UPGRADE_PRESS"),
+});
+
 const ShareCompleteEventSchema = z.object({
   type: z.literal("SHARE_COMPLETE"),
   url: z.string().url(),
@@ -1327,6 +1331,7 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   HydratInputEventSchema,
   MountCarouselEventSchema,
   UnmountCarouselEventSchema,
+  UpgradePressEventSchema,
   ShowUpgradePromptEventSchema,
   ShowQuizPromptEventSchema,
 ]);

@@ -8,17 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/display/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/display/collapsible";
 import { Label } from "@/components/display/label";
-import { Input } from "@/components/input";
 import { BackButton } from "@/components/input/back-button";
 import { Button } from "@/components/input/button";
 import { Checkbox } from "@/components/input/checkbox";
 import { TypeLogo } from "@/components/logo";
+import NavigationLink from "@/components/navigation/navigation-link";
 import {
   PageSessionMatches,
   pageSessionMatchesComponent,
@@ -39,13 +34,7 @@ import {
 } from "@/selectors/page-session.selectors";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import useEmblaCarousel from "embla-carousel-react";
-import {
-  ChevronsUpDown,
-  Circle,
-  HeartIcon,
-  PlusIcon,
-  XIcon,
-} from "lucide-react";
+import { Circle, HeartIcon, Loader2Icon, PlusIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Inter } from "next/font/google";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -268,6 +257,12 @@ const selectIsUserPreferencesInitializing = (snapshot: PageSessionSnapshot) => {
 };
 
 export const UpgradeAccountCard = () => {
+  const send = useSend();
+
+  const handlePressUpgrade = useCallback(() => {
+    send({ type: "UPGRADE_PRESS" });
+  }, [send]);
+
   return (
     <Card>
       <CardHeader className="relative">
@@ -315,10 +310,10 @@ export const UpgradeAccountCard = () => {
               Weekly personal digests
             </li>
           </ul>
-          <div className="text-center">
+          <div className="text-center text-s mb-2">
             <span className="font-bold">$2 per week</span> after 7-day trial.
           </div>
-          <Card className="p-2 my-3">
+          {/* <Card className="p-2 my-3">
             <Collapsible>
               <CollapsibleTrigger asChild>
                 <div className="flex flex-row gap-1 items-center justify-between pl-3">
@@ -350,10 +345,16 @@ export const UpgradeAccountCard = () => {
                 </CardDescription>
               </CollapsibleContent>
             </Collapsible>
-          </Card>
-          <Button size="lg" className="w-full">
-            Try 7 Days Free
-          </Button>
+          </Card> */}
+          <NavigationLink href="/checkout" onClick={handlePressUpgrade}>
+            <Button size="xl" className="w-full transitioning:opacity-40">
+              <span>Try 7 Days Free</span>
+              <Loader2Icon
+                size={14}
+                className="animate-spin hidden transitioning:inline-block ml-2"
+              />
+            </Button>
+          </NavigationLink>
           <p className="text-center text-semibold text-sm mt-1">
             Cancel or pause anytime.
           </p>

@@ -54,10 +54,10 @@ import { ApplicationProvider } from "./provider";
 // import { ShareDetailsCard } from "./share-details-card";
 import { PageSessionMatches } from "@/components/util/page-session-matches";
 import { IsSettingProfileName, ProfileNameCard } from "./profile-name-card";
+import { QuizPromptCard } from "./quiz-prompt-card";
 import { SignInCard } from "./sign-in-card";
 import { IsSigningUp, SignUpCard } from "./sign-up-card";
 import "./styles.css";
-import { QuizPromptCard } from "./quiz-prompt-card";
 
 export const revalidate = 0;
 
@@ -275,8 +275,8 @@ const QuizPromptDialog = () => {
   return (
     <PageSessionMatches matchedState={{ QuizPrompt: "Open" }}>
       <ResponsiveDialog open>
-        <ResponsiveDialogOverlay />
-        <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
+        <ResponsiveDialogOverlay className="z-100" />
+        <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl z-110">
           <QuizPromptCard />
         </ResponsiveDialogContent>
       </ResponsiveDialog>
@@ -368,8 +368,8 @@ const UpgradeAccountDialog = () => {
     <>
       <IsUpgradingAccount>
         <ResponsiveDialog open>
-          <ResponsiveDialogOverlay />
-          <ResponsiveDialogContent>
+          <ResponsiveDialogOverlay className="z-100" />
+          <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl z-110">
             <UpgradeAccountCard />
           </ResponsiveDialogContent>
         </ResponsiveDialog>
