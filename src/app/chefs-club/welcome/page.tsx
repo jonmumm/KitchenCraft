@@ -1,21 +1,17 @@
+import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Button } from "@/components/input/button";
 import { db } from "@/db";
 import { getProfileByUserId, getStripeCustomerId } from "@/db/queries";
-import { getNextAuthSession } from "@/lib/auth/session";
+import { getUserId } from "@/lib/session";
 import { assert } from "@/lib/utils";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import bg from "../../../../public/chefsclub.png";
-import { Card } from "@/components/display/card";
-import Image from "next/image";
-import { ChefHatIcon } from "lucide-react";
 
 export default async function Page() {
-  const session = await getNextAuthSession();
-  const userId = session?.user.id;
-  const email = session?.user.email;
-  if (!userId || !email) {
+  const userId = await getUserId();
+  if (!userId) {
     return redirect(`/chefs-club`);
   }
   const profile = await getProfileByUserId(userId);
@@ -35,7 +31,7 @@ export default async function Page() {
         </div>
         <Image
           src="/chefsclub.png"
-          className="rounded-t-lg"
+          className="2xl:rounded-lg 2xl:mx-auto"
           width={1536}
           height={768}
           sizes="100vw"
@@ -63,12 +59,12 @@ export default async function Page() {
               <Link href="/chefs-club/manage">
                 <Button className="w-full">Manage Family & Friends</Button>
               </Link>
-              <Link href={`/@${profile.profileSlug}`}>
+              {/* <Link href={`/@${profile.profileSlug}`}>
                 <Button className="w-full flex flex-row gap-1">
                   <ChefHatIcon size={16} />
                   {profile.profileSlug}
                 </Button>
-              </Link>
+              </Link> */}
             </div>
           </Card>
         </div>

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Card } from "@/components/display/card";
 import { Label } from "@/components/display/label";
 import { Separator } from "@/components/display/separator";
@@ -15,22 +14,21 @@ import {
   getUserByEmail,
   updateMemberStatusInSubscription,
 } from "@/db/queries";
-import { getNextAuthSession } from "@/lib/auth/session";
 import { getOrigin } from "@/lib/headers";
 import { resend } from "@/lib/resend";
+import { getUserId } from "@/lib/session";
 import { assert } from "@/lib/utils";
 import { randomUUID } from "crypto";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 
 export default async function Page() {
-  const session = await getNextAuthSession();
-  const userId = session?.user.id;
-  const email = session?.user.email;
-  if (!userId || !email) {
+  const userId = await getUserId();
+  if (!userId) {
     return redirect(`/chefs-club`);
   }
   const subscription = await getSubscriptionByUserId(db, userId);
@@ -154,14 +152,14 @@ export default async function Page() {
         </div>
         <Image
           src="/chefsclub.png"
-          className="rounded-t-lg"
+          className="2xl:rounded-lg 2xl:mx-auto"
           width={1536}
           height={768}
           sizes="100vw"
           alt="Chef's Club"
         />
       </div>
-      <div className="max-w-2xl mx-auto flex flex-col gap-4 p-4">
+      <div className="mx-auto flex flex-col gap-4 p-4 max-w-2xl">
         <form
           action={addMember.bind(null, subscription.id).bind(null, userId)}
           className="flex flex-col gap-2"
@@ -174,7 +172,7 @@ export default async function Page() {
         </form>
       </div>
       <Separator />
-      <div className="max-w-2xl mx-auto flex flex-col gap-4 p-4">
+      <div className="max-w-full mx-auto flex flex-col gap-4 p-4">
         <Progress value={(members.length / 5) * 100} />
         <Label>Existing Members ({members.length} / 5)</Label>
         {members.length ? (
@@ -201,7 +199,7 @@ export default async function Page() {
                   className="flex flex-row justify-between items-center"
                   action={remove.bind(null, user.id)}
                 >
-                  <p>{user.email}</p>
+                  <p className="truncate max-w-full">{user.email}</p>
                   <Button type="submit" variant="ghost">
                     Remove
                   </Button>

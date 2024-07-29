@@ -26,7 +26,7 @@ export async function HeaderWithInput({ className }: { className?: string }) {
       <div className="mx-auto w-full crafting:h-auto relative">
         <HeaderLinks />
         <div
-          className={`flex flex-row justify-between items-center gap-3 p-3 max-w-3xl mx-auto`}
+          className={`flex flex-row justify-between lg:justify-start crafting:justify-between items-center gap-3 p-3 max-w-3xl mx-auto`}
         >
           <NavigationLink href="/">
             <TypeLogo className="h-16 crafting:hidden md:absolute md:left-4 md:top-4 transitioning:animate-pulse" />
