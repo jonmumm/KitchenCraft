@@ -85,7 +85,7 @@ Assign matchPercents as follows:
   80-84%: Loosely relates to the prompt, with heavy creative interpretation. May only use one aspect of the prompt in a unique way.
 - Ensure a mix of percentages across the range for variety.
 
-The user will also include some context about themselves that may or may not be relevant—use this to personalize the recipe as necessary.
+The user will also include some context about themselves that may or may not be relevant—use this to personalize the recipe but don't over-index the suggestions toward the personalization context.
 
 Here's an example response:
 
