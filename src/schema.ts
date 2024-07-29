@@ -1190,6 +1190,14 @@ const CreateAccountEventSchema = z.object({
   type: z.literal("CREATE_ACCOUNT"),
 });
 
+const ShowQuizPromptEventSchema = z.object({
+  type: z.literal("SHOW_QUIZ_PROMPT"),
+});
+
+const ShowUpgradePromptEventSchema = z.object({
+  type: z.literal("SHOW_UPGRADE_PROMPT"),
+});
+
 export const AppEventSchema = z.discriminatedUnion("type", [
   CreateAccountEventSchema,
   SelectChoiceEventSchema,
@@ -1319,6 +1327,8 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   HydratInputEventSchema,
   MountCarouselEventSchema,
   UnmountCarouselEventSchema,
+  ShowUpgradePromptEventSchema,
+  ShowQuizPromptEventSchema,
 ]);
 
 export const ResumEventSchema = z.object({

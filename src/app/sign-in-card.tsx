@@ -33,7 +33,7 @@ import { useCallback, useEffect, useState } from "react";
 export const SignInCard = () => {
   return (
     <Card>
-      <CardHeader className="relative flex flex-row justify-between">
+      <CardHeader className="relative flex flex-row gap-2 justify-between">
         <div>
           <CardTitle>Sign In</CardTitle>
           <CardDescription className="mt-2">

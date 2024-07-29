@@ -48,13 +48,14 @@ import {
   UserPreferences,
   WithCaller,
 } from "@/types";
+import { userMatchesState } from "@/utils/user-matches";
 import { createClient } from "@vercel/postgres";
-import { uuidv7 as randomUUID } from "uuidv7";
 import { and, eq, ilike, inArray, max, sql as sqlFN } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 import { Operation, compare } from "fast-json-patch";
 import * as Party from "partykit/server";
 import { from, switchMap } from "rxjs";
+import { uuidv7 as randomUUID } from "uuidv7";
 import {
   SnapshotFrom,
   StateValueFrom,
@@ -109,7 +110,6 @@ import { SuggestChefNamesEvent } from "./suggest-chef-names-stream";
 import { SuggestListNamesEvent } from "./suggest-list-names-stream";
 import { UserSnapshot } from "./user-machine";
 import { buildInput } from "./utils";
-import { QuestionId } from "./quiz/preferences/constants";
 
 export const SESSION_ACTOR_ID = "sessionActor";
 export const USER_ACTOR_ID = "userActor";
@@ -611,6 +611,37 @@ export const createPageSessionMachine = ({
       hasUserId: ({ context }) => !!context.userId,
       hasUserSnapshot: ({ context }) => !!context.userSnapshot,
       hasSessionSnapshot: ({ context }) => !!context.sessionSnapshot,
+      hasNotSeenQuizPromptRecently: ({ context }) => {
+        if (!context.userSnapshot) {
+          return false;
+        }
+        const lastSeen = context.userSnapshot.context.lastSeenQuizPromptAt;
+        const now = new Date();
+        const aDayAgo = now.setDate(now.getDate() - 1);
+        if (!lastSeen) {
+          return true;
+        } else if (lastSeen < aDayAgo) {
+          return true;
+        }
+        return false;
+      },
+      hasNotSeenUpgradePromptRecently: ({ context }) => {
+        return false;
+      },
+      isViewing4thResult: ({ event }) => {
+        if (event.type === "VIEW_RESULT") {
+          return event.index > 3;
+        }
+        return false;
+      },
+      hasNotStartedOnboarding: ({ context }) =>
+        !!context.userSnapshot &&
+        userMatchesState(
+          {
+            Onboarding: "NotStarted",
+          },
+          context.userSnapshot.value
+        ),
       didViewCardNearEnd: ({ context, event }) => {
         assertEvent(event, "VIEW_RESULT");
 
@@ -2480,6 +2511,60 @@ export const createPageSessionMachine = ({
       //   },
       // },
 
+      UpgradePrompt: {
+        initial: "Closed",
+        states: {
+          Closed: {},
+          Open: {
+            entry: enqueueActions(({ enqueue, event, context }) => {
+              enqueue.raise({
+                type: "SHOW_UPGRADE_PROMPT",
+                caller: {
+                  id: context.pageSessionId,
+                  type: "system",
+                },
+              });
+            }),
+          },
+        },
+      },
+
+      QuizPrompt: {
+        initial: "Closed",
+        states: {
+          Closed: {
+            on: {
+              VIEW_RESULT: {
+                target: "Open",
+                guard: guardAnd([
+                  "isViewing4thResult",
+                  "hasNotStartedOnboarding",
+                  "hasNotSeenQuizPromptRecently",
+                ]),
+              },
+            },
+          },
+          Open: {
+            on: {
+              CANCEL: "Closed",
+              PAGE_LOADED: {
+                target: "Closed",
+                guard: ({ event }) => event.pathname.includes("quiz"),
+              },
+            },
+            entry: enqueueActions(({ enqueue, event, context }) => {
+              enqueue.raise({
+                type: "SHOW_QUIZ_PROMPT",
+                caller: {
+                  id: context.pageSessionId,
+                  type: "system",
+                },
+              });
+            }),
+          },
+        },
+      },
+
       Quiz: {
         initial: "Closed",
         states: {
@@ -2902,7 +2987,8 @@ export const createPageSessionMachine = ({
             actions: [
               assign(({ context, event }) => {
                 return produce(context, (draft) => {
-                  const listSlug = event.listSlug ||
+                  const listSlug =
+                    event.listSlug ||
                     context.sessionSnapshot?.context.currentSaveToListSlug;
                   assert(
                     listSlug,
@@ -2912,10 +2998,7 @@ export const createPageSessionMachine = ({
                   const draftList = Object.values(draft.listsById).find(
                     (list) => list.slug === listSlug
                   );
-                  assert(
-                    draftList,
-                    `expected  to exist for slug ${listSlug}`
-                  );
+                  assert(draftList, `expected  to exist for slug ${listSlug}`);
 
                   const listId = draftList.id;
                   let draftListRecipes = draft.listRecipes[listId];
@@ -2932,12 +3015,10 @@ export const createPageSessionMachine = ({
                 input: ({ context, event }) => {
                   assertEvent(event, "SAVE_RECIPE");
                   assert(context.userId, "expected userId when saving recipe");
-                  const listSlug = event.listSlug ||
+                  const listSlug =
+                    event.listSlug ||
                     context.sessionSnapshot?.context.currentSaveToListSlug;
-                  assert(
-                    listSlug,
-                    "expected listSlug when saving recipe"
-                  );
+                  assert(listSlug, "expected listSlug when saving recipe");
 
                   return {
                     userId: context.userId,
@@ -3127,14 +3208,17 @@ export const createPageSessionMachine = ({
                   guard: ({ event }) => !!event.recipeId,
                   actions: assign({
                     recipeIdsToAdd: ({ event }) => {
-                      assert(event.recipeId, "expected recipeId in CREATE_LIST");
-                      return [event.recipeId]
-                    }
-                  })
+                      assert(
+                        event.recipeId,
+                        "expected recipeId in CREATE_LIST"
+                      );
+                      return [event.recipeId];
+                    },
+                  }),
                 },
                 {
-                  target: "True"
-                }
+                  target: "True",
+                },
               ],
             },
           },
@@ -3344,7 +3428,7 @@ export const createPageSessionMachine = ({
                 guard: ({ event }) =>
                   !event.searchParams[CHOOSING_LISTS_FOR_RECIPE_ID_PARAM],
                 actions: assign({
-                  recipeIdsToAdd: []
+                  recipeIdsToAdd: [],
                 }),
               },
             },

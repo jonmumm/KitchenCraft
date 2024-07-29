@@ -489,6 +489,8 @@ export type UserContext = {
   // listIds: string[];
   recentCreatedListIds: string[];
   recentSharedListIds: string[];
+  lastSeenUpgradePromptAt?: number;
+  lastSeenQuizPromptAt?: number;
 };
 
 export type SessionContext = {

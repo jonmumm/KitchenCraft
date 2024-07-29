@@ -615,6 +615,16 @@ export const createUserMachine = ({
       Onboarding: {
         initial: "NotStarted",
         on: {
+          SHOW_UPGRADE_PROMPT: {
+            actions: assign({
+              lastSeenUpgradePromptAt: () => new Date().getTime(),
+            }),
+          },
+          SHOW_QUIZ_PROMPT: {
+            actions: assign({
+              lastSeenQuizPromptAt: () => new Date().getTime(),
+            }),
+          },
           SELECT_CHOICE: [
             {
               guard: "didChangeInterest",

@@ -52,10 +52,12 @@ import { MyRecipesScreen } from "./my-recipes-screen";
 import { PageSessionStoreProvider } from "./page-session-store-provider";
 import { ApplicationProvider } from "./provider";
 // import { ShareDetailsCard } from "./share-details-card";
+import { PageSessionMatches } from "@/components/util/page-session-matches";
+import { IsSettingProfileName, ProfileNameCard } from "./profile-name-card";
 import { SignInCard } from "./sign-in-card";
 import { IsSigningUp, SignUpCard } from "./sign-up-card";
-import { IsSettingProfileName, ProfileNameCard } from "./profile-name-card";
 import "./styles.css";
+import { QuizPromptCard } from "./quiz-prompt-card";
 
 export const revalidate = 0;
 
@@ -220,6 +222,7 @@ export default async function RootLayout(
                   {canInstallPWA && <SafariInstallPrompt />}
                   <ListManagementDialogs />
                   <SignUpDialog />
+                  <QuizPromptDialog />
                   <ProfileNameDialog />
                   <SignInDialog />
                   <PersonalizationSettingsDialog />
@@ -255,7 +258,6 @@ export default async function RootLayout(
 //   );
 // };
 
-
 const ProfileNameDialog = () => {
   return (
     <IsSettingProfileName>
@@ -266,6 +268,19 @@ const ProfileNameDialog = () => {
         </ResponsiveDialogContent>
       </ResponsiveDialog>
     </IsSettingProfileName>
+  );
+};
+
+const QuizPromptDialog = () => {
+  return (
+    <PageSessionMatches matchedState={{ QuizPrompt: "Open" }}>
+      <ResponsiveDialog open>
+        <ResponsiveDialogOverlay />
+        <ResponsiveDialogContent className="max-h-[85vh] overflow-y-auto rounded-t-xl">
+          <QuizPromptCard />
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+    </PageSessionMatches>
   );
 };
 

@@ -19,7 +19,10 @@ import { BackButton } from "@/components/input/back-button";
 import { Button } from "@/components/input/button";
 import { Checkbox } from "@/components/input/checkbox";
 import { TypeLogo } from "@/components/logo";
-import { PageSessionMatches } from "@/components/util/page-session-matches";
+import {
+  PageSessionMatches,
+  pageSessionMatchesComponent,
+} from "@/components/util/page-session-matches";
 import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
@@ -418,22 +421,9 @@ export const IsSelectingList = (props: { children: ReactNode }) => {
   return active ? <>{props.children}</> : null;
 };
 
-export const IsUpgradingAccount = (props: { children: ReactNode }) => {
-  // const session$ = usePageSessionStore();
-  // const selector = useCallback(() => {
-  //   const stateValue = session$.get().value;
-  //   const val =
-  //     typeof stateValue.Auth === "object" &&
-  //     typeof stateValue.Auth.Registering === "object" &&
-  //     !!stateValue.Auth.Registering.InputtingEmail;
-  //   return val;
-  // }, [session$]);
-
-  // const active = useSyncExternalStore(session$.subscribe, selector, selector);
-  const active = false;
-
-  return active ? <>{props.children}</> : null;
-};
+export const IsUpgradingAccount = pageSessionMatchesComponent({
+  UpgradePrompt: "Open",
+});
 
 export const SelectListDialog = () => {
   const recentCreated = usePageSessionSelector(selectRecentCreatedListIds);
