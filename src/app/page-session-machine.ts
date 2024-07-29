@@ -23,6 +23,7 @@ import { didChangeListSlugInput } from "@/guards/didChangeListSlugInput";
 import { parseTokenForId } from "@/lib/actor-kit/tokens";
 import { DatabaseErrorSchema, handleDatabaseError } from "@/lib/db";
 import { getErrorMessage } from "@/lib/error";
+import { getPersonalizationContext } from "@/lib/llmContext";
 import { withDatabaseSpan } from "@/lib/observability";
 import { getSlug } from "@/lib/slug";
 import {
@@ -540,6 +541,7 @@ export const createPageSessionMachine = ({
           input: {
             prompt: string;
             tokens: string[];
+            personalizationContext: string;
             instantRecipe: {
               name: string;
               description: string;
@@ -554,6 +556,7 @@ export const createPageSessionMachine = ({
         }: {
           input: {
             prompt: string;
+            personalizationContext: string;
             recipeId: string;
           };
         }) => new InstantRecipeStream(input.recipeId).getObservable(input)
@@ -567,6 +570,7 @@ export const createPageSessionMachine = ({
             name: string;
             tagline: string;
             id: string;
+            personalizationContext: string;
           };
         }) => new FullRecipeFromSuggestionStream(input.id).getObservable(input)
       ),
@@ -1692,9 +1696,18 @@ export const createPageSessionMachine = ({
                             "expected to find next recipe tagline"
                           );
 
+                          const userContext = context.userSnapshot?.context;
+                          assert(
+                            userContext,
+                            "expected context in userSnapshot when getting instant recipe"
+                          );
+                          const personalizationContext =
+                            getPersonalizationContext(userContext);
+
                           return {
                             id: nextRecipe.id,
                             category: feedItem.category,
+                            personalizationContext,
                             name: nextRecipe.name,
                             tagline: nextRecipe.tagline,
                           };
@@ -1824,10 +1837,19 @@ export const createPageSessionMachine = ({
                             "expected to find next recipe tagline"
                           );
 
+                          const userContext = context.userSnapshot?.context;
+                          assert(
+                            userContext,
+                            "expected context in userSnapshot when getting instant recipe"
+                          );
+                          const personalizationContext =
+                            getPersonalizationContext(userContext);
+
                           return {
                             id: nextRecipe.id,
                             category: feedItem.category,
                             name: nextRecipe.name,
+                            personalizationContext,
                             tagline: nextRecipe.tagline,
                           };
                         },
@@ -1937,10 +1959,19 @@ export const createPageSessionMachine = ({
                               "expected to find recipe.tagline"
                             );
 
+                            const userContext = context.userSnapshot?.context;
+                            assert(
+                              userContext,
+                              "expected context in userSnapshot when getting instant recipe"
+                            );
+                            const personalizationContext =
+                              getPersonalizationContext(userContext);
+
                             return {
                               id: recipe.id,
                               category: feedItem.category,
                               name: recipe.name,
+                              personalizationContext,
                               tagline: recipe.tagline,
                             };
                           },
@@ -2243,8 +2274,18 @@ export const createPageSessionMachine = ({
                                   recipeId,
                                   "expected recipeId to be in suggestedRecipes at index -"
                                 );
+
+                                const userContext =
+                                  context.userSnapshot?.context;
+                                assert(
+                                  userContext,
+                                  "expected context in userSnapshot when getting instant recipe"
+                                );
+                                const personalizationContext =
+                                  getPersonalizationContext(userContext);
                                 return {
                                   prompt: context.prompt,
+                                  personalizationContext,
                                   recipeId,
                                 };
                               },
@@ -2393,9 +2434,19 @@ export const createPageSessionMachine = ({
                                   "expected instant recipe to exist"
                                 );
 
+                                const userContext =
+                                  context.userSnapshot?.context;
+                                assert(
+                                  userContext,
+                                  "expected context in userSnapshot when getting instant recipe"
+                                );
+                                const personalizationContext =
+                                  getPersonalizationContext(userContext);
+
                                 return {
                                   prompt: context.prompt,
                                   tokens: context.tokens,
+                                  personalizationContext,
                                   instantRecipe: {
                                     name: recipe.name,
                                     description: recipe.description,
@@ -2833,11 +2884,20 @@ export const createPageSessionMachine = ({
                       assert(recipe.name, "expected to find recipe.name");
                       assert(recipe.tagline, "expected to find recipe.tagline");
 
+                      const userContext = context.userSnapshot?.context;
+                      assert(
+                        userContext,
+                        "expected context in userSnapshot when getting instant recipe"
+                      );
+                      const personalizationContext =
+                        getPersonalizationContext(userContext);
+
                       return {
                         id: recipe.id,
                         category: feedItem.category,
                         name: recipe.name,
                         tagline: recipe.tagline,
+                        personalizationContext,
                       };
                     },
                   }),

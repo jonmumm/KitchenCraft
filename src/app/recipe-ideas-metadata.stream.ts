@@ -4,11 +4,11 @@ import { StructuredObjectStream } from "@/lib/structured-object-stream";
 import { RecipeIdeasMetadataOutputSchema } from "@/schema";
 import { RecipeIdeasMetadataOutput } from "@/types";
 import { ZodSchema } from "zod";
-import { buildInput } from "./utils";
 
 export type RecipeIdeasMetadataStreamInput = {
   prompt: string;
   tokens: string[];
+  personalizationContext: string;
   instantRecipe: {
     name: string;
     description: string;
@@ -32,7 +32,9 @@ export class RecipeIdeasMetadataStream extends StructuredObjectStream<
   protected async getUserMessage(
     input: RecipeIdeasMetadataStreamInput
   ): Promise<string> {
-    return buildInput(input);
+    return `Personalization Context: ${input.personalizationContext}
+    ---
+    ${input.prompt}`;
   }
 
   protected async getSystemMessage(
@@ -82,6 +84,8 @@ Assign matchPercents as follows:
   85-89%: Moderately relates to the prompt, with significant creative liberties. May focus on secondary ingredients or themes from the prompt.
   80-84%: Loosely relates to the prompt, with heavy creative interpretation. May only use one aspect of the prompt in a unique way.
 - Ensure a mix of percentages across the range for variety.
+
+The user will also include some context about themselves that may or may not be relevant—use this to personalize the recipe as necessary.
 
 Here's an example response:
 

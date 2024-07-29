@@ -33,6 +33,7 @@ export type FullRecipeFromSuggestionInput = {
   category: string;
   name: string;
   tagline: string;
+  personalizationContext: string;
 };
 
 export const FULL_RECIPE_FROM_SUGGESTION = "FULL_RECIPE_FROM_SUGGESTION";
@@ -53,7 +54,9 @@ export class FullRecipeFromSuggestionStream extends StructuredObjectStream<
   protected async getUserMessage(
     input: FullRecipeFromSuggestionInput
   ): Promise<string> {
-    return USER_TEMPLATE(input);
+    const message = USER_TEMPLATE(input);
+    console.log({ message });
+    return message;
   }
 
   protected async getSystemMessage(
@@ -67,7 +70,11 @@ export class FullRecipeFromSuggestionStream extends StructuredObjectStream<
   }
 }
 
-const USER_TEMPLATE = (input: FullRecipeFromSuggestionInput) => `
+const USER_TEMPLATE = (
+  input: FullRecipeFromSuggestionInput
+) => `Personalization Context: ${input.personalizationContext}
+
+---
 {
   "name": "${input.name}",
   "category": "${input.category}",
@@ -78,6 +85,8 @@ const USER_TEMPLATE = (input: FullRecipeFromSuggestionInput) => `
 const SYSTEM_TEMPLATE = (
   input: FullRecipeFromSuggestionInput
 ) => `You are an expert chef assistant. The user will provide the name, category, and tagline for a recipe.
+
+The user will also include some context about themselves that may or may not be relevant—use this to personalize the recipe as necessary.
 
 Example output:
 ${EXAMPLE_OUTPUT}`;

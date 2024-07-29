@@ -38,6 +38,7 @@ export type InstantRecipeOutput = z.infer<typeof InstantRecipeOutputSchema>;
 
 export type InstantRecipeStreamInput = {
   prompt: string;
+  personalizationContext: string;
 };
 
 export const INSTANT_RECIPE = "INSTANT_RECIPE";
@@ -58,7 +59,9 @@ export class InstantRecipeStream extends StructuredObjectStream<
   protected async getUserMessage(
     input: InstantRecipeStreamInput
   ): Promise<string> {
-    return input.prompt;
+    return `Personalization Context: ${input.personalizationContext}
+    ---
+    ${input.prompt}`;
   }
 
   protected async getSystemMessage(
@@ -122,4 +125,6 @@ Output:
 }
 
 Ensure that your response follows this format exactly, including all fields and appropriate tags. The tags field is MANDATORY and must not be omitted under any circumstances.
+
+The user will also include some context about themselves that may or may not be relevant—use this to personalize the recipe as necessary.
 `;
