@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { AppEvent } from "@/types";
 import {
   ArrowLeftIcon,
-  ArrowUpIcon,
+  SendHorizontal,
   BookmarkIcon,
   ChevronRight,
 } from "lucide-react";
@@ -251,7 +251,7 @@ export const CraftInput = ({
             className="mr-2 self-end"
             disabled
           >
-            <ArrowUpIcon className="opacity-60" />
+            <SendHorizontal className="opacity-60" />
           </Button>
         </CraftEmpty>
         <CraftNotEmpty>
@@ -261,7 +261,7 @@ export const CraftInput = ({
             variant="outline"
             className="mr-2 self-end"
           >
-            <ArrowUpIcon className="opacity-60" />
+            <SendHorizontal className="opacity-60" />
           </Button>
           <Button
             event={{ type: "CLEAR" }}
