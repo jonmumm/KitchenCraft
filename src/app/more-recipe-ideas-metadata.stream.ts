@@ -13,6 +13,7 @@ export type Recipe = {
 export type MoreRecipeIdeasMetadataStreamInput = {
   prompt: string;
   previousRecipes: Recipe[];
+  personalizationContext: string;
 };
 
 export class MoreRecipeIdeasMetadataStream extends StructuredObjectStream<
@@ -26,7 +27,9 @@ export class MoreRecipeIdeasMetadataStream extends StructuredObjectStream<
   protected async getUserMessage(
     input: MoreRecipeIdeasMetadataStreamInput
   ): Promise<string> {
-    return input.prompt;
+    return `Personalization Context: ${input.personalizationContext}
+    ---
+    ${input.prompt}`;
   }
 
   protected async getSystemMessage(
@@ -70,6 +73,8 @@ Guidelines for generating new recipe ideas:
 3. Explore different cuisines and cultural influences.
 4. Think about transforming the concept into different meal types: breakfast, lunch, dinner, snack, dessert.
 5. Consider various dietary preferences: vegetarian, vegan, low-carb, gluten-free, etc.
+
+The user will also include some context about themselves that may or may not be relevant—use this to personalize the recipe but don't over-index the suggestions toward the personalization context.
 
 Each new recipe idea should have a 'name', a 'description', and a 'matchPercent' and nothing more.
 Assign matchPercents within the range of ${lowerBound}% to ${upperBound}%, with lower values indicating ideas that are less close to the original prompt.

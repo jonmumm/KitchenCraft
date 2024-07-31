@@ -531,6 +531,7 @@ export const createPageSessionMachine = ({
               description: string;
               matchPercent: number;
             }[];
+            personalizationContext: string;
           };
         }) => new MoreRecipeIdeasMetadataStream().getObservable(input)
       ),
@@ -2545,9 +2546,21 @@ export const createPageSessionMachine = ({
                                               ({ name }) => !!name.length
                                             );
 
+                                        const userContext =
+                                          context.userSnapshot?.context;
+                                        assert(
+                                          userContext,
+                                          "expected context in userSnapshot when getting instant recipe"
+                                        );
+                                        const personalizationContext =
+                                          getPersonalizationContext(
+                                            userContext
+                                          );
+
                                         return {
                                           prompt: context.prompt,
                                           previousRecipes,
+                                          personalizationContext,
                                         };
                                       },
                                     }
