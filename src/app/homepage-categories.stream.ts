@@ -48,6 +48,7 @@ export class HomepageCategoriesStream extends StructuredObjectStream<
   protected async getUserMessage(
     input: HomepageCategoriesInput
   ): Promise<string> {
+    console.log(input);
     return HOMEPAGE_CATEGORY_USER_TEMPLATE(input);
   }
 

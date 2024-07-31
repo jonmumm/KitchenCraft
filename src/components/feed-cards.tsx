@@ -73,9 +73,9 @@ const FeedCardItem = ({ index }: { index: number }) => {
   const selectIsFocusedOnThisRecipe = useCallback(
     (state: PageSessionSnapshot) => {
       const feedItemId =
-        state.context.sessionSnapshot?.context.feedItemIds[index];
+        state.context.userSnapshot?.context.feedItemIds[index];
       return feedItemId && focusedRecipeId
-        ? !!state.context.sessionSnapshot?.context.feedItemsById[
+        ? !!state.context.userSnapshot?.context.feedItemsById[
             feedItemId
           ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
         : false;
@@ -292,9 +292,9 @@ const FeedCardRecipeCarousel = ({
   const isActive =
     usePageSessionSelector((state) => {
       const feedItemId =
-        state.context.sessionSnapshot?.context.feedItemIds[index];
+        state.context.userSnapshot?.context.feedItemIds[index];
       return feedItemId && focusedRecipeId
-        ? !!state.context.sessionSnapshot?.context.feedItemsById[
+        ? !!state.context.userSnapshot?.context.feedItemsById[
             feedItemId
           ]?.recipes?.find((recipe) => recipe?.id === focusedRecipeId)
         : false;

@@ -7,10 +7,11 @@ import {
 } from "@/constants/inputs";
 import { CookingGoal } from "@/constants/onboarding";
 import { ListTable, ProfileSchema, ProfileTable, UsersTable } from "@/db";
-import { getPersonalizationContext } from "@/lib/llmContext";
+import { getPersonalizationContext, getTimeContext } from "@/lib/llmContext";
 import { assert } from "@/lib/utils";
 import { PartyMap, UserContext, UserEvent } from "@/types";
 import { createClient } from "@vercel/postgres";
+import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/vercel-postgres";
 import { produce } from "immer";
@@ -27,6 +28,7 @@ import {
   and,
   assertEvent,
   assign,
+  enqueueActions,
   fromEventObservable,
   fromPromise,
   setup,
@@ -34,6 +36,7 @@ import {
   stateIn,
 } from "xstate";
 import { z } from "zod";
+import { HomepageCategoriesStream } from "./homepage-categories.stream";
 import { QuestionIdsSchema } from "./quiz/preferences/constants";
 import {
   SuggestProfileNamesInput,
@@ -62,6 +65,18 @@ export const createUserMachine = ({
       events: {} as UserEvent,
     },
     actors: {
+      generateHomepageFeed: fromEventObservable(
+        ({
+          input,
+        }: {
+          input: {
+            personalizationContext: string;
+            timeContext: string;
+            preferences: Record<number, number>;
+            pastTopics: Array<string>;
+          };
+        }) => new HomepageCategoriesStream().getObservable(input)
+      ),
       setProfileSlug: fromPromise(
         async ({
           input,
@@ -247,6 +262,8 @@ export const createUserMachine = ({
         profileName: getRandomProfileName(),
         recentCreatedListIds: [],
         recentSharedListIds: [],
+        feedItemIds: [],
+        feedItemsById: {},
       };
     },
     states: {
@@ -737,6 +754,15 @@ export const createUserMachine = ({
               },
               Complete: {
                 type: "final",
+                entry: enqueueActions(({ enqueue, event, context }) => {
+                  enqueue.raise({
+                    type: "REFRESH_FEED",
+                    caller: {
+                      id: context.id,
+                      type: "system",
+                    },
+                  });
+                }),
               },
             },
             onDone: [
@@ -800,6 +826,100 @@ export const createUserMachine = ({
                 })
               ),
             ],
+          },
+        },
+      },
+      Feed: {
+        type: "parallel",
+        states: {
+          Initialized: {
+            on: {
+              REFRESH_FEED: {
+                target: ".True",
+                reenter: true,
+              },
+            },
+            initial: "False",
+            states: {
+              False: {
+                on: {
+                  HEARTBEAT: "True",
+                },
+              },
+              True: {
+                entry: assign(({ context, event }) =>
+                  produce(context, (draft) => {
+                    // TODO:
+                    // We can build the feed here...
+                    // We have the data fetched
+                    // And then on the first heartbeat, do all the LLM processing...
+
+                    const newItemIds = [
+                      randomUUID(),
+                      randomUUID(),
+                      randomUUID(),
+                      randomUUID(),
+                      randomUUID(),
+                      randomUUID(),
+                    ];
+
+                    draft.feedItemIds = [...newItemIds];
+                    newItemIds.forEach((id) => {
+                      draft.feedItemsById[id] = {
+                        id,
+                      };
+                    });
+                  })
+                ),
+                on: {
+                  HOMEPAGE_CATEGORIES_PROGRESS: {
+                    description:
+                      "When the stream makes progress, update the feed items as they become available",
+                    actions: assign({
+                      feedItemsById: ({ context, event }) =>
+                        produce(context.feedItemsById, (draft) => {
+                          const startIndex = context.feedItemIds.length - 6;
+                          event.data.items?.forEach((item, index) => {
+                            const itemId =
+                              context.feedItemIds[startIndex + index];
+                            assert(itemId, "expected to find itemId");
+
+                            const existingItem = context.feedItemsById[itemId];
+                            assert(existingItem, "expected existingItem");
+
+                            draft[itemId] = {
+                              ...existingItem,
+                              ...item,
+                            };
+                            if (draft[itemId]?.recipes) {
+                              draft[itemId]?.recipes?.forEach((draftRecipe) => {
+                                if (draftRecipe && !draftRecipe.id) {
+                                  draftRecipe.id = randomUUID();
+                                }
+                              });
+                            }
+                          });
+                        }),
+                    }),
+                  },
+                },
+                invoke: {
+                  src: "generateHomepageFeed",
+                  input: ({ context }) => {
+                    assert(context.timezone, "expected timezone");
+                    const personalizationContext =
+                      getPersonalizationContext(context);
+
+                    return {
+                      personalizationContext,
+                      timeContext: getTimeContext(context.timezone),
+                      preferences: context.preferenceQuestionResults,
+                      pastTopics: context.selectedFeedTopics,
+                    };
+                  },
+                },
+              },
+            },
           },
         },
       },

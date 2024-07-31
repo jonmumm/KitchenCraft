@@ -117,7 +117,7 @@ const PREFERENCE_QUESTIONS: readonly PreferenceQuestion[] = [
   },
   {
     id: QUESTION_IDS_KEYS.OTHER_PREFERENCES,
-    question: "Any other kitchen related preferences you'd like to share? (e.g. favorite kitchen tools, ingredients you typically have, things you like to avoid, etc.)",
+    question: "Any other cooking related preferences you'd like to share? (e.g. favorite kitchen tools, ingredients to avoid, etc.)",
     type: "text",
     explanation:
       "This helps KitchenCraft understand your unique cooking style and habits to provide more personalized recommendations. You can mention the type of grocery stores you like to shop at, any specific kitchen equipment you prefer using, or any other unique cooking habits you have.",

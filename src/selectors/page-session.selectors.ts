@@ -73,7 +73,7 @@ export const selectSelectedRecipeCount = (state: PageSessionSnapshot) =>
   state.context.sessionSnapshot?.context.selectedRecipeIds?.length || 0;
 
 export const selectFeedItemIds = (state: PageSessionSnapshot) =>
-  state.context.sessionSnapshot?.context.feedItemIds || [];
+  state.context.userSnapshot?.context.feedItemIds || [];
 
 export const selectNumFeedItemIds = createSelector(
   selectFeedItemIds,
@@ -153,9 +153,9 @@ export const createSelectedRecipeAtIndexSelector = (index: number) => {
 
 export const createFeedItemAtIndexSelector =
   (index: number) => (state: PageSessionSnapshot) => {
-    const id = state.context.sessionSnapshot?.context.feedItemIds[index];
+    const id = state.context.userSnapshot?.context.feedItemIds[index];
     if (id) {
-      return state.context.sessionSnapshot?.context.feedItemsById[id];
+      return state.context.userSnapshot?.context.feedItemsById[id];
     }
     return undefined;
   };
@@ -164,9 +164,9 @@ export const createFeedItemRecipeAtIndexSelector =
   (input: { recipeIndex: number; itemIndex: number }) =>
   (state: PageSessionSnapshot) => {
     const id =
-      state.context.sessionSnapshot?.context.feedItemIds[input.itemIndex];
+      state.context.userSnapshot?.context.feedItemIds[input.itemIndex];
     if (id) {
-      const item = state.context.sessionSnapshot?.context.feedItemsById[id];
+      const item = state.context.userSnapshot?.context.feedItemsById[id];
       return item?.recipes?.[input.recipeIndex];
     }
     return undefined;

@@ -416,6 +416,7 @@ export type UserEvent =
   | WithCaller<AppEvent>
   | SuggestProfileNamesEvent
   | SuggestedInterestsEvent
+  | HomepageCategoriesEvent
   | ResumeEvent;
 
 export type SessionEvent =
@@ -427,7 +428,6 @@ export type SessionEvent =
   | SuggestPlaceholderEvent
   | SuggestTokensEvent
   | SuggestIngredientsEvent
-  | HomepageCategoriesEvent
   | ResumeEvent;
 
 type FeedItemRecipe = UnArray<FeedItem["recipes"]>;
@@ -491,6 +491,8 @@ export type UserContext = {
   recentSharedListIds: string[];
   lastSeenUpgradePromptAt?: number;
   lastSeenQuizPromptAt?: number;
+  feedItemsById: Record<string, FeedItemWithIds>;
+  feedItemIds: string[];
 };
 
 export type SessionContext = {
@@ -534,8 +536,6 @@ export type SessionContext = {
   suggestedTokens: Array<string>;
   welcome?: DeepPartial<WelcomeMessageOutput>;
   signInCode?: string;
-  feedItemsById: Record<string, FeedItemWithIds>;
-  feedItemIds: string[];
   generationIdSets: Record<string, string[]>;
   listIds: string[];
   // listsById: Record<
