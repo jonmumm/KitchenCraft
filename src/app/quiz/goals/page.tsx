@@ -97,8 +97,8 @@ export default function CookingGoals() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center relative gap-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold">I want to...</h1>
+    <div className="flex flex-col items-left justify-center relative gap-8 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold px-4">I want to...</h1>
       <div className="w-full max-w-md space-y-3 px-4">
         <Goals />
       </div>
