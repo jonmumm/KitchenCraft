@@ -563,7 +563,6 @@ const MyRecipeListsRadioGroup = () => {
       <RecipeListRadioItemBySlug slug="liked" />
       <RecipeListRadioItemBySlug slug="make-later" />
       <RecipeListRadioItemBySlug slug="favorites" />
-      <RecipeListRadioItemBySlug slug="commented" />
       {recentCreated?.length ? (
         <>
           <div className="px-2">
