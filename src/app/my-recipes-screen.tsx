@@ -138,6 +138,8 @@ export const MyRecipesScreen = () => {
   }, [app$, pageSession$, send]);
   useEventHandler("SHARE_CURRENT_LIST", handleShareCurrentList);
 
+  const [selectedTab, setSelectedTab] = useState('recipe');
+
   return (
     <Portal>
       <div className="absolute inset-0 z-70 flex flex-col gap-2 py-2">
@@ -225,45 +227,54 @@ export const MyRecipesScreen = () => {
             </Button>
           </div>
         </div>
+
         <div className="flex-1">
-          <Tabs defaultValue="recipe" className="h-full flex flex-col">
-            <div className="px-4">
-              <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto">
-                <TabsTrigger value="recipe">Recipe</TabsTrigger>
-                <TabsTrigger value="list">List</TabsTrigger>
-              </TabsList>
-            </div>
-            <TabsContent value={"recipe"} className="flex-1 flex flex-col">
-              <HasRecipesInCurrentList not>
-                <div className="px-4 flex-1">
-                  <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
-                    <div className="border border-solid border-secondary rounded-full p-3 text-xl aspect-square flex items-center justify-center">
-                      <CurrentListIcon />
-                    </div>
-                    <div className="text-center">
-                      <span className="font-semibold">
-                        #<CurrentListSlug />
-                      </span>{" "}
-                      Is Empty
-                    </div>
-                    <Badge
-                      event={{ type: "NEW_RECIPE" }}
-                      variant="secondary"
-                      className="shadow-md"
-                    >
-                      Craft a recipe.
-                      <span className="ml-1 animate-spin">🧪</span>
-                    </Badge>
-                  </Card>
-                </div>
-              </HasRecipesInCurrentList>
-              <HasRecipesInCurrentList>
-                <CurrentListCarousel>
-                  <CurrentListItems />
-                </CurrentListCarousel>
-              </HasRecipesInCurrentList>
-            </TabsContent>
-          </Tabs>
+          <HasRecipesInCurrentList>
+            <Tabs defaultValue={selectedTab} className="h-full flex flex-col" onValueChange={setSelectedTab}>
+              <div className="px-4">
+                <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto">
+                  <TabsTrigger value="recipe">Recipe</TabsTrigger>
+                  <TabsTrigger value="list">List</TabsTrigger>
+                </TabsList>
+              </div>
+              {selectedTab ==='recipe' && (
+                <TabsContent value={"recipe"} className="flex flex-col h-full">
+                  <CurrentListCarousel>
+                    <CurrentListItems displayType='carousel' />
+                  </CurrentListCarousel>
+                </TabsContent>
+              )}
+              {selectedTab ==='list' && (
+                <TabsContent value={"list"} className="flex flex-col h-full">
+                  <CurrentListVertical>
+                    <CurrentListItems displayType='vertical-list' />
+                  </CurrentListVertical>
+                </TabsContent>
+              )}
+            </Tabs>
+          </HasRecipesInCurrentList>
+
+          <HasRecipesInCurrentList not>
+              <div className="px-4 flex-1 h-full">
+                <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
+                  <div className="border border-solid border-secondary rounded-full p-3 text-xl aspect-square flex items-center justify-center">
+                    <CurrentListIcon />
+                  </div>
+                  <div className="text-center">
+                    <span className="font-semibold">
+                      #<CurrentListSlug />
+                    </span>{" "}
+                    Is Empty
+                  </div>
+                  <Button
+                    event={{ type: "NEW_RECIPE" }}
+                  >
+                    Craft a recipe.
+                    <span className="ml-1 animate-spin">🧪</span>
+                  </Button>
+                </Card>
+              </div>
+          </HasRecipesInCurrentList>
         </div>
 
         <HasRecipesInCurrentList>
@@ -438,6 +449,37 @@ const CurrentListCarouselItem = ({
             </div>
           </ScrollArea>
         </EmptyItemOverlay>
+      </Card>
+    </div>
+  );
+};
+
+const CurrentListVerticalItem = ({ id, index }) => {
+  const selectRecipe = useMemo(() => createRecipeSelector(id), [id]);
+  const recipe = usePageSessionSelector(selectRecipe);
+
+  return (
+    <div className="mb-4 mx-4">
+      <Card className="overflow-y-auto">
+        <div className="flex flex-col gap-2 py-4 px-6"> {/* Increased horizontal padding */}
+          <CardTitle>
+            <div className="flex flex-row gap-2 justify-between">
+              {recipe?.name}
+            </div>
+          </CardTitle>
+          {recipe?.description && (
+            <CardDescription>
+              {recipe.description}
+            </CardDescription>
+          )}
+          <div className="text-muted-foreground text-xs flex flex-row gap-2">
+            {/* Removed px-4 from this div */}
+            <span>Yields</span>
+            <span>
+              <Yield recipeId={recipe?.id} />
+            </span>
+          </div>
+        </div>
       </Card>
     </div>
   );
@@ -742,28 +784,53 @@ const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
   );
 };
 
+const CurrentListVertical = ({ children }) => {
+  return (
+    <div className="flex flex-col gap-4">
+      {children}
+    </div>
+  );
+};
+
 const CurrentListIsShareable = combinedSelectorComponent(
   selectCurrentListIsShareable
 );
 
-const CurrentListItems = () => {
+const CurrentListItems = ({ displayType = 'carousel' }) => {
   const recipeIdSet = useCombinedSelector(selectCurrentListItems);
   const recipeIds = recipeIdSet ? Object.keys(recipeIdSet) : [];
   const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
   const [items] = useState(new Array(numItems).fill(0));
 
-  return (
-    <>
-      {items.map((id, index) => (
-        <CurrentListCarouselItem
-          key={index}
-          id={recipeIds?.[index]}
-          index={index}
-        />
-      ))}
-    </>
-  );
+  if (displayType === 'carousel') {
+    return (
+      <>
+        {items.map((id, index) => (
+          <CurrentListCarouselItem
+            key={index}
+            id={recipeIds?.[index]}
+            index={index}
+          />
+        ))}
+      </>
+    );
+  } else if (displayType === 'vertical-list') {
+    return (
+      <>
+        {recipeIds.map((id, index) => (
+          <CurrentListVerticalItem
+            key={index}
+            id={recipeIds?.[index]}
+            index={index}
+          />
+        ))}
+      </>
+    );
+  } else {
+    return null;
+  }
 };
+
 
 const SelectedCarouselItems = () => {
   const session$ = usePageSessionStore();
