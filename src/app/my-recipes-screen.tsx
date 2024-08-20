@@ -459,9 +459,9 @@ const CurrentListVerticalItem = ({ id, index }) => {
   const recipe = usePageSessionSelector(selectRecipe);
 
   return (
-    <div className="mb-4 mx-4">
+    <div className="mb-4 mx-4 max-w-screen-md md:mx-auto lg:mx-auto">
       <Card className="overflow-y-auto">
-        <div className="flex flex-col gap-2 py-4 px-6"> {/* Increased horizontal padding */}
+        <div className="flex flex-col gap-2 py-4 px-6">
           <CardTitle>
             <div className="flex flex-row gap-2 justify-between">
               {recipe?.name}
@@ -473,7 +473,6 @@ const CurrentListVerticalItem = ({ id, index }) => {
             </CardDescription>
           )}
           <div className="text-muted-foreground text-xs flex flex-row gap-2">
-            {/* Removed px-4 from this div */}
             <span>Yields</span>
             <span>
               <Yield recipeId={recipe?.id} />
