@@ -62,6 +62,7 @@ import {
   selectRecentSharedListIds,
   selectSelectedRecipeCount,
 } from "@/selectors/page-session.selectors";
+import { useStore } from "@nanostores/react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
 import useEmblaCarousel from "embla-carousel-react";
@@ -76,6 +77,7 @@ import {
   ShareIcon,
   ShoppingBasketIcon,
 } from "lucide-react";
+import { atom } from "nanostores";
 import Link from "next/link";
 import {
   ComponentPropsWithoutRef,
@@ -92,6 +94,8 @@ import {
 import { createSelector } from "reselect";
 import { toast } from "sonner";
 import { ListUrlCopiedToast } from "./list-url-copied-toast";
+
+const selectedTab$ = atom<"recipe" | "list">("recipe");
 
 export const MyRecipesScreen = () => {
   useScrollLock(true);
@@ -137,31 +141,37 @@ export const MyRecipesScreen = () => {
   }, [app$, pageSession$, send]);
   useEventHandler("SHARE_CURRENT_LIST", handleShareCurrentList);
 
+  const handleChangeTab = useCallback((value: string) => {
+    selectedTab$.set(value as any);
+  }, []);
+
   return (
     <Portal>
       <div className="absolute inset-0 z-70 flex flex-col gap-2 py-2">
-        <CurrentListHasPreviousRecipes>
-          <Button
-            size="icon"
-            event={{ type: "PREV" }}
-            variant="outline"
-            autoFocus={false}
-            className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full md:shadow-xl z-80 md:bg-blue-500 md:text-white"
-          >
-            <ChevronLeftIcon />
-          </Button>
-        </CurrentListHasPreviousRecipes>
-        <CurrentListHasNextRecipes>
-          <Button
-            size="icon"
-            event={{ type: "NEXT" }}
-            variant="outline"
-            autoFocus={false}
-            className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full md:shadow-xl z-80 md:bg-blue-500 md:text-white"
-          >
-            <ChevronRightIcon />
-          </Button>
-        </CurrentListHasNextRecipes>
+        <InRecipesView>
+          <CurrentListHasPreviousRecipes>
+            <Button
+              size="icon"
+              event={{ type: "PREV" }}
+              variant="outline"
+              autoFocus={false}
+              className="absolute left-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full md:shadow-xl z-80 md:bg-blue-500 md:text-white"
+            >
+              <ChevronLeftIcon />
+            </Button>
+          </CurrentListHasPreviousRecipes>
+          <CurrentListHasNextRecipes>
+            <Button
+              size="icon"
+              event={{ type: "NEXT" }}
+              variant="outline"
+              autoFocus={false}
+              className="absolute right-2 bottom-2 md:bottom-1/2 md:w-16 md:h-16 md:rounded-full md:shadow-xl z-80 md:bg-blue-500 md:text-white"
+            >
+              <ChevronRightIcon />
+            </Button>
+          </CurrentListHasNextRecipes>
+        </InRecipesView>
 
         <div className="flex flex-row gap-2 justify-between items-center px-2 sticky top-0 w-full max-w-3xl mx-auto">
           <div className="flex-shrink-0">
@@ -227,7 +237,11 @@ export const MyRecipesScreen = () => {
 
         <div className="flex-1">
           <HasRecipesInCurrentList>
-            <Tabs defaultValue={"recipe"} className="h-full flex flex-col">
+            <Tabs
+              defaultValue={"recipe"}
+              className="h-full flex flex-col"
+              onValueChange={handleChangeTab}
+            >
               <div className="px-4">
                 <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto">
                   <TabsTrigger value="recipe">Recipe</TabsTrigger>
@@ -285,6 +299,11 @@ export const MyRecipesScreen = () => {
       <Overlay />
     </Portal>
   );
+};
+
+const InRecipesView = ({ children }: { children: ReactNode }) => {
+  const selectedTab = useStore(selectedTab$);
+  return <>{selectedTab === "recipe" ? <>{children}</> : <></>}</>;
 };
 
 const MyRecipesDropdownMenu = ({ children }: { children: ReactNode }) => {
