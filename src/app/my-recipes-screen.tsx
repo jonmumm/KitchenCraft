@@ -61,7 +61,6 @@ import {
   selectRecentCreatedListIds,
   selectRecentSharedListIds,
   selectSelectedRecipeCount,
-  selectSelectedRecipeIds,
 } from "@/selectors/page-session.selectors";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Portal } from "@radix-ui/react-portal";
@@ -137,8 +136,6 @@ export const MyRecipesScreen = () => {
     }
   }, [app$, pageSession$, send]);
   useEventHandler("SHARE_CURRENT_LIST", handleShareCurrentList);
-
-  const [selectedTab, setSelectedTab] = useState('recipe');
 
   return (
     <Portal>
@@ -230,50 +227,44 @@ export const MyRecipesScreen = () => {
 
         <div className="flex-1">
           <HasRecipesInCurrentList>
-            <Tabs defaultValue={selectedTab} className="h-full flex flex-col" onValueChange={setSelectedTab}>
+            <Tabs defaultValue={"recipe"} className="h-full flex flex-col">
               <div className="px-4">
                 <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto">
                   <TabsTrigger value="recipe">Recipe</TabsTrigger>
                   <TabsTrigger value="list">List</TabsTrigger>
                 </TabsList>
               </div>
-              {selectedTab ==='recipe' && (
-                <TabsContent value={"recipe"} className="flex flex-col h-full">
-                  <CurrentListCarousel>
-                    <CurrentListItems displayType='carousel' />
-                  </CurrentListCarousel>
-                </TabsContent>
-              )}
-              {selectedTab ==='list' && (
-                <TabsContent value={"list"} className="flex flex-col h-full">
-                  <CurrentListVertical>
-                    <CurrentListItems displayType='vertical-list' />
-                  </CurrentListVertical>
-                </TabsContent>
-              )}
+              <TabsContent value={"recipe"} className="h-full">
+                <CurrentListCarousel>
+                  <CurrentListItems ItemComponent={CarouselListItem} />
+                </CurrentListCarousel>
+              </TabsContent>
+              <TabsContent value={"list"} className="h-full">
+                <CurrentListScrollView>
+                  <CurrentListItems ItemComponent={ScrollViewListItem} />
+                </CurrentListScrollView>
+              </TabsContent>
             </Tabs>
           </HasRecipesInCurrentList>
 
           <HasRecipesInCurrentList not>
-              <div className="px-4 flex-1 h-full">
-                <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
-                  <div className="border border-solid border-secondary rounded-full p-3 text-xl aspect-square flex items-center justify-center">
-                    <CurrentListIcon />
-                  </div>
-                  <div className="text-center">
-                    <span className="font-semibold">
-                      #<CurrentListSlug />
-                    </span>{" "}
-                    Is Empty
-                  </div>
-                  <Button
-                    event={{ type: "NEW_RECIPE" }}
-                  >
-                    Craft a recipe.
-                    <span className="ml-1 animate-spin">🧪</span>
-                  </Button>
-                </Card>
-              </div>
+            <div className="px-4 flex-1 h-full">
+              <Card className="h-full max-w-3xl flex mx-auto flex-col gap-2 items-center justify-center">
+                <div className="border border-solid border-secondary rounded-full p-3 text-xl aspect-square flex items-center justify-center">
+                  <CurrentListIcon />
+                </div>
+                <div className="text-center">
+                  <span className="font-semibold">
+                    #<CurrentListSlug />
+                  </span>{" "}
+                  Is Empty
+                </div>
+                <Button event={{ type: "NEW_RECIPE" }}>
+                  Craft a recipe.
+                  <span className="ml-1 animate-spin">🧪</span>
+                </Button>
+              </Card>
+            </div>
           </HasRecipesInCurrentList>
         </div>
 
@@ -350,13 +341,100 @@ const EmptyItemOverlay = ({
   );
 };
 
-const CurrentListCarouselItem = ({
-  id,
-  index,
-}: {
-  id?: string;
-  index: number;
-}) => {
+const ScrollViewListItem = ({ id, index }: { id?: string; index: number }) => {
+  const selectRecipe = useMemo(() => createRecipeSelector(id), [id]);
+  const recipe = usePageSessionSelector(selectRecipe);
+
+  const RecipeName = () => (
+    <div className="flex flex-row items-center justify-start flex-1">
+      <span className="mr-1 text-muted-foreground flex flex-row gap-2">
+        {index + 1}.{" "}
+      </span>
+      {recipe?.name ? (
+        <span className="flex-1">{recipe.name}</span>
+      ) : (
+        <SkeletonSentence className="h-7 flex-1" numWords={4} />
+      )}
+    </div>
+  );
+
+  return (
+    <Card className={cn("relative", !id ? "h-28" : "")}>
+      <EmptyItemOverlay show={!id}>
+        <div className="h-fit flex flex-col gap-2 py-4">
+          <CardTitle className="px-4">
+            <div className="flex flex-row gap-2 justify-between">
+              <RecipeName />
+            </div>
+          </CardTitle>
+          {recipe?.description ? (
+            <CardDescription className="px-4">
+              {recipe.description}
+            </CardDescription>
+          ) : (
+            <div className="flex-1 px-4">
+              <SkeletonSentence className="h-4" numWords={12} />
+            </div>
+          )}
+          {/* <div className="text-muted-foreground text-xs flex flex-row gap-2 px-4">
+                <span>Yields</span>
+                <span>
+                  <Yield recipeId={recipe?.id} />
+                </span>
+              </div> */}
+        </div>
+        {/* <Separator />
+            {recipe?.slug && (
+              <>
+                <div className="flex flex-row gap-2 p-2 max-w-xl mx-auto justify-center">
+                  <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
+                  <SaveButton id={recipe?.id} />
+                  <RecipeMoreDropdownButton id={recipe?.id} />
+                </div>
+                <Separator />
+              </>
+            )} */}
+        {/* <div>
+              <Times id={recipe?.id} />
+            </div>
+            <Separator />
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Ingredients
+                </h3>
+                <ShoppingBasketIcon />
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <ul className="list-disc pl-5 flex flex-col gap-2">
+                  <Ingredients recipeId={recipe?.id} />
+                </ul>
+              </div>
+            </div>
+            <Separator />
+            <div className="px-5">
+              <div className="flex flex-row justify-between gap-1 items-center py-4">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Instructions
+                </h3>
+                <ScrollIcon />
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <ol className="list-decimal pl-5 flex flex-col gap-2">
+                  <Instructions recipeId={recipe?.id} />
+                </ol>
+              </div>
+            </div>
+            <Separator />
+            <div className="py-2">
+              <Tags recipeId={recipe?.id} />
+            </div> */}
+      </EmptyItemOverlay>
+    </Card>
+  );
+};
+
+const CarouselListItem = ({ id, index }: { id?: string; index: number }) => {
   const selectRecipe = useMemo(() => createRecipeSelector(id), [id]);
   const recipe = usePageSessionSelector(selectRecipe);
 
@@ -449,36 +527,6 @@ const CurrentListCarouselItem = ({
             </div>
           </ScrollArea>
         </EmptyItemOverlay>
-      </Card>
-    </div>
-  );
-};
-
-const CurrentListVerticalItem = ({ id, index }) => {
-  const selectRecipe = useMemo(() => createRecipeSelector(id), [id]);
-  const recipe = usePageSessionSelector(selectRecipe);
-
-  return (
-    <div className="mb-4 mx-4 max-w-screen-md md:mx-auto lg:mx-auto">
-      <Card className="overflow-y-auto">
-        <div className="flex flex-col gap-2 py-4 px-6">
-          <CardTitle>
-            <div className="flex flex-row gap-2 justify-between">
-              {recipe?.name}
-            </div>
-          </CardTitle>
-          {recipe?.description && (
-            <CardDescription>
-              {recipe.description}
-            </CardDescription>
-          )}
-          <div className="text-muted-foreground text-xs flex flex-row gap-2">
-            <span>Yields</span>
-            <span>
-              <Yield recipeId={recipe?.id} />
-            </span>
-          </div>
-        </div>
       </Card>
     </div>
   );
@@ -777,16 +825,8 @@ const CurrentListCarousel = ({ children }: { children: ReactNode }) => {
   }, [emblaAPI, send]);
 
   return (
-    <div ref={emblaRef} className="embla flex-1 relative">
+    <div ref={emblaRef} className="embla h-full relative">
       <div className="embla__container absolute inset-0">{children}</div>
-    </div>
-  );
-};
-
-const CurrentListVertical = ({ children }) => {
-  return (
-    <div className="flex flex-col gap-4">
-      {children}
     </div>
   );
 };
@@ -795,56 +835,28 @@ const CurrentListIsShareable = combinedSelectorComponent(
   selectCurrentListIsShareable
 );
 
-const CurrentListItems = ({ displayType = 'carousel' }) => {
+interface ItemComponentProps {
+  id?: string;
+  index: number;
+}
+
+// Interface for the props of the CurrentListItems component
+interface CurrentListItemsProps {
+  ItemComponent: React.ComponentType<ItemComponentProps>;
+}
+
+const CurrentListItems: React.FC<CurrentListItemsProps> = ({
+  ItemComponent,
+}) => {
   const recipeIdSet = useCombinedSelector(selectCurrentListItems);
   const recipeIds = recipeIdSet ? Object.keys(recipeIdSet) : [];
   const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
   const [items] = useState(new Array(numItems).fill(0));
 
-  if (displayType === 'carousel') {
-    return (
-      <>
-        {items.map((id, index) => (
-          <CurrentListCarouselItem
-            key={index}
-            id={recipeIds?.[index]}
-            index={index}
-          />
-        ))}
-      </>
-    );
-  } else if (displayType === 'vertical-list') {
-    return (
-      <>
-        {recipeIds.map((id, index) => (
-          <CurrentListVerticalItem
-            key={index}
-            id={recipeIds?.[index]}
-            index={index}
-          />
-        ))}
-      </>
-    );
-  } else {
-    return null;
-  }
-};
-
-
-const SelectedCarouselItems = () => {
-  const session$ = usePageSessionStore();
-  const [recipeIds] = useState(selectSelectedRecipeIds(session$.get()));
-  const [numItems] = useState(Math.max(recipeIds?.length || 0, 3));
-  const [items] = useState(new Array(numItems).fill(0));
-
   return (
     <>
-      {items.map((id, index) => (
-        <CurrentListCarouselItem
-          key={index}
-          id={recipeIds?.[index]}
-          index={index}
-        />
+      {items.map((_, index) => (
+        <ItemComponent key={index} id={recipeIds[index]} index={index} />
       ))}
     </>
   );
@@ -874,4 +886,14 @@ export const CurrentListName = () => {
 export const CurrentListCount = () => {
   const count = useCombinedSelector(selectCurrentListCount);
   return <>{count}</>;
+};
+
+const CurrentListScrollView = ({ children }: { children: ReactNode }) => {
+  return (
+    <div className="h-full relative">
+      <div className={cn("absolute inset-0 flex flex-col px-2 gap-2")}>
+        {children}
+      </div>
+    </div>
+  );
 };
