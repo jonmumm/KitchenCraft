@@ -6,12 +6,7 @@ import { Button } from "@/components/input/button";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getRecentRecipes } from "@/db/queries";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
-import { MediaGalleryProvider } from "@/modules/media-gallery/components";
-import {
-  MediaGallery,
-  MediaGalleryContainer,
-  MediaGalleryItems,
-} from "@/modules/media-gallery/components.client";
+import { MediaGallery } from "@/modules/media-gallery/components.client";
 import {
   ArrowBigUpDashIcon,
   ChefHatIcon,
@@ -24,8 +19,8 @@ import { Suspense } from "react";
 import {
   getBestRecipes,
   getHotRecipes,
-  getRecentRecipesByProfile,
   getRecentLikedRecipesByUser,
+  getRecentRecipesByProfile,
 } from "../../db/queries";
 import { upvoteById } from "../recipe/actions";
 import { RecipePropsProvider } from "./context";
@@ -71,64 +66,65 @@ export const RecipeListItem = ({
       }
     >
       <Suspense fallback={null}>
-        <MediaGalleryProvider slug={recipe.slug} minHeight={"45svh"}>
-          <Card className="flex flex-col gap-3 max-w-2xl w-full mx-auto py-4 rounded-2xl border-none shadow-none sm:border-solid sm:shadow-md sm:hover:shadow-lg">
-            <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">
-              <div className="flex flex-row gap-3 justify-between items-center w-full">
-                <NavigationLink href={href}>
-                  <Button variant="ghost" size="icon">
-                    {index + 1}.
-                  </Button>
+        <Card className="flex flex-col gap-3 max-w-2xl w-full mx-auto py-4 rounded-2xl border-none shadow-none sm:border-solid sm:shadow-md sm:hover:shadow-lg">
+          <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">
+            <div className="flex flex-row gap-3 justify-between items-center w-full">
+              <NavigationLink href={href}>
+                <Button variant="ghost" size="icon">
+                  {index + 1}.
+                </Button>
+              </NavigationLink>
+              <div className="flex flex-col gap-1 flex-1 justify-start">
+                <NavigationLink
+                  href={href}
+                  className="flex-1 active:opacity-70"
+                >
+                  <h2 className="font-semibold text-lg">
+                    {recipe.name}
+                    <Loader2Icon
+                      size={16}
+                      className="transitioning:inline-block hidden animate-spin ml-2"
+                    />
+                  </h2>
                 </NavigationLink>
-                <div className="flex flex-col gap-1 flex-1 justify-start">
-                  <NavigationLink
-                    href={href}
-                    className="flex-1 active:opacity-70"
-                  >
-                    <h2 className="font-semibold text-lg">
-                      {recipe.name}
-                      <Loader2Icon
-                        size={16}
-                        className="transitioning:inline-block hidden animate-spin ml-2"
-                      />
-                    </h2>
-                  </NavigationLink>
-                  <div>
-                    {"createdBySlug" in recipe && recipe.createdBySlug && (
-                      // <Link
-                      //   href={`/@${recipe.createdBySlug}`}
-                      //   className="inline-block"
-                      // >
-                      <div className="inline-block">
-                        <Badge
-                          className="flex flex-row gap-1 items-center"
-                          variant="outline"
-                        >
-                          <ChefHatIcon
-                            size={16}
-                            className="transitioning:hidden"
-                          />
-                          <Loader2Icon
-                            size={16}
-                            className="transitioning:block hidden animate-spin"
-                          />
-                          {recipe.createdBySlug}
-                        </Badge>
-                      </div>
-                      // </Link>
-                    )}
-                  </div>
+                <div>
+                  {"createdBySlug" in recipe && recipe.createdBySlug && (
+                    // <Link
+                    //   href={`/@${recipe.createdBySlug}`}
+                    //   className="inline-block"
+                    // >
+                    <div className="inline-block">
+                      <Badge
+                        className="flex flex-row gap-1 items-center"
+                        variant="outline"
+                      >
+                        <ChefHatIcon
+                          size={16}
+                          className="transitioning:hidden"
+                        />
+                        <Loader2Icon
+                          size={16}
+                          className="transitioning:block hidden animate-spin"
+                        />
+                        {recipe.createdBySlug}
+                      </Badge>
+                    </div>
+                    // </Link>
+                  )}
                 </div>
-                {/* <UpvoteButton userId={userId} slug={recipe.slug} /> */}
               </div>
+              {/* <UpvoteButton userId={userId} slug={recipe.slug} /> */}
             </div>
-            {/* TODO add space here */}
-            <MediaGalleryContainer>
-              <MediaGallery>
-                <MediaGalleryItems />
-              </MediaGallery>
-            </MediaGalleryContainer>
-            {/* <div className="flex flex-row justify-start pl-2">
+          </div>
+          {/* TODO add space here */}
+          {/* <MediaGalleryContainer> */}
+          <MediaGallery
+            initialMediaIds={recipe.mediaIds}
+            recipeId={recipe.id}
+            minHeight={""}
+          />
+          {/* </MediaGalleryContainer> */}
+          {/* <div className="flex flex-row justify-start pl-2">
               <Link
                 shallow
                 href={`?prompt=${encodeURIComponent(
@@ -153,42 +149,41 @@ export const RecipeListItem = ({
                 </Button>
               </Link>
             </div> */}
-            <NavigationLink href={href}>
-              <div className="px-5 flex flex-row gap-4 items-center">
-                <p className="flex-1">{recipe.description}</p>
-                <Button size="icon" variant="outline">
-                  <ChevronRightIcon className="transitioning:hidden" />
-                  <Loader2Icon className="transitioning:block hidden animate-spin" />
-                </Button>
-              </div>
-            </NavigationLink>
-            <div className="flex-1 flex flex-row gap-1 px-4 justify-between items-start">
-              <div className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0">
-                <TimerIcon size={14} />
-                <span>{formatDuration(recipe.totalTime)}</span>
-              </div>
-              <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
-                {"tags" in recipe &&
-                  recipe.tags.map((tag) => (
-                    <NavigationLink
-                      href={`/tag/${sentenceToSlug(tag)}`}
-                      key={tag}
-                      passHref={true}
-                    >
-                      <Badge key={tag} variant="secondary">
-                        {tag}
-                        <Loader2Icon
-                          size={14}
-                          className="transitioning:block hidden ml-2 animate-spin"
-                        />
-                      </Badge>
-                    </NavigationLink>
-                  ))}
-              </div>
+          <NavigationLink href={href}>
+            <div className="px-5 flex flex-row gap-4 items-center">
+              <p className="flex-1">{recipe.description}</p>
+              <Button size="icon" variant="outline">
+                <ChevronRightIcon className="transitioning:hidden" />
+                <Loader2Icon className="transitioning:block hidden animate-spin" />
+              </Button>
             </div>
-            <Separator className="mb-4 mt-4 sm:hidden" />
-          </Card>
-        </MediaGalleryProvider>
+          </NavigationLink>
+          <div className="flex-1 flex flex-row gap-1 px-4 justify-between items-start">
+            <div className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0">
+              <TimerIcon size={14} />
+              <span>{formatDuration(recipe.totalTime)}</span>
+            </div>
+            <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
+              {"tags" in recipe &&
+                recipe.tags.map((tag) => (
+                  <NavigationLink
+                    href={`/tag/${sentenceToSlug(tag)}`}
+                    key={tag}
+                    passHref={true}
+                  >
+                    <Badge key={tag} variant="secondary">
+                      {tag}
+                      <Loader2Icon
+                        size={14}
+                        className="transitioning:block hidden ml-2 animate-spin"
+                      />
+                    </Badge>
+                  </NavigationLink>
+                ))}
+            </div>
+          </div>
+          <Separator className="mb-4 mt-4 sm:hidden" />
+        </Card>
       </Suspense>
     </RecipePropsProvider>
   );

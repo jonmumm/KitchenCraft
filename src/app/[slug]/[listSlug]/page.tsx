@@ -14,11 +14,8 @@ import { Button } from "@/components/input/button";
 import { ProfileTable, db } from "@/db";
 import { getListBySlug, getRecipesByListSlug } from "@/db/queries";
 import { assert, formatDuration } from "@/lib/utils";
-import { MediaGalleryProvider } from "@/modules/media-gallery/components";
 import {
   MediaGallery,
-  MediaGalleryContainer,
-  MediaGalleryItems,
 } from "@/modules/media-gallery/components.client";
 import { ProfileSlugSchema } from "@/schema";
 import { eq } from "drizzle-orm";
@@ -31,8 +28,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
-const NUM_PLACEHOLDER_RECIPES = 30;
 
 export const dynamic = "force-dynamic";
 
@@ -91,13 +86,6 @@ export default async function Page(props: {
         <>
           {recipes.map((recipe, index) => (
             <RecipeListItem key={recipe.id} recipe={recipe} index={index} />
-            // <Card className="w-full" key={recipe.id}>
-            //   <CardHeader>
-            //     <CardTitle>{recipe.name}</CardTitle>
-            //     <CardDescription>{recipe.description}</CardDescription>
-            //   </CardHeader>
-            //   <CardContent></CardContent>
-            // </Card>
           ))}
         </>
       ) : (
@@ -120,10 +108,8 @@ interface RecipeListItemProps {
 }
 
 const RecipeListItem = ({ recipe, index }: RecipeListItemProps) => {
-  const href = `/recipe/${recipe.slug}`;
-
   return (
-    <MediaGalleryProvider slug={recipe.slug} minHeight={"45svh"}>
+    // <MediaGalleryProvider slug={recipe.slug} minHeight={"45svh"}>
       <Collapsible>
         <Card className="max-w-2xl w-full mx-auto py-4">
           <CollapsibleTrigger asChild>
@@ -148,11 +134,11 @@ const RecipeListItem = ({ recipe, index }: RecipeListItemProps) => {
                 </div>
               </div>
               {/* TODO add space here */}
-              <MediaGalleryContainer>
-                <MediaGallery>
-                  <MediaGalleryItems />
-                </MediaGallery>
-              </MediaGalleryContainer>
+              <MediaGallery
+                recipeId={recipe.id}
+                initialMediaIds={recipe.mediaIds}
+                minHeight="45svh"
+              />
               <div>
                 <div className="px-5 flex flex-row gap-4 items-center">
                   <p className="flex-1">{recipe.description}</p>
@@ -228,6 +214,6 @@ const RecipeListItem = ({ recipe, index }: RecipeListItemProps) => {
           </CollapsibleContent>
         </Card>
       </Collapsible>
-    </MediaGalleryProvider>
+    // </MediaGalleryProvider>
   );
 };

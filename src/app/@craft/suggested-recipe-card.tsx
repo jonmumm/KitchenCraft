@@ -19,7 +19,6 @@ import { ShareRecipeButton } from "@/components/share-button";
 import { Tags } from "@/components/tags";
 import { Times } from "@/components/times";
 import { Yield } from "@/components/yield";
-import { useAppContext } from "@/hooks/useAppContext";
 import { useAppSelector } from "@/hooks/useAppSelector";
 import { useCombinedSelector } from "@/hooks/useCombinedSelector";
 import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
@@ -44,6 +43,7 @@ import {
 import { ReactNode, memo, useCallback, useMemo } from "react";
 import { AppSnapshot } from "../app-machine";
 import { RecipeDetailOverlay } from "../components.client";
+import { UploadMediaButton } from "../recipe/[slug]/upload-media-button";
 
 export const SuggestedRecipeCard = memo(({ index }: { index: number }) => {
   const selectRecipeId = useMemo(
@@ -115,6 +115,13 @@ export const SuggestedRecipeCard = memo(({ index }: { index: number }) => {
                 )}
                 <span className="text-muted-foreground">{index + 1}. </span>
                 <RecipeName id={recipeId} />
+                {isExpanded && (
+                  <div className="flex flex-col gap-2 items-center">
+                    <BackButton variant="ghost">
+                      <XCircleIcon />
+                    </BackButton>
+                  </div>
+                )}
               </CardTitle>
               <RecipeDescription id={recipeId} />
               {isExpanded && (
@@ -126,30 +133,15 @@ export const SuggestedRecipeCard = memo(({ index }: { index: number }) => {
                 </div>
               )}
             </div>
-
-            {isExpanded && (
-              <div className="flex flex-col gap-2 items-center">
-                <BackButton variant="ghost">
-                  <XCircleIcon />
-                </BackButton>
-              </div>
-            )}
-            {/* {!isExpanded && recipe?.id && recipe.name && (
-              <div className="flex flex-col justify-center">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  event={{ type: "VIEW_RECIPE", id: recipe.id }}
-                >
-                  <ExpandIcon />
-                </Button>
-              </div>
-            )} */}
           </div>
           <div className={"text-xs mt-2"}>
             <MatchBadge id={recipeId} />
           </div>
         </EventTrigger>
+        {/* <MediaGallery
+          recipeId={recipeId}
+          mediaIds={recipe?.mediaIds}
+        /> */}
         <Collapsible
           open={isFocused}
           className="overflow-hidden"
@@ -277,6 +269,7 @@ const RecipeActionBar = ({ id }: { id: string | undefined }) => {
           <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
           {/* <LikeButton id={recipe?.id} /> */}
           <SaveButton id={id} />
+          <UploadMediaButton id={id} />
           <RecipeMoreDropdownButton id={id} />
         </div>
       )}

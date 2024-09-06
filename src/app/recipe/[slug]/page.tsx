@@ -9,7 +9,6 @@ import { Badge } from "@/components/display/badge";
 import MarkdownRenderer from "@/components/display/markdown";
 import { Separator } from "@/components/display/separator";
 import { Button } from "@/components/input/button";
-import { LikeButton } from "@/components/like-button";
 import { RecipeMoreDropdownButton } from "@/components/recipe-more-dropdown-button";
 import { SaveButton } from "@/components/save-button";
 import { ShareRecipeButton } from "@/components/share-button";
@@ -28,12 +27,7 @@ import {
   RecipeCommentsItems,
   RecipeCommentsTexarea,
 } from "@/modules/comments/components.client";
-import { MediaGalleryProvider } from "@/modules/media-gallery/components";
-import {
-  MediaGallery,
-  MediaGalleryContainer,
-  MediaGalleryItems,
-} from "@/modules/media-gallery/components.client";
+import { MediaGallery } from "@/modules/media-gallery/components.client";
 import {
   AxeIcon,
   ClockIcon,
@@ -57,6 +51,7 @@ import {
   upsertRecipeRating,
 } from "./rating/queries";
 import { RatingValue } from "./rating/types";
+import { UploadMediaButton } from "./upload-media-button";
 
 // export const maxDuration = 300;
 // export const dynamic = "force-dynamic";
@@ -326,30 +321,30 @@ export default async function Page(props: Props) {
       </Suspense>
 
       <CommentsProvider slug={slug}>
-        <MediaGalleryProvider slug={slug} minHeight={"50vh"}>
-          <div className="flex flex-col gap-2">
-            <MediaGalleryContainer>
-              <MediaGallery>
-                {/* Empty item as a spacer, maybe better way? */}
-                <div className="w-1 h-full carousel-item" />
-                <MediaGalleryItems />
-              </MediaGallery>
-            </MediaGalleryContainer>
-            <div className="flex flex-col gap-2 max-w-xl mx-auto">
-              <Card className="flex flex-col gap-2 pb-5 mx-3">
-                <div className="flex flex-row gap-3 p-5 justify-between">
-                  <div className="flex flex-col gap-2">
-                    <h1 className="text-2xl font-semibold">{name}</h1>
-                    <p className="text-lg text-muted-foreground">
-                      {description}
-                    </p>
-                    <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
-                      <span>Yields</span>
-                      <span>{recipe.yield}</span>
-                    </div>
+        <div className="flex flex-col gap-2">
+          {/* <MediaGalleryContainer> */}
+          <MediaGallery
+            recipeId={recipe.id}
+            initialMediaIds={recipe.mediaIds}
+          />
+          {/* Empty item as a spacer, maybe better way? */}
+          {/* <div className="w-1 h-full carousel-item" /> */}
+          {/* <MediaGalleryItems /> */}
+          {/* </MediaGallery> */}
+          {/* </MediaGalleryContainer> */}
+          <div className="flex flex-col gap-2 max-w-xl mx-auto">
+            <Card className="flex flex-col gap-2 pb-5 mx-3">
+              <div className="flex flex-row gap-3 p-5 justify-between">
+                <div className="flex flex-col gap-2">
+                  <h1 className="text-2xl font-semibold">{name}</h1>
+                  <p className="text-lg text-muted-foreground">{description}</p>
+                  <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
+                    <span>Yields</span>
+                    <span>{recipe.yield}</span>
                   </div>
+                </div>
 
-                  {/* <div className="flex flex-col gap-1 hidden-print">
+                {/* <div className="flex flex-col gap-1 hidden-print">
                     <SaveButton initialIsSaved={false} />
                     <UploadMediaButton slug={slug}>
                       <CameraIcon />
@@ -365,16 +360,17 @@ export default async function Page(props: Props) {
                       description={description}
                     />
                   </div> */}
-                </div>
-                <Separator />
-                <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-center px-4 w-full">
-                  <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
-                  {/* <LikeButton id={recipe?.id} /> */}
-                  <SaveButton id={recipe?.id} />
-              <RecipeMoreDropdownButton id={recipe?.id} />
-                </div>
-                <Separator />
-                {/* {recipeUserId && recipe?.createdAt && (
+              </div>
+              <Separator />
+              <div className="flex flex-row gap-2 py-2 max-w-xl mx-auto justify-center px-4 w-full">
+                <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
+                {/* <LikeButton id={recipe?.id} /> */}
+                <SaveButton id={recipe?.id} />
+                <UploadMediaButton id={recipe?.id} />
+                <RecipeMoreDropdownButton id={recipe?.id} />
+              </div>
+              <Separator />
+              {/* {recipeUserId && recipe?.createdAt && (
               <>
                 <div className="flex flex-row gap-2 p-2 justify-center hidden-print">
                   <div className="flex flex-col gap-2 items-center">
@@ -389,94 +385,94 @@ export default async function Page(props: Props) {
                 <Separator className="hidden-print" />
               </>
             )} */}
-                {/* <Times
+              {/* <Times
                   totalTime$={totalTime$}
                   activeTime$={activeTime$}
                   cookTime$={cookTime$}
                 /> */}
-                <div>
-                  <Times
-                    activeTime={recipe.activeTime}
-                    totalTime={recipe.totalTime}
-                    cookTime={recipe.cookTime}
-                  />
-                  {/* <SkeletonSentence className="h-4" numWords={12} /> */}
-                </div>
-                <Separator />
-                <Tags tags={recipe.tags} />
-                <Separator />
+              <div>
+                <Times
+                  activeTime={recipe.activeTime}
+                  totalTime={recipe.totalTime}
+                  cookTime={recipe.cookTime}
+                />
+                {/* <SkeletonSentence className="h-4" numWords={12} /> */}
+              </div>
+              <Separator />
+              <Tags tags={recipe.tags} />
+              <Separator />
 
-                <div className="px-5">
-                  <div className="flex flex-row justify-between gap-1 items-center py-4">
-                    <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                      Ingredients
-                    </h3>
-                    <ShoppingBasketIcon />
-                  </div>
-                  <div className="mb-4 flex flex-col gap-2">
-                    <Suspense fallback={<Skeleton className="w-full h-20" />}>
-                      <ul className="list-disc pl-5 flex flex-col gap-2">
-                        {/* <Ingredients ingredients$={ingredients$} /> */}
-                        <Ingredients ingredients={recipe.ingredients} />
-                      </ul>
-                    </Suspense>
-                  </div>
-                </div>
-                <Separator />
-
-                <div className="px-5">
-                  <div className="flex flex-row justify-between gap-1 items-center py-4">
-                    <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                      Instructions
-                    </h3>
-                    <ScrollIcon />
-                  </div>
-                  <div className="mb-4 flex flex-col gap-2">
-                    <ol className="list-decimal pl-5 flex flex-col gap-2">
-                      <Instructions instructions={recipe.instructions} />
-                    </ol>
-                  </div>
-                </div>
-              </Card>
-              <Card id="rating" className="mx-3">
-                <div className="flex flex-row gap-2 items-center justify-between py-4 px-5">
+              <div className="px-5">
+                <div className="flex flex-row justify-between gap-1 items-center py-4">
                   <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                    Rating
+                    Ingredients
                   </h3>
-                  <StarIcon />
+                  <ShoppingBasketIcon />
                 </div>
-                <Separator />
-                <div className="p-4 flex justify-center">
-                  <Rating
-                    defaultValue={(rating?.value as RatingValue) || 0}
-                    lastRatedAt={rating?.createdAt}
-                    submitValueChange={
-                      userId
-                        ? submitRating.bind(null, slug).bind(null, userId)
-                        : undefined
-                    }
-                  />
+                <div className="mb-4 flex flex-col gap-2">
+                  <Suspense fallback={<Skeleton className="w-full h-20" />}>
+                    <ul className="list-disc pl-5 flex flex-col gap-2">
+                      {/* <Ingredients ingredients$={ingredients$} /> */}
+                      <Ingredients ingredients={recipe.ingredients} />
+                    </ul>
+                  </Suspense>
                 </div>
-              </Card>
-              {/* <CommentsCard /> */}
-              <Card id="history" className="mx-3">
-                <History />
-              </Card>
-              {/* <Card id="assistant" className="mx-3">
+              </div>
+              <Separator />
+
+              <div className="px-5">
+                <div className="flex flex-row justify-between gap-1 items-center py-4">
+                  <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                    Instructions
+                  </h3>
+                  <ScrollIcon />
+                </div>
+                <div className="mb-4 flex flex-col gap-2">
+                  <ol className="list-decimal pl-5 flex flex-col gap-2">
+                    <Instructions instructions={recipe.instructions} />
+                  </ol>
+                </div>
+              </div>
+            </Card>
+            <Card id="rating" className="mx-3">
+              <div className="flex flex-row gap-2 items-center justify-between py-4 px-5">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Rating
+                </h3>
+                <StarIcon />
+              </div>
+              <Separator />
+              <div className="p-4 flex justify-center">
+                <Rating
+                  defaultValue={(rating?.value as RatingValue) || 0}
+                  lastRatedAt={rating?.createdAt}
+                  submitValueChange={
+                    userId
+                      ? submitRating.bind(null, slug).bind(null, userId)
+                      : undefined
+                  }
+                />
+              </div>
+            </Card>
+            {/* <CommentsCard /> */}
+            <Card id="history" className="mx-3">
+              <History />
+            </Card>
+            {/* <Card id="assistant" className="mx-3">
                   <AssistantContent />
               </Card> */}
-              {/* <Card id="tips-and-tricks" className="mx-3">
+            {/* <Card id="tips-and-tricks" className="mx-3">
                 <TipsAndTricks />
               </Card> */}
-              {/* <Card id="assistant" className="mx-3">
+            {/* <Card id="assistant" className="mx-3">
             <AssistantContent />
           </Card> */}
-              {/* {isImageGenEnabled && (
+            {/* {isImageGenEnabled && (
             <Card id="generated-images" className="mx-3">
               <GeneratedImages />
             </Card>
           )} */}
-              {/* <Card id="products" className="mx-3 mb-3">
+            {/* <Card id="products" className="mx-3 mb-3">
                 <div className="flex flex-row justify-between p-4">
                   <h3 className="uppercase text-xs font-bold text-accent-foreground">
                     Consumables
@@ -533,9 +529,8 @@ export default async function Page(props: Props) {
                   </div>
                 </div>
               </Card> */}
-            </div>
           </div>
-        </MediaGalleryProvider>
+        </div>
       </CommentsProvider>
     </>
   );

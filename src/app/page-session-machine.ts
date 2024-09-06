@@ -1,4 +1,5 @@
 import { streamToObservable } from "@/lib/stream-to-observable";
+import { Buffer } from 'node:buffer';
 import { produce } from "immer";
 
 import { captureEvent } from "@/actions/capturePostHogEvent";
@@ -12,7 +13,9 @@ import { defaultLists } from "@/constants/lists";
 import { CHOOSING_LISTS_FOR_RECIPE_ID_PARAM } from "@/constants/query-params";
 import {
   ListTable,
+  MediaTable,
   ProfileTable,
+  RecipeMediaTable,
   RecipesTable,
   UserPreferencesTable,
   UsersTable,
@@ -49,6 +52,7 @@ import {
   UserPreferences,
   WithCaller,
 } from "@/types";
+import cloudflareLoader from "@/utils/cloudflare-loader";
 import { userMatchesState } from "@/utils/user-matches";
 import { createClient } from "@vercel/postgres";
 import { and, eq, ilike, inArray, max, sql as sqlFN } from "drizzle-orm";
@@ -133,12 +137,29 @@ const InputSchema = z.object({
 });
 type Input = z.infer<typeof InputSchema>;
 
+// type Media = {
+//   id: string;
+//   url: string;
+//   width: number;
+//   height: number;
+//   mediaType: "VIDEO" | "IMAGE";
+// };
+
+type UploadingMedia = {
+  id: string;
+  createdAt: number;
+  recipeId: string;
+  uploadUrl?: string;
+  uploadedAt: number | undefined;
+};
+
 type Recipe = PartialRecipe & {
   matchPercent: number | undefined;
   complete: boolean;
   metadataComplete: boolean;
   started: boolean;
   fullStarted: boolean;
+  mediaIds: string[];
 };
 
 type List = {
@@ -183,6 +204,8 @@ export type PageSessionContext = {
     }
   >;
   recipes: Record<string, Recipe>;
+  currentUploadingMediaId: string | undefined;
+  uploadingMedia: Record<string, UploadingMedia>;
   listRecipes: Record<string, Record<string, true>>;
   generatingRecipeId: string | undefined;
   currentItemIndex: number;
@@ -248,6 +271,45 @@ export const createPageSessionMachine = ({
       events: {} as PageSessionEvent,
     },
     actors: {
+      generateUploadUrl: fromPromise(
+        async ({ input }: { input: { mediaId: string } }) => {
+          const formData = new FormData();
+          formData.append("id", btoa(input.mediaId));
+          formData.append("requireSignedURLs", "false");
+          formData.append("metadata", JSON.stringify({ key: "value" })); // You can customize this metadata as needed
+
+          const response = await fetch(
+            `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/images/v2/direct_upload`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${process.env.CLOUDFLARE_IMAGES_API_TOKEN}`,
+              },
+              body: formData,
+            }
+          );
+
+          if (!response.ok) {
+            const errorBody = await response.text();
+            console.error("Failed to generate upload URL:", {
+              status: response.status,
+              statusText: response.statusText,
+              body: errorBody,
+            });
+            throw new Error(
+              `Failed to generate upload URL: ${response.status} ${response.statusText}`
+            );
+          }
+
+          const data = await response.json();
+          assert(data.result.uploadURL, "expected uploadURL");
+          assert(
+            typeof data.result.uploadURL === "string",
+            "expected uploadURL to be a string"
+          );
+          return data.result.uploadURL as string;
+        }
+      ),
       saveRecipeToListBySlug,
       parseTokens: fromPromise(
         async ({
@@ -331,10 +393,29 @@ export const createPageSessionMachine = ({
               })
               .from(RecipesTable)
               .groupBy(RecipesTable.id)
-              .as("maxVersionSubquery"); // Naming the subquery
+              .as("maxVersionSubquery");
 
             const recipes = await db
-              .select()
+              .select({
+                id: RecipesTable.id,
+                versionId: RecipesTable.versionId,
+                slug: RecipesTable.slug,
+                name: RecipesTable.name,
+                description: RecipesTable.description,
+                tags: RecipesTable.tags,
+                totalTime: RecipesTable.totalTime,
+                prompt: RecipesTable.prompt,
+                yield: RecipesTable.yield,
+                ingredients: RecipesTable.ingredients,
+                instructions: RecipesTable.instructions,
+                activeTime: RecipesTable.activeTime,
+                cookTime: RecipesTable.cookTime,
+                createdAt: RecipesTable.createdAt,
+                createdBy: RecipesTable.createdBy,
+                mediaIds: sqlFN<
+                  string[]
+                >`array_agg(${RecipeMediaTable.mediaId})`.as("mediaIds"),
+              })
               .from(RecipesTable)
               .innerJoin(
                 maxVersionSubquery,
@@ -343,7 +424,28 @@ export const createPageSessionMachine = ({
                   eq(RecipesTable.versionId, maxVersionSubquery.maxVersionId)
                 )
               )
-              .where(inArray(RecipesTable.id, input.recipeIds));
+              .leftJoin(
+                RecipeMediaTable,
+                eq(RecipesTable.id, RecipeMediaTable.recipeId)
+              )
+              .where(inArray(RecipesTable.id, input.recipeIds))
+              .groupBy(
+                RecipesTable.id,
+                RecipesTable.versionId,
+                RecipesTable.slug,
+                RecipesTable.name,
+                RecipesTable.description,
+                RecipesTable.tags,
+                RecipesTable.totalTime,
+                RecipesTable.prompt,
+                RecipesTable.yield,
+                RecipesTable.ingredients,
+                RecipesTable.instructions,
+                RecipesTable.activeTime,
+                RecipesTable.cookTime,
+                RecipesTable.createdAt,
+                RecipesTable.createdBy
+              );
 
             return recipes;
           } finally {
@@ -845,6 +947,9 @@ export const createPageSessionMachine = ({
         pageSessionId: input.id,
         recipeIdsToAdd: [],
         history: [input.url],
+        uploadingMedia: {},
+        currentUploadingMediaId: undefined,
+        currentUploadingRecipeId: undefined,
         uniqueId: input.initialCaller.id,
         modifiedPreferences: {},
         userPreferences: {},
@@ -863,6 +968,7 @@ export const createPageSessionMachine = ({
         currentListSlug: undefined,
         currentListId: undefined,
         errorKeys: {},
+        media: {},
         tokens: [],
         recipes: {},
         generatingRecipeId: undefined,
@@ -1015,7 +1121,7 @@ export const createPageSessionMachine = ({
               input: ({ context }) => {
                 return {
                   userAccessToken: context.userAccessToken,
-                  parties,
+                  parties: parties,
                   caller: context.initialCaller,
                 };
               },
@@ -1764,6 +1870,7 @@ export const createPageSessionMachine = ({
                             id: nextRecipe.id,
                             versionId: 0,
                             started: true,
+                            mediaIds: [],
                             fullStarted: true,
                             complete: false,
                             matchPercent: undefined,
@@ -1906,6 +2013,7 @@ export const createPageSessionMachine = ({
                             versionId: 0,
                             started: true,
                             fullStarted: true,
+                            mediaIds: [],
                             complete: false,
                             matchPercent: undefined,
                             metadataComplete: false,
@@ -2008,6 +2116,7 @@ export const createPageSessionMachine = ({
                               started: true,
                               fullStarted: true,
                               complete: false,
+                              mediaIds: [],
                               matchPercent: undefined,
                               metadataComplete: false,
                             };
@@ -2103,6 +2212,7 @@ export const createPageSessionMachine = ({
                             versionId: 0,
                             started: index === 0,
                             fullStarted: index === 0,
+                            mediaIds: [],
                             complete: false,
                             matchPercent: undefined,
                             metadataComplete: false,
@@ -2500,6 +2610,7 @@ export const createPageSessionMachine = ({
                                             started: true,
                                             fullStarted: false,
                                             complete: false,
+                                            mediaIds: [],
                                             matchPercent: undefined,
                                             metadataComplete: false,
                                           };
@@ -2851,9 +2962,7 @@ export const createPageSessionMachine = ({
                   "Generate full recipe if we don't already have this recipe",
                 guard: ({ context, event }) => {
                   const feedItemId =
-                    context.userSnapshot?.context.feedItemIds[
-                      event.itemIndex
-                    ];
+                    context.userSnapshot?.context.feedItemIds[event.itemIndex];
                   assert(feedItemId, "couldnt find feed item id");
                   const feedItem =
                     context.userSnapshot?.context.feedItemsById[feedItemId];
@@ -2879,9 +2988,7 @@ export const createPageSessionMachine = ({
                         ];
                       assert(feedItemId, "couldnt find feed item id");
                       const feedItem =
-                        context.userSnapshot?.context.feedItemsById[
-                          feedItemId
-                        ];
+                        context.userSnapshot?.context.feedItemsById[feedItemId];
                       assert(feedItem, "expected feedItem");
                       assert(
                         feedItem.category,
@@ -2922,9 +3029,7 @@ export const createPageSessionMachine = ({
                         ];
                       assert(feedItemId, "couldnt find feed item id");
                       const feedItem =
-                        context.userSnapshot?.context.feedItemsById[
-                          feedItemId
-                        ];
+                        context.userSnapshot?.context.feedItemsById[feedItemId];
                       assert(feedItem, "expected feedItem");
                       assert(
                         feedItem.category,
@@ -2948,6 +3053,7 @@ export const createPageSessionMachine = ({
                         fullStarted: true,
                         complete: false,
                         metadataComplete: false,
+                        mediaIds: [],
                         name: recipe.name,
                       };
                     })
@@ -2991,7 +3097,7 @@ export const createPageSessionMachine = ({
                     target: "Complete",
                     actions: assign(({ context, event }) => {
                       return produce(context, (draft) => {
-                        event.output.forEach(({ recipe }) => {
+                        event.output.forEach((recipe) => {
                           if (!draft.recipes[recipe.id]) {
                             draft.recipes[recipe.id] = {
                               ...recipe,
@@ -3000,6 +3106,7 @@ export const createPageSessionMachine = ({
                               started: true,
                               metadataComplete: true,
                               fullStarted: true,
+                              mediaIds: recipe.mediaIds,
                             };
                           }
                         });
@@ -3295,7 +3402,7 @@ export const createPageSessionMachine = ({
                 target: "Idle",
                 actions: assign(({ context, event }) => {
                   return produce(context, (draft) => {
-                    event.output.forEach(({ recipe }) => {
+                    event.output.forEach((recipe) => {
                       if (!draft.recipes[recipe.id]) {
                         draft.recipes[recipe.id] = {
                           ...recipe,
@@ -3554,6 +3661,212 @@ export const createPageSessionMachine = ({
           },
         },
       },
+
+      MediaUpload: {
+        initial: "Idle",
+        on: {
+          UPLOAD_MEDIA_COMPLETE: {
+            actions: [
+              assign({
+                uploadingMedia: ({ context, event }) =>
+                  produce(context.uploadingMedia, (draft) => {
+                    const mediaEntry = draft[event.mediaId];
+                    assert(
+                      mediaEntry,
+                      `Expected media entry for ID ${event.mediaId}`
+                    );
+                    mediaEntry.uploadedAt = Date.now();
+                  }),
+              }),
+              async ({ context, event }) => {
+                const mediaEntry = context.uploadingMedia[event.mediaId];
+                assert(
+                  mediaEntry,
+                  `Expected media entry for ID ${event.mediaId}`
+                );
+
+                const client = createClient();
+
+                try {
+                  await client.connect();
+                  const db = drizzle(client);
+
+                  console.log("HELLLO");
+                  const url = cloudflareLoader({
+                    src: btoa(mediaEntry.id),
+                  });
+                  const blurredImageUrl = cloudflareLoader({
+                    src: btoa(mediaEntry.id),
+                    width: 10,
+                    blur: 1,
+                  });
+
+                  // Fetch the image and create blur data
+                  const imgResponse = await fetch(blurredImageUrl);
+                  console.log({ blurredImageUrl });
+                  if (!imgResponse.ok) {
+                    throw new Error(
+                      `Failed to fetch ${url}: ${imgResponse.statusText}`
+                    );
+                  }
+                  const blobData = await imgResponse.blob();
+                  const base64Image = Buffer.from(await blobData.arrayBuffer()).toString("base64");
+
+
+                  // Start a transaction
+                  await db.transaction(async (tx) => {
+                    // Insert into MediaTable
+                    const insertMediaQuery = tx
+                      .insert(MediaTable)
+                      .values({
+                        id: mediaEntry.id,
+                        createdBy: context.userId,
+                        mediaType: "IMAGE",
+                        contentType: event.contentType,
+                        sourceType: "UPLOAD",
+                        width: event.metadata.width,
+                        height: event.metadata.height,
+                        blurDataURL: base64Image,
+                        duration: undefined,
+                        url,
+                      })
+                      .returning({ insertedId: MediaTable.id });
+
+                    const [insertedMedia] = await withDatabaseSpan(
+                      insertMediaQuery,
+                      "insertMedia"
+                    ).execute();
+
+                    if (!insertedMedia) {
+                      throw new Error("Failed to insert media");
+                    }
+
+                    // Insert into RecipeMediaTable
+                    const insertRecipeMediaQuery = tx
+                      .insert(RecipeMediaTable)
+                      .values({
+                        recipeId: mediaEntry.recipeId,
+                        mediaId: insertedMedia.insertedId,
+                        sortOrder: sqlFN`(SELECT COALESCE(MAX(sort_order), 0) + 1 FROM ${RecipeMediaTable} WHERE recipe_id = ${mediaEntry.recipeId})`,
+                      });
+
+                    await withDatabaseSpan(
+                      insertRecipeMediaQuery,
+                      "insertRecipeMedia"
+                    ).execute();
+                  });
+
+                  console.log(
+                    "Successfully added media and associated with recipe"
+                  );
+                } catch (error) {
+                  console.error("Error creating recipe media:", error);
+                } finally {
+                  await client.end();
+                }
+              },
+            ],
+          },
+        },
+        states: {
+          Idle: {
+            on: {
+              SELECT_RECIPE_MEDIA: {
+                target: "GeneratingUploadUrl",
+                actions: assign({
+                  currentUploadingMediaId: ({ event }) => event.mediaId,
+                  uploadingMedia: ({ context, event }) =>
+                    produce(context.uploadingMedia, (draft) => {
+                      draft[event.mediaId] = {
+                        id: event.mediaId,
+                        recipeId: event.recipeId,
+                        createdAt: Date.now(),
+                        uploadedAt: undefined,
+                      };
+                    }),
+
+                  recipes: ({ context, event }) =>
+                    produce(context.recipes, (draft) => {
+                      const recipe = draft[event.recipeId];
+                      if (recipe) {
+                        recipe.mediaIds.push(event.mediaId);
+                      }
+                    }),
+                }),
+              },
+            },
+          },
+          GeneratingUploadUrl: {
+            invoke: {
+              src: "generateUploadUrl",
+              input: ({ context }) => {
+                assert(
+                  context.currentUploadingMediaId,
+                  "expected currentUploadingMediaId"
+                );
+                return {
+                  mediaId: context.currentUploadingMediaId,
+                };
+              },
+              onDone: {
+                target: "Idle",
+                actions: assign({
+                  uploadingMedia: ({ context, event }) =>
+                    produce(context.uploadingMedia, (draft) => {
+                      assert(
+                        context.currentUploadingMediaId,
+                        "expected currentUploadingMediaId"
+                      );
+                      const draftMedia = draft[context.currentUploadingMediaId];
+                      assert(draftMedia, "expected draftMedia");
+                      draftMedia.uploadUrl = event.output;
+                    }),
+                  currentUploadingMediaId: () => undefined,
+                }),
+              },
+              onError: {
+                target: "Idle",
+                actions: [
+                  assign({
+                    currentUploadingMediaId: () => undefined,
+                  }),
+                ],
+              },
+            },
+          },
+        },
+      },
+      // MediaUpload: {
+      //   on: {
+      //     SELECT_RECIPE_MEDIA: {
+      //       actions: assign({
+      //         currentUploadingMediaId: ({ event }) => {
+      //           return event.mediaId;
+      //         },
+      //         // todo move this
+      //         // uploadingMedia: ({ context, event }) =>
+      //         //   produce(context.uploadingMedia, (draft) => {
+      //         //     draft[event.mediaId] = {
+      //         //       id: event.mediaId,
+      //         //       uploadUrl: "",
+      //         //       createdAt: Date.now(),
+      //         //       uploadedAt: undefined,
+      //         //     };
+      //         //   }),
+      //         recipes: ({ context, event }) =>
+      //           produce(context.recipes, (draft) => {
+      //             const recipe = draft[event.recipeId];
+      //             if (recipe) {
+      //               recipe.mediaIds.push(event.mediaId);
+      //             }
+      //           }),
+      //       }),
+      //       // async ({ context, event }) => {
+      //       //   console.log(metadata);
+      //       // },
+      //     },
+      //   },
+      // },
 
       MyRecipes: {
         on: {

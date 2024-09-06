@@ -2,6 +2,7 @@ import type { CreateMessage } from "ai";
 import { UseEmblaCarouselType } from "embla-carousel-react";
 import { Stub } from "partykit/server";
 import { z } from "zod";
+import { MediaMetadataSchema } from "./app/recipe/[slug]/media/schema";
 import {
   COOKING_TIMES,
   COOKWARES,
@@ -875,9 +876,21 @@ export const PressMediaThumbSchema = z.object({
   index: z.number(),
 });
 
-const FileSelectedEventSchema = z.object({
-  type: z.literal("FILE_SELECTED"),
-  slug: SlugSchema,
+const UploadMediaStartEventSchema = z.object({
+  type: z.literal("UPLOAD_MEDIA_START"),
+  mediaId: z.string(),
+});
+
+const UploadMediaCompleteEventSchema = z.object({
+  type: z.literal("UPLOAD_MEDIA_COMPLETE"),
+  mediaId: z.string(),
+  metadata: MediaMetadataSchema,
+  contentType: z.string(),
+});
+const SelectRecipeMediaEventSchema = z.object({
+  type: z.literal("SELECT_RECIPE_MEDIA"),
+  recipeId: z.string(),
+  mediaId: z.string(),
   file: z.custom<File>(),
 });
 
@@ -1264,7 +1277,9 @@ export const AppEventSchema = z.discriminatedUnion("type", [
   SwipeDownEventSchema,
   SwipeRightEventSchema,
   SwipeLeftEventSchema,
-  FileSelectedEventSchema,
+  SelectRecipeMediaEventSchema,
+  UploadMediaStartEventSchema,
+  UploadMediaCompleteEventSchema,
   PressMediaThumbSchema,
   EnablePushNotificationsEventSchema,
   ErrorEventSchema,
@@ -1775,6 +1790,8 @@ export const AppContextSchema = z.object({
   email: z.string().optional(),
   scrollItemIndex: z.number(),
   savedRecipeSlugs: z.array(z.string()),
+  uploadingMediaId: z.string().optional(),
+  uploadingMediaFile: z.custom<File>().optional(),
   currentRecipeUrl: z.string().optional(),
   history: z.array(z.string()),
   currentHistoryIndex: z.number(),

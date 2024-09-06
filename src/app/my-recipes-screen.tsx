@@ -94,6 +94,7 @@ import {
 import { createSelector } from "reselect";
 import { toast } from "sonner";
 import { ListUrlCopiedToast } from "./list-url-copied-toast";
+import { UploadMediaButton } from "./recipe/[slug]/upload-media-button";
 
 const selectedTab$ = atom<"recipe" | "list">("recipe");
 
@@ -504,6 +505,7 @@ const CarouselListItem = ({ id, index }: { id?: string; index: number }) => {
                   <ShareRecipeButton slug={recipe.slug} name={recipe.name} />
                   {/* <LikeButton id={recipe?.id} /> */}
                   <SaveButton id={recipe?.id} />
+                  <UploadMediaButton id={recipe?.id} />
                   <RecipeMoreDropdownButton id={recipe?.id} />
                 </div>
                 <Separator />

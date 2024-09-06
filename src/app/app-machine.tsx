@@ -37,6 +37,7 @@ import {
 import { z } from "zod";
 import type { PageSessionSnapshot } from "./page-session-machine";
 import { RecipeAddedToast } from "./recipe-added-toast";
+import { extractMetadata } from "./recipe/[slug]/media/utils";
 
 export const createAppMachine = ({
   searchParams,
@@ -1255,6 +1256,98 @@ export const createAppMachine = ({
                   draft.pop();
                 }),
             }),
+          },
+        },
+      },
+      MediaUpload: {
+        initial: "Idle",
+        states: {
+          Idle: {
+            on: {
+              SELECT_RECIPE_MEDIA: {
+                target: "Waiting",
+                actions: [
+                  assign({
+                    uploadingMediaId: ({ event }) => event.mediaId,
+                    uploadingMediaFile: ({ event }) => event.file,
+                  }),
+                ],
+              },
+            },
+          },
+          Waiting: {
+            invoke: {
+              src: "waitForSessionValue",
+              input: ({ context }) => {
+                const mediaId = context.uploadingMediaId;
+                assert(mediaId, "expected uploadingMediaId");
+                return {
+                  selector: (snapshot: PageSessionSnapshot) =>
+                    !!snapshot.context.uploadingMedia[mediaId]?.uploadUrl,
+                  timeoutMs: 10000,
+                };
+              },
+              onDone: {
+                target: "Idle",
+                actions: [
+                  async ({ context, event }) => {
+                    const { uploadingMedia } = store.get().context;
+                    assert(
+                      context.uploadingMediaId,
+                      "expected uploadingMediaId"
+                    );
+                    assert(
+                      context.uploadingMediaFile,
+                      "expected uploadingMediaFile"
+                    );
+                    const media = uploadingMedia[context.uploadingMediaId];
+                    assert(media, "expected media");
+                    assert(media.uploadUrl, "expected media uploadUrl");
+
+                    const formData = new FormData();
+                    formData.append("file", context.uploadingMediaFile);
+                    // context.uploadingMediaFile.type;
+
+                    try {
+                      send({
+                        type: "UPLOAD_MEDIA_START",
+                        mediaId: context.uploadingMediaId,
+                      });
+
+                      const response = await fetch(media.uploadUrl, {
+                        method: "POST",
+                        body: formData,
+                      });
+
+                      const metadata = await extractMetadata(
+                        context.uploadingMediaFile
+                      );
+
+                      send({
+                        type: "UPLOAD_MEDIA_COMPLETE",
+                        mediaId: context.uploadingMediaId,
+                        contentType: context.uploadingMediaFile.type,
+                        metadata,
+                      });
+
+                      if (!response.ok) {
+                        throw new Error(
+                          `HTTP error! status: ${response.status}`
+                        );
+                      }
+                    } catch (error) {
+                      console.error("Error uploading file:", error);
+                      // You might want to handle this error more gracefully,
+                      // such as showing a toast notification to the user
+                    }
+                  },
+                  assign({
+                    uploadingMediaId: () => undefined,
+                    uploadingMediaFile: () => undefined,
+                  }),
+                ],
+              },
+            },
           },
         },
       },
