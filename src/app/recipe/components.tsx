@@ -6,7 +6,7 @@ import { Button } from "@/components/input/button";
 import NavigationLink from "@/components/navigation/navigation-link";
 import { getRecentRecipes } from "@/db/queries";
 import { formatDuration, sentenceToSlug } from "@/lib/utils";
-import { MediaGallery } from "@/modules/media-gallery/components.client";
+import { MediaPreview } from "@/modules/media-gallery/components.client";
 import {
   ArrowBigUpDashIcon,
   ChefHatIcon,
@@ -118,11 +118,6 @@ export const RecipeListItem = ({
           </div>
           {/* TODO add space here */}
           {/* <MediaGalleryContainer> */}
-          <MediaGallery
-            initialMediaIds={recipe.mediaIds}
-            recipeId={recipe.id}
-            minHeight={""}
-          />
           {/* </MediaGalleryContainer> */}
           {/* <div className="flex flex-row justify-start pl-2">
               <Link
@@ -149,6 +144,10 @@ export const RecipeListItem = ({
                 </Button>
               </Link>
             </div> */}
+          <MediaPreview
+            initialMediaIds={recipe.mediaIds}
+            recipeId={recipe.id}
+          />
           <NavigationLink href={href}>
             <div className="px-5 flex flex-row gap-4 items-center">
               <p className="flex-1">{recipe.description}</p>

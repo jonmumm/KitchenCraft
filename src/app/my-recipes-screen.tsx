@@ -42,6 +42,7 @@ import { useRecipeListBySlug } from "@/hooks/useRecipeListBySlug";
 import { useSelector } from "@/hooks/useSelector";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
+import { MediaPreview } from "@/modules/media-gallery/components.client";
 import {
   selectCurrentListIsSelected,
   selectCurrentListSlug,
@@ -254,7 +255,7 @@ export const MyRecipesScreen = () => {
                   <CurrentListItems ItemComponent={CarouselListItem} />
                 </CurrentListCarousel>
               </TabsContent>
-              <TabsContent value={"list"} className="h-full">
+              <TabsContent value={"list"} className="h-full overflow-y-scroll">
                 <CurrentListScrollView>
                   <CurrentListItems ItemComponent={ScrollViewListItem} />
                 </CurrentListScrollView>
@@ -387,6 +388,12 @@ const ScrollViewListItem = ({ id, index }: { id?: string; index: number }) => {
               <RecipeName />
             </div>
           </CardTitle>
+          {recipe?.mediaIds && (
+            <MediaPreview
+              initialMediaIds={recipe.mediaIds}
+              recipeId={recipe?.id}
+            />
+          )}
           {recipe?.description ? (
             <CardDescription className="px-4">
               {recipe.description}
@@ -482,6 +489,12 @@ const CarouselListItem = ({ id, index }: { id?: string; index: number }) => {
                   <RecipeName />
                 </div>
               </CardTitle>
+              {recipe?.mediaIds && (
+                <MediaPreview
+                  initialMediaIds={recipe.mediaIds}
+                  recipeId={recipe?.id}
+                />
+              )}
               {recipe?.description ? (
                 <CardDescription className="px-4">
                   {recipe.description}

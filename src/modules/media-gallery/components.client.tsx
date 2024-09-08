@@ -1,11 +1,9 @@
 "use client";
 
-import ScrollLockComponent from "@/components/scroll-lock";
+import { CloudflareImage } from "@/components/cloudflare-image";
 import { cn } from "@/lib/utils";
 import { createContext, useState } from "react";
 import { MediaGalleryActor } from "./machine";
-
-import useEmblaCarousel from "embla-carousel-react";
 
 export const MediaGalleryContext = createContext({} as MediaGalleryActor);
 
@@ -88,35 +86,41 @@ export const MediaGalleryContext = createContext({} as MediaGalleryActor);
 //   );
 // };
 
-export const MediaGallery = ({
+export const MediaPreview = ({
   recipeId,
-  initialMediaIds,
-  minHeight = "20dvh",
+  initialMediaIds, // height = "20dvh",
 }: {
   recipeId: string;
   initialMediaIds: string[];
-  minHeight?: string;
+  // height?: string;
 }) => {
-  const [emblaRef] = useEmblaCarousel({ loop: false });
-  const [mediaIds] = useState(["1", "2", "3", "4"]);
+  const [mediaIds] = useState(initialMediaIds);
   const fullscreen = false; // You can implement fullscreen logic later if needed
+  console.log("mediaIds", mediaIds);
+
+  const previewMediaId = mediaIds[0];
 
   return (
-    <ScrollLockComponent active={fullscreen}>
-      {mediaIds.length > 0 && (
-        <div className={cn(`w-full relative`)} style={{ height: minHeight }}>
-          <div className="embla max-w-[100vw] mx-auto" ref={emblaRef}>
-            <div className="embla__container touch-pan-x flex">
-              {mediaIds.map((id, index) => (
-                <div key={id} className="embla__slide flex-none min-w-0 max-w-full bg-primary">
-                  <MediaGalleryItem mediaId={id} index={index} />
-                </div>
-              ))}
+    <>
+      {previewMediaId && (
+        <div className={cn(`relative w-full aspect-square`)}>
+          <div className="mx-auto h-full">
+            <div className="flex h-full">
+              <div className="h-full aspect-square rounded-xl">
+                <CloudflareImage
+                  mediaId={previewMediaId}
+                  width={1000}
+                  height={1000}
+                  fit="cover"
+                  alt="Recipe Preview"
+                  className="h-full w-full"
+                />
+              </div>
             </div>
           </div>
         </div>
       )}
-    </ScrollLockComponent>
+    </>
   );
 };
 

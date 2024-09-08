@@ -887,6 +887,7 @@ const UploadMediaCompleteEventSchema = z.object({
   metadata: MediaMetadataSchema,
   contentType: z.string(),
 });
+
 const SelectRecipeMediaEventSchema = z.object({
   type: z.literal("SELECT_RECIPE_MEDIA"),
   recipeId: z.string(),

@@ -14,9 +14,7 @@ import { Button } from "@/components/input/button";
 import { ProfileTable, db } from "@/db";
 import { getListBySlug, getRecipesByListSlug } from "@/db/queries";
 import { assert, formatDuration } from "@/lib/utils";
-import {
-  MediaGallery,
-} from "@/modules/media-gallery/components.client";
+import { MediaPreview } from "@/modules/media-gallery/components.client";
 import { ProfileSlugSchema } from "@/schema";
 import { eq } from "drizzle-orm";
 import {
@@ -110,52 +108,51 @@ interface RecipeListItemProps {
 const RecipeListItem = ({ recipe, index }: RecipeListItemProps) => {
   return (
     // <MediaGalleryProvider slug={recipe.slug} minHeight={"45svh"}>
-      <Collapsible>
-        <Card className="max-w-2xl w-full mx-auto py-4">
-          <CollapsibleTrigger asChild>
-            <div className="flex flex-col gap-3">
-              <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">
-                <div className="flex flex-row gap-3 items-center w-full">
-                  <Button variant="ghost" size="icon">
-                    {index + 1}.
-                  </Button>
-                  <div className="flex flex-col gap-1 flex-1 justify-start">
-                    <div className="flex-1 active:opacity-70">
-                      <h2 className="font-semibold text-lg">
-                        {recipe.name}
-                        <Loader2Icon
-                          size={16}
-                          className="transitioning:inline-block hidden animate-spin ml-2"
-                        />
-                      </h2>
-                    </div>
+    <Collapsible>
+      <Card className="max-w-2xl w-full mx-auto py-4">
+        <CollapsibleTrigger asChild>
+          <div className="flex flex-col gap-3">
+            <div className="px-5 flex flex-row justify-between items-center gap-4 w-full mx-auto">
+              <div className="flex flex-row gap-3 items-center w-full">
+                <Button variant="ghost" size="icon">
+                  {index + 1}.
+                </Button>
+                <div className="flex flex-col gap-1 flex-1 justify-start">
+                  <div className="flex-1 active:opacity-70">
+                    <h2 className="font-semibold text-lg">
+                      {recipe.name}
+                      <Loader2Icon
+                        size={16}
+                        className="transitioning:inline-block hidden animate-spin ml-2"
+                      />
+                    </h2>
                   </div>
-                  {/* <UpvoteButton userId={userId} slug={recipe.slug} /> */}
                 </div>
+                {/* <UpvoteButton userId={userId} slug={recipe.slug} /> */}
               </div>
-              {/* TODO add space here */}
-              <MediaGallery
-                recipeId={recipe.id}
-                initialMediaIds={recipe.mediaIds}
-                minHeight="45svh"
-              />
-              <div>
-                <div className="px-5 flex flex-row gap-4 items-center">
-                  <p className="flex-1">{recipe.description}</p>
-                  <Button size="icon" variant="outline">
-                    <ChevronsUpDownIcon />
-                  </Button>
-                </div>
+            </div>
+            {/* TODO add space here */}
+            <MediaPreview
+              recipeId={recipe.id}
+              initialMediaIds={recipe.mediaIds}
+            />
+            <div>
+              <div className="px-5 flex flex-row gap-4 items-center">
+                <p className="flex-1">{recipe.description}</p>
+                <Button size="icon" variant="outline">
+                  <ChevronsUpDownIcon />
+                </Button>
               </div>
-              <div className="flex-1 flex flex-col gap-3 px-4">
-                <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
-                  <span>{recipe.yield}</span>
-                </div>
-                <div className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0">
-                  <TimerIcon size={14} />
-                  <span>{formatDuration(recipe.totalTime)}</span>
-                </div>
-                {/* <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
+            </div>
+            <div className="flex-1 flex flex-col gap-3 px-4">
+              <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
+                <span>{recipe.yield}</span>
+              </div>
+              <div className="text-xs text-muted-foreground flex flex-row gap-1 flex-shrink-0">
+                <TimerIcon size={14} />
+                <span>{formatDuration(recipe.totalTime)}</span>
+              </div>
+              {/* <div className="flex flex-row gap-1 flex-wrap flex-1 justify-end">
                   {"tags" in recipe &&
                     recipe.tags.map((tag) => (
                       <NavigationLink
@@ -173,47 +170,47 @@ const RecipeListItem = ({ recipe, index }: RecipeListItemProps) => {
                       </NavigationLink>
                     ))}
                 </div> */}
+            </div>
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div>
+            <Separator className="mt-4" />
+            <div className="p-5">
+              <div className="flex flex-row justify-between gap-1 items-center">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Ingredients
+                </h3>
+                <ShoppingBasketIcon />
+              </div>
+              <div className="flex flex-col gap-2">
+                <ul className="list-disc pl-5 flex flex-col gap-2">
+                  {recipe.ingredients.map((item, index) => {
+                    return <li key={index}>{item}</li>;
+                  })}
+                </ul>
               </div>
             </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div>
-              <Separator className="mt-4" />
-              <div className="p-5">
-                <div className="flex flex-row justify-between gap-1 items-center">
-                  <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                    Ingredients
-                  </h3>
-                  <ShoppingBasketIcon />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <ul className="list-disc pl-5 flex flex-col gap-2">
-                    {recipe.ingredients.map((item, index) => {
-                      return <li key={index}>{item}</li>;
-                    })}
-                  </ul>
-                </div>
+            <Separator />
+            <div className="p-5">
+              <div className="flex flex-row justify-between gap-1 items-center">
+                <h3 className="uppercase text-xs font-bold text-accent-foreground">
+                  Instructions
+                </h3>
+                <ScrollIcon />
               </div>
-              <Separator />
-              <div className="p-5">
-                <div className="flex flex-row justify-between gap-1 items-center">
-                  <h3 className="uppercase text-xs font-bold text-accent-foreground">
-                    Instructions
-                  </h3>
-                  <ScrollIcon />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <ol className="list-decimal pl-5 flex flex-col gap-2">
-                    {recipe.instructions.map((item, index) => {
-                      return <li key={index}>{item}</li>;
-                    })}
-                  </ol>
-                </div>
+              <div className="flex flex-col gap-2">
+                <ol className="list-decimal pl-5 flex flex-col gap-2">
+                  {recipe.instructions.map((item, index) => {
+                    return <li key={index}>{item}</li>;
+                  })}
+                </ol>
               </div>
             </div>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+          </div>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
     // </MediaGalleryProvider>
   );
 };

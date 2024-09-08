@@ -1,6 +1,6 @@
 import { streamToObservable } from "@/lib/stream-to-observable";
-import { Buffer } from 'node:buffer';
 import { produce } from "immer";
+import { Buffer } from 'node:buffer';
 
 import { captureEvent } from "@/actions/capturePostHogEvent";
 import { fetchLists } from "@/actors/fetchLists";
@@ -412,9 +412,12 @@ export const createPageSessionMachine = ({
                 cookTime: RecipesTable.cookTime,
                 createdAt: RecipesTable.createdAt,
                 createdBy: RecipesTable.createdBy,
-                mediaIds: sqlFN<
-                  string[]
-                >`array_agg(${RecipeMediaTable.mediaId})`.as("mediaIds"),
+                mediaIds: sqlFN<string[]>`
+                  CASE
+                    WHEN COUNT(${RecipeMediaTable.mediaId}) = 0 THEN ARRAY[]::uuid[]
+                    ELSE array_remove(array_agg(${RecipeMediaTable.mediaId}), NULL)
+                  END
+                `.as("mediaIds"),
               })
               .from(RecipesTable)
               .innerJoin(
@@ -447,6 +450,7 @@ export const createPageSessionMachine = ({
                 RecipesTable.createdBy
               );
 
+              console.log({recipes})
             return recipes;
           } finally {
             await client.end();
