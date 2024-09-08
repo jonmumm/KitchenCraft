@@ -1,154 +1,80 @@
 "use client";
 
 import { CloudflareImage } from "@/components/cloudflare-image";
+import { useEventHandler } from "@/hooks/useEventHandler";
+import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { cn } from "@/lib/utils";
-import { createContext, useState } from "react";
-import { MediaGalleryActor } from "./machine";
-
-export const MediaGalleryContext = createContext({} as MediaGalleryActor);
-
-// export const MediaGalleryRoot = ({
-//   children,
-//   slug,
-//   minHeight, // index,
-//   media,
-// }: {
-//   children: ReactNode;
-//   slug: string;
-//   minHeight: string;
-//   media: { url: string; width: number; height: number }[];
-//   // index: number | undefined; // if no index, assumed to be the only one in the list
-// }) => {
-//   const searchParams = useSearchParams();
-
-//   const actor = useActor(`media-${slug}`, () =>
-//     createMediaGalleryMachine({
-//       slug,
-//       minHeight,
-//       media,
-//       focusedIndex: z
-//         .number()
-//         .parse(parseInt(searchParams.get("index") || "-1")),
-//     }).provide({
-//       actions: {
-//         replaceQueryParameters: ({ context }, params) => {
-//           const queryParams = new URLSearchParams(window.location.search);
-
-//           for (const key in params.paramSet) {
-//             const value = params.paramSet[key];
-//             if (!!value) {
-//               queryParams.set(key, value);
-//             } else {
-//               queryParams.delete(key);
-//             }
-//           }
-
-//           const paramString = queryParams.toString();
-
-//           // Construct the new URL
-//           const newUrl =
-//             paramString !== ""
-//               ? window.location.pathname + "?" + paramString
-//               : window.location.pathname;
-//           window.history.replaceState(context, "", newUrl);
-//         },
-//       },
-//     })
-//   );
-
-//   // const handleTouchStart: TouchEventHandler<HTMLDivElement> = useCallback(
-//   //   (e) => {
-//   //     console.log("start", e);
-//   //   },
-//   //   []
-//   // );
-//   // const handleTouchMove: TouchEventHandler<HTMLDivElement> = useCallback(
-//   //   (e) => {
-//   //     console.log("move", e);
-//   //   },
-//   //   []
-//   // );
-//   // const handleTouchEnd: TouchEventHandler<HTMLDivElement> = useCallback((e) => {
-//   //   console.log("END!", e);
-//   // }, []);
-//   // const handlers = useSwipeable({
-//   //   onSwiped: (eventData) => console.log("User Swiped!", eventData),
-//   //   onTouchEndOrOnMouseUp:  () => {
-//   //     console.log("start")
-//   //   }
-//   //   // ...config,
-//   // });
-
-//   return (
-//     <MediaGalleryContext.Provider value={actor}>
-//       {children}
-//     </MediaGalleryContext.Provider>
-//   );
-// };
+import { Loader2Icon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 export const MediaPreview = ({
   recipeId,
-  initialMediaIds, // height = "20dvh",
+  initialMediaIds,
 }: {
   recipeId: string;
   initialMediaIds: string[];
-  // height?: string;
 }) => {
-  const [mediaIds] = useState(initialMediaIds);
-  const fullscreen = false; // You can implement fullscreen logic later if needed
-  console.log("mediaIds", mediaIds);
+  const [mediaIds, setMediaIds] = useState(initialMediaIds);
+  const [uploadingMediaId, setUploadingMediaId] = useState<string | null>(null);
+
+  const currentMediaIds = usePageSessionSelector(
+    (snapshot) => snapshot.context.recipes[recipeId]?.mediaIds || []
+  );
+
+  useEventHandler("SELECT_RECIPE_MEDIA", (event) => {
+    if (event.recipeId === recipeId) {
+      setUploadingMediaId(event.mediaId);
+    }
+  });
+
+  const handleUploadMediaComplete = useCallback(
+    (event: { mediaId: string }) => {
+      if (event.mediaId === uploadingMediaId) {
+        setUploadingMediaId(null);
+      }
+    },
+    [uploadingMediaId]
+  );
+  useEventHandler("UPLOAD_MEDIA_COMPLETE", handleUploadMediaComplete);
+
+  useEffect(() => {
+    if (uploadingMediaId && mediaIds.length === 0) {
+      setMediaIds([uploadingMediaId]);
+    } else if (currentMediaIds.length > 0) {
+      setMediaIds(currentMediaIds);
+    }
+  }, [uploadingMediaId, currentMediaIds, mediaIds]);
 
   const previewMediaId = mediaIds[0];
 
+  if (!previewMediaId) {
+    return null;
+  }
+
+  const isUploading = previewMediaId === uploadingMediaId;
+
   return (
-    <>
-      {previewMediaId && (
-        <div className={cn(`relative w-full aspect-square`)}>
-          <div className="mx-auto h-full">
-            <div className="flex h-full">
-              <div className="h-full aspect-square rounded-xl">
-                <CloudflareImage
-                  mediaId={previewMediaId}
-                  width={1000}
-                  height={1000}
-                  fit="cover"
-                  alt="Recipe Preview"
-                  className="h-full w-full"
-                />
+    <div className={cn(`relative w-full aspect-square`)}>
+      <div className="mx-auto h-full">
+        <div className="flex h-full">
+          <div className="h-full aspect-square rounded-xl relative">
+            {isUploading ? (
+              <div className="h-full w-full flex items-center justify-center bg-gray-200">
+                <Loader2Icon className="animate-spin text-gray-500" size={48} />
               </div>
-            </div>
+            ) : (
+              <CloudflareImage
+                mediaId={previewMediaId}
+                width={1000}
+                height={1000}
+                fit="cover"
+                alt="Recipe Preview"
+                className="h-full w-full"
+              />
+            )}
           </div>
         </div>
-      )}
-    </>
-  );
-};
-
-const MediaGalleryItem = ({
-  mediaId,
-  index,
-}: {
-  mediaId: string;
-  index: number;
-}) => {
-  return (
-    <div className="relative w-full h-full">
-      <div className="w-full h-full rounded-lg bg-purple-300" />
+      </div>
     </div>
   );
 };
-
-// export const MediaGalleryContainer = ({
-//   children,
-// }: {
-//   children: ReactNode;
-// }) => {
-//   const actor = useContext(MediaGalleryContext);
-//   const mediaCount = useSelector(actor, (state) => state.context.media.length);
-
-//   return (
-//     <div className={cn(mediaCount > 0 ? "h-[50vh]" : "hidden", "relative")}>
-//       {children}
-//     </div>
-//   );
-// };

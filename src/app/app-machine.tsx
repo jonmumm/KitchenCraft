@@ -1306,7 +1306,6 @@ export const createAppMachine = ({
 
                     const formData = new FormData();
                     formData.append("file", context.uploadingMediaFile);
-                    // context.uploadingMediaFile.type;
 
                     try {
                       send({
