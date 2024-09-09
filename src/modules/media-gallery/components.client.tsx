@@ -18,7 +18,7 @@ export const MediaPreview = ({
   const [uploadingMediaId, setUploadingMediaId] = useState<string | null>(null);
 
   const currentMediaIds = usePageSessionSelector(
-    (snapshot) => snapshot.context.recipes[recipeId]?.mediaIds || []
+    (snapshot) => snapshot.context.recipes[recipeId]?.mediaIds
   );
 
   useEventHandler("SELECT_RECIPE_MEDIA", (event) => {
@@ -40,10 +40,15 @@ export const MediaPreview = ({
   useEffect(() => {
     if (uploadingMediaId && mediaIds.length === 0) {
       setMediaIds([uploadingMediaId]);
-    } else if (currentMediaIds.length > 0) {
+    } else if (
+      currentMediaIds &&
+      currentMediaIds.length > 0 &&
+      initialMediaIds &&
+      initialMediaIds.length != currentMediaIds.length
+    ) {
       setMediaIds(currentMediaIds);
     }
-  }, [uploadingMediaId, currentMediaIds, mediaIds]);
+  }, [uploadingMediaId, currentMediaIds, mediaIds, initialMediaIds]);
 
   const previewMediaId = mediaIds[0];
 

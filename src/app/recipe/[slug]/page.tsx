@@ -333,10 +333,10 @@ export default async function Page(props: Props) {
               <div className="flex flex-row gap-3 p-5 justify-between">
                 <div className="flex flex-col gap-2">
                   <h1 className="text-2xl font-semibold">{name}</h1>
-                  {/* <MediaPreview
+                  <MediaPreview
                     recipeId={recipe.id}
                     initialMediaIds={recipe.mediaIds}
-                  /> */}
+                  />
                   <p className="text-lg text-muted-foreground">{description}</p>
                   <div className="text-sm text-muted-foreground flex flex-row gap-2 items-center">
                     <span>Yields</span>
