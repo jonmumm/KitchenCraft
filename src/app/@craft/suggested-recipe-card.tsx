@@ -25,6 +25,7 @@ import { usePageSessionSelector } from "@/hooks/usePageSessionSelector";
 import { useRecipe } from "@/hooks/useRecipe";
 import { useSend } from "@/hooks/useSend";
 import { cn } from "@/lib/utils";
+import { MediaPreview } from "@/modules/media-gallery/components.client";
 import { createRecipeIdIsFocusedSelector } from "@/selectors/app.selectors";
 import { createSuggestedRecipeIdAtIndexSelector } from "@/selectors/combined.selectors";
 import {
@@ -123,6 +124,9 @@ export const SuggestedRecipeCard = memo(({ index }: { index: number }) => {
                   </div>
                 )}
               </CardTitle>
+              {recipeId && (
+                <MediaPreview recipeId={recipeId} />
+              )}
               <RecipeDescription id={recipeId} />
               {isExpanded && (
                 <div className="text-muted-foreground text-xs flex flex-row gap-2">

@@ -12,9 +12,9 @@ export const MediaPreview = ({
   initialMediaIds,
 }: {
   recipeId: string;
-  initialMediaIds: string[];
+  initialMediaIds?: string[];
 }) => {
-  const [mediaIds, setMediaIds] = useState(initialMediaIds);
+  const [mediaIds, setMediaIds] = useState(initialMediaIds || []);
   const [uploadingMediaId, setUploadingMediaId] = useState<string | null>(null);
 
   const currentMediaIds = usePageSessionSelector(
