@@ -584,7 +584,6 @@ export type PartyMap = Record<
     get(id: string): Party.Stub;
   }
 >;
-
 type WithIdInput = { id: string };
 export type AnyStateMachineWithIdInput = StateMachine<
   any, // context
@@ -597,6 +596,9 @@ export type AnyStateMachineWithIdInput = StateMachine<
   any, // state value
   any, // tag
   WithIdInput, // input, now explicitly requiring an object with an id of type string
+  any, // tag
+  any, // tag
+  any, // tag
   any // output
 >;
 
