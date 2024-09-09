@@ -8,5 +8,10 @@
     "page_session": "src/app/page-session-server.ts",
     "session": "src/app/session-server.ts",
     "user": "src/app/user-server.ts"
+  },
+  "bindings": {
+    "r2": {
+      "mediaBucket": "kitchencraft-media"
+    }
   }
 }

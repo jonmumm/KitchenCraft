@@ -61,6 +61,7 @@ export const getHotRecipes = async (userId?: string) => {
       score: scoreExpression,
       mediaCount,
       createdBySlug: ProfileTable.profileSlug, // Include user profile slug
+      mediaIds: sql<string[]>`ARRAY_AGG(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
     .innerJoin(
@@ -110,10 +111,30 @@ export const getRecipe = async (slug: string) => {
       activeTime: RecipesTable.activeTime,
       cookTime: RecipesTable.cookTime,
       createdAt: RecipesTable.createdAt,
+      mediaIds: sql<string[]>`ARRAY_AGG(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
     .leftJoin(ProfileTable, eq(RecipesTable.createdBy, ProfileTable.userId))
-    .where(eq(RecipesTable.slug, slug));
+    .leftJoin(RecipeMediaTable, eq(RecipesTable.id, RecipeMediaTable.recipeId))
+    .where(eq(RecipesTable.slug, slug))
+    .groupBy(
+      RecipesTable.id,
+      RecipesTable.versionId,
+      RecipesTable.slug,
+      RecipesTable.name,
+      RecipesTable.description,
+      RecipesTable.createdBy,
+      ProfileTable.profileSlug,
+      RecipesTable.yield,
+      RecipesTable.prompt,
+      RecipesTable.tags,
+      RecipesTable.ingredients,
+      RecipesTable.instructions,
+      RecipesTable.totalTime,
+      RecipesTable.activeTime,
+      RecipesTable.cookTime,
+      RecipesTable.createdAt
+    );
 
   return await withDatabaseSpan(query, "getRecipe")
     .execute()
@@ -238,6 +259,7 @@ export const getRecipesByListSlug = async (
       createdAt: RecipesTable.createdAt,
       points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
       mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})`,
+      mediaIds: sql<string[]>`ARRAY_AGG(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
     .innerJoin(
@@ -296,6 +318,7 @@ export const getRecentRecipesByCreator = async (createdBy: string) => {
       createdAt: RecipesTable.createdAt,
       points,
       mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`,
+      mediaIds: sql<string[]>`ARRAY_AGG(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
     .innerJoin(
@@ -377,6 +400,7 @@ export const getRecentRecipesByProfile = async (profileSlug: string) => {
       createdAt: RecipesTable.createdAt,
       points: sql<number>`(COUNT(DISTINCT ${UpvotesTable.userId}) + COUNT(DISTINCT ${RecipeMediaTable.mediaId}))::int`,
       mediaCount: sql<number>`COUNT(DISTINCT ${RecipeMediaTable.mediaId})::int`,
+      mediaIds: sql<string[]>`ARRAY_AGG(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
     .innerJoin(
@@ -431,6 +455,7 @@ export const getRecipesByTag = async (tag: string) => {
       createdAt: RecipesTable.createdAt,
       points,
       mediaCount,
+      mediaIds: sql<string[]>`ARRAY_AGG(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
     .innerJoin(
@@ -491,6 +516,7 @@ export const getRecipesByTagAndCreator = async (
       createdAt: RecipesTable.createdAt,
       points,
       mediaCount,
+      mediaIds: sql<string[]>`ARRAY_AGG(DISTINCT ${RecipeMediaTable.mediaId})`,
     })
     .from(RecipesTable)
     .innerJoin(
@@ -553,6 +579,7 @@ export const getRecentRecipes = async () => {
         points,
         mediaCount,
         userProfileSlug: ProfileTable.profileSlug, // Include user profile slug
+        mediaIds: sql<string[]>`ARRAY_AGG(DISTINCT ${RecipeMediaTable.mediaId})`,
       })
       .from(RecipesTable)
       .innerJoin(
@@ -622,6 +649,7 @@ export const getBestRecipes = async (
         points,
         mediaCount,
         createdBySlug: ProfileTable.profileSlug, // Include user profile slug
+        mediaIds: sql<string[]>`ARRAY_AGG(DISTINCT ${RecipeMediaTable.mediaId})`,
       })
       .from(RecipesTable)
       .innerJoin(

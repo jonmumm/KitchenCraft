@@ -1,3 +1,5 @@
+export const CLOUDFLARE_ACCOUNT_HASH = "-Ze6ZTgZZ7fZNyftMAQi0g";
+
 export const STATUS = {
   INITIALIZING: "initializing",
   RUNNING: "running",
