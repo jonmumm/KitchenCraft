@@ -41,9 +41,8 @@ export const ActorProvider = (props: {
     });
     socket$.set(socket);
     send({ type: "SOCKET_CONNECTING" });
-
     fetch(
-      `https://${env.KITCHENCRAFT_API_HOST}/parties/page_session/${id}?token=${token}`,
+      `${env.KITCHENCRAFT_API_HOST.startsWith('localhost') ? 'http' : 'https'}://${env.KITCHENCRAFT_API_HOST}/parties/page_session/${id}?token=${token}`,
       {
         method: "POST",
         body: JSON.stringify({
